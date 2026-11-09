@@ -246,7 +246,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `siege_participants` | `id`, `siege_id`, `role` (`ATTACKER`/`DEFENDER`), `kingdom_id null`, `user_id null`, `npc_profile_id null`, `locale null` | `unique(siege_id, role)` |
-| `battle_results` | `siege_id PK`, `winner_role`, `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `defended bool`, `defense_points smallint not null default 0` (vergebene Verteidigungspunkte, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)), `decided_at`, `core_version text` | PK verhindert ein zweites Ergebnis; dass jede beendete Belagerung **eines** hat, sichern das Einfügen in derselben Transaktion wie der Endübergang und der Invariantenjob (I6) |
+| `battle_results` | `siege_id PK`, `winner_role`, `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `defended bool` (eine rechtzeitige Verteidigung liegt vor, auch mit verpasster Einzelfrage), `defense_points smallint not null default 0` (vergebene Verteidigungspunkte: Teilnahme plus Bonus, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)), `decided_at`, `core_version text` | PK verhindert ein zweites Ergebnis; dass jede beendete Belagerung **eines** hat, sichern das Einfügen in derselben Transaktion wie der Endübergang und der Invariantenjob (I6) |
 | `battle_events` | `id bigint`, `siege_id`, `seq int`, `type`, `payload jsonb`, `at` | `unique(siege_id, seq)`; nur anhängen |
 
 ### 4.8 Items und Belohnungen

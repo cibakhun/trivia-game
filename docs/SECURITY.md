@@ -35,7 +35,7 @@ Der Client erhält nie Daten, die er vor der Auflösung nicht sehen darf (richti
 | Mehrfache Antwortversuche | `unique(participant_id, step_index)` + bedingte Aktualisierung; abgegebene Antworten per Trigger unveränderlich |
 | Fragenwechsel durch Refresh | `present` liefert für einen Schritt immer dieselbe Frage mit ursprünglichem `presented_at` |
 | Wiederholung derselben Herausforderung | eine Herausforderung pro Belagerung; Abbruch zählt als Niederlage; Versuchskontingent |
-| Vorzeitige Offenlegung der Gegnerantwort | Gegnerdaten erst nach Auflösung; Verteidiger erfährt vor Start nicht einmal die Kategorie und nie, ob der Angreifer richtig lag (verdecktes Gate); Vertragstest prüft, dass keine Antwort und kein Ereignis vor der Auflösung darauf schließen lässt |
+| Vorzeitige Offenlegung der Gegnerantwort | Gegnerdaten erst nach Auflösung; Verteidiger erfährt vor Start nicht einmal die Kategorie und nie, ob der Angreifer richtig lag (verdecktes Gate); Verteidigungspunkte hängen nur von der eigenen Antwort ab und verraten deshalb nichts; Vertragstest prüft, dass keine Antwort und kein Ereignis vor der Auflösung darauf schließen lässt |
 | Manipulation numerischer Antworten | Server parst Rohtext selbst, rundet auf Präzision, prüft Wertebereich |
 | Nachschlagen (nicht verhinderbar, Brief §13) | kurze Zeitlimits (20/30 s); Schätzfragen, die schwer zu „googeln“ sind; statistische Erkennung (§4) |
 | Fragen-Shopping | Budget wird bei Anzeige der Frage verbraucht |

@@ -156,6 +156,7 @@ type Performance = {
   triviaCorrect: boolean;            // TIMED_OUT ⇒ false
   estimateDistance: Decimal | null;  // null ⇒ +∞
   estimateEffectiveMs: number | null;// null ⇒ +∞
+  answeredBoth: boolean;             // beide Fragen innerhalb ihres Zeitlimits beantwortet
 };
 
 type Outcome =
@@ -163,7 +164,7 @@ type Outcome =
   | { winner: 'DEFENDER'; reason: 'ATTACKER_GATE' | 'ESTIMATE' | 'SPEED' | 'FULL_TIE'; defended: boolean };
 
 function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE'): Outcome {
-  // verdecktes Gate (O-01): Angreifer falsch ⇒ Angriff scheitert immer; Punkte nur bei eigener Verteidigung
+  // verdecktes Gate (O-01): Angreifer falsch ⇒ Angriff scheitert immer; mit eigener Verteidigung DEFENDER_WON, sonst ATTACK_FAILED
   if (!att.triviaCorrect) return { winner: 'DEFENDER', reason: 'ATTACKER_GATE', defended: def !== 'NO_DEFENSE' };
   if (def === 'NO_DEFENSE') return { winner: 'ATTACKER', reason: 'TIMEOUT' };
   if (!def.triviaCorrect)   return { winner: 'ATTACKER', reason: 'TRIVIA' };
@@ -174,31 +175,42 @@ function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE'): Outcome
   if (t !== 0) return t < 0 ? { winner: 'ATTACKER', reason: 'SPEED' } : { winner: 'DEFENDER', reason: 'SPEED', defended: true };
   return { winner: 'DEFENDER', reason: 'FULL_TIE', defended: true };
 }
+
+// Verteidigungspunkte (GAME_RULES §5.5): nur die eigene Leistung des Verteidigers zählt, nicht der Ausgang
+function defensePoints(def: Performance | 'NO_DEFENSE', p: { forDefending: number; bonusCorrect: number }): number {
+  if (def === 'NO_DEFENSE' || !def.answeredBoth) return 0;
+  return p.forDefending + (def.triviaCorrect ? p.bonusCorrect : 0);
+}
 ```
 
 Das Gate ist fest (PO-Entscheidung [O-01]); einen Schalter für andere Varianten gibt es nicht. Ein Mehrrundenprotokoll (Brief-Fall D) ist nicht vorgesehen. Die Funktion ist für alle Modi gleich (PvE, PvP, NPC gegen NPC). Abbildung auf den Belagerungszustand:
 
 | Ergebnis | Zustand | Verteidigungspunkte |
 |---|---|---|
-| `ATTACKER`, beliebiger Grund | `ATTACKER_WON` bzw. bei `TIMEOUT` `ATTACKER_WON_BY_TIMEOUT` | – |
-| `DEFENDER`, `defended = true` | `DEFENDER_WON` | ja (PvP und NPC-Belagerungen, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)) |
+| `ATTACKER`, `TIMEOUT` | `ATTACKER_WON_BY_TIMEOUT` | – (keine Verteidigung) |
+| `ATTACKER`, `TRIVIA` / `ESTIMATE` / `SPEED` | `ATTACKER_WON` | `defensePoints`: Teilnahme; bei `ESTIMATE`/`SPEED` lag auch der Verteidiger richtig, also mit Bonus |
+| `DEFENDER`, `defended = true` | `DEFENDER_WON` | `defensePoints` |
 | `DEFENDER`, `ATTACKER_GATE`, `defended = false` | `ATTACK_FAILED` (Frist abgelaufen, Angreifer lag falsch) | – |
 
-Im PvE steht die Verteidigung (NPC oder Garnison) vorab fest; `defended` ist dort immer `true`, Punkte gibt es nur für Spielerreiche.
+`defensePoints` ist rein; Paarlimit und verdächtig verknüpfte Konten prüft die Auflösungstransaktion ([SIEGE_SYSTEM.md §5.3](SIEGE_SYSTEM.md#53-auflösungstransaktion)). Punkte gibt es nur, wenn der Verteidiger ein Spielerreich ist (PvP und NPC-Belagerungen, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)). Im PvE steht die Verteidigung (NPC oder Garnison) vorab fest; `defended` ist dort immer `true`.
 
 ### 8.1 Beispiele (Testfälle)
 
-| # | Angreifer | Verteidiger | Ergebnis | Stufe |
-|---|---|---|---|---|
-| 1 | richtig, 1390, 6,1 s | falsch | Angreifer | TRIVIA (Fall A, E2E-02) |
-| 2 | richtig, 1390 (Abstand 4) | richtig, 1400 (Abstand 14) | Angreifer | ESTIMATE (Fall B, E2E-03) |
-| 3 | richtig, 1386, 5,2 s | richtig, 1386, 6,8 s | Angreifer | SPEED (Fall C, E2E-04) |
-| 4 | richtig, 1382, 7,0 s | richtig, 1390, 4,0 s | Verteidiger | SPEED (gleicher Abstand 4) |
-| 5 | falsch | richtig oder falsch, rechtzeitig | Verteidiger + Verteidigungspunkte | ATTACKER_GATE |
-| 6 | richtig | keine Antwort bis Frist | Angreifer | TIMEOUT (E2E-05) |
-| 7 | richtig, Schätzung verpasst | richtig, 2000 | Verteidiger | ESTIMATE (∞ > jeder Abstand) |
-| 8 | richtig, 1386, 5000 ms | richtig, 1386, 5000 ms | Verteidiger | FULL_TIE |
-| 9 | falsch | keine Antwort bis Frist | niemand: Angriff gescheitert (`ATTACK_FAILED`), Gebiet bleibt, keine Punkte | ATTACKER_GATE |
+Verteidigungspunkte mit den Eternal-Werten aus [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18) (5 Teilnahme, +5 bei richtiger Antwort), Paarlimit nicht erreicht. Wo nichts anderes steht, hat der Verteidiger beide Fragen rechtzeitig beantwortet.
+
+| # | Angreifer | Verteidiger | Ergebnis | Stufe | Verteidigungspunkte |
+|---|---|---|---|---|---|
+| 1 | richtig, 1390, 6,1 s | falsch | Angreifer | TRIVIA (Fall A, E2E-02) | 5 |
+| 2 | richtig, 1390 (Abstand 4) | richtig, 1400 (Abstand 14) | Angreifer | ESTIMATE (Fall B, E2E-03) | 10 |
+| 3 | richtig, 1386, 5,2 s | richtig, 1386, 6,8 s | Angreifer | SPEED (Fall C, E2E-04) | 10 |
+| 4 | richtig, 1382, 7,0 s | richtig, 1390, 4,0 s | Verteidiger | SPEED (gleicher Abstand 4) | 10 |
+| 5 | falsch | richtig, rechtzeitig | Verteidiger | ATTACKER_GATE | 10 |
+| 6 | richtig | keine Antwort bis Frist | Angreifer | TIMEOUT (E2E-05) | 0 |
+| 7 | richtig, Schätzung verpasst | richtig, 2000 | Verteidiger | ESTIMATE (∞ > jeder Abstand) | 10 |
+| 8 | richtig, 1386, 5000 ms | richtig, 1386, 5000 ms | Verteidiger | FULL_TIE | 10 |
+| 9 | falsch | keine Antwort bis Frist | niemand: Angriff gescheitert (`ATTACK_FAILED`), Gebiet bleibt | ATTACKER_GATE | 0 |
+| 10 | falsch | falsch, rechtzeitig | Verteidiger | ATTACKER_GATE | 5 |
+| 11 | falsch | Trivia richtig, Schätzfrage verpasst | Verteidiger | ATTACKER_GATE | 0 (Quiz nicht vollständig) |
 
 ## 9. Inhaltspipeline und Umfang
 

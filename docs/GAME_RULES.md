@@ -100,10 +100,20 @@ Beide Teilnehmer erhalten dieselbe Fragenversion, jeweils in ihrer Sprache; bewe
 
 ### 5.5 Verteidigungspunkte [V Grundsatz, E Werte, [O-18]]
 
-- **Grundsatz [V, O-01]:** Wer sich gegen eine Belagerung rechtzeitig verteidigt und gewinnt (`DEFENDER_WON`), erhält Verteidigungspunkte – unabhängig davon, ob er gegen einen Angreifer gewonnen hat, der falsch lag (Gate), oder im Duell (Trivia, Schätzung, Zeit). Ohne eigene Verteidigung gibt es keine Punkte, auch wenn der Angriff am Gate scheitert.
-- **Werte [E]:** Eternal 10 Verteidigungspunkte je erfolgreicher Verteidigung, sichtbar im Reichsprofil, im globalen Spielerprofil und in einer Rangliste „Verteidiger“. Daily/Weekly: 5 Saisonpunkte ([WORLD_SYSTEM.md §6.3](WORLD_SYSTEM.md#63-wertung-vorschlag-transparent-e)).
+- **Grundsatz [V, PO 2026-11-09]:** Wer sich gegen eine Belagerung rechtzeitig verteidigt, erhält Verteidigungspunkte dafür, dass er das Quiz gemacht hat (Teilnahme). Hat er die Trivia-Frage richtig beantwortet, erhält er mehr (Bonus). Ohne eigene Verteidigung gibt es keine Punkte, auch wenn der Angriff am Gate scheitert.
+- **Unabhängig vom Ausgang [E, Auslegung der PO-Vorgabe]:** Die Punkte hängen nur von der eigenen Leistung des Verteidigers ab. Auch wer das Gebiet trotz Verteidigung verliert, erhält die Teilnahmepunkte und bei richtiger Antwort den Bonus. Deshalb verraten die Punkte nichts darüber, ob der Angreifer richtig lag.
+- **Was als Verteidigung zählt [E]:** Beide Fragen der Verteidigung (Trivia und Schätzung) sind jeweils innerhalb ihres Zeitlimits beantwortet. Wer die Verteidigung nur öffnet und nicht antwortet, erhält nichts.
 - **Wirkung [E]:** Bis zur Entscheidung über [O-18] verschaffen Punkte keinen spielmechanischen Vorteil (nur Ansehen und Rangliste).
-- **Schutz gegen Absprachen [E]:** höchstens 2 punktbringende Verteidigungen je Paar aus Angreifer- und Verteidigerreich pro 24 h; keine Punkte, wenn die Konten als verdächtig verknüpft markiert sind ([SECURITY.md §4](SECURITY.md#4-missbrauch-multiaccounts-und-bots)); auffällig viele Gate-Fehlschläge desselben Angreifers gegen dasselbe Ziel erzeugen ein Missbrauchssignal.
+- **Schutz gegen Absprachen [E]:** höchstens 2 punktbringende Verteidigungen je Paar aus Angreifer- und Verteidigerreich pro 24 h (Teilnahme und Bonus zusammen); keine Punkte, wenn die Konten als verdächtig verknüpft markiert sind ([SECURITY.md §4](SECURITY.md#4-missbrauch-multiaccounts-und-bots)); auffällig viele Gate-Fehlschläge desselben Angreifers gegen dasselbe Ziel erzeugen ein Missbrauchssignal.
+
+**Werte [E, [O-18]]:**
+
+| Modus | Teilnahme | Bonus bei richtiger Trivia-Antwort | höchstens je Verteidigung |
+|---|---|---|---|
+| Eternal | 5 Verteidigungspunkte | +5 | 10 |
+| Daily/Weekly | 2 Saisonpunkte | +3 | 5 (wie eine Eroberung) |
+
+Eternal-Punkte erscheinen im Reichsprofil, im globalen Spielerprofil und in der Rangliste „Verteidiger“. Saisonpunkte zählen zur Wertung der Daily-/Weekly-Instanz ([WORLD_SYSTEM.md §6.3](WORLD_SYSTEM.md#63-wertung-vorschlag-transparent-e)).
 
 ## 6. Eternal-Verteidigung
 
@@ -173,7 +183,8 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | `defense.maxDeadline` | 48 h | 4 h (keine Items) | 15 min (keine Items) | A / E / E |
 | `defense.startBuffer` | 10 s | 10 s | 10 s | E |
 | `defense.settleGrace` (technischer Abwicklungspuffer, verlängert keine Frist) | 5 s | 5 s | 5 s | E |
-| `defense.pointsPerSuccessfulDefense` | 10 Verteidigungspunkte | 5 Saisonpunkte | 5 Saisonpunkte | E, [O-18] |
+| `defense.pointsForDefending` (Teilnahme, §5.5) | 5 Verteidigungspunkte | 2 Saisonpunkte | 2 Saisonpunkte | E, [O-18] |
+| `defense.pointsBonusCorrect` (eigene Trivia-Antwort richtig) | +5 | +3 | +3 | E, [O-18] |
 | `defense.pointsPairLimitPerDay` | 2 | 2 | 2 | E, [O-18] |
 | `quiz.triviaTimeLimit` | 20 s | 20 s | 15 s | E |
 | `quiz.estimateTimeLimit` | 30 s | 30 s | 25 s | E |

@@ -53,7 +53,7 @@ stateDiagram-v2
 | `DEFENDING` | Verteidiger bearbeitet die Herausforderung | ja | **neu** (W-3) |
 | – (Ereignis) | Verteidiger hat abgegeben | – | `DEFENDER_SUBMITTED` – Auswertung erfolgt in derselben Transaktion |
 | `RESOLVING` | reserviert; im MVP nie persistiert, da die Auflösung eine einzige Transaktion ist | ja | `RESOLVING` |
-| `ATTACKER_WON`, `DEFENDER_WON`, `ATTACKER_WON_BY_TIMEOUT` | Ergebnisse; `DEFENDER_WON` nach eigener Verteidigung bringt Verteidigungspunkte ([GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)) | nein | gleichnamig |
+| `ATTACKER_WON`, `DEFENDER_WON`, `ATTACKER_WON_BY_TIMEOUT` | Ergebnisse; jede eigene, vollständige Verteidigung bringt Verteidigungspunkte, auch wenn das Gebiet verloren geht ([GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)) | nein | gleichnamig |
 | `CANCELLED` | durch Admin oder weil das Angreiferreich nicht mehr aktiv ist; Budget wird erstattet | nein | gleichnamig |
 | `EXPIRED_INVALID` | technisches Ende ohne Wertung (Instanz geschlossen) | nein | gleichnamig |
 
@@ -166,7 +166,8 @@ INSERT INTO region_history (...);   -- from_kingdom_id = :def (NULL bei neutrale
 -- falls Verteidiger gewinnt (DEFENDER_WON) oder Angriff am verdeckten Gate scheitert (ATTACK_FAILED):
 UPDATE region_state SET active_siege_id = NULL, version = version + 1
  WHERE region_id = :target AND active_siege_id = :siege;
---   nur DEFENDER_WON nach eigener Verteidigung eines Spielerreichs, Paarlimit nicht erreicht:
+-- Verteidigungspunkte, unabhängig vom Ausgang: nur wenn :points = game-core.defensePoints(...) > 0,
+--   der Verteidiger ein Spielerreich ist, das Paarlimit nicht erreicht und die Konten nicht verdächtig verknüpft sind:
 UPDATE kingdom_statistics SET defense_points = defense_points + :points WHERE kingdom_id = :def;
 UPDATE player_statistics  SET defense_points = defense_points + :points WHERE user_id = :defender_user;
 -- immer:
@@ -219,7 +220,7 @@ max_deadline_at  = opened_at + defense.maxDeadline             // 48 h [A]
 | Schutz nach Eroberung | `region_state.protected_until`; gilt gegen alle, auch den Vorbesitzer |
 | Anfänger-/Wiederaufbauschutz | `kingdoms.protected_until`; endet vorzeitig, sobald das Reich selbst einen Spieler angreift (UI warnt vorher) |
 | Rangabstand | geprüft beim Angriffsstart mit `region_count` beider Reiche |
-| Punktbringende Verteidigungen je Paar | `battle_results` mit Punkten für dasselbe Paar aus Angreifer- und Verteidigerreich in den letzten 24 h (gleitend), Grenze `defense.pointsPairLimitPerDay` |
+| Punktbringende Verteidigungen je Paar | `battle_results` mit `defense_points > 0` für dasselbe Paar aus Angreifer- und Verteidigerreich in den letzten 24 h (gleitend), Grenze `defense.pointsPairLimitPerDay` |
 
 Alle Zählungen erfolgen unter Sperre des betroffenen Reichs; parallele Anfragen können Limits nicht umgehen (Brief §13.4).
 

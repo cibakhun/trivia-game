@@ -43,6 +43,7 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | Königreichsränge | alle Schwellen (4/5, 14/15, …) |
 | Weltabschluss | Angriffsschluss-Berechnung; Wertung inkl. Gleichstandsregeln |
 | Zustandsmaschine | jeder erlaubte Übergang; jeder unerlaubte wird abgewiesen |
+| Verteidigungspunkte | `defensePoints` für alle Kombinationen aus „beide Fragen beantwortet“ und „Trivia richtig“, Spalte Verteidigungspunkte in [QUIZ_ENGINE.md §8.1](QUIZ_ENGINE.md#81-beispiele-testfälle); Eigenschaft: das Ergebnis hängt nie von der Angreiferleistung ab |
 
 ## 4. Integrationstests (Brief §17.2)
 
@@ -56,7 +57,8 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | Verlängerung gegen Fristablauf (N5) | Verlängerung und Timeout an der Grenze `game_now() = deadline_at`, 500 Wiederholungen mit zufälligem Versatz: entweder Verlängerung wirksam (Item verbraucht, neue Frist, Belagerung offen) oder Timeout (Item **nicht** verbraucht, `ATTACKER_WON_BY_TIMEOUT`) – nie beides, nie Verbrauch ohne Wirkung |
 | Parallele Besitzwechsel (N1, N2) | 20 gleichzeitige Angriffe auf dieselbe Region: genau eine Belagerung; Limits gegen ein Reich nie überschritten |
 | Itemverbrauch parallel (N6, N7) | dasselbe Item in 10 parallelen Anfragen: genau ein Verbrauch; zwei Items parallel auf eine Belagerung: Obergrenze nie überschritten |
-| Verdecktes Gate | Angreifer falsch + keine Verteidigung ⇒ `ATTACK_FAILED`, Gebiet unverändert, keine Punkte; Angreifer falsch + Verteidigung ⇒ `DEFENDER_WON`, Punkte genau einmal; drittes Paar-Duell in 24 h ⇒ keine Punkte; Vertragstest: weder Angreifer noch Verteidiger erfahren vor der Auflösung, ob der Angreifer richtig lag |
+| Verdecktes Gate | Angreifer falsch + keine Verteidigung ⇒ `ATTACK_FAILED`, Gebiet unverändert, keine Punkte; Angreifer falsch + Verteidigung ⇒ `DEFENDER_WON`; Vertragstest: weder Angreifer noch Verteidiger erfahren vor der Auflösung, ob der Angreifer richtig lag |
+| Verteidigungspunkte | Punkte genau einmal je Belagerung, auch wenn der Verteidiger das Gebiet verliert; ohne Bonus bei falscher, mit Bonus bei richtiger Trivia-Antwort; nur geöffnete Verteidigung ⇒ keine Punkte; drittes punktbringendes Paar-Duell in 24 h ⇒ keine Punkte; NPC- oder Garnisonsverteidigung ⇒ keine Punkte; Statistik von Reich und Spieler stimmt mit `battle_results.defense_points` überein |
 | Regionsreservierung | jeder Endzustand (inkl. `ATTACK_FAILED`, PvE, `CANCELLED`, `EXPIRED_INVALID`) gibt `active_siege_id` frei; Fremdschlüssel lehnt Zeiger auf fremde Region ab |
 | Outbox-Verteiler | `LISTEN`-Verbindung während laufender Ereignisse trennen ⇒ nach Wiederverbindung alle Ereignisse in `seq`-Reihenfolge, keine Lücke; parallele Transaktionen erzeugen lückenlose `seq` je Instanz |
 | Sicherheit (HTTP) | Rollentrennung (Spieler ↛ Admin, `EDITOR` ↛ Welt-/Kampf-/Missbrauchs-Endpunkte), CSRF-Ablehnung ohne Token bzw. mit fremdem `Origin`, Sicherheits-Header, Rate Limits über zwei `api`-Prozesse, `Idempotency-Key`-Pflicht, Löschkaskade und Export vollständig |
