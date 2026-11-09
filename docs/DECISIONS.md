@@ -146,4 +146,6 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | 2026-11-09 | O-01 entschieden (PO): verdecktes Angreifer-Gate mit Verteidigungspunkten; O-18 neu erfasst |
 | 2026-11-09 | O-18 teilweise entschieden (PO): Punkte für jede eigene Verteidigung, mehr bei richtiger Trivia-Antwort, auch bei Gebietsverlust |
 | 2026-11-09 | O-18 Richtung (PO): Punkte voraussichtlich für Kosmetik oder Emojis an andere Spieler, kein Spielvorteil |
+| 2026-11-09 | O-18 Empfehlung ergänzt: Ausgeben nur aus eigenem Guthaben mit Buchungsprotokoll, Ranglistenwert sinkt nie; Emojis nur aus fester Auswahl; Punkte nicht gegen Echtgeld (Brief §14.4) |
+| 2026-11-09 | Weitere Review-Korrekturen in PR #1: Gast-Anmeldung über `HttpOnly`-Bootstrap-Cookie, Kontolöschung in einer gesperrten Transaktion mit `ON DELETE RESTRICT`, Aufschub der Löschung bei laufendem Prüfverfahren [E] |
 | 2026-11-09 | Review-Korrekturen in PR #1: einheitliche Fristgrenze mit Abwicklungspuffer, Regionsreservierung, lückenlose Ereignisfolge, `Idempotency-Key` für alle Kommandos, Rollen je Admin-Endpunkt, Löschkaskade; O-06 auf P3 (nach Beta) verschoben; O-01-Schalter auf Optionen A/B präzisiert |
