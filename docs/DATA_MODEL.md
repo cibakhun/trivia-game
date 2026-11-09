@@ -7,7 +7,7 @@ Bezug: Brief §12.3–12.4. Konzeptionelles, aber konsistentes relationales Mode
 - **Instanz-Schlüssel überall:** Jede Spieltabelle trägt `instance_id` (direkt oder über einen eindeutigen Elternteil). Das erzwingt die Welttrennung (Brief §3.4, E2E-12) und erlaubt später Sharding nach Instanz.
 - **IDs:** UUIDv7 (in der Anwendung erzeugt, zeitlich sortierbar) für fachliche Entitäten; `bigint identity` für sehr große, rein interne Anhang-Tabellen (Regionen, Historie, Ereignisse, Transaktionen).
 - **Zeit:** `timestamptz` (UTC); Fristen werden mit `game_now()` verglichen ([ARCHITECTURE.md §8](ARCHITECTURE.md#8-zeitmodell)).
-- **Aktueller Zustand + unveränderliche Protokolle:** Zustandstabellen werden aktualisiert; Protokolltabellen (`*_history`, `*_events`, `*_transactions`, `audit_events`) sind nur anhängbar (UPDATE/DELETE per Rechtevergabe entzogen).
+- **Aktueller Zustand + unveränderliche Protokolle:** Zustandstabellen werden aktualisiert; Protokolltabellen (`*_history`, `*_events`, `*_transactions`, `audit_events`) sind nur anhängbar (UPDATE/DELETE per Rechtevergabe entzogen). **Einzige Ausnahme ist die Schwärzung bei Kontolöschung** ([SECURITY.md §5.2](SECURITY.md#52-umsetzung)): Nur die Datenbankrolle des Löschjobs darf dort Kontoverweise auf das Platzhalterkonto umstellen, `quiz_answers.raw_input` leeren und persönliche `world_events` zu Platzhaltern machen; die Unveränderlichkeits-Trigger (I11) lassen genau diese Spalten für diese Rolle zu. Jede Schwärzung schreibt einen `audit_events`-Eintrag `ACCOUNT_REDACTED` ohne die ursprünglichen Werte.
 - **Optimistische Version + Zeilensperren:** Zustandszeilen mit Wettbewerb (`region_state`, `sieges`, `kingdoms`) tragen `version`. Kritische Transaktionen sperren mit `SELECT … FOR UPDATE` in fester Reihenfolge ([SIEGE_SYSTEM.md §5](SIEGE_SYSTEM.md#5-nebenläufigkeit-und-sperrreihenfolge)).
 - **Enums** als PostgreSQL-`text` mit `CHECK` (leichter erweiterbar als native Enums).
 
@@ -71,7 +71,7 @@ erDiagram
 
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
-| `users` | `id uuid`, `email citext null`, `email_verified_at`, `password_hash text null`, `is_guest bool`, `role text` (`PLAYER`/`EDITOR`/`ADMIN`), `created_at`, `last_seen_at`, `deletion_requested_at`, `deleted_at` | `unique(email) where email is not null`; Gastkonten ohne E-Mail |
+| `users` | `id uuid`, `email citext null`, `email_verified_at`, `password_hash text null`, `is_guest bool`, `role text` (`PLAYER`/`EDITOR`/`ADMIN`), `created_at`, `last_seen_at`, `deletion_requested_at`, `deleted_at` | `unique(email) where email is not null`; Gastkonten ohne E-Mail; Platzhalterkonten gelöschter Spieler: `deleted_at` gesetzt, alle personenbezogenen Felder leer, keine Anmeldung möglich |
 | `sessions` | `token_hash bytea PK`, `user_id`, `created_at`, `expires_at`, `last_used_at` | Index `(user_id)`; Token nur gehasht gespeichert |
 | `player_profiles` | `user_id PK`, `display_name text` (generiert), `name_seed int`, `cosmetic_avatar text`, `created_at` | `unique(display_name)` |
 | `player_settings` | `user_id PK`, `locale text` (`de`/`hu`/`en`), `timezone text`, `auto_extend_enabled bool default false`, `auto_extend_priorities jsonb`, `notification_prefs jsonb` | |
@@ -186,8 +186,9 @@ create table quiz_answers (
   is_correct        bool null,
   distance          numeric null,
   status            text not null check (status in ('PRESENTED','ANSWERED','TIMED_OUT','GENERATED')),
-  idempotency_key   uuid null unique,    -- Idempotency-Key der Antwortanfrage (API.md §1)
-  unique (participant_id, step_index)    -- je Teilnehmer und Schritt genau eine Zeile
+  idempotency_key   uuid null,           -- Idempotency-Key der Antwortanfrage (API.md §1)
+  unique (participant_id, step_index),   -- je Teilnehmer und Schritt genau eine Zeile
+  unique (participant_id, idempotency_key)
 );
 -- Trigger: Zeilen mit status <> 'PRESENTED' sind unveränderlich ("Antworten werden nach Einreichung gesperrt").
 ```
@@ -219,7 +220,8 @@ create table sieges (
   outcome_reason      text null,
   rules_snapshot      jsonb not null,    -- Fristen/Limits zum Zeitpunkt der Eröffnung
   version             int not null default 0,
-  idempotency_key     uuid not null unique,
+  idempotency_key     uuid not null,     -- NPC: deterministisch je Tick und Aktion
+  unique (attacker_kingdom_id, idempotency_key),
   unique (id, target_region_id),         -- Ziel des Fremdschlüssels aus region_state
   -- Fristen: PvE nie; PvP leer bis zur Eröffnung, ab opened_at alle gesetzt und geordnet (I10)
   check ((opened_at is null and base_deadline_at is null and deadline_at is null and max_deadline_at is null)
@@ -257,7 +259,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | `item_definitions` | `id text PK` (`hourglass_small`, `chronos_seal`, `time_crystal`), `kind` (`DEFENSE_EXTENSION`), `rarity`, `effect jsonb` (`{"hours":6}`), `name_key`, `allowed_modes text[]`, `enabled bool` | Referenzdaten per Migration |
 | `reward_events` | `id`, `instance_id`, `user_id`, `source_type` (`SIEGE`), `source_id`, `eligibility jsonb` (geprüfte Regeln, Gründe), `rng_draw numeric`, `result_item_def_id null`, `outcome` (`NONE`/`GRANTED`/`PENDING`/`NOT_GRANTED_FULL`/`NOT_ELIGIBLE`), `at` | `unique(source_type, source_id, user_id)` – **keine doppelte Belohnung** (E2E-11) |
 | `player_items` | `id`, `instance_id`, `user_id`, `item_def_id`, `status` (`PENDING`/`AVAILABLE`/`CONSUMED`/`EXPIRED`/`DISCARDED`), `reward_event_id`, `acquired_at`, `pending_expires_at null`, `consumed_at null` | Index `(instance_id, user_id, status)`; `unique(reward_event_id)` |
-| `item_usage` | `id`, `item_id`, `siege_id`, `user_id`, `auto bool`, `old_deadline_at`, `new_deadline_at`, `effect_hours`, `applied_minutes`, `idempotency_key`, `at` | `unique(item_id)` – ein Item höchstens einmal; `unique(idempotency_key)` |
+| `item_usage` | `id`, `item_id`, `siege_id`, `user_id`, `auto bool`, `old_deadline_at`, `new_deadline_at`, `effect_hours`, `applied_minutes`, `idempotency_key`, `at` | `unique(item_id)` – ein Item höchstens einmal; `unique(user_id, idempotency_key)` |
 | `inventory_transactions` | `id bigint`, `instance_id`, `user_id`, `item_id`, `type` (`GRANTED`/`PENDING_CREATED`/`CLAIMED`/`CONSUMED`/`EXPIRED`/`DISCARDED`/`ADMIN_ADJUST`), `ref_type`, `ref_id`, `at` | nur anhängen; Index `(user_id, at)` |
 
 ### 4.9 Betrieb
@@ -265,7 +267,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `notifications` | `id`, `user_id`, `instance_id null`, `type`, `payload jsonb`, `created_at`, `read_at null`, `push_sent_at null` | Index `(user_id, created_at desc) where read_at is null` |
-| `world_events` | `id bigint identity PK`, `instance_id`, `seq bigint not null` (lückenlos je Instanz aus `world_instances.event_seq`), `chunk_x null`, `chunk_y null`, `user_id null`, `type`, `payload jsonb`, `created_at` | `unique(instance_id, seq)`; Aufbewahrung 7 Tage |
+| `world_events` | `id bigint identity PK`, `instance_id`, `seq bigint not null` (lückenlos je Instanz aus `world_instances.event_seq`), `chunk_x null`, `chunk_y null`, `user_id null` (gesetzt = persönliches Ereignis), `type`, `payload jsonb` (nur IDs und Spielwerte, keine Anzeigenamen; Namen löst der Client auf), `created_at` | `unique(instance_id, seq)`; Aufbewahrung 7 Tage |
 | `idempotency_keys` | `scope text` (beim Eintreffen festgelegt, danach unverändert: Konto-ID der Sitzung, ohne Sitzung `anon:` + SHA-256 des Schlüssels), `key uuid`, `endpoint`, `request_hash`, `response_status`, `response_body jsonb`, `created_at` | `PK(scope, key)`; Aufbewahrung 24 h ([API.md §1](API.md#1-konventionen)) |
 | `audit_events` | `id bigint`, `actor_user_id null`, `actor_role`, `action`, `target_type`, `target_id`, `before jsonb`, `after jsonb`, `reason text`, `at` | nur anhängen |
 | `abuse_signals` | `id`, `user_id`, `instance_id null`, `kind`, `score numeric`, `details jsonb`, `status` (`OPEN`/`REVIEWED`/`DISMISSED`/`ACTIONED`), `created_at` | Index `(status, created_at)` |
@@ -285,7 +287,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | I8 | Jedes Item wird höchstens einmal verbraucht | Unique `item_usage(item_id)` + Statusvergleich |
 | I9 | Verfügbare Items pro Spieler ≤ Inventargrenze | Transaktion unter Sperre `world_participants` + Job |
 | I10 | Fristen: PvE und noch nicht eröffnete PvP-Belagerungen ohne Fristen; eröffnete PvP-Belagerungen mit allen Fristen und `base_deadline ≤ deadline ≤ max_deadline` | `CHECK` |
-| I11 | Abgegebene Antworten sind unveränderlich | Trigger |
+| I11 | Abgegebene Antworten sind unveränderlich (einzige Ausnahme: Schwärzung von `raw_input` bei Kontolöschung, §1) | Trigger |
 | I12 | Freigegebene Fragenversionen sind unveränderlich | Trigger |
 | I13 | Alle Fremdschlüssel einer Spielzeile gehören zur selben Instanz | Anwendungslogik + Invariantenjob (zusammengesetzte FKs wären möglich, erschweren aber Migrationen – Entscheidung in Phase 1 nach Messung) |
 

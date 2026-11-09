@@ -114,7 +114,7 @@ Ein gemeinsamer Transaktions-Wrapper wiederholt bei Serialisierungs- oder Deadlo
 |---|---|---|
 | N1 | Zwei Angreifer greifen gleichzeitig dieselbe Region an | partieller Unique-Index `sieges_one_active_per_region` – der zweite erhält `REGION_UNDER_SIEGE` |
 | N2 | Mehrere Angreifer gegen ein Reich mit 3 offenen Belagerungen | Sperre auf das Verteidigerreich, Zählung inklusive `PREPARING` unter Sperre – der zweite erhält `DEFENDER_SIEGE_LIMIT` (Brief §13.4) |
-| N3 | Doppelklick oder Netzwiederholung beim Angriff | `sieges.idempotency_key` unique – gleiche Antwort, keine zweite Belagerung |
+| N3 | Doppelklick oder Netzwiederholung beim Angriff | `unique(attacker_kingdom_id, idempotency_key)` auf `sieges` – gleiche Antwort, keine zweite Belagerung |
 | N4 | **Verteidigerantwort gleichzeitig mit Fristablauf** (Brief §12.4) | Einheitliche Fristgrenze ([§6.1](#61-fristgrenze--eine-regel-für-alle-pfade-e)): `received_at` wird beim Eintreffen der Anfrage erfasst, **bevor** auf Sperren gewartet wird; rechtzeitig heißt `received_at < answer_deadline_at` (liegt immer vor `deadline_at`, §6.2). Die Antwort wird in einem ersten, kurzen Schritt **ohne Belagerungssperre** gespeichert (bedingte Aktualisierung der eigenen `quiz_answers`-Zeile), erst danach wird unter Sperre ausgewertet. Scheitert die Auswertung, etwa am Sperrzeitlimit, bleibt die Antwort gespeichert und gültig. Der Timeout-Pfad (ab `deadline_at + settleGrace`) wertet eine begonnene Verteidigung immer mit den gespeicherten Antworten aus; nur offene, abgelaufene Schritte zählen als `TIMED_OUT`. Eine rechtzeitig eingetroffene Antwort geht also nie verloren, eine verspätete wird nie gewertet. Alle Übergänge sind bedingt; der zweite Pfad sieht einen Endzustand und tut nichts. |
 | N5 | Itemverlängerung gleichzeitig mit Fristablauf | Verlängerung nur bei `game_now() < deadline_at` unter Sperre; danach ist der alte Timeout-Job wirkungslos (Frist liegt in der Zukunft) und ein neuer wird geplant |
 | N6 | Zwei Verlängerungen auf dieselbe Belagerung | Sperre; die zweite rechnet mit der neuen Frist, wird ggf. gekappt oder abgelehnt (ohne Itemverbrauch) |
@@ -173,7 +173,7 @@ UPDATE player_statistics  SET defense_points = defense_points + :points WHERE us
 INSERT INTO notifications (...);
 -- zuletzt: alle Ereignisse der Transaktion mit Sequenzvergabe in einer Anweisung (ARCHITECTURE.md §10)
 WITH c AS (UPDATE world_instances SET event_seq = event_seq + :n WHERE id = :inst RETURNING event_seq)
-INSERT INTO world_events (instance_id, seq, ...) SELECT :inst, c.event_seq - :n + e.ord, ... FROM c, unnest(...) WITH ORDINALITY e;
+INSERT INTO world_events (instance_id, seq, ...) SELECT :inst, c.event_seq - :n + e.ord, ... FROM c, unnest(...) WITH ORDINALITY AS e(event, ord);
 COMMIT;
 ```
 
