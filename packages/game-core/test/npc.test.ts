@@ -152,6 +152,30 @@ describe('generateNpcAnswer', () => {
     expect(formatDecimal(answer.estimate)).toBe('1386');
   });
 
+  it('kappt auch Schätzungen, die als Gleitkommazahl überlaufen (LOG, große Streuung)', () => {
+    const wide: NpcQuestionSpec = {
+      ...QUESTION,
+      estimate: {
+        answerValue: '1000000',
+        answerPrecision: 0,
+        inputMin: '1',
+        inputMax: '1000000000000',
+        scaleType: 'LOG',
+        scale: 400, // σ = 2 · 400: exp(z · σ) läuft meist über (Infinity) oder auf 0
+      },
+    };
+    const rng = seededRng(5);
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const { estimate } = generateNpcAnswer(rng, garrisonProfile(0), wide);
+      expect(compareDecimal(estimate, parseDecimal('1'))).toBeGreaterThanOrEqual(0);
+      expect(compareDecimal(estimate, parseDecimal('1000000000000'))).toBeLessThanOrEqual(0);
+      seen.add(formatDecimal(estimate));
+    }
+    expect(seen).toContain('1');
+    expect(seen).toContain('1000000000000');
+  });
+
   it('LOG-Skala: Median ≈ wahrer Wert, Nachkommastellen nach Präzision', () => {
     const logQ: NpcQuestionSpec = {
       ...QUESTION,
@@ -168,7 +192,7 @@ describe('generateNpcAnswer', () => {
     const values: number[] = [];
     for (let i = 0; i < 20_001; i++) {
       const a = generateNpcAnswer(rng, NPC_BASE_PROFILES.MEDIUM, logQ);
-      expect(a.estimate.scale).toBeLessThanOrEqual(1);
+      expect(a.estimate.scale).toBe(1); // ungekappt: immer genau eine Nachkommastelle
       values.push(Number(formatDecimal(a.estimate)));
     }
     values.sort((x, y) => x - y);

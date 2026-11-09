@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-sci-symbol-gold
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "Welches chemische Symbol hat Gold?"
-    options:
-      a: "Ag"
-      b: "Au"
-      c: "Go"
-      d: "Gd"
-  hu:
-    status: DRAFT
-    prompt: "Mi az arany vegyjele?"
-    options:
-      a: "Ag"
-      b: "Au"
-      c: "Go"
-      d: "Gd"
-  en:
-    status: DRAFT
-    prompt: "What is the chemical symbol for gold?"
     options:
       a: "Ag"
       b: "Au"

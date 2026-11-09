@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-tech-sprache-van-rossum
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "Welche Programmiersprache hat Guido van Rossum entwickelt?"
-    options:
-      a: "Java"
-      b: "Python"
-      c: "Ruby"
-      d: "C++"
-  hu:
-    status: DRAFT
-    prompt: "Melyik programozási nyelvet fejlesztette ki Guido van Rossum?"
-    options:
-      a: "Java"
-      b: "Python"
-      c: "Ruby"
-      d: "C++"
-  en:
-    status: DRAFT
-    prompt: "Which programming language was created by Guido van Rossum?"
     options:
       a: "Java"
       b: "Python"

@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-math-primzahlen-bis-100
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "Wie viele Primzahlen gibt es zwischen 1 und 100?"
     unit_label: "Primzahlen"
-  hu:
-    status: DRAFT
-    prompt: "Hány prímszám van 1 és 100 között?"
-    unit_label: "prímszám"
-  en:
-    status: DRAFT
-    prompt: "How many prime numbers are there between 1 and 100?"
-    unit_label: "primes"

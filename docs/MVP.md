@@ -14,7 +14,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 
 ## 2. M1 – Spielbarer Prototyp (Phase 1)
 
-**Enthalten:** eine Testwelt mit ≈ 150 Regionen; neutrale Regionen und 2–3 statische NPC-Reiche (leicht/mittel/schwer); Gastkonto mit dauerhafter Sitzung; Startregion und Hauptstadt; PvE-Eroberung mit Trivia + Schätzfrage, Gate und Tiebreakern; sofortige Auflösung mit Erklärung; Schutzzeit; Reichsanzeige mit Rang; Oberfläche in de/hu/en; 150 geprüfte Fragen.
+**Enthalten:** eine Testwelt mit ≈ 150 Regionen; neutrale Regionen und 2–3 statische NPC-Reiche (leicht/mittel/schwer); Gastkonto mit dauerhafter Sitzung; Startregion und Hauptstadt; PvE-Eroberung mit Trivia + Schätzfrage, Gate und Tiebreakern; sofortige Auflösung mit Erklärung; Schutzzeit; Reichsanzeige mit Rang; Oberfläche auf Deutsch (ADR-023); 150 geprüfte Fragen (bis zur Entscheidung über [O-02] die 40 Testfragen).
 
 **Nicht enthalten:** PvP, Items, NPC-Expansion, Benachrichtigungen, Registrierung.
 
@@ -36,7 +36,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 |---|---|
 | Welt | **eine Eternal-Instanz**, Kern aus 3 × 3 Chunks (≈ 2 000 spielbare Regionen), feste Größe |
 | NPCs | 6–10 Fraktionen (leicht/mittel/schwer), verteidigen ihre Gebiete, **keine** Expansion und **keine** Angriffe auf Spieler |
-| Konten | Gast + Upgrade auf Konto ([O-03]); generierte Anzeigenamen; Sprache de/hu/en; Kontolöschung, Datenexport |
+| Konten | Gast + Upgrade auf Konto ([O-03]); generierte Anzeigenamen; Sprache Deutsch; Kontolöschung, Datenexport |
 | Einstieg | Tutorial (3 Schritte), fairer Startplatz, Anfängerschutz |
 | PvE | sofortige Kämpfe gegen Garnisonen und NPC-Reiche |
 | PvP | asynchrone Belagerungen mit verdecktem Gate und Verteidigungspunkten, 24-h-Frist, automatischer Verlust bei Zeitablauf, Angriffs- und Versuchskontingente, max. 4 offene Belagerungen pro Reich, Schutzzeiten, Rangabstandsschutz |
@@ -44,7 +44,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 | Items | drei Zeit-Items, Drops mit Anti-Farming, Inventar + Ablage, **manuelle** Verlängerung bis 48 h |
 | UI | Karte (Desktop + Mobil), Regionsdetails, Quiz, Belagerungs-Dashboard, Inventar, Mitteilungen, Ranglisten (Regionen, Verteidigung) |
 | Benachrichtigung | In-App + Web Push ([O-04]) |
-| Inhalte | ≈ 400 Trivia + 250 Schätzfragen, dreisprachig geprüft, Fehlermeldefunktion |
+| Inhalte | ≈ 400 Trivia + 250 Schätzfragen, geprüft, Fehlermeldefunktion |
 | Betrieb | Staging + Beta-Umgebung ([O-11]), tägliche Backups mit getesteter Wiederherstellung, Monitoring und Alarme, Invariantenjob, Admin-Grundwerkzeuge (Kampf-Rekonstruktion, Belagerung abbrechen, Frage suspendieren, Missbrauchsliste) |
 | Recht | Entwurf Datenschutzerklärung und Impressum, Nutzungsbedingungen, Asset-Register |
 

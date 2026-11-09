@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-hist-erster-koenig-ungarns
 kind: TRIVIA
@@ -26,19 +27,3 @@ translations:
       b: "Stephan I."
       c: "Matthias Corvinus"
       d: "Béla IV."
-  hu:
-    status: DRAFT
-    prompt: "Ki volt Magyarország első királya?"
-    options:
-      a: "Árpád"
-      b: "I. István"
-      c: "Hunyadi Mátyás"
-      d: "IV. Béla"
-  en:
-    status: DRAFT
-    prompt: "Who was the first king of Hungary?"
-    options:
-      a: "Árpád"
-      b: "Stephen I"
-      c: "Matthias Corvinus"
-      d: "Béla IV"

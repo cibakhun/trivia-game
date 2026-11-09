@@ -35,10 +35,23 @@ describe('effectiveAnswerTime (QUIZ_ENGINE §6.2)', () => {
     });
   });
 
-  it.each([undefined, null, '6000', 6_100.5, Number.NaN, Number.POSITIVE_INFINITY, {}])(
-    'verwirft fehlenden oder nicht ganzzahligen Client-Wert %j',
+  it('Reload unterdrückt das Signal nicht', () => {
+    expect(t(6_400, -5, true).signal).toBe('NEGATIVE_CLIENT_TIME');
+    expect(t(6_400, 6_100.5, true).signal).toBe('NON_INTEGER_CLIENT_TIME');
+  });
+
+  it.each([undefined, null, '6000', {}])('verwirft fehlenden Client-Wert %j ohne Signal', (c) => {
+    expect(t(6_400, c)).toEqual({ effectiveMs: 6_400, clientTimeUsed: false, signal: null });
+  });
+
+  it.each([6_100.5, Number.NaN, Number.POSITIVE_INFINITY, 2 ** 53])(
+    'verwirft nicht ganzzahligen Client-Wert %d mit Signal',
     (c) => {
-      expect(t(6_400, c)).toEqual({ effectiveMs: 6_400, clientTimeUsed: false, signal: null });
+      expect(t(6_400, c)).toEqual({
+        effectiveMs: 6_400,
+        clientTimeUsed: false,
+        signal: 'NON_INTEGER_CLIENT_TIME',
+      });
     },
   );
 

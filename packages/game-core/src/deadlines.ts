@@ -29,6 +29,8 @@ export function openSiegeDeadlines(
   defense: Pick<DefenseRules, 'baseDeadline' | 'maxDeadline'>,
 ): SiegeDeadlines {
   assertInstant('openedAt', openedAt);
+  assertDuration('baseDeadline', defense.baseDeadline);
+  assertDuration('maxDeadline', defense.maxDeadline);
   if (defense.maxDeadline < defense.baseDeadline) {
     throw new RangeError('maxDeadline < baseDeadline');
   }

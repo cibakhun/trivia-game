@@ -68,7 +68,9 @@ export interface Rng {
   nextFloat(): number;
   /**
    * Standardnormalverteilte Zahl (Box-Muller). Verbraucht immer genau zwei Werte des Stroms,
-   * damit die Ziehungsreihenfolge fest bleibt.
+   * damit die Ziehungsreihenfolge fest bleibt. Anders als `nextUint32`/`nextFloat` ist das
+   * Ergebnis nicht bitgenau zwischen Engines: ECMAScript legt `Math.log` und `Math.cos` nur
+   * näherungsweise fest. Maßgeblich ist der Server, der Ergebnis und Ziehungen protokolliert.
    */
   nextNormal(): number;
 }

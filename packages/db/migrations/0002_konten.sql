@@ -51,7 +51,7 @@ create table player_profiles (
 
 create table player_settings (
   user_id                uuid primary key references users (id) on delete restrict,
-  locale                 text not null check (locale in ('de', 'hu', 'en')),
+  locale                 text not null default 'de' check (locale in ('de')), -- nur Deutsch (ADR-023)
   timezone               text not null default 'UTC',
   auto_extend_enabled    boolean not null default false,
   auto_extend_priorities jsonb not null default '[]'::jsonb
@@ -72,8 +72,11 @@ create table player_statistics (
   defense_points  int not null default 0 check (defense_points >= 0),
   trivia_answered int not null default 0 check (trivia_answered >= 0),
   trivia_correct  int not null default 0 check (trivia_correct >= 0),
-  skill_rating    numeric not null default 0,   -- θ auf der gemeinsamen Skala (QUIZ_ENGINE §10)
-  skill_rd        numeric not null default 1.5 check (skill_rd > 0), -- Unsicherheit [E]
+  -- θ auf der gemeinsamen Skala (QUIZ_ENGINE §10) und ihre Unsicherheit [E]. numeric kennt NaN
+  -- und ±Infinity; NaN gilt in PostgreSQL als größer als jede Zahl, daher die oberen Grenzen.
+  skill_rating    numeric not null default 0
+                  check (skill_rating > '-Infinity' and skill_rating < 'Infinity'),
+  skill_rd        numeric not null default 1.5 check (skill_rd > 0 and skill_rd < 'Infinity'),
   updated_at      timestamptz not null default game_now(),
   check (battles_won <= battles and defenses_won <= defenses and trivia_correct <= trivia_answered)
 );

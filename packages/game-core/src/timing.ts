@@ -9,7 +9,10 @@
 export interface EffectiveTimeInput {
   /** S = received_at − presented_at in ganzen ms (≥ 0). */
   readonly serverMs: number;
-  /** C, ungeprüft aus der Anfrage (`clientElapsedMs`); fehlend = `undefined`/`null`. */
+  /**
+   * C, ungeprüft aus der Anfrage (`clientElapsedMs`, laut API ganze Millisekunden; der Client
+   * rundet `performance.now()`); fehlend = `undefined`/`null`.
+   */
   readonly clientMs: unknown;
   /** cap aus `quiz.latencyAllowanceCapMs`. */
   readonly capMs: number;
@@ -17,7 +20,8 @@ export interface EffectiveTimeInput {
   readonly reloaded: boolean;
 }
 
-export type TimingSignal = 'NEGATIVE_CLIENT_TIME';
+/** Missbrauchssignale (SECURITY.md, Manipulierte Client-Timer). */
+export type TimingSignal = 'NEGATIVE_CLIENT_TIME' | 'NON_INTEGER_CLIENT_TIME';
 
 export interface EffectiveTime {
   readonly effectiveMs: number;
@@ -33,19 +37,26 @@ function assertNonNegativeInteger(name: string, value: number): void {
   }
 }
 
+/**
+ * Signal für einen unzulässigen Client-Wert. Fehlende oder nicht numerische Werte sind kein
+ * Signal (älterer Client, Reload); Typfehler weist schon das Protokollschema ab.
+ */
+function clientTimeSignal(c: unknown): TimingSignal | null {
+  if (typeof c !== 'number') return null;
+  if (c < 0) return 'NEGATIVE_CLIENT_TIME';
+  if (!Number.isSafeInteger(c)) return 'NON_INTEGER_CLIENT_TIME'; // auch NaN und Infinity
+  return null;
+}
+
 export function effectiveAnswerTime(input: EffectiveTimeInput): EffectiveTime {
   const { serverMs: s, clientMs: c, capMs: cap } = input;
   assertNonNegativeInteger('serverMs', s);
   assertNonNegativeInteger('capMs', cap);
 
-  if (input.reloaded) return { effectiveMs: s, clientTimeUsed: false, signal: null };
-  if (typeof c !== 'number' || !Number.isSafeInteger(c) || c < 0) {
-    const negative = typeof c === 'number' && c < 0;
-    return {
-      effectiveMs: s,
-      clientTimeUsed: false,
-      signal: negative ? 'NEGATIVE_CLIENT_TIME' : null,
-    };
+  // Das Signal gilt auch nach einem Reload, sonst ließe es sich durch Neuladen umgehen.
+  const signal = clientTimeSignal(c);
+  if (input.reloaded || signal !== null || typeof c !== 'number') {
+    return { effectiveMs: s, clientTimeUsed: false, signal };
   }
   const lower = Math.max(0, s - cap);
   return { effectiveMs: Math.min(Math.max(c, lower), s), clientTimeUsed: true, signal: null };

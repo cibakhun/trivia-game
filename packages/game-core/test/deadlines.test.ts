@@ -4,6 +4,7 @@ import {
   MINUTE_MS,
   SECOND_MS,
   rulesConfigSchema,
+  type RulesConfig,
   WORLD_MODES,
 } from '@rdw/protocol';
 import fc from 'fast-check';
@@ -32,6 +33,15 @@ describe('openSiegeDeadlines', () => {
       deadlineAt: T0 + 24 * HOUR_MS,
       maxDeadlineAt: T0 + 48 * HOUR_MS,
     });
+  });
+
+  it('lehnt negative, gebrochene und vertauschte Dauern ab', () => {
+    const open = (baseDeadline: number, maxDeadline: number) =>
+      openSiegeDeadlines(T0, { baseDeadline, maxDeadline });
+    expect(() => open(-HOUR_MS, HOUR_MS)).toThrow(/baseDeadline/);
+    expect(() => open(-2 * HOUR_MS, -HOUR_MS)).toThrow(/baseDeadline/);
+    expect(() => open(HOUR_MS, 1.5 * HOUR_MS + 0.5)).toThrow(/maxDeadline/);
+    expect(() => open(2 * HOUR_MS, HOUR_MS)).toThrow(/maxDeadline < baseDeadline/);
   });
 });
 
@@ -79,7 +89,7 @@ describe('canStartDefense (SIEGE_SYSTEM §6.2)', () => {
 
   it('protocol prüft dieselbe Mindestdauer wie game-core', () => {
     for (const mode of WORLD_MODES) {
-      const cfg = JSON.parse(JSON.stringify(DEFAULT_RULES[mode])) as typeof ETERNAL;
+      const cfg = JSON.parse(JSON.stringify(DEFAULT_RULES[mode])) as RulesConfig; // veränderbare Kopie
       const min = maxChallengeDurationMs(cfg.quiz) + cfg.defense.startBuffer;
       cfg.defense.baseDeadline = min;
       cfg.defense.maxDeadline = cfg.items.enabled ? Math.max(min, cfg.defense.maxDeadline) : min;

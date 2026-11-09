@@ -48,6 +48,28 @@ async function insertInstance(): Promise<string> {
   return instanceId;
 }
 
+describe('Fremdschlüssel', () => {
+  it('sind alle indiziert (führende Spalten eines vollständigen Index oder eindeutiger Teil)', async () => {
+    const { rows } = await q(`
+      select c.conname, c.conrelid::regclass::text as table_name
+      from pg_constraint c
+      where c.contype = 'f'
+        and not exists (
+          select 1 from pg_index i
+          where i.indrelid = c.conrelid
+            and i.indpred is null
+            and (
+              (select array_agg(x order by x)
+                 from unnest((i.indkey::int2[])[0:array_length(c.conkey, 1) - 1]) x)
+                = (select array_agg(x order by x) from unnest(c.conkey) x)
+              or (i.indisunique and (i.indkey::int2[]) <@ c.conkey)
+            )
+        )
+      order by 1`);
+    expect(rows).toEqual([]);
+  });
+});
+
 describe('Fremdschlüssel auf users (DATA_MODEL §1)', () => {
   it('sind alle ON DELETE RESTRICT und indiziert', async () => {
     const { rows } = await q(`
@@ -113,6 +135,33 @@ describe('users', () => {
       /users_bootstrap_hash_sha256/,
     );
   });
+
+  it('Spielstärke ist endlich (numeric kennt NaN und Infinity)', async () => {
+    for (const [column, value] of [
+      ['skill_rd', 'NaN'],
+      ['skill_rd', 'Infinity'],
+      ['skill_rating', 'NaN'],
+      ['skill_rating', '-Infinity'],
+    ] as const) {
+      const userId = await insertUser();
+      await expect(
+        q(`insert into player_statistics (user_id, ${column}) values ($1, $2::numeric)`, [
+          userId,
+          value,
+        ]),
+      ).rejects.toThrow(/check/);
+    }
+  });
+
+  it('Spracheinstellung ist Deutsch (ADR-023)', async () => {
+    const userId = await insertUser();
+    await q(`insert into player_settings (user_id) values ($1)`, [userId]);
+    const { rows } = await q(`select locale from player_settings where user_id = $1`, [userId]);
+    expect(rows[0]).toEqual({ locale: 'de' });
+    await expect(
+      q(`update player_settings set locale = 'hu' where user_id = $1`, [userId]),
+    ).rejects.toThrow(/check/);
+  });
 });
 
 describe('Welten', () => {
@@ -130,6 +179,32 @@ describe('Welten', () => {
     await expect(q(`delete from world_rules where id = $1`, [rules.id])).rejects.toThrow(
       /unveränderlich/,
     );
+  });
+
+  it('Regelversionen lassen sich nicht per TRUNCATE leeren', async () => {
+    await expect(q(`truncate world_rules cascade`)).rejects.toThrow(/unveränderlich/);
+    await expect(q(`truncate npc_profiles cascade`)).rejects.toThrow(/unveränderlich/);
+  });
+
+  it('Instanz und aktuelle Regelversion gehören zur selben Welt', async () => {
+    const instanceId = await insertInstance();
+    const { rows } = await q(`select rules_id from world_instances where id = $1`, [instanceId]);
+    const foreignRules = rows[0]!['rules_id'] as string;
+    const worldId = randomUUID();
+    await q(
+      `insert into worlds (id, slug, mode, name_key) values ($1, $2, 'ETERNAL', 'world.eternal')`,
+      [worldId, `other-${worldId.slice(0, 8)}`],
+    );
+    await expect(
+      q(
+        `insert into world_instances (id, world_id, rules_id, map_seed, capacity, starts_at)
+         values ($1, $2, $3, 1, 10, game_now())`,
+        [randomUUID(), worldId, foreignRules],
+      ),
+    ).rejects.toThrow(/world_instances_rules_fk/);
+    await expect(
+      q(`update worlds set current_rules_id = $1 where id = $2`, [foreignRules, worldId]),
+    ).rejects.toThrow(/worlds_current_rules_fk/);
   });
 
   it('Saison: starts_at < pvp_cutoff_at ≤ ends_at', async () => {
@@ -171,16 +246,44 @@ describe('Königreiche', () => {
   it('höchstens ein aktives Reich je Spieler und Instanz; gefallene Reiche zählen nicht', async () => {
     const instanceId = await insertInstance();
     const userId = await insertUser();
+    let generation = 0;
     const insert = (status: string) =>
       q(
-        `insert into kingdoms (id, instance_id, kind, owner_user_id, name_parts, color, status, fallen_at)
-         values ($1, $2, 'PLAYER', $3, '{}', 1, $4, case when $4 = 'FALLEN' then game_now() end)`,
-        [randomUUID(), instanceId, userId, status],
+        `insert into kingdoms (id, instance_id, kind, owner_user_id, name_parts, color, status, fallen_at, generation)
+         values ($1, $2, 'PLAYER', $3, '{}', 1, $4, case when $4 = 'FALLEN' then game_now() end, $5)`,
+        [randomUUID(), instanceId, userId, status, ++generation],
       );
     await insert('FALLEN');
     await insert('ACTIVE');
     await expect(insert('ACTIVE')).rejects.toThrow(/kingdoms_one_active_per_player/);
     await expect(insert('FALLEN')).resolves.toBeDefined();
+  });
+
+  it('generation ist je Spieler und Instanz eindeutig', async () => {
+    const instanceId = await insertInstance();
+    const userId = await insertUser();
+    const insert = () =>
+      q(
+        `insert into kingdoms (id, instance_id, kind, owner_user_id, name_parts, color, status, fallen_at)
+         values ($1, $2, 'PLAYER', $3, '{}', 1, 'FALLEN', game_now())`,
+        [randomUUID(), instanceId, userId],
+      );
+    await insert();
+    await expect(insert()).rejects.toThrow(/kingdoms_generation_unique/);
+  });
+
+  it('Protokolle sind nur anhängbar', async () => {
+    const instanceId = await insertInstance();
+    const userId = await insertUser();
+    const kingdomId = randomUUID();
+    await q(
+      `insert into kingdoms (id, instance_id, kind, owner_user_id, name_parts, color) values ($1, $2, 'PLAYER', $3, '{}', 1)`,
+      [kingdomId, instanceId, userId],
+    );
+    await q(`insert into kingdom_history (kingdom_id, kind) values ($1, 'FOUNDED')`, [kingdomId]);
+    await expect(
+      q(`update kingdom_history set kind = 'FALLEN' where kingdom_id = $1`, [kingdomId]),
+    ).rejects.toThrow(/unveränderlich/);
   });
 });
 
@@ -252,6 +355,13 @@ describe('Karte', () => {
          values ($1, $2, 0, 0, $3, $4)`,
         [regionId, instanceId, owner, capital],
       );
+    const mismatched = await region(4);
+    await expect(
+      q(
+        `insert into region_state (region_id, instance_id, chunk_x, chunk_y) values ($1, $2, 1, 0)`,
+        [mismatched, instanceId],
+      ),
+    ).rejects.toThrow(/region_state_region_fk/);
     await state(await region(1), kingdomId, true);
     await expect(state(await region(2), kingdomId, true)).rejects.toThrow(
       /region_state_one_capital/,

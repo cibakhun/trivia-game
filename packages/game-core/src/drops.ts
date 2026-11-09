@@ -46,6 +46,11 @@ export function classifyDrop(
   if (!(u >= 0 && u < 1)) throw new RangeError(`u muss in [0, 1) liegen: ${u}`);
   if (!(factor >= 0 && factor <= 1))
     throw new RangeError(`Faktor muss in [0, 1] liegen: ${factor}`);
+  for (const entry of table) {
+    if (!Number.isSafeInteger(entry.weightPpm) || entry.weightPpm < 0) {
+      throw new RangeError(`Gewicht von ${entry.item} muss eine nichtnegative ganze Zahl sein`);
+    }
+  }
   const scaled = table.map((e) => ({ item: e.item, weightPpm: Math.round(e.weightPpm * factor) }));
   const itemsPpm = scaled.reduce((sum, e) => sum + e.weightPpm, 0);
   if (itemsPpm > PPM) throw new RangeError('Summe der Item-Gewichte über 100 %');

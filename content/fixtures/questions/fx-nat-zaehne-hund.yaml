@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-nat-zaehne-hund
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "Wie viele Zähne hat ein erwachsener Hund normalerweise?"
     unit_label: "Zähne"
-  hu:
-    status: DRAFT
-    prompt: "Általában hány foga van egy felnőtt kutyának?"
-    unit_label: "fog"
-  en:
-    status: DRAFT
-    prompt: "How many teeth does an adult dog normally have?"
-    unit_label: "teeth"

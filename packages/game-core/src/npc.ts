@@ -197,7 +197,13 @@ export function generateNpcAnswer(
   const min = parseDecimal(spec.inputMin);
   const max = parseDecimal(spec.inputMax);
   if (compareDecimal(min, max) > 0) throw new RangeError('input_min > input_max');
-  const estimate = minDecimal(maxDecimal(decimalFromNumber(raw, spec.answerPrecision), min), max);
+  // Erst als Gleitkommazahl begrenzen: Bei großer Streuung kann `raw` sonst ±Infinity werden
+  // (NPC_SYSTEM §3.2: Schätzungen außerhalb des Bereichs werden gekappt).
+  const bounded = Math.min(Math.max(raw, decimalToNumber(min)), decimalToNumber(max));
+  const estimate = minDecimal(
+    maxDecimal(decimalFromNumber(bounded, spec.answerPrecision), min),
+    max,
+  );
 
   // 3. Antwortzeit: log-normal um den Median, höchstens 1 s unter dem Zeitlimit
   const zTime = rng.nextNormal();

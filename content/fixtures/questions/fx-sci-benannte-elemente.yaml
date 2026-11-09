@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-sci-benannte-elemente
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "Wie viele chemische Elemente haben einen offiziellen Namen (Stand 2025)?"
     unit_label: "Elemente"
-  hu:
-    status: DRAFT
-    prompt: "Hány kémiai elemnek van hivatalos neve (2025-ös állapot szerint)?"
-    unit_label: "elem"
-  en:
-    status: DRAFT
-    prompt: "How many chemical elements have an official name (as of 2025)?"
-    unit_label: "elements"

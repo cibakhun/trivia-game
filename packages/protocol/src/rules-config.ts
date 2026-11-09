@@ -17,7 +17,11 @@ export const MINUTE_MS = 60 * SECOND_MS;
 export const HOUR_MS = 60 * MINUTE_MS;
 export const DAY_MS = 24 * HOUR_MS;
 
-/** Obergrenze für jede Dauer: schützt vor Tippfehlern wie Sekunden statt Millisekunden. */
+/**
+ * Obergrenze für jede Dauer (ein Jahr): fängt zu große Werte ab, etwa Mikrosekunden statt
+ * Millisekunden oder eine Null zu viel. Zu kleine Werte (Sekunden statt Millisekunden) fängt sie
+ * nicht ab; dafür gibt es die Querprüfungen unten und die Standardwerte als Vorlage.
+ */
 const MAX_DURATION_MS = 366 * DAY_MS;
 
 const durationMs = z.number().int().min(0).max(MAX_DURATION_MS);
@@ -200,16 +204,23 @@ export function parseRulesConfig(input: unknown): RulesConfig {
 
 const day = (count: number): RateBudget => ({ count, windowMs: DAY_MS });
 
-function deepFreeze<T>(value: T): T {
+/** Rekursiv schreibgeschützt, passend zu `deepFreeze`. */
+export type DeepReadonly<T> = T extends (infer U)[]
+  ? readonly DeepReadonly<U>[]
+  : T extends object
+    ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
+    : T;
+
+function deepFreeze<T>(value: T): DeepReadonly<T> {
   if (typeof value === 'object' && value !== null) {
     for (const child of Object.values(value)) deepFreeze(child);
     Object.freeze(value);
   }
-  return value;
+  return value as DeepReadonly<T>;
 }
 
 /** Standardwerte je Modus aus docs/GAME_RULES.md §10 (Kennzeichnungen dort); unveränderlich. */
-export const DEFAULT_RULES: Readonly<Record<WorldMode, RulesConfig>> = deepFreeze({
+export const DEFAULT_RULES: DeepReadonly<Record<WorldMode, RulesConfig>> = deepFreeze({
   ETERNAL: {
     schemaVersion: 1,
     mode: 'ETERNAL',

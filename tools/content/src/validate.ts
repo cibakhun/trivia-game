@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { LOCALES } from '@rdw/protocol';
 import { parse as parseYaml } from 'yaml';
@@ -30,13 +30,6 @@ export interface ValidationReport {
   readonly issues: readonly Issue[];
 }
 
-/**
- * Warnung, wenn Fragetexte zwischen Sprachen deutlich verschieden lang sind (QUIZ_ENGINE §6.3):
- * Verhältnis über 1,6 und mindestens 25 Zeichen Unterschied.
- */
-const PROMPT_LENGTH_RATIO_WARNING = 1.6;
-const PROMPT_LENGTH_DIFF_WARNING = 25;
-
 function compareDecimalStrings(a: string, b: string): number {
   // kanonische Dezimalzahlen exakt vergleichen, ohne Float
   const [ai = '', af = ''] = a.replace('-', '').split('.');
@@ -55,7 +48,6 @@ function decimalPlaces(value: string): number {
 export function checkQuestion(q: QuestionFile, context: { file: string; fixture: boolean }): Issue[] {
   const issues: Issue[] = [];
   const error = (message: string) => issues.push({ file: context.file, severity: 'error', message });
-  const warning = (message: string) => issues.push({ file: context.file, severity: 'warning', message });
 
   const baseName = path.basename(context.file, '.yaml');
   if (q.key !== baseName) error(`key „${q.key}“ muss dem Dateinamen „${baseName}“ entsprechen`);
@@ -106,15 +98,13 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     }
   }
 
-  // Übersetzungen
-  const promptLengths: number[] = [];
+  // Fragetexte je Sprache (gespielt wird nur auf Deutsch, ADR-023)
   for (const locale of LOCALES) {
     const t = q.translations[locale];
     if (!t) {
       error(`Übersetzung ${locale} fehlt`);
       continue;
     }
-    promptLengths.push(t.prompt.length);
     if (q.kind === 'TRIVIA') {
       if (t.unit_label !== undefined) error(`${locale}: unit_label nur bei Schätzfragen`);
       const texts = t.options ?? {};
@@ -134,15 +124,6 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     if (t.status !== 'DRAFT' && !languageReviewed) {
       error(`${locale}: Status ${t.status} ohne dokumentierte Sprachprüfung (reviews, kind LANGUAGE)`);
     }
-  }
-  const shortest = Math.min(...promptLengths);
-  const longest = Math.max(...promptLengths);
-  if (
-    promptLengths.length > 1 &&
-    longest / shortest > PROMPT_LENGTH_RATIO_WARNING &&
-    longest - shortest >= PROMPT_LENGTH_DIFF_WARNING
-  ) {
-    warning(`Fragetexte sehr unterschiedlich lang (${shortest}–${longest} Zeichen); Lesezeit ist Teil der Antwortzeit`);
   }
 
   // Freigabe: nur nach dokumentierter menschlicher Fakten- und Sprachprüfung (Brief §5.6)
@@ -205,6 +186,10 @@ async function listYamlFiles(dir: string): Promise<string[]> {
  * einschließlich eindeutiger Schlüssel über alle Dateien.
  */
 export async function validateContentDir(contentDir: string): Promise<ValidationReport> {
+  // Ein falsch geschriebener Pfad darf nicht als „nichts zu prüfen“ durchgehen; die
+  // Unterordner questions/ und fixtures/questions/ bleiben optional.
+  const root = await stat(contentDir).catch(() => null);
+  if (!root?.isDirectory()) throw new Error(`Inhaltsverzeichnis nicht gefunden: ${contentDir}`);
   const sets = [
     { dir: path.join(contentDir, 'questions'), fixture: false },
     { dir: path.join(contentDir, 'fixtures', 'questions'), fixture: true },

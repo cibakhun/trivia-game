@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-tech-erfinder-www
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "Wer gilt als Erfinder des World Wide Web?"
-    options:
-      a: "Vint Cerf"
-      b: "Bill Gates"
-      c: "Linus Torvalds"
-      d: "Tim Berners-Lee"
-  hu:
-    status: DRAFT
-    prompt: "Kit tartanak a világháló (World Wide Web) feltalálójának?"
-    options:
-      a: "Vint Cerf"
-      b: "Bill Gates"
-      c: "Linus Torvalds"
-      d: "Tim Berners-Lee"
-  en:
-    status: DRAFT
-    prompt: "Who is credited with inventing the World Wide Web?"
     options:
       a: "Vint Cerf"
       b: "Bill Gates"

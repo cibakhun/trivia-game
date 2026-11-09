@@ -83,13 +83,13 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | E2E-07 Verlängerungsgrenze | 4 | Browser + Integration | Kristall bei 30 h Frist → Kappung auf 48 h mit Hinweis; bei 48 h Ablehnung ohne Verbrauch |
 | E2E-08 Neustart | 3 | Integration (Prozess-Neustart) | siehe §4 |
 | E2E-09 Parallelität | 2 | Integration (Nebenläufigkeits-Harness) | siehe §4 – im Browser nicht deterministisch prüfbar |
-| E2E-10 Mehrsprachigkeit | 2 | Browser, Kontexte `de` und `hu` | dieselbe Fragenversion, unterschiedliche Texte, korrekte Bewertung |
+| E2E-10 Mehrsprachigkeit | – | ruht (nur Deutsch, ADR-023) | erst mit einer zweiten Sprache: dieselbe Fragenversion, unterschiedliche Texte, korrekte Bewertung |
 | E2E-11 Keine doppelte Belohnung | 4 | Integration + Browser | Antwort doppelt senden, Auflösung doppelt anstoßen ⇒ genau ein `reward_event` |
 | E2E-12 Welttrennung | 6 | Integration | Änderung in Weekly-Instanz ⇒ instanzbezogener Eternal-Spielzustand unverändert (Hash über alle Tabellen mit `instance_id` der Eternal-Instanz); globale Profile/Statistiken separat auf erlaubte Änderungen prüfen |
 
 ## 6. Testdaten
 
-- Feste Karten-Seeds und eine Fragen-Fixture (z. B. 40 Fragen in drei Sprachen) im Repository.
+- Feste Karten-Seeds und eine Fragen-Fixture (40 Fragen auf Deutsch) im Repository.
 - Szenario-Builder in `packages/db/testing` (z. B. `givenKingdom().withRegions(5).underSiege(...)`) statt großer SQL-Dumps.
 - Keine Produktionsdaten in Tests.
 
@@ -101,9 +101,9 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 |---|---|
 | Nachbarschaft | umgesetzt: 6 Nachbarn, Symmetrie, Metrik (Dreiecksungleichung), Chunk-Zuordnung stabil inkl. negativer Koordinaten; Abgleich `chunkOf` ↔ SQL-Check `regions_chunk_matches_coordinates` |
 | Trivia-Bewertung | umgesetzt (`option_key`, ungültiges Token) |
-| Schätzbewertung | umgesetzt: `ROUND_HALF_UP` inkl. ±x,5, Dezimal statt Float (`0,1 + 0,2`), Zahlparser je Sprache inkl. `1.234` de/en, Eigenschaftstest über alle Schreibweisen |
+| Schätzbewertung | umgesetzt: `ROUND_HALF_UP` inkl. ±x,5, Dezimal statt Float (`0,1 + 0,2`), Zahlparser (Deutsch, ADR-023) inkl. `1.234` = 1234 und Ablehnung englischer Schreibweise, Eigenschaftstest über alle Schreibweisen |
 | Tiebreaker | umgesetzt: Tabelle [QUIZ_ENGINE.md §8.1](QUIZ_ENGINE.md#81-beispiele-testfälle) vollständig (11 Fälle mit Punkten), Eigenschaften „immer definiert“, „Gate“, „Rollentausch“ |
-| Effektive Zeit | umgesetzt: `clamp`-Grenzen, `S < cap`, Reload, fehlende/negative/nicht ganzzahlige Werte |
+| Effektive Zeit | umgesetzt: `clamp`-Grenzen, `S < cap`, Reload, fehlende/negative/nicht ganzzahlige Werte, Signal auch nach Reload |
 | NPC-Antwortlogik | umgesetzt: Determinismus, Trefferquote über 100 000 Ziehungen ±1 %, Brief-Tabelle, Streuung, Begrenzung, Antwortzeit |
 | Item-Drops | umgesetzt: Intervallgrenzen exakt, Verteilung über 1 Mio. Seeds und 20 000 echte HMAC-Seeds, Faktor `f` |
 | Maximale Verlängerung | umgesetzt: Eigenschaft `deadline ≤ max_deadline`, Kappung mit verfallendem Rest, Ablehnung ohne Verbrauch, `DEADLINE_CHANGED` |
@@ -112,4 +112,4 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | Verteidigungspunkte | umgesetzt: alle Kombinationen, Unabhängigkeit von der Angreiferleistung |
 | Angriffsberechtigung, Zustandsmaschine | offen (Phase 1/3) |
 
-Integration (gegen PostgreSQL 16): Migrationsläufer (leere DB, Idempotenz, geänderte/fehlende/kaputte Migrationen mit vollständigem Rollback, parallele Läufe), `game_now()` mit Zeitversatz und Schreibschutz (auch gegen Sitzungs-`SET`), Constraints aus [DATA_MODEL.md §4.1–4.4](DATA_MODEL.md#41-konten-und-profile) und die Regel „jeder Fremdschlüssel auf `users` ist `RESTRICT` und indiziert“ als Katalogprüfung.
+Integration (gegen PostgreSQL 16): Migrationsläufer (leere DB, Idempotenz, geänderte/fehlende/kaputte Migrationen mit vollständigem Rollback, parallele Läufe), Kommandozeile als eigener Prozess (Produktionsschutz, `--status`, unbekannte Argumente, fehlendes `APP_ENV`), `game_now()` mit Zeitversatz und Schreibschutz (auch gegen Sitzungs-`SET`, Kalenderversatz und überdeckende temporäre Tabellen), Constraints aus [DATA_MODEL.md §4.1–4.4](DATA_MODEL.md#41-konten-und-profile) inkl. zusammengesetzter Fremdschlüssel und nur anhängbarer Protokolle, und als Katalogprüfungen „jeder Fremdschlüssel ist indiziert“ sowie „jeder Fremdschlüssel auf `users` ist `RESTRICT`“.

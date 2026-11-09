@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-hist-berliner-mauer
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "In welchem Jahr fiel die Berliner Mauer?"
-    options:
-      a: "1987"
-      b: "1988"
-      c: "1989"
-      d: "1990"
-  hu:
-    status: DRAFT
-    prompt: "Melyik évben omlott le a berlini fal?"
-    options:
-      a: "1987"
-      b: "1988"
-      c: "1989"
-      d: "1990"
-  en:
-    status: DRAFT
-    prompt: "In which year did the Berlin Wall fall?"
     options:
       a: "1987"
       b: "1988"

@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-lit-erscheinungsjahr-werther
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "In welchem Jahr erschien Goethes Roman „Die Leiden des jungen Werthers“?"
     unit_label: "Jahr"
-  hu:
-    status: DRAFT
-    prompt: "Melyik évben jelent meg Goethe Az ifjú Werther szenvedései című regénye?"
-    unit_label: "év"
-  en:
-    status: DRAFT
-    prompt: "In which year was Goethe's novel “The Sorrows of Young Werther” published?"
-    unit_label: "year"

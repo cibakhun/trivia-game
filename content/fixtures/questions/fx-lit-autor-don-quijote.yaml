@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-lit-autor-don-quijote
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "Wer schrieb den Roman „Don Quijote“?"
-    options:
-      a: "Lope de Vega"
-      b: "Miguel de Cervantes"
-      c: "Federico García Lorca"
-      d: "Gabriel García Márquez"
-  hu:
-    status: DRAFT
-    prompt: "Ki írta a Don Quijote című regényt?"
-    options:
-      a: "Lope de Vega"
-      b: "Miguel de Cervantes"
-      c: "Federico García Lorca"
-      d: "Gabriel García Márquez"
-  en:
-    status: DRAFT
-    prompt: "Who wrote the novel “Don Quixote”?"
     options:
       a: "Lope de Vega"
       b: "Miguel de Cervantes"

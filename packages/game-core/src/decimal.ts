@@ -86,9 +86,10 @@ export function roundHalfUp(a: Decimal, precision: number): Decimal {
  */
 export function decimalFromNumber(x: number, precision: number): Decimal {
   assertPrecision(precision);
-  if (!Number.isFinite(x) || Math.abs(x) >= 1e21) {
-    throw new RangeError(`Zahl außerhalb des darstellbaren Bereichs: ${x}`);
-  }
+  if (!Number.isFinite(x)) throw new RangeError(`Zahl nicht endlich: ${x}`);
+  // Ab 1e21 liefert toFixed die Exponentialschreibweise; solche Gleitkommazahlen sind ganzzahlig
+  // und über BigInt exakt darstellbar.
+  if (Math.abs(x) >= 1e21) return { units: BigInt(x) * 10n ** BigInt(precision), scale: precision };
   return parseDecimal(x.toFixed(precision));
 }
 

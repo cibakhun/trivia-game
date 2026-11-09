@@ -96,10 +96,18 @@ describe('DEFAULT_RULES', () => {
     expect([e, w, d].map((r) => r.npc.maxOpenSiegesAgainstHumanKingdom)).toEqual([1, 1, 1]);
   });
 
-  it('ist unveränderlich', () => {
-    expect(Object.isFrozen(DEFAULT_RULES.ETERNAL.defense)).toBe(true);
+  it('ist bis in jede Ebene unveränderlich, in allen Modi', () => {
+    const unfrozen: string[] = [];
+    const visit = (value: unknown, path: string) => {
+      if (typeof value !== 'object' || value === null) return;
+      if (!Object.isFrozen(value)) unfrozen.push(path);
+      for (const [key, child] of Object.entries(value)) visit(child, `${path}.${key}`);
+    };
+    visit(DEFAULT_RULES, 'DEFAULT_RULES');
+    expect(unfrozen).toEqual([]);
     expect(() => {
-      (DEFAULT_RULES.ETERNAL.defense as { baseDeadline: number }).baseDeadline = 1;
+      // @ts-expect-error -- der Typ ist rekursiv schreibgeschützt
+      DEFAULT_RULES.WEEKLY.quiz.estimateTimeLimit = 1;
     }).toThrow(TypeError);
   });
 });

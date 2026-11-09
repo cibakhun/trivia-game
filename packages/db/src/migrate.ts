@@ -14,9 +14,11 @@ import type { ClientBase } from 'pg';
 export const MIGRATIONS_DIR = fileURLToPath(new URL('../migrations', import.meta.url));
 
 const FILE_PATTERN = /^(\d{4})_([a-z0-9]+(?:_[a-z0-9]+)*)\.sql$/;
-/** Eigenständige Transaktionsbefehle (nicht das `begin` eines PL/pgSQL-Blocks). */
+/** Anweisungen, die die Transaktion des Läufers beenden oder verschachteln würden. */
 const TRANSACTION_CONTROL =
-  /^\s*(begin|commit|rollback|start\s+transaction)(\s+(work|transaction))?\s*;/im;
+  /^(begin|commit|rollback|abort|end|start\s+transaction|prepare\s+transaction)\b/i;
+/** Verwaltungstabelle, schemaqualifiziert: eine temporäre Tabelle darf sie nicht überdecken. */
+const LEDGER = 'public.schema_migrations';
 /** Fester Schlüssel für pg_advisory_lock („rdw-migrations“). */
 const LOCK_KEY = 7_268_469_001;
 
@@ -36,6 +38,30 @@ export function checksumOf(sql: string): string {
   return createHash('sha256').update(sql.replace(/\r\n/g, '\n')).digest('hex');
 }
 
+/**
+ * Kommentare, Zeichenketten (auch E'…'), Bezeichner in Anführungszeichen und Dollar-Quoting.
+ * Die Alternativen werden von links nach rechts gesucht, daher zählt z. B. `--` in einer
+ * Zeichenkette nicht als Kommentar. Verschachtelte Blockkommentare enden hier an der ersten
+ * schließenden Marke; das kann nur zu einer unnötigen Ablehnung führen, nie zu einer übersehenen Anweisung.
+ */
+const SQL_NON_CODE =
+  /--[^\n]*|\/\*[\s\S]*?\*\/|[eE]'(?:[^'\\]|\\[\s\S]|'')*'|'(?:[^']|'')*'|"(?:[^"]|"")*"|\$([A-Za-z_]\w*)?\$[\s\S]*?\$\1\$/g;
+
+/**
+ * Ersetzt alles außer den Anweisungen selbst durch Leerzeichen, sodass z. B. ein `begin` im Rumpf
+ * einer PL/pgSQL-Funktion nicht als Transaktionsbefehl gilt.
+ */
+export function stripSqlLiterals(sql: string): string {
+  return sql.replace(SQL_NON_CODE, (match) => ' '.repeat(match.length));
+}
+
+/** Enthält die Datei eine eigene Transaktionssteuerung (auch mitten in einer Zeile)? */
+export function hasTransactionControl(sql: string): boolean {
+  return stripSqlLiterals(sql)
+    .split(';')
+    .some((statement) => TRANSACTION_CONTROL.test(statement.trim()));
+}
+
 /** Liest und prüft alle Migrationsdateien eines Verzeichnisses (lückenlos ab 0001). */
 export async function loadMigrations(dir: string = MIGRATIONS_DIR): Promise<Migration[]> {
   const files = (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort();
@@ -52,7 +78,7 @@ export async function loadMigrations(dir: string = MIGRATIONS_DIR): Promise<Migr
       );
     }
     const sql = await readFile(path.join(dir, file), 'utf8');
-    if (TRANSACTION_CONTROL.test(sql)) {
+    if (hasTransactionControl(sql)) {
       throw new MigrationError(
         `${file}: keine eigene Transaktionssteuerung, der Läufer kapselt jede Datei`,
       );
@@ -69,7 +95,7 @@ export interface MigrationPlan {
 
 async function ensureTable(client: ClientBase): Promise<void> {
   await client.query(`
-    create table if not exists schema_migrations (
+    create table if not exists ${LEDGER} (
       version    text primary key,
       name       text not null,
       checksum   text not null,
@@ -80,7 +106,7 @@ async function ensureTable(client: ClientBase): Promise<void> {
 /** Vergleicht Datenbankstand und Dateien; wirft bei geänderten, fehlenden oder ungeordneten Migrationen. */
 async function plan(client: ClientBase, migrations: readonly Migration[]): Promise<MigrationPlan> {
   const { rows } = await client.query<{ version: string; checksum: string }>(
-    'select version, checksum from schema_migrations order by version',
+    `select version, checksum from ${LEDGER} order by version`,
   );
   const byVersion = new Map(migrations.map((m) => [m.version, m]));
   for (const row of rows) {
@@ -117,7 +143,7 @@ async function withLock<T>(client: ClientBase, fn: () => Promise<T>): Promise<T>
 export async function migrationStatus(client: ClientBase, dir?: string): Promise<MigrationPlan> {
   const migrations = await loadMigrations(dir);
   const { rows } = await client.query<{ exists: boolean }>(
-    "select to_regclass('schema_migrations') is not null as exists",
+    `select to_regclass('${LEDGER}') is not null as exists`,
   );
   if (!rows[0]?.exists) return { applied: [], pending: migrations };
   return withLock(client, () => plan(client, migrations));
@@ -140,13 +166,16 @@ export async function migrate(client: ClientBase, options: MigrateOptions = {}):
       await client.query('begin');
       try {
         await client.query(migration.sql);
-        await client.query(
-          'insert into schema_migrations (version, name, checksum) values ($1, $2, $3)',
-          [migration.version, migration.name, migration.checksum],
-        );
+        await client.query(`insert into ${LEDGER} (version, name, checksum) values ($1, $2, $3)`, [
+          migration.version,
+          migration.name,
+          migration.checksum,
+        ]);
         await client.query('commit');
       } catch (error) {
-        await client.query('rollback');
+        // Ein Fehler beim Zurückrollen (z. B. abgebrochene Verbindung) soll die eigentliche
+        // Ursache und den Dateinamen nicht verdecken.
+        await client.query('rollback').catch(() => undefined);
         throw new MigrationError(`${migration.file} fehlgeschlagen: ${(error as Error).message}`, {
           cause: error,
         });

@@ -9,8 +9,10 @@ const postgresUrl = z
   .url()
   .refine((value) => /^postgres(ql)?:\/\//.test(value), 'muss eine postgres://-URL sein');
 
+// APP_ENV ohne Standardwert: Fehlt die Angabe auf einem Produktionsserver, darf der Läufer nicht
+// stillschweigend „local“ annehmen und damit den Freigabeschutz umgehen.
 export const dbEnvSchema = z.object({
-  APP_ENV: z.enum(APP_ENVS).default('local'),
+  APP_ENV: z.enum(APP_ENVS),
   DATABASE_URL: postgresUrl,
 });
 export type DbEnv = z.infer<typeof dbEnvSchema>;

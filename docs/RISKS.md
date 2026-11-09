@@ -6,7 +6,7 @@ Bezug: Brief §19, §13, §14. Bewertung: Wahrscheinlichkeit (W) und Auswirkung 
 |---|---|---|---|---|---|
 | R-01 | **Verteidigungsdruck:** Das Spiel fühlt sich wie Anwesenheitspflicht an; Spieler verlieren Gebiete im Schlaf oder Urlaub und hören auf. Das verdeckte Gate erhöht die Zahl offener Belagerungen, weil auch falsche Angriffe eröffnet werden (ohne Gebietsverlust). | hoch | hoch | 24-h-Frist, Items bis 48 h, Kappung offener Belagerungen, Schutzzeiten, Web Push, Dashboard, Urlaubsmodus nach Beta; Beta-Kennzahl „Timeout-Quote“ | Ph. 3–4, [O-04], [O-06] |
 | R-02 | **Kaltstart:** Zu wenige Spieler für lebendiges PvP. | hoch | hoch | NPCs und neutrale Regionen von Beginn an; Closed Beta mit eingeladener Gruppe; Daily als niedrigschwelliger Einstieg später | Ph. 1, 5, 6 |
-| R-03 | **Fragendatenbank:** Umfang, Richtigkeit und Übersetzungsqualität in drei Sprachen sind teuer; Fehler zerstören Vertrauen. | hoch | hoch | Redaktionspipeline mit Pflichtprüfung, Quellen, Fehlermeldefunktion, DIF-Monitoring, Suspendieren mit einem Klick, Pool-Kennzahlen | [O-02] |
+| R-03 | **Fragendatenbank:** Umfang und Richtigkeit sind teuer (seit ADR-023 nur Deutsch, ohne Übersetzungen); Fehler zerstören Vertrauen. | hoch | hoch | Redaktionspipeline mit Pflichtprüfung, Quellen, Fehlermeldefunktion, DIF-Monitoring, Suspendieren mit einem Klick, Pool-Kennzahlen | [O-02] |
 | R-04 | **Benachrichtigungen erreichen Spieler nicht** (iOS nur mit installierter PWA, abgelehnte Berechtigung) – Fristen wirken dann unfair. | hoch | hoch | PWA-Installationshilfe, In-App-Hinweis beim Start, später E-Mail; Kennzahl Push-Zustellrate | [O-04] |
 | R-05 | **Nachschlagen und Bots** verfälschen Duelle. | hoch | mittel | kurze Zeitlimits, schwer recherchierbare Schätzfragen, statistische Signale, verhältnismäßige Maßnahmen | Ph. 2–3, 7 |
 | R-06 | **Große Reiche:** Schneeballeffekt oder faktische Unangreifbarkeit durch Kappung und Items. | mittel | hoch | jede Region einzeln eroberbar, NPC-Druck auf große Reiche, Simulation, größenabhängige Kapazität als Option | [O-05], Ph. 5 |
@@ -27,4 +27,4 @@ Bezug: Brief §19, §13, §14. Bewertung: Wahrscheinlichkeit (W) und Auswirkung 
 1. Ein Postgres-Knoten trägt eine Eternal-Welt mit mehreren tausend aktiven Spielern (Lasttest Phase 7).
 2. 20/30 s Zeitlimits fühlen sich fair an und schrecken Nachschlagen ausreichend ab (Beta-Umfrage, Zeitverteilungen).
 3. Spieler akzeptieren asynchrone Duelle mit 24-h-Frist als „fair“, wenn sie zuverlässig benachrichtigt werden (Beta).
-4. Drei Sprachen lassen sich mit vertretbarem Aufwand redaktionell gleichwertig halten ([O-02]).
+4. ~~Drei Sprachen lassen sich mit vertretbarem Aufwand redaktionell gleichwertig halten~~ entfallen: nur Deutsch (ADR-023).

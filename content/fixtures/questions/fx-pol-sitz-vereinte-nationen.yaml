@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-pol-sitz-vereinte-nationen
 kind: TRIVIA
@@ -25,20 +26,4 @@ translations:
       a: "Genf"
       b: "New York"
       c: "Wien"
-      d: "Paris"
-  hu:
-    status: DRAFT
-    prompt: "Melyik városban található az ENSZ központi székháza?"
-    options:
-      a: "Genf"
-      b: "New York"
-      c: "Bécs"
-      d: "Párizs"
-  en:
-    status: DRAFT
-    prompt: "In which city are the headquarters of the United Nations located?"
-    options:
-      a: "Geneva"
-      b: "New York City"
-      c: "Vienna"
       d: "Paris"

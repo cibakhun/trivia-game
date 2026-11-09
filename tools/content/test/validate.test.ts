@@ -28,8 +28,6 @@ function trivia(overrides: Record<string, unknown> = {}): Record<string, unknown
     trivia: { options: ['a', 'b', 'c', 'd'], correct: 'b' },
     translations: {
       de: t('Welches chemische Symbol hat Gold?', ['Ag', 'Au', 'Go', 'Gd']),
-      hu: t('Mi az arany vegyjele a kémiában?', ['Ag', 'Au', 'Go', 'Gd']),
-      en: t('What is the chemical symbol for gold?', ['Ag', 'Au', 'Go', 'Gd']),
     },
     ...overrides,
   };
@@ -54,8 +52,6 @@ function estimate(overrides: Record<string, unknown> = {}): Record<string, unkno
     },
     translations: {
       de: t('Wie tief ist der Baikalsee (in Metern)?', 'Meter'),
-      hu: t('Milyen mély a Bajkál-tó (méterben)?', 'méter'),
-      en: t('How deep is Lake Baikal (in metres)?', 'metres'),
     },
     ...overrides,
   };
@@ -63,7 +59,7 @@ function estimate(overrides: Record<string, unknown> = {}): Record<string, unkno
 
 const fullReviews = [
   { kind: 'FACT', reviewer: 'Redaktion A', date: today },
-  ...['de', 'hu', 'en'].map((locale) => ({ kind: 'LANGUAGE', locale, reviewer: `Prüfer ${locale}`, date: today })),
+  { kind: 'LANGUAGE', locale: 'de', reviewer: 'Lektorat de', date: today },
 ];
 
 function approved(q: Record<string, unknown>): Record<string, unknown> {
@@ -101,8 +97,8 @@ describe('Fragendatei – Freigaberegeln (Brief §5.6)', () => {
 
   it('APPROVED mit nicht freigegebener Übersetzung wird abgelehnt', () => {
     const q = approved(trivia());
-    (q.translations as Record<string, { status: string }>).hu!.status = 'REVIEWED';
-    expect(errors(q)).toContain('APPROVED, aber Übersetzung hu ist nicht freigegeben');
+    (q.translations as Record<string, { status: string }>).de!.status = 'REVIEWED';
+    expect(errors(q)).toContain('APPROVED, aber Übersetzung de ist nicht freigegeben');
   });
 
   it('Übersetzungsstatus über DRAFT braucht eine Sprachprüfung', () => {
@@ -131,6 +127,15 @@ describe('Fragendatei – Freigaberegeln (Brief §5.6)', () => {
       errors({ ...trivia(), sources: [{ title: 'x', url: 'http://example.org', accessed: today }] }).join(),
     ).toMatch(/https/);
   });
+
+  it('Datumsangaben sind gültige Kalenderdaten', () => {
+    for (const accessed of ['2026-02-30', '2026-13-01', '2026-00-10', '2025-02-29']) {
+      const sources = [{ title: 'x', url: 'https://example.org', accessed }];
+      expect(errors({ ...trivia(), sources }).join()).toMatch(/kein gültiges Kalenderdatum/);
+    }
+    const leapDay = [{ title: 'x', url: 'https://example.org', accessed: '2024-02-29' }];
+    expect(errors({ ...trivia(), sources: leapDay })).toEqual([]);
+  });
 });
 
 describe('Fragendatei – Trivia', () => {
@@ -145,26 +150,30 @@ describe('Fragendatei – Trivia', () => {
     );
   });
 
-  it('Optionstexte je Sprache vollständig und eindeutig', () => {
-    const q = trivia();
-    const tr = q.translations as Record<string, { options: Record<string, string> }>;
-    delete tr.en!.options.d;
-    tr.de!.options.c = 'au';
-    const found = errors(q);
-    expect(found).toContain('en: Optionstexte müssen genau die Schlüssel a, b, c, d abdecken');
-    expect(found).toContain('de: Optionstexte doppelt');
+  it('Optionstexte vollständig und eindeutig', () => {
+    const missing = trivia();
+    delete (missing.translations as Record<string, { options: Record<string, string> }>).de!.options.d;
+    expect(errors(missing)).toContain('de: Optionstexte müssen genau die Schlüssel a, b, c, d abdecken');
+    const duplicate = trivia();
+    (duplicate.translations as Record<string, { options: Record<string, string> }>).de!.options.c = 'au';
+    expect(errors(duplicate)).toContain('de: Optionstexte doppelt');
   });
 
-  it('alle drei Sprachen sind Pflicht', () => {
+  it('Deutsch ist Pflicht, andere Sprachen sind nicht vorgesehen (ADR-023)', () => {
     const q = trivia();
-    delete (q.translations as Record<string, unknown>).hu;
+    delete (q.translations as Record<string, unknown>).de;
     expect(errors(q).join()).toMatch(/translations/);
+    const extra = trivia();
+    (extra.translations as Record<string, unknown>).hu = (extra.translations as Record<string, unknown>).de;
+    expect(errors(extra).join()).toMatch(/translations/);
   });
 
   it('Trivia ohne trivia-Abschnitt oder mit estimate-Abschnitt', () => {
     const q = trivia();
     delete q.trivia;
     expect(errors(q)).toContain('Trivia-Frage ohne Abschnitt trivia');
+    const withEstimate = trivia({ estimate: estimate().estimate });
+    expect(errors(withEstimate)).toContain('Trivia-Frage darf keinen Abschnitt estimate haben');
   });
 });
 
@@ -193,10 +202,10 @@ describe('Fragendatei – Schätzfragen', () => {
     expect(errors(est({ answer_value: '09.80' })).join()).toMatch(/kanonische/);
   });
 
-  it('Einheit in jeder Sprache, keine Optionen', () => {
+  it('Einheit im Fragetext, keine Optionen', () => {
     const q = estimate();
-    delete (q.translations as Record<string, Record<string, unknown>>).en!.unit_label;
-    expect(errors(q)).toContain('en: unit_label fehlt (Einheit steht in der Frage)');
+    delete (q.translations as Record<string, Record<string, unknown>>).de!.unit_label;
+    expect(errors(q)).toContain('de: unit_label fehlt (Einheit steht in der Frage)');
   });
 });
 
@@ -235,10 +244,16 @@ describe('Dateiebene', () => {
       expect(report.issues.map((i) => i.message).join()).toMatch(/bereits in questions/);
     });
 
-    it('fehlende Verzeichnisse sind kein Fehler', async () => {
+    it('fehlende Unterordner sind kein Fehler', async () => {
       const dir = await mkdtemp(path.join(tmpdir(), 'rdw-content-empty-'));
       dirs.push(dir);
       expect(await validateContentDir(dir)).toEqual({ questions: [], issues: [] });
+    });
+
+    it('ein fehlendes Inhaltsverzeichnis bricht ab, statt nichts zu prüfen', async () => {
+      await expect(validateContentDir(path.join(tmpdir(), 'rdw-gibt-es-nicht'))).rejects.toThrow(
+        /Inhaltsverzeichnis nicht gefunden/,
+      );
     });
   });
 });

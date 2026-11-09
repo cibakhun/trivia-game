@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-lit-nemzeti-dal
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "Wer schrieb das „Nationallied“ (Nemzeti dal), vorgetragen am 15. März 1848 in Pest?"
-    options:
-      a: "János Arany"
-      b: "Mihály Vörösmarty"
-      c: "Sándor Petőfi"
-      d: "Endre Ady"
-  hu:
-    status: DRAFT
-    prompt: "Ki írta a Nemzeti dalt, amelyet 1848. március 15-én Pesten szavaltak el?"
-    options:
-      a: "Arany János"
-      b: "Vörösmarty Mihály"
-      c: "Petőfi Sándor"
-      d: "Ady Endre"
-  en:
-    status: DRAFT
-    prompt: "Who wrote the “National Song” (Nemzeti dal), recited in Pest on 15 March 1848?"
     options:
       a: "János Arany"
       b: "Mihály Vörösmarty"

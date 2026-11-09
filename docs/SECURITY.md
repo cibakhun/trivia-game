@@ -31,7 +31,7 @@ Der Client erhält nie Daten, die er vor der Auflösung nicht sehen darf (richti
 | Bedrohung (Brief §13.1) | Gegenmaßnahme |
 |---|---|
 | Offenlegung korrekter Antworten | Lösung nie vor Auflösung im Payload; Optionen als Einmal-Token pro Präsentation |
-| Manipulierte Client-Timer | Serverzeit maßgeblich; Client-Wert nur im Fenster `[max(0, S − cap), S]` mit `cap` = 500 ms; fehlende, negative oder nicht ganzzahlige Client-Werte werden verworfen (`effective = S`) und als Signal protokolliert ([QUIZ_ENGINE.md §6](QUIZ_ENGINE.md#6-zeitmessung-und-latenzausgleich)) |
+| Manipulierte Client-Timer | Serverzeit maßgeblich; Client-Wert nur im Fenster `[max(0, S − cap), S]` mit `cap` = 500 ms; fehlende, negative oder nicht ganzzahlige Client-Werte werden verworfen (`effective = S`), negative und nicht ganzzahlige zusätzlich als Signal protokolliert ([QUIZ_ENGINE.md §6](QUIZ_ENGINE.md#6-zeitmessung-und-latenzausgleich)) |
 | Mehrfache Antwortversuche | `unique(participant_id, step_index)` + bedingte Aktualisierung; abgegebene Antworten per Trigger unveränderlich |
 | Fragenwechsel durch Refresh | `present` liefert für einen Schritt immer dieselbe Frage mit ursprünglichem `presented_at` |
 | Wiederholung derselben Herausforderung | eine Herausforderung pro Belagerung; Abbruch zählt als Niederlage; Versuchskontingent |
@@ -85,7 +85,7 @@ Proof-of-Work oder eine einfache Prüfung beim Registrieren ist einer Fremd-CAPT
   - **Backups** laufen nach ihrer Aufbewahrungsfrist aus; nach einer Wiederherstellung wird die Löschliste erneut angewendet.
 - **Auskunft/Export:** maschinenlesbarer Export (JSON) aller personenbezogenen Daten.
 - **Auftragsverarbeitung:** Hosting, ggf. E-Mail-Versand und Fehlerüberwachung erfordern AVV; Hosting in der EU bevorzugt ([O-11]).
-- **Pflichttexte vor öffentlicher Beta:** Datenschutzerklärung (de/hu/en), Impressum (Anbieterkennzeichnung, sofern geschäftsmäßig), Nutzungsbedingungen. Altersangabe und Jugendschutz: Ohne Chat und ohne frei wählbare öffentliche Texte ist das Risiko gering; die Mindestaltersfrage ist Teil der Rechtsprüfung.
+- **Pflichttexte vor öffentlicher Beta:** Datenschutzerklärung (Deutsch, ADR-023), Impressum (Anbieterkennzeichnung, sofern geschäftsmäßig), Nutzungsbedingungen. Altersangabe und Jugendschutz: Ohne Chat und ohne frei wählbare öffentliche Texte ist das Risiko gering; die Mindestaltersfrage ist Teil der Rechtsprüfung.
 - **Inaktive Konten:** Die Fristen werden mit [O-03](DECISIONS.md#o-03-kontomodell-und-anmeldung) festgelegt. Inaktivität zählt ab `users.last_seen_at`, bei nie benutzten Konten ab `created_at`. Empfehlung: Gastkonten nach 90 Tagen Inaktivität löschen; registrierte Konten nach langer Inaktivität (Vorschlag 3 Jahre) mit Vorankündigung – die genaue Frist bleibt bis zur Rechtsprüfung offen.
 
 ## 6. Geistiges Eigentum und Lizenzen
@@ -94,7 +94,7 @@ Proof-of-Work oder eine einfache Prüfung beim Registrieren ist einer Fremd-CAPT
 - **Asset-Register:** Mit dem ersten externen Asset entsteht `docs/ASSET_LICENSES.md` (Datei, Herkunft, Autor, Lizenz, Nachweis-Link). CI prüft, dass jedes Asset im Register steht.
 - Bevorzugte Lizenzen für Assets: eigene Werke, CC0, OFL (Schriften), MIT/ISC (Icons). Keine Share-Alike-Lizenzen für Fragen-Inhalte.
 - **Code-Abhängigkeiten:** Allowlist MIT, ISC, BSD-2/3, Apache-2.0, 0BSD; Copyleft-Lizenzen (GPL/AGPL) nur nach Einzelfallprüfung.
-- **Name „Reiche des Wissens“:** Arbeitstitel, Markenrecherche (DPMA, EUIPO, ungarisches Amt) vor öffentlicher Nutzung ([O-12]); ungarischer und englischer Titel ebenfalls prüfen.
+- **Name „Reiche des Wissens“:** Arbeitstitel, Markenrecherche (DPMA, EUIPO, ungarisches Amt) vor öffentlicher Nutzung ([O-12]).
 - **KI-gestützte Inhalte:** werden gekennzeichnet (`origin`) und vor Freigabe von Menschen geprüft; Nutzungsbedingungen des verwendeten Werkzeugs sind zu beachten.
 
 ## 7. Monetarisierungsschutz

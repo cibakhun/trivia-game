@@ -16,7 +16,7 @@ Ein browserbasiertes Multiplayer-Strategiespiel, in dem **Wissen die wichtigste 
 | Strategiespieler mit wenig Zeit | Langfristiger Fortschritt in kurzen Sitzungen | Eternal |
 | Gelegenheitsspieler mobil | „Eine Verteidigung in der Mittagspause“ | Eternal (Belagerungs-Dashboard) |
 
-Ungarisch als Startsprache ist ein bewusster Fokus: Das Genre ist in Ungarn bekannt; die Lokalisierung muss dort besonders hochwertig sein.
+Gespielt wird nur auf Deutsch (PO-Entscheidung 2026-11-09, ADR-023; der Brief sah zusätzlich Ungarisch und Englisch vor). Die Technik hält die Sprachkennung offen, sodass eine weitere Sprache später ohne Umbau möglich ist.
 
 ## 3. Produktprinzipien (Brief §1.2) und ihre technische Konsequenz
 

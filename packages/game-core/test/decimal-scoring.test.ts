@@ -73,7 +73,9 @@ describe('Decimal', () => {
     expect(formatDecimal(decimalFromNumber(1.005, 2))).toBe('1');
     expect(formatDecimal(decimalFromNumber(-0.4, 0))).toBe('0');
     expect(() => decimalFromNumber(Number.NaN, 0)).toThrow(RangeError);
-    expect(() => decimalFromNumber(1e21, 0)).toThrow(RangeError);
+    expect(() => decimalFromNumber(Number.POSITIVE_INFINITY, 0)).toThrow(RangeError);
+    expect(formatDecimal(decimalFromNumber(1e21, 0))).toBe('1000000000000000000000');
+    expect(formatDecimal(decimalFromNumber(-2e22, 2))).toBe('-20000000000000000000000');
   });
 });
 

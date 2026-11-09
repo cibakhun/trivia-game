@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-art-tasten-klavier
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "Wie viele Tasten hat ein modernes Standardklavier?"
     unit_label: "Tasten"
-  hu:
-    status: DRAFT
-    prompt: "Hány billentyűje van egy modern szabványos zongorának?"
-    unit_label: "billentyű"
-  en:
-    status: DRAFT
-    prompt: "How many keys does a modern standard piano have?"
-    unit_label: "keys"

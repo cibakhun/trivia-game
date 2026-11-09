@@ -41,6 +41,11 @@ describe('classifyDrop – Intervalle (ITEM_SYSTEM §3)', () => {
     expect(() => classifyDrop(1, 1)).toThrow(RangeError);
     expect(() => classifyDrop(-0.1, 1)).toThrow(RangeError);
     expect(() => classifyDrop(0.5, 1.1)).toThrow(RangeError);
+    for (const weightPpm of [-1, 0.5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(() => classifyDrop(0.5, 1, [{ item: 'hourglass_small', weightPpm }])).toThrow(
+        /Gewicht/,
+      );
+    }
   });
 });
 

@@ -45,17 +45,19 @@ Bezug: Brief §5, §10.3, §11.5, §13.1. Kennzeichnung siehe [README](README.md
 - Keine Jahreszahlen vor Christus im MVP (Eingabe-Komplexität).
 - Keine Werte, die sich schnell ändern (Einwohnerzahlen nur mit Stichtag in der Frage).
 
-**Zahleneingabe je Sprache** (Widerspruch W-11) [E]:
+**Zahleneingabe** (Widerspruch W-11) [E]: Gespielt wird nur auf Deutsch (ADR-023).
 
 | Sprache | Beispiel | Tausendertrenner | Dezimaltrenner |
 |---|---|---|---|
 | de | `1.234,5` | `.` oder Leerzeichen | `,` |
-| hu | `1 234,5` | Leerzeichen | `,` |
-| en | `1,234.5` | `,` | `.` |
+
+Tausendergruppen müssen genau drei Ziffern haben; `1.5` wird abgelehnt statt als 15 gelesen. Kommt eine Sprache hinzu, braucht der Parser nur einen weiteren Tabelleneintrag.
 
 Der Client zeigt beim Tippen die interpretierte Zahl in neutraler Form („= 1 234,5 m“). Gesendet werden **Rohtext und Sprache**; der Server parst mit derselben Funktion aus `packages/protocol` und speichert Rohtext (`raw_input`) und Normalwert. So ist die Auswertung serverseitig und Missverständnisse sind sichtbar, bevor der Spieler bestätigt.
 
 ## 4. Mehrsprachigkeit und Sprach-Fairness
+
+> **Derzeit ruhend:** Gespielt wird nur auf Deutsch (PO-Entscheidung 2026-11-09, ADR-023). Die folgenden Regeln gelten erst, wenn eine weitere Sprache hinzukommt; bis dahin braucht jede Frage nur den deutschen Text und eine deutsche Sprachprüfung.
 
 1. Eine Fragenversion kommt nur dann in den **aktiven Pool**, wenn ihre Übersetzungen in **allen** aktiven Sprachen freigegeben sind (de, hu, en) [E]. Damit kann jedes Duell in jeder Sprachkombination gestellt werden.
 2. Übersetzungen werden von Muttersprachlern geprüft; Übersetzung ≠ Wort-für-Wort: Optionen müssen in jeder Sprache gleich plausibel bleiben (keine Hinweise durch Wortlänge, Artikel, Kasus) [E].
@@ -99,7 +101,7 @@ effective = clamp(C, max(0, S − cap), S)      // in ganzen Millisekunden
 - Sehr langsame Verbindung: `S − C > cap` → `effective = S − cap`, Teilkompensation.
 - Manipulierter Client meldet `C = 0` → `effective = max(0, S − cap)`. Der maximale Vorteil einer Manipulation ist damit auf `cap` begrenzt; zusätzlich erzeugt ein dauerhaft an der Grenze liegendes `S − C` ein Missbrauchssignal ([SECURITY.md §3](SECURITY.md#3-anti-cheat-quiz)).
 - Nach einem Reload während eines Schritts zählt `effective = S` ohne Ausgleich, weil der Client-Timer neu begonnen hat.
-- Fehlender, negativer oder nicht ganzzahliger Client-Wert: `C` wird verworfen, es gilt `effective = S`; ein negativer Wert wird zusätzlich als Signal protokolliert. Die Untergrenze `max(0, …)` verhindert negative effektive Zeiten bei sehr schnellen Antworten (`S < cap`).
+- Fehlender, negativer oder nicht ganzzahliger Client-Wert: `C` wird verworfen, es gilt `effective = S`. Negative und nicht ganzzahlige Werte (der Client sendet ganze Millisekunden) werden zusätzlich als Signal protokolliert, auch nach einem Reload; ein fehlender Wert nicht. Die Untergrenze `max(0, …)` verhindert negative effektive Zeiten bei sehr schnellen Antworten (`S < cap`).
 - Unplausibel kurze Zeiten (z. B. Schätzeingabe < 800 ms) werden gewertet, aber als Signal protokolliert.
 
 `cap` ist ein Kompromiss zwischen Fairness für langsame Netze und Manipulationsspielraum; der Wert wird in der Beta anhand der gemessenen Verteilung von `S − C` justiert.
@@ -112,7 +114,7 @@ Auch mit Ausgleich bleiben Unterschiede, die technisch nicht vollständig beseit
 2. **Gerätegeschwindigkeit:** Langsame Geräte stellen die Frage später dar; das steckt in `S − C` und wird bis `cap` ausgeglichen. Die Bedienzeit (Touch vs. Maus vs. Tastatur) wird nicht ausgeglichen.
 3. **Eingabeart der Schätzung:** Längere Zahlen brauchen länger zum Tippen. Das betrifft beide Spieler bei derselben Frage gleich, Tippgeschwindigkeit bleibt aber individuell.
 4. **Timer-Auflösung im Browser:** Manche Browser vergröbern `performance.now()` aus Datenschutzgründen; das verschlechtert die Genauigkeit von `C`. Wirkung: höchstens `cap`.
-5. **Lesegeschwindigkeit und Sprache:** Übersetzungen haben unterschiedliche Länge. Die Schätzfrage-Zeit enthält Lesezeit. Gegenmaßnahme: Fragetexte kurz und in allen Sprachen ähnlich lang halten (Redaktionsregel), Monitoring der Durchschnittszeit je Sprache.
+5. **Lesegeschwindigkeit:** Die Schätzfrage-Zeit enthält Lesezeit. Gegenmaßnahme: Fragetexte kurz halten (Redaktionsregel). Mit nur einer Sprache (ADR-023) entfällt der Längenunterschied zwischen Übersetzungen.
 6. **Asynchronität:** Verteidiger antworten zu einem selbst gewählten Zeitpunkt (ausgeruht oder müde). Das ist gewollt und gilt für beide Seiten gleich.
 
 Die Geschwindigkeit entscheidet nur bei exakt gleichem Schätzabstand. Wie oft das passiert, wird als Kennzahl verfolgt (`battle_results.reason = 'SPEED'`).
@@ -223,8 +225,8 @@ Verteidigungspunkte mit den Eternal-Werten aus [GAME_RULES.md §5.5](GAME_RULES.
 ```mermaid
 flowchart LR
   A[Entwurf<br/>Redaktion oder KI-gestützt] --> B[Faktenprüfung<br/>≥ 1 Quelle, 2. Person]
-  B --> C[Übersetzung de/hu/en]
-  C --> D[Muttersprachliche Prüfung<br/>je Sprache]
+  B --> C[Sprachliche Prüfung<br/>Deutsch, ADR-023]
+  C --> D[Freigabe<br/>dokumentierte Prüfungen]
   D --> E[CI-Validierung<br/>Schema, ≥4 Optionen, 1 richtig, Längen, Einheiten]
   E --> F[Import als APPROVED-Version]
   F --> G[Spielbetrieb + Statistik]
@@ -241,9 +243,9 @@ Ein aktiver Spieler bestreitet geschätzt 15–25 Kämpfe pro Tag; jeder Kampf v
 
 | Meilenstein | Trivia | Schätzung | Sprachen | Begründung |
 |---|---|---|---|---|
-| Phase 1 (Prototyp) | 100 | 50 | de, hu, en | Wiederholungen im Einzelspieler-Test akzeptabel |
-| MVP / geschlossene Beta | 400 | 250 | de, hu, en | ≈ 20 Tage ohne Wiederholung für Vielspieler (mit Rückfallregel) |
-| Öffentliche Beta | 1 500+ | 800+ | de, hu, en | 90-Tage-Fenster für Vielspieler |
+| Phase 1 (Prototyp) | 100 | 50 | de | Wiederholungen im Einzelspieler-Test akzeptabel; bis zur Entscheidung über O-02 mit den 40 Testfragen |
+| MVP / geschlossene Beta | 400 | 250 | de | ≈ 20 Tage ohne Wiederholung für Vielspieler (mit Rückfallregel) |
+| Öffentliche Beta | 1 500+ | 800+ | de | 90-Tage-Fenster für Vielspieler |
 
 Die Fragendatenbank ist voraussichtlich der **größte laufende Aufwand** des Projekts (Risiko R-03, Entscheidung [O-02]).
 

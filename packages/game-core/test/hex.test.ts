@@ -1,6 +1,7 @@
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
+  AXIAL_DIRECTIONS,
   areNeighbors,
   axialKey,
   axialToOddR,
@@ -36,14 +37,23 @@ describe('Nachbarschaft', () => {
     );
   });
 
-  it('ist symmetrisch', () => {
+  it('erkennt Nachbarn und ist symmetrisch', () => {
     fc.assert(
-      fc.property(axial, axial, (a, b) => {
+      fc.property(axial, axial, fc.integer({ min: 0, max: 5 }), (a, b, i) => {
+        const n = neighbors(a)[i]!;
+        expect(areNeighbors(a, n)).toBe(true);
+        expect(areNeighbors(n, a)).toBe(true);
+        expect(areNeighbors(a, a)).toBe(false);
+        expect(areNeighbors(a, b)).toBe(hexDistance(a, b) === 1);
         expect(areNeighbors(a, b)).toBe(areNeighbors(b, a));
-        const n = neighbors(a)[0]!;
         expect(neighbors(n).map(axialKey)).toContain(axialKey(a));
       }),
     );
+  });
+
+  it('Richtungen sind unveränderlich', () => {
+    expect(Object.isFrozen(AXIAL_DIRECTIONS)).toBe(true);
+    for (const direction of AXIAL_DIRECTIONS) expect(Object.isFrozen(direction)).toBe(true);
   });
 
   it('Distanz ist eine Metrik (Dreiecksungleichung, Identität, Symmetrie)', () => {
@@ -112,6 +122,11 @@ describe('Chunks (odd-r, 16 × 16)', () => {
         expect(oddRToAxial(col, row)).toEqual(a);
       }),
     );
+  });
+
+  it('odd-r-Umrechnung lehnt ungültige Koordinaten ab', () => {
+    expect(() => oddRToAxial(0.5, 1)).toThrow(RangeError);
+    expect(() => oddRToAxial(1, Number.NaN)).toThrow(RangeError);
   });
 
   it('ordnet jede Zelle genau dem Chunk zu, der sie enthält (stabil)', () => {

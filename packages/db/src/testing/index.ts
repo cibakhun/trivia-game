@@ -69,23 +69,30 @@ export async function createTestDatabase(
   });
   const url = withDatabase(testServerUrl(), name);
   const pool = new pg.Pool({ connectionString: url, max: 5 });
+  let poolEnded = false;
+  const drop = async (): Promise<void> => {
+    // wiederholbar: ein zweiter Aufruf nach fehlgeschlagenem DROP beendet den Pool nicht erneut
+    if (!poolEnded) {
+      poolEnded = true;
+      await pool.end();
+    }
+    await withAdmin((admin) => admin.query(`drop database if exists ${name} with (force)`));
+  };
   if (options.migrate ?? true) {
-    const client = await pool.connect();
     try {
-      await migrate(client);
-    } finally {
-      client.release();
+      const client = await pool.connect();
+      try {
+        await migrate(client);
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      // sonst blieben Pool und Datenbank liegen, weil der Aufrufer drop() nie erhält
+      await drop().catch(() => undefined);
+      throw error;
     }
   }
-  return {
-    name,
-    url,
-    pool,
-    async drop() {
-      await pool.end();
-      await withAdmin((admin) => admin.query(`drop database if exists ${name} with (force)`));
-    },
-  };
+  return { name, url, pool, drop };
 }
 
 /** Stellt die Spielzeit relativ zur realen Zeit ein (nur Test/Staging). */

@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-sci-normfallbeschleunigung
 kind: ESTIMATE
@@ -26,12 +27,4 @@ translations:
   de:
     status: DRAFT
     prompt: "Wie groß ist die Normfallbeschleunigung g (in m/s², auf eine Nachkommastelle)?"
-    unit_label: "m/s²"
-  hu:
-    status: DRAFT
-    prompt: "Mekkora a normál nehézségi gyorsulás, g értéke (m/s²-ben, egy tizedesjegyre)?"
-    unit_label: "m/s²"
-  en:
-    status: DRAFT
-    prompt: "What is the standard acceleration of gravity g (in m/s², to one decimal place)?"
     unit_label: "m/s²"

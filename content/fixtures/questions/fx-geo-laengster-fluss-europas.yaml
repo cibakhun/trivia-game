@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-geo-laengster-fluss-europas
 kind: TRIVIA
@@ -26,19 +27,3 @@ translations:
       b: "Donau"
       c: "Rhein"
       d: "Dnepr"
-  hu:
-    status: DRAFT
-    prompt: "Melyik Európa leghosszabb folyója?"
-    options:
-      a: "Volga"
-      b: "Duna"
-      c: "Rajna"
-      d: "Dnyeper"
-  en:
-    status: DRAFT
-    prompt: "Which is the longest river in Europe?"
-    options:
-      a: "Volga"
-      b: "Danube"
-      c: "Rhine"
-      d: "Dnieper"

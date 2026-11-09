@@ -37,6 +37,16 @@ describe('createRng (sfc32)', () => {
     expect(RNG_VERSION).toBe(1);
   });
 
+  it('nextNormal entspricht dem Referenzvektor bis auf Rundung der Gleitkommafunktionen', () => {
+    // Python (math.log/math.cos) mit demselben Seed. ECMAScript legt Math.log und Math.cos nicht
+    // bitgenau fest; maßgeblich ist der Server (ADR-018), daher Toleranz statt exakter Gleichheit.
+    const rng = createRng(Uint8Array.from({ length: 16 }, (_, i) => i));
+    const expected = [
+      -0.31023659062534, -0.6240819216201454, 1.0184280212080774, -0.20207408822908585,
+    ];
+    for (const value of expected) expect(rng.nextNormal()).toBeCloseTo(value, 12);
+  });
+
   it('gleicher Seed ⇒ gleiche Folge (Wiederholung würfelt nicht neu)', async () => {
     const seed = await deriveSeed(SECRET, 'drop', 'siege-42');
     const a = createRng(seed);

@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-sci-gas-erdatmosphaere
 kind: TRIVIA
@@ -26,19 +27,3 @@ translations:
       b: "Sauerstoff"
       c: "Argon"
       d: "Kohlenstoffdioxid"
-  hu:
-    status: DRAFT
-    prompt: "Melyik gáz alkotja a Föld légkörének legnagyobb részét?"
-    options:
-      a: "nitrogén"
-      b: "oxigén"
-      c: "argon"
-      d: "szén-dioxid"
-  en:
-    status: DRAFT
-    prompt: "Which gas makes up most of Earth's atmosphere?"
-    options:
-      a: "nitrogen"
-      b: "oxygen"
-      c: "argon"
-      d: "carbon dioxide"

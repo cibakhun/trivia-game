@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-sci-entfernung-mond
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "Wie weit ist der Mond im Mittel von der Erde entfernt (in Kilometern)?"
     unit_label: "Kilometer"
-  hu:
-    status: DRAFT
-    prompt: "Átlagosan milyen messze van a Hold a Földtől (kilométerben)?"
-    unit_label: "kilométer"
-  en:
-    status: DRAFT
-    prompt: "What is the average distance from the Earth to the Moon (in kilometres)?"
-    unit_label: "kilometres"

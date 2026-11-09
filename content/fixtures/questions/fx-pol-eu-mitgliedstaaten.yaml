@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-pol-eu-mitgliedstaaten
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "Wie viele Mitgliedstaaten hatte die Europäische Union am 1. Januar 2025?"
     unit_label: "Staaten"
-  hu:
-    status: DRAFT
-    prompt: "Hány tagállama volt az Európai Uniónak 2025. január 1-jén?"
-    unit_label: "tagállam"
-  en:
-    status: DRAFT
-    prompt: "How many member states did the European Union have on 1 January 2025?"
-    unit_label: "states"

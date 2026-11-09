@@ -1,6 +1,6 @@
 # Reiche des Wissens (Arbeitstitel)
 
-Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduellen Gebiete auf einer Hexagon-Karte, bauen Königreiche auf und verteidigen sie asynchron gegen andere Spieler und NPC-Fraktionen. Drei Modi: permanente Eternal-Welt, Tages- und Wochenkarten. Sprachen: Deutsch, Ungarisch, Englisch.
+Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduellen Gebiete auf einer Hexagon-Karte, bauen Königreiche auf und verteidigen sie asynchron gegen andere Spieler und NPC-Fraktionen. Drei Modi: permanente Eternal-Welt, Tages- und Wochenkarten. Sprache: Deutsch.
 
 ## Status
 
@@ -16,7 +16,7 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 | Pfad | Inhalt |
 |---|---|
-| `packages/protocol` | zod-Schemas: Regelkonfiguration mit Standardwerten je Modus, Zahlparser de/hu/en, Fragen-Enums |
+| `packages/protocol` | zod-Schemas: Regelkonfiguration mit Standardwerten je Modus, Zahlparser (Deutsch), Fragen-Enums |
 | `packages/game-core` | reine Spielregeln: Hex-Karte und Chunks, Ränge, Duellauswertung mit verdecktem Gate, Verteidigungspunkte, effektive Antwortzeit, Fristen, Zufall (HMAC + sfc32), Drops, NPC-Antwortmodell |
 | `packages/db` | SQL-Migrationen, Migrationsläufer, `game_now()`, Testhelfer |
 | `tools/content` | Prüfwerkzeug für Fragendateien |

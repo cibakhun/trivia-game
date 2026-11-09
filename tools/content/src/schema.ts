@@ -19,7 +19,14 @@ import { z } from 'zod';
 
 export const QUESTION_FILE_SCHEMA_VERSION = 1;
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Datum im Format JJJJ-MM-TT');
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Datum im Format JJJJ-MM-TT')
+  .refine((value) => {
+    // gültiges Kalenderdatum: Date rechnet den 30.02. sonst still in den März um
+    const date = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
+  }, 'kein gültiges Kalenderdatum');
 const nonEmpty = z.string().trim().min(1);
 
 export const questionKeySchema = z

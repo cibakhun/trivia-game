@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-tech-eiffelturm-fertig
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "In welchem Jahr wurde der Eiffelturm in Paris fertiggestellt?"
     unit_label: "Jahr"
-  hu:
-    status: DRAFT
-    prompt: "Melyik évben készült el a párizsi Eiffel-torony?"
-    unit_label: "év"
-  en:
-    status: DRAFT
-    prompt: "In which year was the Eiffel Tower in Paris completed?"
-    unit_label: "year"

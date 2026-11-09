@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-nat-meeressaeugetier
 kind: TRIVIA
@@ -26,19 +27,3 @@ translations:
       b: "Thunfisch"
       c: "Delfin"
       d: "Rochen"
-  hu:
-    status: DRAFT
-    prompt: "Az alábbi tengeri állatok közül melyik emlős?"
-    options:
-      a: "cápa"
-      b: "tonhal"
-      c: "delfin"
-      d: "rája"
-  en:
-    status: DRAFT
-    prompt: "Which of these sea animals is a mammal?"
-    options:
-      a: "shark"
-      b: "tuna"
-      c: "dolphin"
-      d: "ray"

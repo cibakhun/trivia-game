@@ -82,4 +82,35 @@ describe('game_clock in Produktion (Versatz gesperrt)', () => {
   it('Versatz 0 bleibt erlaubt (No-op)', async () => {
     await expect(setGameClockOffset(db.pool, 0)).resolves.toBeUndefined();
   });
+
+  it('erkennt auch Kalenderversätze, die als Gesamtdauer 0 ergeben', async () => {
+    // Intervalle vergleichen sonst nur die Gesamtdauer: 1 Monat − 30 Tage = 0, verschiebt aber Zeit
+    await expect(
+      db.pool.query(`update game_clock set "offset" = interval '1 month -30 days' where id = 1`),
+    ).rejects.toThrow(/schreibgeschützt/);
+  });
+
+  it('lässt sich nicht durch temporäre Tabellen täuschen', async () => {
+    const client = await db.pool.connect();
+    try {
+      // temporäre Tabellen würden sonst vor public und sogar vor pg_catalog gefunden
+      await client.query(
+        `create temp table pg_db_role_setting as
+           select 0::oid as setrole, oid as setdatabase,
+                  array['rdw.allow_game_clock_offset=on'] as setconfig
+           from pg_catalog.pg_database where datname = current_database()`,
+      );
+      await expect(setGameClockOffset(client, HOUR)).rejects.toThrow(/schreibgeschützt/);
+      await client.query(
+        `create temp table game_clock as select 1 as id, interval '1 day' as "offset"`,
+      );
+      const { rows } = await client.query<{ diff: number }>(
+        `select extract(epoch from (game_now() - clock_timestamp())) * 1000 as diff`,
+      );
+      expect(Math.abs(Number(rows[0]!.diff))).toBeLessThan(50);
+    } finally {
+      await client.query('discard temp');
+      client.release();
+    }
+  });
 });

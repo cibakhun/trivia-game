@@ -13,10 +13,11 @@ create table npc_profiles (
   id              uuid primary key,
   code            text not null,
   version         int not null check (version >= 1),
-  skill_theta     numeric not null,
+  -- numeric kennt NaN und ±Infinity (NaN gilt als größer als jede Zahl), daher beide Grenzen.
+  skill_theta     numeric not null check (skill_theta > '-Infinity' and skill_theta < 'Infinity'),
   estimate_spread jsonb not null check (jsonb_typeof(estimate_spread) = 'object'),
-  rt_log_mu       numeric not null,
-  rt_log_sigma    numeric not null check (rt_log_sigma > 0),
+  rt_log_mu       numeric not null check (rt_log_mu > '-Infinity' and rt_log_mu < 'Infinity'),
+  rt_log_sigma    numeric not null check (rt_log_sigma > 0 and rt_log_sigma < 'Infinity'),
   created_at      timestamptz not null default game_now(),
   unique (code, version)
 );
@@ -24,6 +25,9 @@ create table npc_profiles (
 create trigger npc_profiles_immutable
   before update or delete on npc_profiles
   for each row execute function forbid_row_change();
+create trigger npc_profiles_no_truncate
+  before truncate on npc_profiles
+  for each statement execute function forbid_row_change();
 
 create table npc_factions (
   id           uuid primary key,
@@ -38,6 +42,7 @@ create table npc_factions (
   home_chunk_y int not null
 );
 create index npc_factions_instance on npc_factions (instance_id);
+create index npc_factions_profile on npc_factions (profile_id);
 
 -- ---------------------------------------------------------------------------------------------
 -- Königreiche
@@ -64,7 +69,9 @@ create table kingdoms (
     or (kind = 'NPC' and npc_faction_id is not null and owner_user_id is null)
   ),
   constraint kingdoms_protection_pair check ((protected_until is null) = (protection_reason is null)),
-  constraint kingdoms_fallen_at check ((status = 'FALLEN') = (fallen_at is not null))
+  constraint kingdoms_fallen_at check ((status = 'FALLEN') = (fallen_at is not null)),
+  -- generation zählt die Reiche eines Spielers je Instanz; NPC-Reiche (Besitzer null) zählen nicht.
+  constraint kingdoms_generation_unique unique (instance_id, owner_user_id, generation)
 );
 -- Ein Spieler hat pro Instanz höchstens ein aktives Reich (GAME_RULES §3.1).
 create unique index kingdoms_one_active_per_player on kingdoms (instance_id, owner_user_id)
@@ -99,6 +106,13 @@ create table kingdom_history (
 );
 create index kingdom_history_kingdom_at on kingdom_history (kingdom_id, at);
 
+-- Protokolle werden nur angehängt (DATA_MODEL §1). UPDATE ist für alle gesperrt; DELETE bleibt für
+-- die Aufbewahrungsfristen (DATA_MODEL §7) und wird der Anwendungsrolle mit der Rollen-Migration
+-- per Rechtevergabe entzogen.
+create trigger kingdom_history_append_only
+  before update on kingdom_history
+  for each row execute function forbid_row_change();
+
 alter table world_participants
   add constraint world_participants_current_kingdom_fk
   foreign key (current_kingdom_id) references kingdoms (id);
@@ -120,6 +134,7 @@ create table regions (
   strategic_value smallint not null default 0,
   province_id     uuid null,               -- vorbereitet für Provinzen (O-14), im MVP null
   unique (instance_id, q, r),
+  unique (id, instance_id, chunk_x, chunk_y),   -- Ziel des Fremdschlüssels aus region_state
   -- Gleiche Formel wie chunkOf in packages/game-core (odd-r, 16 × 16; WORLD_SYSTEM §3.1).
   constraint regions_chunk_matches_coordinates check (
     chunk_x = floor((q + (r - (r & 1)) / 2)::numeric / 16)
@@ -133,10 +148,12 @@ create trigger regions_immutable
   before update on regions
   for each row execute function forbid_row_change();
 
+-- instance_id und Chunk sind Kopien für Chunk-Abfragen ohne Join; der zusammengesetzte
+-- Fremdschlüssel hält sie gleich mit regions.
 create table region_state (
-  region_id         bigint primary key references regions (id),
+  region_id         bigint primary key,
   instance_id       uuid not null,
-  chunk_x           int  not null,        -- Kopie für Chunk-Abfragen ohne Join
+  chunk_x           int  not null,
   chunk_y           int  not null,
   owner_kingdom_id  uuid null references kingdoms (id),   -- null = neutral
   is_capital        boolean not null default false,
@@ -147,7 +164,9 @@ create table region_state (
   version           bigint not null default 0,
   updated_at        timestamptz not null default game_now(),
   check (not is_capital or owner_kingdom_id is not null),
-  check ((protected_until is null) = (protection_reason is null))
+  check ((protected_until is null) = (protection_reason is null)),
+  constraint region_state_region_fk foreign key (region_id, instance_id, chunk_x, chunk_y)
+    references regions (id, instance_id, chunk_x, chunk_y)
 );
 create index region_state_owner on region_state (owner_kingdom_id);
 create index region_state_chunk on region_state (instance_id, chunk_x, chunk_y);
@@ -168,6 +187,12 @@ create table region_history (
 );
 create index region_history_region_at on region_history (region_id, at desc);
 create index region_history_instance_at on region_history (instance_id, at);
+create index region_history_from_kingdom on region_history (from_kingdom_id);
+create index region_history_to_kingdom on region_history (to_kingdom_id);
+
+create trigger region_history_append_only
+  before update on region_history
+  for each row execute function forbid_row_change();
 
 -- ---------------------------------------------------------------------------------------------
 -- Saisonergebnisse (DATA_MODEL §4.2)
@@ -183,3 +208,4 @@ create table season_results (
   primary key (instance_id, user_id)
 );
 create index season_results_user on season_results (user_id);
+create index season_results_kingdom on season_results (kingdom_id);

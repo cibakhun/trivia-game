@@ -7,22 +7,14 @@ const err = (error: string) => ({ ok: false, error });
 
 describe('parseNumberInput', () => {
   it.each<[Locale, string, unknown]>([
-    // Mehrdeutigkeit aus TEST_PLAN §3: "1.234" in de vs. en
+    // Mehrdeutigkeit aus TEST_PLAN §3: Punkt trennt Tausender, Komma die Nachkommastellen
     ['de', '1.234', ok('1234')],
-    ['en', '1.234', ok('1.234')],
-    ['hu', '1.234', err('INVALID_CHARACTER')],
     ['de', '1,234', ok('1.234')],
-    ['en', '1,234', ok('1234')],
-    ['hu', '1,234', ok('1.234')],
     // Beispiele aus QUIZ_ENGINE §3
     ['de', '1.234,5', ok('1234.5')],
     ['de', '1 234,5', ok('1234.5')],
-    ['hu', '1 234,5', ok('1234.5')],
-    ['en', '1,234.5', ok('1234.5')],
     // ohne Trenner
     ['de', '1386', ok('1386')],
-    ['hu', '1386', ok('1386')],
-    ['en', '1386', ok('1386')],
     ['de', '8848', ok('8848')],
     // Normalform
     ['de', '007', ok('7')],
@@ -30,13 +22,12 @@ describe('parseNumberInput', () => {
     ['de', '-0', ok('0')],
     ['de', '-0,00', ok('0')],
     ['de', ',5', ok('0.5')],
-    ['en', '.5', ok('0.5')],
     ['de', '-12,5', ok('-12.5')],
     ['de', '\u2212 3', err('INVALID_GROUPING')],
     ['de', '\u22123', ok('-3')],
     ['de', '  42  ', ok('42')],
-    ['hu', '1\u00A0234\u202F567', ok('1234567')], // geschütztes und schmales Leerzeichen gelten als Leerzeichen
-    ['hu', '1\u00A0234\u00A0567', ok('1234567')],
+    ['de', '1\u00A0234\u202F567', ok('1234567')], // geschütztes und schmales Leerzeichen gelten als Leerzeichen
+    ['de', '1\u00A0234\u00A0567', ok('1234567')],
     ['de', '1.234.567,89', ok('1234567.89')],
     // Fehler
     ['de', '', err('EMPTY')],
@@ -49,9 +40,9 @@ describe('parseNumberInput', () => {
     ['de', '.123', err('INVALID_GROUPING')],
     ['de', '1.234 567', err('INVALID_GROUPING')],
     ['de', '1,2,3', err('MULTIPLE_DECIMAL_SEPARATORS')],
-    ['de', '1,234.5', err('INVALID_GROUPING')],
-    ['en', '1 234', err('INVALID_CHARACTER')],
-    ['en', '1e5', err('INVALID_CHARACTER')],
+    ['de', '1,234.5', err('INVALID_GROUPING')], // englische Schreibweise
+    ['de', '.5', err('INVALID_GROUPING')],
+    ['de', '1e5', err('INVALID_CHARACTER')],
     ['de', '+5', err('INVALID_CHARACTER')],
     ['de', '٣', err('INVALID_CHARACTER')],
     ['de', '--5', err('INVALID_CHARACTER')],
@@ -70,11 +61,9 @@ describe('parseNumberInput', () => {
     );
   });
 
-  it('liest jede Zahl in der Schreibweise jeder Sprache zurück (mit und ohne Tausendertrenner)', () => {
+  it('liest jede Zahl in deutscher Schreibweise zurück (mit und ohne Tausendertrenner)', () => {
     const formats: Record<Locale, { group: string; decimal: string }> = {
       de: { group: '.', decimal: ',' },
-      hu: { group: ' ', decimal: ',' },
-      en: { group: ',', decimal: '.' },
     };
     fc.assert(
       fc.property(

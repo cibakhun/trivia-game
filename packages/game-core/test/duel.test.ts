@@ -216,20 +216,17 @@ describe('defensePoints', () => {
   });
 
   it('hängt nie vom Ausgang oder von der Angreiferleistung ab', () => {
-    // defensePoints kennt den Angreifer nicht (Signatur); geprüft wird, dass dieselbe Verteidigung
-    // bei jedem Angreifer und damit bei jedem Ausgang dieselben Punkte ergibt.
+    // dieselbe Verteidigung verliert gegen den einen und gewinnt gegen den anderen Angreifer …
+    const def = perf(true, '1400', 8_000); // Abstand 14
+    expect(resolveDuel(perf(true, '1390', 9_000), def).winner).toBe('ATTACKER'); // Abstand 4
+    expect(resolveDuel(perf(true, '1300', 1_000), def).winner).toBe('DEFENDER'); // Abstand 86
+    // … und bringt in beiden Fällen dieselben Punkte: defensePoints kennt den Angreifer nicht
+    expect(defensePoints(def, ETERNAL_POINTS)).toBe(10);
     fc.assert(
-      fc.property(
-        fc.array(performance, { minLength: 2, maxLength: 5 }),
-        defense,
-        (attackers, def) => {
-          const expected = def === NO_DEFENSE || !def.answeredBoth ? 0 : def.triviaCorrect ? 10 : 5;
-          for (const att of attackers) {
-            expect(resolveDuel(att, def).winner).toBeDefined(); // der Ausgang variiert mit dem Angreifer …
-            expect(defensePoints(def, ETERNAL_POINTS)).toBe(expected); // … die Punkte nicht
-          }
-        },
-      ),
+      fc.property(defense, (d) => {
+        const expected = d === NO_DEFENSE || !d.answeredBoth ? 0 : d.triviaCorrect ? 10 : 5;
+        expect(defensePoints(d, ETERNAL_POINTS)).toBe(expected);
+      }),
     );
   });
 });

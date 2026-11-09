@@ -1,18 +1,14 @@
 import type { Locale } from './locale.ts';
 
 /**
- * Zahleneingabe je Sprache (docs/QUIZ_ENGINE.md §3, Widerspruch W-11).
- *
- * | Sprache | Tausendertrenner      | Dezimaltrenner |
- * |---------|-----------------------|----------------|
- * | de      | `.` oder Leerzeichen  | `,`            |
- * | hu      | Leerzeichen           | `,`            |
- * | en      | `,`                   | `.`            |
+ * Zahleneingabe (docs/QUIZ_ENGINE.md §3, Widerspruch W-11). Gespielt wird nur auf Deutsch
+ * (ADR-023): Tausendertrenner `.` oder Leerzeichen, Dezimaltrenner `,`. Die Tabelle ist nach
+ * Sprache geschlüsselt, damit eine weitere Sprache nur einen Eintrag braucht.
  *
  * Client und Server verwenden dieselbe Funktion. Der Client zeigt die interpretierte Zahl vor dem
  * Bestätigen an; der Server speichert Rohtext und Ergebnis. Die Prüfung ist bewusst streng:
- * Tausendergruppen müssen genau drei Ziffern haben. So wird `1.5` in de abgelehnt statt still als
- * 15 gelesen, und `1.234` ist in de eindeutig 1234, in en eindeutig 1,234.
+ * Tausendergruppen müssen genau drei Ziffern haben. So wird `1.5` abgelehnt statt still als 15
+ * gelesen, und die englische Schreibweise `1,234.5` fällt auf, statt falsch verstanden zu werden.
  */
 
 interface NumberFormat {
@@ -22,8 +18,6 @@ interface NumberFormat {
 
 const FORMATS: Readonly<Record<Locale, NumberFormat>> = {
   de: { decimal: ',', groups: ['.', ' '] },
-  hu: { decimal: ',', groups: [' '] },
-  en: { decimal: '.', groups: [','] },
 };
 
 /** Höchstlänge des Rohtexts und Höchstzahl an Ziffern (Schutz vor Missbrauch). */

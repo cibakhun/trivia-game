@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-sci-groesster-planet
 kind: TRIVIA
@@ -24,21 +25,5 @@ translations:
     options:
       a: "Saturn"
       b: "Neptun"
-      c: "Jupiter"
-      d: "Uranus"
-  hu:
-    status: DRAFT
-    prompt: "Melyik a Naprendszer legnagyobb bolygója?"
-    options:
-      a: "Szaturnusz"
-      b: "Neptunusz"
-      c: "Jupiter"
-      d: "Uránusz"
-  en:
-    status: DRAFT
-    prompt: "Which is the largest planet in the Solar System?"
-    options:
-      a: "Saturn"
-      b: "Neptune"
       c: "Jupiter"
       d: "Uranus"

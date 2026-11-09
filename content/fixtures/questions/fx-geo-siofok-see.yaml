@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-geo-siofok-see
 kind: TRIVIA
@@ -26,19 +27,3 @@ translations:
       b: "Neusiedler See"
       c: "Velencer See"
       d: "Bodensee"
-  hu:
-    status: DRAFT
-    prompt: "Melyik tó partján fekszik Siófok?"
-    options:
-      a: "Balaton"
-      b: "Fertő tó"
-      c: "Velencei-tó"
-      d: "Bodeni-tó"
-  en:
-    status: DRAFT
-    prompt: "On which lake is the town of Siófok located?"
-    options:
-      a: "Lake Balaton"
-      b: "Lake Neusiedl"
-      c: "Lake Velence"
-      d: "Lake Constance"

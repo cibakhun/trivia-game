@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-gen-sekunden-pro-tag
 kind: ESTIMATE
@@ -27,11 +28,3 @@ translations:
     status: DRAFT
     prompt: "Wie viele Sekunden hat ein Tag mit 24 Stunden?"
     unit_label: "Sekunden"
-  hu:
-    status: DRAFT
-    prompt: "Hány másodpercből áll egy 24 órás nap?"
-    unit_label: "másodperc"
-  en:
-    status: DRAFT
-    prompt: "How many seconds are there in a 24-hour day?"
-    unit_label: "seconds"

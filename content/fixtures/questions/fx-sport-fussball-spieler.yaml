@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-sport-fussball-spieler
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "Wie viele Spieler einer Mannschaft stehen beim Fußball gleichzeitig auf dem Platz, Torwart eingeschlossen?"
-    options:
-      a: "9"
-      b: "10"
-      c: "11"
-      d: "12"
-  hu:
-    status: DRAFT
-    prompt: "Labdarúgásban hány játékosa lehet egy csapatnak egyszerre a pályán, a kapussal együtt?"
-    options:
-      a: "9"
-      b: "10"
-      c: "11"
-      d: "12"
-  en:
-    status: DRAFT
-    prompt: "In football (soccer), how many players per team are on the pitch at once, including the goalkeeper?"
     options:
       a: "9"
       b: "10"

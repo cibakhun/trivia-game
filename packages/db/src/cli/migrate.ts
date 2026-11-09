@@ -9,8 +9,19 @@ import { migrate, migrationStatus } from '../migrate.ts';
  * Produktionsmigration braucht eine ausdrückliche Freigabe, ein aktuelles Backup und einen
  * vorherigen Lauf gegen eine Kopie (docs/DATA_MODEL.md §6.5, Brief §20).
  */
+const KNOWN_ARGS = new Set(['--status', '--production-approved']);
+
 async function main(): Promise<void> {
   const args = new Set(process.argv.slice(2));
+  // Ein Tippfehler in --status darf nicht stillschweigend migrieren.
+  const unknown = [...args].filter((arg) => !KNOWN_ARGS.has(arg));
+  if (unknown.length > 0) {
+    console.error(
+      `Unbekannte Argumente: ${unknown.join(' ')} (erlaubt: ${[...KNOWN_ARGS].join(', ')})`,
+    );
+    process.exitCode = 2;
+    return;
+  }
   const env = parseDbEnv(process.env);
   const client = new pg.Client({ connectionString: env.DATABASE_URL });
   await client.connect();

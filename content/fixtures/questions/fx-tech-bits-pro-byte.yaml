@@ -1,5 +1,6 @@
 # Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
 # Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
 schema_version: 1
 key: fx-tech-bits-pro-byte
 kind: TRIVIA
@@ -21,22 +22,6 @@ translations:
   de:
     status: DRAFT
     prompt: "Wie viele Bits hat ein Byte (im heute üblichen Sinn)?"
-    options:
-      a: "4"
-      b: "10"
-      c: "8"
-      d: "16"
-  hu:
-    status: DRAFT
-    prompt: "Hány bitből áll egy bájt (a ma szokásos értelemben)?"
-    options:
-      a: "4"
-      b: "10"
-      c: "8"
-      d: "16"
-  en:
-    status: DRAFT
-    prompt: "How many bits are in a byte (in today's usual sense)?"
     options:
       a: "4"
       b: "10"

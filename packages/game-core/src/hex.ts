@@ -17,14 +17,16 @@ export interface ChunkCoord {
 export const CHUNK_SIZE = 16;
 
 /** Nachbarrichtungen in der Reihenfolge aus GAME_RULES §2. */
-export const AXIAL_DIRECTIONS: readonly Axial[] = Object.freeze([
-  { q: 1, r: 0 },
-  { q: -1, r: 0 },
-  { q: 0, r: 1 },
-  { q: 0, r: -1 },
-  { q: 1, r: -1 },
-  { q: -1, r: 1 },
-]);
+export const AXIAL_DIRECTIONS: readonly Axial[] = Object.freeze(
+  [
+    { q: 1, r: 0 },
+    { q: -1, r: 0 },
+    { q: 0, r: 1 },
+    { q: 0, r: -1 },
+    { q: 1, r: -1 },
+    { q: -1, r: 1 },
+  ].map((direction) => Object.freeze(direction)),
+);
 
 function assertAxial({ q, r }: Axial): void {
   if (!Number.isSafeInteger(q) || !Number.isSafeInteger(r)) {
@@ -64,6 +66,9 @@ export function axialToOddR(cell: Axial): { col: number; row: number } {
 }
 
 export function oddRToAxial(col: number, row: number): Axial {
+  if (!Number.isSafeInteger(col) || !Number.isSafeInteger(row)) {
+    throw new RangeError(`Ungültige Offset-Koordinate (${col}, ${row})`);
+  }
   const parity = Math.abs(row) % 2;
   return { q: col - (row - parity) / 2, r: row };
 }
