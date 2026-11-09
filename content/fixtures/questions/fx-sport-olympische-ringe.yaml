@@ -1,0 +1,44 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-sport-olympische-ringe
+kind: TRIVIA
+category: SPORTS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Olympic symbols"
+    url: https://en.wikipedia.org/wiki/Olympic_symbols
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Aus wie vielen Ringen besteht das olympische Symbol?"
+    options:
+      a: "4"
+      b: "5"
+      c: "6"
+      d: "7"
+  hu:
+    status: DRAFT
+    prompt: "Hány karikából áll az olimpiai jelkép?"
+    options:
+      a: "4"
+      b: "5"
+      c: "6"
+      d: "7"
+  en:
+    status: DRAFT
+    prompt: "How many rings make up the Olympic symbol?"
+    options:
+      a: "4"
+      b: "5"
+      c: "6"
+      d: "7"

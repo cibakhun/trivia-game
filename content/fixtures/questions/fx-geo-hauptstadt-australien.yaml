@@ -1,0 +1,44 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-geo-hauptstadt-australien
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Canberra"
+    url: https://en.wikipedia.org/wiki/Canberra
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Hauptstadt Australiens?"
+    options:
+      a: "Sydney"
+      b: "Melbourne"
+      c: "Perth"
+      d: "Canberra"
+  hu:
+    status: DRAFT
+    prompt: "Mi Ausztrália fővárosa?"
+    options:
+      a: "Sydney"
+      b: "Melbourne"
+      c: "Perth"
+      d: "Canberra"
+  en:
+    status: DRAFT
+    prompt: "What is the capital of Australia?"
+    options:
+      a: "Sydney"
+      b: "Melbourne"
+      c: "Perth"
+      d: "Canberra"

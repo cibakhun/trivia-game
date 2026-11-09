@@ -1,0 +1,44 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-math-ziffern-pi
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Pi"
+    url: https://en.wikipedia.org/wiki/Pi
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Mit welchen Ziffern beginnt die Kreiszahl π?"
+    options:
+      a: "3,14169"
+      b: "3,14159"
+      c: "3,14259"
+      d: "3,15149"
+  hu:
+    status: DRAFT
+    prompt: "Melyik számsorral kezdődik a π (pí) értéke?"
+    options:
+      a: "3,14169"
+      b: "3,14159"
+      c: "3,14259"
+      d: "3,15149"
+  en:
+    status: DRAFT
+    prompt: "Which digits does the number π begin with?"
+    options:
+      a: "3.14169"
+      b: "3.14159"
+      c: "3.14259"
+      d: "3.15149"

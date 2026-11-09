@@ -1,0 +1,44 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-hist-erster-roemischer-kaiser
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Augustus"
+    url: https://en.wikipedia.org/wiki/Augustus
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war der erste römische Kaiser?"
+    options:
+      a: "Augustus"
+      b: "Julius Caesar"
+      c: "Nero"
+      d: "Caligula"
+  hu:
+    status: DRAFT
+    prompt: "Ki volt az első római császár?"
+    options:
+      a: "Augustus"
+      b: "Julius Caesar"
+      c: "Néró"
+      d: "Caligula"
+  en:
+    status: DRAFT
+    prompt: "Who was the first Roman emperor?"
+    options:
+      a: "Augustus"
+      b: "Julius Caesar"
+      c: "Nero"
+      d: "Caligula"

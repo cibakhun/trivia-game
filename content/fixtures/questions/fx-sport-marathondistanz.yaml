@@ -1,0 +1,37 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-sport-marathondistanz
+kind: ESTIMATE
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Marathon"
+    url: https://en.wikipedia.org/wiki/Marathon
+    accessed: "2026-11-09"
+reviews: []
+estimate:
+  answer_value: "42195"
+  answer_precision: 0
+  answer_unit: m
+  input_min: "1000"
+  input_max: "200000"
+  scale_type: LOG
+  scale: 0.2
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie lang ist die offizielle Marathondistanz (in Metern)?"
+    unit_label: "Meter"
+  hu:
+    status: DRAFT
+    prompt: "Milyen hosszú a hivatalos maratoni táv (méterben)?"
+    unit_label: "méter"
+  en:
+    status: DRAFT
+    prompt: "How long is the official marathon distance (in metres)?"
+    unit_label: "metres"

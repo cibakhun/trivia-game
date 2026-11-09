@@ -1,0 +1,44 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-math-winkelsumme-dreieck
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Triangle"
+    url: https://en.wikipedia.org/wiki/Triangle
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie groß ist die Winkelsumme in einem ebenen Dreieck?"
+    options:
+      a: "180°"
+      b: "90°"
+      c: "270°"
+      d: "360°"
+  hu:
+    status: DRAFT
+    prompt: "Mennyi egy síkbeli háromszög belső szögeinek összege?"
+    options:
+      a: "180°"
+      b: "90°"
+      c: "270°"
+      d: "360°"
+  en:
+    status: DRAFT
+    prompt: "What is the sum of the interior angles of a plane triangle?"
+    options:
+      a: "180°"
+      b: "90°"
+      c: "270°"
+      d: "360°"

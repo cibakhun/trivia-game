@@ -1,0 +1,44 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-pol-sitz-vereinte-nationen
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Headquarters of the United Nations"
+    url: https://en.wikipedia.org/wiki/Headquarters_of_the_United_Nations
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welcher Stadt befindet sich der Hauptsitz der Vereinten Nationen?"
+    options:
+      a: "Genf"
+      b: "New York"
+      c: "Wien"
+      d: "Paris"
+  hu:
+    status: DRAFT
+    prompt: "Melyik városban található az ENSZ központi székháza?"
+    options:
+      a: "Genf"
+      b: "New York"
+      c: "Bécs"
+      d: "Párizs"
+  en:
+    status: DRAFT
+    prompt: "In which city are the headquarters of the United Nations located?"
+    options:
+      a: "Geneva"
+      b: "New York City"
+      c: "Vienna"
+      d: "Paris"

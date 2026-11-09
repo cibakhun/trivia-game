@@ -1,0 +1,37 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: fx-lit-erscheinungsjahr-werther
+kind: ESTIMATE
+category: LITERATURE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "The Sorrows of Young Werther"
+    url: https://en.wikipedia.org/wiki/The_Sorrows_of_Young_Werther
+    accessed: "2026-11-09"
+reviews: []
+estimate:
+  answer_value: "1774"
+  answer_precision: 0
+  answer_unit: year
+  input_min: "1000"
+  input_max: "2026"
+  scale_type: LINEAR
+  scale: 50
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr erschien Goethes Roman „Die Leiden des jungen Werthers“?"
+    unit_label: "Jahr"
+  hu:
+    status: DRAFT
+    prompt: "Melyik évben jelent meg Goethe Az ifjú Werther szenvedései című regénye?"
+    unit_label: "év"
+  en:
+    status: DRAFT
+    prompt: "In which year was Goethe's novel “The Sorrows of Young Werther” published?"
+    unit_label: "year"
