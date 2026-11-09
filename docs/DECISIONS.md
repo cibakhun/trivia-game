@@ -134,8 +134,9 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 
 **Priorität:** P2 (vor Phase 2) · **Wirkung:** Progression, Fairness, Anti-Farming · **Herkunft:** PO-Entscheidung zu O-01
 **Teilweise entschieden (PO, 2026-11-09):** Jede eigene Verteidigung bringt Punkte dafür, dass der Verteidiger das Quiz gemacht hat; wer die Trivia-Frage richtig beantwortet hat, bekommt mehr. Die Punkte gibt es auch, wenn das Gebiet trotzdem verloren geht.
-**Noch offen:** genaue Werte, wofür sie zählen, und wie Absprachen verhindert werden (ein befreundeter Angreifer greift an oder antwortet absichtlich falsch, damit der Verteidiger Punkte erhält).
-**Empfehlung:** Eternal 5 Verteidigungspunkte für die Teilnahme, +5 bei richtiger Trivia-Antwort (höchstens 10), nur Ansehen (Reichs- und Spielerprofil, Rangliste „Verteidiger“), kein spielmechanischer Vorteil; Daily/Weekly 2 Saisonpunkte, +3 bei richtiger Antwort (höchstens 5 wie eine Eroberung). Die Punkte hängen nur von der eigenen Leistung des Verteidigers ab, nicht vom Ausgang, und verraten deshalb nichts über die Angreiferleistung. Höchstens 2 punktbringende Verteidigungen je Paar und 24 h, keine Punkte bei verdächtig verknüpften Konten ([GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)).
+**Richtung für den Nutzen (PO, 2026-11-09, noch nicht entschieden):** eher für Kosmetik oder dafür, anderen Spielern Emojis zu schicken; kein Spielvorteil.
+**Noch offen:** genaue Werte, genauer Nutzen, und wie Absprachen verhindert werden (ein befreundeter Angreifer greift an oder antwortet absichtlich falsch, damit der Verteidiger Punkte erhält).
+**Empfehlung:** Eternal 5 Verteidigungspunkte für die Teilnahme, +5 bei richtiger Trivia-Antwort (höchstens 10), nur Ansehen (Reichs- und Spielerprofil, Rangliste „Verteidiger“), kein spielmechanischer Vorteil; Daily/Weekly 2 Saisonpunkte, +3 bei richtiger Antwort (höchstens 5 wie eine Eroberung). Die Punkte hängen nur von der eigenen Leistung des Verteidigers ab, nicht vom Ausgang, und verraten deshalb nichts über die Angreiferleistung. Höchstens 2 punktbringende Verteidigungen je Paar und 24 h, keine Punkte bei verdächtig verknüpften Konten ([GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)). Werden Punkte ausgegeben, dann aus einem eigenen Guthaben: Der Ranglisten- bzw. Saisonwert sinkt dadurch nie. Emojis nur aus einer festen Auswahl ohne Freitext, mit Ratenbegrenzung und Abschaltmöglichkeit für den Empfänger. Punkte sind nicht gegen Echtgeld erhältlich (Brief §1.2 Nr. 8).
 
 ## Änderungsprotokoll
 
@@ -144,4 +145,5 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | 2026-11-09 | Phase 0: ADR-001 bis ADR-016 angenommen, O-01 bis O-17 erfasst |
 | 2026-11-09 | O-01 entschieden (PO): verdecktes Angreifer-Gate mit Verteidigungspunkten; O-18 neu erfasst |
 | 2026-11-09 | O-18 teilweise entschieden (PO): Punkte für jede eigene Verteidigung, mehr bei richtiger Trivia-Antwort, auch bei Gebietsverlust |
+| 2026-11-09 | O-18 Richtung (PO): Punkte voraussichtlich für Kosmetik oder Emojis an andere Spieler, kein Spielvorteil |
 | 2026-11-09 | Review-Korrekturen in PR #1: einheitliche Fristgrenze mit Abwicklungspuffer, Regionsreservierung, lückenlose Ereignisfolge, `Idempotency-Key` für alle Kommandos, Rollen je Admin-Endpunkt, Löschkaskade; O-06 auf P3 (nach Beta) verschoben; O-01-Schalter auf Optionen A/B präzisiert |
