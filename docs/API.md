@@ -37,7 +37,7 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 | GET | `/instances/:id/map/state?chunks=…&sinceSeq=…` | dynamischer Zustand je Chunk: Besitzer, Hauptstadt, Schutz bis, Belagerung ja/nein; mit `sinceSeq` nur Änderungen |
 | GET | `/instances/:id/regions/:regionId` | Details inkl. berechneter Angriffsberechtigung für den Anfragenden |
 | GET | `/instances/:id/kingdoms/:kingdomId` | öffentliches Reichsprofil |
-| GET | `/instances/:id/leaderboard?type=regions` | Rangliste (abgeleitet, bis 60 s verzögert) |
+| GET | `/instances/:id/leaderboard?type=regions\|defense` | Ranglisten nach Regionen bzw. Verteidigungspunkten (abgeleitet, bis 60 s verzögert) |
 
 ### 2.3 Kampf
 

@@ -105,7 +105,7 @@ Für das Tutorial (Brief §15.1, „erste Eroberung in Minuten“) wird die erst
 |---|---|---|
 | `EXPAND_NEUTRAL` | angrenzende neutrale Region, bevorzugt niedrige Stufe | sofort, NPC vs. Garnison mit `resolveDuel` |
 | `ATTACK_NPC` | angrenzende Region einer schwächeren oder rivalisierenden Fraktion | sofort |
-| `ATTACK_PLAYER` | angrenzende Spielerregion | **Belagerung** mit der Frist aus der Regelkonfiguration der Instanz (`defense.baseDeadline`, Eternal 24 h [A, Brief §6.4]); in Daily/Weekly gilt zusätzlich der PvP-Angriffsschluss ([WORLD_SYSTEM.md §6.2](WORLD_SYSTEM.md#62-saisonende-ohne-offene-konflikte-w-14-vorschlag-zu-o-16)). NPC-Leistung wird bei Eröffnung erzeugt; das Gate gilt auch für NPCs |
+| `ATTACK_PLAYER` | angrenzende Spielerregion | **Belagerung** mit der Frist aus der Regelkonfiguration der Instanz (`defense.baseDeadline`, Eternal 24 h [A, Brief §6.4]); in Daily/Weekly gilt zusätzlich der PvP-Angriffsschluss ([WORLD_SYSTEM.md §6.2](WORLD_SYSTEM.md#62-saisonende-ohne-offene-konflikte-w-14-vorschlag-zu-o-16)). NPC-Leistung wird bei Eröffnung erzeugt; das verdeckte Gate gilt auch für NPCs: Liegt der NPC falsch, wird die Belagerung trotzdem eröffnet, und der Spieler kann sich verteidigen und Punkte erhalten |
 | `IDLE` | – | – |
 
 ### 5.3 Schutz der Spieler vor NPC-Druck (Vorschlag zu [O-13]) [E]

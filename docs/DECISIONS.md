@@ -31,6 +31,8 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 
 ### O-01 Angreifer-Gate statt Fall D
 
+**Status: entschieden am 2026-11-09 durch den Product Owner – Option A als verdecktes Gate.** Der Angreifer muss die Trivia-Frage richtig beantworten, sonst scheitert der Angriff. Die Belagerung wird trotzdem eröffnet, damit der Verteidiger sich verteidigen kann; verteidigt er sich, erhält er Punkte. Verteidigt er sich nicht und läuft die Frist ab, ist der Angriff fehlgeschlagen, wenn der Angreifer falsch lag. Umsetzung: [GAME_RULES.md §5.2 und §5.5](GAME_RULES.md#52-entscheidungsreihenfolge), Wert und Nutzen der Punkte: [O-18].
+
 **Priorität:** P1 · **Wirkung:** Fairness, Kernmechanik · **Brief:** §5.1 Schritt 7, §5.3 Fall D
 
 **Frage:** Muss der Angreifer die Trivia-Frage richtig beantworten, damit sein Angriff weitergeht?
@@ -41,7 +43,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | B: Schätzfrage auch bei „beide falsch“ | Gleiches Trivia-Ergebnis (beide richtig *oder* beide falsch) → Schätzfrage → Zeit | asynchron, aber Angreifer kann ohne richtige Antwort erobern (auch per Timeout) |
 | C: Brief-Vorschlag (bis zu 3 Runden) | beide falsch → neue Trivia-Runde, max. 3, dann Besitzer | in PvP nur möglich, wenn der Angreifer vorab bis zu 3 Trivia-Fragen + Schätzfrage beantwortet (mehr Aufwand, mehr Fragenverbrauch) oder zurückkehren muss |
 
-**Empfehlung:** A, für alle Modi einheitlich. Umgesetzt wird `resolveDuel` mit einem Schalter zwischen A und B. C ist damit nicht abgedeckt und bräuchte ein eigenes Mehrrundenprotokoll ([QUIZ_ENGINE.md §8](QUIZ_ENGINE.md#8-duellauswertung)).
+**Empfehlung (umgesetzt):** A, für alle Modi einheitlich. Abweichend von der ursprünglichen Beschreibung wird im PvP auch bei falscher Angreiferantwort eine Belagerung eröffnet (verdecktes Gate, siehe Status). `resolveDuel` implementiert das Gate fest, ohne Schalter ([QUIZ_ENGINE.md §8](QUIZ_ENGINE.md#8-duellauswertung)).
 
 ### O-02 Fragenbeschaffung und Redaktion
 
@@ -128,9 +130,16 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 **Priorität:** P3 · **Brief:** §3.2
 **Empfehlung:** Nach Phase 6 als eigenes Feature mit Matchmaking; Daily funktioniert bis dahin mit 15-min-Asynchronfrist.
 
+### O-18 Verteidigungspunkte: Wert, Nutzen, Absprachenschutz
+
+**Priorität:** P2 (vor Phase 2) · **Wirkung:** Progression, Fairness, Anti-Farming · **Herkunft:** PO-Entscheidung zu O-01
+**Frage:** Wie viele Punkte gibt eine erfolgreiche Verteidigung, wofür zählen sie, und wie werden Absprachen verhindert (ein befreundeter Angreifer antwortet absichtlich falsch, damit der Verteidiger Punkte erhält)?
+**Empfehlung:** Eternal 10 Verteidigungspunkte, nur Ansehen (Reichs- und Spielerprofil, Rangliste „Verteidiger“), kein spielmechanischer Vorteil; Daily/Weekly 5 Saisonpunkte wie ein gewonnener PvP-Kampf. Gleiche Punkte für Gate-Siege und Duell-Siege, damit die Punkte nichts über die Angreiferleistung verraten, bevor die Auflösung sie zeigt. Höchstens 2 punktbringende Verteidigungen je Paar und 24 h, keine Punkte bei verdächtig verknüpften Konten ([GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)).
+
 ## Änderungsprotokoll
 
 | Datum | Änderung |
 |---|---|
 | 2026-11-09 | Phase 0: ADR-001 bis ADR-016 angenommen, O-01 bis O-17 erfasst |
+| 2026-11-09 | O-01 entschieden (PO): verdecktes Angreifer-Gate mit Verteidigungspunkten; O-18 neu erfasst |
 | 2026-11-09 | Review-Korrekturen in PR #1: einheitliche Fristgrenze mit Abwicklungspuffer, Regionsreservierung, lückenlose Ereignisfolge, `Idempotency-Key` für alle Kommandos, Rollen je Admin-Endpunkt, Löschkaskade; O-06 auf P3 (nach Beta) verschoben; O-01-Schalter auf Optionen A/B präzisiert |

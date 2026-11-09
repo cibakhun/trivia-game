@@ -22,7 +22,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 
 ## 3. M2 – Multiplayer-Kern (Phase 2)
 
-**Enthalten:** alles aus M1; Registrierung/Anmeldung nach [O-03] und generierte öffentliche Namen ([O-10]); PvP-Belagerungen mit Gate, Verteidigung und Auflösung, Fristen für Tests kurz konfiguriert (Minuten statt 24 h); Echtzeit-Aktualisierung der Karte per WebSocket mit `resume`/Snapshot; Schutz gegen gleichzeitige Angriffe auf dieselbe Region; Testumgebung für 2–5 Tester (Staging nach [O-11], sonst lokales Netz).
+**Enthalten:** alles aus M1; Registrierung/Anmeldung nach [O-03] und generierte öffentliche Namen ([O-10]); PvP-Belagerungen mit verdecktem Gate, Verteidigung, Verteidigungspunkten und Auflösung, Fristen für Tests kurz konfiguriert (Minuten statt 24 h); Echtzeit-Aktualisierung der Karte per WebSocket mit `resume`/Snapshot; Schutz gegen gleichzeitige Angriffe auf dieselbe Region; Testumgebung für 2–5 Tester (Staging nach [O-11], sonst lokales Netz).
 
 **Nicht enthalten:** 24-h-Fristen mit Timeout-Jobs und Neustartfestigkeit, Web Push, vollständige Limits und Schutzzeiten (Phase 3), Items (Phase 4) sowie alles aus §4.2.
 
@@ -39,10 +39,10 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 | Konten | Gast + Upgrade auf Konto ([O-03]); generierte Anzeigenamen; Sprache de/hu/en; Kontolöschung, Datenexport |
 | Einstieg | Tutorial (3 Schritte), fairer Startplatz, Anfängerschutz |
 | PvE | sofortige Kämpfe gegen Garnisonen und NPC-Reiche |
-| PvP | asynchrone Belagerungen mit Gate, 24-h-Frist, automatischer Verlust bei Zeitablauf, Angriffs- und Versuchskontingente, max. 4 offene Belagerungen pro Reich, Schutzzeiten, Rangabstandsschutz |
+| PvP | asynchrone Belagerungen mit verdecktem Gate und Verteidigungspunkten, 24-h-Frist, automatischer Verlust bei Zeitablauf, Angriffs- und Versuchskontingente, max. 4 offene Belagerungen pro Reich, Schutzzeiten, Rangabstandsschutz |
 | Reich | Hauptstadt, Hauptstadtwechsel, Totalverlust mit Neustart, Statistik, Ränge |
 | Items | drei Zeit-Items, Drops mit Anti-Farming, Inventar + Ablage, **manuelle** Verlängerung bis 48 h |
-| UI | Karte (Desktop + Mobil), Regionsdetails, Quiz, Belagerungs-Dashboard, Inventar, Mitteilungen, Rangliste (Regionen) |
+| UI | Karte (Desktop + Mobil), Regionsdetails, Quiz, Belagerungs-Dashboard, Inventar, Mitteilungen, Ranglisten (Regionen, Verteidigung) |
 | Benachrichtigung | In-App + Web Push ([O-04]) |
 | Inhalte | ≈ 400 Trivia + 250 Schätzfragen, dreisprachig geprüft, Fehlermeldefunktion |
 | Betrieb | Staging + Beta-Umgebung ([O-11]), tägliche Backups mit getesteter Wiederherstellung, Monitoring und Alarme, Invariantenjob, Admin-Grundwerkzeuge (Kampf-Rekonstruktion, Belagerung abbrechen, Frage suspendieren, Missbrauchsliste) |

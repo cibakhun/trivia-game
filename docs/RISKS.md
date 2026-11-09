@@ -4,7 +4,7 @@ Bezug: Brief §19, §13, §14. Bewertung: Wahrscheinlichkeit (W) und Auswirkung 
 
 | ID | Risiko | W | A | Gegenmaßnahmen | Phase / Entscheidung |
 |---|---|---|---|---|---|
-| R-01 | **Verteidigungsdruck:** Das Spiel fühlt sich wie Anwesenheitspflicht an; Spieler verlieren Gebiete im Schlaf oder Urlaub und hören auf. | hoch | hoch | 24-h-Frist, Items bis 48 h, Kappung offener Belagerungen, Schutzzeiten, Web Push, Dashboard, Urlaubsmodus nach Beta; Beta-Kennzahl „Timeout-Quote“ | Ph. 3–4, [O-04], [O-06] |
+| R-01 | **Verteidigungsdruck:** Das Spiel fühlt sich wie Anwesenheitspflicht an; Spieler verlieren Gebiete im Schlaf oder Urlaub und hören auf. Das verdeckte Gate erhöht die Zahl offener Belagerungen, weil auch falsche Angriffe eröffnet werden (ohne Gebietsverlust). | hoch | hoch | 24-h-Frist, Items bis 48 h, Kappung offener Belagerungen, Schutzzeiten, Web Push, Dashboard, Urlaubsmodus nach Beta; Beta-Kennzahl „Timeout-Quote“ | Ph. 3–4, [O-04], [O-06] |
 | R-02 | **Kaltstart:** Zu wenige Spieler für lebendiges PvP. | hoch | hoch | NPCs und neutrale Regionen von Beginn an; Closed Beta mit eingeladener Gruppe; Daily als niedrigschwelliger Einstieg später | Ph. 1, 5, 6 |
 | R-03 | **Fragendatenbank:** Umfang, Richtigkeit und Übersetzungsqualität in drei Sprachen sind teuer; Fehler zerstören Vertrauen. | hoch | hoch | Redaktionspipeline mit Pflichtprüfung, Quellen, Fehlermeldefunktion, DIF-Monitoring, Suspendieren mit einem Klick, Pool-Kennzahlen | [O-02] |
 | R-04 | **Benachrichtigungen erreichen Spieler nicht** (iOS nur mit installierter PWA, abgelehnte Berechtigung) – Fristen wirken dann unfair. | hoch | hoch | PWA-Installationshilfe, In-App-Hinweis beim Start, später E-Mail; Kennzahl Push-Zustellrate | [O-04] |

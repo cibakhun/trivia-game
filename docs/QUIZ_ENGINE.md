@@ -140,8 +140,8 @@ stateDiagram-v2
 | Zeitpunkt | Angreifer erfährt | Verteidiger erfährt |
 |---|---|---|
 | Während der Herausforderung | nur die aktuelle Frage, keine Richtigkeit | nur die aktuelle Frage |
-| PvP, Angreifer fertig, Gate bestanden | „Belagerung eröffnet – Frist bis …“; seine eigene Trivia-Antwort war richtig (implizit durch das Gate), Schätzlösung bleibt verborgen | „Region X wird belagert – Frist bis …“; **keine** Frage, Kategorie oder Angreiferleistung |
-| PvP, Angreifer fertig, Gate nicht bestanden | „Angriff gescheitert“, richtige Antwort und Erklärung | nichts (keine Belastung) |
+| PvP, Angreifer fertig | „Belagerung eröffnet – Frist bis …“; **keine** Rückmeldung zur Richtigkeit, auch nicht zur eigenen Trivia-Antwort (verdecktes Gate, [O-01]) | „Region X wird belagert – Frist bis …“; **keine** Frage, Kategorie oder Angreiferleistung, auch nicht, ob der Angreifer richtig lag |
+| PvP, Angreifer bricht vor Abschluss ab | „Angriff abgebrochen“ (zählt als Versuch) | nichts (keine Belagerung) |
 | Nach Auflösung | vollständige Auflösung beider Seiten: Antworten, Lösung, Abstände, effektive Zeiten, Entscheidungsstufe | dasselbe |
 | PvE | sofort nach Schritt 1 die vollständige Auflösung | – |
 
@@ -160,23 +160,31 @@ type Performance = {
 
 type Outcome =
   | { winner: 'ATTACKER'; reason: 'TIMEOUT' | 'TRIVIA' | 'ESTIMATE' | 'SPEED' }
-  | { winner: 'DEFENDER'; reason: 'ATTACKER_GATE' | 'TRIVIA' | 'ESTIMATE' | 'SPEED' | 'FULL_TIE' };
+  | { winner: 'DEFENDER'; reason: 'ATTACKER_GATE' | 'ESTIMATE' | 'SPEED' | 'FULL_TIE'; defended: boolean };
 
-function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE', rules: DuelRules): Outcome {
-  if (rules.attackerGate && !att.triviaCorrect) return { winner: 'DEFENDER', reason: 'ATTACKER_GATE' };
-  if (def === 'NO_DEFENSE')                    return { winner: 'ATTACKER', reason: 'TIMEOUT' };
-  if (att.triviaCorrect !== def.triviaCorrect)
-    return att.triviaCorrect ? { winner: 'ATTACKER', reason: 'TRIVIA' } : { winner: 'DEFENDER', reason: 'TRIVIA' };
-  // beide richtig (bzw. bei abgeschaltetem Gate: beide gleich) → Schätzung
+function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE'): Outcome {
+  // verdecktes Gate (O-01): Angreifer falsch ⇒ Angriff scheitert immer; Punkte nur bei eigener Verteidigung
+  if (!att.triviaCorrect) return { winner: 'DEFENDER', reason: 'ATTACKER_GATE', defended: def !== 'NO_DEFENSE' };
+  if (def === 'NO_DEFENSE') return { winner: 'ATTACKER', reason: 'TIMEOUT' };
+  if (!def.triviaCorrect)   return { winner: 'ATTACKER', reason: 'TRIVIA' };
+  // beide richtig → Schätzung
   const d = compareNullableAsInfinity(att.estimateDistance, def.estimateDistance);
-  if (d !== 0) return d < 0 ? { winner: 'ATTACKER', reason: 'ESTIMATE' } : { winner: 'DEFENDER', reason: 'ESTIMATE' };
+  if (d !== 0) return d < 0 ? { winner: 'ATTACKER', reason: 'ESTIMATE' } : { winner: 'DEFENDER', reason: 'ESTIMATE', defended: true };
   const t = compareNullableAsInfinity(att.estimateEffectiveMs, def.estimateEffectiveMs);
-  if (t !== 0) return t < 0 ? { winner: 'ATTACKER', reason: 'SPEED' } : { winner: 'DEFENDER', reason: 'SPEED' };
-  return { winner: 'DEFENDER', reason: 'FULL_TIE' };
+  if (t !== 0) return t < 0 ? { winner: 'ATTACKER', reason: 'SPEED' } : { winner: 'DEFENDER', reason: 'SPEED', defended: true };
+  return { winner: 'DEFENDER', reason: 'FULL_TIE', defended: true };
 }
 ```
 
-`rules.attackerGate` schaltet nur zwischen zwei einstufigen Varianten um, bis [O-01] entschieden ist: Gate (Option A) oder Auswertung ohne Gate, bei der gleiches Trivia-Ergebnis – auch „beide falsch“ – zur Schätzfrage führt (Option B). Der Brief-Vorschlag mit bis zu drei Trivia-Runden (Option C) ist damit **nicht** abgedeckt; er bräuchte ein eigenes Mehrrundenprotokoll mit zusätzlichen Schritten, Zuständen und Vorab-Antworten des Angreifers. Die Funktion ist für alle Modi gleich (PvE, PvP, NPC gegen NPC).
+Das Gate ist fest (PO-Entscheidung [O-01]); einen Schalter für andere Varianten gibt es nicht. Ein Mehrrundenprotokoll (Brief-Fall D) ist nicht vorgesehen. Die Funktion ist für alle Modi gleich (PvE, PvP, NPC gegen NPC). Abbildung auf den Belagerungszustand:
+
+| Ergebnis | Zustand | Verteidigungspunkte |
+|---|---|---|
+| `ATTACKER`, beliebiger Grund | `ATTACKER_WON` bzw. bei `TIMEOUT` `ATTACKER_WON_BY_TIMEOUT` | – |
+| `DEFENDER`, `defended = true` | `DEFENDER_WON` | ja (PvP und NPC-Belagerungen, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)) |
+| `DEFENDER`, `ATTACKER_GATE`, `defended = false` | `ATTACK_FAILED` (Frist abgelaufen, Angreifer lag falsch) | – |
+
+Im PvE steht die Verteidigung (NPC oder Garnison) vorab fest; `defended` ist dort immer `true`, Punkte gibt es nur für Spielerreiche.
 
 ### 8.1 Beispiele (Testfälle)
 
@@ -186,10 +194,11 @@ function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE', rules: D
 | 2 | richtig, 1390 (Abstand 4) | richtig, 1400 (Abstand 14) | Angreifer | ESTIMATE (Fall B, E2E-03) |
 | 3 | richtig, 1386, 5,2 s | richtig, 1386, 6,8 s | Angreifer | SPEED (Fall C, E2E-04) |
 | 4 | richtig, 1382, 7,0 s | richtig, 1390, 4,0 s | Verteidiger | SPEED (gleicher Abstand 4) |
-| 5 | falsch | – | Verteidiger, keine Belagerung | ATTACKER_GATE |
+| 5 | falsch | richtig oder falsch, rechtzeitig | Verteidiger + Verteidigungspunkte | ATTACKER_GATE |
 | 6 | richtig | keine Antwort bis Frist | Angreifer | TIMEOUT (E2E-05) |
 | 7 | richtig, Schätzung verpasst | richtig, 2000 | Verteidiger | ESTIMATE (∞ > jeder Abstand) |
 | 8 | richtig, 1386, 5000 ms | richtig, 1386, 5000 ms | Verteidiger | FULL_TIE |
+| 9 | falsch | keine Antwort bis Frist | niemand: Angriff gescheitert (`ATTACK_FAILED`), Gebiet bleibt, keine Punkte | ATTACKER_GATE |
 
 ## 9. Inhaltspipeline und Umfang
 

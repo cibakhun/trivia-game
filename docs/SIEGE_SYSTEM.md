@@ -27,15 +27,17 @@ Dass die NPC-Antwort *vor* der Spielerantwort feststeht, ist im Ereignisprotokol
 ```mermaid
 stateDiagram-v2
   [*] --> PREPARING: Angriff gestartet (Region reserviert)
-  PREPARING --> ATTACK_FAILED: Angreifer-Trivia falsch / Zeitlimit / Abbruch
+  PREPARING --> ATTACK_FAILED: Abbruch / nie begonnen / Saison-Cutoff
   PREPARING --> ATTACKER_WON: PvE, Angreifer gewinnt
   PREPARING --> DEFENDER_WON: PvE, Verteidiger gewinnt
-  PREPARING --> AWAITING_DEFENSE: PvP, Angreifer fertig + Gate bestanden (Frist startet)
+  PREPARING --> AWAITING_DEFENSE: PvP, Angreifer fertig, Leistung versiegelt (Frist startet)
   AWAITING_DEFENSE --> DEFENDING: Verteidiger beginnt (nur bei ausreichender Restzeit)
-  AWAITING_DEFENSE --> ATTACKER_WON_BY_TIMEOUT: Frist abgelaufen
+  AWAITING_DEFENSE --> ATTACKER_WON_BY_TIMEOUT: Frist abgelaufen, Angreifer richtig
+  AWAITING_DEFENSE --> ATTACK_FAILED: Frist abgelaufen, Angreifer falsch (verdecktes Gate)
   DEFENDING --> ATTACKER_WON: Auswertung
   DEFENDING --> DEFENDER_WON: Auswertung
-  DEFENDING --> ATTACKER_WON_BY_TIMEOUT: Frist abgelaufen ohne vollständige Antwort
+  DEFENDING --> ATTACKER_WON_BY_TIMEOUT: Frist abgelaufen ohne vollständige Antwort, Angreifer richtig
+  DEFENDING --> ATTACK_FAILED: Frist abgelaufen ohne vollständige Antwort, Angreifer falsch
   AWAITING_DEFENSE --> CANCELLED: Admin / Angreiferreich aufgelöst
   DEFENDING --> CANCELLED: Admin / Angreiferreich aufgelöst
   PREPARING --> EXPIRED_INVALID: Instanz geschlossen
@@ -46,12 +48,12 @@ stateDiagram-v2
 |---|---|---|---|
 | `PREPARING` | Angreifer bearbeitet die Herausforderung; Region ist reserviert | ja | `ATTACK_PREPARING` |
 | – (Ereignis) | Angreifer hat abgegeben | – | `ATTACK_SUBMITTED` – als Ereignis im Protokoll, kein eigener Zustand, da der Übergang atomar ist |
-| `ATTACK_FAILED` | Gate nicht bestanden, Zeitlimit verpasst oder abgebrochen | nein | **neu** (W-3) |
+| `ATTACK_FAILED` | Angriff vor Eröffnung abgebrochen (bzw. Saison-Cutoff), **oder** Frist ohne Verteidigung abgelaufen und der Angreifer lag bei der Trivia-Frage falsch (verdecktes Gate, [O-01]); Gebiet bleibt, keine Punkte | nein | **neu** (W-3) |
 | `AWAITING_DEFENSE` | Frist läuft, Verteidiger hat noch nicht begonnen | ja | `WAITING_FOR_DEFENDER` |
 | `DEFENDING` | Verteidiger bearbeitet die Herausforderung | ja | **neu** (W-3) |
 | – (Ereignis) | Verteidiger hat abgegeben | – | `DEFENDER_SUBMITTED` – Auswertung erfolgt in derselben Transaktion |
 | `RESOLVING` | reserviert; im MVP nie persistiert, da die Auflösung eine einzige Transaktion ist | ja | `RESOLVING` |
-| `ATTACKER_WON`, `DEFENDER_WON`, `ATTACKER_WON_BY_TIMEOUT` | Ergebnisse | nein | gleichnamig |
+| `ATTACKER_WON`, `DEFENDER_WON`, `ATTACKER_WON_BY_TIMEOUT` | Ergebnisse; `DEFENDER_WON` nach eigener Verteidigung bringt Verteidigungspunkte ([GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)) | nein | gleichnamig |
 | `CANCELLED` | durch Admin oder weil das Angreiferreich nicht mehr aktiv ist; Budget wird erstattet | nein | gleichnamig |
 | `EXPIRED_INVALID` | technisches Ende ohne Wertung (Instanz geschlossen) | nein | gleichnamig |
 
@@ -60,7 +62,7 @@ Jeder Übergang ist eine bedingte Aktualisierung (`update sieges set status = :n
 ### 3.1 Regionsreservierung [E]
 
 - **Setzen:** Die Transaktion, die die Belagerung in `PREPARING` anlegt, setzt auch `region_state.active_siege_id = :siege` – bedingt mit `… where region_id = :target and active_siege_id is null`. Trifft die Bedingung nicht zu, wird die ganze Transaktion verworfen (`REGION_UNDER_SIEGE`). Der partielle Unique-Index auf `sieges` (N1) bleibt die zweite Absicherung.
-- **Freigeben:** Jeder Übergang in einen Endzustand (`ATTACK_FAILED`, `ATTACKER_WON`, `DEFENDER_WON`, `ATTACKER_WON_BY_TIMEOUT`, `CANCELLED`, `EXPIRED_INVALID`) setzt in derselben Transaktion `active_siege_id = NULL`, bedingt auf `active_siege_id = :siege`. Das gilt ausdrücklich auch für PvE-Ergebnisse und für Abbrüche aus `PREPARING` (Zeitlimit über `challenge.expireStale`, Abbruch, Instanzschluss).
+- **Freigeben:** Jeder Übergang in einen Endzustand (`ATTACK_FAILED`, `ATTACKER_WON`, `DEFENDER_WON`, `ATTACKER_WON_BY_TIMEOUT`, `CANCELLED`, `EXPIRED_INVALID`) setzt in derselben Transaktion `active_siege_id = NULL`, bedingt auf `active_siege_id = :siege`. Das gilt ausdrücklich auch für PvE-Ergebnisse und für Abbrüche aus `PREPARING` (nie begonnene Herausforderung über `challenge.expireStale`, Abbruch, Saison-Cutoff, Instanzschluss).
 - **Prüfung:** Ein Fremdschlüssel stellt sicher, dass der Zeiger auf eine existierende Belagerung genau dieser Region verweist; dass diese Belagerung aktiv ist und jede aktive Belagerung einen Zeiger hat, prüfen Transaktion und Invariantenjob (I3, [DATA_MODEL.md §5](DATA_MODEL.md#5-invarianten)).
 
 ## 4. Ablauf PvP-Belagerung
@@ -75,7 +77,7 @@ sequenceDiagram
   A->>S: POST /attacks
   S->>DB: Sperren, Berechtigung, siege PREPARING, Herausforderung
   A->>S: Trivia + Schätzung beantworten
-  S->>DB: Gate prüfen → AWAITING_DEFENSE, opened_at, base/deadline/max_deadline
+  S->>DB: Angreiferleistung versiegeln (auch bei falscher Antwort) → AWAITING_DEFENSE, opened_at, base/deadline/max_deadline
   S->>DB: Job siege.resolveTimeout @ deadline_at + settleGrace, Mitteilungen, world_events
   S-->>B: Push + In-App „Region X wird belagert, Frist bis …“
   opt Verlängerung
@@ -86,9 +88,9 @@ sequenceDiagram
     B->>S: POST /sieges/:id/defense (Restzeit ≥ ~60 s)
     S->>DB: DEFENDING, Herausforderung präsentieren
     B->>S: Trivia + Schätzung
-    S->>DB: Antwort mit received_at < deadline_at → resolveDuel → Ergebnis, Besitz, Drops
+    S->>DB: Antwort mit received_at < deadline_at → resolveDuel (Gate zuerst) → Ergebnis, Besitz, Drops, Verteidigungspunkte
   else Frist läuft ab
-    W->>DB: resolveTimeout: game_now() ≥ deadline_at + settleGrace, keine rechtzeitige Antwort → ATTACKER_WON_BY_TIMEOUT
+    W->>DB: resolveTimeout: game_now() ≥ deadline_at + settleGrace, keine rechtzeitige Antwort → Angreifer richtig: ATTACKER_WON_BY_TIMEOUT, sonst ATTACK_FAILED
   end
   S-->>A: Ergebnis (Push + In-App)
   S-->>B: Ergebnis (Push + In-App)
@@ -161,9 +163,12 @@ UPDATE kingdoms SET region_count = region_count - 1 WHERE id = :def;
 --   Hauptstadt verloren → neue Hauptstadt wählen; region_count = 0 → Reich FALLEN
 INSERT INTO region_history (...);   -- from_kingdom_id = :def (NULL bei neutralem Ziel)
 --   Drop-Wurf → reward_events (+ player_items)
--- falls Verteidiger gewinnt:
+-- falls Verteidiger gewinnt (DEFENDER_WON) oder Angriff am verdeckten Gate scheitert (ATTACK_FAILED):
 UPDATE region_state SET active_siege_id = NULL, version = version + 1
  WHERE region_id = :target AND active_siege_id = :siege;
+--   nur DEFENDER_WON nach eigener Verteidigung eines Spielerreichs, Paarlimit nicht erreicht:
+UPDATE kingdom_statistics SET defense_points = defense_points + :points WHERE kingdom_id = :def;
+UPDATE player_statistics  SET defense_points = defense_points + :points WHERE user_id = :defender_user;
 -- immer:
 INSERT INTO world_events (...);  INSERT INTO notifications (...);
 COMMIT;
@@ -208,12 +213,13 @@ max_deadline_at  = opened_at + defense.maxDeadline             // 48 h [A]
 
 | Limit | Zählweise |
 |---|---|
-| PvP-Belagerungen pro Angreifer | Belagerungen mit `mode = PVP`, `attacker_kingdom_id` des Spielers, `opened_at > game_now() − 24 h` (gleitend) |
+| PvP-Belagerungen pro Angreifer | Belagerungen mit `mode = PVP`, `attacker_kingdom_id` des Spielers, `opened_at > game_now() − 24 h` (gleitend); jeder abgeschlossene Angriff eröffnet eine Belagerung, auch bei falscher Antwort |
 | PvP-Versuche pro Angreifer | wie oben, aber `attack_presented_at` statt `opened_at` (auch gescheiterte) |
 | Offene Belagerungen gegen ein Reich | Status `PREPARING`, `AWAITING_DEFENSE`, `DEFENDING` mit `defender_kingdom_id` des Reichs – **über alle Angreifer** einschließlich NPCs (Brief §7.4 letzter Punkt; NPC-Kontingent zusätzlich nach [O-13]) |
 | Schutz nach Eroberung | `region_state.protected_until`; gilt gegen alle, auch den Vorbesitzer |
 | Anfänger-/Wiederaufbauschutz | `kingdoms.protected_until`; endet vorzeitig, sobald das Reich selbst einen Spieler angreift (UI warnt vorher) |
 | Rangabstand | geprüft beim Angriffsstart mit `region_count` beider Reiche |
+| Punktbringende Verteidigungen je Paar | `battle_results` mit Punkten für dasselbe Paar aus Angreifer- und Verteidigerreich in den letzten 24 h (gleitend), Grenze `defense.pointsPairLimitPerDay` |
 
 Alle Zählungen erfolgen unter Sperre des betroffenen Reichs; parallele Anfragen können Limits nicht umgehen (Brief §13.4).
 

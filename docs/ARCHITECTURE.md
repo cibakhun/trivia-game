@@ -178,7 +178,7 @@ rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, version
 |---|---|---|
 | `siege.resolveTimeout` | eingeplant auf `deadline_at + settleGrace`, umgerechnet in reale Zeit (`− game_clock.offset`); neu eingeplant bei Verlängerung | Statusvergleich unter Zeilensperre; prüft `isTimeoutDue` erneut; ohne Wirkung, wenn bereits aufgelöst oder Frist verlängert |
 | `siege.sweepExpired` | jede Minute | **autoritativer Auslöser:** löst alle Belagerungen auf, für die `isTimeoutDue` gilt (`game_now() ≥ deadline_at + settleGrace`, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)) – deckt verlorene Jobs, Server-Neustart (E2E-08) und nachträglich geänderten Zeitversatz ab |
-| `challenge.expireStale` | jede Minute | beendet Herausforderungen, deren Zeitlimit abgelaufen ist (Angreifer bricht ab, Browser geschlossen) |
+| `challenge.expireStale` | jede Minute | setzt verpasste Schritte auf `TIMED_OUT` (Browser geschlossen) und schließt die Herausforderung ab – im PvP wird die Belagerung dann eröffnet (verdecktes Gate); eine nie begonnene Herausforderung (erste Frage nicht innerhalb von 2 min abgerufen) endet als `ATTACK_FAILED` ohne Versuchsverbrauch |
 | `items.autoExtend` | alle 5 Minuten | eine Verlängerung pro Belagerung und Auslösefenster, Idempotenzschlüssel je Belagerung + Fenster |
 | `npc.tick` | je Instanz alle N Minuten | Aktionen tragen deterministische IDs je Tick; doppelte Ausführung schreibt nichts doppelt |
 | `season.open` / `season.close` | Zeitplan | Statusübergänge mit Bedingung |

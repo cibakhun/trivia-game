@@ -22,7 +22,7 @@ Ungarisch als Startsprache ist ein bewusster Fokus: Das Genre ist in Ungarn beka
 
 | Prinzip | Konsequenz in diesem Entwurf |
 |---|---|
-| 1. Wissen ist primäre Voraussetzung | Empfehlung „Angreifer-Gate“: ohne richtige Antwort keine Eroberung ([O-01]) |
+| 1. Wissen ist primäre Voraussetzung | Verdecktes Angreifer-Gate (entschieden, [O-01]): ohne richtige Antwort keine Eroberung; wer sich verteidigt, wird mit Punkten belohnt |
 | 2. Strategie bestimmt Ziele | Nachbarschaftsregel, Angriffsbudgets, Priorisierung im Dashboard |
 | 3. Aktivität belohnen, Offlinezeit nicht vollständig bestrafen | 24 h Frist, Items bis 48 h, Kappung offener Belagerungen pro Reich, Urlaubsmodus als Option ([O-06]) |
 | 4. Große Reiche mächtig, nicht unangreifbar | Jede Region einzeln eroberbar, Belagerungskapazität pro Reich ([O-05]) |

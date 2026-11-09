@@ -75,7 +75,7 @@ erDiagram
 | `sessions` | `token_hash bytea PK`, `user_id`, `created_at`, `expires_at`, `last_used_at` | Index `(user_id)`; Token nur gehasht gespeichert |
 | `player_profiles` | `user_id PK`, `display_name text` (generiert), `name_seed int`, `cosmetic_avatar text`, `created_at` | `unique(display_name)` |
 | `player_settings` | `user_id PK`, `locale text` (`de`/`hu`/`en`), `timezone text`, `auto_extend_enabled bool default false`, `auto_extend_priorities jsonb`, `notification_prefs jsonb` | |
-| `player_statistics` | `user_id PK`, Zähler: `battles`, `battles_won`, `defenses`, `defenses_won`, `conquests`, `regions_max`, `trivia_answered`, `trivia_correct`, `skill_rating numeric`, `skill_rd numeric`, `updated_at` | weltübergreifend (Brief §3.4: globale Profile) |
+| `player_statistics` | `user_id PK`, Zähler: `battles`, `battles_won`, `defenses`, `defenses_won`, `conquests`, `regions_max`, `defense_points`, `trivia_answered`, `trivia_correct`, `skill_rating numeric`, `skill_rd numeric`, `updated_at` | weltübergreifend (Brief §3.4: globale Profile) |
 | `push_subscriptions` | `id`, `user_id`, `endpoint text`, `p256dh text`, `auth text`, `created_at`, `last_success_at`, `failures int` | `unique(endpoint)` |
 
 ### 4.2 Welten
@@ -137,7 +137,7 @@ create unique index region_state_active_siege on region_state (active_siege_id) 
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `kingdoms` | `id`, `instance_id`, `kind` (`PLAYER`/`NPC`), `owner_user_id null`, `npc_faction_id null`, `name_parts jsonb`, `color smallint`, `status` (`ACTIVE`/`FALLEN`/`DISSOLVED`), `region_count int`, `protected_until null`, `protection_reason` (`NEWBIE`/`RESPAWN`/`VACATION`), `generation smallint` (n-tes Reich des Spielers in der Instanz), `founded_at`, `fallen_at`, `version` | `check((kind='PLAYER' and owner_user_id is not null and npc_faction_id is null) or (kind='NPC' and npc_faction_id is not null and owner_user_id is null))`; `unique(instance_id, owner_user_id) where status='ACTIVE' and kind='PLAYER'`; `unique(instance_id, npc_faction_id) where status='ACTIVE' and kind='NPC'` (eine Fraktion = höchstens ein aktives Reich); `check(region_count >= 0)` |
-| `kingdom_statistics` | `kingdom_id PK`, `max_regions`, `npc_regions_conquered`, `pvp_won`, `pvp_lost`, `defenses_won`, `defenses_lost`, `timeout_losses`, `longest_connected`, `updated_at` | |
+| `kingdom_statistics` | `kingdom_id PK`, `max_regions`, `npc_regions_conquered`, `pvp_won`, `pvp_lost`, `defenses_won`, `defenses_lost`, `defense_points`, `timeout_losses`, `longest_connected`, `updated_at` | |
 | `kingdom_history` | `id bigint`, `kingdom_id`, `kind` (`FOUNDED`/`CAPITAL_CHANGED`/`RANK_CHANGED`/`FALLEN`/`RANK_SNAPSHOT`), `payload jsonb`, `at` | Index `(kingdom_id, at)` |
 
 `region_count` ist denormalisiert und wird in derselben Transaktion wie der Besitzwechsel gepflegt (beide Reiche sind ohnehin gesperrt). Der Invariantenjob prüft ihn gegen `count(*)`.
@@ -246,7 +246,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `siege_participants` | `id`, `siege_id`, `role` (`ATTACKER`/`DEFENDER`), `kingdom_id null`, `user_id null`, `npc_profile_id null`, `locale null` | `unique(siege_id, role)` |
-| `battle_results` | `siege_id PK`, `winner_role`, `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `decided_at`, `core_version text` | PK verhindert ein zweites Ergebnis; dass jede beendete Belagerung **eines** hat, sichern das Einfügen in derselben Transaktion wie der Endübergang und der Invariantenjob (I6) |
+| `battle_results` | `siege_id PK`, `winner_role`, `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `defended bool`, `defense_points smallint not null default 0` (vergebene Verteidigungspunkte, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)), `decided_at`, `core_version text` | PK verhindert ein zweites Ergebnis; dass jede beendete Belagerung **eines** hat, sichern das Einfügen in derselben Transaktion wie der Endübergang und der Invariantenjob (I6) |
 | `battle_events` | `id bigint`, `siege_id`, `seq int`, `type`, `payload jsonb`, `at` | `unique(siege_id, seq)`; nur anhängen |
 
 ### 4.8 Items und Belohnungen

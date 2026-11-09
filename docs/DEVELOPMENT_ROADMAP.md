@@ -35,7 +35,7 @@ Lieferung: dieses Dokumentationspaket. Keine produktiven Änderungen.
 | Monorepo | pnpm Workspaces, TypeScript strict, ESLint/Prettier, Abhängigkeitsregeln zwischen Paketen |
 | CI | GitHub Actions: Install, Lint, Typecheck, Unit, Integration mit Postgres-Service-Container |
 | `protocol` | zod-Schema der Regelkonfiguration mit Standardwerten aus [GAME_RULES.md §10](GAME_RULES.md#10-parametertabelle); Zahlparser de/hu/en |
-| `game-core` | Hex-Mathematik und Chunks, Rang-Funktion, `resolveDuel` (Gate als Konfiguration bis [O-01] entschieden), effektive Zeit, Fristberechnung, Drop-Ziehung, RNG (HMAC + sfc32), NPC-Antwortmodell |
+| `game-core` | Hex-Mathematik und Chunks, Rang-Funktion, `resolveDuel` mit verdecktem Gate ([O-01] entschieden), effektive Zeit, Fristberechnung, Drop-Ziehung, RNG (HMAC + sfc32), NPC-Antwortmodell |
 | `db` | Migrationsläufer, erste Migrationen (Konten, Welten, Regionen, Reiche), `game_now()`, Testhelfer |
 | Lokal | `docker-compose.yml` für Postgres, `.env.example` |
 | Inhalte | YAML-Schema für Fragen, Validierungswerkzeug, 40 Fixture-Fragen (de/hu/en) |
@@ -60,7 +60,7 @@ Abnahme (Brief): Ein Spieler erobert wiederholt NPC-Gebiete, erweitert sein Reic
 | Paket | Inhalt |
 |---|---|
 | Konto | Registrierung/Anmeldung nach [O-03], generierte öffentliche Namen ([O-10]) |
-| PvP | Belagerungen mit Gate, Verteidigung, Fristen (in Tests kurz konfiguriert), Auflösungstransaktion, Lazy Resolution |
+| PvP | Belagerungen mit verdecktem Gate, Verteidigung, Verteidigungspunkte ([O-18]), Fristen (in Tests kurz konfiguriert), Auflösungstransaktion, Lazy Resolution |
 | Echtzeit | WebSocket-Gateway, Outbox, Chunk-Abos, `resume`/Snapshot |
 | Nebenläufigkeit | Harness und Tests N1–N4, N8, N12 |
 | Staging | erste erreichbare Testumgebung, falls [O-11] freigegeben; sonst Test im lokalen Netz |
@@ -110,9 +110,9 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 
 | Vor | Entscheidungen |
 |---|---|
-| Schritt 1.0 | keine (Gate ist konfigurierbar umgesetzt) |
-| Phase 1 | [O-01] Gate, [O-02] Fragenbeschaffung (für 150 Fragen) |
-| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern) |
+| Schritt 1.0 | keine ([O-01] ist entschieden) |
+| Phase 1 | [O-02] Fragenbeschaffung (für 150 Fragen) |
+| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |
 | Closed Beta | [O-11] Hosting, [O-12] Name |

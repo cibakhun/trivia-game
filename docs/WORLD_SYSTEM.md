@@ -131,7 +131,7 @@ Regionen unter Belagerung werden vom Verfall übersprungen. Verfall erzeugt `reg
 |---|---|
 | Gehaltene Region am Saisonende | 10 |
 | Gehaltene Hauptstadt | +20 |
-| Gewonnener PvP-Kampf (Angriff oder Verteidigung) | 5 |
+| Gewonnener PvP-Kampf: Eroberung oder erfolgreiche eigene Verteidigung (auch gegen einen Angreifer, der falsch lag; Paarlimit [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)) | 5 |
 | Eroberte NPC-Region | 2 |
 
 Gleichstand: mehr gehaltene Regionen → früher erreichter Endpunktestand. Die Punkteformel steht im Spiel sichtbar beim Ranglisten-Button.

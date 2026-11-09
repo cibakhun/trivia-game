@@ -58,7 +58,7 @@ Der Server prüft beim Start eines Angriffs in dieser Reihenfolge (alle Prüfung
 7. Der Angreifer hat keine andere Herausforderung in Bearbeitung (max. eine gleichzeitig) [E].
 8. Budgets gemäß Regelkonfiguration der Instanz ([§10](#10-parametertabelle)): PvP – `attack.maxNewPvpSiegesPerAttacker` und `attack.maxPvpAttemptsPerAttacker` (Eternal 3/6 je 24 h, Weekly 6/12 je 24 h, Daily 4/8 je 1 h); Verteidiger hat weniger als `attack.maxOpenSiegesPerDefender` offene oder in Vorbereitung befindliche Belagerungen (Eternal/Weekly/Daily 4/3/2); PvE – `attack.maxPveAttemptsPerPlayer` nicht erschöpft (Eternal/Weekly/Daily 50/60/unbegrenzt, [O-08]). Kennzeichnung der Werte siehe §10.
 
-Ein Angriffs**versuch** zählt ab dem Moment, in dem die erste Frage angezeigt wird; eine **Belagerung** zählt, sobald sie eröffnet ist. Abbrechen nach Sicht der Frage gilt als gescheiterter Angriff [E]. Sonst könnten Spieler Fragen „durchblättern“, bis eine leichte kommt. Gescheiterte Versuche belasten den Verteidiger nicht, sind aber durch das Versuchskontingent begrenzt.
+Ein Angriffs**versuch** zählt ab dem Moment, in dem die erste Frage angezeigt wird; eine **Belagerung** zählt, sobald sie eröffnet ist. Abbrechen nach Sicht der Frage gilt als gescheiterter Angriff [E]. Sonst könnten Spieler Fragen „durchblättern“, bis eine leichte kommt. Abgebrochene Angriffe belasten den Verteidiger nicht, sind aber durch das Versuchskontingent begrenzt. Jeder **abgeschlossene** PvP-Angriff eröffnet dagegen eine Belagerung – auch wenn der Angreifer falsch lag (verdecktes Gate, §5.2) – und zählt damit gegen das Belagerungskontingent [V, O-01].
 
 ## 5. Duellauswertung
 
@@ -77,8 +77,8 @@ Für die Auswertung stehen beide Leistungen fest. Entscheidend ist die erste Stu
 
 | Stufe | Regel | Kennz. |
 |---|---|---|
-| 0 | Verteidiger hat bis zur Frist nicht geantwortet → Angreifer gewinnt (`ATTACKER_WON_BY_TIMEOUT`) | [V] |
-| 1 | **Angreifer-Gate:** Angreifer hat die Trivia-Frage falsch → Verteidiger hält das Gebiet | **[O-01]**, empfohlen |
+| 0 | **Verdecktes Angreifer-Gate:** Angreifer hat die Trivia-Frage falsch → der Angriff scheitert in jedem Fall, das Gebiet bleibt beim Verteidiger. Die Belagerung wird trotzdem eröffnet, und niemand erfährt vor der Auflösung, dass der Angreifer falsch lag. Verteidigt sich der Verteidiger rechtzeitig, gewinnt er (`DEFENDER_WON`, Grund `ATTACKER_GATE`) und erhält Verteidigungspunkte (§5.5). Verteidigt er nicht, endet die Belagerung bei Fristablauf als `ATTACK_FAILED` – ohne Punkte, ohne Gebietsverlust. | [V] (PO-Entscheidung [O-01], 2026-11-09) |
+| 1 | Angreifer richtig, Verteidiger hat bis zur Frist nicht geantwortet → Angreifer gewinnt (`ATTACKER_WON_BY_TIMEOUT`) | [V] |
 | 2 | Genau einer hat die Trivia richtig → dieser gewinnt (Fall A) | [V] |
 | 3 | Beide richtig → kleinerer absoluter Abstand der Schätzung gewinnt (Fall B) | [V] |
 | 4 | Gleicher Abstand → kürzere effektive Antwortzeit der Schätzfrage gewinnt (Fall C) | [V] |
@@ -86,7 +86,9 @@ Für die Auswertung stehen beide Leistungen fest. Entscheidend ist die erste Stu
 
 Fehlende Antworten (Zeitlimit überschritten) zählen als falsch (Trivia) bzw. als unendlicher Abstand und unendliche Zeit (Schätzung) [E].
 
-**Warum das Angreifer-Gate (Empfehlung zu [O-01]):** Der Brief-Vorschlag für Fall D („beide falsch → bis zu drei neue Runden“) ist mit asynchronen Belagerungen nicht vereinbar, ohne dass der Angreifer vorab drei Trivia-Fragen plus Schätzfrage beantwortet. Mit dem Gate entfällt Fall D vollständig: Liegt der Angreifer falsch, wird gar keine Belagerung eröffnet, der Verteidiger wird nicht belästigt, und jede Eroberung setzt eine richtige Antwort voraus (Prinzip 1). Auch ein Sieg durch Zeitablauf ist dann nie „unverdient“. Alternativen und Abwägung: [DECISIONS.md, O-01](DECISIONS.md#o-01-angreifer-gate-statt-fall-d).
+**Warum das verdeckte Angreifer-Gate ([O-01], entschieden):** Der Brief-Vorschlag für Fall D („beide falsch → bis zu drei neue Runden“) ist mit asynchronen Belagerungen nicht vereinbar, ohne dass der Angreifer vorab drei Trivia-Fragen plus Schätzfrage beantwortet. Mit dem Gate entfällt Fall D vollständig, und jede Eroberung setzt eine richtige Antwort voraus (Prinzip 1); auch ein Sieg durch Zeitablauf ist nie „unverdient“. Dass die Belagerung trotzdem eröffnet wird, hält die Angreiferleistung bis zur Auflösung geheim (Brief §5.5) und gibt dem Verteidiger in jedem Fall die Gelegenheit, sich zu verteidigen und dafür belohnt zu werden.
+
+Folgen [E]: Auch falsche Angriffe belegen bis zur Auflösung einen der offenen Belagerungsplätze des Verteidigers und verbrauchen das Belagerungskontingent des Angreifers. Ein Verteidiger kann ein Zeit-Item für eine Belagerung einsetzen, die ohnehin gescheitert wäre – das ist der Preis der verdeckten Information. Alternativen und Abwägung: [DECISIONS.md, O-01](DECISIONS.md#o-01-angreifer-gate-statt-fall-d).
 
 ### 5.3 Zeitmessung
 
@@ -95,6 +97,13 @@ Maßgeblich ist die serverseitig bestimmte Antwortzeit der Schätzfrage [V]. Sie
 ### 5.4 Mehrsprachigkeit
 
 Beide Teilnehmer erhalten dieselbe Fragenversion, jeweils in ihrer Sprache; bewertet wird die sprachunabhängige Antwort-ID bzw. der normalisierte Zahlenwert [V, Brief §10.3].
+
+### 5.5 Verteidigungspunkte [V Grundsatz, E Werte, [O-18]]
+
+- **Grundsatz [V, O-01]:** Wer sich gegen eine Belagerung rechtzeitig verteidigt und gewinnt (`DEFENDER_WON`), erhält Verteidigungspunkte – unabhängig davon, ob er gegen einen Angreifer gewonnen hat, der falsch lag (Gate), oder im Duell (Trivia, Schätzung, Zeit). Ohne eigene Verteidigung gibt es keine Punkte, auch wenn der Angriff am Gate scheitert.
+- **Werte [E]:** Eternal 10 Verteidigungspunkte je erfolgreicher Verteidigung, sichtbar im Reichsprofil, im globalen Spielerprofil und in einer Rangliste „Verteidiger“. Daily/Weekly: 5 Saisonpunkte ([WORLD_SYSTEM.md §6.3](WORLD_SYSTEM.md#63-wertung-vorschlag-transparent-e)).
+- **Wirkung [E]:** Bis zur Entscheidung über [O-18] verschaffen Punkte keinen spielmechanischen Vorteil (nur Ansehen und Rangliste).
+- **Schutz gegen Absprachen [E]:** höchstens 2 punktbringende Verteidigungen je Paar aus Angreifer- und Verteidigerreich pro 24 h; keine Punkte, wenn die Konten als verdächtig verknüpft markiert sind ([SECURITY.md §4](SECURITY.md#4-missbrauch-multiaccounts-und-bots)); auffällig viele Gate-Fehlschläge desselben Angreifers gegen dasselbe Ziel erzeugen ein Missbrauchssignal.
 
 ## 6. Eternal-Verteidigung
 
@@ -164,6 +173,8 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | `defense.maxDeadline` | 48 h | 4 h (keine Items) | 15 min (keine Items) | A / E / E |
 | `defense.startBuffer` | 10 s | 10 s | 10 s | E |
 | `defense.settleGrace` (technischer Abwicklungspuffer, verlängert keine Frist) | 5 s | 5 s | 5 s | E |
+| `defense.pointsPerSuccessfulDefense` | 10 Verteidigungspunkte | 5 Saisonpunkte | 5 Saisonpunkte | E, [O-18] |
+| `defense.pointsPairLimitPerDay` | 2 | 2 | 2 | E, [O-18] |
 | `quiz.triviaTimeLimit` | 20 s | 20 s | 15 s | E |
 | `quiz.estimateTimeLimit` | 30 s | 30 s | 25 s | E |
 | `quiz.latencyAllowanceCapMs` | 500 | 500 | 500 | E |
@@ -190,8 +201,8 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 
 | # | Stelle | Problem | Vorschlag |
 |---|---|---|---|
-| W-1 | §5.3 Fall D vs. §5.4/§5.5 | „Neue Trivia-Runden bis Entscheidung“ erfordert in asynchronen Belagerungen eine Rückkehr des Angreifers oder Vorab-Antworten auf bis zu 4 Fragen. | Angreifer-Gate [O-01] |
-| W-2 | §5.1 Schritt 7 | „Nach erfolgreichem Abschluss“ ist mehrdeutig (abgeschlossen vs. richtig beantwortet). | Auslegung „richtig beantwortet“ = Gate [O-01] |
+| W-1 | §5.3 Fall D vs. §5.4/§5.5 | „Neue Trivia-Runden bis Entscheidung“ erfordert in asynchronen Belagerungen eine Rückkehr des Angreifers oder Vorab-Antworten auf bis zu 4 Fragen. | Verdecktes Angreifer-Gate (entschieden, [O-01]) |
+| W-2 | §5.1 Schritt 7 | „Nach erfolgreichem Abschluss“ ist mehrdeutig (abgeschlossen vs. richtig beantwortet). | Auslegung „richtig beantwortet“ = verdecktes Gate (entschieden, [O-01]) |
 | W-3 | §7.3 | Zustandsliste kennt keinen Zustand für „Angreifer scheitert an eigener Frage“ und keinen für „Verteidiger beantwortet gerade“. | Verfeinerte Zustandsmaschine ([SIEGE_SYSTEM.md §3](SIEGE_SYSTEM.md#3-zustandsmaschine)) |
 | W-4 | §12.4 vs. §11.5 | Antwort nach Frist ist verspätet, aber eine Herausforderung dauert bis ≈ 50 s. Ein Start kurz vor Fristende wäre eine Falle. | Startsperre, wenn Restzeit < Herausforderungsdauer + Puffer |
 | W-5 | §7.4 vs. Prinzip 4 | Feste 4 offene Belagerungen pro Reich deckeln Verluste großer Reiche auf ≈ 4/Tag, unabhängig von der Zahl der Angreifer – große Reiche könnten faktisch unangreifbar werden. | Simulation in Phase 3, ggf. größenabhängige Kapazität [O-05] |
