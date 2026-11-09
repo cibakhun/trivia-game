@@ -85,7 +85,7 @@ erDiagram
 | `worlds` | `id`, `slug`, `mode` (`ETERNAL`/`DAILY`/`WEEKLY`), `name_key`, `status`, `current_rules_id` | `unique(slug)` |
 | `world_rules` | `id`, `world_id`, `version int`, `config jsonb` (Schema in `packages/protocol`), `config_hash`, `created_by`, `created_at`, `notes` | `unique(world_id, version)`; Zeilen unveränderlich |
 | `world_seasons` | `id`, `world_id`, `period_key` (`2026-11-09`, `2026-W46`), `starts_at`, `ends_at`, `pvp_cutoff_at`, `status` (`SCHEDULED`/`RUNNING`/`CLOSING`/`CLOSED`) | `unique(world_id, period_key)`; `check(starts_at < pvp_cutoff_at and pvp_cutoff_at <= ends_at)` |
-| `world_instances` | `id`, `world_id`, `season_id null` (Eternal: null), `rules_id`, `map_seed bigint`, `capacity int`, `status` (`PROVISIONING`/`RUNNING`/`CLOSING`/`CLOSED`/`ARCHIVED`), `starts_at`, `ends_at null`, `closed_at`, `event_seq bigint` (Zähler für `world_events.seq`, [ARCHITECTURE.md §10](ARCHITECTURE.md#10-echtzeit-und-synchronisation)) | Index `(world_id, status)` |
+| `world_instances` | `id`, `world_id`, `season_id null` (Eternal: null), `rules_id`, `map_seed bigint`, `capacity int`, `status` (`PROVISIONING`/`RUNNING`/`CLOSING`/`CLOSED`/`ARCHIVED`), `starts_at`, `ends_at null`, `closed_at`, `event_seq bigint not null default 0` (Zähler für `world_events.seq`, [ARCHITECTURE.md §10](ARCHITECTURE.md#10-echtzeit-und-synchronisation)) | Index `(world_id, status)` |
 | `world_participants` | `instance_id`, `user_id`, `joined_at`, `status` (`ACTIVE`/`LEFT`/`BANNED`), `current_kingdom_id null`, `last_active_at` | `PK(instance_id, user_id)`; dient auch als Sperrzeile für Inventar-Operationen eines Spielers |
 | `season_results` | `instance_id`, `user_id`, `kingdom_id`, `rank int`, `score int`, `details jsonb` | `PK(instance_id, user_id)` |
 
@@ -186,8 +186,8 @@ create table quiz_answers (
   is_correct        bool null,
   distance          numeric null,
   status            text not null check (status in ('PRESENTED','ANSWERED','TIMED_OUT','GENERATED')),
-  idempotency_key   uuid null,
-  unique (participant_id, step_index)
+  idempotency_key   uuid null unique,    -- Idempotency-Key der Antwortanfrage (API.md §1)
+  unique (participant_id, step_index)    -- je Teilnehmer und Schritt genau eine Zeile
 );
 -- Trigger: Zeilen mit status <> 'PRESENTED' sind unveränderlich ("Antworten werden nach Einreichung gesperrt").
 ```
@@ -221,9 +221,10 @@ create table sieges (
   version             int not null default 0,
   idempotency_key     uuid not null unique,
   unique (id, target_region_id),         -- Ziel des Fremdschlüssels aus region_state
-  -- Fristen: entweder alle drei leer (PvE, PREPARING) oder alle gesetzt und geordnet (I10)
-  check ((base_deadline_at is null and deadline_at is null and max_deadline_at is null)
-      or (base_deadline_at is not null and deadline_at is not null and max_deadline_at is not null
+  -- Fristen: PvE nie; PvP leer bis zur Eröffnung, ab opened_at alle gesetzt und geordnet (I10)
+  check ((opened_at is null and base_deadline_at is null and deadline_at is null and max_deadline_at is null)
+      or (mode = 'PVP' and opened_at is not null
+          and base_deadline_at is not null and deadline_at is not null and max_deadline_at is not null
           and base_deadline_at <= deadline_at and deadline_at <= max_deadline_at)),
   -- nur gültige Kombinationen: sofortige Auswertung gegen NPC/neutral, Frist nur gegen Spielerreiche
   check ((mode = 'PVE' and defender_kind in ('NPC','NEUTRAL')) or (mode = 'PVP' and defender_kind = 'PLAYER')),
@@ -246,7 +247,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `siege_participants` | `id`, `siege_id`, `role` (`ATTACKER`/`DEFENDER`), `kingdom_id null`, `user_id null`, `npc_profile_id null`, `locale null` | `unique(siege_id, role)` |
-| `battle_results` | `siege_id PK`, `winner_role`, `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `defended bool` (eine rechtzeitige Verteidigung liegt vor, auch mit verpasster Einzelfrage), `defense_points smallint not null default 0` (vergebene Verteidigungspunkte: Teilnahme plus Bonus, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)), `decided_at`, `core_version text` | PK verhindert ein zweites Ergebnis; dass jede beendete Belagerung **eines** hat, sichern das Einfügen in derselben Transaktion wie der Endübergang und der Invariantenjob (I6) |
+| `battle_results` | `siege_id PK`, `winner_role` (`ATTACKER`/`DEFENDER`, `null` bei `ATTACK_FAILED` und `CANCELLED`), `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `defended bool` (eine Verteidigung wurde begonnen; verpasste Einzelfragen zählen als falsch), `defense_points smallint not null default 0` (vergebene Verteidigungspunkte: Teilnahme plus Bonus, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)), `decided_at`, `core_version text` | PK verhindert ein zweites Ergebnis; dass jede beendete Belagerung **eines** hat, sichern das Einfügen in derselben Transaktion wie der Endübergang und der Invariantenjob (I6) |
 | `battle_events` | `id bigint`, `siege_id`, `seq int`, `type`, `payload jsonb`, `at` | `unique(siege_id, seq)`; nur anhängen |
 
 ### 4.8 Items und Belohnungen
@@ -264,8 +265,8 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `notifications` | `id`, `user_id`, `instance_id null`, `type`, `payload jsonb`, `created_at`, `read_at null`, `push_sent_at null` | Index `(user_id, created_at desc) where read_at is null` |
-| `world_events` | `id bigint identity PK`, `instance_id`, `seq bigint` (lückenlos je Instanz aus `world_instances.event_seq`), `chunk_x null`, `chunk_y null`, `user_id null`, `type`, `payload jsonb`, `created_at` | `unique(instance_id, seq)`; Aufbewahrung 7 Tage |
-| `idempotency_keys` | `scope text` (Konto-ID bzw. vor der Anmeldung Hash des Schlüssels), `key uuid`, `endpoint`, `request_hash`, `response_status`, `response_body jsonb`, `created_at` | `PK(scope, key)`; Aufbewahrung 24 h ([API.md §1](API.md#1-konventionen)) |
+| `world_events` | `id bigint identity PK`, `instance_id`, `seq bigint not null` (lückenlos je Instanz aus `world_instances.event_seq`), `chunk_x null`, `chunk_y null`, `user_id null`, `type`, `payload jsonb`, `created_at` | `unique(instance_id, seq)`; Aufbewahrung 7 Tage |
+| `idempotency_keys` | `scope text` (beim Eintreffen festgelegt, danach unverändert: Konto-ID der Sitzung, ohne Sitzung `anon:` + SHA-256 des Schlüssels), `key uuid`, `endpoint`, `request_hash`, `response_status`, `response_body jsonb`, `created_at` | `PK(scope, key)`; Aufbewahrung 24 h ([API.md §1](API.md#1-konventionen)) |
 | `audit_events` | `id bigint`, `actor_user_id null`, `actor_role`, `action`, `target_type`, `target_id`, `before jsonb`, `after jsonb`, `reason text`, `at` | nur anhängen |
 | `abuse_signals` | `id`, `user_id`, `instance_id null`, `kind`, `score numeric`, `details jsonb`, `status` (`OPEN`/`REVIEWED`/`DISMISSED`/`ACTIONED`), `created_at` | Index `(status, created_at)` |
 | `game_clock` | `id int PK check (id=1)`, `offset interval` | in Produktion per Migration auf 0 und schreibgeschützt |
@@ -283,7 +284,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | I7 | Pro Kampf und Spieler höchstens eine Belohnung | Unique `reward_events` |
 | I8 | Jedes Item wird höchstens einmal verbraucht | Unique `item_usage(item_id)` + Statusvergleich |
 | I9 | Verfügbare Items pro Spieler ≤ Inventargrenze | Transaktion unter Sperre `world_participants` + Job |
-| I10 | Fristen alle leer oder alle gesetzt mit `base_deadline ≤ deadline ≤ max_deadline` | `CHECK` |
+| I10 | Fristen: PvE und noch nicht eröffnete PvP-Belagerungen ohne Fristen; eröffnete PvP-Belagerungen mit allen Fristen und `base_deadline ≤ deadline ≤ max_deadline` | `CHECK` |
 | I11 | Abgegebene Antworten sind unveränderlich | Trigger |
 | I12 | Freigegebene Fragenversionen sind unveränderlich | Trigger |
 | I13 | Alle Fremdschlüssel einer Spielzeile gehören zur selben Instanz | Anwendungslogik + Invariantenjob (zusammengesetzte FKs wären möglich, erschweren aber Migrationen – Entscheidung in Phase 1 nach Messung) |

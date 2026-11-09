@@ -34,10 +34,8 @@ stateDiagram-v2
   AWAITING_DEFENSE --> DEFENDING: Verteidiger beginnt (nur bei ausreichender Restzeit)
   AWAITING_DEFENSE --> ATTACKER_WON_BY_TIMEOUT: Frist abgelaufen, Angreifer richtig
   AWAITING_DEFENSE --> ATTACK_FAILED: Frist abgelaufen, Angreifer falsch (verdecktes Gate)
-  DEFENDING --> ATTACKER_WON: Auswertung
-  DEFENDING --> DEFENDER_WON: Auswertung
-  DEFENDING --> ATTACKER_WON_BY_TIMEOUT: Frist abgelaufen ohne vollständige Antwort, Angreifer richtig
-  DEFENDING --> ATTACK_FAILED: Frist abgelaufen ohne vollständige Antwort, Angreifer falsch
+  DEFENDING --> ATTACKER_WON: Auswertung (verpasste Schritte zählen als falsch)
+  DEFENDING --> DEFENDER_WON: Auswertung (verpasste Schritte zählen als falsch)
   AWAITING_DEFENSE --> CANCELLED: Admin / Angreiferreich aufgelöst
   DEFENDING --> CANCELLED: Admin / Angreiferreich aufgelöst
   PREPARING --> EXPIRED_INVALID: Instanz geschlossen
@@ -88,9 +86,9 @@ sequenceDiagram
     B->>S: POST /sieges/:id/defense (Restzeit ≥ ~60 s)
     S->>DB: DEFENDING, Herausforderung präsentieren
     B->>S: Trivia + Schätzung
-    S->>DB: Antwort mit received_at < deadline_at → resolveDuel (Gate zuerst) → Ergebnis, Besitz, Drops, Verteidigungspunkte
+    S->>DB: Antwort speichern (received_at), dann unter Sperre resolveDuel (Gate zuerst) → Ergebnis, Besitz, Drops, Verteidigungspunkte
   else Frist läuft ab
-    W->>DB: resolveTimeout: game_now() ≥ deadline_at + settleGrace, keine rechtzeitige Antwort → Angreifer richtig: ATTACKER_WON_BY_TIMEOUT, sonst ATTACK_FAILED
+    W->>DB: resolveTimeout: game_now() ≥ deadline_at + settleGrace, keine Verteidigung begonnen → Angreifer richtig: ATTACKER_WON_BY_TIMEOUT, sonst ATTACK_FAILED
   end
   S-->>A: Ergebnis (Push + In-App)
   S-->>B: Ergebnis (Push + In-App)
@@ -117,7 +115,7 @@ Ein gemeinsamer Transaktions-Wrapper wiederholt bei Serialisierungs- oder Deadlo
 | N1 | Zwei Angreifer greifen gleichzeitig dieselbe Region an | partieller Unique-Index `sieges_one_active_per_region` – der zweite erhält `REGION_UNDER_SIEGE` |
 | N2 | Mehrere Angreifer gegen ein Reich mit 3 offenen Belagerungen | Sperre auf das Verteidigerreich, Zählung inklusive `PREPARING` unter Sperre – der zweite erhält `DEFENDER_SIEGE_LIMIT` (Brief §13.4) |
 | N3 | Doppelklick oder Netzwiederholung beim Angriff | `sieges.idempotency_key` unique – gleiche Antwort, keine zweite Belagerung |
-| N4 | **Verteidigerantwort gleichzeitig mit Fristablauf** (Brief §12.4) | Einheitliche Fristgrenze ([§6.1](#61-fristgrenze--eine-regel-für-alle-pfade-e)): `received_at` wird beim Eintreffen der Anfrage erfasst, **bevor** auf Sperren gewartet wird; rechtzeitig heißt `received_at < deadline_at`. Ein Timeout wirkt erst ab `deadline_at + settleGrace` und prüft unter Sperre zuerst, ob eine rechtzeitige, vollständige Verteidigung vorliegt – dann wird regulär ausgewertet. Eine rechtzeitig eingetroffene Antwort geht also nicht verloren, weil sie auf die Sperre wartet; eine verspätete wird nie gewertet, auch wenn der Job noch nicht lief. Alle Übergänge sind bedingt; der zweite Pfad sieht einen Endzustand und tut nichts. |
+| N4 | **Verteidigerantwort gleichzeitig mit Fristablauf** (Brief §12.4) | Einheitliche Fristgrenze ([§6.1](#61-fristgrenze--eine-regel-für-alle-pfade-e)): `received_at` wird beim Eintreffen der Anfrage erfasst, **bevor** auf Sperren gewartet wird; rechtzeitig heißt `received_at < answer_deadline_at` (liegt immer vor `deadline_at`, §6.2). Die Antwort wird in einem ersten, kurzen Schritt **ohne Belagerungssperre** gespeichert (bedingte Aktualisierung der eigenen `quiz_answers`-Zeile), erst danach wird unter Sperre ausgewertet. Scheitert die Auswertung, etwa am Sperrzeitlimit, bleibt die Antwort gespeichert und gültig. Der Timeout-Pfad (ab `deadline_at + settleGrace`) wertet eine begonnene Verteidigung immer mit den gespeicherten Antworten aus; nur offene, abgelaufene Schritte zählen als `TIMED_OUT`. Eine rechtzeitig eingetroffene Antwort geht also nie verloren, eine verspätete wird nie gewertet. Alle Übergänge sind bedingt; der zweite Pfad sieht einen Endzustand und tut nichts. |
 | N5 | Itemverlängerung gleichzeitig mit Fristablauf | Verlängerung nur bei `game_now() < deadline_at` unter Sperre; danach ist der alte Timeout-Job wirkungslos (Frist liegt in der Zukunft) und ein neuer wird geplant |
 | N6 | Zwei Verlängerungen auf dieselbe Belagerung | Sperre; die zweite rechnet mit der neuen Frist, wird ggf. gekappt oder abgelehnt (ohne Itemverbrauch) |
 | N7 | Dasselbe Item gleichzeitig für zwei Belagerungen | bedingte Aktualisierung `player_items.status AVAILABLE → CONSUMED` + `unique(item_usage.item_id)` – eine Anfrage scheitert mit `ITEM_NOT_AVAILABLE` |
@@ -139,9 +137,10 @@ SELECT * FROM sieges WHERE id = :siege FOR UPDATE;
 -- 2. Vorbedingungen (Anwendungscode, bei Nichterfüllung: COMMIT ohne Änderung = idempotentes No-op)
 --    PvE: status = PREPARING und beide Schritte des Angreifers abgeschlossen
 --    PvP: status ∈ {AWAITING_DEFENSE, DEFENDING}
---    Auslöser DEFENSE: beide Schritte des Verteidigers abgeschlossen, jeweils received_at < deadline_at
---    Auslöser TIMEOUT: game_now() ≥ deadline_at + settleGrace (sonst wurde verlängert) und keine
---                      rechtzeitige vollständige Verteidigung – liegt eine vor, Auswertung wie DEFENSE
+--    Auslöser DEFENSE: beide Schritte des Verteidigers abgeschlossen (rechtzeitig ANSWERED oder TIMED_OUT)
+--    Auslöser TIMEOUT: game_now() ≥ deadline_at + settleGrace (sonst wurde verlängert);
+--                      Status DEFENDING: offene Schritte sind abgelaufen → TIMED_OUT, dann Auswertung wie DEFENSE
+--                      Status AWAITING_DEFENSE: keine Verteidigung begonnen → resolveDuel(att, 'NO_DEFENSE')
 --    region_state.owner_kingdom_id IS NOT DISTINCT FROM sieges.defender_kingdom_id  (neutral: beide NULL)
 --    region_state.active_siege_id = :siege
 
@@ -171,7 +170,10 @@ UPDATE region_state SET active_siege_id = NULL, version = version + 1
 UPDATE kingdom_statistics SET defense_points = defense_points + :points WHERE kingdom_id = :def;
 UPDATE player_statistics  SET defense_points = defense_points + :points WHERE user_id = :defender_user;
 -- immer:
-INSERT INTO world_events (...);  INSERT INTO notifications (...);
+INSERT INTO notifications (...);
+-- zuletzt: alle Ereignisse der Transaktion mit Sequenzvergabe in einer Anweisung (ARCHITECTURE.md §10)
+WITH c AS (UPDATE world_instances SET event_seq = event_seq + :n WHERE id = :inst RETURNING event_seq)
+INSERT INTO world_events (instance_id, seq, ...) SELECT :inst, c.event_seq - :n + e.ord, ... FROM c, unnest(...) WITH ORDINALITY e;
 COMMIT;
 ```
 
@@ -192,7 +194,8 @@ max_deadline_at  = opened_at + defense.maxDeadline             // 48 h [A]
 
 - **Exklusive Grenze:** Eine Verteidigerantwort ist rechtzeitig genau dann, wenn `received_at < deadline_at`. Dieselbe Regel gilt für das Zeitlimit jeder Einzelfrage (`received_at < answer_deadline_at`, [QUIZ_ENGINE.md §7](QUIZ_ENGINE.md#7-herausforderungsprotokoll)). Verlängern und Verteidigung beginnen sind nur bei `game_now() < deadline_at` erlaubt.
 - **Eingangszeit vor der Sperre:** `received_at` wird als erste Anweisung der Anfrage gesetzt (`game_now()`), bevor auf Zeilensperren gewartet wird, und mit der Antwort gespeichert. Interne Wiederholungen nach `40001`/`40P01` verwenden denselben Wert. Wartezeit auf Sperren geht so nie zulasten des Spielers.
-- **Abwicklungspuffer:** Ein Timeout wirkt erst, wenn `game_now() ≥ deadline_at + defense.settleGrace` (Standard 5 s) und unter Sperre keine rechtzeitige, vollständige Verteidigung vorliegt. Antwort-Endpunkte haben eine harte Laufzeitgrenze (`lock_timeout`/`statement_timeout`, gesamt ≤ 3 s) unterhalb von `settleGrace`. Eine vor der Frist eingetroffene Antwort ist deshalb gespeichert und ausgewertet, bevor ein Timeout wirken kann.
+- **Erst speichern, dann auswerten:** Eine Antwort wird zuerst in einer eigenen kurzen Transaktion ohne Belagerungssperre gespeichert und erst danach unter Sperre ausgewertet. Antwort-Endpunkte haben eine harte Laufzeitgrenze (`lock_timeout`/`statement_timeout`, gesamt ≤ 3 s). Läuft die Auswertung in diese Grenze, bleibt die gespeicherte Antwort gültig; eine Wiederholung mit demselben `Idempotency-Key`, der Timeout-Job oder der Sweeper wertet sie aus.
+- **Abwicklungspuffer:** Ein Timeout wirkt erst, wenn `game_now() ≥ deadline_at + defense.settleGrace` (Standard 5 s). Ebenso setzen Timeout-Pfad und `challenge.expireStale` einen Schritt erst ab `answer_deadline_at + settleGrace` auf `TIMED_OUT`, damit eine Antwort, die kurz vor ihrer Grenze eintraf, noch gespeichert werden kann. Eine begonnene Verteidigung wird immer mit ihren gespeicherten Antworten ausgewertet, auch wenn der Timeout-Pfad sie auslöst.
 - **Ein Prädikat:** Timeout-Job, Sweeper und Auflösung beim Lesen verwenden dieselbe Funktion `isTimeoutDue(siege, now) = now ≥ deadline_at + settleGrace` aus `game-core`.
 - Die Oberfläche zeigt immer `deadline_at`. `settleGrace` ist nur ein technischer Puffer und verlängert die Frist für niemanden.
 

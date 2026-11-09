@@ -78,7 +78,7 @@ Für die Auswertung stehen beide Leistungen fest. Entscheidend ist die erste Stu
 | Stufe | Regel | Kennz. |
 |---|---|---|
 | 0 | **Verdecktes Angreifer-Gate:** Angreifer hat die Trivia-Frage falsch → der Angriff scheitert in jedem Fall, das Gebiet bleibt beim Verteidiger. Die Belagerung wird trotzdem eröffnet, und niemand erfährt vor der Auflösung, dass der Angreifer falsch lag. Verteidigt sich der Verteidiger rechtzeitig, gewinnt er (`DEFENDER_WON`, Grund `ATTACKER_GATE`) und erhält Verteidigungspunkte (§5.5). Verteidigt er nicht, endet die Belagerung bei Fristablauf als `ATTACK_FAILED` – ohne Punkte, ohne Gebietsverlust. | [V] (PO-Entscheidung [O-01], 2026-11-09) |
-| 1 | Angreifer richtig, Verteidiger hat bis zur Frist nicht geantwortet → Angreifer gewinnt (`ATTACKER_WON_BY_TIMEOUT`) | [V] |
+| 1 | Angreifer richtig, Verteidiger hat bis zur Frist keine Verteidigung begonnen → Angreifer gewinnt (`ATTACKER_WON_BY_TIMEOUT`). Eine begonnene Verteidigung wird immer nach den folgenden Stufen ausgewertet. | [V] |
 | 2 | Genau einer hat die Trivia richtig → dieser gewinnt (Fall A) | [V] |
 | 3 | Beide richtig → kleinerer absoluter Abstand der Schätzung gewinnt (Fall B) | [V] |
 | 4 | Gleicher Abstand → kürzere effektive Antwortzeit der Schätzfrage gewinnt (Fall C) | [V] |

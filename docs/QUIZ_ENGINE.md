@@ -19,8 +19,8 @@ Bezug: Brief §5, §10.3, §11.5, §13.1. Kennzeichnung siehe [README](README.md
 | Schwierigkeit | redaktionell 1–5; später zusätzlich kalibriert aus Spieldaten (§10) | [A/E] |
 | Optionen | mindestens 4; jede Option hat einen sprachunabhängigen Schlüssel `option_key`; genau eine ist richtig | [V] |
 | Texte | je Sprache Fragetext und Optionstexte (`option_key → Text`) | [V] |
-| Quellen | mindestens eine überprüfbare Quelle pro Frage | [V-nah] |
-| Status | `DRAFT → IN_REVIEW → APPROVED → RETIRED` pro Version; zusätzlich `SUSPENDED` auf Fragenebene | [V-nah] |
+| Quellen | mindestens eine überprüfbare Quelle pro Frage | [V-nah, Brief §5.2] |
+| Status | `DRAFT → IN_REVIEW → APPROVED → RETIRED` pro Version; zusätzlich `SUSPENDED` auf Fragenebene | [V-nah, Brief §5.2 „Status der Qualitätsprüfung“, „Versionsnummer“] |
 | Herkunft | `EDITORIAL`, `AI_ASSISTED` (nur nach menschlicher Prüfung aktivierbar), `LICENSED` (mit Lizenzvermerk) | [V-nah, Brief §5.6] |
 | Tags | z. B. `region:HU` für landesspezifisches Wissen (§4) | [E] |
 
@@ -132,7 +132,7 @@ stateDiagram-v2
 
 1. `present(step)`: Server prüft, dass der vorige Schritt abgeschlossen ist, speichert `presented_at`, `answer_deadline_at = P + time_limit + cap` und die zufällige Optionsreihenfolge, liefert Fragetext in der Sprache des Teilnehmers, Optionstoken und `remainingMs`. Ein zweiter `present`-Aufruf für denselben Schritt liefert **dieselbe** Frage mit dem ursprünglichen `P` (Reload-Fall) [E].
 2. `answer(step)`: Server prüft Token bzw. Zahl, `R < answer_deadline_at` (exklusive Grenze wie bei der Belagerungsfrist, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)), Status `PRESENTED`; setzt in einer bedingten Aktualisierung (`… where status = 'PRESENTED'`) Status `ANSWERED`, Richtigkeit, Abstand und Zeiten. Ein zweiter Versuch ändert nichts und gibt den gespeicherten Stand zurück (Idempotenz) [V-nah, Brief §13.1].
-3. Verpasste Zeitlimits setzt der Server beim nächsten Zugriff oder durch den Job `challenge.expireStale` auf `TIMED_OUT`.
+3. Verpasste Zeitlimits setzt der Server beim nächsten Zugriff oder durch den Job `challenge.expireStale` auf `TIMED_OUT`, frühestens ab `answer_deadline_at + settleGrace` ([SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)). Eine Herausforderung gibt es je Teilnehmer nur einmal; wer sie verlässt, kann sie nicht neu beginnen.
 4. Schritt 1 (Schätzfrage) wird erst nach Abschluss von Schritt 0 ausgeliefert – kein Vorausladen möglich. Die Antwort auf Schritt 0 enthält direkt die Schätzfrage (`P₁` = Verarbeitungszeitpunkt dieser Antwort). So entsteht keine Lücke zwischen den Schritten, die ein Teilnehmer zum Nachschlagen nutzen oder die eine Verteidigungsfrist überschreiten könnte.
 
 ### 7.2 Was der Client wann erfährt [E]
@@ -161,19 +161,21 @@ type Performance = {
 
 type Outcome =
   | { winner: 'ATTACKER'; reason: 'TIMEOUT' | 'TRIVIA' | 'ESTIMATE' | 'SPEED' }
-  | { winner: 'DEFENDER'; reason: 'ATTACKER_GATE' | 'ESTIMATE' | 'SPEED' | 'FULL_TIE'; defended: boolean };
+  | { winner: 'DEFENDER'; reason: 'ATTACKER_GATE' | 'ESTIMATE' | 'SPEED' | 'FULL_TIE' }
+  | { winner: 'NONE'; reason: 'ATTACKER_GATE' };   // Angriff gescheitert, keine Verteidigung begonnen
 
 function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE'): Outcome {
-  // verdecktes Gate (O-01): Angreifer falsch ⇒ Angriff scheitert immer; mit eigener Verteidigung DEFENDER_WON, sonst ATTACK_FAILED
-  if (!att.triviaCorrect) return { winner: 'DEFENDER', reason: 'ATTACKER_GATE', defended: def !== 'NO_DEFENSE' };
+  // verdecktes Gate (O-01): Angreifer falsch ⇒ Angriff scheitert immer; Sieger nur, wenn sich der Verteidiger verteidigt hat
+  if (!att.triviaCorrect)
+    return def === 'NO_DEFENSE' ? { winner: 'NONE', reason: 'ATTACKER_GATE' } : { winner: 'DEFENDER', reason: 'ATTACKER_GATE' };
   if (def === 'NO_DEFENSE') return { winner: 'ATTACKER', reason: 'TIMEOUT' };
   if (!def.triviaCorrect)   return { winner: 'ATTACKER', reason: 'TRIVIA' };
   // beide richtig → Schätzung
   const d = compareNullableAsInfinity(att.estimateDistance, def.estimateDistance);
-  if (d !== 0) return d < 0 ? { winner: 'ATTACKER', reason: 'ESTIMATE' } : { winner: 'DEFENDER', reason: 'ESTIMATE', defended: true };
+  if (d !== 0) return d < 0 ? { winner: 'ATTACKER', reason: 'ESTIMATE' } : { winner: 'DEFENDER', reason: 'ESTIMATE' };
   const t = compareNullableAsInfinity(att.estimateEffectiveMs, def.estimateEffectiveMs);
-  if (t !== 0) return t < 0 ? { winner: 'ATTACKER', reason: 'SPEED' } : { winner: 'DEFENDER', reason: 'SPEED', defended: true };
-  return { winner: 'DEFENDER', reason: 'FULL_TIE', defended: true };
+  if (t !== 0) return t < 0 ? { winner: 'ATTACKER', reason: 'SPEED' } : { winner: 'DEFENDER', reason: 'SPEED' };
+  return { winner: 'DEFENDER', reason: 'FULL_TIE' };
 }
 
 // Verteidigungspunkte (GAME_RULES §5.5): nur die eigene Leistung des Verteidigers zählt, nicht der Ausgang
@@ -189,10 +191,12 @@ Das Gate ist fest (PO-Entscheidung [O-01]); einen Schalter für andere Varianten
 |---|---|---|
 | `ATTACKER`, `TIMEOUT` | `ATTACKER_WON_BY_TIMEOUT` | – (keine Verteidigung) |
 | `ATTACKER`, `TRIVIA` / `ESTIMATE` / `SPEED` | `ATTACKER_WON` | `defensePoints`: Teilnahme; bei `ESTIMATE`/`SPEED` lag auch der Verteidiger richtig, also mit Bonus |
-| `DEFENDER`, `defended = true` | `DEFENDER_WON` | `defensePoints` |
-| `DEFENDER`, `ATTACKER_GATE`, `defended = false` | `ATTACK_FAILED` (Frist abgelaufen, Angreifer lag falsch) | – |
+| `DEFENDER`, beliebiger Grund | `DEFENDER_WON` | `defensePoints` |
+| `NONE`, `ATTACKER_GATE` | `ATTACK_FAILED` (Frist abgelaufen, Angreifer lag falsch); kein Sieger, zählt weder als gewonnene noch als verlorene Verteidigung | – |
 
-`defensePoints` ist rein; Paarlimit und verdächtig verknüpfte Konten prüft die Auflösungstransaktion ([SIEGE_SYSTEM.md §5.3](SIEGE_SYSTEM.md#53-auflösungstransaktion)). Punkte gibt es nur, wenn der Verteidiger ein Spielerreich ist (PvP und NPC-Belagerungen, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)). Im PvE steht die Verteidigung (NPC oder Garnison) vorab fest; `defended` ist dort immer `true`.
+`NO_DEFENSE` heißt: Der Verteidiger hat bis zur Frist keine Verteidigung begonnen. Eine begonnene Verteidigung wird immer mit ihren gespeicherten Antworten ausgewertet; verpasste Schritte zählen als `TIMED_OUT` ([SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)).
+
+`defensePoints` ist rein; Paarlimit und verdächtig verknüpfte Konten prüft die Auflösungstransaktion ([SIEGE_SYSTEM.md §5.3](SIEGE_SYSTEM.md#53-auflösungstransaktion)). Punkte gibt es nur, wenn der Verteidiger ein Spielerreich ist (PvP und NPC-Belagerungen, [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)). Im PvE steht die Verteidigung (NPC oder Garnison) vorab fest; `def` ist dort nie `NO_DEFENSE`, das Ergebnis `NONE` kommt also nur im PvP vor.
 
 ### 8.1 Beispiele (Testfälle)
 

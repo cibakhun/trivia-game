@@ -52,7 +52,7 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | Gebietseroberung PvE | Besitz, `region_count`, Historie, Schutzzeit, Ereignis in `world_events`, Drop-Eintrag |
 | PvP-Belagerung | vollständiger Ablauf bis Auflösung, beide Seiten erhalten Ergebnis |
 | Fristablauf | Zeit vorstellen → Sweeper (`runDueJobs()`, autoritativer Pfad) → Besitzwechsel; geplanter Job mit umgerechnetem Versatz; Lesezugriff löst ebenfalls auf; alle drei Pfade nutzen `isTimeoutDue` |
-| Gleichzeitige Antworten (N4) | Verteidigerantwort und Timeout-Job im selben Moment, 500 Wiederholungen mit zufälligem Versatz um `deadline_at`, Antworttransaktion teils künstlich hinter der Sperre verzögert: immer genau ein Endzustand; Antwort mit `received_at < deadline_at` wird gewertet, auch wenn sie auf die Sperre warten musste; Antwort mit `received_at ≥ deadline_at` nie |
+| Gleichzeitige Antworten (N4) | Verteidigerantwort und Timeout-Job im selben Moment, 500 Wiederholungen mit zufälligem Versatz um `deadline_at`, Antworttransaktion teils künstlich hinter der Sperre verzögert: immer genau ein Endzustand; rechtzeitige Antwort wird gewertet, auch wenn sie auf die Sperre warten musste oder ihre Auswertung am Sperrzeitlimit scheiterte (dann über Timeout-Pfad oder Wiederholung); verspätete Antwort nie; begonnene, unvollständige Verteidigung führt zum selben Ergebnis, egal ob `challenge.expireStale` oder der Timeout-Pfad zuerst läuft |
 | Angriff wiederholt (N3) | `POST /attacks` zweimal mit demselben `Idempotency-Key`, nacheinander und parallel: identische Antwort, genau eine Belagerung, Budget nur einmal belastet; gleicher Schlüssel mit anderem Inhalt ⇒ `IDEMPOTENCY_KEY_REUSED` |
 | Verlängerung gegen Fristablauf (N5) | Verlängerung und Timeout an der Grenze `game_now() = deadline_at`, 500 Wiederholungen mit zufälligem Versatz: entweder Verlängerung wirksam (Item verbraucht, neue Frist, Belagerung offen) oder Timeout (Item **nicht** verbraucht, `ATTACKER_WON_BY_TIMEOUT`) – nie beides, nie Verbrauch ohne Wirkung |
 | Parallele Besitzwechsel (N1, N2) | 20 gleichzeitige Angriffe auf dieselbe Region: genau eine Belagerung; Limits gegen ein Reich nie überschritten |
@@ -64,7 +64,7 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | Sicherheit (HTTP) | Rollentrennung (Spieler ↛ Admin, `EDITOR` ↛ Welt-/Kampf-/Missbrauchs-Endpunkte), CSRF-Ablehnung ohne Token bzw. mit fremdem `Origin`, Sicherheits-Header, Rate Limits über zwei `api`-Prozesse, `Idempotency-Key`-Pflicht, Löschkaskade und Export vollständig |
 | NPC-Expansion | Tick zweimal ausführen ⇒ identischer Zustand; Grenzen je Fraktion eingehalten |
 | Neustart während aktiver Jobs | Worker-Prozess während offener Belagerungen beenden, Zeit über Frist vorstellen, Worker neu starten ⇒ alle Belagerungen korrekt aufgelöst |
-| Daily-/Weekly-Abschluss | Angriffsschluss greift; keine offenen PvP-Belagerungen nach Ende; Wertung korrekt |
+| Daily-/Weekly-Abschluss | Angriffsschluss greift (inkl. `settleGrace`); fällige Belagerungen werden vor dem Snapshot aufgelöst, auch wenn der Sweeper noch nicht lief; keine offenen PvP-Belagerungen nach Ende; Wertung korrekt |
 | Migrationen | alle Migrationen auf leerer DB; Schema-Drift-Prüfung |
 | Invarianten | Invariantenjob nach jedem Integrationstest-Szenario ohne Befund |
 

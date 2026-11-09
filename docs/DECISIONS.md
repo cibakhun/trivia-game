@@ -39,11 +39,11 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 
 | Option | Beschreibung | Bewertung |
 |---|---|---|
-| **A (empfohlen): Gate** | Angreifer falsch → Angriff scheitert sofort, Verteidiger behält das Gebiet; im PvP wird keine Belagerung eröffnet | voll asynchron, nur 2 Fragen pro Kampf, Fall D entfällt, jede Eroberung setzt Wissen voraus (Prinzip 1), kein „unverdienter“ Timeout-Sieg, weniger Verteidigungsdruck |
+| **A (gewählt): verdecktes Gate** | Angreifer falsch → Angriff scheitert, Verteidiger behält das Gebiet; im PvP wird die Belagerung trotzdem eröffnet, und niemand erfährt vor der Auflösung, dass der Angreifer falsch lag | voll asynchron, nur 2 Fragen pro Kampf, Fall D entfällt, jede Eroberung setzt Wissen voraus (Prinzip 1), kein „unverdienter“ Timeout-Sieg; falsche Angriffe belegen bis zur Auflösung Belagerungsplätze ([RISKS.md](RISKS.md) R-01) |
 | B: Schätzfrage auch bei „beide falsch“ | Gleiches Trivia-Ergebnis (beide richtig *oder* beide falsch) → Schätzfrage → Zeit | asynchron, aber Angreifer kann ohne richtige Antwort erobern (auch per Timeout) |
 | C: Brief-Vorschlag (bis zu 3 Runden) | beide falsch → neue Trivia-Runde, max. 3, dann Besitzer | in PvP nur möglich, wenn der Angreifer vorab bis zu 3 Trivia-Fragen + Schätzfrage beantwortet (mehr Aufwand, mehr Fragenverbrauch) oder zurückkehren muss |
 
-**Empfehlung (umgesetzt):** A, für alle Modi einheitlich. Abweichend von der ursprünglichen Beschreibung wird im PvP auch bei falscher Angreiferantwort eine Belagerung eröffnet (verdecktes Gate, siehe Status). `resolveDuel` implementiert das Gate fest, ohne Schalter ([QUIZ_ENGINE.md §8](QUIZ_ENGINE.md#8-duellauswertung)).
+**Empfehlung (umgesetzt):** A als verdecktes Gate, für alle Modi einheitlich (siehe Status). `resolveDuel` implementiert das Gate fest, ohne Schalter ([QUIZ_ENGINE.md §8](QUIZ_ENGINE.md#8-duellauswertung)).
 
 ### O-02 Fragenbeschaffung und Redaktion
 
