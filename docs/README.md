@@ -27,7 +27,7 @@ Anforderungsbasis: [`brief/PRD-0.1.md`](brief/PRD-0.1.md) (Original-Briefing des
 
 ## Kennzeichnung von Regeln
 
-Alle Regeln in diesen Dokumenten tragen eine Kennzeichnung, damit bestätigte Vorgaben nicht mit Vorschlägen verwechselt werden:
+Für die Spielregeln (zusammengefasst in [GAME_RULES.md](GAME_RULES.md), ausgeführt in den Teilsystem-Dokumenten) gelten folgende Kennzeichnungen, damit bestätigte Vorgaben nicht mit Vorschlägen verwechselt werden. Technische Festlegungen in Architektur, API und Datenmodell sind über die ADRs in [DECISIONS.md](DECISIONS.md) begründet und nicht einzeln markiert.
 
 | Marke | Bedeutung | Änderbar durch |
 |---|---|---|
@@ -35,6 +35,9 @@ Alle Regeln in diesen Dokumenten tragen eine Kennzeichnung, damit bestätigte Vo
 | **[A]** | Annahme – Designvorschlag aus dem Brief, für den Prototyp verwendet, konfigurierbar | Konfiguration / PO |
 | **[E]** | Empfehlung – von Claude ergänzte Präzisierung oder neue Regel, als Standard umgesetzt, leicht änderbar | Konfiguration / PO |
 | **[O-xx]** | Offene Entscheidung – benötigt PO-Entscheidung, siehe [DECISIONS.md](DECISIONS.md#offene-entscheidungen) | Product Owner |
+| **[V-nah]** | Eng am verbindlichen Brief-Text ausgelegt: Der Inhalt stammt aus einer Vorgabe, die Formulierung als Regel ist eine Präzisierung (Quelle steht dabei) | Präzisierung: PO |
+
+Kombinationen: `[V/E]` oder `[V Grundsatz, E Umsetzung]` – der Grundsatz ist verbindlich, die konkrete Ausgestaltung eine Empfehlung. `[A, Brief §x]` bzw. `[E, [O-xx]]` – Marke plus Quelle bzw. zugehörige offene Entscheidung. In Parametertabellen gilt `A / E / E` je Spalte (Eternal / Weekly / Daily).
 
 ## Pflege
 

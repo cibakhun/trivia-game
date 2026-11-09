@@ -5,11 +5,11 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 ## 1. Konventionen
 
 - **Authentifizierung:** Sitzungscookie (`HttpOnly`, `Secure`, `SameSite=Lax`). Zustandsändernde Anfragen zusätzlich mit CSRF-Schutz (Double-Submit-Token oder Prüfung des `Origin`-Headers).
-- **Idempotenz:** Jedes Kommando, das Spielzustand verändert, trägt `idempotencyKey` (UUID, vom Client erzeugt). Wiederholte Anfragen mit demselben Schlüssel liefern dieselbe Antwort ohne erneute Wirkung.
+- **Idempotenz:** Jede zustandsändernde Anfrage (`POST`, `PATCH`, `DELETE` – Spiel, Inventar, Konto, Mitteilungen, Administration) trägt den Header `Idempotency-Key` (UUID, vom Client erzeugt, bei Wiederholung unverändert). Fehlt er, antwortet der Server mit `IDEMPOTENCY_KEY_REQUIRED`. Der Server speichert je Konto und Schlüssel Endpunkt, Hash der Anfrage und Antwort (`idempotency_keys`, 24 h): Eine Wiederholung liefert dieselbe Antwort ohne erneute Wirkung, derselbe Schlüssel mit anderem Inhalt ergibt `IDEMPOTENCY_KEY_REUSED`. Spielkritische Tabellen (`sieges`, `item_usage`, `quiz_answers`) speichern den Schlüssel zusätzlich mit Unique-Constraint, damit die Garantie auch ohne den Antwortspeicher gilt. In den Tabellen unten wird der Header nicht wiederholt.
 - **Zeit:** Antworten enthalten `serverTime`; Restzeiten werden als `remainingMs` geliefert, damit Client-Uhren keine Rolle spielen.
 - **Sprache:** aus den Spielereinstellungen; übersteuerbar per `Accept-Language` für nicht angemeldete Seiten.
 - **Fehler:** `{ "error": { "code": "REGION_UNDER_SIEGE", "message": "…", "details": {…} } }` mit stabilen, dokumentierten Codes; Nachrichten lokalisiert der Client anhand des Codes.
-- **Rate Limiting:** je Sitzung und IP (gleitendes Fenster, im MVP im Prozessspeicher, später Redis).
+- **Rate Limiting:** je Sitzung und IP (gleitendes Fenster). Bei genau einem `api`-Prozess im Prozessspeicher; sobald mehrere laufen, mit gemeinsamen Zählern (PostgreSQL oder Load Balancer, später Redis), damit die Grenzen nicht pro Knoten gelten.
 
 ## 2. Endpunkte
 
@@ -43,15 +43,15 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 
 | Methode | Pfad | Zweck |
 |---|---|---|
-| POST | `/instances/:id/attacks` | `{ targetRegionId, idempotencyKey }` → `{ siegeId, challengeId, mode }` |
+| POST | `/instances/:id/attacks` | `{ targetRegionId }` → `{ siegeId, challengeId, mode }` |
 | GET | `/challenges/:id` | aktueller Stand für Wiederaufnahme nach Reload: aktueller Schritt, Frage (falls präsentiert), `remainingMs` |
 | POST | `/challenges/:id/steps/:i/present` | Frage ausliefern, `presented_at` setzen (wiederholbar, liefert dieselbe Frage) |
-| POST | `/challenges/:id/steps/:i/answer` | `{ optionToken }` bzw. `{ rawInput, locale }` plus `{ clientElapsedMs, idempotencyKey }` → Bestätigung; bei Schritt 0 inklusive Schätzfrage; nach Schritt 1 ggf. Auflösung |
+| POST | `/challenges/:id/steps/:i/answer` | `{ optionToken }` bzw. `{ rawInput, locale }` plus `{ clientElapsedMs }` → Bestätigung; bei Schritt 0 inklusive Schätzfrage; nach Schritt 1 ggf. Auflösung |
 | GET | `/sieges?role=defender&status=open` | Belagerungs-Dashboard |
 | GET | `/sieges?role=attacker&status=open` | eigene laufende Angriffe |
 | GET | `/sieges/:id` | Details; nach Auflösung inkl. vollständiger Auflösung beider Seiten |
 | POST | `/sieges/:id/defense` | Verteidigung beginnen → `challengeId` (Fehler `DEADLINE_TOO_CLOSE`) |
-| POST | `/sieges/:id/extend` | `{ itemDefinitionId, expectedNewDeadline, idempotencyKey }` |
+| POST | `/sieges/:id/extend` | `{ itemDefinitionId, expectedNewDeadline }` |
 
 ### 2.4 Inventar und Mitteilungen
 
@@ -63,18 +63,20 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 | GET | `/notifications?unread=true` | |
 | POST | `/notifications/read` | `{ ids }` |
 
-### 2.5 Redaktion und Administration (Rolle `EDITOR`/`ADMIN`)
+### 2.5 Redaktion und Administration
 
-| Methode | Pfad | Zweck |
-|---|---|---|
-| GET | `/admin/sieges/:id/reconstruction` | vollständiges Kampfprotokoll inkl. RNG-Werten |
-| POST | `/admin/sieges/:id/cancel` | `{ reason }` |
-| POST | `/admin/questions/:id/suspend` | Frage aus dem Pool nehmen |
-| GET | `/admin/abuse-signals` | Prüfliste |
-| POST | `/admin/instances/:id/npc/pause` | NPC-Aktivität drosseln/stoppen |
-| GET | `/admin/invariants` | Ergebnis des letzten Invariantenlaufs |
+Jeder Endpunkt ist genau den genannten Rollen erlaubt (minimale Rechte, [SECURITY.md §8](SECURITY.md#8-administration-und-audit)); `EDITOR` hat keinen Zugriff auf Welt-, Kampf-, Konto- oder Missbrauchsdaten.
 
-Alle Admin-Kommandos verlangen eine Begründung und erzeugen `audit_events`.
+| Methode | Pfad | Rolle | Zweck |
+|---|---|---|---|
+| POST | `/admin/questions/:id/suspend` | `EDITOR`, `ADMIN` | `{ reason }` – Frage aus dem Pool nehmen |
+| GET | `/admin/sieges/:id/reconstruction` | `ADMIN` | vollständiges Kampfprotokoll inkl. RNG-Werten |
+| POST | `/admin/sieges/:id/cancel` | `ADMIN` | `{ reason }` |
+| GET | `/admin/abuse-signals` | `ADMIN` | Prüfliste |
+| POST | `/admin/instances/:id/npc/pause` | `ADMIN` | `{ mode, reason }` mit `mode` = `THROTTLE` oder `STOP` – NPC-Aktivität drosseln/stoppen |
+| GET | `/admin/invariants` | `ADMIN` | Ergebnis des letzten Invariantenlaufs |
+
+Alle Admin-Kommandos verlangen `reason` (Pflichtfeld) und den Header `Idempotency-Key` und erzeugen `audit_events` mit Akteur, Rolle, Ziel, Vorher/Nachher und Begründung.
 
 ## 3. Beispiel: Antwort auf `present` (Trivia)
 
@@ -147,3 +149,4 @@ Ereignisse sind **Hinweise auf Zustandsänderungen**, nicht die einzige Quelle: 
 | `DEADLINE_CHANGED` | erwartete neue Frist stimmt nicht mehr (Client zeigt neuen Wert) |
 | `ITEM_NOT_AVAILABLE` | Item existiert nicht, gehört nicht dem Spieler oder ist verbraucht |
 | `INSTANCE_NOT_ACTIVE`, `PVP_CUTOFF_REACHED` | Weltinstanz bzw. Saisonphase erlaubt keine Angriffe |
+| `IDEMPOTENCY_KEY_REQUIRED`, `IDEMPOTENCY_KEY_REUSED` | Header fehlt bzw. Schlüssel mit anderem Anfrageinhalt wiederverwendet |

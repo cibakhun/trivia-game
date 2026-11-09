@@ -16,7 +16,7 @@ Bezug: Brief §17, §16 (Abnahmekriterien), §18. Automatisierte Tests sind Teil
 |---|---|---|---|
 | Unit | Vitest | `game-core`, `protocol` (Parser, Schemas) | jeder Push |
 | Property-basiert | fast-check | Hex-Mathematik, Duellauswertung, Fristberechnung, Drop-Verteilung | jeder Push |
-| Integration | Vitest + Postgres (Service-Container in CI, lokal Docker oder vorhandenes Postgres) | Server-Module, Transaktionen, Jobs, Migrationen | jeder Push |
+| Integration | Vitest + Postgres (Service-Container in CI, lokal Docker oder vorhandenes Postgres) | Server-Module, Transaktionen, Jobs, Migrationen sowie Authentifizierung, Autorisierung, CSRF, Rate Limits, Sicherheits-Header und Löschung/Export | jeder Push |
 | Nebenläufigkeit | eigener Harness: N Verbindungen, Barriere, gleichzeitiger Start | Besitzwechsel, Limits, Itemverbrauch | jeder Push |
 | Vertrag/Spoiler | Vitest gegen laufenden Server | verbotene Felder in Antworten und WS-Ereignissen | jeder Push |
 | End-to-End | Playwright (Chromium; WebKit/Firefox vor Beta) | Nutzerreisen, E2E-01…12 | PR auf `main` |
@@ -34,9 +34,9 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | Angriffsberechtigung | jede Ablehnungsregel einzeln; Reihenfolge der Fehlercodes; Rangabstand; Schutzzeiten an der Grenze (`now = protected_until`) |
 | Nachbarschaft | genau 6 Nachbarn; Symmetrie (`a` Nachbar von `b` ⇔ `b` Nachbar von `a`); Distanz erfüllt Dreiecksungleichung; Chunk-Zuordnung stabil |
 | Trivia-Bewertung | Vergleich über `option_key`, unabhängig von Reihenfolge und Sprache; ungültiges Token |
-| Schätzbewertung | Rundung auf Präzision; Dezimal statt Float (`0,1 + 0,2`); Zahlparser je Sprache inkl. Mehrdeutigkeiten (`1.234` in de vs. en) |
+| Schätzbewertung | Rundung auf Präzision mit `ROUND_HALF_UP`, inkl. Grenzfälle x,5 und −x,5; Dezimal statt Float (`0,1 + 0,2`); Zahlparser je Sprache inkl. Mehrdeutigkeiten (`1.234` in de vs. en) |
 | Tiebreaker | Tabelle [QUIZ_ENGINE.md §8.1](QUIZ_ENGINE.md#81-beispiele-testfälle) vollständig; Eigenschaft: Ergebnis ist für jede Eingabe definiert; Vertauschen der Rollen bei vollem Gleichstand ändert nur den Sieger zugunsten des Verteidigers |
-| Effektive Zeit | `clamp`-Grenzen; Reload-Fall; negative/unsinnige Client-Werte |
+| Effektive Zeit | `clamp`-Grenzen; `S < cap` ergibt nie eine negative Zeit; Reload-Fall; fehlende, negative oder nicht ganzzahlige Client-Werte werden verworfen |
 | NPC-Antwortlogik | gleiche Eingaben ⇒ gleiche Antworten; empirische Trefferquote über 100 000 Ziehungen innerhalb ±1 % von `σ(θ − b)` |
 | Item-Drops | gemeinsame Ziehung (Intervalle); Verteilung über 1 Mio. Seeds innerhalb Toleranz; Skalierungsfaktor `f` |
 | Maximale Verlängerung | Eigenschaft: `deadline ≤ max_deadline` für jede Folge von Verlängerungen; Kappung; Ablehnung ohne Verbrauch bei erreichter Grenze |
@@ -50,10 +50,15 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 |---|---|
 | Gebietseroberung PvE | Besitz, `region_count`, Historie, Schutzzeit, Ereignis in `world_events`, Drop-Eintrag |
 | PvP-Belagerung | vollständiger Ablauf bis Auflösung, beide Seiten erhalten Ergebnis |
-| Fristablauf | Zeit vorstellen → Timeout-Job → Besitzwechsel; ohne Job: Sweeper; ohne beides: Lesezugriff löst auf |
-| Gleichzeitige Antworten (N4) | Verteidigerantwort und Timeout-Job im selben Moment, 500 Wiederholungen mit zufälligem Versatz: immer genau ein Endzustand, Antwort nach Frist nie gewertet |
+| Fristablauf | Zeit vorstellen → Sweeper (`runDueJobs()`, autoritativer Pfad) → Besitzwechsel; geplanter Job mit umgerechnetem Versatz; Lesezugriff löst ebenfalls auf; alle drei Pfade nutzen `isTimeoutDue` |
+| Gleichzeitige Antworten (N4) | Verteidigerantwort und Timeout-Job im selben Moment, 500 Wiederholungen mit zufälligem Versatz um `deadline_at`, Antworttransaktion teils künstlich hinter der Sperre verzögert: immer genau ein Endzustand; Antwort mit `received_at < deadline_at` wird gewertet, auch wenn sie auf die Sperre warten musste; Antwort mit `received_at ≥ deadline_at` nie |
+| Angriff wiederholt (N3) | `POST /attacks` zweimal mit demselben `Idempotency-Key`, nacheinander und parallel: identische Antwort, genau eine Belagerung, Budget nur einmal belastet; gleicher Schlüssel mit anderem Inhalt ⇒ `IDEMPOTENCY_KEY_REUSED` |
+| Verlängerung gegen Fristablauf (N5) | Verlängerung und Timeout an der Grenze `game_now() = deadline_at`, 500 Wiederholungen mit zufälligem Versatz: entweder Verlängerung wirksam (Item verbraucht, neue Frist, Belagerung offen) oder Timeout (Item **nicht** verbraucht, `ATTACKER_WON_BY_TIMEOUT`) – nie beides, nie Verbrauch ohne Wirkung |
 | Parallele Besitzwechsel (N1, N2) | 20 gleichzeitige Angriffe auf dieselbe Region: genau eine Belagerung; Limits gegen ein Reich nie überschritten |
 | Itemverbrauch parallel (N6, N7) | dasselbe Item in 10 parallelen Anfragen: genau ein Verbrauch; zwei Items parallel auf eine Belagerung: Obergrenze nie überschritten |
+| Regionsreservierung | jeder Endzustand (inkl. `ATTACK_FAILED`, PvE, `CANCELLED`, `EXPIRED_INVALID`) gibt `active_siege_id` frei; Fremdschlüssel lehnt Zeiger auf fremde Region ab |
+| Outbox-Verteiler | `LISTEN`-Verbindung während laufender Ereignisse trennen ⇒ nach Wiederverbindung alle Ereignisse in `seq`-Reihenfolge, keine Lücke; parallele Transaktionen erzeugen lückenlose `seq` je Instanz |
+| Sicherheit (HTTP) | Rollentrennung (Spieler ↛ Admin, `EDITOR` ↛ Welt-/Kampf-/Missbrauchs-Endpunkte), CSRF-Ablehnung ohne Token bzw. mit fremdem `Origin`, Sicherheits-Header, Rate Limits über zwei `api`-Prozesse, `Idempotency-Key`-Pflicht, Löschkaskade und Export vollständig |
 | NPC-Expansion | Tick zweimal ausführen ⇒ identischer Zustand; Grenzen je Fraktion eingehalten |
 | Neustart während aktiver Jobs | Worker-Prozess während offener Belagerungen beenden, Zeit über Frist vorstellen, Worker neu starten ⇒ alle Belagerungen korrekt aufgelöst |
 | Daily-/Weekly-Abschluss | Angriffsschluss greift; keine offenen PvP-Belagerungen nach Ende; Wertung korrekt |
@@ -75,7 +80,7 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | E2E-09 Parallelität | 2 | Integration (Nebenläufigkeits-Harness) | siehe §4 – im Browser nicht deterministisch prüfbar |
 | E2E-10 Mehrsprachigkeit | 2 | Browser, Kontexte `de` und `hu` | dieselbe Fragenversion, unterschiedliche Texte, korrekte Bewertung |
 | E2E-11 Keine doppelte Belohnung | 4 | Integration + Browser | Antwort doppelt senden, Auflösung doppelt anstoßen ⇒ genau ein `reward_event` |
-| E2E-12 Welttrennung | 6 | Integration | Änderung in Weekly-Instanz ⇒ Eternal unverändert (Vergleich vollständiger Zustands-Hashes) |
+| E2E-12 Welttrennung | 6 | Integration | Änderung in Weekly-Instanz ⇒ instanzbezogener Eternal-Spielzustand unverändert (Hash über alle Tabellen mit `instance_id` der Eternal-Instanz); globale Profile/Statistiken separat auf erlaubte Änderungen prüfen |
 
 ## 6. Testdaten
 

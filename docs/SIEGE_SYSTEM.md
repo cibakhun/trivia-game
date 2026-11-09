@@ -15,7 +15,7 @@ Alle Arten nutzen dieselbe Tabelle `sieges`, dieselbe Herausforderung (`quiz_cha
 
 ## 2. Ablauf PvE (sofortige Auswertung)
 
-1. `POST /attacks` → Berechtigung prüfen, `siege(PREPARING)` anlegen, Herausforderung auswählen, **NPC-Antworten erzeugen und speichern** (`status = GENERATED`).
+1. `POST /attacks` → Berechtigung prüfen, `siege(PREPARING)` anlegen und die Region in derselben Transaktion reservieren ([§3.1](#31-regionsreservierung-e)), Herausforderung auswählen, **NPC-Antworten erzeugen und speichern** (`status = GENERATED`).
 2. Spieler beantwortet Trivia und Schätzung.
 3. Mit der letzten Antwort wertet der Server in derselben Transaktion aus: Gate → Trivia → Schätzung → Zeit.
 4. Bei Sieg: Besitzwechsel, Schutzzeit, Drop-Wurf, Ereignisse. Bei Niederlage: Region bleibt, nichts weiter.
@@ -57,6 +57,12 @@ stateDiagram-v2
 
 Jeder Übergang ist eine bedingte Aktualisierung (`update sieges set status = :neu, version = version + 1 where id = :id and status = :alt`) und erzeugt einen Eintrag in `battle_events`. Damit ist jeder Übergang höchstens einmal wirksam (Idempotenz, Brief §7.3).
 
+### 3.1 Regionsreservierung [E]
+
+- **Setzen:** Die Transaktion, die die Belagerung in `PREPARING` anlegt, setzt auch `region_state.active_siege_id = :siege` – bedingt mit `… where region_id = :target and active_siege_id is null`. Trifft die Bedingung nicht zu, wird die ganze Transaktion verworfen (`REGION_UNDER_SIEGE`). Der partielle Unique-Index auf `sieges` (N1) bleibt die zweite Absicherung.
+- **Freigeben:** Jeder Übergang in einen Endzustand (`ATTACK_FAILED`, `ATTACKER_WON`, `DEFENDER_WON`, `ATTACKER_WON_BY_TIMEOUT`, `CANCELLED`, `EXPIRED_INVALID`) setzt in derselben Transaktion `active_siege_id = NULL`, bedingt auf `active_siege_id = :siege`. Das gilt ausdrücklich auch für PvE-Ergebnisse und für Abbrüche aus `PREPARING` (Zeitlimit über `challenge.expireStale`, Abbruch, Instanzschluss).
+- **Prüfung:** Ein Fremdschlüssel stellt sicher, dass der Zeiger auf eine existierende Belagerung genau dieser Region verweist; dass diese Belagerung aktiv ist und jede aktive Belagerung einen Zeiger hat, prüfen Transaktion und Invariantenjob (I3, [DATA_MODEL.md §5](DATA_MODEL.md#5-invarianten)).
+
 ## 4. Ablauf PvP-Belagerung
 
 ```mermaid
@@ -70,7 +76,7 @@ sequenceDiagram
   S->>DB: Sperren, Berechtigung, siege PREPARING, Herausforderung
   A->>S: Trivia + Schätzung beantworten
   S->>DB: Gate prüfen → AWAITING_DEFENSE, opened_at, base/deadline/max_deadline
-  S->>DB: Job siege.resolveTimeout @ deadline_at, Mitteilungen, world_events
+  S->>DB: Job siege.resolveTimeout @ deadline_at + settleGrace, Mitteilungen, world_events
   S-->>B: Push + In-App „Region X wird belagert, Frist bis …“
   opt Verlängerung
     B->>S: POST /sieges/:id/extend {item, expectedNewDeadline}
@@ -80,9 +86,9 @@ sequenceDiagram
     B->>S: POST /sieges/:id/defense (Restzeit ≥ ~60 s)
     S->>DB: DEFENDING, Herausforderung präsentieren
     B->>S: Trivia + Schätzung
-    S->>DB: Antwort mit received_at ≤ deadline_at → resolveDuel → Ergebnis, Besitz, Drops
+    S->>DB: Antwort mit received_at < deadline_at → resolveDuel → Ergebnis, Besitz, Drops
   else Frist läuft ab
-    W->>DB: resolveTimeout: game_now() ≥ deadline_at → ATTACKER_WON_BY_TIMEOUT
+    W->>DB: resolveTimeout: game_now() ≥ deadline_at + settleGrace, keine rechtzeitige Antwort → ATTACKER_WON_BY_TIMEOUT
   end
   S-->>A: Ergebnis (Push + In-App)
   S-->>B: Ergebnis (Push + In-App)
@@ -109,7 +115,7 @@ Ein gemeinsamer Transaktions-Wrapper wiederholt bei Serialisierungs- oder Deadlo
 | N1 | Zwei Angreifer greifen gleichzeitig dieselbe Region an | partieller Unique-Index `sieges_one_active_per_region` – der zweite erhält `REGION_UNDER_SIEGE` |
 | N2 | Mehrere Angreifer gegen ein Reich mit 3 offenen Belagerungen | Sperre auf das Verteidigerreich, Zählung inklusive `PREPARING` unter Sperre – der zweite erhält `DEFENDER_SIEGE_LIMIT` (Brief §13.4) |
 | N3 | Doppelklick oder Netzwiederholung beim Angriff | `sieges.idempotency_key` unique – gleiche Antwort, keine zweite Belagerung |
-| N4 | **Verteidigerantwort gleichzeitig mit Fristablauf** (Brief §12.4) | Beide Pfade sperren die Belagerungszeile. Maßgeblich ist `received_at = game_now()` gegenüber `deadline_at`: liegt die Antwort danach, ist sie verspätet – unabhängig davon, ob der Job schon lief. Wer zuerst committet, setzt den Endzustand; der andere sieht einen Endzustand und tut nichts. |
+| N4 | **Verteidigerantwort gleichzeitig mit Fristablauf** (Brief §12.4) | Einheitliche Fristgrenze ([§6.1](#61-fristgrenze--eine-regel-für-alle-pfade-e)): `received_at` wird beim Eintreffen der Anfrage erfasst, **bevor** auf Sperren gewartet wird; rechtzeitig heißt `received_at < deadline_at`. Ein Timeout wirkt erst ab `deadline_at + settleGrace` und prüft unter Sperre zuerst, ob eine rechtzeitige, vollständige Verteidigung vorliegt – dann wird regulär ausgewertet. Eine rechtzeitig eingetroffene Antwort geht also nicht verloren, weil sie auf die Sperre wartet; eine verspätete wird nie gewertet, auch wenn der Job noch nicht lief. Alle Übergänge sind bedingt; der zweite Pfad sieht einen Endzustand und tut nichts. |
 | N5 | Itemverlängerung gleichzeitig mit Fristablauf | Verlängerung nur bei `game_now() < deadline_at` unter Sperre; danach ist der alte Timeout-Job wirkungslos (Frist liegt in der Zukunft) und ein neuer wird geplant |
 | N6 | Zwei Verlängerungen auf dieselbe Belagerung | Sperre; die zweite rechnet mit der neuen Frist, wird ggf. gekappt oder abgelehnt (ohne Itemverbrauch) |
 | N7 | Dasselbe Item gleichzeitig für zwei Belagerungen | bedingte Aktualisierung `player_items.status AVAILABLE → CONSUMED` + `unique(item_usage.item_id)` – eine Anfrage scheitert mit `ITEM_NOT_AVAILABLE` |
@@ -117,22 +123,25 @@ Ein gemeinsamer Transaktions-Wrapper wiederholt bei Serialisierungs- oder Deadlo
 | N9 | Server-Neustart während laufender Belagerung (E2E-08) | Zustand liegt in Postgres; pg-boss-Jobs sind dauerhaft; Sweeper löst überfällige Belagerungen jede Minute auf; jede Leseanfrage auf eine überfällige Belagerung löst sie ebenfalls auf |
 | N10 | Angreiferreich fällt während der Belagerung | Bei Auflösung `CANCELLED`, Region bleibt beim Verteidiger [E] |
 | N11 | Admin will eine Region mit aktiver Belagerung ändern | Admin-Werkzeug bricht die Belagerung zuerst ab (`CANCELLED`, protokolliert) |
-| N12 | Region wechselt während der Belagerung den Besitzer auf anderem Weg | ausgeschlossen: andere Besitzwechsel prüfen `active_siege_id is null`; Auflösung prüft `owner_kingdom_id = erwarteter Verteidiger` |
+| N12 | Region wechselt während der Belagerung den Besitzer auf anderem Weg | ausgeschlossen: andere Besitzwechsel prüfen `active_siege_id is null`; Auflösung prüft `owner_kingdom_id IS NOT DISTINCT FROM` erwarteter Verteidiger (neutral: beide `NULL`) |
 
 ### 5.3 Auflösungstransaktion
 
 ```sql
 BEGIN;
--- 1. Sperren in fester Reihenfolge
+-- 1. Sperren in fester Reihenfolge (neutrales Ziel: :def ist NULL, gesperrt wird nur das Angreiferreich)
 SELECT id, status, region_count FROM kingdoms WHERE id IN (:att, :def) ORDER BY id FOR UPDATE;
 SELECT * FROM region_state WHERE region_id = :target FOR UPDATE;
 SELECT * FROM sieges WHERE id = :siege FOR UPDATE;
 
 -- 2. Vorbedingungen (Anwendungscode, bei Nichterfüllung: COMMIT ohne Änderung = idempotentes No-op)
---    status ∈ {AWAITING_DEFENSE, DEFENDING}
---    Auslöser TIMEOUT: game_now() ≥ deadline_at   (sonst wurde verlängert)
---    Auslöser DEFENSE: beide Schritte des Verteidigers abgeschlossen, received_at ≤ deadline_at
---    region_state.owner_kingdom_id = sieges.defender_kingdom_id, active_siege_id = :siege
+--    PvE: status = PREPARING und beide Schritte des Angreifers abgeschlossen
+--    PvP: status ∈ {AWAITING_DEFENSE, DEFENDING}
+--    Auslöser DEFENSE: beide Schritte des Verteidigers abgeschlossen, jeweils received_at < deadline_at
+--    Auslöser TIMEOUT: game_now() ≥ deadline_at + settleGrace (sonst wurde verlängert) und keine
+--                      rechtzeitige vollständige Verteidigung – liegt eine vor, Auswertung wie DEFENSE
+--    region_state.owner_kingdom_id IS NOT DISTINCT FROM sieges.defender_kingdom_id  (neutral: beide NULL)
+--    region_state.active_siege_id = :siege
 
 -- 3. Entscheidung: game-core.resolveDuel(...)
 
@@ -145,14 +154,16 @@ INSERT INTO battle_results (...);  INSERT INTO battle_events (...);
 UPDATE region_state SET owner_kingdom_id = :att, is_capital = false, owned_since = game_now(),
        protected_until = game_now() + :protection, protection_reason = 'CONQUEST',
        active_siege_id = NULL, version = version + 1, updated_at = game_now()
- WHERE region_id = :target AND owner_kingdom_id = :def;
+ WHERE region_id = :target AND owner_kingdom_id IS NOT DISTINCT FROM :def AND active_siege_id = :siege;
 UPDATE kingdoms SET region_count = region_count + 1 WHERE id = :att;
+-- nur wenn :def nicht NULL (Ziel gehörte einem Reich, nicht neutral):
 UPDATE kingdoms SET region_count = region_count - 1 WHERE id = :def;
-INSERT INTO region_history (...);
 --   Hauptstadt verloren → neue Hauptstadt wählen; region_count = 0 → Reich FALLEN
+INSERT INTO region_history (...);   -- from_kingdom_id = :def (NULL bei neutralem Ziel)
 --   Drop-Wurf → reward_events (+ player_items)
 -- falls Verteidiger gewinnt:
-UPDATE region_state SET active_siege_id = NULL, version = version + 1 WHERE region_id = :target;
+UPDATE region_state SET active_siege_id = NULL, version = version + 1
+ WHERE region_id = :target AND active_siege_id = :siege;
 -- immer:
 INSERT INTO world_events (...);  INSERT INTO notifications (...);
 COMMIT;
@@ -171,7 +182,19 @@ deadline_at      = base_deadline_at
 max_deadline_at  = opened_at + defense.maxDeadline             // 48 h [A]
 ```
 
+### 6.1 Fristgrenze – eine Regel für alle Pfade [E]
+
+- **Exklusive Grenze:** Eine Verteidigerantwort ist rechtzeitig genau dann, wenn `received_at < deadline_at`. Dieselbe Regel gilt für das Zeitlimit jeder Einzelfrage (`received_at < answer_deadline_at`, [QUIZ_ENGINE.md §7](QUIZ_ENGINE.md#7-herausforderungsprotokoll)). Verlängern und Verteidigung beginnen sind nur bei `game_now() < deadline_at` erlaubt.
+- **Eingangszeit vor der Sperre:** `received_at` wird als erste Anweisung der Anfrage gesetzt (`game_now()`), bevor auf Zeilensperren gewartet wird, und mit der Antwort gespeichert. Interne Wiederholungen nach `40001`/`40P01` verwenden denselben Wert. Wartezeit auf Sperren geht so nie zulasten des Spielers.
+- **Abwicklungspuffer:** Ein Timeout wirkt erst, wenn `game_now() ≥ deadline_at + defense.settleGrace` (Standard 5 s) und unter Sperre keine rechtzeitige, vollständige Verteidigung vorliegt. Antwort-Endpunkte haben eine harte Laufzeitgrenze (`lock_timeout`/`statement_timeout`, gesamt ≤ 3 s) unterhalb von `settleGrace`. Eine vor der Frist eingetroffene Antwort ist deshalb gespeichert und ausgewertet, bevor ein Timeout wirken kann.
+- **Ein Prädikat:** Timeout-Job, Sweeper und Auflösung beim Lesen verwenden dieselbe Funktion `isTimeoutDue(siege, now) = now ≥ deadline_at + settleGrace` aus `game-core`.
+- Die Oberfläche zeigt immer `deadline_at`. `settleGrace` ist nur ein technischer Puffer und verlängert die Frist für niemanden.
+
+### 6.2 Verteidigung beginnen
+
 **Verteidigung beginnen** ist nur erlaubt, wenn `deadline_at − game_now() ≥ Σ(Zeitlimits + cap) + startBuffer` (≈ 61 s) [E]. Sonst erhält der Spieler `DEADLINE_TOO_CLOSE` und – falls vorhanden – den Hinweis, dass ein Item die Frist noch verlängern kann.
+
+### 6.3 Verlängerung
 
 **Verlängerung** (`POST /sieges/:id/extend`), alles in einer Transaktion [V-nah, Brief §8.8]:
 
@@ -187,7 +210,7 @@ max_deadline_at  = opened_at + defense.maxDeadline             // 48 h [A]
 |---|---|
 | PvP-Belagerungen pro Angreifer | Belagerungen mit `mode = PVP`, `attacker_kingdom_id` des Spielers, `opened_at > game_now() − 24 h` (gleitend) |
 | PvP-Versuche pro Angreifer | wie oben, aber `attack_presented_at` statt `opened_at` (auch gescheiterte) |
-| Offene Belagerungen gegen ein Reich | Status `PREPARING`, `AWAITING_DEFENSE`, `DEFENDING` mit `defender_kingdom_id` des Reichs – **über alle Angreifer** (Brief §7.4 letzter Punkt) |
+| Offene Belagerungen gegen ein Reich | Status `PREPARING`, `AWAITING_DEFENSE`, `DEFENDING` mit `defender_kingdom_id` des Reichs – **über alle Angreifer** einschließlich NPCs (Brief §7.4 letzter Punkt; NPC-Kontingent zusätzlich nach [O-13]) |
 | Schutz nach Eroberung | `region_state.protected_until`; gilt gegen alle, auch den Vorbesitzer |
 | Anfänger-/Wiederaufbauschutz | `kingdoms.protected_until`; endet vorzeitig, sobald das Reich selbst einen Spieler angreift (UI warnt vorher) |
 | Rangabstand | geprüft beim Angriffsstart mit `region_count` beider Reiche |

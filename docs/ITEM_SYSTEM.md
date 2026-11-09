@@ -65,7 +65,7 @@ Eine während der Abwesenheit eröffnete Belagerung mit Eröffnung `t` Stunden n
 | ≤ 24 h | keine | 0 h | – |
 | 36 h | ≈ 0,75 | ≈ 4,5 h | 1 Sanduhr |
 | 48 h | ≈ 1,5 | ≈ 18 h | 2–3 Items |
-| > 48 h | ab hier nicht vollständig abdeckbar | – | Verluste begrenzt durch Belagerungskappung (≤ 4 pro 24 h) bzw. Urlaubsmodus ([O-06]) |
+| > 48 h | ab hier nicht vollständig abdeckbar | – | Die Kappung begrenzt nur gleichzeitig offene Belagerungen (4). Bei völliger Abwesenheit belegt jede ihren Platz bis zum Fristablauf; das ergibt im Mittel höchstens ≈ 4 Timeout-Verluste je 24 h. Eine feste Verlustobergrenze gäbe erst ein Urlaubsmodus ([O-06]). |
 
 ### 4.4 Schlussfolgerungen und Empfehlung
 
@@ -94,7 +94,7 @@ Jede Prüfung wird mit Ergebnis in `reward_events.eligibility` gespeichert (Brie
 
 - Inventar ist pro Spieler und Instanz (Eternal) [E]; es überlebt den Totalverlust des Reichs.
 - Höchstens 10 verfügbare Zeit-Items [A]. Jedes Item ist ein eigener Datensatz (`player_items`) mit Herkunft (`reward_event_id`).
-- **Voll:** Neue Items landen in der **Belohnungsablage** (`status = PENDING`, max. 10, Ablauf nach 7 Tagen) mit deutlicher Mitteilung. Der Spieler kann übernehmen (wenn Platz), ein anderes Item bewusst verwerfen oder ablaufen lassen [E, W-8]. Sind Inventar **und** Ablage voll, wird das Ergebnis als `NOT_GRANTED_FULL` protokolliert und dem Spieler ausdrücklich angezeigt – nie still.
+- **Voll:** Neue Items landen in der **Belohnungsablage** (`status = PENDING`, max. 10, Ablauf nach 7 Tagen) mit deutlicher Mitteilung. Der Spieler kann übernehmen (wenn Platz), ein anderes Item bewusst verwerfen oder ablaufen lassen [E, W-8]. Sind Inventar **und** Ablage voll, wird das Ergebnis als `reward_events.outcome = NOT_GRANTED_FULL` protokolliert ([DATA_MODEL.md §4.8](DATA_MODEL.md#48-items-und-belohnungen)), per Mitteilung und `inventory.changed` angezeigt und als Kennzahl erfasst (§9) – nie still.
 - Keine Weitergabe, kein Handel, keine Übertragung zwischen Konten [A].
 
 ## 7. Verwendung
@@ -120,5 +120,5 @@ Ablauf und Prüfungen: [SIEGE_SYSTEM.md §6](SIEGE_SYSTEM.md#6-fristen-und-verl�
 - Drop-Verteilung je Item gegen Sollwerte (statistischer Test, Alarm bei Abweichung) (Brief §18).
 - Inventar-Füllstand (Verteilung), Anteil Spieler mit vollem Inventar.
 - Anteil verlängerter Belagerungen, Ø Verlängerung, Anteil Kappungen.
-- Verfallene Items in der Ablage (Indikator für zu hohe Zufuhr).
+- Verfallene Items in der Ablage und Ergebnisse `NOT_GRANTED_FULL` (Indikatoren für zu hohe Zufuhr).
 - Anteil durch Zeitablauf verlorener Belagerungen, obwohl Items verfügbar waren (UX-Indikator).

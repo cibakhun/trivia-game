@@ -41,7 +41,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | B: Schätzfrage auch bei „beide falsch“ | Gleiches Trivia-Ergebnis (beide richtig *oder* beide falsch) → Schätzfrage → Zeit | asynchron, aber Angreifer kann ohne richtige Antwort erobern (auch per Timeout) |
 | C: Brief-Vorschlag (bis zu 3 Runden) | beide falsch → neue Trivia-Runde, max. 3, dann Besitzer | in PvP nur möglich, wenn der Angreifer vorab bis zu 3 Trivia-Fragen + Schätzfrage beantwortet (mehr Aufwand, mehr Fragenverbrauch) oder zurückkehren muss |
 
-**Empfehlung:** A, für alle Modi einheitlich. Umgesetzt wird `resolveDuel` mit Schalter, sodass B oder C ohne Umbau möglich bleiben.
+**Empfehlung:** A, für alle Modi einheitlich. Umgesetzt wird `resolveDuel` mit einem Schalter zwischen A und B. C ist damit nicht abgedeckt und bräuchte ein eigenes Mehrrundenprotokoll ([QUIZ_ENGINE.md §8](QUIZ_ENGINE.md#8-duellauswertung)).
 
 ### O-02 Fragenbeschaffung und Redaktion
 
@@ -68,9 +68,9 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 
 ### O-06 Urlaubsmodus und kontrollierte Maximalverluste
 
-**Priorität:** P2 (vor Closed Beta) · **Wirkung:** Prinzip 3, Bindung · **Brief:** §19 E
+**Priorität:** P3 (nach Closed Beta, mit Beta-Daten zu Timeout-Verlusten) · **Wirkung:** Prinzip 3, Bindung · **Brief:** §19 E
 **Frage:** Soll es einen Urlaubsmodus geben?
-**Empfehlung:** Ja, nach der Beta: aktivierbar nur ohne offene Belagerungen, mindestens 3 Tage Vorlaufzeit bis zur Wirkung, Dauer 3–21 Tage, danach Abklingzeit; während des Urlaubs keine Angriffe gegen und durch das Reich. Bis dahin begrenzt die Kappung auf 4 offene Belagerungen die Verluste.
+**Empfehlung:** Ja, nach der Beta: aktivierbar nur ohne offene Belagerungen, mindestens 3 Tage Vorlaufzeit bis zur Wirkung, Dauer 3–21 Tage, danach Abklingzeit; während des Urlaubs keine Angriffe gegen und durch das Reich. Bis dahin begrenzt die Kappung nur die Zahl gleichzeitig offener Belagerungen (4), nicht die Gesamtzahl möglicher Verluste: Verteidigte Belagerungen geben ihren Platz vor Fristablauf frei. Bei völliger Abwesenheit ergibt sie im Mittel höchstens ≈ 4 Timeout-Verluste je 24 h.
 
 ### O-07 Neulings- und Rangabstandsschutz
 
@@ -86,7 +86,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 ### O-09 Drops bei Siegen durch Zeitablauf
 
 **Priorität:** P2 (vor Phase 4) · **Wirkung:** Anti-Farming · **Brief:** §8.5, §13.3
-**Empfehlung:** halbe Drop-Gewichte bei Timeout-Siegen, volle bei aktiven, unverdächtigen Verteidigern; höchstens 2 belohnte Siege gegen denselben Gegner pro 24 h.
+**Empfehlung:** halbe Drop-Gewichte bei Timeout-Siegen; volle nur bei Verteidigern, die mindestens 7 Tage aktiv und nicht verdächtig verknüpft sind ([ITEM_SYSTEM.md §5](ITEM_SYSTEM.md#5-anti-farming), Q7); höchstens 2 belohnte Siege gegen denselben Gegner pro 24 h.
 
 ### O-10 Öffentliche Namen
 
@@ -121,7 +121,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 ### O-16 Daily/Weekly: Wertung und Angriffsschluss
 
 **Priorität:** P3 (Phase 6) · **Brief:** §3.2, §3.3
-**Empfehlung:** PvP-Angriffsschluss = Saisonende − Frist; Punkte aus gehaltenen Regionen, Hauptstadt und PvP-Siegen ([WORLD_SYSTEM.md §6](WORLD_SYSTEM.md#6-daily-und-weekly)).
+**Empfehlung:** PvP-Angriffsschluss = Saisonende − maximale Frist − maximale Angriffsdauer, bei Eröffnung erneut geprüft; Punkte aus gehaltenen Regionen, Hauptstadt und PvP-Siegen ([WORLD_SYSTEM.md §6](WORLD_SYSTEM.md#6-daily-und-weekly)).
 
 ### O-17 Live-Duelle
 
@@ -133,3 +133,4 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | Datum | Änderung |
 |---|---|
 | 2026-11-09 | Phase 0: ADR-001 bis ADR-016 angenommen, O-01 bis O-17 erfasst |
+| 2026-11-09 | Review-Korrekturen in PR #1: einheitliche Fristgrenze mit Abwicklungspuffer, Regionsreservierung, lückenlose Ereignisfolge, `Idempotency-Key` für alle Kommandos, Rollen je Admin-Endpunkt, Löschkaskade; O-06 auf P3 (nach Beta) verschoben; O-01-Schalter auf Optionen A/B präzisiert |

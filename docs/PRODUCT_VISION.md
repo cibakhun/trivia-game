@@ -53,6 +53,8 @@ Brief §21 nennt zehn qualitative Erfolgskriterien. Für Beta-Tests werden sie m
 | 5. Strategische PvP-Angriffe | Anteil aktiver Spieler mit ≥ 1 PvP-Angriff/Woche | > 40 % |
 | 6. Nachvollziehbare Reaktionsfrist | Anteil Belagerungen, die durch Timeout enden | < 35 % |
 | 7. Items wertvoll, nicht zwingend | Anteil verteidigter Belagerungen ohne Itemnutzung | > 70 % |
+| 8. Weltarten als unterschiedliche Angebote verstehen | **in der Beta nicht messbar** (Daily/Weekly erst Phase 6); ab Phase 6: Umfrage „Unterschied der Welten ist klar“ und Anteil Spieler, die ≥ 2 Weltarten nutzen | ab Phase 6: > 80 % bzw. > 30 % |
 | 9. Weiterspielen nach Niederlage | Anteil Spieler mit Neustart nach Totalverlust | > 50 % |
+| 10. Spaß an Wissen und Strategie, ohne zu zahlen | Umfrage „Spaß am Wissen und an der Gebietsstrategie“ (1–5); „ohne zu zahlen“ ist in der Beta mangels Monetarisierung erfüllt und wird erst mit einem Monetarisierungskonzept geprüft ([SECURITY.md §7](SECURITY.md#7-monetarisierungsschutz)) | Ø ≥ 4,0 |
 | — Datenkonsistenz | Verstöße gegen Besitz-Invarianten (Prüfjob) | 0 |
 | — Fragenqualität | Gemeldete Fehler pro 1 000 gestellte Fragen | < 2 |

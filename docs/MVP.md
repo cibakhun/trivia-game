@@ -20,9 +20,17 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 
 **Abnahme:** Brief Phase 1 + E2E-01 + Median „Erstbesuch → zweite Region“ < 3 Minuten im eigenen Test.
 
-## 3. M3 – Erstes spielbares MVP (Closed Beta)
+## 3. M2 – Multiplayer-Kern (Phase 2)
 
-### 3.1 Enthalten
+**Enthalten:** alles aus M1; Registrierung/Anmeldung nach [O-03] und generierte öffentliche Namen ([O-10]); PvP-Belagerungen mit Gate, Verteidigung und Auflösung, Fristen für Tests kurz konfiguriert (Minuten statt 24 h); Echtzeit-Aktualisierung der Karte per WebSocket mit `resume`/Snapshot; Schutz gegen gleichzeitige Angriffe auf dieselbe Region; Testumgebung für 2–5 Tester (Staging nach [O-11], sonst lokales Netz).
+
+**Nicht enthalten:** 24-h-Fristen mit Timeout-Jobs und Neustartfestigkeit, Web Push, vollständige Limits und Schutzzeiten (Phase 3), Items (Phase 4) sowie alles aus §4.2.
+
+**Abnahme:** Brief Phase 2 (zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse) + E2E-02, -03, -04, -09, -10 + Invariantenjob ohne Verstoß nach einer internen Testsitzung mit 2–5 Spielern.
+
+## 4. M3 – Erstes spielbares MVP (Closed Beta)
+
+### 4.1 Enthalten
 
 | Bereich | Umfang |
 |---|---|
@@ -40,11 +48,11 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 | Betrieb | Staging + Beta-Umgebung ([O-11]), tägliche Backups mit getesteter Wiederherstellung, Monitoring und Alarme, Invariantenjob, Admin-Grundwerkzeuge (Kampf-Rekonstruktion, Belagerung abbrechen, Frage suspendieren, Missbrauchsliste) |
 | Recht | Entwurf Datenschutzerklärung und Impressum, Nutzungsbedingungen, Asset-Register |
 
-### 3.2 Bewusst nicht enthalten
+### 4.2 Bewusst nicht enthalten
 
 Daily/Weekly (Phase 6) · automatische Itemverwendung (Phase 4b) · NPC-Expansion, NPC-Angriffe, dynamische NPC-Anpassung (Phase 5) · dynamisches Kartenwachstum (Phase 5) · Inaktivitätsverfall (Phase 5) · Provinzen, Versorgungswege, Diplomatie, Weltereignisse · Chat und frei wählbare Namen · Live-Duelle · Monetarisierung · native Apps.
 
-### 3.3 Abnahmekriterien M3
+### 4.3 Abnahmekriterien M3
 
 1. Alle Abnahmekriterien der Phasen 1–4 und E2E-01 bis -11 grün.
 2. 7 Tage Staging-Testlauf mit simulierten Spielern (Bots über die öffentliche API) ohne Invariantenverletzung.
@@ -52,7 +60,7 @@ Daily/Weekly (Phase 6) · automatische Itemverwendung (Phase 4b) · NPC-Expansio
 4. Kampf-Rekonstruktion für eine zufällige Stichprobe von 20 Kämpfen nachvollziehbar.
 5. Freigabe des Product Owners für Hosting, Kosten und Einladung von Testern.
 
-### 3.4 Was die Beta messen soll
+### 4.4 Was die Beta messen soll
 
 Siehe Indikatoren in [PRODUCT_VISION.md §5](PRODUCT_VISION.md#5-erfolgskriterien-und-messbare-indikatoren). Besonders wichtig für die Entscheidungen danach:
 

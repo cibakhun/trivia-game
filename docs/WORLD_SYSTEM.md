@@ -36,14 +36,14 @@ stateDiagram-v2
 ### 3.1 Koordinaten
 
 - Axiale Koordinaten `(q, r)`, pointy-top [A]. Speicherung und alle Regeln (Nachbarschaft, Distanz) in axialen Koordinaten.
-- **Chunks** werden in Offset-Koordinaten gebildet („odd-r“: `col = q + (r − (r & 1)) / 2`, `row = r`), damit sie auf dem Bildschirm Rechtecke ergeben: `chunk_x = floor(col / 16)`, `chunk_y = floor(row / 16)` → 256 Regionen pro Chunk [E].
+- **Chunks** werden in Offset-Koordinaten gebildet („odd-r“: `col = q + (r − (r & 1)) / 2`, `row = r`), damit sie auf dem Bildschirm Rechtecke ergeben: `chunk_x = floor(col / 16)`, `chunk_y = floor(row / 16)` → 256 Rasterzellen pro Chunk. Regionen sind nur die Landzellen; bei ≈ 87 % Landanteil sind das ≈ 222 Regionen je Chunk (Wert wird am Generator gemessen und in der Kapazitätsrechnung nachgeführt) [E].
 - Distanz: `(|dq| + |dr| + |dq + dr|) / 2`.
 
 ### 3.2 Prozedurale Erzeugung [E]
 
 Deterministisch aus `map_seed` und Chunk-Koordinate (jeder Chunk ist einzeln erzeugbar, unabhängig von der Reihenfolge):
 
-1. **Gelände:** Rauschfunktion (Simplex) → Biom (Ebene, Wald, Hügel, Gebirge, Küste, Wüste, Tundra). Wasserfelder sind keine Regionen (natürliche Grenzen, strategische Engpässe).
+1. **Gelände:** Rauschfunktion (Simplex) → Biom (Ebene, Wald, Hügel, Gebirge, Küste, Wüste, Tundra). Wasserfelder sind keine Regionen (natürliche Grenzen, strategische Engpässe). **Zusammenhang:** Mittelzeile und Mittelspalte jedes Chunks sind immer Land (wo das Rauschen Wasser ergäbe, als Furt oder Pass dargestellt). Weil diese Kreuze an den Chunkgrenzen aneinanderstoßen, sind alle Chunks über Land verbunden, ohne die chunkweise unabhängige Erzeugung aufzugeben. Landflächen, die innerhalb ihres Chunks keine Verbindung zum Kreuz haben, werden über den kürzesten Pfad durch Wasserzellen angebunden (deterministisch aus `map_seed`). Vor der Materialisierung prüft der Generator per Flutfüllung, dass alle Regionen eine zusammenhängende Komponente bilden; ein Verstoß bricht die Freischaltung ab.
 2. **Regionsstufe (`tier`):** wächst mit Entfernung von Startzonen und Nähe zu schweren NPC-Hauptstädten. Startzonen: Stufe 0–2.
 3. **NPC-Fraktionen:** je Chunk-Gruppe eine Mischung leichter, mittlerer und schwerer Fraktionen mit zusammenhängenden Gebieten (Brief §6.1); schwere Fraktionen bevorzugt im Inneren älterer Ringe.
 4. **Neutrale Regionen:** alles Übrige; neutrale Garnisonen erhalten Stärke nach `tier`.
@@ -61,7 +61,7 @@ Eine Region ist im Datenmodell eine Zeile in `regions` (statisch) plus eine in `
 
 ### 4.1 Wachstumsregel (Chunk-Freischaltung) [E]
 
-Die Welt beginnt mit einem Kern aus 3 × 3 Chunks (2 304 Regionen, davon nach Abzug von Wasser ≈ 2 000 spielbar). Sie wächst in **Ringen** um den Kern (Ring k hat 8·k Chunks). Ein neuer Ring wird freigeschaltet, wenn eine der Bedingungen erfüllt ist:
+Die Welt beginnt mit einem Kern aus 3 × 3 Chunks (2 304 Rasterzellen, davon nach Abzug von Wasser ≈ 2 000 Regionen). Sie wächst in **Ringen** um den Kern: Ring k umschließt das bisherige Quadrat und hat 8·(k + 1) Chunks (Ring 1 = 16, Ring 2 = 24); bis einschließlich Ring K umfasst die Welt (3 + 2K)² Chunks. Ein neuer Ring wird freigeschaltet, wenn eine der Bedingungen erfüllt ist:
 
 - freie Startkandidaten < 3 × durchschnittliche Neuanmeldungen der letzten 7 Tage, oder
 - Anteil spielerbesetzter Regionen in den äußersten Chunks > 50 %.
@@ -88,7 +88,7 @@ Gleiche Kriterien gelten für den Neustart nach Totalverlust (Brief §4.5).
 | Aktive Spieler | 10 000 |
 | Ø Regionen pro aktivem Spieler | 30 |
 | Anteil NPC/neutral/inaktiv | 2× Spieleranteil |
-| ⇒ Regionen gesamt | ≈ 900 000 (≈ 3 500 Chunks, ≈ Ring 20) |
+| ⇒ Regionen gesamt | ≈ 900 000 (bei ≈ 222 Regionen je Chunk ≈ 4 050 Chunks, also bis Ring 31: 65² = 4 225 Chunks) |
 | `region_state`-Zeilen | ≈ 0,9 Mio. – unkritisch für Postgres |
 | Besitzwechsel pro Tag | ≈ 150 000 (PvE + PvP + NPC) ≈ 2/s im Mittel |
 | Offene Belagerungen gleichzeitig | ≤ 40 000 (4 pro Reich als Obergrenze, real deutlich weniger) |
@@ -107,7 +107,7 @@ Grundsatz aus Brief §3.1 / §19 C: kurze Offlinezeiten dürfen nicht den gesamt
 | aufgelöst | > 180 Tage | Restliche Regionen werden neutral, Reich `DISSOLVED`; Konto, Statistik, Historie bleiben bestehen |
 | Rückkehr | Login nach ≥ 7 Tagen | 24 h Rückkehrerschutz; was noch da ist, bleibt; bei Totalverlust normaler Neustart |
 
-Regionen unter Belagerung werden vom Verfall übersprungen. Verfall erzeugt `region_history` mit Ursache `DECAY`. Unabhängig davon können Konten nach sehr langer Inaktivität (z. B. 3 Jahre, nach Vorankündigung per E-Mail falls vorhanden) aus Datenschutzgründen gelöscht werden ([SECURITY.md §5](SECURITY.md#5-datenschutz-dsgvo)).
+Regionen unter Belagerung werden vom Verfall übersprungen. Verfall erzeugt `region_history` mit Ursache `DECAY`. Unabhängig davon können Konten nach langer Inaktivität aus Datenschutzgründen gelöscht werden – Fristen nach [O-03] (Empfehlung: Gastkonten 90 Tage; registrierte Konten z. B. 3 Jahre nach Vorankündigung per E-Mail, falls vorhanden) ([SECURITY.md §5](SECURITY.md#5-datenschutz-dsgvo)).
 
 ## 6. Daily und Weekly
 
@@ -120,8 +120,9 @@ Regionen unter Belagerung werden vom Verfall übersprungen. Verfall erzeugt `reg
 
 ### 6.2 Saisonende ohne offene Konflikte (W-14, Vorschlag zu [O-16])
 
-- **PvP-Angriffsschluss** = `ends_at − defense.baseDeadline` (Weekly: letzte 4 h, Daily: letzte 15 min). Danach sind nur noch PvE-Eroberungen möglich. So endet jede PvP-Belagerung spätestens zum Saisonende und es entstehen keine Konflikte mit Fälligkeit nach Saisonende (Brief §3.3).
-- Bei `ends_at`: Instanz `CLOSING`; laufende PvE-Herausforderungen werden noch bis zu ihrem Zeitlimit angenommen; danach `EXPIRED_INVALID` für Reste (sollte nicht vorkommen), Wertung, `season_results`, `CLOSED`.
+- **PvP-Angriffsschluss** = `ends_at − defense.maxDeadline − maxAttackDuration` (Daily/Weekly ohne Items: `maxDeadline = baseDeadline`, also letzte 4 h bzw. 15 min plus die maximale Angriffsdauer = Σ Zeitlimits + cap, aufgerundet auf 1 min). Danach sind nur noch PvE-Eroberungen möglich.
+- **Zweite Prüfung bei Eröffnung:** Weil zwischen Angriffsstart und Abschluss der Angreiferfragen Zeit vergehen kann, wird beim Übergang aus `PREPARING` in `AWAITING_DEFENSE` erneut geprüft, dass `max_deadline_at ≤ ends_at`. Andernfalls endet der Angriff als `ATTACK_FAILED` mit Grund `SEASON_CUTOFF`; der Versuch wird dem Budget gutgeschrieben. So endet jede PvP-Belagerung spätestens zum Saisonende, und es entstehen keine Konflikte mit Fälligkeit nach Saisonende (Brief §3.3).
+- Bei `ends_at`: Instanz `CLOSING`, und Besitz- und Punktestand werden sofort als Saison-Snapshot erfasst. Laufende PvE-Herausforderungen werden noch bis zu ihrem Zeitlimit angenommen, ändern aber die Saisonwertung nicht mehr; danach `EXPIRED_INVALID` für Reste (sollte nicht vorkommen), `season_results` aus dem Snapshot, `CLOSED`.
 - Die UI kündigt Angriffsschluss und Saisonende mit Countdown an.
 
 ### 6.3 Wertung (Vorschlag, transparent) [E]

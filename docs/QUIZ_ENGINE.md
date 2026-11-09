@@ -31,7 +31,7 @@ Bezug: Brief §5, §10.3, §11.5, §13.1. Kennzeichnung siehe [README](README.md
 | Feld | Inhalt |
 |---|---|
 | `answer_value` | exakter Zielwert (Dezimal, kein Float) |
-| `answer_precision` | erlaubte Nachkommastellen; Eingaben werden darauf gerundet (z. B. Jahr: 0) |
+| `answer_precision` | erlaubte Nachkommastellen; Eingaben werden serverseitig in Dezimalarithmetik mit `ROUND_HALF_UP` (Hälfte von null weg: 2,5 → 3, −2,5 → −3) darauf gerundet (z. B. Jahr: 0) |
 | `answer_unit` + `unit_label` je Sprache | immer metrisch, Einheit steht in der Frage („in Metern“) |
 | `input_min`, `input_max` | plausibler Eingabebereich; schützt vor Tippfehlern und Manipulation |
 | `estimate_scale_type`, `estimate_scale` | `LINEAR` (z. B. Jahreszahlen, Streuung 50) oder `LOG` (z. B. Einwohner, Entfernungen); nur für das NPC-Schätzmodell |
@@ -92,13 +92,14 @@ Die Auswahl wird mit der Herausforderung gespeichert (`quiz_challenge_steps`); s
 ### 6.2 Effektive Antwortzeit [E]
 
 ```
-effective = clamp(C, S − cap, S)      // in ganzen Millisekunden
+effective = clamp(C, max(0, S − cap), S)      // in ganzen Millisekunden
 ```
 
 - Ehrlicher Client mit normaler Verbindung: `S − C` (Netz + Darstellung) ≤ `cap` → `effective = C`, also volle Kompensation.
 - Sehr langsame Verbindung: `S − C > cap` → `effective = S − cap`, Teilkompensation.
-- Manipulierter Client meldet `C = 0` → `effective = S − cap`. Der maximale Vorteil einer Manipulation ist damit auf `cap` begrenzt; zusätzlich erzeugt ein dauerhaft an der Grenze liegendes `S − C` ein Missbrauchssignal ([SECURITY.md §3](SECURITY.md#3-anti-cheat-quiz)).
+- Manipulierter Client meldet `C = 0` → `effective = max(0, S − cap)`. Der maximale Vorteil einer Manipulation ist damit auf `cap` begrenzt; zusätzlich erzeugt ein dauerhaft an der Grenze liegendes `S − C` ein Missbrauchssignal ([SECURITY.md §3](SECURITY.md#3-anti-cheat-quiz)).
 - Nach einem Reload während eines Schritts zählt `effective = S` ohne Ausgleich, weil der Client-Timer neu begonnen hat.
+- Fehlender, negativer oder nicht ganzzahliger Client-Wert: `C` wird verworfen, es gilt `effective = S`; ein negativer Wert wird zusätzlich als Signal protokolliert. Die Untergrenze `max(0, …)` verhindert negative effektive Zeiten bei sehr schnellen Antworten (`S < cap`).
 - Unplausibel kurze Zeiten (z. B. Schätzeingabe < 800 ms) werden gewertet, aber als Signal protokolliert.
 
 `cap` ist ein Kompromiss zwischen Fairness für langsame Netze und Manipulationsspielraum; der Wert wird in der Beta anhand der gemessenen Verteilung von `S − C` justiert.
@@ -130,7 +131,7 @@ stateDiagram-v2
 ```
 
 1. `present(step)`: Server prüft, dass der vorige Schritt abgeschlossen ist, speichert `presented_at`, `answer_deadline_at = P + time_limit + cap` und die zufällige Optionsreihenfolge, liefert Fragetext in der Sprache des Teilnehmers, Optionstoken und `remainingMs`. Ein zweiter `present`-Aufruf für denselben Schritt liefert **dieselbe** Frage mit dem ursprünglichen `P` (Reload-Fall) [E].
-2. `answer(step)`: Server prüft Token bzw. Zahl, `R ≤ answer_deadline_at`, Status `PRESENTED`; setzt in einer bedingten Aktualisierung (`… where status = 'PRESENTED'`) Status `ANSWERED`, Richtigkeit, Abstand und Zeiten. Ein zweiter Versuch ändert nichts und gibt den gespeicherten Stand zurück (Idempotenz) [V-nah, Brief §13.1].
+2. `answer(step)`: Server prüft Token bzw. Zahl, `R < answer_deadline_at` (exklusive Grenze wie bei der Belagerungsfrist, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)), Status `PRESENTED`; setzt in einer bedingten Aktualisierung (`… where status = 'PRESENTED'`) Status `ANSWERED`, Richtigkeit, Abstand und Zeiten. Ein zweiter Versuch ändert nichts und gibt den gespeicherten Stand zurück (Idempotenz) [V-nah, Brief §13.1].
 3. Verpasste Zeitlimits setzt der Server beim nächsten Zugriff oder durch den Job `challenge.expireStale` auf `TIMED_OUT`.
 4. Schritt 1 (Schätzfrage) wird erst nach Abschluss von Schritt 0 ausgeliefert – kein Vorausladen möglich. Die Antwort auf Schritt 0 enthält direkt die Schätzfrage (`P₁` = Verarbeitungszeitpunkt dieser Antwort). So entsteht keine Lücke zwischen den Schritten, die ein Teilnehmer zum Nachschlagen nutzen oder die eine Verteidigungsfrist überschreiten könnte.
 
@@ -175,7 +176,7 @@ function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE', rules: D
 }
 ```
 
-`rules.attackerGate` und die Behandlung „beide falsch“ sind konfigurierbar, bis [O-01] entschieden ist. Die Funktion ist für alle Modi gleich (PvE, PvP, NPC gegen NPC).
+`rules.attackerGate` schaltet nur zwischen zwei einstufigen Varianten um, bis [O-01] entschieden ist: Gate (Option A) oder Auswertung ohne Gate, bei der gleiches Trivia-Ergebnis – auch „beide falsch“ – zur Schätzfrage führt (Option B). Der Brief-Vorschlag mit bis zu drei Trivia-Runden (Option C) ist damit **nicht** abgedeckt; er bräuchte ein eigenes Mehrrundenprotokoll mit zusätzlichen Schritten, Zuständen und Vorab-Antworten des Angreifers. Die Funktion ist für alle Modi gleich (PvE, PvP, NPC gegen NPC).
 
 ### 8.1 Beispiele (Testfälle)
 

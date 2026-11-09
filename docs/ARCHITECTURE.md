@@ -68,7 +68,7 @@ flowchart TB
 ```
 
 - `api` und `worker` laufen im MVP als zwei Prozesse auf einem Host; der Outbox-Verteiler läuft in jedem `api`-Prozess.
-- Skalierung: mehrere `api`-Prozesse hinter einem Load Balancer (WebSocket ohne Sticky Sessions möglich, da jeder Prozess alle Outbox-Ereignisse empfängt und nur an seine eigenen Verbindungen filtert). Ab etwa 5–10 API-Knoten oder hoher Ereignisrate wird Redis Pub/Sub als Verteiler ergänzt.
+- Skalierung: mehrere `api`-Prozesse hinter einem Load Balancer (WebSocket ohne Sticky Sessions möglich, da jeder Prozess alle Outbox-Ereignisse empfängt und nur an seine eigenen Verbindungen filtert). Sobald mehr als ein `api`-Prozess läuft, wird das Rate Limiting zentral geteilt (Zähler in PostgreSQL oder am Load Balancer), damit Limits nicht pro Knoten gelten. Ab etwa 5–10 API-Knoten oder hoher Ereignisrate wird Redis für Pub/Sub und Rate Limiting ergänzt.
 
 ## 5. Repository-Struktur (Zielbild)
 
@@ -119,7 +119,7 @@ sequenceDiagram
   participant API as api
   participant Core as game-core
   participant DB as PostgreSQL
-  C->>API: POST /attacks {targetRegionId, idempotencyKey}
+  C->>API: POST /attacks {targetRegionId} mit Header Idempotency-Key
   API->>DB: BEGIN, Sperren (Reich, Region), Zustand lesen
   API->>Core: checkAttackEligibility(state, rules, now)
   Core-->>API: ok / Fehlercode
@@ -167,6 +167,8 @@ rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, version
 
 - Jede Instanz hat eine monoton steigende Ereignisfolge (`world_events.seq`).
 - Client abonniert per WebSocket die Chunks seines Viewports (`subscribe {instanceId, chunks[]}`) und seinen persönlichen Kanal (Belagerungen, Inventar, Mitteilungen).
+- **Lückenlose Folge:** `seq` stammt aus dem Zähler `world_instances.event_seq` (`update … set event_seq = event_seq + 1 returning event_seq` als letzte Anweisung vor dem Commit). Die Zeilensperre hält bis zum Commit; Ereignisse einer Instanz werden daher in `seq`-Reihenfolge und ohne Lücken sichtbar. Die Sperre wird von jeder Transaktion zuletzt genommen und nur Millisekunden gehalten; bei der erwarteten Schreibrate (≈ 2/s im Mittel, [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kapazitätsabschätzung-hypothese-durch-lasttests-zu-bestätigen)) ist das unkritisch.
+- **Verteiler:** `NOTIFY` ist nur ein Wecksignal und wird nicht nachgeliefert. Jeder `api`-Prozess merkt sich je Instanz die zuletzt verteilte `seq` und liest nach jedem Signal, nach jedem Neuaufbau der `LISTEN`-Verbindung, bei einer erkannten Lücke und zusätzlich periodisch (alle 5 s) alle `world_events` mit `seq > letzte` aus der Tabelle. Ein Ausfall der Listener-Verbindung verzögert Ereignisse damit nur, statt sie zu verlieren.
 - Ereignisse tragen `seq`. Nach einem Verbindungsabbruch sendet der Client `resume {lastSeq}`. Liegt `lastSeq` im Aufbewahrungsfenster (z. B. 24 h), spielt der Server die fehlenden Ereignisse nach; sonst lädt der Client einen frischen Snapshot der sichtbaren Chunks über REST (Brief §12.5).
 - Es wird nie die gesamte Karte übertragen: statische Kartendaten (Koordinaten, Biome) werden pro Chunk lange gecacht (unveränderlich, `ETag`), dynamischer Zustand (Besitzer, Schutz, Belagerung) wird pro Chunk als Delta geliefert (Brief §12.6).
 
@@ -174,8 +176,8 @@ rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, version
 
 | Job | Auslöser | Idempotenz |
 |---|---|---|
-| `siege.resolveTimeout` | eingeplant auf `deadline_at` (neu eingeplant bei Verlängerung) | Statusvergleich unter Zeilensperre; Job ohne Wirkung, wenn bereits aufgelöst oder Frist verlängert |
-| `siege.sweepExpired` | jede Minute | löst alle Belagerungen mit `deadline_at < game_now()` auf – Sicherheitsnetz, falls ein Job verloren ging oder der Server neu startete (E2E-08) |
+| `siege.resolveTimeout` | eingeplant auf `deadline_at + settleGrace`, umgerechnet in reale Zeit (`− game_clock.offset`); neu eingeplant bei Verlängerung | Statusvergleich unter Zeilensperre; prüft `isTimeoutDue` erneut; ohne Wirkung, wenn bereits aufgelöst oder Frist verlängert |
+| `siege.sweepExpired` | jede Minute | **autoritativer Auslöser:** löst alle Belagerungen auf, für die `isTimeoutDue` gilt (`game_now() ≥ deadline_at + settleGrace`, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)) – deckt verlorene Jobs, Server-Neustart (E2E-08) und nachträglich geänderten Zeitversatz ab |
 | `challenge.expireStale` | jede Minute | beendet Herausforderungen, deren Zeitlimit abgelaufen ist (Angreifer bricht ab, Browser geschlossen) |
 | `items.autoExtend` | alle 5 Minuten | eine Verlängerung pro Belagerung und Auslösefenster, Idempotenzschlüssel je Belagerung + Fenster |
 | `npc.tick` | je Instanz alle N Minuten | Aktionen tragen deterministische IDs je Tick; doppelte Ausführung schreibt nichts doppelt |
@@ -184,11 +186,14 @@ rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, version
 | `invariants.check` | stündlich | prüft Besitz-Invarianten, meldet Verstöße als Metrik und Alarm |
 | `outbox.prune`, `retention.*` | täglich | Aufbewahrungsregeln |
 
-Wichtig: **Kein Ergebnis hängt davon ab, wann ein Job läuft.** Eine Verteidigerantwort nach `deadline_at` wird immer abgewiesen, auch wenn der Timeout-Job noch nicht gelaufen ist (Brief §12.4); umgekehrt löst jede Lesezugriff-Anfrage auf eine abgelaufene Belagerung deren Auflösung aus („lazy resolution“).
+Wichtig: **Kein Ergebnis hängt davon ab, wann ein Job läuft.** Eine Verteidigerantwort mit `received_at ≥ deadline_at` wird immer abgewiesen, auch wenn der Timeout-Job noch nicht gelaufen ist (Brief §12.4); umgekehrt löst jeder Lesezugriff auf eine fällige Belagerung deren Auflösung aus („lazy resolution“).
+
+**Zeitversatz in Test und Staging:** pg-boss plant auf realer Datenbankzeit, Fristen gelten aber in `game_now()`. Der geplante Job wird deshalb um den Versatz zum Planungszeitpunkt umgerechnet und ist nur eine Beschleunigung; verbindlich ist der offset-bewusste Sweeper. Tests, die die Zeit vorstellen, rufen ihn explizit auf (`runDueJobs()`), statt auf pg-boss-Zeitpläne zu warten, und prüfen damit genau diesen Pfad.
 
 ## 12. Konfiguration und Umgebungen
 
-- Konfiguration ausschließlich über Umgebungsvariablen, beim Start per zod validiert; Start bricht bei fehlenden/ungültigen Werten ab.
+- **Deployment-Konfiguration und Secrets** ausschließlich über Umgebungsvariablen, beim Start per zod validiert; Start bricht bei fehlenden/ungültigen Werten ab.
+- **Spielbezogene Konfiguration** (`world_rules`, `game_clock`) liegt in PostgreSQL und wird beim Laden und bei jeder Änderung per zod validiert (siehe unten).
 - Secrets (DB-URL, `RNG_SECRET`, Sitzungs-Pepper, VAPID-Schlüssel) nie im Repository; `.env.example` dokumentiert nur Namen.
 - Umgebungen: `local` (Entwickler, Docker-Compose-Postgres), `test` (CI, flüchtige DB), `staging` (eigene DB, Zeitversatz erlaubt, Test-Accounts), `production` (Zeitversatz gesperrt, Admin-Aktionen protokolliert). Staging und Produktion teilen keine Datenbank, keine Secrets und keine Push-Schlüssel.
 - Spielregeln sind **Daten** (`world_rules`), keine Umgebungsvariablen. Änderungen erzeugen eine neue Regelversion mit Audit-Eintrag.

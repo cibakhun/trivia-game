@@ -53,7 +53,7 @@ In der Arbeitsumgebung sind Konnektoren zu gehosteten Diensten (u. a. Supabase, 
 
 | Fehlend | Wann nötig | Verweis |
 |---|---|---|
-| Fragendatenbank (DE/HU/EN, geprüft) | Phase 1 (≈150 Fragen), MVP (≈600) | [QUIZ_ENGINE.md §9](QUIZ_ENGINE.md#9-inhaltspipeline-und-umfang), [O-02] |
+| Fragendatenbank (DE/HU/EN, geprüft) | Phase 1 (≈150 Fragen), MVP (≈650) | [QUIZ_ENGINE.md §9](QUIZ_ENGINE.md#9-inhaltspipeline-und-umfang), [O-02] |
 | Visuelle Identität (Farben, Typo, Icons, Karte) | ab Phase 1 (Platzhalter genügen) | [SECURITY.md §6](SECURITY.md#6-geistiges-eigentum-und-lizenzen) |
 | Hosting/Staging-Umgebung | Phase 2–3 (Mehrspielertest) | [O-11] |
 | Markenprüfung des Namens | vor öffentlicher Beta | [O-12] |

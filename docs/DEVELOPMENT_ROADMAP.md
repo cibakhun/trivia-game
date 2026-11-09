@@ -18,9 +18,9 @@ flowchart LR
   P6 --> P7
 ```
 
-Jede Phase besteht aus mehreren kleinen Pull Requests. Jeder PR enthält Code, Tests, aktualisierte Dokumentation und einen Bericht nach Brief §20 „Berichterstattung“.
+Jede Implementierungsphase besteht aus mehreren kleinen Pull Requests. Jeder Implementierungs-PR enthält Code, Tests, aktualisierte Dokumentation und einen Bericht nach Brief §20 „Berichterstattung“; reine Dokumentations-PRs (wie Phase 0) enthalten Dokumente, Link- und Diagrammprüfung und den Bericht.
 
-**Definition of Done (für jeden PR):** Typprüfung und Lint grün · Tests für jede neue Regel und jeden Zustandsübergang · Migration (falls Schema) mit Test auf leerer DB · betroffene Dokumente aktualisiert · neue Annahmen in [GAME_RULES.md](GAME_RULES.md) bzw. [DECISIONS.md](DECISIONS.md) eingetragen · keine Secrets · keine Änderung an Produktivsystemen.
+**Definition of Done (für jeden Implementierungs-PR):** Typprüfung und Lint grün · Tests für jede neue Regel und jeden Zustandsübergang · Migration (falls Schema) mit Test auf leerer DB · betroffene Dokumente aktualisiert · neue Annahmen in [GAME_RULES.md](GAME_RULES.md) bzw. [DECISIONS.md](DECISIONS.md) eingetragen · keine Secrets · keine Änderung an Produktivsystemen.
 
 ## 2. Phasen im Detail
 
@@ -84,9 +84,9 @@ Abnahme (Brief): Eine nicht beantwortete Belagerung wird zuverlässig beendet un
 | Paket | Inhalt |
 |---|---|
 | 4a | Itemdefinitionen, qualifizierte Eroberung (Q1–Q7), Drops, Inventar + Ablage, manuelle Verlängerung mit Vorschau, Transaktionshistorie, Simulation `tools/sim/items` |
-| 4b | automatische Verwendung (standardmäßig aus) |
+| 4b | automatische Verwendung (standardmäßig aus) – **nach der Closed Beta**, nicht Teil des MVP ([MVP.md](MVP.md)); Abnahme dann mit eigenem Integrationstest (höchstens eine Auto-Verlängerung je Belagerung und Auslösefenster, nie Quizantworten) |
 
-Abnahme (Brief): Ein erspieltes Zeit-Item kann genau einmal zur gültigen Verlängerung einer offenen Belagerung eingesetzt werden. Tests: E2E-06, -07, -11, Integration N5–N7.
+Abnahme (Brief, Paket 4a): Ein erspieltes Zeit-Item kann genau einmal zur gültigen Verlängerung einer offenen Belagerung eingesetzt werden. Tests: E2E-06, -07, -11, Integration N5–N7.
 
 ### Schritt 4.5 – Closed-Beta-Reife (= erstes spielbares MVP, siehe [MVP.md](MVP.md))
 
@@ -115,5 +115,7 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 | Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern) |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |
-| Closed Beta | [O-06] Urlaubsmodus, [O-11] Hosting, [O-12] Name |
-| Phase 5/6 | [O-13], [O-14], [O-15], [O-16], [O-17] |
+| Closed Beta | [O-11] Hosting, [O-12] Name |
+| Nach Closed Beta | [O-06] Urlaubsmodus (mit Beta-Daten zu Timeout-Verlusten) |
+| Phase 5/6 | [O-13], [O-14], [O-15], [O-16] |
+| Nach Phase 6 | [O-17] Live-Duelle |

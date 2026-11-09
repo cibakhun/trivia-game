@@ -45,7 +45,15 @@ Vorteil gegenüber einer festen Tabelle: Sobald Fragen aus Spieldaten kalibriert
 
 - `LINEAR`-Fragen (z. B. Jahreszahlen): `schätzung = wahrer Wert + N(0, s(θ) · estimate_scale)`
 - `LOG`-Fragen (z. B. Einwohner, Entfernungen): `schätzung = wahrer Wert · exp(N(0, s(θ) · estimate_scale))`
-- `s(θ)` fällt mit θ (leicht 1,0 · mittel 0,5 · schwer 0,2); Ergebnis wird auf `answer_precision` gerundet und in `[input_min, input_max]` begrenzt. Exakttreffer entstehen so natürlich und bei starken NPCs häufiger.
+- Streuung als stetige Funktion von `θ_eff`, damit auch angepasste NPCs (§4) reproduzierbar und kalibrierbar sind:
+
+  ```
+  s(θ) = clamp(s₀ · exp(−k · (θ − θ_ref)), s_min, s_max)
+  Standard: s₀ = 1,0 · θ_ref = −0,4 · k = 0,75 · s_min = 0,1 · s_max = 2,0
+  ⇒ leicht (θ −0,4) 1,00 · mittel (+0,6) 0,47 · schwer (+1,7) 0,21 · neutrale Garnison (−1,4) 2,0 (gekappt)
+  ```
+
+  Die Parameter sind Teil des versionierten NPC-Profils (`npc_profiles.estimate_spread`); das Ereignisprotokoll speichert den verwendeten Wert `s(θ_eff)`. Ergebnis wird auf `answer_precision` gerundet (`ROUND_HALF_UP`) und in `[input_min, input_max]` begrenzt. Exakttreffer entstehen so natürlich und bei starken NPCs häufiger.
 
 ### 3.3 Antwortzeit [E]
 
@@ -97,7 +105,7 @@ Für das Tutorial (Brief §15.1, „erste Eroberung in Minuten“) wird die erst
 |---|---|---|
 | `EXPAND_NEUTRAL` | angrenzende neutrale Region, bevorzugt niedrige Stufe | sofort, NPC vs. Garnison mit `resolveDuel` |
 | `ATTACK_NPC` | angrenzende Region einer schwächeren oder rivalisierenden Fraktion | sofort |
-| `ATTACK_PLAYER` | angrenzende Spielerregion | **Belagerung** mit Eternal-Frist (24 h) [A, Brief §6.4]; NPC-Leistung wird bei Eröffnung erzeugt, das Gate gilt auch für NPCs |
+| `ATTACK_PLAYER` | angrenzende Spielerregion | **Belagerung** mit der Frist aus der Regelkonfiguration der Instanz (`defense.baseDeadline`, Eternal 24 h [A, Brief §6.4]); in Daily/Weekly gilt zusätzlich der PvP-Angriffsschluss ([WORLD_SYSTEM.md §6.2](WORLD_SYSTEM.md#62-saisonende-ohne-offene-konflikte-w-14-vorschlag-zu-o-16)). NPC-Leistung wird bei Eröffnung erzeugt; das Gate gilt auch für NPCs |
 | `IDLE` | – | – |
 
 ### 5.3 Schutz der Spieler vor NPC-Druck (Vorschlag zu [O-13]) [E]

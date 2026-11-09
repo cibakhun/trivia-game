@@ -56,7 +56,7 @@ Der Server prüft beim Start eines Angriffs in dieser Reihenfolge (alle Prüfung
 5. Keine aktive Belagerung auf der Zielregion [A, Brief §7.4].
 6. Zielregion ist nicht geschützt (`protected_until`), Zielkönigreich ist nicht unter Anfänger-/Wiederaufbauschutz, und die Rangabstandsregel ist erfüllt ([§7](#7-limits-und-schutzzeiten)).
 7. Der Angreifer hat keine andere Herausforderung in Bearbeitung (max. eine gleichzeitig) [E].
-8. Budgets: PvP – Angreifer hat in den letzten 24 h weniger als 3 Belagerungen eröffnet [A] und weniger als 6 PvP-Angriffsversuche begonnen [E]; Verteidiger hat weniger als 4 offene oder in Vorbereitung befindliche Belagerungen [A]; PvE – Tageskontingent nicht erschöpft ([O-08]).
+8. Budgets gemäß Regelkonfiguration der Instanz ([§10](#10-parametertabelle)): PvP – `attack.maxNewPvpSiegesPerAttacker` und `attack.maxPvpAttemptsPerAttacker` (Eternal 3/6 je 24 h, Weekly 6/12 je 24 h, Daily 4/8 je 1 h); Verteidiger hat weniger als `attack.maxOpenSiegesPerDefender` offene oder in Vorbereitung befindliche Belagerungen (Eternal/Weekly/Daily 4/3/2); PvE – `attack.maxPveAttemptsPerPlayer` nicht erschöpft (Eternal/Weekly/Daily 50/60/unbegrenzt, [O-08]). Kennzeichnung der Werte siehe §10.
 
 Ein Angriffs**versuch** zählt ab dem Moment, in dem die erste Frage angezeigt wird; eine **Belagerung** zählt, sobald sie eröffnet ist. Abbrechen nach Sicht der Frage gilt als gescheiterter Angriff [E]. Sonst könnten Spieler Fragen „durchblättern“, bis eine leichte kommt. Gescheiterte Versuche belasten den Verteidiger nicht, sind aber durch das Versuchskontingent begrenzt.
 
@@ -163,6 +163,7 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | `defense.baseDeadline` | 24 h | 4 h | 15 min | V / A / A |
 | `defense.maxDeadline` | 48 h | 4 h (keine Items) | 15 min (keine Items) | A / E / E |
 | `defense.startBuffer` | 10 s | 10 s | 10 s | E |
+| `defense.settleGrace` (technischer Abwicklungspuffer, verlängert keine Frist) | 5 s | 5 s | 5 s | E |
 | `quiz.triviaTimeLimit` | 20 s | 20 s | 15 s | E |
 | `quiz.estimateTimeLimit` | 30 s | 30 s | 25 s | E |
 | `quiz.latencyAllowanceCapMs` | 500 | 500 | 500 | E |
@@ -183,7 +184,7 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | `items.autoUse.triggerBeforeDeadline` | 6 h | – | – | A |
 | `npc.maxActionsPerFactionPerHour` | 2 | 4 | 12 | E |
 | `npc.maxOpenSiegesAgainstHumanKingdom` | 1 | 1 | 1 | E, [O-13] |
-| `season.pvpAttackCutoffBeforeEnd` | – | = baseDeadline | = baseDeadline | E, [O-16] |
+| `season.pvpAttackCutoffBeforeEnd` | – | = maxDeadline + max. Angriffsdauer (≈ 4 h 1 min) | = maxDeadline + max. Angriffsdauer (≈ 16 min) | E, [O-16] |
 
 ## 11. Gefundene Widersprüche und Lücken im Brief
 
@@ -202,6 +203,6 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | W-11 | §10.3 | Zahleneingaben unterscheiden sich je Sprache (`1.234,5` / `1,234.5` / `1 234,5`), Einheiten sind kulturell verschieden. | Sprachabhängiges Parsen mit Bestätigungsanzeige, metrische Einheiten in der Frage |
 | W-12 | §14.3 | Spieler- und Königreichsnamen sind öffentliche nutzergenerierte Inhalte. | Generierte Namen im MVP [O-10] |
 | W-13 | §3.2 | Daily mit 15-min-Frist verlangt Anwesenheit – widerspricht Prinzip 3 nur scheinbar, da Daily ein freiwilliger Kurzmodus ist. Muss im UI klar kommuniziert werden. | Hinweis beim Beitritt |
-| W-14 | §3.3 | „Keine Konflikte mit Fälligkeit nach Saisonende“ – ohne Angriffsschluss wären die letzten Stunden PvP-frei oder Fristen müssten verkürzt werden. | PvP-Angriffsschluss = Saisonende − Frist [O-16] |
+| W-14 | §3.3 | „Keine Konflikte mit Fälligkeit nach Saisonende“ – ohne Angriffsschluss wären die letzten Stunden PvP-frei oder Fristen müssten verkürzt werden. | PvP-Angriffsschluss = Saisonende − maximale Frist − Angriffsdauer, erneut geprüft bei Eröffnung [O-16] |
 | W-15 | §12.3 | `kingdom_memberships` deutet Mehrspieler-Reiche an, §4.4 sagt „ein Königreich pro Spieler“. | MVP: 1 Spieler = 1 Reich; Tabelle erst mit Allianzen |
 | W-16 | §7.4 | Unklar, wann das Angriffsbudget verbraucht wird. Ohne Regel ist „Fragen-Shopping“ (Abbrechen bis leichte Frage) möglich. | Budget wird bei Anzeige der ersten Frage verbraucht |

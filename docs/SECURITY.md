@@ -8,7 +8,7 @@ Bezug: Brief §12.2, §13, §14. Rechtliche Aussagen in diesem Dokument sind tec
 |---|---|---|
 | Gebietsbesitz | Auflösungstransaktion | anzeigen |
 | Gewinner, Richtigkeit, Abstand | `game-core.resolveDuel` auf dem Server | Ergebnis anzeigen |
-| Antwortzeit | Server aus `presented_at`/`received_at`, Client-Wert nur im Fenster `[S − cap, S]` | Zeit melden |
+| Antwortzeit | Server aus `presented_at`/`received_at`, Client-Wert nur im Fenster `[max(0, S − cap), S]` | Zeit melden |
 | Fristablauf | DB-Uhr `game_now()` | Restzeit anzeigen (vom Server geliefert) |
 | Itemanzahl, Drop, NPC-Ergebnis | Server, Zufallsstrom mit Geheimnis | anzeigen |
 | Punkte, Ranglisten | Server-Ableitung | anzeigen |
@@ -31,7 +31,7 @@ Der Client erhält nie Daten, die er vor der Auflösung nicht sehen darf (richti
 | Bedrohung (Brief §13.1) | Gegenmaßnahme |
 |---|---|
 | Offenlegung korrekter Antworten | Lösung nie vor Auflösung im Payload; Optionen als Einmal-Token pro Präsentation |
-| Manipulierte Client-Timer | Serverzeit maßgeblich; Client-Wert nur im Fenster `[S − 500 ms, S]` ([QUIZ_ENGINE.md §6](QUIZ_ENGINE.md#6-zeitmessung-und-latenzausgleich)) |
+| Manipulierte Client-Timer | Serverzeit maßgeblich; Client-Wert nur im Fenster `[max(0, S − cap), S]` mit `cap` = 500 ms; fehlende, negative oder nicht ganzzahlige Client-Werte werden verworfen (`effective = S`) und als Signal protokolliert ([QUIZ_ENGINE.md §6](QUIZ_ENGINE.md#6-zeitmessung-und-latenzausgleich)) |
 | Mehrfache Antwortversuche | `unique(participant_id, step_index)` + bedingte Aktualisierung; abgegebene Antworten per Trigger unveränderlich |
 | Fragenwechsel durch Refresh | `present` liefert für einen Schritt immer dieselbe Frage mit ursprünglichem `presented_at` |
 | Wiederholung derselben Herausforderung | eine Herausforderung pro Belagerung; Abbruch zählt als Niederlage; Versuchskontingent |
@@ -77,11 +77,14 @@ Proof-of-Work oder eine einfache Prüfung beim Registrieren ist einer Fremd-CAPT
 ### 5.2 Umsetzung
 
 - **Cookies/Speicher:** nur technisch notwendiges Sitzungscookie; `localStorage` nur für UI-Einstellungen. Keine Tracking-, Analyse- oder Werbe-Cookies im MVP ⇒ kein Einwilligungsbanner nötig (zu bestätigen bei der Rechtsprüfung). Spätere Produktanalyse nur selbst gehostet und datensparsam.
-- **Kontolöschung:** Selbstbedienung; personenbezogene Felder werden sofort entfernt, Reiche erhalten einen anonymen Namen („Vergessenes Reich #…“), damit die Spielhistorie anderer Spieler konsistent bleibt.
+- **Kontolöschung (Löschkaskade):** Selbstbedienung; ausgeführt von einem Löschjob innerhalb von 24 h.
+  - **Gelöscht:** Konto-Stammdaten (E-Mail, Passwort-Hash), Sitzungen, Push-Abonnements, Einstellungen, Mitteilungen, `player_question_exposure`, Freitexte in `question_reports`, `idempotency_keys`. Missbrauchssignale werden gelöscht, außer ein laufendes Prüf- oder Sperrverfahren rechtfertigt die Aufbewahrung bis zu dessen Abschluss.
+  - **Anonymisiert:** Spielhistorie, die die Welt anderer Spieler beschreibt (`siege_participants`, `quiz_answers`, `reward_events`, `player_items`, `item_usage`, `inventory_transactions`, `kingdoms`, `audit_events`): Die Konto-ID wird durch eine zufällige Ersatz-ID ohne Zuordnungstabelle ersetzt, `quiz_answers.raw_input` geleert. Reiche erhalten einen anonymen Namen („Vergessenes Reich #…“).
+  - **Backups** laufen nach ihrer Aufbewahrungsfrist aus; nach einer Wiederherstellung wird die Löschliste erneut angewendet.
 - **Auskunft/Export:** maschinenlesbarer Export (JSON) aller personenbezogenen Daten.
 - **Auftragsverarbeitung:** Hosting, ggf. E-Mail-Versand und Fehlerüberwachung erfordern AVV; Hosting in der EU bevorzugt ([O-11]).
 - **Pflichttexte vor öffentlicher Beta:** Datenschutzerklärung (de/hu/en), Impressum (Anbieterkennzeichnung, sofern geschäftsmäßig), Nutzungsbedingungen. Altersangabe und Jugendschutz: Ohne Chat und ohne frei wählbare öffentliche Texte ist das Risiko gering; die Mindestaltersfrage ist Teil der Rechtsprüfung.
-- **Inaktive Konten:** Löschung nach langer Inaktivität (Vorschlag 3 Jahre) mit Vorankündigung – Speicherbegrenzung.
+- **Inaktive Konten:** Die Fristen werden mit [O-03](DECISIONS.md#o-03-kontomodell-und-anmeldung) festgelegt. Empfehlung: Gastkonten nach 90 Tagen Inaktivität löschen; registrierte Konten nach langer Inaktivität (Vorschlag 3 Jahre) mit Vorankündigung – die genaue Frist bleibt bis zur Rechtsprüfung offen.
 
 ## 6. Geistiges Eigentum und Lizenzen
 

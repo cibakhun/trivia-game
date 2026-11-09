@@ -85,7 +85,7 @@ erDiagram
 | `worlds` | `id`, `slug`, `mode` (`ETERNAL`/`DAILY`/`WEEKLY`), `name_key`, `status`, `current_rules_id` | `unique(slug)` |
 | `world_rules` | `id`, `world_id`, `version int`, `config jsonb` (Schema in `packages/protocol`), `config_hash`, `created_by`, `created_at`, `notes` | `unique(world_id, version)`; Zeilen unveränderlich |
 | `world_seasons` | `id`, `world_id`, `period_key` (`2026-11-09`, `2026-W46`), `starts_at`, `ends_at`, `pvp_cutoff_at`, `status` (`SCHEDULED`/`RUNNING`/`CLOSING`/`CLOSED`) | `unique(world_id, period_key)`; `check(starts_at < pvp_cutoff_at and pvp_cutoff_at <= ends_at)` |
-| `world_instances` | `id`, `world_id`, `season_id null` (Eternal: null), `rules_id`, `map_seed bigint`, `capacity int`, `status` (`PROVISIONING`/`RUNNING`/`CLOSING`/`CLOSED`/`ARCHIVED`), `starts_at`, `ends_at null`, `closed_at` | Index `(world_id, status)` |
+| `world_instances` | `id`, `world_id`, `season_id null` (Eternal: null), `rules_id`, `map_seed bigint`, `capacity int`, `status` (`PROVISIONING`/`RUNNING`/`CLOSING`/`CLOSED`/`ARCHIVED`), `starts_at`, `ends_at null`, `closed_at`, `event_seq bigint` (Zähler für `world_events.seq`, [ARCHITECTURE.md §10](ARCHITECTURE.md#10-echtzeit-und-synchronisation)) | Index `(world_id, status)` |
 | `world_participants` | `instance_id`, `user_id`, `joined_at`, `status` (`ACTIVE`/`LEFT`/`BANNED`), `current_kingdom_id null`, `last_active_at` | `PK(instance_id, user_id)`; dient auch als Sperrzeile für Inventar-Operationen eines Spielers |
 | `season_results` | `instance_id`, `user_id`, `kingdom_id`, `rank int`, `score int`, `details jsonb` | `PK(instance_id, user_id)` |
 
@@ -117,7 +117,7 @@ create table region_state (
   owned_since      timestamptz null,
   protected_until  timestamptz null,
   protection_reason text null check (protection_reason in ('CONQUEST','ADMIN')),
-  active_siege_id  uuid null,
+  active_siege_id  uuid null,           -- Fremdschlüssel auf sieges(id, target_region_id), siehe §4.7
   version          bigint not null default 0,
   updated_at       timestamptz not null,
   check (not is_capital or owner_kingdom_id is not null)
@@ -136,7 +136,7 @@ create unique index region_state_active_siege on region_state (active_siege_id) 
 
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
-| `kingdoms` | `id`, `instance_id`, `kind` (`PLAYER`/`NPC`), `owner_user_id null`, `npc_faction_id null`, `name_parts jsonb`, `color smallint`, `status` (`ACTIVE`/`FALLEN`/`DISSOLVED`), `region_count int`, `protected_until null`, `protection_reason` (`NEWBIE`/`RESPAWN`/`VACATION`), `generation smallint` (n-tes Reich des Spielers in der Instanz), `founded_at`, `fallen_at`, `version` | `check((kind='PLAYER' and owner_user_id is not null and npc_faction_id is null) or (kind='NPC' and npc_faction_id is not null and owner_user_id is null))`; `unique(instance_id, owner_user_id) where status='ACTIVE' and kind='PLAYER'`; `check(region_count >= 0)` |
+| `kingdoms` | `id`, `instance_id`, `kind` (`PLAYER`/`NPC`), `owner_user_id null`, `npc_faction_id null`, `name_parts jsonb`, `color smallint`, `status` (`ACTIVE`/`FALLEN`/`DISSOLVED`), `region_count int`, `protected_until null`, `protection_reason` (`NEWBIE`/`RESPAWN`/`VACATION`), `generation smallint` (n-tes Reich des Spielers in der Instanz), `founded_at`, `fallen_at`, `version` | `check((kind='PLAYER' and owner_user_id is not null and npc_faction_id is null) or (kind='NPC' and npc_faction_id is not null and owner_user_id is null))`; `unique(instance_id, owner_user_id) where status='ACTIVE' and kind='PLAYER'`; `unique(instance_id, npc_faction_id) where status='ACTIVE' and kind='NPC'` (eine Fraktion = höchstens ein aktives Reich); `check(region_count >= 0)` |
 | `kingdom_statistics` | `kingdom_id PK`, `max_regions`, `npc_regions_conquered`, `pvp_won`, `pvp_lost`, `defenses_won`, `defenses_lost`, `timeout_losses`, `longest_connected`, `updated_at` | |
 | `kingdom_history` | `id bigint`, `kingdom_id`, `kind` (`FOUNDED`/`CAPITAL_CHANGED`/`RANK_CHANGED`/`FALLEN`/`RANK_SNAPSHOT`), `payload jsonb`, `at` | Index `(kingdom_id, at)` |
 
@@ -146,7 +146,7 @@ create unique index region_state_active_siege on region_state (active_siege_id) 
 
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
-| `npc_profiles` | `id`, `code`, `version`, `skill_theta numeric`, `estimate_log_sigma numeric`, `exact_hit_p numeric`, `rt_log_mu numeric`, `rt_log_sigma numeric`, `created_at` | `unique(code, version)`; unveränderlich |
+| `npc_profiles` | `id`, `code`, `version`, `skill_theta numeric`, `estimate_spread jsonb` (Parameter von `s(θ)`, [NPC_SYSTEM.md §3.2](NPC_SYSTEM.md#32-schätzung-e)), `rt_log_mu numeric`, `rt_log_sigma numeric`, `created_at` | `unique(code, version)`; unveränderlich |
 | `npc_factions` | `id`, `instance_id`, `name_key`, `archetype` (`LIGHT`/`MEDIUM`/`HEAVY`), `profile_id`, `aggression numeric`, `expansion numeric`, `status`, `home_chunk_x`, `home_chunk_y` | |
 | `npc_actions` | `id`, `instance_id`, `faction_id`, `tick_id`, `seq smallint`, `kind` (`EXPAND_NEUTRAL`/`ATTACK_NPC`/`ATTACK_PLAYER`/`IDLE`), `target_region_id`, `siege_id null`, `status`, `created_at` | `unique(tick_id, faction_id, seq)` – macht Ticks idempotent |
 
@@ -174,8 +174,8 @@ create table quiz_answers (
   locale            text not null,
   presentation      jsonb not null,      -- nur serverseitig: Optionstoken → option_key, Reihenfolge
   presented_at      timestamptz not null,
-  answer_deadline_at timestamptz not null, -- presented_at + time_limit
-  received_at       timestamptz null,
+  answer_deadline_at timestamptz not null, -- presented_at + time_limit + cap (QUIZ_ENGINE §7.1); rechtzeitig: received_at < answer_deadline_at
+  received_at       timestamptz null,     -- beim Eintreffen der Anfrage, vor dem Warten auf Sperren (SIEGE_SYSTEM §6.1)
   answer_option_key text null,
   answer_value      numeric null,         -- normalisiert auf answer_precision
   raw_input         text null,            -- Originaleingabe für Audit (Zahlenformat)
@@ -200,12 +200,13 @@ create table quiz_answers (
 create table sieges (
   id                  uuid primary key,
   instance_id         uuid not null references world_instances(id),
-  mode                text not null check (mode in ('PVE','PVP')),
+  mode                text not null check (mode in ('PVE','PVP')),   -- Auswertungsart: PVE sofort, PVP mit Frist
   target_region_id    bigint not null references regions(id),
   attacker_kingdom_id uuid not null references kingdoms(id),
   defender_kingdom_id uuid null references kingdoms(id),     -- null = neutral
   defender_kind       text not null check (defender_kind in ('PLAYER','NPC','NEUTRAL')),
-  status              text not null,                          -- siehe SIEGE_SYSTEM §3
+  status              text not null check (status in ('PREPARING','ATTACK_FAILED','AWAITING_DEFENSE','DEFENDING','RESOLVING',
+                        'ATTACKER_WON','DEFENDER_WON','ATTACKER_WON_BY_TIMEOUT','CANCELLED','EXPIRED_INVALID')), -- SIEGE_SYSTEM §3
   created_at          timestamptz not null,
   attack_presented_at timestamptz null,  -- Budgetverbrauch ab hier
   opened_at           timestamptz null,  -- Beginn der Verteidigungsfrist
@@ -219,22 +220,33 @@ create table sieges (
   rules_snapshot      jsonb not null,    -- Fristen/Limits zum Zeitpunkt der Eröffnung
   version             int not null default 0,
   idempotency_key     uuid not null unique,
-  check (base_deadline_at is null or (base_deadline_at <= deadline_at and deadline_at <= max_deadline_at)),
-  check (mode = 'PVE' or defender_kind <> 'NEUTRAL')
+  unique (id, target_region_id),         -- Ziel des Fremdschlüssels aus region_state
+  -- Fristen: entweder alle drei leer (PvE, PREPARING) oder alle gesetzt und geordnet (I10)
+  check ((base_deadline_at is null and deadline_at is null and max_deadline_at is null)
+      or (base_deadline_at is not null and deadline_at is not null and max_deadline_at is not null
+          and base_deadline_at <= deadline_at and deadline_at <= max_deadline_at)),
+  -- nur gültige Kombinationen: sofortige Auswertung gegen NPC/neutral, Frist nur gegen Spielerreiche
+  check ((mode = 'PVE' and defender_kind in ('NPC','NEUTRAL')) or (mode = 'PVP' and defender_kind = 'PLAYER')),
+  check ((defender_kind = 'NEUTRAL') = (defender_kingdom_id is null))
 );
+-- Zeiger der Region auf ihre aktive Belagerung: muss existieren und genau diese Region betreffen
+alter table region_state add constraint region_state_active_siege_fk
+  foreign key (active_siege_id, region_id) references sieges (id, target_region_id);
 -- Höchstens eine aktive Belagerung pro Region – von der Datenbank erzwungen:
 create unique index sieges_one_active_per_region on sieges (target_region_id)
   where status in ('PREPARING','AWAITING_DEFENSE','DEFENDING','RESOLVING');
 create index sieges_open_by_defender on sieges (defender_kingdom_id)
-  where status in ('AWAITING_DEFENSE','DEFENDING');
+  where status in ('PREPARING','AWAITING_DEFENSE','DEFENDING');
 create index sieges_by_attacker_time on sieges (attacker_kingdom_id, attack_presented_at);
 create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFENSE','DEFENDING');
 ```
 
+`mode` beschreibt die Auswertungsart, nicht die Art des Angreifers: NPC-Angriffe auf Spieler (Phase 5, [NPC_SYSTEM.md §5.2](NPC_SYSTEM.md#52-aktionen)) sind Belagerungen mit Frist und werden als `PVP` gespeichert; der Angreifer ist dann ein Reich mit `kingdoms.kind = 'NPC'`.
+
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `siege_participants` | `id`, `siege_id`, `role` (`ATTACKER`/`DEFENDER`), `kingdom_id null`, `user_id null`, `npc_profile_id null`, `locale null` | `unique(siege_id, role)` |
-| `battle_results` | `siege_id PK`, `winner_role`, `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `decided_at`, `core_version text` | PK garantiert genau ein Ergebnis pro Kampf |
+| `battle_results` | `siege_id PK`, `winner_role`, `reason` (`TIMEOUT`/`ATTACKER_GATE`/`TRIVIA`/`ESTIMATE`/`SPEED`/`FULL_TIE`/`CANCELLED`), `attacker_summary jsonb`, `defender_summary jsonb`, `decided_at`, `core_version text` | PK verhindert ein zweites Ergebnis; dass jede beendete Belagerung **eines** hat, sichern das Einfügen in derselben Transaktion wie der Endübergang und der Invariantenjob (I6) |
 | `battle_events` | `id bigint`, `siege_id`, `seq int`, `type`, `payload jsonb`, `at` | `unique(siege_id, seq)`; nur anhängen |
 
 ### 4.8 Items und Belohnungen
@@ -242,7 +254,7 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `item_definitions` | `id text PK` (`hourglass_small`, `chronos_seal`, `time_crystal`), `kind` (`DEFENSE_EXTENSION`), `rarity`, `effect jsonb` (`{"hours":6}`), `name_key`, `allowed_modes text[]`, `enabled bool` | Referenzdaten per Migration |
-| `reward_events` | `id`, `instance_id`, `user_id`, `source_type` (`SIEGE`), `source_id`, `eligibility jsonb` (geprüfte Regeln, Gründe), `rng_draw numeric`, `result_item_def_id null`, `outcome` (`NONE`/`GRANTED`/`PENDING`/`NOT_ELIGIBLE`), `at` | `unique(source_type, source_id, user_id)` – **keine doppelte Belohnung** (E2E-11) |
+| `reward_events` | `id`, `instance_id`, `user_id`, `source_type` (`SIEGE`), `source_id`, `eligibility jsonb` (geprüfte Regeln, Gründe), `rng_draw numeric`, `result_item_def_id null`, `outcome` (`NONE`/`GRANTED`/`PENDING`/`NOT_GRANTED_FULL`/`NOT_ELIGIBLE`), `at` | `unique(source_type, source_id, user_id)` – **keine doppelte Belohnung** (E2E-11) |
 | `player_items` | `id`, `instance_id`, `user_id`, `item_def_id`, `status` (`PENDING`/`AVAILABLE`/`CONSUMED`/`EXPIRED`/`DISCARDED`), `reward_event_id`, `acquired_at`, `pending_expires_at null`, `consumed_at null` | Index `(instance_id, user_id, status)`; `unique(reward_event_id)` |
 | `item_usage` | `id`, `item_id`, `siege_id`, `user_id`, `auto bool`, `old_deadline_at`, `new_deadline_at`, `effect_hours`, `applied_minutes`, `idempotency_key`, `at` | `unique(item_id)` – ein Item höchstens einmal; `unique(idempotency_key)` |
 | `inventory_transactions` | `id bigint`, `instance_id`, `user_id`, `item_id`, `type` (`GRANTED`/`PENDING_CREATED`/`CLAIMED`/`CONSUMED`/`EXPIRED`/`DISCARDED`/`ADMIN_ADJUST`), `ref_type`, `ref_id`, `at` | nur anhängen; Index `(user_id, at)` |
@@ -252,7 +264,8 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | Tabelle | Spalten | Constraints / Indizes |
 |---|---|---|
 | `notifications` | `id`, `user_id`, `instance_id null`, `type`, `payload jsonb`, `created_at`, `read_at null`, `push_sent_at null` | Index `(user_id, created_at desc) where read_at is null` |
-| `world_events` | `seq bigint identity PK`, `instance_id`, `chunk_x null`, `chunk_y null`, `user_id null`, `type`, `payload jsonb`, `created_at` | Index `(instance_id, seq)`; Aufbewahrung 7 Tage |
+| `world_events` | `id bigint identity PK`, `instance_id`, `seq bigint` (lückenlos je Instanz aus `world_instances.event_seq`), `chunk_x null`, `chunk_y null`, `user_id null`, `type`, `payload jsonb`, `created_at` | `unique(instance_id, seq)`; Aufbewahrung 7 Tage |
+| `idempotency_keys` | `scope text` (Konto-ID bzw. vor der Anmeldung Hash des Schlüssels), `key uuid`, `endpoint`, `request_hash`, `response_status`, `response_body jsonb`, `created_at` | `PK(scope, key)`; Aufbewahrung 24 h ([API.md §1](API.md#1-konventionen)) |
 | `audit_events` | `id bigint`, `actor_user_id null`, `actor_role`, `action`, `target_type`, `target_id`, `before jsonb`, `after jsonb`, `reason text`, `at` | nur anhängen |
 | `abuse_signals` | `id`, `user_id`, `instance_id null`, `kind`, `score numeric`, `details jsonb`, `status` (`OPEN`/`REVIEWED`/`DISMISSED`/`ACTIONED`), `created_at` | Index `(status, created_at)` |
 | `game_clock` | `id int PK check (id=1)`, `offset interval` | in Produktion per Migration auf 0 und schreibgeschützt |
@@ -263,14 +276,14 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 |---|---|---|
 | I1 | Eine Region hat höchstens einen Besitzer | Struktur (eine Spalte) |
 | I2 | Höchstens eine aktive Belagerung pro Region | partieller Unique-Index `sieges_one_active_per_region` |
-| I3 | `region_state.active_siege_id` zeigt auf eine aktive Belagerung genau dieser Region | Transaktion + Invariantenjob |
+| I3 | `region_state.active_siege_id` zeigt auf eine aktive Belagerung genau dieser Region, und jede aktive Belagerung ist so eingetragen | Fremdschlüssel `(active_siege_id, region_id)` (Existenz, richtige Region) + Transaktion ([SIEGE_SYSTEM.md §3.1](SIEGE_SYSTEM.md#31-regionsreservierung-e)) + Invariantenjob (Status) |
 | I4 | `kingdoms.region_count` = Anzahl besessener Regionen | Transaktion + Invariantenjob |
 | I5 | Jedes aktive Reich mit Regionen hat genau eine Hauptstadt | Unique-Index (≤ 1) + Transaktion + Job (≥ 1) |
-| I6 | Jede aufgelöste Belagerung hat genau ein Ergebnis | PK `battle_results(siege_id)` |
+| I6 | Jede aufgelöste Belagerung hat genau ein Ergebnis | höchstens eines: PK `battle_results(siege_id)`; mindestens eines: Einfügen in der Transaktion des Endübergangs + Invariantenjob |
 | I7 | Pro Kampf und Spieler höchstens eine Belohnung | Unique `reward_events` |
 | I8 | Jedes Item wird höchstens einmal verbraucht | Unique `item_usage(item_id)` + Statusvergleich |
 | I9 | Verfügbare Items pro Spieler ≤ Inventargrenze | Transaktion unter Sperre `world_participants` + Job |
-| I10 | `base_deadline ≤ deadline ≤ max_deadline` | `CHECK` |
+| I10 | Fristen alle leer oder alle gesetzt mit `base_deadline ≤ deadline ≤ max_deadline` | `CHECK` |
 | I11 | Abgegebene Antworten sind unveränderlich | Trigger |
 | I12 | Freigegebene Fragenversionen sind unveränderlich | Trigger |
 | I13 | Alle Fremdschlüssel einer Spielzeile gehören zur selben Instanz | Anwendungslogik + Invariantenjob (zusammengesetzte FKs wären möglich, erschweren aber Migrationen – Entscheidung in Phase 1 nach Messung) |
@@ -294,4 +307,5 @@ create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFEN
 | `audit_events` | 24 Monate |
 | Sitzungen | bis Ablauf + 30 Tage |
 | IP-Adressen | nicht in der Datenbank; in Logs max. 7 Tage (Missbrauchsabwehr) |
-| Gelöschte Konten | personenbezogene Felder sofort entfernt; Reiche erhalten einen anonymen Namen, damit die Spielhistorie anderer konsistent bleibt |
+| `idempotency_keys` | 24 Stunden |
+| Gelöschte Konten | Löschkaskade und Anonymisierung innerhalb von 24 h nach [SECURITY.md §5.2](SECURITY.md#52-umsetzung); Reiche erhalten einen anonymen Namen, damit die Spielhistorie anderer konsistent bleibt |
