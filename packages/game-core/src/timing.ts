@@ -38,8 +38,9 @@ function assertNonNegativeInteger(name: string, value: number): void {
 }
 
 /**
- * Signal für einen unzulässigen Client-Wert. Fehlende oder nicht numerische Werte sind kein
- * Signal (älterer Client, Reload); Typfehler weist schon das Protokollschema ab.
+ * Signal für einen unzulässigen Client-Wert. Fehlende Werte sind kein Signal (älterer Client,
+ * Reload); nicht numerische Werte verwirft diese Funktion ebenfalls ohne Signal. Die Typprüfung der
+ * Anfrage selbst kommt mit dem Antwort-Endpunkt in das Protokollschema.
  */
 function clientTimeSignal(c: unknown): TimingSignal | null {
   if (typeof c !== 'number') return null;

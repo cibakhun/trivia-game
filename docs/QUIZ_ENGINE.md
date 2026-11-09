@@ -59,9 +59,9 @@ Der Client zeigt beim Tippen die interpretierte Zahl in neutraler Form („= 1 2
 
 > **Derzeit ruhend:** Gespielt wird nur auf Deutsch (PO-Entscheidung 2026-11-09, ADR-023). Die folgenden Regeln gelten erst, wenn eine weitere Sprache hinzukommt; bis dahin braucht jede Frage nur den deutschen Text und eine deutsche Sprachprüfung.
 
-1. Eine Fragenversion kommt nur dann in den **aktiven Pool**, wenn ihre Übersetzungen in **allen** aktiven Sprachen freigegeben sind (de, hu, en) [E]. Damit kann jedes Duell in jeder Sprachkombination gestellt werden.
+1. Eine Fragenversion kommt nur dann in den **aktiven Pool**, wenn ihre Übersetzungen in **allen** aktiven Sprachen freigegeben sind (`LOCALES` in `packages/protocol`, derzeit nur `de`) [E]. Damit kann jedes Duell in jeder Sprachkombination gestellt werden.
 2. Übersetzungen werden von Muttersprachlern geprüft; Übersetzung ≠ Wort-für-Wort: Optionen müssen in jeder Sprache gleich plausibel bleiben (keine Hinweise durch Wortlänge, Artikel, Kasus) [E].
-3. **Namen** werden landesüblich dargestellt (ungarische Namensreihenfolge Familienname–Vorname, z. B. „Petőfi Sándor“ in hu, „Sándor Petőfi“ in de/en) [E].
+3. **Namen** werden landesüblich dargestellt (Beispiel für eine spätere Erweiterung um Ungarisch: Familienname–Vorname, „Petőfi Sándor“ in hu, „Sándor Petőfi“ in de) [E].
 4. **Landesspezifisches Wissen** (Tag `region:XX`): In Duellen zwischen Spielern verschiedener Sprachen werden solche Fragen ausgeschlossen; in gleichsprachigen Duellen und im PvE sind sie erlaubt [E].
 5. **Monitoring (Differential Item Functioning):** Für jede Version wird die Quote richtiger Antworten je Sprache verfolgt. Weicht die kalibrierte Schwierigkeit zwischen Sprachen deutlich ab (z. B. > 0,5 Logits bei ≥ 200 Antworten je Sprache), wird die Frage automatisch suspendiert und zur Prüfung vorgelegt [E].
 6. Erklärtext nach der Auflösung („Gold hat die Ordnungszahl 79“) in jeder Sprache – fördert den Lerneffekt und reduziert Beschwerden.
@@ -230,7 +230,7 @@ flowchart LR
   D --> E[CI-Validierung<br/>Schema, ≥4 Optionen, 1 richtig, Längen, Einheiten]
   E --> F[Import als APPROVED-Version]
   F --> G[Spielbetrieb + Statistik]
-  G -->|Meldungen, DIF, Exakttreffer| B
+  G -->|Meldungen, Quoten, Exakttreffer| B
 ```
 
 - Fragen liegen als YAML-Dateien in Git (eigenes Verzeichnis oder eigenes Redaktions-Repository): Versionierung, Review per Pull Request, Herkunft nachvollziehbar.
@@ -257,7 +257,7 @@ Eine gemeinsame logistische Skala (1-Parameter-IRT/Elo-artig) für Spieler, NPCs
 P(richtig) = σ(θ_teilnehmer − b_frage),   σ(x) = 1 / (1 + e^(−x))
 ```
 
-- `b_frage`: Start aus redaktioneller Schwierigkeit (leicht −1,2 · mittel 0 · schwer +1,2; Stufen 1–2 gelten als leicht, 3 als mittel, 4–5 als schwer [E]), danach laufend aus Spieldaten aktualisiert (`calibrated_difficulty`), getrennt je Sprache für das DIF-Monitoring.
+- `b_frage`: Start aus redaktioneller Schwierigkeit (leicht −1,2 · mittel 0 · schwer +1,2; Stufen 1–2 gelten als leicht, 3 als mittel, 4–5 als schwer [E]), danach laufend aus Spieldaten aktualisiert (`calibrated_difficulty`), bei mehr als einer Sprache getrennt je Sprache für das DIF-Monitoring (§4).
 - `θ_spieler`: `player_statistics.skill_rating`, aktualisiert nach jeder Trivia-Antwort (`θ += K · (y − p)`), mit Unsicherheit `skill_rd` für neue Spieler.
 - `θ_npc`: Profilwert der NPC-Fraktion ([NPC_SYSTEM.md §3](NPC_SYSTEM.md#3-antwortmodell)).
 

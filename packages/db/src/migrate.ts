@@ -49,17 +49,34 @@ const SQL_NON_CODE =
 
 /**
  * Ersetzt alles außer den Anweisungen selbst durch Leerzeichen, sodass z. B. ein `begin` im Rumpf
- * einer PL/pgSQL-Funktion nicht als Transaktionsbefehl gilt.
+ * einer PL/pgSQL-Funktion nicht als Transaktionsbefehl gilt. Zeilenumbrüche bleiben stehen, damit
+ * Länge und Zeilennummern zum Original passen.
  */
 export function stripSqlLiterals(sql: string): string {
-  return sql.replace(SQL_NON_CODE, (match) => ' '.repeat(match.length));
+  return sql.replace(SQL_NON_CODE, (match) => match.replace(/[^\n]/g, ' '));
 }
+
+/** Beginn eines Funktionsrumpfs nach SQL-Standard (`BEGIN ATOMIC … END`, ohne Dollar-Quoting). */
+const ATOMIC_BODY_START = /\bbegin\s+atomic\b/i;
+const ATOMIC_BODY_EMPTY = /\bbegin\s+atomic\s+end$/i;
 
 /** Enthält die Datei eine eigene Transaktionssteuerung (auch mitten in einer Zeile)? */
 export function hasTransactionControl(sql: string): boolean {
-  return stripSqlLiterals(sql)
-    .split(';')
-    .some((statement) => TRANSACTION_CONTROL.test(statement.trim()));
+  let inAtomicBody = false;
+  for (const raw of stripSqlLiterals(sql).split(';')) {
+    const statement = raw.trim();
+    if (inAtomicBody) {
+      // Der Rumpf endet mit einer eigenen Anweisung `END`; ein `END` aus CASE steht nie allein.
+      if (/^end$/i.test(statement)) inAtomicBody = false;
+      continue;
+    }
+    if (ATOMIC_BODY_START.test(statement)) {
+      inAtomicBody = !ATOMIC_BODY_EMPTY.test(statement);
+      continue;
+    }
+    if (TRANSACTION_CONTROL.test(statement)) return true;
+  }
+  return false;
 }
 
 /** Liest und prüft alle Migrationsdateien eines Verzeichnisses (lückenlos ab 0001). */

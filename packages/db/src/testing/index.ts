@@ -87,8 +87,12 @@ export async function createTestDatabase(
         client.release();
       }
     } catch (error) {
-      // sonst blieben Pool und Datenbank liegen, weil der Aufrufer drop() nie erhält
-      await drop().catch(() => undefined);
+      // sonst blieben Pool und Datenbank liegen, weil der Aufrufer drop() nie erhält. Scheitert
+      // auch das Aufräumen, wird es protokolliert (Name zum Nachlöschen), der Migrationsfehler
+      // bleibt der geworfene Fehler.
+      await drop().catch((cleanupError: unknown) => {
+        console.error(`Testdatenbank ${name} konnte nicht gelöscht werden:`, cleanupError);
+      });
       throw error;
     }
   }

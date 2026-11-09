@@ -67,7 +67,7 @@ Abnahme (Brief): Ein Spieler erobert wiederholt NPC-Gebiete, erweitert sein Reic
 | Nebenläufigkeit | Harness und Tests N1–N4, N8, N12 |
 | Staging | erste erreichbare Testumgebung, falls [O-11] freigegeben; sonst Test im lokalen Netz |
 
-Abnahme (Brief): Zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse. Tests: E2E-02, -03, -04, -09, -10.
+Abnahme (Brief): Zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse. Tests: E2E-02, -03, -04, -09 (E2E-10 ruht bis zu einer zweiten Sprache, ADR-023).
 
 ### Phase 3 – Eternal-Belagerungen
 

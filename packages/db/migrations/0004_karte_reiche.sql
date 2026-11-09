@@ -106,12 +106,16 @@ create table kingdom_history (
 );
 create index kingdom_history_kingdom_at on kingdom_history (kingdom_id, at);
 
--- Protokolle werden nur angehängt (DATA_MODEL §1). UPDATE ist für alle gesperrt; DELETE bleibt für
--- die Aufbewahrungsfristen (DATA_MODEL §7) und wird der Anwendungsrolle mit der Rollen-Migration
--- per Rechtevergabe entzogen.
+-- Protokolle werden nur angehängt (DATA_MODEL §1). UPDATE und TRUNCATE (umgeht Zeilentrigger und
+-- löscht das ganze Protokoll) sind für alle gesperrt; gezieltes DELETE bleibt für die
+-- Aufbewahrungsfristen (DATA_MODEL §7) und wird der Anwendungsrolle mit der Rollen-Migration per
+-- Rechtevergabe entzogen.
 create trigger kingdom_history_append_only
   before update on kingdom_history
   for each row execute function forbid_row_change();
+create trigger kingdom_history_no_truncate
+  before truncate on kingdom_history
+  for each statement execute function forbid_row_change();
 
 alter table world_participants
   add constraint world_participants_current_kingdom_fk
@@ -190,9 +194,13 @@ create index region_history_instance_at on region_history (instance_id, at);
 create index region_history_from_kingdom on region_history (from_kingdom_id);
 create index region_history_to_kingdom on region_history (to_kingdom_id);
 
+-- wie kingdom_history: kein UPDATE, kein TRUNCATE, gezieltes DELETE für Aufbewahrungsfristen
 create trigger region_history_append_only
   before update on region_history
   for each row execute function forbid_row_change();
+create trigger region_history_no_truncate
+  before truncate on region_history
+  for each statement execute function forbid_row_change();
 
 -- ---------------------------------------------------------------------------------------------
 -- Saisonergebnisse (DATA_MODEL §4.2)

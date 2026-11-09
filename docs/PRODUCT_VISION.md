@@ -12,7 +12,7 @@ Ein browserbasiertes Multiplayer-Strategiespiel, in dem **Wissen die wichtigste 
 
 | Segment | Bedürfnis | Hauptmodus |
 |---|---|---|
-| Quiz-Enthusiasten (DE/HU/EN) | Wissen messen, fair gewinnen | Daily, Weekly |
+| Quiz-Enthusiasten (deutschsprachig) | Wissen messen, fair gewinnen | Daily, Weekly |
 | Strategiespieler mit wenig Zeit | Langfristiger Fortschritt in kurzen Sitzungen | Eternal |
 | Gelegenheitsspieler mobil | „Eine Verteidigung in der Mittagspause“ | Eternal (Belagerungs-Dashboard) |
 

@@ -26,7 +26,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 
 **Nicht enthalten:** 24-h-Fristen mit Timeout-Jobs und Neustartfestigkeit, Web Push, vollständige Limits und Schutzzeiten (Phase 3), Items (Phase 4) sowie alles aus §4.2.
 
-**Abnahme:** Brief Phase 2 (zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse) + E2E-02, -03, -04, -09, -10 + Invariantenjob ohne Verstoß nach einer internen Testsitzung mit 2–5 Spielern.
+**Abnahme:** Brief Phase 2 (zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse) + E2E-02, -03, -04, -09 (E2E-10 ruht, ADR-023) + Invariantenjob ohne Verstoß nach einer internen Testsitzung mit 2–5 Spielern.
 
 ## 4. M3 – Erstes spielbares MVP (Closed Beta)
 
@@ -54,7 +54,7 @@ Daily/Weekly (Phase 6) · automatische Itemverwendung (Phase 4b) · NPC-Expansio
 
 ### 4.3 Abnahmekriterien M3
 
-1. Alle Abnahmekriterien der Phasen 1–4 und E2E-01 bis -11 grün.
+1. Alle Abnahmekriterien der Phasen 1–4 und E2E-01 bis -11 grün (ohne das ruhende E2E-10).
 2. 7 Tage Staging-Testlauf mit simulierten Spielern (Bots über die öffentliche API) ohne Invariantenverletzung.
 3. Wiederherstellung aus Backup erfolgreich geprobt.
 4. Kampf-Rekonstruktion für eine zufällige Stichprobe von 20 Kämpfen nachvollziehbar.

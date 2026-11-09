@@ -284,6 +284,13 @@ describe('Königreiche', () => {
     await expect(
       q(`update kingdom_history set kind = 'FALLEN' where kingdom_id = $1`, [kingdomId]),
     ).rejects.toThrow(/unveränderlich/);
+    // TRUNCATE umgeht Zeilentrigger und würde das ganze Protokoll löschen
+    await expect(q(`truncate kingdom_history`)).rejects.toThrow(/unveränderlich/);
+    await expect(q(`truncate region_history`)).rejects.toThrow(/unveränderlich/);
+    // gezieltes Löschen bleibt für Aufbewahrungsfristen möglich (DATA_MODEL §7)
+    await expect(
+      q(`delete from kingdom_history where kingdom_id = $1`, [kingdomId]),
+    ).resolves.toBeDefined();
   });
 });
 

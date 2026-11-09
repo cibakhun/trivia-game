@@ -47,6 +47,16 @@ describe('classifyDrop – Intervalle (ITEM_SYSTEM §3)', () => {
       );
     }
   });
+
+  it('lehnt eine Tabelle über 100 % auch bei kleinem Faktor ab', () => {
+    const tooMuch = [
+      { item: 'hourglass_small', weightPpm: 800_000 },
+      { item: 'chronos_seal', weightPpm: 300_000 },
+    ] as const;
+    for (const factor of [1, 0.5, 0]) {
+      expect(() => classifyDrop(0.5, factor, tooMuch)).toThrow(/über 100 %/);
+    }
+  });
 });
 
 /** Toleranz: 5 Standardabweichungen einer Binomialschätzung. */

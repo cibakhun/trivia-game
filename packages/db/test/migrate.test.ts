@@ -14,6 +14,7 @@ describe('hasTransactionControl', () => {
     'select 1;   start   transaction;',
     "select 1; prepare transaction 'x';",
     'select $1::int; begin;',
+    'create function f() returns int language sql begin atomic select 1; end; commit;',
   ])('erkennt %j', (sql) => {
     expect(hasTransactionControl(sql)).toBe(true);
   });
@@ -29,15 +30,23 @@ describe('hasTransactionControl', () => {
     '/* commit; */ select 1;',
     'select "begin"; select 1 as "end";',
     'create table beginnings (x int); create table ending (x int);',
+    'create function f() returns int language sql begin atomic select 1; end;',
+    'create function f() returns int language sql\nbegin atomic\n  select case when true then 1 end;\nEND;',
+    'create procedure p() language sql begin atomic end; select 1;',
   ])('lässt %j zu', (sql) => {
     expect(hasTransactionControl(sql)).toBe(false);
   });
 
   it('erhält Länge und Zeilen, damit Fehlermeldungen passende Positionen behalten', () => {
-    const sql = "select 'a'; -- x\n/* y */ select $$z$$;";
+    // mehrzeilige Zeichenkette, Blockkommentar und Dollar-Rumpf: Umbrüche bleiben an ihrem Platz
+    const sql = "select 'a\nb'; -- x\n/* y\n z */ select $$\nbegin\n$$;\nselect 1;";
     const stripped = stripSqlLiterals(sql);
     expect(stripped).toHaveLength(sql.length);
-    expect(stripped.split('\n')).toHaveLength(2);
+    expect(stripped.split('\n').map((line) => line.length)).toEqual(
+      sql.split('\n').map((line) => line.length),
+    );
+    expect(stripped.indexOf('select 1')).toBe(sql.indexOf('select 1'));
+    expect(stripped).not.toContain('begin');
   });
 });
 
