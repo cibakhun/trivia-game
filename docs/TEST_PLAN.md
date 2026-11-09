@@ -93,8 +93,23 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 - Szenario-Builder in `packages/db/testing` (z. B. `givenKingdom().withRegions(5).underSiege(...)`) statt großer SQL-Dumps.
 - Keine Produktionsdaten in Tests.
 
-## 7. Aktueller Stand (Phase 0)
+## 7. Aktueller Stand
 
-- Es existiert noch kein Code; daher wurden keine Software-Tests ausgeführt.
-- Ausgeführt wurden: eine vorläufige Monte-Carlo-Simulation der Itemökonomie ([ITEM_SYSTEM.md §4.2](ITEM_SYSTEM.md#42-simulation)), eine Anpassung des NPC-Antwortmodells an die Brief-Tabelle ([NPC_SYSTEM.md §3.1](NPC_SYSTEM.md#31-trivia)) und eine automatische Prüfung aller internen Links und Anker dieser Dokumentation.
-- Mit den Grundlagen (Roadmap Schritt 1.0) entstehen CI, Unit-Tests für `game-core` und der Integrations-Harness.
+**Schritt 1.0 (2026-11-09).** Befehle: `pnpm test` (Unit), `pnpm test:integration` (braucht `TEST_DATABASE_URL`), `pnpm content:validate`, `pnpm lint`, `pnpm typecheck`; CI führt alle aus.
+
+| Bereich aus §3 | Stand |
+|---|---|
+| Nachbarschaft | umgesetzt: 6 Nachbarn, Symmetrie, Metrik (Dreiecksungleichung), Chunk-Zuordnung stabil inkl. negativer Koordinaten; Abgleich `chunkOf` ↔ SQL-Check `regions_chunk_matches_coordinates` |
+| Trivia-Bewertung | umgesetzt (`option_key`, ungültiges Token) |
+| Schätzbewertung | umgesetzt: `ROUND_HALF_UP` inkl. ±x,5, Dezimal statt Float (`0,1 + 0,2`), Zahlparser je Sprache inkl. `1.234` de/en, Eigenschaftstest über alle Schreibweisen |
+| Tiebreaker | umgesetzt: Tabelle [QUIZ_ENGINE.md §8.1](QUIZ_ENGINE.md#81-beispiele-testfälle) vollständig (11 Fälle mit Punkten), Eigenschaften „immer definiert“, „Gate“, „Rollentausch“ |
+| Effektive Zeit | umgesetzt: `clamp`-Grenzen, `S < cap`, Reload, fehlende/negative/nicht ganzzahlige Werte |
+| NPC-Antwortlogik | umgesetzt: Determinismus, Trefferquote über 100 000 Ziehungen ±1 %, Brief-Tabelle, Streuung, Begrenzung, Antwortzeit |
+| Item-Drops | umgesetzt: Intervallgrenzen exakt, Verteilung über 1 Mio. Seeds und 20 000 echte HMAC-Seeds, Faktor `f` |
+| Maximale Verlängerung | umgesetzt: Eigenschaft `deadline ≤ max_deadline`, Kappung mit verfallendem Rest, Ablehnung ohne Verbrauch, `DEADLINE_CHANGED` |
+| Königreichsränge | umgesetzt: alle Schwellen |
+| Weltabschluss | teilweise: Angriffsschluss und Saisonende-Prüfung; Wertung folgt mit [O-16] |
+| Verteidigungspunkte | umgesetzt: alle Kombinationen, Unabhängigkeit von der Angreiferleistung |
+| Angriffsberechtigung, Zustandsmaschine | offen (Phase 1/3) |
+
+Integration (gegen PostgreSQL 16): Migrationsläufer (leere DB, Idempotenz, geänderte/fehlende/kaputte Migrationen mit vollständigem Rollback, parallele Läufe), `game_now()` mit Zeitversatz und Schreibschutz (auch gegen Sitzungs-`SET`), Constraints aus [DATA_MODEL.md §4.1–4.4](DATA_MODEL.md#41-konten-und-profile) und die Regel „jeder Fremdschlüssel auf `users` ist `RESTRICT` und indiziert“ als Katalogprüfung.

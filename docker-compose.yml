@@ -1,0 +1,22 @@
+# Lokale Entwicklungsdatenbank (nur local/test, nie Staging oder Produktion).
+# Start: docker compose up -d db    – Passwort kommt aus .env (siehe .env.example).
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: rdw
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD in .env setzen}
+      POSTGRES_DB: rdw
+    ports:
+      # nur lokal erreichbar
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - rdw-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rdw -d rdw']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  rdw-db:

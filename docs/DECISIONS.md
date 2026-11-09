@@ -25,6 +25,17 @@ Status aller ADRs: *angenommen, 2026-11-09, Phase 0*. Revidierbar, solange der j
 | ADR-015 | Fragen als YAML in Git, Import als unveränderliche Versionen | Review per PR, Herkunft und Versionierung, Diff-bar | Admin-CMS als einzige Quelle | gering |
 | ADR-016 | Regeln als versionierte Daten (`world_rules`), Fristwerte als Snapshot in jeder Belagerung | Balancing ohne Deployment; keine rückwirkenden Änderungen | Umgebungsvariablen, Konstanten im Code | gering |
 
+Status ADR-017 bis ADR-022: *angenommen, 2026-11-09, Schritt 1.0*.
+
+| ID | Entscheidung | Begründung | Verworfene Alternativen | Kosten einer späteren Änderung |
+|---|---|---|---|---|
+| ADR-017 | Workspace-Pakete ohne Build-Schritt: Pakete exportieren TypeScript-Quellen (`exports: ./src/index.ts`), Vitest, tsx und Vite laden sie direkt; `tsc --noEmit` prüft je Paket, `game-core` und `protocol` zusätzlich ohne Node-Typen | keine veralteten Build-Stände, schnelle Tests, Laufzeitneutralität von `game-core`/`protocol` wird vom Compiler geprüft | Build je Paket mit Project References | gering (Build für den Server-Container später ergänzbar) |
+| ADR-018 | Zufall konkret: HMAC-SHA256 über WebCrypto, `sfc32` aus den ersten 16 Byte (vier Wörter, Big Endian), 12 verworfene Startwerte, Gleitkommawert = `uint32 / 2^32`, Normalverteilung per Box-Muller mit genau zwei Werten; Entitäts-IDs nur ASCII `[A-Za-z0-9._-]`; `RNG_VERSION = 1` | läuft unverändert in Browser und Node, keine Abhängigkeit, feste Ziehungsreihenfolge | Node-`crypto` (nicht im Browser), Mersenne Twister, xoshiro128** | gering bis zu Produktionsdaten, danach nur als neue `rng_version` |
+| ADR-019 | Exakte Dezimalarithmetik in `game-core` mit BigInt (`units / 10^scale`); Eingaben kommen als kanonische Zeichenkette aus dem Zahlparser in `protocol`; Gleitkomma → Dezimal (nur NPC-Modell) über `toFixed`, das laut Spezifikation den exakten Binärwert „Hälfte von null weg“ rundet | exakte Abstände und Rundung ohne Bibliothek; `protocol` braucht `game-core` nicht | decimal.js / big.js | gering |
+| ADR-020 | Schreibschutz von `game_clock`: Ein Versatz ≠ 0 ist nur erlaubt, wenn die Datenbank selbst `rdw.allow_game_clock_offset = on` trägt (`ALTER DATABASE … SET`, ab PostgreSQL 15 nur Superuser). Der Trigger liest den Katalog, ein `SET` in der Sitzung genügt nicht | Produktion ist ohne Zutun geschützt; Test und Staging schalten den Versatz einmalig frei | Umgebungsvariable der Anwendung (umgehbar), eigene Funktion je Umgebung | gering |
+| ADR-021 | Fragendateien: eine Frage je YAML-Datei, Dateiname = stabiler Schlüssel `key`, Feldnamen wie die Tabellenspalten, Dezimalwerte als Zeichenkette, dokumentierte Prüfungen (`reviews`) in der Datei; Testfragen nur unter `content/fixtures/` mit Tag `fixture`, nie freigebbar | Review per Pull Request, Freigaberegel (Brief §5.6) maschinell prüfbar | eine Datei je Kategorie, Datenbank als Quelle | gering |
+| ADR-022 | Eigener Migrationsläufer (`pg`): Prüfsumme je Datei, Advisory-Sperre, eine Transaktion je Datei, lückenlose Nummerierung, Abbruch in Produktion ohne `--production-approved` | genau die Regeln aus [DATA_MODEL.md §6](DATA_MODEL.md#6-migrationsstrategie) in wenigen Zeilen | node-pg-migrate, Kysely-Migrator (TypeScript statt SQL) | gering |
+
 ## Offene Entscheidungen
 
 Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bzw. Closed Beta, P3 = später) und Wirkung. Jede Entscheidung hat eine Empfehlung; bis zur Entscheidung wird die Empfehlung als konfigurierbare Standardannahme umgesetzt.
@@ -143,6 +154,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | Datum | Änderung |
 |---|---|
 | 2026-11-09 | Phase 0: ADR-001 bis ADR-016 angenommen, O-01 bis O-17 erfasst |
+| 2026-11-09 | Schritt 1.0: ADR-017 bis ADR-022 angenommen (Pakete ohne Build, Zufall, Dezimalarithmetik, Schreibschutz der Spielzeit, Fragendateien, Migrationsläufer) |
 | 2026-11-09 | O-01 entschieden (PO): verdecktes Angreifer-Gate mit Verteidigungspunkten; O-18 neu erfasst |
 | 2026-11-09 | O-18 teilweise entschieden (PO): Punkte für jede eigene Verteidigung, mehr bei richtiger Trivia-Antwort, auch bei Gebietsverlust |
 | 2026-11-09 | O-18 Richtung (PO): Punkte voraussichtlich für Kosmetik oder Emojis an andere Spieler, kein Spielvorteil |

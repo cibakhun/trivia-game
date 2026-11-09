@@ -24,11 +24,11 @@ Jede Implementierungsphase besteht aus mehreren kleinen Pull Requests. Jeder Imp
 
 ## 2. Phasen im Detail
 
-### Phase 0 – Analyse und Architektur ✅ (dieser Stand)
+### Phase 0 – Analyse und Architektur ✅
 
 Lieferung: dieses Dokumentationspaket. Keine produktiven Änderungen.
 
-### Schritt 1.0 – Grundlagen (risikoarm, unabhängig von offenen Produktentscheidungen)
+### Schritt 1.0 – Grundlagen ✅ (risikoarm, unabhängig von offenen Produktentscheidungen)
 
 | Paket | Inhalt |
 |---|---|
@@ -41,6 +41,8 @@ Lieferung: dieses Dokumentationspaket. Keine produktiven Änderungen.
 | Inhalte | YAML-Schema für Fragen, Validierungswerkzeug, 40 Fixture-Fragen (de/hu/en) |
 
 Abnahme: CI grün; Unit-Tests nach [TEST_PLAN.md §3](TEST_PLAN.md#3-unit-tests-brief-171) für alle Kernfunktionen.
+
+Umgesetzt am 2026-11-09 (Stand der Tests: [TEST_PLAN.md §7](TEST_PLAN.md#7-aktueller-stand)). Verschoben nach Phase 1, weil erst dort Abfragen entstehen: Kysely mit generierten Tabellentypen und die Drift-Prüfung „Schema gegen eingecheckten Typ-Stand“ aus [DATA_MODEL.md §6](DATA_MODEL.md#6-migrationsstrategie); die Basis-NPC-Profile als Referenzdaten kommen mit dem PvE-Ablauf, der sie nutzt.
 
 ### Phase 1 – Singleplayer-Gameplay-Prototyp
 

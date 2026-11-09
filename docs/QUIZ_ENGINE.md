@@ -255,7 +255,7 @@ Eine gemeinsame logistische Skala (1-Parameter-IRT/Elo-artig) für Spieler, NPCs
 P(richtig) = σ(θ_teilnehmer − b_frage),   σ(x) = 1 / (1 + e^(−x))
 ```
 
-- `b_frage`: Start aus redaktioneller Schwierigkeit (leicht −1,2 · mittel 0 · schwer +1,2), danach laufend aus Spieldaten aktualisiert (`calibrated_difficulty`), getrennt je Sprache für das DIF-Monitoring.
+- `b_frage`: Start aus redaktioneller Schwierigkeit (leicht −1,2 · mittel 0 · schwer +1,2; Stufen 1–2 gelten als leicht, 3 als mittel, 4–5 als schwer [E]), danach laufend aus Spieldaten aktualisiert (`calibrated_difficulty`), getrennt je Sprache für das DIF-Monitoring.
 - `θ_spieler`: `player_statistics.skill_rating`, aktualisiert nach jeder Trivia-Antwort (`θ += K · (y − p)`), mit Unsicherheit `skill_rd` für neue Spieler.
 - `θ_npc`: Profilwert der NPC-Fraktion ([NPC_SYSTEM.md §3](NPC_SYSTEM.md#3-antwortmodell)).
 
