@@ -16,6 +16,32 @@ export interface Performance {
   readonly answeredBoth: boolean;
 }
 
+/** Ergebnis eines Schritts aus den gespeicherten Antworten; `null` = nie gestellt oder verpasst. */
+export interface TriviaStep {
+  readonly correct: boolean;
+}
+
+export interface EstimateStep {
+  readonly distance: Decimal;
+  readonly effectiveMs: number;
+}
+
+/**
+ * Leistung einer Seite aus ihren gespeicherten Antworten. Verpasste oder nie gestellte Schritte
+ * zählen als falsch bzw. als unendlicher Abstand und unendliche Zeit (GAME_RULES §5.2).
+ */
+export function performanceFromSteps(
+  trivia: TriviaStep | null,
+  estimate: EstimateStep | null,
+): Performance {
+  return {
+    triviaCorrect: trivia?.correct ?? false,
+    estimateDistance: estimate?.distance ?? null,
+    estimateEffectiveMs: estimate?.effectiveMs ?? null,
+    answeredBoth: trivia !== null && estimate !== null,
+  };
+}
+
 /** Der Verteidiger hat bis zur Frist keine Verteidigung begonnen. */
 export const NO_DEFENSE = 'NO_DEFENSE';
 export type Defense = Performance | typeof NO_DEFENSE;

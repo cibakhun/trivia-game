@@ -22,6 +22,8 @@ Alle Arten nutzen dieselbe Tabelle `sieges`, dieselbe Herausforderung (`quiz_cha
 
 Dass die NPC-Antwort *vor* der Spielerantwort feststeht, ist im Ereignisprotokoll belegbar und schließt jeden Verdacht eines „reagierenden“ NPCs aus [E].
 
+Stand Phase 1 Paket 3 (ADR-032 bis ADR-034): umgesetzt ohne Drop-Wurf (Phase 4). Die NPC-Antworten tragen im Ereignis `NPC_ANSWERS_SEALED` ein SHA-256-Commitment. Die Auswertung (Schritt 3) läuft in einer eigenen Transaktion direkt nach dem Speichern der letzten Antwort, mit den Sperren aus §5.1 und der Prüfung N12. Bei Sieg kommen Regionshistorie (`CONQUEST_PVE`), Regionenzahl, Ende des Anfängerschutzes ab `untilRegions`, Rangwechsel, neue Hauptstadt bzw. Fall des Verteidigerreichs (§8, Fraktion ruht) und Statistiken hinzu. Bei Niederlage wird die Reservierung gelöst. Outbox-Ereignisse: `region.changed`, `kingdom.changed` und persönlich `siege.resolved`. Dynamische NPC-Stärke ([NPC_SYSTEM.md](NPC_SYSTEM.md)) und Spielstärkewert folgen mit der Kalibrierung.
+
 ## 3. Zustandsmaschine
 
 ```mermaid

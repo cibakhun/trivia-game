@@ -1,6 +1,7 @@
 import { createDb, createPool } from '@rdw/db';
 import { buildApp } from './app.ts';
 import { parseServerConfig } from './infra/config.ts';
+import { startChallengeSweeper } from './modules/combat/sweeper.ts';
 
 /** Startpunkt der Rolle `api` (ARCHITECTURE §5): `pnpm --filter @rdw/server start`. */
 async function main(): Promise<void> {
@@ -8,8 +9,11 @@ async function main(): Promise<void> {
   const pool = createPool({ connectionString: config.databaseUrl, applicationName: 'rdw-api' });
   const db = createDb(pool);
   const app = await buildApp({ db, config });
+  // Bis zum Worker-Prozess (Phase 3) räumt der api-Prozess liegen gebliebene Kämpfe auf (ADR-034).
+  const stopSweeper = startChallengeSweeper(db, app.log);
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, 'Beende');
+    stopSweeper();
     await app.close();
     await db.destroy();
   };

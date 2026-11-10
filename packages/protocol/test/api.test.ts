@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   MAX_CHUNKS_PER_REQUEST,
+  answerRequestSchema,
   chunkListSchema,
+  presentedQuestionSchema,
   errorBodySchema,
   regionIdSchema,
 } from '../src/index.ts';
@@ -42,5 +44,59 @@ describe('Fehlerformat und IDs', () => {
     for (const bad of ['0', '01', '-1', '1e3', '9223372036854775808', '12345678901234567890', '']) {
       expect(regionIdSchema.safeParse(bad).success).toBe(false);
     }
+  });
+});
+
+describe('Kampf und Herausforderung', () => {
+  it('nimmt Antworten als Optionstoken oder Rohtext mit Sprache an', () => {
+    expect(
+      answerRequestSchema.safeParse({ optionToken: 'k7Qp', clientElapsedMs: 4210 }).success,
+    ).toBe(true);
+    expect(
+      answerRequestSchema.safeParse({ rawInput: '1.234,5', locale: 'de', clientElapsedMs: -3.5 })
+        .success,
+    ).toBe(true);
+    expect(answerRequestSchema.safeParse({ rawInput: '12' }).success).toBe(false);
+    expect(
+      answerRequestSchema.safeParse({ optionToken: 'a', rawInput: '1', locale: 'de' }).success,
+    ).toBe(false);
+    expect(answerRequestSchema.safeParse({ rawInput: '1'.repeat(41), locale: 'de' }).success).toBe(
+      false,
+    );
+  });
+
+  it('beschreibt gestellte Fragen ohne Lösung', () => {
+    const base = {
+      challengeId: '01933b6e-0000-7000-8000-000000000001',
+      step: 0,
+      prompt: 'Frage?',
+      timeLimitMs: 20000,
+      remainingMs: 20500,
+      presentedAt: '2026-11-10T06:00:00.000Z',
+    };
+    expect(
+      presentedQuestionSchema.safeParse({
+        ...base,
+        kind: 'TRIVIA',
+        options: [{ token: 't1', text: 'A' }],
+      }).success,
+    ).toBe(true);
+    // ein Feld „correct“ wäre ein Leck und ist nicht erlaubt
+    expect(
+      presentedQuestionSchema.safeParse({
+        ...base,
+        kind: 'TRIVIA',
+        options: [{ token: 't1', text: 'A', correct: true }],
+      }).success,
+    ).toBe(false);
+    expect(
+      presentedQuestionSchema.safeParse({
+        ...base,
+        step: 1,
+        kind: 'ESTIMATE',
+        unitLabel: 'Meter',
+        answerPrecision: 0,
+      }).success,
+    ).toBe(true);
   });
 });

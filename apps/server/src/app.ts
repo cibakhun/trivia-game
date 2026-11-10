@@ -5,6 +5,7 @@ import { sql } from 'kysely';
 import type { AppContext } from './context.ts';
 import { registerErrorHandling } from './infra/errors.ts';
 import { registerOriginCheck } from './infra/origin.ts';
+import { combatRoutes } from './modules/combat/routes.ts';
 import { registerAuth } from './modules/identity/auth-hook.ts';
 import { identityRoutes } from './modules/identity/routes.ts';
 import { mapRoutes } from './modules/map/routes.ts';
@@ -44,6 +45,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
       identityRoutes(api, ctx);
       worldRoutes(api, ctx);
       mapRoutes(api, ctx);
+      combatRoutes(api, ctx);
       done();
     },
     { prefix: API_PREFIX },

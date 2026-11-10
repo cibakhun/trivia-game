@@ -4,7 +4,7 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 ## Status
 
-**Phase 1 (Singleplayer-Prototyp) in Arbeit.** Regelkern, Protokoll, Datenbank, Fragenimport, Kartengenerator mit Testwelt und der Server mit Gastkonto, Beitritt und Kartenabfragen stehen mit Tests; PvE-Kampf und Client folgen. Planung in [`docs/`](docs/README.md):
+**Phase 1 (Singleplayer-Prototyp) in Arbeit.** Regelkern, Protokoll, Datenbank, Fragenimport, Kartengenerator mit Testwelt und der Server mit Gastkonto, Beitritt, Kartenabfragen und PvE-Kampf (Angriff, Fragen, Antworten, Auflösung) stehen mit Tests; der Client folgt. Planung in [`docs/`](docs/README.md):
 
 - Anforderungen: [`docs/brief/PRD-0.1.md`](docs/brief/PRD-0.1.md)
 - MVP-Definition: [`docs/MVP.md`](docs/MVP.md)

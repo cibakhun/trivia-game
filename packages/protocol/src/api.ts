@@ -31,6 +31,25 @@ export const ERROR_CODES = [
   'INSTANCE_FULL',
   'INSTANCE_NOT_ACTIVE',
   'NO_START_REGION',
+  // Angriff (GAME_RULES §4); dieselben Codes wie ATTACK_REFUSAL_CODES
+  'NO_ACTIVE_KINGDOM',
+  'OWN_REGION',
+  'NOT_ADJACENT',
+  'REGION_UNDER_SIEGE',
+  'REGION_PROTECTED',
+  'KINGDOM_PROTECTED',
+  'RANK_GAP',
+  'CHALLENGE_IN_PROGRESS',
+  'ATTACKER_ATTEMPT_LIMIT',
+  'PVP_NOT_AVAILABLE',
+  'NO_QUESTION_AVAILABLE',
+  // Herausforderung (QUIZ_ENGINE §7)
+  'CHALLENGE_CLOSED',
+  'STEP_NOT_AVAILABLE',
+  'STEP_EXPIRED',
+  'INVALID_OPTION_TOKEN',
+  'INVALID_NUMBER_INPUT',
+  'ANSWER_OUT_OF_RANGE',
 ] as const;
 export const errorCodeSchema = z.enum(ERROR_CODES);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;
@@ -325,6 +344,42 @@ export const mapStateResponseSchema = z
   .strict();
 export type MapStateResponse = z.infer<typeof mapStateResponseSchema>;
 
+/**
+ * Gründe, aus denen ein Angriff nicht möglich ist, in der Prüfreihenfolge aus GAME_RULES §4.
+ * Gleiche Liste wie `ATTACK_REFUSALS` in game-core plus `PVP_NOT_AVAILABLE` (PvP kommt mit
+ * Phase 2); ein Test hält beide gleich.
+ */
+export const ATTACK_REFUSAL_CODES = [
+  'INSTANCE_NOT_ACTIVE',
+  'NO_ACTIVE_KINGDOM',
+  'OWN_REGION',
+  'NOT_ADJACENT',
+  'REGION_UNDER_SIEGE',
+  'REGION_PROTECTED',
+  'KINGDOM_PROTECTED',
+  'RANK_GAP',
+  'CHALLENGE_IN_PROGRESS',
+  'ATTACKER_ATTEMPT_LIMIT',
+  'PVP_NOT_AVAILABLE',
+] as const satisfies readonly ErrorCode[];
+export type AttackRefusalCode = (typeof ATTACK_REFUSAL_CODES)[number];
+
+export const attackModeSchema = z.enum(['PVE', 'PVP']);
+export const defenderKindSchema = z.enum(['NEUTRAL', 'NPC', 'PLAYER']);
+
+/** Berechnete Angriffsberechtigung des Anfragenden für eine Region (API.md §2.2). */
+export const attackEligibilitySchema = z
+  .object({
+    allowed: z.boolean(),
+    mode: attackModeSchema.nullable(),
+    defenderKind: defenderKindSchema.nullable(),
+    reason: z.enum(ATTACK_REFUSAL_CODES).nullable(),
+    /** Schutz bis (`REGION_PROTECTED`, `KINGDOM_PROTECTED`) bzw. nächster freier Versuch (`ATTACKER_ATTEMPT_LIMIT`). */
+    until: timestampSchema.nullable(),
+  })
+  .strict();
+export type AttackEligibilityDto = z.infer<typeof attackEligibilitySchema>;
+
 export const regionDetailResponseSchema = z
   .object({
     region: staticRegionSchema
@@ -340,6 +395,7 @@ export const regionDetailResponseSchema = z
       })
       .strict(),
     owner: kingdomSummarySchema.nullable(),
+    attack: attackEligibilitySchema,
     serverTime: timestampSchema,
   })
   .strict();

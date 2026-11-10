@@ -6,3 +6,8 @@ export {
   type CreateWorldOptions,
   type CreatedWorld,
 } from './modules/world/create-world.ts';
+export {
+  expireStaleChallenges,
+  settleOpenSiegesOfUser,
+  startChallengeSweeper,
+} from './modules/combat/sweeper.ts';

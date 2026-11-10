@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  START_ZONE_MAX_TIER,
+  garrisonProfileCode,
   compareDecimal,
   createRng,
   deriveSeed,
@@ -260,5 +262,15 @@ describe('generateNpcAnswer', () => {
         wrongOptionCount: 0,
       }),
     ).toThrow(RangeError);
+  });
+});
+
+describe('Profil der neutralen Garnison', () => {
+  it('nutzt in der Startzone das Startprofil, sonst das Profil der Stufe', () => {
+    expect(garrisonProfileCode(0)).toBe('GARRISON_START');
+    expect(garrisonProfileCode(START_ZONE_MAX_TIER)).toBe('GARRISON_START');
+    expect(garrisonProfileCode(3)).toBe('GARRISON_T03');
+    expect(garrisonProfileCode(10)).toBe('GARRISON_T10');
+    expect(() => garrisonProfileCode(11)).toThrow(RangeError);
   });
 });

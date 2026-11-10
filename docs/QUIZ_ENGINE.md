@@ -79,6 +79,8 @@ Bei Anlage einer Herausforderung wählt der Server deterministisch (Zufallsstrom
 
 Die Auswahl wird mit der Herausforderung gespeichert (`quiz_challenge_steps`); sie ändert sich nie mehr, auch wenn eine Frage später suspendiert wird (Brief §5.4).
 
+Stand Phase 1 Paket 3 (ADR-035, `packages/game-core/src/question-pick.ts`): Punkte 1, 2, 3 und 6 sind umgesetzt; Punkt 4 ruht (nur Deutsch, ADR-023), Punkt 5 folgt mit den Fragenstatistiken. Die erste Eroberung eines Reichs (Tutorial) bekommt nur leichte Fragen. Die Exposition (`player_question_exposure`) wird beim Stellen gespeichert, nicht bei der Anlage.
+
 ## 6. Zeitmessung und Latenzausgleich
 
 ### 6.1 Messgrößen
@@ -136,6 +138,8 @@ stateDiagram-v2
 2. `answer(step)`: Server prüft Token bzw. Zahl, `R < answer_deadline_at` (exklusive Grenze wie bei der Belagerungsfrist, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)), Status `PRESENTED`; setzt in einer bedingten Aktualisierung (`… where status = 'PRESENTED'`) Status `ANSWERED`, Richtigkeit, Abstand und Zeiten. Ein zweiter Versuch ändert nichts und gibt den gespeicherten Stand zurück (Idempotenz) [V-nah, Brief §13.1].
 3. Verpasste Zeitlimits setzt der Server beim nächsten Zugriff oder durch den Job `challenge.expireStale` auf `TIMED_OUT`, frühestens ab `answer_deadline_at + settleGrace` ([SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)). Eine Herausforderung gibt es je Teilnehmer nur einmal; wer sie verlässt, kann sie nicht neu beginnen.
 4. Schritt 1 (Schätzfrage) wird erst nach Abschluss von Schritt 0 ausgeliefert – kein Vorausladen möglich. Die Antwort auf Schritt 0 enthält direkt die Schätzfrage (`P₁` = Verarbeitungszeitpunkt dieser Antwort). So entsteht keine Lücke zwischen den Schritten, die ein Teilnehmer zum Nachschlagen nutzen oder die eine Verteidigungsfrist überschreiten könnte.
+
+Stand Phase 1 Paket 3 (ADR-033): umgesetzt für PvE. `present` ist ohne `Idempotency-Key` wiederholbar; ein Reload protokolliert `STEP_RELOADED`, danach gilt für diesen Schritt nur die Serverzeit (§6.2). `answer` speichert in einer kurzen Transaktion und wertet danach in einer zweiten aus. Läuft Schritt 0 ab, endet die Herausforderung ohne Schätzfrage (der Angreifer liegt damit am Gate falsch). Wer nach dem Angriff 120 s lang keine Frage öffnet, verliert den Angriff ohne Versuch (`NEVER_STARTED`).
 
 ### 7.2 Was der Client wann erfährt [E]
 

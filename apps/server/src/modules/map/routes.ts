@@ -17,6 +17,8 @@ import { readGameNow } from '../../infra/clock.ts';
 import { sha256Hex } from '../../infra/crypto.ts';
 import { ApiError } from '../../infra/errors.ts';
 import { parseInput } from '../../infra/validation.ts';
+import { eligibilityDto, loadAttackSituation } from '../combat/situation.ts';
+import { settleOpenSiegesOfUser } from '../combat/sweeper.ts';
 import { requireAuth } from '../identity/auth-hook.ts';
 import { loadKingdomProfile, loadKingdoms } from '../kingdom/queries.ts';
 
@@ -166,11 +168,13 @@ export function mapRoutes(app: FastifyInstance, ctx: AppContext): void {
   app.get(
     '/instances/:instanceId/regions/:regionId',
     async (request): Promise<RegionDetailResponse> => {
-      requireAuth(request);
+      const auth = requireAuth(request);
       const { instanceId, regionId } = parseInput(
         instanceParams.extend({ regionId: regionIdSchema }),
         request.params,
       );
+      // Fällige eigene Kämpfe zuerst auflösen, damit Belagerung und Berechtigung stimmen.
+      await settleOpenSiegesOfUser(ctx.db, auth.userId);
       const row = await ctx.db
         .selectFrom('regions as r')
         .innerJoin('region_state as s', 's.region_id', 'r.id')
@@ -204,7 +208,11 @@ export function mapRoutes(app: FastifyInstance, ctx: AppContext): void {
             row.owner_kingdom_id,
           ) ?? null)
         : null;
-      const now = await readGameNow(ctx.db);
+      const situation = await loadAttackSituation(ctx.db, {
+        instanceId,
+        userId: auth.userId,
+        regionId,
+      });
       return {
         region: {
           id: row.id,
@@ -225,7 +233,8 @@ export function mapRoutes(app: FastifyInstance, ctx: AppContext): void {
           underSiege: row.under_siege,
         },
         owner,
-        serverTime: now.toISOString(),
+        attack: eligibilityDto(situation.eligibility),
+        serverTime: situation.now.toISOString(),
       };
     },
   );

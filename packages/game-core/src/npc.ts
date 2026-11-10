@@ -92,6 +92,22 @@ export function garrisonProfile(tier: number): NpcProfile {
   };
 }
 
+/** Höchste Regionsstufe der Startzonen (WORLD_SYSTEM §3.2: Stufe 0–2). */
+export const START_ZONE_MAX_TIER = 2;
+
+/**
+ * Code des Antwortprofils einer neutralen Garnison (Referenzdaten aus Migration 0007): in der
+ * Startzone `GARRISON_START`, sonst je Stufe `GARRISON_T00` … `GARRISON_T10`.
+ */
+export function garrisonProfileCode(tier: number): string {
+  if (!Number.isInteger(tier) || tier < 0 || tier > 10) {
+    throw new RangeError(`Regionsstufe muss 0–10 sein: ${tier}`);
+  }
+  return tier <= START_ZONE_MAX_TIER
+    ? 'GARRISON_START'
+    : `GARRISON_T${String(tier).padStart(2, '0')}`;
+}
+
 export interface EstimateSpreadParams {
   readonly s0: number;
   readonly thetaRef: number;

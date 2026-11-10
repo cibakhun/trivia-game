@@ -1,9 +1,11 @@
+import { importQuestions, validateContentDir } from '@rdw/content-tools';
 import { createDb, type Db } from '@rdw/db';
 import { createTestDatabase, type TestDatabase } from '@rdw/db/testing';
 import { TEST_WORLD_SEED, testWorldPreset } from '@rdw/game-core';
 import { API_PREFIX } from '@rdw/protocol';
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
 import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { buildApp, createWorld, type CreatedWorld, type ServerConfig } from '../src/index.ts';
 
 /** Testhelfer für den Server: eigene Datenbank je Datei, Anfragen per `inject` mit Cookie-Speicher. */
@@ -46,6 +48,17 @@ export async function startTestServer(): Promise<TestServer> {
       await database.drop();
     },
   };
+}
+
+const CONTENT_DIR = fileURLToPath(new URL('../../../content', import.meta.url));
+
+/** Importiert die Testfragen aus `content/fixtures` (nur local/test, Brief §5.6). */
+export async function importFixtureQuestions(db: Db): Promise<number> {
+  const { questions, issues } = await validateContentDir(CONTENT_DIR);
+  const errors = issues.filter((issue) => issue.severity === 'error');
+  if (errors.length > 0) throw new Error(`Fragen ungültig: ${JSON.stringify(errors)}`);
+  const summary = await importQuestions(db, questions, { includeFixtures: true });
+  return summary.created.length;
 }
 
 let worldCounter = 0;

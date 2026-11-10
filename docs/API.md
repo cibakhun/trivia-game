@@ -5,7 +5,7 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 ## 1. Konventionen
 
 - **Authentifizierung:** Sitzungscookie `rdw_session` (`HttpOnly`, `Secure`, `SameSite=Lax`, Pfad `/api/v1`, 30 Tage gleitend, höchstens stündlich verlängert). Zustandsändernde Anfragen (`POST`, `PUT`, `PATCH`, `DELETE`) müssen den Header `Origin` mit genau der Herkunft des Clients tragen, sonst `CSRF_ORIGIN_MISMATCH`; ein fehlender Header wird ebenfalls abgelehnt. Kein Double-Submit-Token ([ADR-028](DECISIONS.md)).
-- **Idempotenz:** Jede zustandsändernde Anfrage (`POST`, `PATCH`, `DELETE` – Spiel, Inventar, Konto, Mitteilungen, Administration) trägt den Header `Idempotency-Key` (UUID, vom Client erzeugt, bei Wiederholung unverändert); Ausnahmen sind `/auth/guest`, `/auth/login` und `/auth/logout` (nächster Punkt). Fehlt er, antwortet der Server mit `IDEMPOTENCY_KEY_REQUIRED`. Der Server speichert je Scope und Schlüssel Endpunkt, Hash der Anfrage und Antwort (`idempotency_keys`, 24 h), in derselben Transaktion wie die Wirkung: Eine Wiederholung liefert dieselbe Antwort ohne erneute Wirkung, derselbe Schlüssel mit anderem Inhalt ergibt `IDEMPOTENCY_KEY_REUSED`. Der Scope ist die Konto-ID der Sitzung beim Eintreffen der Anfrage und ändert sich danach nicht (`idempotency_keys.user_id`, Fremdschlüssel auf `users`). Zustandsändernde Anfragen ohne Sitzung gibt es nur bei den Ausnahmen im nächsten Punkt, die ohne Antwortspeicher auskommen. Spielkritische Tabellen speichern den Schlüssel zusätzlich mit einem Unique-Constraint je Akteur, damit die Garantie auch ohne den Antwortspeicher gilt und gleiche Schlüssel verschiedener Konten sich nicht stören (`sieges`: `(attacker_kingdom_id, idempotency_key)`, `item_usage`: `(user_id, idempotency_key)`, `quiz_answers`: `(participant_id, idempotency_key)`); bei `quiz_answers` verhindert außerdem `unique(participant_id, step_index)` mit der bedingten Aktualisierung `where status = 'PRESENTED'`, dass ein Schritt ein zweites Mal beantwortet wird. In den Tabellen unten wird der Header nicht wiederholt.
+- **Idempotenz:** Jede zustandsändernde Anfrage (`POST`, `PATCH`, `DELETE` – Spiel, Inventar, Konto, Mitteilungen, Administration) trägt den Header `Idempotency-Key` (UUID, vom Client erzeugt, bei Wiederholung unverändert); Ausnahmen sind `/auth/guest`, `/auth/login` und `/auth/logout` (nächster Punkt) sowie `POST /challenges/:id/steps/:i/present`, das von Natur aus wiederholbar ist ([§2.3](#23-kampf), ADR-033). Fehlt er, antwortet der Server mit `IDEMPOTENCY_KEY_REQUIRED`. Der Server speichert je Scope und Schlüssel Endpunkt, Hash der Anfrage und Antwort (`idempotency_keys`, 24 h), in derselben Transaktion wie die Wirkung: Eine Wiederholung liefert dieselbe Antwort ohne erneute Wirkung, derselbe Schlüssel mit anderem Inhalt ergibt `IDEMPOTENCY_KEY_REUSED`. Der Scope ist die Konto-ID der Sitzung beim Eintreffen der Anfrage und ändert sich danach nicht (`idempotency_keys.user_id`, Fremdschlüssel auf `users`). Zustandsändernde Anfragen ohne Sitzung gibt es nur bei den Ausnahmen im nächsten Punkt, die ohne Antwortspeicher auskommen. Spielkritische Tabellen speichern den Schlüssel zusätzlich mit einem Unique-Constraint je Akteur, damit die Garantie auch ohne den Antwortspeicher gilt und gleiche Schlüssel verschiedener Konten sich nicht stören (`sieges`: `(attacker_kingdom_id, idempotency_key)`, `item_usage`: `(user_id, idempotency_key)`, `quiz_answers`: `(participant_id, idempotency_key)`); bei `quiz_answers` verhindert außerdem `unique(participant_id, step_index)` mit der bedingten Aktualisierung `where status = 'PRESENTED'`, dass ein Schritt ein zweites Mal beantwortet wird. In den Tabellen unten wird der Header nicht wiederholt.
 - **Idempotenz bei Anmeldung:** Sitzungstoken werden nie im Antwortspeicher abgelegt.
   - **`/auth/guest`** nutzt statt eines `Idempotency-Key` ein Bootstrap-Cookie, damit kein Wiederholungsgeheimnis für Skripte lesbar ist. `GET /auth/bootstrap` setzt ohne Sitzung das Cookie `guest_bootstrap` (128 bit Zufall, `HttpOnly`, `Secure`, `SameSite=Strict`, Pfad `/api/v1/auth`, Laufzeit 24 h), sofern es noch fehlt. `POST /auth/guest` verlangt dieses Cookie (sonst `GUEST_BOOTSTRAP_REQUIRED`) und legt je Cookie-Wert höchstens ein Gastkonto an (`users.guest_bootstrap_hash`, SHA-256, unique). Geht die Antwort verloren, findet eine Wiederholung – auch nach Neuladen oder Absturz – dieses Konto und stellt eine neue Sitzung aus, solange zu diesem Konto noch keine authentifizierte Anfrage eingegangen ist (`users.last_seen_at` leer); danach antwortet der Server mit `GUEST_BOOTSTRAP_USED` und legt kein weiteres Konto an. Jede erfolgreiche Antwort löscht das Cookie; ein Aufräumjob leert `guest_bootstrap_hash` nach 24 h, wenn auch das Cookie abgelaufen ist. Ein dennoch doppelt angelegtes Gastkonto (etwa weil Cookies gelöscht wurden) bleibt ungenutzt und wird nach der Inaktivitätsfrist gelöscht ([SECURITY.md §5.2](SECURITY.md#52-umsetzung)).
   - **`/auth/register`** läuft mit der Gastsitzung (Scope = Konto-ID). Der Antwortspeicher hält nur die Konto-ID; eine Wiederholung stellt für dieses Konto eine neue Sitzung aus. Hat die Umwandlung die Gastsitzung bereits ersetzt und ging die Antwort verloren, meldet sich der Spieler mit den gerade gewählten Zugangsdaten über `/auth/login` an.
@@ -44,7 +44,7 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 | GET | `/instances/:id/kingdoms/:kingdomId` | öffentliches Reichsprofil |
 | GET | `/instances/:id/leaderboard?type=regions\|defense` | Ranglisten nach Regionen bzw. Verteidigungspunkten (abgeleitet, bis 60 s verzögert) |
 
-Stand Phase 1 Paket 2 (Schemas in `packages/protocol/src/api.ts`): umgesetzt sind `GET /worlds`, `POST /worlds/:worldId/join`, `map/static`, `map/state`, `regions/:regionId` und `kingdoms/:kingdomId`; alle verlangen eine Sitzung, Kartendaten sind auch ohne Teilnahme lesbar. Regions-IDs sind Dezimaltext (`bigint`), Zeitpunkte ISO-8601 in UTC, abgelaufene Schutzzeiten erscheinen als `null`. Höchstens 64 Chunks je Abfrage. `map/static` liefert je angefragtem Chunk die Regionen (auch leere Chunks) mit `ETag`; `Cache-Control: private, max-age=31536000, immutable` nur, wenn jeder angefragte Chunk Regionen hat, sonst `no-cache`, weil ein neuer Ring ihn noch füllen kann. `map/state` liefert Zustand, beteiligte Reiche und `seq` aus einem Schnappschuss (`repeatable read`); `sinceSeq` wird noch nicht ausgewertet (immer voller Zustand), Deltas kommen mit dem WebSocket in Paket 4. Die Angriffsberechtigung in `regions/:regionId` folgt mit dem PvE-Kampf (Paket 3). `join` wählt die Startregion nach [WORLD_SYSTEM.md §4.2](WORLD_SYSTEM.md#42-startregion-für-neue-spieler-e) und liefert Reich, Hauptstadt und `tutorialTargetRegionId`; `/me` liefert dieses Ziel, solange das Reich genau eine Region hat.
+Stand Phase 1 Paket 2 (Schemas in `packages/protocol/src/api.ts`): umgesetzt sind `GET /worlds`, `POST /worlds/:worldId/join`, `map/static`, `map/state`, `regions/:regionId` und `kingdoms/:kingdomId`; alle verlangen eine Sitzung, Kartendaten sind auch ohne Teilnahme lesbar. Regions-IDs sind Dezimaltext (`bigint`), Zeitpunkte ISO-8601 in UTC, abgelaufene Schutzzeiten erscheinen als `null`. Höchstens 64 Chunks je Abfrage. `map/static` liefert je angefragtem Chunk die Regionen (auch leere Chunks) mit `ETag`; `Cache-Control: private, max-age=31536000, immutable` nur, wenn jeder angefragte Chunk Regionen hat, sonst `no-cache`, weil ein neuer Ring ihn noch füllen kann. `map/state` liefert Zustand, beteiligte Reiche und `seq` aus einem Schnappschuss (`repeatable read`); `sinceSeq` wird noch nicht ausgewertet (immer voller Zustand), Deltas kommen mit dem WebSocket in Paket 4. `regions/:regionId` enthält seit Paket 3 `attack: { allowed, mode, defenderKind, reason, until }` für den Anfragenden: `reason` ist einer der Ablehnungscodes aus [§5](#5-fehlercodes-auszug) in der Prüfreihenfolge von [GAME_RULES.md §4](GAME_RULES.md), `until` das Schutzende bzw. der nächste freie Versuch; ein Ziel im Spielerbesitz zeigt `mode: "PVP"` mit `reason: "PVP_NOT_AVAILABLE"` (PvP folgt in Phase 2). `join` wählt die Startregion nach [WORLD_SYSTEM.md §4.2](WORLD_SYSTEM.md#42-startregion-für-neue-spieler-e) und liefert Reich, Hauptstadt und `tutorialTargetRegionId`; `/me` liefert dieses Ziel, solange das Reich genau eine Region hat.
 
 ### 2.3 Kampf
 
@@ -59,6 +59,14 @@ Stand Phase 1 Paket 2 (Schemas in `packages/protocol/src/api.ts`): umgesetzt sin
 | GET | `/sieges/:id` | Details; nach Auflösung inkl. vollständiger Auflösung beider Seiten |
 | POST | `/sieges/:id/defense` | Verteidigung beginnen → `challengeId` (Fehler `DEADLINE_TOO_CLOSE`) |
 | POST | `/sieges/:id/extend` | `{ itemDefinitionId, expectedNewDeadline }` |
+
+Stand Phase 1 Paket 3 (Schemas in `packages/protocol/src/combat.ts`): umgesetzt sind die vier oberen Zeilen für PvE; die `/sieges`-Endpunkte folgen mit PvP.
+
+- **`POST /instances/:id/attacks`** (201) prüft die Berechtigung nach [GAME_RULES.md §4](GAME_RULES.md) und legt Belagerung, Herausforderung und beide Schritte an; die Antworten der Garnison bzw. des NPC-Reichs entstehen dabei und sind versiegelt, bevor die erste Frage gezeigt wird (ADR-032). Antwort: `{ instanceId, siegeId, challengeId, mode, targetRegionId, defender: { kind, kingdom }, steps: [{ index, kind, timeLimitMs }], serverTime }`. Ein Ziel im Spielerbesitz wird in Phase 1 mit `PVP_NOT_AVAILABLE` abgelehnt.
+- **`present`** braucht keinen `Idempotency-Key`: Schritt 0 wird beim ersten Aufruf gestellt (ab dann zählt der Angriffsversuch), jeder weitere Aufruf liefert dieselbe Frage mit denselben Optionstoken und dem ursprünglichen `presentedAt`, protokolliert `STEP_RELOADED` und wertet die Antwort dieses Schritts danach nur mit Serverzeit. Schritt 1 wird mit der Antwort auf Schritt 0 gestellt; `present` für Schritt 1 liefert ihn nur nach einem Reload erneut. Antwort: `{ question, serverTime }`, siehe [§3](#3-beispiel-antwort-auf-present-trivia).
+- **`answer`** speichert die Antwort mit Eingangszeit und bestätigt nur „gespeichert“ (`status: "ANSWERED"`), ohne Richtigkeit. Nach Schritt 0 enthält `next` die Schätzfrage, nach Schritt 1 `resolution` die vollständige Auflösung beider Seiten (Fragen, richtige Option, Schätzwert, Antworten, Abstände, Zeiten, Ergebnis). Idempotenz über `quiz_answers.idempotency_key`: gleicher Schlüssel und gleiche Antwort liefern denselben Stand, gleicher Schlüssel mit anderer Antwort `IDEMPOTENCY_KEY_REUSED`, ein schon beantworteter Schritt wird nie überschrieben.
+- **`GET /challenges/:id`** liefert Status, Schritte mit Status (`PENDING`, `PRESENTED`, `ANSWERED`, `TIMED_OUT`), die offene Frage mit `remainingMs` und nach dem Ende die Auflösung. Die Auflösung zeigt nur Fragen, die tatsächlich gestellt wurden. Herausforderungen anderer Spieler antworten mit 404.
+- Fällige Kämpfe werden beim Lesen aufgelöst (Herausforderung, Regionsdetails, neuer Angriff) und zusätzlich minütlich im `api`-Prozess (ADR-034).
 
 ### 2.4 Inventar und Mitteilungen
 
@@ -89,23 +97,26 @@ Alle Admin-Kommandos verlangen `reason` (Pflichtfeld) und den Header `Idempotenc
 
 ```json
 {
-  "challengeId": "01933b6e-…",
-  "step": 0,
-  "kind": "TRIVIA",
-  "prompt": "Welches chemische Element besitzt die Ordnungszahl 79?",
-  "options": [
-    { "token": "k7Qp", "text": "Platin" },
-    { "token": "Zx2m", "text": "Gold" },
-    { "token": "aa9T", "text": "Kupfer" },
-    { "token": "Lr0e", "text": "Silber" }
-  ],
-  "timeLimitMs": 20000,
-  "remainingMs": 20000,
+  "question": {
+    "challengeId": "01933b6e-…",
+    "step": 0,
+    "kind": "TRIVIA",
+    "prompt": "Welches chemische Element besitzt die Ordnungszahl 79?",
+    "options": [
+      { "token": "k7Qp0aZ1b2c", "text": "Platin" },
+      { "token": "Zx2m9YtR4q0", "text": "Gold" },
+      { "token": "aa9T_x81LmQ", "text": "Kupfer" },
+      { "token": "Lr0e-Pc7wE3", "text": "Silber" }
+    ],
+    "timeLimitMs": 20000,
+    "remainingMs": 20500,
+    "presentedAt": "2026-11-09T18:00:00.000Z"
+  },
   "serverTime": "2026-11-09T18:00:00.000Z"
 }
 ```
 
-Die Antwort enthält weder `option_key`s noch einen Hinweis auf die richtige Option.
+Die Antwort enthält weder `option_key`s noch einen Hinweis auf die richtige Option. Optionstoken sind 8 Byte Zufall (Base64url) und gelten nur für diese Präsentation; `remainingMs` reicht bis zur Antwortgrenze (Zeitlimit + `quiz.latencyAllowanceCapMs`). Eine Schätzfrage trägt statt `options` die Felder `unitLabel` und `answerPrecision`.
 
 ## 4. WebSocket-Protokoll
 
@@ -141,6 +152,8 @@ Ereignisse sind **Hinweise auf Zustandsänderungen**, nicht die einzige Quelle: 
 
 | Code | Bedeutung |
 |---|---|
+| `NO_ACTIVE_KINGDOM` | Spieler hat in dieser Instanz kein aktives Reich (403) |
+| `OWN_REGION` | Zielregion gehört dem Spieler selbst |
 | `NOT_ADJACENT` | Zielregion grenzt an keine eigene Region |
 | `REGION_UNDER_SIEGE` | aktive Belagerung auf der Region |
 | `REGION_PROTECTED` | Schutzzeit der Region aktiv (`details.until`) |
@@ -149,7 +162,13 @@ Ereignisse sind **Hinweise auf Zustandsänderungen**, nicht die einzige Quelle: 
 | `ATTACKER_SIEGE_LIMIT`, `ATTACKER_ATTEMPT_LIMIT` | Angreiferbudgets erschöpft (`details.resetAt`) |
 | `DEFENDER_SIEGE_LIMIT` | Verteidiger hat maximale Zahl offener Belagerungen |
 | `CHALLENGE_IN_PROGRESS` | Spieler hat bereits eine laufende Herausforderung |
-| `STEP_EXPIRED` | Antwort nach Zeitlimit des Schritts |
+| `PVP_NOT_AVAILABLE` | Ziel gehört einem Spielerreich; PvP folgt in Phase 2 |
+| `NO_QUESTION_AVAILABLE` | keine Frage der benötigten Art im Bestand (`details.kind`) (409) |
+| `STEP_EXPIRED` | Antwort nach Zeitlimit des Schritts (`details.deadline`) |
+| `STEP_NOT_AVAILABLE` | Schritt noch nicht gestellt oder schon abgeschlossen |
+| `CHALLENGE_CLOSED` | Herausforderung ist beendet (`details.status`) |
+| `INVALID_OPTION_TOKEN` | Token gehört nicht zur Präsentation dieses Schritts (422) |
+| `INVALID_NUMBER_INPUT`, `ANSWER_OUT_OF_RANGE` | Schätzung nicht lesbar (`details.reason`) bzw. außerhalb des Eingabebereichs (422) |
 | `DEADLINE_PASSED` | Verteidigung nach Fristende |
 | `DEADLINE_TOO_CLOSE` | Restzeit reicht nicht für die Herausforderung |
 | `EXTENSION_LIMIT_REACHED` | Frist bereits am Maximum |
