@@ -6,6 +6,7 @@
 | `fixtures/questions/` | 40 Testfragen (25 Trivia, 15 Schätzung) für Tests und Prototyp – **nie für den Spielbetrieb** |
 
 Prüfen: `pnpm content:validate` (läuft auch in der CI).
+Importieren: `pnpm content:import` (Testfragen nur lokal und in Tests mit `--fixtures`; Regeln in [DATA_MODEL.md §4.6](../docs/DATA_MODEL.md#46-quiz) und ADR-026).
 
 ## Format
 

@@ -43,7 +43,8 @@ describe('Migrationsdateien', () => {
     await expect(loadMigrations(badName)).rejects.toThrow(/Dateiname/);
 
     const tx = await copyMigrations('tx');
-    await writeFile(path.join(tx, '0005_mit_transaktion.sql'), 'begin;\nselect 1;\ncommit;\n');
+    const next = String((await loadMigrations()).length + 1).padStart(4, '0');
+    await writeFile(path.join(tx, `${next}_mit_transaktion.sql`), 'begin;\nselect 1;\ncommit;\n');
     await expect(loadMigrations(tx)).rejects.toThrow(/Transaktionssteuerung/);
   });
 });
@@ -76,7 +77,9 @@ describe('migrate', () => {
 
   it('erkennt angewandte Migrationen ohne Datei', async () => {
     const dir = await copyMigrations('missing');
-    await rm(path.join(dir, '0004_karte_reiche.sql'));
+    const last = (await loadMigrations()).at(-1);
+    if (!last) throw new Error('keine Migrationen gefunden');
+    await rm(path.join(dir, last.file));
     const client = await db.pool.connect();
     try {
       await expect(migrate(client, { dir })).rejects.toThrow(/Datei fehlt/);
