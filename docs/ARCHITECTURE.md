@@ -221,7 +221,7 @@ Grobe Abschätzung (Hypothese, durch Lasttests zu prüfen – Brief §12.6): 10 
 
 ## 15. Frontend-Architektur
 
-- **Routen:** `/` (Start, Sprache), `/play/:instance` (Karte), `/sieges` (Belagerungs-Dashboard, mobil per Tab-Leiste mit einem Tipp erreichbar), `/challenge/:id` (Vollbild-Quiz), `/kingdom`, `/inventory`, `/settings`, `/legal/*`.
+- **Routen:** `/` (Start, Sprache), `/welten` (Weltwahl ohne Weiterleitung, seit Phase 2 Paket 2), `/konto` (Konto sichern, Anmelden, Spielername und Passwort; seit Phase 2 Paket 2), `/play/:instance` (Karte), `/sieges` (Belagerungs-Dashboard, mobil per Tab-Leiste mit einem Tipp erreichbar), `/challenge/:id` (Vollbild-Quiz), `/kingdom`, `/inventory`, `/settings`, `/legal/*`.
 - **Karte:** PixiJS-Szene mit Chunk-Containern; nur sichtbare Chunks werden geladen und gezeichnet; beim Herauszoomen Wechsel auf eine Chunk-Übersicht (eine Farbe pro dominierendem Besitzer). Interaktion über Hex-Hit-Test mit `game-core`.
 - **Quiz-UI:** keine Animationen während laufender Zeitmessung; Antwortbestätigung; großer Text; Tastaturbedienung; sichtbarer Timer, der aus Serverwerten (`remainingMs`) abgeleitet ist; Wiederaufnahme nach Reload über `GET /challenges/:id`.
 - **Barrierearmut:** WCAG 2.1 AA als Ziel; Besitzer nicht nur über Farbe, sondern zusätzlich über Muster/Symbole unterscheidbar; Screenreader-Texte für Quiz und Dashboard.

@@ -79,7 +79,7 @@ Abnahme (Brief): Zwei echte Spieler kämpfen auf derselben Karte ohne inkonsiste
 Umsetzung in vier Pull Requests, je Paket einer, in der Reihenfolge PvP, Konto, Echtzeit, Nebenläufigkeit:
 
 1. PvP: Eröffnung nach dem Angreifer, Verteidigung mit Frage im Verteidigungsbeginn, Auflösung (Verteidigung, Fristablauf, Abbruch), Verteidigungspunkte mit Paarsperre, PvP-Grenzen und Hauptstadtsperre, Belagerungsübersicht, Neugründung nach dem Fall, Spieltest-Regeln (`pnpm world:create --rules=playtest`, 10 min Frist); E2E-02 und -03 – umgesetzt am 2026-11-10 (ADR-038 bis ADR-042; ohne Echtzeit, Push und Verlängerung)
-2. Konto nach [O-03] und [O-10]
+2. Konto nach [O-03] und [O-10]: Gast sichern mit privatem Benutzernamen, Passwort (Argon2id) und Spielernamen aus Vorschlägen, Anmelden mit Sitzungsrotation und Anmeldebremse, Spielername und Passwort ändern, Reichsname aus Vorschlägen bei Beitritt und Neugründung, Kontoseite und Weltwahl im Client, Passwort-Reset per Befehl, Löschung inaktiver Gäste nach 90 Tagen mit Anonymisierung – umgesetzt am 2026-11-10 (ADR-043 bis ADR-045; E-Mail-Feld aufgeschoben bis zum Mailversand)
 3. Echtzeit (WebSocket)
 4. Nebenläufigkeit (Harness, N1–N4, N8, N12, E2E-09) und E2E-04
 
