@@ -68,7 +68,7 @@ Ein Angriffs**versuch** zählt ab dem Moment, in dem die erste Frage angezeigt w
 Jeder Teilnehmer beantwortet in dieser Reihenfolge, ohne Zwischenergebnis:
 
 1. eine Multiple-Choice-Frage (Trivia) mit Zeitlimit 20 s [E],
-2. unmittelbar danach eine Schätzfrage mit Zeitlimit 30 s [E] – **nur als Tiebreaker, wenn beide Seiten die Trivia-Frage richtig beantwortet haben** [V] (PO-Entscheidung 2026-11-10; ersetzt „auch wenn sie am Ende nicht gebraucht wird“, Brief §5.5). Im PvE wird sie nur dann gestellt. Im PvP wird sie immer gestellt, entscheidet aber ebenfalls nur bei Gleichstand (unten, [O-19]).
+2. unmittelbar danach eine Schätzfrage mit Zeitlimit 30 s [E] – **nur als Tiebreaker, wenn beide Seiten die Trivia-Frage richtig beantwortet haben** [V] (PO-Entscheidung 2026-11-10; ersetzt „auch wenn sie am Ende nicht gebraucht wird“, Brief §5.5). Im PvE wird sie nur dann gestellt. Im PvP wird sie immer gestellt, entscheidet aber ebenfalls nur bei Gleichstand (unten, [O-19]). „Keine Schätzfrage“ in der Tabelle gilt deshalb für den PvE-Ablauf; im PvP wird sie in diesen Fällen gestellt und zählt nicht.
 
 | Angreifer | Verteidiger | Ergebnis |
 |---|---|---|
