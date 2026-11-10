@@ -38,7 +38,14 @@ export async function startTestServer(): Promise<TestServer> {
   const database = await createTestDatabase();
   // kein db.destroy(): drop() beendet den Pool
   const db = createDb(database.pool);
-  const app = await buildApp({ db, config: testConfig(database.url), logger: false });
+  let app: FastifyInstance;
+  try {
+    app = await buildApp({ db, config: testConfig(database.url), logger: false });
+  } catch (error) {
+    // sonst blieben Testdatenbank und Pool liegen
+    await database.drop();
+    throw error;
+  }
   return {
     app,
     db,

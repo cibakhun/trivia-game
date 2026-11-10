@@ -190,6 +190,53 @@ describe('Testwelt anlegen', () => {
       }),
     ).rejects.toThrow(RangeError);
   });
+
+  it('rollt nach Teil-Einfügungen alles zurück', async () => {
+    const tables = [
+      'worlds',
+      'world_rules',
+      'world_instances',
+      'regions',
+      'region_state',
+      'kingdoms',
+      'npc_factions',
+    ] as const;
+    const counts = async () => {
+      const result: Record<string, string> = {};
+      for (const table of tables) {
+        const { rows } = await sql<{
+          n: string;
+        }>`select count(*)::text as n from ${sql.table(table)}`.execute(server.db);
+        result[table] = rows[0]?.n ?? '?';
+      }
+      return result;
+    };
+    const before = await counts();
+    // npc_factions wird zuletzt geschrieben: der Fehler kommt nach Welt, Regeln, Instanz,
+    // Regionen und Reichen
+    await sql`create function test_abbruch() returns trigger language plpgsql as $$
+      begin raise exception 'Testabbruch nach Teil-Einfügungen'; end $$`.execute(server.db);
+    await sql`create trigger test_abbruch before insert on npc_factions
+      for each statement execute function test_abbruch()`.execute(server.db);
+    try {
+      const { createWorld } = await import('../src/index.ts');
+      const { testWorldPreset } = await import('@rdw/game-core');
+      await expect(
+        createWorld(server.db, {
+          slug: 'teilweise',
+          nameKey: 'world.teilweise',
+          mode: 'ETERNAL',
+          seed: 3n,
+          preset: testWorldPreset(),
+          capacity: 5,
+        }),
+      ).rejects.toThrow(/Testabbruch nach Teil-Einfügungen/);
+    } finally {
+      await sql`drop trigger test_abbruch on npc_factions`.execute(server.db);
+      await sql`drop function test_abbruch()`.execute(server.db);
+    }
+    expect(await counts()).toEqual(before);
+  });
 });
 
 describe('Beitritt (POST /worlds/:worldId/join)', () => {

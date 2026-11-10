@@ -1,6 +1,7 @@
 import { newId, type Db, type Tx } from '@rdw/db';
 import {
   effectiveAnswerTime,
+  estimateDecides,
   formatDecimal,
   parseDecimal,
   scoreEstimate,
@@ -127,6 +128,28 @@ async function loadHead(db: Db, challengeId: string, userId: string): Promise<Ch
   };
 }
 
+/**
+ * Wird nach der Trivia-Frage die Schätzfrage gestellt? Im PvE steht die Antwort der Verteidigung
+ * (NPC oder Garnison) vorab fest; die Schätzfrage entscheidet nur, wenn beide richtig lagen.
+ * PvP ist noch nicht gebaut; dort ist die Reihenfolge offen ([O-19]) und bleibt wie bisher.
+ */
+async function estimateNeeded(
+  tx: Tx,
+  head: ChallengeHead,
+  attackerCorrect: boolean,
+): Promise<boolean> {
+  if (head.mode !== 'PVE') return true;
+  const defender = await tx
+    .selectFrom('quiz_answers as a')
+    .innerJoin('siege_participants as p', 'p.id', 'a.participant_id')
+    .select('a.is_correct')
+    .where('a.siege_id', '=', head.siegeId)
+    .where('p.role', '=', 'DEFENDER')
+    .where('a.step_index', '=', 0)
+    .executeTakeFirst();
+  return estimateDecides(attackerCorrect, defender?.is_correct === true);
+}
+
 async function loadSteps(db: Db, challengeId: string): Promise<StepRow[]> {
   return db
     .selectFrom('quiz_challenge_steps')
@@ -246,13 +269,6 @@ async function insertPresented(
   await recordExposure(tx, head.userId, content.questionId);
 }
 
-async function txNow(tx: Tx): Promise<Date> {
-  const { rows } = await sql<{ now: Date }>`select game_now() as now`.execute(tx);
-  const row = rows[0];
-  if (!row) throw new Error('game_now() lieferte keine Zeile');
-  return row.now;
-}
-
 export async function presentStep(
   db: Db,
   params: { readonly userId: string; readonly challengeId: string; readonly step: number },
@@ -284,7 +300,7 @@ export async function presentStep(
         status: siege.status,
       });
     }
-    const now = await txNow(tx);
+    const now = await readGameNow(tx);
     const answers = await loadAnswers(tx, head.participantId);
     const existing = answers.find((a) => a.step_index === step.step_index);
     if (existing) {
@@ -490,26 +506,29 @@ export async function answerStep(
       .executeTakeFirst();
     if (saved.numUpdatedRows !== 1n) throw new Error('Antwort konnte nicht gespeichert werden');
 
-    // Nach Schritt 0 sofort die Schätzfrage stellen (§7.1 Punkt 4: kein Vorausladen, keine Lücke)
+    // Nach Schritt 0 sofort die Schätzfrage stellen (§7.1 Punkt 4: kein Vorausladen, keine Lücke),
+    // aber nur bei Gleichstand nach der Trivia-Frage (GAME_RULES §5.2, PO 2026-11-10)
     const next = steps.find((s) => s.step_index === step.step_index + 1);
-    if (next) {
+    if (next && (await estimateNeeded(tx, head, correct))) {
       const nextContent = await loadQuestionContent(tx, next.version_id);
-      await insertPresented(tx, head, next, nextContent, await txNow(tx));
+      await insertPresented(tx, head, next, nextContent, await readGameNow(tx));
     }
   });
 
-  // 2. Auswerten (eigene Transaktion mit Sperren); idempotent, also auch bei Wiederholung
-  const last = steps.every((s) => s.step_index <= step.step_index);
+  // 2. Auswerten (eigene Transaktion mit Sperren); idempotent, also auch bei Wiederholung. Fertig
+  // ist die Herausforderung, wenn kein weiterer Schritt gestellt wurde.
+  const nextStep = steps.find((s) => s.step_index === step.step_index + 1);
+  const nextRow = nextStep
+    ? (await loadAnswers(db, head.participantId)).find((a) => a.step_index === nextStep.step_index)
+    : undefined;
+  const last = nextRow === undefined;
   if (last) await settleSiege(db, head.siegeId);
 
   const now = await readGameNow(db);
   let next: PresentedQuestion | null = null;
   let resolution: Resolution | null = null;
-  if (!last) {
-    const nextStep = stepOf(steps, step.step_index + 1);
-    const row = (await loadAnswers(db, head.participantId)).find(
-      (a) => a.step_index === nextStep.step_index && a.status === 'PRESENTED',
-    );
+  if (nextStep && nextRow) {
+    const row = nextRow.status === 'PRESENTED' ? nextRow : undefined;
     if (row) {
       next = toQuestion(
         head,
@@ -549,11 +568,12 @@ export async function challengeView(
   const answers = await loadAnswers(db, head.participantId);
   const now = await readGameNow(db);
   const open = head.status === 'PREPARING';
+  // Ein nie gestellter Schritt einer beendeten Herausforderung wurde übersprungen (z. B. die
+  // Schätzfrage ohne Gleichstand nach der Trivia-Frage).
   const statusOf = (index: number) => {
     const status = answers.find((a) => a.step_index === index)?.status;
-    return status === 'PRESENTED' || status === 'ANSWERED' || status === 'TIMED_OUT'
-      ? status
-      : 'PENDING';
+    if (status === 'PRESENTED' || status === 'ANSWERED' || status === 'TIMED_OUT') return status;
+    return open ? 'PENDING' : 'SKIPPED';
   };
   const current = open
     ? (steps.find(

@@ -121,7 +121,7 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 |---|---|
 | Schritt 1.0 | keine ([O-01] ist entschieden) |
 | Phase 1 | ~~[O-02] Fragenbeschaffung~~ vertagt (PO 2026-11-09): Phase 1 mit den 40 Testfragen, Klärung vor der Beta |
-| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte |
+| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte, [O-19] Schätzfrage als Tiebreaker im PvP |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |
 | Closed Beta | [O-11] Hosting, [O-12] Name |

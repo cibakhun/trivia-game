@@ -78,7 +78,7 @@ export function formatNumber(value: number): string {
   return numberFormat.format(value);
 }
 
-/** Kanonische Dezimalzahl („-1234.5“) in deutscher Schreibweise („−1.234,5“), ohne Rundung. */
+/** Kanonische Dezimalzahl („-1234.5“) in deutscher Schreibweise („-1.234,5“, ASCII-Minus), ohne Rundung. */
 export function formatDecimal(value: string): string {
   const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value);
   if (!match) return value;

@@ -21,7 +21,7 @@ Status ADR-001 bis ADR-016: *angenommen, 2026-11-09, Phase 0*. Alle ADRs sind re
 | ADR-011 | Zufall über HMAC-abgeleitete Seeds + versionierten PRNG | reproduzierbar mit Geheimnis, unvorhersagbar ohne; Retries würfeln nicht neu | `Math.random`, DB-`random()` | gering |
 | ADR-012 | Region statisch (`regions`) und dynamisch (`region_state`) getrennt | Kartenlayout unbegrenzt cachebar; heiße Zeilen klein | eine breite Tabelle; separate Ownership-/Protection-Tabellen | mittel |
 | ADR-013 | Effektive Antwortzeit `clamp(C, S − cap, S)` | begrenzter Latenzausgleich, Manipulationsvorteil ≤ `cap` | nur Serverzeit (benachteiligt langsame Netze), Client-Zeit (manipulierbar) | gering |
-| ADR-014 | Eigene Sitzungsverwaltung (Token-Hash in DB, Argon2id) | Datenminimierung, keine Drittanbieter-AVV | externer Identity-Provider | mittel |
+| ADR-014 | Eigene Sitzungsverwaltung (Token-Hash in DB, Argon2id für Passwörter; **präzisiert durch ADR-029:** Sitzungstoken als SHA-256 ohne Pepper) | Datenminimierung, keine Drittanbieter-AVV | externer Identity-Provider | mittel |
 | ADR-015 | Fragen als YAML in Git, Import als unveränderliche Versionen | Review per PR, Herkunft und Versionierung, Diff-bar | Admin-CMS als einzige Quelle | gering |
 | ADR-016 | Regeln als versionierte Daten (`world_rules`), Fristwerte als Snapshot in jeder Belagerung | Balancing ohne Deployment; keine rückwirkenden Änderungen | Umgebungsvariablen, Konstanten im Code | gering |
 
@@ -180,6 +180,16 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 **Noch offen:** genaue Werte, genauer Nutzen, und wie Absprachen verhindert werden (ein befreundeter Angreifer greift an oder antwortet absichtlich falsch, damit der Verteidiger Punkte erhält).
 **Empfehlung:** Eternal 5 Verteidigungspunkte für die Teilnahme, +5 bei richtiger Trivia-Antwort (höchstens 10), nur Ansehen (Reichs- und Spielerprofil, Rangliste „Verteidiger“), kein spielmechanischer Vorteil; Daily/Weekly 2 Saisonpunkte, +3 bei richtiger Antwort (höchstens 5 wie eine Eroberung). Die Punkte hängen nur von der eigenen Leistung des Verteidigers ab, nicht vom Ausgang, und verraten deshalb nichts über die Angreiferleistung. Höchstens 2 punktbringende Verteidigungen je Paar und 24 h, keine Punkte bei verdächtig verknüpften Konten ([GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18)). Werden Punkte ausgegeben, dann aus einem eigenen Guthaben mit nur anhängbarem Buchungsprotokoll und atomarer Abbuchung (Prüfung `Guthaben ≥ Betrag` in derselben Anweisung); der Ranglisten- bzw. Saisonwert ist davon getrennt und sinkt nie. Ausgearbeitet wird das, sobald der Nutzen entschieden ist. Emojis nur aus einer festen Auswahl ohne Freitext, mit Ratenbegrenzung und Abschaltmöglichkeit für den Empfänger. Punkte sind nicht gegen Echtgeld erhältlich: Das Spiel startet ohne Monetarisierung, und kosmetische Monetarisierung bräuchte eine eigene Produkt- und Rechtsprüfung (Brief §14.4).
 
+### O-19 Schätzfrage als Tiebreaker im PvP
+
+**Priorität:** P1 (vor Phase 2) · **Wirkung:** Ablauf, Fairness, verdecktes Gate · **Herkunft:** PO-Entscheidung 2026-11-10
+**Entschieden (PO, 2026-11-10):** Die Schätzfrage kommt nur, wenn beide Seiten die Trivia-Frage richtig haben; Angreifer richtig und Verteidiger falsch erobert, Angreifer falsch scheitert ([GAME_RULES.md §5.1](GAME_RULES.md#51-ablauf-einer-herausforderung-ve)). Im PvE umgesetzt: Die Verteidigung steht dort vorab versiegelt fest.
+**Offen für PvP:** Der Angreifer antwortet zuerst, der Verteidiger erst innerhalb der Frist. Beim Angreifer steht noch nicht fest, ob der Verteidiger richtig liegt; beim Verteidiger würde das Erscheinen der Schätzfrage verraten, dass der Angreifer richtig lag (verdecktes Gate, [O-01]).
+- **A:** Im PvP beantworten beide weiterhin beide Fragen; die Schätzung zählt nur bei Gleichstand (Auswertung wie heute, Oberfläche sagt „zählt nur, wenn ihr beide richtig liegt“). Verrät nichts, kostet aber 30 s für eine oft unnötige Frage.
+- **B:** Nur wer selbst richtig liegt, bekommt die Schätzfrage. Verrät jedem Teilnehmer sofort die eigene Richtigkeit und dem Verteidiger nichts über den Angreifer; widerspricht aber „keine Rückmeldung zur eigenen Trivia-Antwort“ (QUIZ_ENGINE §7.2).
+- **C:** Schätzfrage als eigene dritte Runde nach der Verteidigung, nur bei Gleichstand, mit neuer Frist für beide. Genau wie gewünscht, aber jeder knappe Kampf dauert eine weitere Frist.
+**Empfehlung:** A für PvP (verdecktes Gate bleibt vollständig, kein zusätzlicher Rückweg), PvE wie entschieden.
+
 ## Änderungsprotokoll
 
 | Datum | Änderung |
@@ -198,3 +208,5 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | 2026-11-10 | Phase 1 Paket 2: ADR-028 bis ADR-031 angenommen (CSRF über Origin-Prüfung, Server-Grundgerüst, Beitritt und Startregion, Kartenversion je Instanz) |
 | 2026-11-10 | Phase 1 Paket 3: ADR-032 bis ADR-035 angenommen (Angriff mit versiegelten Gegenantworten, Herausforderungsprotokoll, Aufräumlauf im `api`-Prozess, Fragenauswahl) |
 | 2026-11-10 | Phase 1 Paket 4: ADR-036 angenommen (schlanker Client ohne i18next, Router- und Query-Bibliothek, ohne WebSocket in Phase 1) |
+| 2026-11-10 | ADR-014 durch ADR-029 präzisiert: Sitzungstoken mit 256 bit Zufall als SHA-256 ohne Pepper (Argon2id bleibt für Passwörter) |
+| 2026-11-10 | PO: Schätzfrage nur als Tiebreaker, wenn beide Seiten die Trivia-Frage richtig haben; im PvE umgesetzt, O-19 (Ablauf im PvP) neu erfasst |

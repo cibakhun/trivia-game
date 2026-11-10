@@ -49,6 +49,13 @@ describe('Bootstrap und Gastkonto (API.md §1)', () => {
     const second = await client.get('/auth/bootstrap');
     expect(setCookieHeader(second, 'guest_bootstrap')).toBeUndefined();
     expect(second.headers['cache-control']).toBe('no-store');
+    // Sicherheitsheader (SECURITY §2); HSTS nur mit https (hier COOKIE_SECURE=false)
+    expect(second.headers['x-content-type-options']).toBe('nosniff');
+    expect(second.headers['referrer-policy']).toBe('no-referrer');
+    expect(second.headers['content-security-policy']).toBe(
+      "default-src 'none'; frame-ancestors 'none'",
+    );
+    expect(second.headers['strict-transport-security']).toBeUndefined();
   });
 
   it('legt ein Gastkonto mit Einstellungen, Statistik und Sitzung an', async () => {
@@ -218,17 +225,26 @@ describe('Sitzung', () => {
     expect(setCookieHeader(second, 'rdw_session')).toBeUndefined();
     expect((await session()).last_used_at).toEqual(touched.last_used_at);
 
-    await advanceGameClock(server.database.pool, 2 * 3600_000);
-    const later = await client.get('/me');
-    expect(setCookieHeader(later, 'rdw_session')).toBeDefined();
-    const renewed = await session();
-    expect(renewed.expires_at.getTime() - touched.expires_at.getTime()).toBeGreaterThanOrEqual(
-      2 * 3600_000 - 1000,
-    );
+    // Uhr danach immer zurückstellen, sonst liefe ein Fehlschlag in die folgenden Tests weiter
+    let shifted = 0;
+    const shift = async (ms: number) => {
+      await advanceGameClock(server.database.pool, ms);
+      shifted += ms;
+    };
+    try {
+      await shift(2 * 3600_000);
+      const later = await client.get('/me');
+      expect(setCookieHeader(later, 'rdw_session')).toBeDefined();
+      const renewed = await session();
+      expect(renewed.expires_at.getTime() - touched.expires_at.getTime()).toBeGreaterThanOrEqual(
+        2 * 3600_000 - 1000,
+      );
 
-    await advanceGameClock(server.database.pool, 31 * 24 * 3600_000);
-    expect((await client.get('/me')).statusCode).toBe(401);
-    await advanceGameClock(server.database.pool, -(31 * 24 + 2) * 3600_000);
+      await shift(31 * 24 * 3600_000);
+      expect((await client.get('/me')).statusCode).toBe(401);
+    } finally {
+      await advanceGameClock(server.database.pool, -shifted);
+    }
   });
 
   it('meldet ab und beendet die Sitzung, auch wiederholt', async () => {

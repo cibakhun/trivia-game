@@ -1,6 +1,7 @@
+import { CHALLENGE_START_WINDOW_MS } from '@rdw/game-core';
 import type { AnswerRequest, PresentedQuestion, Resolution } from '@rdw/protocol';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
-import { ApiRequestError, api } from '../api/client.ts';
+import { ApiRequestError, api, newActionKey } from '../api/client.ts';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
@@ -54,6 +55,8 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
   const [busy, setBusy] = useState(false);
   const [estimate, setEstimate] = useState('');
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Ein Schlüssel je gestellter Frage, auch wenn der Spieler nach einem Netzfehler erneut sendet. */
+  const answerKeys = useRef(new Map<string, string>());
   const remembered = recallAttack(challengeId);
 
   /** Liest den Stand vom Server und setzt die passende Phase. */
@@ -61,6 +64,7 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
     async (attempt = 0): Promise<void> => {
       try {
         const view = await api.challenge(challengeId);
+        setError(null);
         setInstanceId(view.instanceId);
         if (view.resolution) {
           setPhase({ kind: 'resolution', resolution: view.resolution });
@@ -86,6 +90,11 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
           pollTimer.current = setTimeout(() => void sync(attempt + 1), POLL_MS);
         }
       } catch (e) {
+        // fremde oder unbekannte Herausforderung (z. B. alter Link nach neuem Gastkonto)
+        if (e instanceof ApiRequestError && e.status === 404) {
+          navigate({ name: 'start' }, { replace: true });
+          return;
+        }
         setError(e);
       }
     },
@@ -123,7 +132,10 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
     setBusy(true);
     setError(null);
     try {
-      const result = await api.answer(challengeId, question.step, body);
+      const slot = `${question.step}-${question.presentedAt}`;
+      const key = answerKeys.current.get(slot) ?? newActionKey();
+      answerKeys.current.set(slot, key);
+      const result = await api.answer(challengeId, question.step, body, key);
       setEstimate('');
       if (result.resolution) setPhase({ kind: 'resolution', resolution: result.resolution });
       else if (result.next) setPhase(showQuestion(result.next, false));
@@ -172,7 +184,9 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
         {phase.kind === 'intro' ? (
           <section className="quiz-intro">
             <p>{t('quiz.intro')}</p>
-            <p className="muted">{t('quiz.startWindow')}</p>
+            <p className="muted">
+              {tp('quiz.startWindow', Math.round(CHALLENGE_START_WINDOW_MS / 60_000))}
+            </p>
             <button
               type="button"
               className="button button-primary button-wide"
@@ -232,7 +246,8 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
         {error ? (
           <ErrorNote
             error={error}
-            {...(phase.kind === 'loading' ? { onRetry: () => void sync() } : {})}
+            // In der Frage selbst sendet der Spieler einfach erneut; sonst Stand neu laden
+            {...(phase.kind === 'question' ? {} : { onRetry: () => void sync() })}
           />
         ) : null}
       </div>
@@ -270,10 +285,8 @@ function QuestionView({
 
   return (
     <section className="question" aria-labelledby="question-prompt" data-testid="question">
-      <p className="muted">
-        {t('quiz.step', { current: question.step + 1, total: 2 })} ·{' '}
-        {question.kind === 'TRIVIA' ? t('quiz.trivia') : t('quiz.estimate')}
-      </p>
+      <p className="muted">{question.kind === 'TRIVIA' ? t('quiz.trivia') : t('quiz.estimate')}</p>
+      {question.kind === 'ESTIMATE' ? <p className="note">{t('quiz.tiebreak')}</p> : null}
       <Countdown deadline={phase.deadline} totalMs={question.timeLimitMs} onExpire={onExpire} />
       {phase.reloaded ? <p className="muted">{t('quiz.reloaded')}</p> : null}
       <h2 id="question-prompt" className="prompt">

@@ -79,3 +79,12 @@ jobs:
         run: pnpm --filter @rdw/web exec playwright install --with-deps chromium
       - name: E2E-Tests (Browser)
         run: pnpm e2e
+      # Bildschirmfotos und Traces fehlgeschlagener Tests, ohne lokalen Nachlauf auswertbar
+      - name: E2E-Ergebnisse hochladen
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: apps/web/test-results
+          retention-days: 7
+          if-no-files-found: ignore

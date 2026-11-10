@@ -36,7 +36,8 @@ export function biomeColor(index: number): number {
 }
 
 export function kingdomColor(index: number): number {
-  return KINGDOM_COLORS[index % KINGDOM_COLORS.length] ?? 0x888888;
+  // Ungültige Indizes (negativ, zu groß, gebrochen) fallen alle auf Grau zurück
+  return KINGDOM_COLORS[index] ?? 0x888888;
 }
 
 export function cssColor(color: number): string {

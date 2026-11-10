@@ -1,6 +1,6 @@
 import type { WorldsResponse } from '@rdw/protocol';
-import { useEffect, useState } from 'react';
-import { api } from '../api/client.ts';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { api, newActionKey } from '../api/client.ts';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
@@ -14,27 +14,33 @@ export function StartScreen() {
   const [worlds, setWorlds] = useState<WorldsResponse['worlds'] | null>(null);
 
   const me = state.status === 'ready' ? state.me : null;
-  const playing = me?.instances.find((i) => i.kingdom?.status === 'ACTIVE') ?? null;
+  // Auch ein gefallenes Reich führt zur Karte (dort steht der Hinweis); erneut beitreten geht nicht
+  const playing = me?.instances.find((i) => i.kingdom !== null) ?? null;
+  /** Ein Schlüssel je Beitrittsversuch und Welt, auch über einen erneuten Klick hinweg. */
+  const joinKeys = useRef(new Map<string, string>());
 
   useEffect(() => {
     if (playing) navigate({ name: 'play', instanceId: playing.instanceId }, { replace: true });
   }, [playing]);
 
+  const loadWorlds = useCallback(async (isCancelled: () => boolean = () => false) => {
+    setError(null);
+    try {
+      const response = await api.worlds();
+      if (!isCancelled()) setWorlds(response.worlds);
+    } catch (e) {
+      if (!isCancelled()) setError(e);
+    }
+  }, []);
+
   useEffect(() => {
     if (!me || playing) return;
     let cancelled = false;
-    api
-      .worlds()
-      .then((response) => {
-        if (!cancelled) setWorlds(response.worlds);
-      })
-      .catch((e: unknown) => {
-        if (!cancelled) setError(e);
-      });
+    void loadWorlds(() => cancelled);
     return () => {
       cancelled = true;
     };
-  }, [me, playing]);
+  }, [me, playing, loadWorlds]);
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -49,7 +55,10 @@ export function StartScreen() {
   }
 
   async function join(worldId: string) {
-    const joined = await api.join(worldId);
+    const key = joinKeys.current.get(worldId) ?? newActionKey();
+    joinKeys.current.set(worldId, key);
+    const joined = await api.join(worldId, key);
+    joinKeys.current.delete(worldId);
     await reload();
     navigate({ name: 'play', instanceId: joined.instanceId });
   }
@@ -82,7 +91,8 @@ export function StartScreen() {
           {worlds?.length === 0 ? <p>{t('start.noWorlds')}</p> : null}
           <ul className="world-list">
             {worlds?.map((world) => {
-              const instance = world.instances[0];
+              // Der Server tritt der neuesten laufenden Instanz bei (Liste aufsteigend nach Start)
+              const instance = world.instances.at(-1);
               return (
                 <li key={world.id} className="world">
                   <div>
@@ -100,7 +110,7 @@ export function StartScreen() {
                   <button
                     type="button"
                     className="button button-primary"
-                    disabled={busy || !instance || instance.status !== 'RUNNING'}
+                    disabled={busy || !instance || instance.status !== 'RUNNING' || instance.joined}
                     onClick={() => void run(() => join(world.id))}
                   >
                     {t('start.join')}
@@ -111,7 +121,12 @@ export function StartScreen() {
           </ul>
         </section>
       ) : null}
-      {error ? <ErrorNote error={error} /> : null}
+      {error ? (
+        <ErrorNote
+          error={error}
+          {...(me && worlds === null ? { onRetry: () => void loadWorlds() } : {})}
+        />
+      ) : null}
     </main>
   );
 }

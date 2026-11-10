@@ -1,6 +1,7 @@
 import { createDb, createPool, parseDbEnv } from '@rdw/db';
 import { TEST_WORLD_SEED, testWorldPreset } from '@rdw/game-core';
 import { createWorld } from '../modules/world/create-world.ts';
+import { parseWorldCreateArgs, WORLD_CREATE_USAGE } from './world-create-args.ts';
 
 /**
  * Aufruf: `pnpm world:create [--slug=test] [--seed=2175] [--capacity=20] [--production-approved]`
@@ -9,29 +10,10 @@ import { createWorld } from '../modules/world/create-world.ts';
  * In Produktion verweigert das Werkzeug ohne `--production-approved`: Eine neue Welt ist eine
  * Änderung an Produktivdaten und braucht eine ausdrückliche Freigabe (Brief §20).
  */
-const FLAGS = new Set(['--production-approved']);
-const OPTIONS = new Set(['--slug', '--seed', '--capacity']);
-
-function parseArgs(argv: readonly string[]): Map<string, string> | string {
-  const result = new Map<string, string>();
-  for (const arg of argv) {
-    if (FLAGS.has(arg)) {
-      result.set(arg, 'true');
-      continue;
-    }
-    const [name, value] = arg.split('=', 2);
-    if (!name || !OPTIONS.has(name) || value === undefined || value === '') return arg;
-    result.set(name, value);
-  }
-  return result;
-}
-
 async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2));
+  const args = parseWorldCreateArgs(process.argv.slice(2));
   if (typeof args === 'string') {
-    console.error(
-      `Unbekanntes Argument: ${args} (erlaubt: --slug=…, --seed=…, --capacity=…, --production-approved)`,
-    );
+    console.error(`Unbekanntes oder doppeltes Argument: ${args} (${WORLD_CREATE_USAGE})`);
     process.exitCode = 2;
     return;
   }

@@ -79,7 +79,7 @@ Bei Anlage einer Herausforderung wählt der Server deterministisch (Zufallsstrom
 
 Die Auswahl wird mit der Herausforderung gespeichert (`quiz_challenge_steps`); sie ändert sich nie mehr, auch wenn eine Frage später suspendiert wird (Brief §5.4).
 
-Stand Phase 1 Paket 3 (ADR-035, `packages/game-core/src/question-pick.ts`): Punkte 1, 2, 3 und 6 sind umgesetzt; Punkt 4 ruht (nur Deutsch, ADR-023), Punkt 5 folgt mit den Fragenstatistiken. Die erste Eroberung eines Reichs (Tutorial) bekommt nur leichte Fragen. Die Exposition (`player_question_exposure`) wird beim Stellen gespeichert, nicht bei der Anlage.
+Stand Phase 1 Paket 3 (ADR-035, `packages/game-core/src/question-pick.ts`): Punkte 1, 2, 3 und 6 sind umgesetzt; Punkt 4 ruht (nur Deutsch, ADR-023), Punkt 5 folgt mit den Fragenstatistiken. Die erste Eroberung eines Reichs (Tutorial) bekommt leichte Fragen, solange es im Bestand welche gibt; die Ausschlussfenster gelten dann innerhalb der leichten Fragen, und nur ohne jede leichte Frage wird eine mittlere oder schwere gestellt. Die Schwierigkeit wird zweistufig gezogen: erst die Klasse nach ihrem Gewicht, dann die Frage innerhalb der Klasse (so entspricht die Mischung der gespeicherten Zielschwierigkeit). Die Exposition (`player_question_exposure`) wird beim Stellen gespeichert, nicht bei der Anlage.
 
 ## 6. Zeitmessung und Latenzausgleich
 
@@ -129,7 +129,8 @@ Die Geschwindigkeit entscheidet nur bei exakt gleichem Schätzabstand. Wie oft d
 stateDiagram-v2
   [*] --> Bereit: Herausforderung angelegt
   Bereit --> Frage1: present(step 0) → P speichern
-  Frage1 --> Frage2: answer(step 0) oder Zeitlimit
+  Frage1 --> Frage2: answer(step 0), beide richtig
+  Frage1 --> Fertig: answer(step 0) ohne Gleichstand oder Zeitlimit
   Frage2 --> Fertig: answer(step 1) oder Zeitlimit
   Fertig --> [*]
 ```
@@ -137,9 +138,9 @@ stateDiagram-v2
 1. `present(step)`: Server prüft, dass der vorige Schritt abgeschlossen ist, speichert `presented_at`, `answer_deadline_at = P + time_limit + cap` und die zufällige Optionsreihenfolge, liefert Fragetext in der Sprache des Teilnehmers, Optionstoken und `remainingMs`. Ein zweiter `present`-Aufruf für denselben Schritt liefert **dieselbe** Frage mit dem ursprünglichen `P` (Reload-Fall) [E].
 2. `answer(step)`: Server prüft Token bzw. Zahl, `R < answer_deadline_at` (exklusive Grenze wie bei der Belagerungsfrist, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)), Status `PRESENTED`; setzt in einer bedingten Aktualisierung (`… where status = 'PRESENTED'`) Status `ANSWERED`, Richtigkeit, Abstand und Zeiten. Ein zweiter Versuch ändert nichts und gibt den gespeicherten Stand zurück (Idempotenz) [V-nah, Brief §13.1].
 3. Verpasste Zeitlimits setzt der Server beim nächsten Zugriff oder durch den Job `challenge.expireStale` auf `TIMED_OUT`, frühestens ab `answer_deadline_at + settleGrace` ([SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)). Eine Herausforderung gibt es je Teilnehmer nur einmal; wer sie verlässt, kann sie nicht neu beginnen.
-4. Schritt 1 (Schätzfrage) wird erst nach Abschluss von Schritt 0 ausgeliefert – kein Vorausladen möglich. Die Antwort auf Schritt 0 enthält direkt die Schätzfrage (`P₁` = Verarbeitungszeitpunkt dieser Antwort). So entsteht keine Lücke zwischen den Schritten, die ein Teilnehmer zum Nachschlagen nutzen oder die eine Verteidigungsfrist überschreiten könnte.
+4. Schritt 1 (Schätzfrage) wird erst nach Abschluss von Schritt 0 ausgeliefert – kein Vorausladen möglich – und nur, wenn beide Seiten die Trivia-Frage richtig haben (Tiebreaker, [GAME_RULES.md §5.1](GAME_RULES.md#51-ablauf-einer-herausforderung-ve), PO 2026-11-10). Die Antwort auf Schritt 0 enthält dann direkt die Schätzfrage (`P₁` = Verarbeitungszeitpunkt dieser Antwort). So entsteht keine Lücke zwischen den Schritten, die ein Teilnehmer zum Nachschlagen nutzen oder die eine Verteidigungsfrist überschreiten könnte. Ohne Gleichstand endet die Herausforderung nach Schritt 0; Schritt 1 erscheint in der Ansicht als `SKIPPED`, und die Schätzfrage gilt nicht als gesehen.
 
-Stand Phase 1 Paket 3 (ADR-033): umgesetzt für PvE. `present` ist ohne `Idempotency-Key` wiederholbar; ein Reload protokolliert `STEP_RELOADED`, danach gilt für diesen Schritt nur die Serverzeit (§6.2). `answer` speichert in einer kurzen Transaktion und wertet danach in einer zweiten aus. Läuft Schritt 0 ab, endet die Herausforderung ohne Schätzfrage (der Angreifer liegt damit am Gate falsch). Wer nach dem Angriff 120 s lang keine Frage öffnet, verliert den Angriff ohne Versuch (`NEVER_STARTED`).
+Stand Phase 1 Paket 3 (ADR-033): umgesetzt für PvE. `present` ist ohne `Idempotency-Key` wiederholbar; ein Reload protokolliert `STEP_RELOADED`, danach gilt für diesen Schritt nur die Serverzeit (§6.2). `answer` speichert in einer kurzen Transaktion und wertet danach in einer zweiten aus. Läuft Schritt 0 ab, endet die Herausforderung ohne Schätzfrage (der Angreifer liegt damit am Gate falsch). Seit 2026-11-10 entfällt die Schätzfrage im PvE auch, wenn nur eine Seite die Trivia-Frage richtig hat (`estimateDecides` in `game-core`; der Aufräumlauf wertet solche Kämpfe ebenfalls aus). Wer nach dem Angriff 120 s lang keine Frage öffnet, verliert den Angriff ohne Versuch (`NEVER_STARTED`).
 
 ### 7.2 Was der Client wann erfährt [E]
 
@@ -149,7 +150,7 @@ Stand Phase 1 Paket 3 (ADR-033): umgesetzt für PvE. `present` ist ohne `Idempot
 | PvP, Angreifer fertig | „Belagerung eröffnet – Frist bis …“; **keine** Rückmeldung zur Richtigkeit, auch nicht zur eigenen Trivia-Antwort (verdecktes Gate, [O-01]) | „Region X wird belagert – Frist bis …“; **keine** Frage, Kategorie oder Angreiferleistung, auch nicht, ob der Angreifer richtig lag |
 | PvP, Angreifer bricht vor Abschluss ab | „Angriff abgebrochen“ (zählt als Versuch) | nichts (keine Belagerung) |
 | Nach Auflösung | vollständige Auflösung beider Seiten: Antworten, Lösung, Abstände, effektive Zeiten, Entscheidungsstufe | dasselbe |
-| PvE | sofort nach Schritt 1 die vollständige Auflösung | – |
+| PvE | sofort nach dem letzten gestellten Schritt die vollständige Auflösung (ohne Gleichstand schon nach Schritt 0) | – |
 
 Bis zur Auflösung enthält keine API-Antwort und kein WebSocket-Ereignis die Lösung, die Gegnerantwort oder den Gegnerabstand.
 

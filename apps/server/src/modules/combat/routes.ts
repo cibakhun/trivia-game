@@ -37,7 +37,7 @@ export function combatRoutes(app: FastifyInstance, ctx: AppContext): void {
     const body = parseInput(attackRequestSchema, request.body);
     const key = idempotencyKey(request);
     // Fällige eigene Kämpfe zuerst auflösen, sonst blockiert ein abgelaufener den neuen Angriff.
-    await settleOpenSiegesOfUser(ctx.db, auth.userId);
+    await settleOpenSiegesOfUser(ctx.db, auth.userId, request.log);
     const outcome = await runIdempotent(
       ctx.db,
       {

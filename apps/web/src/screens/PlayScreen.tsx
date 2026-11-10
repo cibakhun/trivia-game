@@ -71,6 +71,13 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
     return () => clearInterval(timer);
   }, [refresh, reload]);
 
+  useEffect(
+    () => () => {
+      if (viewportTimer.current) clearTimeout(viewportTimer.current);
+    },
+    [],
+  );
+
   const onViewport = useCallback(
     (bounds: Bounds) => {
       if (viewportTimer.current) clearTimeout(viewportTimer.current);
@@ -139,6 +146,7 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
           centre={centre}
           onSelect={setSelected}
           onViewport={onViewport}
+          onError={setSetupError}
         />
         <aside className="side">
           {kingdom?.status === 'FALLEN' ? <p className="note">{t('kingdom.fallen')}</p> : null}

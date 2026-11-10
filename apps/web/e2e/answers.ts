@@ -50,3 +50,19 @@ export async function exactEstimateInput(challengeId: string): Promise<string> {
   if (row.answer_value === null) throw new Error('Schätzwert fehlt');
   return row.answer_value.replace('.', ',');
 }
+
+/**
+ * Hat die Verteidigung (Garnison) die Wissensfrage richtig? Nur dann folgt auf eine richtige
+ * Antwort die Schätzfrage (GAME_RULES §5.2).
+ */
+export async function defenderTriviaCorrect(challengeId: string): Promise<boolean> {
+  const row = await testDb()
+    .selectFrom('quiz_answers as a')
+    .innerJoin('siege_participants as p', 'p.id', 'a.participant_id')
+    .select('a.is_correct')
+    .where('a.challenge_id', '=', challengeId)
+    .where('a.step_index', '=', 0)
+    .where('p.role', '=', 'DEFENDER')
+    .executeTakeFirstOrThrow();
+  return row.is_correct === true;
+}

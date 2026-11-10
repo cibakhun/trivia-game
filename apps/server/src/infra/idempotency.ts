@@ -105,3 +105,18 @@ export async function runIdempotent(
     return { ...response, replayed: false };
   });
 }
+
+/**
+ * Löscht abgelaufene Einträge aller Konten in Stapeln (Aufbewahrung wie oben); `runIdempotent`
+ * räumt nur den eigenen Schlüssel auf. Liefert die Zahl der gelöschten Zeilen.
+ */
+export async function pruneIdempotencyKeys(db: Db, batchSize = 1000): Promise<number> {
+  const result = await sql`
+    delete from idempotency_keys
+    where ctid in (
+      select ctid from idempotency_keys
+      where created_at < game_now() - make_interval(hours => ${IDEMPOTENCY_RETENTION_HOURS})
+      limit ${batchSize}
+    )`.execute(db);
+  return Number(result.numAffectedRows ?? 0n);
+}

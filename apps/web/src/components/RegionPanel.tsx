@@ -1,6 +1,6 @@
 import type { AttackResponse, RegionDetailResponse } from '@rdw/protocol';
-import { useCallback, useEffect, useState } from 'react';
-import { api } from '../api/client.ts';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { api, newActionKey } from '../api/client.ts';
 import { errorMessage, formatTime, t } from '../i18n/i18n.ts';
 import { biomeName } from '../map/palette.ts';
 import { ErrorNote } from './ErrorNote.tsx';
@@ -23,6 +23,8 @@ export function RegionPanel({
   const [detail, setDetail] = useState<RegionDetailResponse | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  // Ein Angriff = ein Schlüssel, auch wenn der Spieler nach einem Netzfehler erneut klickt
+  const attackKey = useRef(newActionKey());
 
   const load = useCallback(async () => {
     setError(null);
@@ -42,10 +44,13 @@ export function RegionPanel({
     setBusy(true);
     setError(null);
     try {
-      onAttack(await api.attack(instanceId, regionId), title);
+      const result = await api.attack(instanceId, regionId, attackKey.current);
+      attackKey.current = newActionKey();
+      onAttack(result, title);
     } catch (e) {
+      // erst neu laden (setzt den Fehler zurück), dann den Fehler des Angriffs zeigen
+      await load();
       setError(e);
-      void load();
     } finally {
       setBusy(false);
     }

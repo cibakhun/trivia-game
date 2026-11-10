@@ -27,8 +27,18 @@ export async function startStack(): Promise<E2eStack> {
   const database = await createTestDatabase();
   const db = createDb(database.pool);
   const stops: (() => Promise<void>)[] = [() => database.drop()];
+  // Alle Schritte laufen, auch wenn einer scheitert (sonst bliebe die Testdatenbank liegen);
+  // der erste Fehler wird danach geworfen. `splice` macht einen zweiten Aufruf wirkungslos.
   const stop = async () => {
-    for (const step of stops.reverse()) await step();
+    const failures: unknown[] = [];
+    for (const step of stops.splice(0).reverse()) {
+      try {
+        await step();
+      } catch (error) {
+        failures.push(error);
+      }
+    }
+    if (failures.length > 0) throw failures[0];
   };
   try {
     const { questions, issues } = await validateContentDir(CONTENT_DIR);
@@ -80,7 +90,10 @@ export async function startStack(): Promise<E2eStack> {
     );
     return { databaseUrl: database.url, stop };
   } catch (error) {
-    await stop();
+    // der Startfehler bleibt die eigentliche Ursache; ein Aufräumfehler wird nur gemeldet
+    await stop().catch((teardownError: unknown) => {
+      console.error('E2E: Aufräumen nach Startfehler fehlgeschlagen', teardownError);
+    });
     throw error;
   }
 }

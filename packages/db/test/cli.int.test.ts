@@ -77,6 +77,16 @@ describe('pnpm db:migrate (Kommandozeile)', () => {
     expect(await ledgerExists()).toBe(false);
   });
 
+  it('lehnt APP_ENV=local gegen eine entfernte Datenbank ab, bevor er sich verbindet', async () => {
+    // z. B. eine liegengebliebene Entwickler-.env auf einem Server
+    const result = await runCli([], {
+      APP_ENV: 'local',
+      DATABASE_URL: 'postgres://rdw@db.invalid:5432/rdw',
+    });
+    expect(result.code).toBe(1);
+    expect(result.stderr).toMatch(/DATABASE_URL: muss bei APP_ENV=local auf diesen Rechner zeigen/);
+  });
+
   it('migriert in Produktion mit ausdrücklicher Freigabe', async () => {
     const result = await runCli(['--production-approved'], {
       APP_ENV: 'production',

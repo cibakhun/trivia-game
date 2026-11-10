@@ -3,6 +3,7 @@ import {
   CHALLENGE_START_WINDOW_MS,
   CORE_VERSION,
   chooseNewCapital,
+  estimateDecides,
   formatDecimal,
   kingdomRank,
   parseDecimal,
@@ -189,11 +190,24 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
   let defenderPerf: Performance | null = null;
   if (!step0) {
     if (now.getTime() < siege.created_at.getTime() + CHALLENGE_START_WINDOW_MS) return 'PENDING';
-    ending = { status: 'ATTACK_FAILED', outcome: 'NONE', reason: 'NEVER_STARTED' };
+    // N10 gilt auf jedem Weg: ein nicht mehr aktives Angreiferreich bricht ab
+    ending =
+      attackerKingdom.status !== 'ACTIVE'
+        ? { status: 'CANCELLED', outcome: 'NONE', reason: 'CANCELLED' }
+        : { status: 'ATTACK_FAILED', outcome: 'NONE', reason: 'NEVER_STARTED' };
   } else {
     // Verpasst der Spieler die Trivia-Frage, endet die Herausforderung ohne Schätzfrage [E].
+    // Die Schätzfrage entscheidet nur einen Gleichstand (beide richtig, GAME_RULES §5.2); sonst
+    // steht der Ausgang nach der Trivia-Frage fest.
+    const defenderStep0 = defenderRows.find((a) => a.step_index === 0);
+    const decidedByTrivia =
+      step0.status === 'ANSWERED' &&
+      !estimateDecides(step0.is_correct === true, defenderStep0?.is_correct === true);
     const complete =
-      step0.status === 'TIMED_OUT' || step1?.status === 'ANSWERED' || step1?.status === 'TIMED_OUT';
+      step0.status === 'TIMED_OUT' ||
+      decidedByTrivia ||
+      step1?.status === 'ANSWERED' ||
+      step1?.status === 'TIMED_OUT';
     if (!complete) return 'PENDING';
     if (attackerKingdom.status !== 'ACTIVE') {
       // N10: Angreiferreich nicht mehr aktiv
@@ -319,6 +333,8 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       .updateTable('kingdom_statistics')
       .set({
         max_regions: sql<number>`greatest(max_regions, ${after})`,
+        // PvE-Eroberungen: NPC-Fraktion oder neutrale Garnison, beide antworten als NPC
+        // (DATA_MODEL §4); diese Auswertung ist nur für PvE
         npc_regions_conquered: sql<number>`npc_regions_conquered + 1`,
         updated_at: gameNow,
       })

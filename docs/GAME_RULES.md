@@ -43,7 +43,7 @@ Kennzeichnung: **[V]** verbindlich · **[A]** Annahme aus dem Brief (konfigurier
 | 100–249 | Großreich |
 | 250+ | Imperium |
 
-7. Königreichsnamen werden im MVP aus Bausteinen generiert, nicht frei eingegeben [E, [O-10]] – das vermeidet Moderationspflichten für nutzergenerierte Inhalte (Brief §14.3). Umsetzung: Vorsilbe + Endung aus festen deutschen Listen (`names.ts` in `game-core`, z. B. „Falkenstein“), vergebene Namen der Instanz werden bis zu acht Mal neu gezogen; Farbe ist ein Index 0–15, bevorzugt eine wenig benutzte. Gespeichert werden die Bausteine (`kingdoms.name_parts`), angezeigt wird Rang + Name.
+7. Königreichsnamen werden im MVP aus Bausteinen generiert, nicht frei eingegeben [E, [O-10]] – das vermeidet Moderationspflichten für nutzergenerierte Inhalte (Brief §14.3). Umsetzung: Vorsilbe + Endung aus festen deutschen Listen (`names.ts` in `game-core`, z. B. „Falkenstein“), ist der Name in der Instanz vergeben, wird neu gezogen, insgesamt höchstens achtmal (danach bleibt der letzte Name); Farbe ist ein Index 0–15, bevorzugt eine wenig benutzte. Gespeichert werden die Bausteine (`kingdoms.name_parts`), angezeigt wird Rang + Name.
 
 ## 4. Angriffsberechtigung
 
@@ -67,7 +67,16 @@ Ein Angriffs**versuch** zählt ab dem Moment, in dem die erste Frage angezeigt w
 Jeder Teilnehmer beantwortet in dieser Reihenfolge, ohne Zwischenergebnis:
 
 1. eine Multiple-Choice-Frage (Trivia) mit Zeitlimit 20 s [E],
-2. unmittelbar danach eine Schätzfrage mit Zeitlimit 30 s [E] – auch wenn sie am Ende nicht gebraucht wird [A, Brief §5.5].
+2. unmittelbar danach eine Schätzfrage mit Zeitlimit 30 s [E] – **nur als Tiebreaker, wenn beide Seiten die Trivia-Frage richtig beantwortet haben** [V] (PO-Entscheidung 2026-11-10; ersetzt „auch wenn sie am Ende nicht gebraucht wird“, Brief §5.5).
+
+| Angreifer | Verteidiger | Ergebnis |
+|---|---|---|
+| richtig | falsch | Angreifer erobert das Gebiet, keine Schätzfrage (Stufe 2) |
+| falsch | falsch | Angriff fehlgeschlagen, keine Schätzfrage (Stufe 0) |
+| falsch | richtig | Angriff fehlgeschlagen, keine Schätzfrage (Stufe 0) [E: vom PO nicht ausdrücklich genannt, folgt aus dem Gate] |
+| richtig | richtig | Schätzfrage entscheidet (Stufen 3–5) |
+
+Im PvE stehen die Antworten der Verteidigung (NPC oder Garnison) vor der ersten Frage versiegelt fest; der Server stellt die Schätzfrage deshalb nur bei Gleichstand und löst sonst direkt nach der Trivia-Frage auf. Im PvP antwortet der Verteidiger erst nach dem Angreifer; wie der Tiebreaker dort ohne Bruch des verdeckten Gates abläuft, ist offen ([O-19]).
 
 Die Oberfläche sagt „Deine Antworten sind gespeichert“ und behauptet nie, beide hätten richtig geantwortet [V-nah, Brief §5.5].
 

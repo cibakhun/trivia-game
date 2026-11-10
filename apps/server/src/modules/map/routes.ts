@@ -174,7 +174,7 @@ export function mapRoutes(app: FastifyInstance, ctx: AppContext): void {
         request.params,
       );
       // Fällige eigene Kämpfe zuerst auflösen, damit Belagerung und Berechtigung stimmen.
-      await settleOpenSiegesOfUser(ctx.db, auth.userId);
+      await settleOpenSiegesOfUser(ctx.db, auth.userId, request.log);
       const row = await ctx.db
         .selectFrom('regions as r')
         .innerJoin('region_state as s', 's.region_id', 'r.id')

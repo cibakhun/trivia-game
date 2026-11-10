@@ -196,7 +196,7 @@ Wichtig: **Kein Ergebnis hängt davon ab, wann ein Job läuft.** Eine Verteidige
 
 - **Deployment-Konfiguration und Secrets** ausschließlich über Umgebungsvariablen, beim Start per zod validiert; Start bricht bei fehlenden/ungültigen Werten ab.
 - **Spielbezogene Konfiguration** (`world_rules`, `game_clock`) liegt in PostgreSQL und wird beim Laden und bei jeder Änderung per zod validiert (siehe unten).
-- Secrets (DB-URL, `RNG_SECRET`, Sitzungs-Pepper, VAPID-Schlüssel) nie im Repository; `.env.example` dokumentiert nur Namen.
+- Secrets (DB-URL, `RNG_SECRET`, VAPID-Schlüssel) nie im Repository (Sitzungstoken brauchen keinen Pepper, ADR-029); `.env.example` dokumentiert nur Namen.
 - Umgebungen: `local` (Entwickler, Docker-Compose-Postgres), `test` (CI, flüchtige DB), `staging` (eigene DB, Zeitversatz erlaubt, Test-Accounts), `production` (Zeitversatz gesperrt, Admin-Aktionen protokolliert). Staging und Produktion teilen keine Datenbank, keine Secrets und keine Push-Schlüssel.
 - Spielregeln sind **Daten** (`world_rules`), keine Umgebungsvariablen. Änderungen erzeugen eine neue Regelversion mit Audit-Eintrag.
 

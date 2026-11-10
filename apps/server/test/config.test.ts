@@ -51,4 +51,21 @@ describe('Serverkonfiguration', () => {
       parseServerConfig({ ...deployed, APP_ENV: 'staging', PUBLIC_ORIGIN: 'http://spiel.example' }),
     ).toThrow(/PUBLIC_ORIGIN/);
   });
+
+  it('lehnt eine Herkunft ohne http(s) ab, weil sie sonst als „null“ gälte', () => {
+    for (const origin of ['localhost:5173', 'file:///tmp/x', 'javascript:alert(1)']) {
+      expect(() => parseServerConfig({ ...base, PUBLIC_ORIGIN: origin })).toThrow(/PUBLIC_ORIGIN/);
+    }
+  });
+
+  it('erlaubt local und test nur mit einer Datenbank auf diesem Rechner', () => {
+    const remote = 'postgres://u@db.example.net:5432/rdw';
+    expect(() => parseServerConfig({ ...base, DATABASE_URL: remote })).toThrow(/DATABASE_URL/);
+    expect(() => parseServerConfig({ ...base, APP_ENV: 'test', DATABASE_URL: remote })).toThrow(
+      /DATABASE_URL/,
+    );
+    expect(
+      parseServerConfig({ ...base, DATABASE_URL: 'postgres://u@localhost:5432/rdw' }).appEnv,
+    ).toBe('local');
+  });
 });

@@ -7,6 +7,8 @@
   --border: #d8d4cc;
   --primary: #1d4ed8;
   --primary-text: #ffffff;
+  /* Textlinks getrennt von Schaltflächen, damit beide Kontraste in hell und dunkel reichen */
+  --link: #1d4ed8;
   --accent: #d97706;
   --danger: #b91c1c;
   --success: #15803d;
@@ -29,7 +31,8 @@
     --text: #e8e6e3;
     --muted: #a3a8ae;
     --border: #3a3e44;
-    --primary: #3b82f6;
+    --primary: #2563eb;
+    --link: #60a5fa;
     --accent: #f59e0b;
     --danger: #f87171;
     --success: #4ade80;
@@ -109,7 +112,7 @@ input:focus-visible {
   font: inherit;
   background: none;
   border: none;
-  color: var(--primary);
+  color: var(--link);
   padding: 0.3rem 0;
   text-align: left;
   cursor: pointer;

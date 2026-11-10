@@ -198,7 +198,11 @@ export const resolutionSchema = z
   .strict();
 export type Resolution = z.infer<typeof resolutionSchema>;
 
-export const STEP_STATUSES = ['PENDING', 'PRESENTED', 'ANSWERED', 'TIMED_OUT'] as const;
+/**
+ * `SKIPPED`: Die Herausforderung ist beendet, ohne dass der Schritt gestellt wurde (Schätzfrage
+ * ohne Gleichstand nach der Trivia-Frage, verpasste Trivia-Frage, nie begonnen).
+ */
+export const STEP_STATUSES = ['PENDING', 'PRESENTED', 'ANSWERED', 'TIMED_OUT', 'SKIPPED'] as const;
 
 export const challengeViewSchema = z
   .object({
@@ -225,9 +229,12 @@ export const answerResponseSchema = z
     step: stepIndexSchema,
     /** Bestätigung „gespeichert“, ohne Richtigkeit. */
     status: z.literal('ANSWERED'),
-    /** Nach Schritt 0 direkt die Schätzfrage (QUIZ_ENGINE §7.1 Punkt 4). */
+    /**
+     * Nach Schritt 0 direkt die Schätzfrage (QUIZ_ENGINE §7.1 Punkt 4), aber nur, wenn beide Seiten
+     * die Trivia-Frage richtig beantwortet haben (GAME_RULES §5.2); sonst `null`.
+     */
     next: presentedQuestionSchema.nullable(),
-    /** Nach dem letzten Schritt im PvE die vollständige Auflösung. */
+    /** Im PvE die vollständige Auflösung, sobald kein Schritt mehr folgt (auch nach Schritt 0). */
     resolution: resolutionSchema.nullable(),
     serverTime: timestampSchema,
   })

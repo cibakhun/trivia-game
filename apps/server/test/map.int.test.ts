@@ -71,7 +71,12 @@ describe('Statische Kartendaten', () => {
 });
 
 describe('Zustand, Regionen und Reiche', () => {
-  let joined: JoinResponse;
+  let joinedOnce: JoinResponse | undefined;
+  /** Beitritt einmal je Datei; jeder Test holt ihn selbst, damit ein Fehler im ersten nicht folgt. */
+  async function joinOnce(): Promise<JoinResponse> {
+    joinedOnce ??= joinResponseSchema.parse((await client.join(world.worldId)).json());
+    return joinedOnce;
+  }
 
   it('liefert Besitz, NPC-Reiche und den Ereignisstand', async () => {
     const path = `/instances/${world.instanceId}/map/state?chunks=0:0`;
@@ -88,7 +93,7 @@ describe('Zustand, Regionen und Reiche', () => {
     expect(heavy).toMatchObject({ kind: 'NPC', regionCount: 10, rank: 'VILLAGE_LEAGUE' });
     expect(regions.find((r) => r.id === heavy?.capitalRegionId)?.isCapital).toBe(true);
 
-    joined = joinResponseSchema.parse((await client.join(world.worldId)).json());
+    const joined = await joinOnce();
     const after = mapStateResponseSchema.parse((await client.get(path)).json());
     expect(after.seq).toBe('2');
     expect(after.chunks[0]?.regions.find((r) => r.id === joined.capitalRegionId)).toEqual({
@@ -102,6 +107,7 @@ describe('Zustand, Regionen und Reiche', () => {
   });
 
   it('liefert Regionsdetails mit Besitzer', async () => {
+    const joined = await joinOnce();
     const capital = regionDetailResponseSchema.parse(
       (await client.get(`/instances/${world.instanceId}/regions/${joined.capitalRegionId}`)).json(),
     );
@@ -140,6 +146,7 @@ describe('Zustand, Regionen und Reiche', () => {
   });
 
   it('liefert Reichsprofile; der Anfängerschutz endet nach 72 Stunden', async () => {
+    const joined = await joinOnce();
     const path = `/instances/${world.instanceId}/kingdoms/${joined.kingdom.id}`;
     const profile = kingdomResponseSchema.parse((await client.get(path)).json()).kingdom;
     expect(profile).toMatchObject({ ...joined.kingdom, generation: 1 });

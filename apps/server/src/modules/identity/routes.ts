@@ -77,7 +77,7 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
       .where('u.id', '=', auth.userId)
       .executeTakeFirstOrThrow();
     // Fällige eigene Kämpfe zuerst auflösen, sonst meldet das Profil sie noch als offen.
-    await settleOpenSiegesOfUser(ctx.db, auth.userId);
+    await settleOpenSiegesOfUser(ctx.db, auth.userId, request.log);
     const instances = await listMyInstances(ctx.db, auth.userId);
     const now = await readGameNow(ctx.db);
     return {

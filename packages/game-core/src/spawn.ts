@@ -107,8 +107,10 @@ export function spawnCandidates(
     if (!lightRegions.some((other) => hexDistance(region, other) <= rules.lightFactionRadius)) {
       continue;
     }
-    const largeDistance = Math.min(12, ...largeRegions.map((other) => hexDistance(region, other)));
-    if (largeDistance < rules.largeKingdomDistance) continue;
+    // ohne große Reiche: unendlich weit; die Kappung auf 12 gilt nur der Bewertung
+    const nearestLarge = Math.min(...largeRegions.map((other) => hexDistance(region, other)));
+    if (nearestLarge < rules.largeKingdomDistance) continue;
+    const largeDistance = Math.min(12, nearestLarge);
     if (
       playerCapitals.some((k) => hexDistance(region, k.capital as Axial) < rules.capitalDistance)
     ) {

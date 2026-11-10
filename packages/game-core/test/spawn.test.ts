@@ -81,11 +81,24 @@ describe('Startregion (WORLD_SYSTEM §4.2)', () => {
     expect(free(base)).toContain(corner.id);
     const sieged = base.map((r) => (r.id === corner.id ? { ...r, underSiege: true } : r));
     expect(free(sieged)).not.toContain(corner.id);
-    // alle Nachbarn im Radius 2 bis auf drei belegt → zu wenig Raum
-    const around = base.filter((r) => r.id !== corner.id && hexDistance(r, target) <= 2);
-    const crowded = own(base, around.slice(3), 'other');
-    expect(around.length).toBeGreaterThan(4);
+    // Ein direkter Nachbar bleibt frei (Nachbarregel erfüllt); im Radius 2 genau drei freie
+    // Zellen → nur die Raumregel (mindestens vier) schließt die Ecke aus.
+    const direct = base.filter((r) => hexDistance(r, target) === 1);
+    const second = base.filter((r) => hexDistance(r, target) === 2);
+    expect(direct.length).toBeGreaterThan(1);
+    expect(second.length).toBeGreaterThan(3);
+    const crowded = own(base, [...direct.slice(1), ...second.slice(2)], 'other');
     expect(free(crowded)).not.toContain(corner.id);
+    // mit einer vierten freien Zelle wird sie wieder zugelassen
+    const roomy = own(base, [...direct.slice(1), ...second.slice(3)], 'other');
+    expect(free(roomy)).toContain(corner.id);
+  });
+
+  it('lässt ohne große Reiche auch einen Mindestabstand über 12 zu', () => {
+    // die Kappung auf 12 gilt nur der Bewertung, nicht der Abstandsprüfung
+    const base = own(world(), [light.capital!], 'light');
+    const rules = { ...DEFAULT_SPAWN_RULES, largeKingdomDistance: 15 };
+    expect(spawnCandidates(base, [light], rules).length).toBeGreaterThan(0);
   });
 
   it('hält Abstand zu großen Spielerreichen und zu fremden Hauptstädten', () => {

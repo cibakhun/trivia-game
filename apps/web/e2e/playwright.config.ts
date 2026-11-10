@@ -18,7 +18,8 @@ export default defineConfig({
     baseURL: E2E_WEB_ORIGIN,
     locale: 'de-DE',
     timezoneId: 'Europe/Berlin',
-    trace: 'off',
+    // ohne Wiederholungen (ein Flake soll sichtbar bleiben), aber mit Trace zum Auswerten
+    trace: process.env.CI ? 'retain-on-failure' : 'off',
     screenshot: 'only-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],

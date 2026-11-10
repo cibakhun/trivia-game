@@ -1,4 +1,4 @@
-import { dbEnvSchema, type AppEnv } from '@rdw/db';
+import { dbEnvSchema, localEnvProblem, type AppEnv } from '@rdw/db';
 import { z } from 'zod';
 
 /**
@@ -18,8 +18,13 @@ const serverEnvSchema = dbEnvSchema
   .extend({
     HOST: z.string().min(1).default('127.0.0.1'),
     PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
-    /** Herkunft des Clients (Schema, Host, Port); zustandsändernde Anfragen müssen sie tragen. */
-    PUBLIC_ORIGIN: z.url().transform((value) => new URL(value).origin),
+    /**
+     * Herkunft des Clients (Schema, Host, Port); zustandsändernde Anfragen müssen sie tragen. Nur
+     * http(s): Andere Schemata ergeben als Origin den Text „null“, den die Prüfung sonst annähme.
+     */
+    PUBLIC_ORIGIN: z
+      .url({ protocol: /^https?$/, error: 'muss eine http(s)-Adresse sein' })
+      .transform((value) => new URL(value).origin),
     COOKIE_SECURE: z
       .enum(['true', 'false'])
       .default('true')
@@ -29,6 +34,9 @@ const serverEnvSchema = dbEnvSchema
     LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
   })
   .superRefine((env, ctx) => {
+    const localProblem = localEnvProblem(env.APP_ENV, env.DATABASE_URL);
+    if (localProblem)
+      ctx.addIssue({ code: 'custom', path: ['DATABASE_URL'], message: localProblem });
     const deployed = env.APP_ENV === 'staging' || env.APP_ENV === 'production';
     if (deployed && !env.COOKIE_SECURE) {
       ctx.addIssue({

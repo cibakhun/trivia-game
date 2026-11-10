@@ -19,6 +19,9 @@ export interface MapData {
 
 const EMPTY: MapData = { statics: new Map(), states: new Map(), kingdoms: new Map() };
 
+/** Leere Chunks (Rand, Meer) werden nicht dauerhaft gemerkt, sondern nach dieser Zeit neu gefragt. */
+const EMPTY_CHUNK_TTL_MS = 5 * 60_000;
+
 function batches<T>(items: readonly T[], size: number): T[][] {
   const result: T[][] = [];
   for (let i = 0; i < items.length; i += size) result.push(items.slice(i, i + size));
@@ -27,8 +30,14 @@ function batches<T>(items: readonly T[], size: number): T[][] {
 
 export function useMapData(instanceId: string) {
   const [data, setData] = useState<MapData>(EMPTY);
-  const [error, setError] = useState<unknown>(null);
+  // Getrennte Fehler: Eine gelungene Auffrischung darf einen fehlgeschlagenen Chunk-Abruf nicht
+  // verdecken, dessen Regionen weiterhin fehlen.
+  const [loadError, setLoadError] = useState<unknown>(null);
+  const [refreshError, setRefreshError] = useState<unknown>(null);
+  /** Chunks mit Regionen; nur sie werden aufgefrischt. */
   const loaded = useRef(new Map<string, ChunkCoord>());
+  /** Leere Chunks mit Ablaufzeitpunkt (ms seit Epoche). */
+  const emptyUntil = useRef(new Map<string, number>());
   const pending = useRef(new Set<string>());
 
   const merge = useCallback(
@@ -53,9 +62,14 @@ export function useMapData(instanceId: string) {
   /** Lädt fehlende Chunks (statisch und Zustand). */
   const ensureChunks = useCallback(
     async (chunks: readonly ChunkCoord[]) => {
+      const now = Date.now();
       const missing = chunks.filter((chunk) => {
         const key = chunkKey(chunk);
-        return !loaded.current.has(key) && !pending.current.has(key);
+        return (
+          !loaded.current.has(key) &&
+          !pending.current.has(key) &&
+          (emptyUntil.current.get(key) ?? 0) <= now
+        );
       });
       if (missing.length === 0) return;
       for (const chunk of missing) pending.current.add(chunkKey(chunk));
@@ -70,11 +84,22 @@ export function useMapData(instanceId: string) {
             state.chunks.flatMap((c) => c.regions),
             state.kingdoms,
           );
-          for (const chunk of batch) loaded.current.set(chunkKey(chunk), chunk);
+          const withRegions = new Set(
+            statics.chunks.filter((c) => c.regions.length > 0).map((c) => chunkKey(c)),
+          );
+          for (const chunk of batch) {
+            const key = chunkKey(chunk);
+            if (withRegions.has(key)) {
+              loaded.current.set(key, chunk);
+              emptyUntil.current.delete(key);
+            } else {
+              emptyUntil.current.set(key, Date.now() + EMPTY_CHUNK_TTL_MS);
+            }
+          }
         }
-        setError(null);
+        setLoadError(null);
       } catch (e) {
-        setError(e);
+        setLoadError(e);
       } finally {
         for (const chunk of missing) pending.current.delete(chunkKey(chunk));
       }
@@ -93,11 +118,11 @@ export function useMapData(instanceId: string) {
           state.kingdoms,
         );
       }
-      setError(null);
+      setRefreshError(null);
     } catch (e) {
-      setError(e);
+      setRefreshError(e);
     }
   }, [instanceId, merge]);
 
-  return { data, error, ensureChunks, refresh };
+  return { data, error: loadError ?? refreshError, ensureChunks, refresh };
 }

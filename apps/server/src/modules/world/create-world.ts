@@ -56,10 +56,18 @@ export interface CreatedWorld {
 }
 
 const INSERT_BATCH = 1000;
+const MAX_CAPACITY = 2_147_483_647;
 
 export async function createWorld(db: Db, options: CreateWorldOptions): Promise<CreatedWorld> {
-  if (!Number.isSafeInteger(options.capacity) || options.capacity < 1) {
-    throw new RangeError(`Kapazität muss ≥ 1 sein: ${options.capacity}`);
+  // Obergrenze der Spalte world_instances.capacity (int)
+  if (
+    !Number.isSafeInteger(options.capacity) ||
+    options.capacity < 1 ||
+    options.capacity > MAX_CAPACITY
+  ) {
+    throw new RangeError(
+      `Kapazität muss zwischen 1 und ${MAX_CAPACITY} liegen: ${options.capacity}`,
+    );
   }
   if (options.mode !== 'ETERNAL') {
     // Daily/Weekly brauchen Saisons (world_seasons) und kommen mit Phase 6.

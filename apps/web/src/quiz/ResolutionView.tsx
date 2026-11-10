@@ -93,7 +93,9 @@ export function ResolutionView({
                 pick={(s) =>
                   s.estimateEffectiveMs === null
                     ? '–'
-                    : t('result.seconds', { value: (s.estimateEffectiveMs / 1000).toFixed(1) })
+                    : t('result.seconds', {
+                        value: formatDecimal((s.estimateEffectiveMs / 1000).toFixed(1)),
+                      })
                 }
                 resolution={resolution}
               />

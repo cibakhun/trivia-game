@@ -68,6 +68,53 @@ describe('Fragenauswahl (QUIZ_ENGINE §5)', () => {
     expect(pickQuestion(hardOnly, tutorial, rng())?.candidate.difficulty).toBeGreaterThanOrEqual(4);
   });
 
+  it('mischt die Klassen nach ihren Gewichten, unabhängig von ihrer Größe', () => {
+    // 1 leichte und 4 mittlere Fragen bei Stufe 0 (leicht 0,7 · mittel 0,25 · schwer 0,05)
+    const pool = [
+      candidate(1, { difficulty: 1 }),
+      ...[2, 3, 4, 5].map((n) => candidate(n, { difficulty: 3 })),
+    ];
+    const options = { now: NOW, weights: difficultyWeights(0), recentCategories: [] };
+    const runs = 2000;
+    let easy = 0;
+    for (let i = 0; i < runs; i++) {
+      const seed = new Uint8Array(16);
+      new DataView(seed.buffer).setUint32(0, i + 1);
+      const pick = pickQuestion(pool, options, createRng(seed));
+      if (pick?.candidate.difficulty === 1) easy++;
+    }
+    // ohne schwere Fragen: 0,7 / (0,7 + 0,25) ≈ 74 %
+    expect(easy / runs).toBeGreaterThan(0.69);
+    expect(easy / runs).toBeLessThan(0.79);
+  });
+
+  it('bleibt im Tutorial bei leichten Fragen, auch wenn sie schon gesehen wurden', () => {
+    const tutorial = { now: NOW, weights: difficultyWeights(0, true), recentCategories: [] };
+    const seen = (days: number) => NOW - days * DAY;
+    const pool = [
+      candidate(1, { difficulty: 1, lastSeenAt: seen(40) }),
+      candidate(2, { difficulty: 4 }),
+      candidate(3, { difficulty: 3 }),
+    ];
+    // die leichte liegt nur außerhalb des 30-Tage-Fensters: sie, nicht die ungesehenen schweren
+    expect(pickQuestion(pool, tutorial, rng())).toEqual({
+      candidate: pool[0],
+      fallback: 1,
+      poolSize: 1,
+    });
+    // auch der letzte Rückfall bleibt bei den leichten Fragen
+    const recent = [
+      candidate(4, { difficulty: 2, lastSeenAt: seen(1) }),
+      candidate(5, { difficulty: 1, lastSeenAt: seen(2) }),
+      candidate(6, { difficulty: 5 }),
+    ];
+    expect(pickQuestion(recent, tutorial, rng())).toEqual({
+      candidate: recent[1],
+      fallback: QUESTION_EXCLUSION_WINDOWS_DAYS.length,
+      poolSize: 2,
+    });
+  });
+
   it('wertet zuletzt gestellte Kategorien ab', () => {
     const pool = Array.from({ length: 20 }, (_, i) => candidate(i, { difficulty: 3 }));
     const count = (recent: string[]) => {

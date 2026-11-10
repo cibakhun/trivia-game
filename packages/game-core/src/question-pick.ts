@@ -19,6 +19,8 @@ export const RECENT_CATEGORY_WEIGHT = 0.4;
 
 export type DifficultyWeights = Readonly<Record<DifficultyClass, number>>;
 
+const DIFFICULTY_CLASSES: readonly DifficultyClass[] = ['EASY', 'MEDIUM', 'HARD'];
+
 /**
  * Zielschwierigkeit aus der Regionsstufe (QUIZ_ENGINE §5.1): Stufe 0–2 überwiegend leicht,
  * 3–6 gemischt, 7–10 überwiegend schwer. Die erste Eroberung (Tutorial, NPC_SYSTEM §4) bekommt
@@ -81,6 +83,11 @@ function byVersionId(a: QuestionCandidate, b: QuestionCandidate): number {
 /**
  * Wählt eine Frage. Ergebnis hängt nur von der Kandidatenmenge und dem Zufallsstrom ab, nicht von
  * der Reihenfolge der Kandidaten. Verbraucht genau einen Wert des Stroms, wenn gezogen wird.
+ *
+ * Schwierigkeiten mit Gewicht 0 (Tutorial: nur leicht) scheiden vor den Ausschlussfenstern aus,
+ * solange es Fragen der gewünschten Schwierigkeit gibt; die Fenster und der Rückfall auf die am
+ * längsten nicht gesehene Frage gelten dann innerhalb dieser Menge. Erst ohne jede passende Frage
+ * wird aus allen gewählt (lieber eine andere Schwierigkeit als keine Frage).
  */
 export function pickQuestion(
   candidates: readonly QuestionCandidate[],
@@ -88,7 +95,9 @@ export function pickQuestion(
   rng: Rng,
 ): QuestionPick | null {
   if (candidates.length === 0) return null;
-  const sorted = [...candidates].sort(byVersionId);
+  const all = [...candidates].sort(byVersionId);
+  const wanted = all.filter((c) => options.weights[difficultyClass(c.difficulty)] > 0);
+  const sorted = wanted.length > 0 ? wanted : all;
   for (const [level, days] of QUESTION_EXCLUSION_WINDOWS_DAYS.entries()) {
     const since = options.now - days * DAY_MS;
     const pool = sorted.filter((c) => c.lastSeenAt === null || c.lastSeenAt < since);
@@ -111,31 +120,48 @@ export function pickQuestion(
   };
 }
 
+/**
+ * Zweistufig mit einem einzigen Zufallswert: erst die Schwierigkeitsklasse nach ihrem Gewicht
+ * (nur Klassen, die im Pool vorkommen), dann die Frage innerhalb der Klasse, wobei zuletzt
+ * gestellte Kategorien abgewertet werden. So entspricht die Klassenmischung den Gewichten und
+ * damit der gespeicherten Zielschwierigkeit, egal wie viele Fragen eine Klasse hat.
+ */
 function weightedPick(
   pool: readonly QuestionCandidate[],
   options: PickOptions,
   rng: Rng,
 ): QuestionCandidate {
   const recent = new Set(options.recentCategories.slice(0, RECENT_CATEGORY_COUNT));
-  let weights = pool.map(
-    (c) =>
-      options.weights[difficultyClass(c.difficulty)] *
-      (recent.has(c.category) ? RECENT_CATEGORY_WEIGHT : 1),
-  );
-  // Fehlt eine gewünschte Schwierigkeit ganz (z. B. Tutorial ohne leichte Fragen), entscheidet
-  // allein die Kategorie: lieber eine andere Schwierigkeit als keine Frage.
-  if (!weights.some((w) => w > 0)) {
-    weights = pool.map((c) => (recent.has(c.category) ? RECENT_CATEGORY_WEIGHT : 1));
+  let u = rng.nextFloat();
+
+  const present = new Set(pool.map((c) => difficultyClass(c.difficulty)));
+  const classes = DIFFICULTY_CLASSES.filter((k) => present.has(k) && options.weights[k] > 0);
+  let members = pool;
+  // Ohne Klasse mit positivem Gewicht entscheidet allein die Kategorie über den ganzen Pool.
+  if (classes.length > 0) {
+    const total = classes.reduce((sum, k) => sum + options.weights[k], 0);
+    let x = u * total;
+    let chosen = classes[classes.length - 1] as DifficultyClass;
+    let rest = 1 - Number.EPSILON; // Rundungsrest: letzte Klasse, letzte Frage
+    for (const k of classes) {
+      const w = options.weights[k];
+      if (x < w) {
+        chosen = k;
+        rest = x / w;
+        break;
+      }
+      x -= w;
+    }
+    u = rest;
+    members = pool.filter((c) => difficultyClass(c.difficulty) === chosen);
   }
+
+  const weights = members.map((c) => (recent.has(c.category) ? RECENT_CATEGORY_WEIGHT : 1));
   const total = weights.reduce((sum, w) => sum + w, 0);
-  let u = rng.nextFloat() * total;
-  for (const [i, candidate] of pool.entries()) {
-    u -= weights[i] ?? 0;
-    if (u < 0) return candidate;
+  let y = u * total;
+  for (const [i, candidate] of members.entries()) {
+    y -= weights[i] ?? 0;
+    if (y < 0) return candidate;
   }
-  // Rundungsrest: die letzte Frage mit positivem Gewicht
-  for (let i = pool.length - 1; i >= 0; i--) {
-    if ((weights[i] ?? 0) > 0) return pool[i] as QuestionCandidate;
-  }
-  return pool[pool.length - 1] as QuestionCandidate;
+  return members[members.length - 1] as QuestionCandidate;
 }

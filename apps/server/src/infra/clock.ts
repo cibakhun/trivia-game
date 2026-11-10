@@ -1,4 +1,4 @@
-import type { Db } from '@rdw/db';
+import type { Db, Tx } from '@rdw/db';
 import { sql } from 'kysely';
 
 /**
@@ -7,7 +7,8 @@ import { sql } from 'kysely';
  */
 export const gameNow = sql<Date>`game_now()`;
 
-export async function readGameNow(db: Db): Promise<Date> {
+/** Aktuelle Spielzeit, auch innerhalb einer Transaktion (dann deren Verbindung). */
+export async function readGameNow(db: Db | Tx): Promise<Date> {
   const { rows } = await sql<{ now: Date }>`select game_now() as now`.execute(db);
   const row = rows[0];
   if (!row) throw new Error('game_now() lieferte keine Zeile');

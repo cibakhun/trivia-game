@@ -42,6 +42,17 @@ export function performanceFromSteps(
   };
 }
 
+/**
+ * Die Schätzfrage ist nur der Tiebreaker (PO 2026-11-10): Sie wird gestellt, wenn beide Seiten
+ * die Trivia-Frage richtig beantwortet haben. Sonst steht der Ausgang schon nach der Trivia-Frage
+ * fest (Angreifer falsch: verdecktes Gate; nur der Verteidiger falsch: Trivia-Sieg), und
+ * `resolveDuel` wertet die Schätzung in diesen Fällen ohnehin nicht aus. Gilt im PvE, wo die
+ * Verteidigung vorab feststeht; für PvP ist die Reihenfolge offen ([O-19]).
+ */
+export function estimateDecides(attackerTriviaCorrect: boolean, defenderTriviaCorrect: boolean) {
+  return attackerTriviaCorrect && defenderTriviaCorrect;
+}
+
 /** Der Verteidiger hat bis zur Frist keine Verteidigung begonnen. */
 export const NO_DEFENSE = 'NO_DEFENSE';
 export type Defense = Performance | typeof NO_DEFENSE;

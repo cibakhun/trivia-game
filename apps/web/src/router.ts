@@ -10,7 +10,8 @@ export type Route =
   | { readonly name: 'play'; readonly instanceId: string }
   | { readonly name: 'challenge'; readonly challengeId: string };
 
-const ID = '[0-9a-fA-F-]{36}';
+/** UUID-Form (8-4-4-4-12); andere Werte führen zur Startseite statt zu einem sicheren Fehlerabruf. */
+const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
 
 export function parseRoute(pathname: string): Route {
   const play = new RegExp(`^/play/(${ID})/?$`).exec(pathname);

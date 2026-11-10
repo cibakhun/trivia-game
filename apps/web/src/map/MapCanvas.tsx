@@ -18,6 +18,7 @@ export function MapCanvas({
   centre,
   onSelect,
   onViewport,
+  onError,
 }: {
   readonly regions: readonly MapRegion[];
   readonly selected: string | null;
@@ -26,11 +27,13 @@ export function MapCanvas({
   readonly centre: Axial | null;
   readonly onSelect: (regionId: string) => void;
   readonly onViewport: (bounds: Bounds) => void;
+  /** Die Karte ließ sich nicht aufbauen (z. B. kein WebGL/Canvas). */
+  readonly onError: (error: unknown) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<MapView | null>(null);
-  const handlers = useRef({ onSelect, onViewport });
-  handlers.current = { onSelect, onViewport };
+  const handlers = useRef({ onSelect, onViewport, onError });
+  handlers.current = { onSelect, onViewport, onError };
   const latest = useRef({ regions, selected, highlighted, centre });
   latest.current = { regions, selected, highlighted, centre };
 
@@ -39,23 +42,27 @@ export function MapCanvas({
     if (!element) return;
     let active = true;
     let created: MapView | null = null;
-    void MapView.create(element, {
+    MapView.create(element, {
       onSelect: (id) => handlers.current.onSelect(id),
       onViewport: (bounds) => handlers.current.onViewport(bounds),
-    }).then((mapView) => {
-      created = mapView;
-      if (!active) {
-        mapView.destroy();
-        return;
-      }
-      view.current = mapView;
-      const state = latest.current;
-      mapView.setRegions(state.regions);
-      mapView.setSelected(state.selected);
-      mapView.setHighlighted(state.highlighted);
-      if (state.centre) mapView.centreOn(state.centre);
-      else handlers.current.onViewport(mapView.viewport());
-    });
+    })
+      .then((mapView) => {
+        created = mapView;
+        if (!active) {
+          mapView.destroy();
+          return;
+        }
+        view.current = mapView;
+        const state = latest.current;
+        mapView.setRegions(state.regions);
+        mapView.setSelected(state.selected);
+        mapView.setHighlighted(state.highlighted);
+        if (state.centre) mapView.centreOn(state.centre);
+        else handlers.current.onViewport(mapView.viewport());
+      })
+      .catch((error: unknown) => {
+        if (active) handlers.current.onError(error);
+      });
     return () => {
       active = false;
       created?.destroy();

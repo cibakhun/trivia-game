@@ -35,7 +35,9 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
       setState({ status: 'ready', me });
       return me;
     } catch (error) {
-      setState({ status: 'error', error });
+      // Ein gescheitertes Nachladen (z. B. kurzer Netzausfall beim 30-s-Abgleich) verwirft den
+      // bekannten Stand nicht; nur ohne geladenen Stand wird der Fehler zum Zustand.
+      setState((previous) => (previous.status === 'ready' ? previous : { status: 'error', error }));
       return null;
     }
   }, []);

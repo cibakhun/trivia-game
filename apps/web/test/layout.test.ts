@@ -57,6 +57,23 @@ describe('Hex-Geometrie der Karte', () => {
   it('begrenzt die Zahl der Chunks und nimmt die mittleren zuerst', () => {
     const chunks = visibleChunks({ minX: -20_000, minY: -20_000, maxX: 20_000, maxY: 20_000 });
     expect(chunks).toHaveLength(MAX_CHUNKS_PER_REQUEST);
-    expect(chunks.some((c) => c.chunkX === 0 && c.chunkY === 0)).toBe(true);
+    // Mitte des Ausschnitts liegt zwischen den Chunks -1 und 0: diese vier kommen zuerst
+    const firstFour = chunks.slice(0, 4).map((c) => `${c.chunkX}:${c.chunkY}`);
+    expect(new Set(firstFour)).toEqual(new Set(['-1:-1', '0:-1', '-1:0', '0:0']));
+    // und kein ausgelassener Chunk liegt näher an der Mitte als ein gelieferter
+    const all = visibleChunks(
+      { minX: -20_000, minY: -20_000, maxX: 20_000, maxY: 20_000 },
+      undefined,
+      Number.MAX_SAFE_INTEGER,
+    );
+    const distance = (c: { chunkX: number; chunkY: number }) =>
+      Math.hypot(c.chunkX + 0.5, c.chunkY + 0.5);
+    const keys = new Set(chunks.map((c) => `${c.chunkX}:${c.chunkY}`));
+    const farthestTaken = Math.max(...chunks.map(distance));
+    for (const c of all) {
+      if (!keys.has(`${c.chunkX}:${c.chunkY}`)) {
+        expect(distance(c)).toBeGreaterThanOrEqual(farthestTaken);
+      }
+    }
   });
 });

@@ -148,7 +148,42 @@ async function estimateInput(challengeId: string): Promise<string> {
   return row.answer_value.replace('.', ',');
 }
 
-/** Spielt eine Herausforderung durch; die Schätzung ist exakt und sofort abgegeben. */
+/** Versiegelte Trivia-Antwort der Verteidigung (NPC oder Garnison) einer Herausforderung. */
+async function npcTriviaCorrect(challengeId: string): Promise<boolean> {
+  const row = await server.db
+    .selectFrom('quiz_answers as a')
+    .innerJoin('siege_participants as p', 'p.id', 'a.participant_id')
+    .select('a.is_correct')
+    .where('a.challenge_id', '=', challengeId)
+    .where('a.step_index', '=', 0)
+    .where('p.role', '=', 'DEFENDER')
+    .executeTakeFirstOrThrow();
+  return row.is_correct === true;
+}
+
+/**
+ * Angriff eines neuen Spielers auf seine Tutorial-Region, bei dem die Garnison die Trivia-Frage
+ * richtig bzw. falsch beantwortet hat. Die versiegelte Antwort ist zufällig (Startgarnison
+ * θ = −2,5: meist falsch); deshalb neue Spieler, bis der gewünschte Fall vorliegt.
+ */
+async function attackWhereNpcTrivia(
+  correct: boolean,
+): Promise<{ player: Player; started: AttackResponse; seqBefore: string }> {
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const player = await newPlayer();
+    const seqBefore = await eventSeq(player.joined.instanceId);
+    const started = await startAttack(player, tutorialTarget(player));
+    if ((await npcTriviaCorrect(started.challengeId)) === correct) {
+      return { player, started, seqBefore };
+    }
+  }
+  throw new Error(`Keine Garnison mit ${correct ? 'richtiger' : 'falscher'} Trivia-Antwort`);
+}
+
+/**
+ * Spielt eine Herausforderung durch. Die Schätzfrage kommt nur, wenn beide Seiten die
+ * Trivia-Frage richtig haben (GAME_RULES §5.2); dann ist die Schätzung exakt und sofort abgegeben.
+ */
 async function playChallenge(
   player: Player,
   challengeId: string,
@@ -162,6 +197,11 @@ async function playChallenge(
   });
   expect(first.statusCode, first.body).toBe(200);
   const afterTrivia = answerResponseSchema.parse(first.json());
+  if (!(triviaCorrect && (await npcTriviaCorrect(challengeId)))) {
+    expect(afterTrivia.next).toBeNull();
+    expect(afterTrivia.resolution).not.toBeNull();
+    return afterTrivia;
+  }
   expect(afterTrivia.next?.kind).toBe('ESTIMATE');
   expect(afterTrivia.resolution).toBeNull();
   const second = await answer(player.client, challengeId, 1, {
@@ -383,14 +423,12 @@ describe('Angriffsberechtigung in den Regionsdetails', () => {
 });
 
 describe('Gebietseroberung PvE', () => {
-  it('erobert die Tutorial-Region mit richtigen Antworten', async () => {
-    const player = await newPlayer();
+  it('erobert die Tutorial-Region mit richtigen Antworten (Gleichstand: Schätzfrage)', async () => {
+    // 1. Angriff: Region reserviert, Antworten der Garnison vor der ersten Frage versiegelt; hier
+    // hat auch die Garnison die Trivia-Frage richtig, also entscheidet die Schätzfrage
+    const { player, started, seqBefore } = await attackWhereNpcTrivia(true);
     const { instanceId, kingdom } = player.joined;
     const target = tutorialTarget(player);
-    const seqBefore = await eventSeq(instanceId);
-
-    // 1. Angriff: Region reserviert, Antworten der Garnison vor der ersten Frage versiegelt
-    const started = await startAttack(player, target);
     expect(started).toMatchObject({
       instanceId,
       mode: 'PVE',
@@ -439,7 +477,7 @@ describe('Gebietseroberung PvE', () => {
         })
       ).json(),
     );
-    // Gespeichert, ohne Richtigkeit; die Schätzfrage kommt sofort
+    // Gespeichert, ohne Richtigkeit; bei Gleichstand kommt die Schätzfrage sofort
     expect(first).toMatchObject({ step: 0, status: 'ANSWERED', resolution: null });
     expect(first.next).toMatchObject({ kind: 'ESTIMATE', step: 1, timeLimitMs: 30_000 });
     expect(JSON.stringify(first)).not.toMatch(/correct/i);
@@ -581,18 +619,82 @@ describe('Gebietseroberung PvE', () => {
     expect(me.instances[0]?.openChallengeId).toBeNull();
   });
 
-  it('scheitert am verdeckten Gate bei falscher Trivia-Antwort', async () => {
+  it('entscheidet ohne Schätzfrage, wenn nur der Angreifer richtig liegt', async () => {
+    const { player, started } = await attackWhereNpcTrivia(false);
+    const target = tutorialTarget(player);
+    presentResponseSchema.parse((await present(player.client, started.challengeId, 0)).json());
+    const first = answerResponseSchema.parse(
+      (
+        await answer(player.client, started.challengeId, 0, {
+          optionToken: await optionToken(started.challengeId, true),
+          clientElapsedMs: 0,
+        })
+      ).json(),
+    );
+    // keine Schätzfrage, sofort die Auflösung: Sieg durch die Trivia-Frage
+    expect(first.next).toBeNull();
+    expect(first.resolution).toMatchObject({
+      status: 'ATTACKER_WON',
+      winner: 'ATTACKER',
+      reason: 'TRIVIA',
+      conquered: true,
+      attacker: { triviaCorrect: true, estimate: null, estimateDistance: null },
+      defender: { triviaCorrect: false },
+      estimate: null,
+    });
+    // die Schätzfrage wurde nie gestellt: keine Antwortzeile, Schritt übersprungen, kein Abruf
+    const attackerSteps = await server.db
+      .selectFrom('quiz_answers as a')
+      .innerJoin('siege_participants as p', 'p.id', 'a.participant_id')
+      .select('a.step_index')
+      .where('a.challenge_id', '=', started.challengeId)
+      .where('p.role', '=', 'ATTACKER')
+      .execute();
+    expect(attackerSteps.map((a) => a.step_index)).toEqual([0]);
+    const view = challengeViewSchema.parse(
+      (await player.client.get(`/challenges/${started.challengeId}`)).json(),
+    );
+    expect(view).toMatchObject({
+      status: 'ATTACKER_WON',
+      currentStep: null,
+      steps: [
+        { index: 0, status: 'ANSWERED' },
+        { index: 1, status: 'SKIPPED' },
+      ],
+    });
+    expect(view.resolution).toEqual(first.resolution);
+    expect(
+      errorOf(
+        await answer(player.client, started.challengeId, 1, {
+          rawInput: await estimateInput(started.challengeId),
+          locale: 'de',
+        }),
+      ),
+    ).toMatchObject({ status: 409, code: 'STEP_NOT_AVAILABLE' });
+    expect(await regionState(target)).toMatchObject({
+      owner_kingdom_id: player.joined.kingdom.id,
+      active_siege_id: null,
+    });
+    expect(await siegeRow(started.siegeId)).toMatchObject({
+      status: 'ATTACKER_WON',
+      outcome_reason: 'TRIVIA',
+    });
+  });
+
+  it('scheitert am verdeckten Gate bei falscher Trivia-Antwort, ohne Schätzfrage', async () => {
     const player = await newPlayer();
     const target = tutorialTarget(player);
     const started = await startAttack(player, target);
     const result = await playChallenge(player, started.challengeId, false);
+    expect(result.next).toBeNull();
     expect(result.resolution).toMatchObject({
       status: 'DEFENDER_WON',
       winner: 'DEFENDER',
       reason: 'ATTACKER_GATE',
       conquered: false,
       regionProtectedUntil: null,
-      attacker: { triviaCorrect: false, estimateDistance: '0' },
+      attacker: { triviaCorrect: false, estimate: null, estimateDistance: null },
+      estimate: null,
     });
     expect(await regionState(target)).toMatchObject({
       owner_kingdom_id: null,
@@ -874,8 +976,8 @@ describe('Angriff: Prüfungen und Idempotenz', () => {
 
 describe('Fragen und Antworten', () => {
   it('stellt nach Reload dieselbe Frage mit derselben Frist und prüft Antworten', async () => {
-    const player = await newPlayer();
-    const started = await startAttack(player, tutorialTarget(player));
+    // Garnison richtig: Nach einer richtigen Antwort folgt die Schätzfrage
+    const { player, started } = await attackWhereNpcTrivia(true);
     const { challengeId, siegeId } = started;
 
     expect(errorOf(await present(player.client, challengeId, 1))).toMatchObject({
@@ -1006,7 +1108,7 @@ describe('Fragen und Antworten', () => {
       status: 'DEFENDER_WON',
       steps: [
         { index: 0, status: 'TIMED_OUT' },
-        { index: 1, status: 'PENDING' },
+        { index: 1, status: 'SKIPPED' },
       ],
       resolution: {
         winner: 'DEFENDER',
@@ -1062,5 +1164,24 @@ describe('Fragen und Antworten', () => {
         .executeTakeFirst(),
     ).toEqual({ battles: 0 });
     expect((await regionDetail(player, target)).attack.allowed).toBe(true);
+  });
+
+  it('wertet eine Trivia-Antwort ohne Gleichstand auch im Aufräumlauf aus', async () => {
+    // Abbruch zwischen Speichern und Auswerten nachgestellt: Antwort direkt gespeichert
+    const { player, started } = await attackWhereNpcTrivia(false);
+    presentResponseSchema.parse((await present(player.client, started.challengeId, 0)).json());
+    const saved = await sql`
+      update quiz_answers a set status = 'ANSWERED', received_at = a.presented_at + interval '1 second',
+        is_correct = true, effective_ms = 1000, server_elapsed_ms = 1000
+      from siege_participants p
+      where p.id = a.participant_id and p.role = 'ATTACKER'
+        and a.challenge_id = ${started.challengeId} and a.step_index = 0`.execute(server.db);
+    expect(saved.numAffectedRows).toBe(1n);
+    expect((await siegeRow(started.siegeId)).status).toBe('PREPARING');
+    expect(await expireStaleChallenges(server.db)).toBeGreaterThanOrEqual(1);
+    expect(await siegeRow(started.siegeId)).toMatchObject({
+      status: 'ATTACKER_WON',
+      outcome_reason: 'TRIVIA',
+    });
   });
 });

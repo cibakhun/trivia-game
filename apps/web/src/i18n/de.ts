@@ -102,12 +102,16 @@ export const de = {
     defenderGarrison: 'Gegner: neutrale Garnison',
     defenderKingdom: 'Gegner: {name}',
     intro:
-      'Zwei Fragen: zuerst eine Wissensfrage, dann eine Schätzfrage. Die Zeit läuft ab dem Start. Der Gegner hat seine Antworten bereits abgegeben.',
+      'Zuerst kommt eine Wissensfrage. Nur wenn ihr beide richtig liegt, entscheidet danach eine Schätzfrage, sonst ist der Kampf damit entschieden. Die Zeit läuft ab dem Start. Der Gegner hat seine Antworten bereits abgegeben.',
     start: 'Start',
-    startWindow: 'Starte innerhalb von zwei Minuten, sonst verfällt der Angriff.',
-    step: 'Frage {current} von {total}',
+    startWindow: {
+      one: 'Starte innerhalb von {count} Minute, sonst verfällt der Angriff.',
+      other: 'Starte innerhalb von {count} Minuten, sonst verfällt der Angriff.',
+    },
     trivia: 'Wissensfrage',
     estimate: 'Schätzfrage',
+    tiebreak:
+      'Gleichstand: Ihr habt beide die Wissensfrage richtig. Die genauere Schätzung gewinnt.',
     remaining: { one: 'Noch {count} Sekunde', other: 'Noch {count} Sekunden' },
     timeUp: 'Die Zeit ist abgelaufen.',
     estimateLabel: 'Deine Schätzung',

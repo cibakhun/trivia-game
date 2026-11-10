@@ -37,13 +37,15 @@ describe('Reichsnamen', () => {
       prefix: NAME_PREFIXES[1],
       suffix: NAME_SUFFIXES[1],
     });
-    // nur vergebene Namen: nach acht Versuchen wird der letzte hingenommen (16 Ziehungen)
-    const draws = fixed(Array<number>(16).fill(0));
+    // nur vergebene Namen: nach acht Versuchen (16 Ziehungen) wird der letzte hingenommen. Ein
+    // neunter Versuch fände mit 1/1 einen freien Namen, daher fiele eine höhere Grenze auf.
+    const draws = fixed([...Array<number>(16).fill(0), 1, 1]);
     expect(generateKingdomName(draws, taken)).toEqual({
       prefix: NAME_PREFIXES[0],
       suffix: NAME_SUFFIXES[0],
     });
-    expect(draws.nextUint32()).toBe(0);
+    // genau 16 Werte verbraucht: der nächste ist die erste 1
+    expect(draws.nextUint32()).toBe(1);
   });
 
   it('hat keine doppelten Bausteine', () => {

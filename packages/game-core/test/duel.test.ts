@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
   defensePoints,
+  estimateDecides,
   NO_DEFENSE,
   parseDecimal,
   resolveDuel,
@@ -160,6 +161,23 @@ describe('resolveDuel – Eigenschaften', () => {
     fc.assert(
       fc.property(performance, defense, (att, def) => {
         expect(resolveDuel({ ...att, triviaCorrect: false }, def).winner).not.toBe('ATTACKER');
+      }),
+    );
+  });
+
+  it('Schätzfrage nur als Tiebreaker: ohne zwei richtige Trivia-Antworten zählt sie nicht', () => {
+    expect(estimateDecides(true, true)).toBe(true);
+    expect(estimateDecides(true, false)).toBe(false);
+    expect(estimateDecides(false, true)).toBe(false);
+    expect(estimateDecides(false, false)).toBe(false);
+    const unanswered = { estimateDistance: null, estimateEffectiveMs: null };
+    fc.assert(
+      fc.property(performance, performance, (att, def) => {
+        if (estimateDecides(att.triviaCorrect, def.triviaCorrect)) return;
+        // ohne gestellte Schätzfrage (beide Seiten ohne Schätzung) dasselbe Ergebnis
+        expect(resolveDuel({ ...att, ...unanswered }, { ...def, ...unanswered })).toEqual(
+          resolveDuel(att, def),
+        );
       }),
     );
   });

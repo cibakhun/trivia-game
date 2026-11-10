@@ -23,7 +23,8 @@ import type { z } from 'zod';
  * Zugriff auf die REST-Schnittstelle (API.md). Jede Antwort wird gegen das Schema aus `protocol`
  * geprüft; Fehler kommen als `ApiRequestError` mit stabilem Code. Kommandos tragen einen
  * `Idempotency-Key`; bei einem Netzwerkfehler wird mit demselben Schlüssel wiederholt, so wirkt
- * ein Kommando höchstens einmal.
+ * ein Kommando höchstens einmal. Den Schlüssel erzeugt der Aufrufer je Nutzeraktion
+ * (`newActionKey`), damit auch ein erneuter Klick nach einem Fehler derselbe Versuch bleibt.
  */
 
 export class ApiRequestError extends Error {
@@ -47,8 +48,13 @@ export class NetworkError extends Error {
 
 interface RequestOptions {
   readonly body?: unknown;
-  /** Kommando mit `Idempotency-Key` (alle POST außer den Ausnahmen in API.md §1). */
-  readonly idempotent?: boolean;
+  /** Schlüssel des Kommandos (alle POST außer den Ausnahmen in API.md §1). */
+  readonly idempotencyKey?: string;
+}
+
+/** Neuer Schlüssel für eine Nutzeraktion; Wiederholungen derselben Aktion verwenden ihn erneut. */
+export function newActionKey(): string {
+  return crypto.randomUUID();
 }
 
 const NETWORK_RETRIES = 2;
@@ -56,7 +62,7 @@ const NETWORK_RETRIES = 2;
 async function send(method: 'GET' | 'POST', path: string, options: RequestOptions) {
   const headers: Record<string, string> = { accept: 'application/json' };
   if (options.body !== undefined) headers['content-type'] = 'application/json';
-  if (options.idempotent) headers[IDEMPOTENCY_KEY_HEADER] = crypto.randomUUID();
+  if (options.idempotencyKey) headers[IDEMPOTENCY_KEY_HEADER] = options.idempotencyKey;
   const init: RequestInit = {
     method,
     headers,
@@ -68,7 +74,7 @@ async function send(method: 'GET' | 'POST', path: string, options: RequestOption
       return await fetch(`${API_PREFIX}${path}`, init);
     } catch (error) {
       // Nur Kommandos mit Schlüssel und Lesezugriffe dürfen gefahrlos wiederholt werden.
-      const repeatable = method === 'GET' || options.idempotent === true;
+      const repeatable = method === 'GET' || options.idempotencyKey !== undefined;
       if (!repeatable || attempt >= NETWORK_RETRIES) throw new NetworkError(error);
       await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
     }
@@ -83,15 +89,21 @@ async function request<S extends z.ZodType>(
 ): Promise<z.output<S>> {
   const response = await send(method, path, options);
   const text = await response.text();
-  const json: unknown = text === '' ? undefined : JSON.parse(text);
   if (!response.ok) {
+    // Fehlerseiten von Proxys sind kein JSON; dann zählt nur der Status
+    let json: unknown;
+    try {
+      json = text === '' ? undefined : JSON.parse(text);
+    } catch {
+      json = undefined;
+    }
     const parsed = errorBodySchema.safeParse(json);
     if (parsed.success) {
       throw new ApiRequestError(response.status, parsed.data.error.code, parsed.data.error.details);
     }
     throw new ApiRequestError(response.status, 'INTERNAL_ERROR');
   }
-  return schema.parse(json);
+  return schema.parse(text === '' ? undefined : JSON.parse(text));
 }
 
 function chunkParam(chunks: readonly ChunkRef[]): string {
@@ -104,8 +116,8 @@ export const api = {
   guest: () => request('POST', '/auth/guest', guestResponseSchema),
   me: () => request('GET', '/me', meResponseSchema),
   worlds: () => request('GET', '/worlds', worldsResponseSchema),
-  join: (worldId: string) =>
-    request('POST', `/worlds/${worldId}/join`, joinResponseSchema, { idempotent: true }),
+  join: (worldId: string, idempotencyKey: string) =>
+    request('POST', `/worlds/${worldId}/join`, joinResponseSchema, { idempotencyKey }),
   mapStatic: (instanceId: string, chunks: readonly ChunkRef[]) =>
     request(
       'GET',
@@ -120,19 +132,19 @@ export const api = {
     ),
   region: (instanceId: string, regionId: string) =>
     request('GET', `/instances/${instanceId}/regions/${regionId}`, regionDetailResponseSchema),
-  attack: (instanceId: string, targetRegionId: string) =>
+  attack: (instanceId: string, targetRegionId: string, idempotencyKey: string) =>
     request('POST', `/instances/${instanceId}/attacks`, attackResponseSchema, {
       body: { targetRegionId },
-      idempotent: true,
+      idempotencyKey,
     }),
   challenge: (challengeId: string) =>
     request('GET', `/challenges/${challengeId}`, challengeViewSchema),
   // `present` ist von Natur aus wiederholbar und braucht keinen Schlüssel (ADR-033)
   present: (challengeId: string, step: number) =>
     request('POST', `/challenges/${challengeId}/steps/${step}/present`, presentResponseSchema),
-  answer: (challengeId: string, step: number, body: AnswerRequest) =>
+  answer: (challengeId: string, step: number, body: AnswerRequest, idempotencyKey: string) =>
     request('POST', `/challenges/${challengeId}/steps/${step}/answer`, answerResponseSchema, {
       body,
-      idempotent: true,
+      idempotencyKey,
     }),
 };
