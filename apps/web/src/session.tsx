@@ -1,6 +1,6 @@
 import type { MeResponse } from '@rdw/protocol';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { api } from './api/client.ts';
+import { api, ApiRequestError } from './api/client.ts';
 
 /**
  * Sitzung des Spielers: Gastkonto (Cookie, API.md §1) und Profil mit Reichen. Der Zustand wird
@@ -21,6 +21,12 @@ interface SessionValue {
 
 const SessionContext = createContext<SessionValue | null>(null);
 
+/** Fehler, nach denen ein späterer Versuch gelingen kann: kein Netz, Überlast, Serverfehler. */
+function isTransient(error: unknown): boolean {
+  if (!(error instanceof ApiRequestError)) return true;
+  return error.status === 429 || error.status >= 500;
+}
+
 export function SessionProvider({ children }: { readonly children: ReactNode }) {
   const [state, setState] = useState<SessionState>({ status: 'loading' });
 
@@ -35,9 +41,17 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
       setState({ status: 'ready', me });
       return me;
     } catch (error) {
-      // Ein gescheitertes Nachladen (z. B. kurzer Netzausfall beim 30-s-Abgleich) verwirft den
-      // bekannten Stand nicht; nur ohne geladenen Stand wird der Fehler zum Zustand.
-      setState((previous) => (previous.status === 'ready' ? previous : { status: 'error', error }));
+      if (error instanceof ApiRequestError && error.status === 401) {
+        // Sitzung abgelaufen oder widerrufen: kein Profil mehr zeigen
+        setState({ status: 'anonymous' });
+      } else {
+        // Ein vorübergehender Fehler (Netz, Server) beim 30-s-Abgleich verwirft den bekannten
+        // Stand nicht; nur ohne geladenen Stand wird er zum Zustand. Andere API-Fehler ersetzen
+        // den Stand, damit kein veraltetes Profil stehen bleibt.
+        setState((previous) =>
+          previous.status === 'ready' && isTransient(error) ? previous : { status: 'error', error },
+        );
+      }
       return null;
     }
   }, []);

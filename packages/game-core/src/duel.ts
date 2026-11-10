@@ -12,8 +12,11 @@ export interface Performance {
   readonly estimateDistance: Decimal | null;
   /** Effektive Antwortzeit der Schätzfrage in ms; `null` zählt als +∞. */
   readonly estimateEffectiveMs: number | null;
-  /** Beide Fragen jeweils innerhalb ihres Zeitlimits beantwortet. */
-  readonly answeredBoth: boolean;
+  /**
+   * Jede gestellte Frage innerhalb ihres Zeitlimits beantwortet (GAME_RULES §5.5). Die Schätzfrage
+   * zählt nur mit, wenn sie gestellt wurde; seit der Tiebreaker-Regel kommt sie nicht immer.
+   */
+  readonly answeredAll: boolean;
 }
 
 /** Ergebnis eines Schritts aus den gespeicherten Antworten; `null` = nie gestellt oder verpasst. */
@@ -29,16 +32,19 @@ export interface EstimateStep {
 /**
  * Leistung einer Seite aus ihren gespeicherten Antworten. Verpasste oder nie gestellte Schritte
  * zählen als falsch bzw. als unendlicher Abstand und unendliche Zeit (GAME_RULES §5.2).
+ * `estimateAsked = false`: Die Schätzfrage wurde dieser Seite nie gestellt (Tiebreaker nicht
+ * nötig); sie fehlt dann nicht für `answeredAll`.
  */
 export function performanceFromSteps(
   trivia: TriviaStep | null,
   estimate: EstimateStep | null,
+  estimateAsked = true,
 ): Performance {
   return {
     triviaCorrect: trivia?.correct ?? false,
     estimateDistance: estimate?.distance ?? null,
     estimateEffectiveMs: estimate?.effectiveMs ?? null,
-    answeredBoth: trivia !== null && estimate !== null,
+    answeredAll: trivia !== null && (estimate !== null || !estimateAsked),
   };
 }
 
@@ -116,7 +122,7 @@ export interface DefensePointValues {
  * verknüpfte Konten prüft die Auflösungstransaktion.
  */
 export function defensePoints(def: Defense, values: DefensePointValues): number {
-  if (def === NO_DEFENSE || !def.answeredBoth) return 0;
+  if (def === NO_DEFENSE || !def.answeredAll) return 0;
   return values.forDefending + (def.triviaCorrect ? values.bonusCorrect : 0);
 }
 

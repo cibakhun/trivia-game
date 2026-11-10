@@ -143,7 +143,12 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
     } catch (e) {
       if (e instanceof ApiRequestError && e.code === 'STEP_EXPIRED') {
         waitForResult(SETTLE_WAIT_MS);
-      } else if (e instanceof ApiRequestError && e.code === 'CHALLENGE_CLOSED') {
+      } else if (
+        e instanceof ApiRequestError &&
+        (e.code === 'CHALLENGE_CLOSED' || e.code === 'IDEMPOTENCY_KEY_REUSED')
+      ) {
+        // IDEMPOTENCY_KEY_REUSED: Die erste Antwort kam an, nur ihre Bestätigung ging verloren;
+        // eine andere Antwort ändert sie nicht mehr. Die Ansicht folgt dem gespeicherten Stand.
         void sync();
       } else {
         // Eingabefehler (Zahl unlesbar, außerhalb des Bereichs) oder Netz: Frage bleibt offen

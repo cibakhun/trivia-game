@@ -15,6 +15,8 @@ export const de = {
     guestHint: 'Dein Fortschritt bleibt in diesem Browser gespeichert.',
     chooseWorld: 'Welt wählen',
     join: 'Beitreten',
+    joinIncomplete:
+      'Du bist beigetreten, aber dein Reich ließ sich noch nicht laden. Bitte versuche es erneut.',
     play: 'Weiterspielen',
     noWorlds: 'Gerade ist keine Welt offen.',
     worldPlayers: '{participants} von {capacity} Plätzen belegt',

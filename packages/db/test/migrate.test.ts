@@ -87,6 +87,9 @@ describe('parseDbEnv', () => {
       'postgres://rdw@127.1.2.3/rdw',
       'postgres://rdw@[::1]:5432/rdw',
       'postgres:///rdw?host=/var/run/postgresql',
+      'postgres://rdw@%2Fvar%2Frun%2Fpostgresql/rdw',
+      'postgres:///rdw',
+      'postgres://rdw@db.example.net/rdw?host=127.0.0.1',
     ]) {
       expect(isLocalDatabaseUrl(local), local).toBe(true);
     }
@@ -94,9 +97,20 @@ describe('parseDbEnv', () => {
       'postgres://rdw@10.0.0.5/rdw',
       'postgres://rdw@localhost.example.net/rdw',
       'postgres://rdw@127.0.0.1.example.net/rdw',
+      // `?host=` hat beim Treiber Vorrang vor dem Host der URL
+      'postgres://rdw@localhost/rdw?host=db.example.net',
+      'postgres://rdw@127.0.0.1:5432/rdw?host=10.0.0.5',
       'kein url',
     ]) {
       expect(isLocalDatabaseUrl(remote), remote).toBe(false);
     }
+  });
+
+  it('nimmt ohne Host in der URL PGHOST wie der Treiber', () => {
+    expect(isLocalDatabaseUrl('postgres:///rdw', '/tmp')).toBe(true);
+    expect(isLocalDatabaseUrl('postgres:///rdw', 'db.example.net')).toBe(false);
+    expect(() =>
+      parseDbEnv({ APP_ENV: 'local', DATABASE_URL: 'postgres:///rdw', PGHOST: 'db.example.net' }),
+    ).toThrow(/DATABASE_URL/);
   });
 });

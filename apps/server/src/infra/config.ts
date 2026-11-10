@@ -32,9 +32,11 @@ const serverEnvSchema = dbEnvSchema
     RNG_SECRET: base64Secret,
     RNG_KEY_ID: z.string().regex(/^[A-Za-z0-9._-]{1,64}$/, '1–64 Zeichen aus [A-Za-z0-9._-]'),
     LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
+    /** Nur für die Prüfung „lokale Datenbank“: Der Treiber nimmt PGHOST, wenn die URL keinen Host hat. */
+    PGHOST: z.string().optional(),
   })
   .superRefine((env, ctx) => {
-    const localProblem = localEnvProblem(env.APP_ENV, env.DATABASE_URL);
+    const localProblem = localEnvProblem(env.APP_ENV, env.DATABASE_URL, env.PGHOST);
     if (localProblem)
       ctx.addIssue({ code: 'custom', path: ['DATABASE_URL'], message: localProblem });
     const deployed = env.APP_ENV === 'staging' || env.APP_ENV === 'production';

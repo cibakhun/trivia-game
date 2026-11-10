@@ -1,7 +1,7 @@
 import type { Rng } from './rng.ts';
 
 /**
- * Generierte Reichsnamen aus deutschen Bausteinen (GAME_RULES §3.7, O-10, ADR-023): Vorsilbe +
+ * Generierte Reichsnamen aus deutschen Bausteinen (GAME_RULES §3.8, O-10, ADR-023): Vorsilbe +
  * Endung, z. B. „Falkenstein“. Freie Namen gibt es im MVP nicht, damit keine nutzergenerierten
  * Inhalte moderiert werden müssen. Die Bausteine sind Eigennamen und werden nicht übersetzt.
  *

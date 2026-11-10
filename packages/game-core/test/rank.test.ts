@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { KINGDOM_RANK_CODES } from '@rdw/protocol';
 import { KINGDOM_RANKS, kingdomRank } from '../src/index.ts';
 
-describe('kingdomRank (GAME_RULES §3.6)', () => {
+describe('kingdomRank (GAME_RULES §3.7)', () => {
   it.each([
     [0, null],
     [1, 'SETTLEMENT'],

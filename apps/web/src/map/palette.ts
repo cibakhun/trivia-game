@@ -2,7 +2,7 @@ import { BIOMES, KINGDOM_COLOR_COUNT, type Biome } from '@rdw/game-core';
 
 /**
  * Platzhalterfarben der Karte (REPO_AUDIT: visuelle Identität ab Phase 1, Platzhalter genügen).
- * Reichsfarben sind ein Index 0–15 (GAME_RULES §3.7); Besitz wird zusätzlich über Rahmen und
+ * Reichsfarben sind ein Index 0–15 (GAME_RULES §3.8); Besitz wird zusätzlich über Rahmen und
  * Symbole unterschieden, nicht nur über Farbe (ARCHITECTURE §12).
  */
 

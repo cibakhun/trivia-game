@@ -794,7 +794,11 @@ describe('Gebietseroberung PvE', () => {
       expect(started.defender).toMatchObject({ kind: 'NPC', kingdom: { id: npc.id } });
       const result = await playChallenge(player, started.challengeId, true);
       expect(result.resolution?.winner).toBe('ATTACKER');
-      return { siegeId: started.siegeId, resolution: result.resolution };
+      return {
+        siegeId: started.siegeId,
+        challengeId: started.challengeId,
+        resolution: result.resolution,
+      };
     };
     const capitalHits = async () =>
       server.db
@@ -828,18 +832,29 @@ describe('Gebietseroberung PvE', () => {
     expect(afterHit.capital).toMatchObject({ lives: 2, maxLives: 3 });
     expect(afterHit.region.protectionReason).toBe('CAPITAL_HIT');
     expect(afterHit.attack).toMatchObject({ allowed: false, reason: 'REGION_PROTECTED' });
+    const firstProtection = first.resolution?.capital?.protectedUntil ?? null;
     expect(
       await server.db
         .selectFrom('battle_results')
-        .select(['capital_lives_left', 'regions_taken'])
+        .select(['capital_lives_left', 'regions_taken', 'capital_protected_until'])
         .where('siege_id', '=', first.siegeId)
         .executeTakeFirstOrThrow(),
-    ).toEqual({ capital_lives_left: 2, regions_taken: null });
+    ).toEqual({
+      capital_lives_left: 2,
+      regions_taken: null,
+      capital_protected_until: firstProtection ? new Date(firstProtection) : null,
+    });
 
     // 2. Sieg nach Ablauf des Schutzes: noch ein Leben
     await advanceGameClock(server.database.pool, 3_601_000);
     const second = await winAgainstCapital();
     expect(second.resolution?.capital).toMatchObject({ livesLeft: 1, takenOver: false });
+    // Die erste Auflösung behält den Schutz ihres eigenen Treffers, nicht den der Region
+    expect(second.resolution?.capital?.protectedUntil).not.toBe(firstProtection);
+    const firstAgain = challengeViewSchema.parse(
+      (await player.client.get(`/challenges/${first.challengeId}`)).json(),
+    );
+    expect(firstAgain.resolution?.capital).toEqual(first.resolution?.capital);
 
     // Ein Tag ohne Treffer gibt ein Leben zurück; der nächste Sieg lässt deshalb wieder eines übrig
     await advanceGameClock(server.database.pool, 86_400_000);

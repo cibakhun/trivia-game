@@ -34,7 +34,7 @@ export function ResolutionView({
       {capital ? (
         <p data-testid="capital-effect">
           {capital.takenOver
-            ? tp('result.regionsTaken', capital.regionsTaken ?? 1, { name: defenderName })
+            ? tp('result.regionsTaken', capital.regionsTaken, { name: defenderName })
             : tp('result.capitalLivesLeft', capital.livesLeft, {
                 name: defenderName,
                 max: capital.maxLives,

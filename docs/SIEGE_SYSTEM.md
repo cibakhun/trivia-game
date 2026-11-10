@@ -153,7 +153,9 @@ UPDATE sieges SET status = :final, outcome = :winner, outcome_reason = :reason,
        resolved_at = game_now(), version = version + 1
  WHERE id = :siege AND version = :v;
 INSERT INTO battle_results (...);  INSERT INTO battle_events (...);
--- falls Angreifer gewinnt:
+--   Hauptstadt (§8): capital_lives_left, regions_taken, capital_protected_until
+-- falls Angreifer gewinnt, genau einer der drei Fälle:
+-- (a) Ziel ist keine Hauptstadt: Eroberung
 UPDATE region_state SET owner_kingdom_id = :att, is_capital = false, owned_since = game_now(),
        protected_until = game_now() + :protection, protection_reason = 'CONQUEST',
        active_siege_id = NULL, version = version + 1, updated_at = game_now()
@@ -162,10 +164,20 @@ UPDATE kingdoms SET region_count = region_count + 1 WHERE id = :att;
 -- nur wenn :def nicht NULL (Ziel gehörte einem Reich, nicht neutral):
 UPDATE kingdoms SET region_count = region_count - 1 WHERE id = :def;
 INSERT INTO region_history (...);   -- from_kingdom_id = :def (NULL bei neutralem Ziel)
---   Ziel ist die Hauptstadt von :def (§8): statt der Eroberung oben
---     noch Leben übrig → Hauptstadt bleibt, kingdoms.capital_hits/capital_hit_at, Schutz CAPITAL_HIT
---     letztes Leben     → alle Regionen von :def an :att (TAKEOVER), :def FALLEN
---   Drop-Wurf → reward_events (+ player_items)
+--     :def ohne Regionen → FALLEN
+-- (b) Hauptstadt von :def, danach noch Leben übrig: kein Besitzwechsel
+UPDATE region_state SET active_siege_id = NULL, protected_until = :capital_protected_until,
+       protection_reason = 'CAPITAL_HIT', version = version + 1, updated_at = game_now()
+ WHERE region_id = :target AND active_siege_id = :siege;
+UPDATE kingdoms SET capital_hits = :hits, capital_hit_at = game_now() WHERE id = :def;
+INSERT INTO kingdom_history (...);  -- CAPITAL_HIT
+-- (c) Hauptstadt von :def, letztes Leben: Übernahme des ganzen Reichs (:n = region_count von :def)
+--     Hauptstadt wie (a) erobert, alle übrigen Regionen von :def an :att (cause TAKEOVER,
+--     Eroberungsschutz), offene Angriffe Dritter darauf CANCELLED
+UPDATE kingdoms SET region_count = region_count + :n WHERE id = :att;
+UPDATE kingdoms SET region_count = 0, status = 'FALLEN' WHERE id = :def;
+INSERT INTO kingdom_history (...);  -- TAKEOVER bei :att, FALLEN bei :def
+--   in (a) und (c): Drop-Wurf → reward_events (+ player_items)
 -- falls Verteidiger gewinnt (DEFENDER_WON) oder Angriff am verdeckten Gate scheitert (ATTACK_FAILED):
 UPDATE region_state SET active_siege_id = NULL, version = version + 1
  WHERE region_id = :target AND active_siege_id = :siege;

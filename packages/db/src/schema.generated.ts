@@ -27,6 +27,7 @@ export interface BattleResultsTable {
   core_version: string;
   capital_lives_left: number | null;
   regions_taken: number | null;
+  capital_protected_until: ColumnType<Date | null, Date | string | null, Date | string | null>;
 }
 
 export interface GameClockTable {

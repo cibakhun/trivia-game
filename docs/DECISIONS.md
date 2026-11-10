@@ -189,7 +189,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 - **A:** Im PvP beantworten beide weiterhin beide Fragen; die Schätzung zählt nur bei Gleichstand (Auswertung wie heute, Oberfläche sagt „zählt nur, wenn ihr beide richtig liegt“). Verrät nichts, kostet aber 30 s für eine oft unnötige Frage.
 - **B:** Nur wer selbst richtig liegt, bekommt die Schätzfrage. Verrät jedem Teilnehmer sofort die eigene Richtigkeit und dem Verteidiger nichts über den Angreifer; widerspricht aber „keine Rückmeldung zur eigenen Trivia-Antwort“ (QUIZ_ENGINE §7.2).
 - **C:** Schätzfrage als eigene dritte Runde nach der Verteidigung, nur bei Gleichstand, mit neuer Frist für beide. Genau wie gewünscht, aber jeder knappe Kampf dauert eine weitere Frist.
-**Empfehlung:** A für PvP (verdecktes Gate bleibt vollständig, kein zusätzlicher Rückweg), PvE wie entschieden.
+**Empfehlung, nicht als Vorgabe umsetzen:** A für PvP (verdecktes Gate bleibt vollständig, kein zusätzlicher Rückweg), PvE wie entschieden. A weicht im PvP vom Wortlaut der entschiedenen Regel ab (die Schätzfrage würde immer gestellt, zählt aber nur bei Gleichstand) und braucht deshalb eine ausdrückliche PO-Entscheidung; ohne sie gilt die Regel auch im PvP wörtlich.
 
 ### O-20 Übernahme von Spielerreichen im PvP
 
@@ -223,3 +223,4 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | 2026-11-10 | ADR-014 durch ADR-029 präzisiert: Sitzungstoken mit 256 bit Zufall als SHA-256 ohne Pepper (Argon2id bleibt für Passwörter) |
 | 2026-11-10 | PO: Schätzfrage nur als Tiebreaker, wenn beide Seiten die Trivia-Frage richtig haben; im PvE umgesetzt, O-19 (Ablauf im PvP) neu erfasst |
 | 2026-11-10 | PO: Hauptstadt mit 3 Leben, Einnahme übernimmt das Reich; ADR-037 angenommen (Migration 0009, ersetzt den Hauptstadtwechsel), O-20 (Folgen im PvP) neu erfasst |
+| 2026-11-10 | Review zu ADR-037: Migration 0010 speichert den Schutz eines Hauptstadt-Treffers mit dem Ergebnis und lässt nur die drei gültigen Formen der Hauptstadt-Wirkung zu; O-19-Empfehlung als ausdrücklich zu entscheidende Abweichung markiert |

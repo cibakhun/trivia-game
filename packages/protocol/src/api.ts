@@ -167,13 +167,13 @@ export const kingdomSummarySchema = z
   .object({
     id: entityIdSchema,
     kind: z.enum(['PLAYER', 'NPC']),
-    /** Anzeigename aus `nameParts` (generiert, nicht frei gewählt; GAME_RULES §3.7). */
+    /** Anzeigename aus `nameParts` (generiert, nicht frei gewählt; GAME_RULES §3.8). */
     name: z.string().min(1),
     nameParts: z.object({ prefix: z.string().min(1), suffix: z.string().min(1) }).strict(),
     color: z.number().int().min(0),
     status: z.enum(['ACTIVE', 'FALLEN', 'DISSOLVED']),
     regionCount: z.number().int().min(0),
-    /** Kosmetischer Rang (GAME_RULES §3.6); `null` ohne Regionen. */
+    /** Kosmetischer Rang (GAME_RULES §3.7); `null` ohne Regionen. */
     rank: z.enum(KINGDOM_RANK_CODES).nullable(),
     /** Nur NPC-Reiche: Archetyp der Fraktion. */
     archetype: z.enum(['LIGHT', 'MEDIUM', 'HEAVY']).nullable(),

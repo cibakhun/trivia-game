@@ -23,7 +23,7 @@ function perf(triviaCorrect: boolean, estimate: string | null, ms: number | null
       triviaCorrect,
       estimateDistance: null,
       estimateEffectiveMs: null,
-      answeredBoth: false,
+      answeredAll: false,
     };
   }
   const score = scoreEstimate(estimate, SPEC);
@@ -32,7 +32,7 @@ function perf(triviaCorrect: boolean, estimate: string | null, ms: number | null
     triviaCorrect,
     estimateDistance: score.distance,
     estimateEffectiveMs: ms,
-    answeredBoth: true,
+    answeredAll: true,
   };
 }
 
@@ -126,7 +126,7 @@ const performance = fc.record({
     }),
   ),
   estimateEffectiveMs: fc.option(fc.integer({ min: 0, max: 30_500 })),
-  answeredBoth: fc.boolean(),
+  answeredAll: fc.boolean(),
 });
 const defense = fc.oneof(performance, fc.constant(NO_DEFENSE));
 
@@ -216,12 +216,12 @@ describe('defensePoints', () => {
     [true, false, 5],
     [false, true, 0],
     [false, false, 0],
-  ])('beide beantwortet=%s, Trivia richtig=%s → %i', (answeredBoth, triviaCorrect, points) => {
+  ])('alles beantwortet=%s, Trivia richtig=%s → %i', (answeredAll, triviaCorrect, points) => {
     const def: Performance = {
       triviaCorrect,
       estimateDistance: null,
       estimateEffectiveMs: null,
-      answeredBoth,
+      answeredAll,
     };
     expect(defensePoints(def, ETERNAL_POINTS)).toBe(points);
     expect(defensePoints(def, { forDefending: 2, bonusCorrect: 3 })).toBe(
@@ -242,7 +242,7 @@ describe('defensePoints', () => {
     expect(defensePoints(def, ETERNAL_POINTS)).toBe(10);
     fc.assert(
       fc.property(defense, (d) => {
-        const expected = d === NO_DEFENSE || !d.answeredBoth ? 0 : d.triviaCorrect ? 10 : 5;
+        const expected = d === NO_DEFENSE || !d.answeredAll ? 0 : d.triviaCorrect ? 10 : 5;
         expect(defensePoints(d, ETERNAL_POINTS)).toBe(expected);
       }),
     );

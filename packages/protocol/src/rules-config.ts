@@ -236,7 +236,10 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
   return value as DeepReadonly<T>;
 }
 
-/** Hauptstadt-Leben je Modus (GAME_RULES §10, [E]); auch Rückfall für Welten ohne Abschnitt. */
+/**
+ * Hauptstadt-Leben je Modus (GAME_RULES §10): `lives` = 3 ist PO-Vorgabe [V], `lifeRegen` und
+ * `protectionAfterHit` sind Empfehlungen [E]. Auch Rückfall für Welten ohne Abschnitt.
+ */
 export const DEFAULT_CAPITAL_RULES: DeepReadonly<Record<WorldMode, CapitalRulesConfig>> =
   deepFreeze({
     ETERNAL: { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: 1 * HOUR_MS },

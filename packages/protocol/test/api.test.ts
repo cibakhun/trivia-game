@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_CHUNKS_PER_REQUEST,
   answerRequestSchema,
+  capitalEffectSchema,
   chunkListSchema,
   presentedQuestionSchema,
   errorBodySchema,
@@ -98,5 +99,57 @@ describe('Kampf und Herausforderung', () => {
         answerPrecision: 0,
       }).success,
     ).toBe(true);
+  });
+});
+
+describe('Wirkung auf eine Hauptstadt (ADR-037)', () => {
+  const at = '2026-11-10T12:00:00.000Z';
+
+  it('kennt genau Treffer und Übernahme', () => {
+    expect(
+      capitalEffectSchema.parse({
+        takenOver: false,
+        livesLeft: 2,
+        maxLives: 3,
+        regionsTaken: null,
+        protectedUntil: at,
+      }),
+    ).toMatchObject({ takenOver: false, livesLeft: 2 });
+    expect(
+      capitalEffectSchema.parse({
+        takenOver: true,
+        livesLeft: 0,
+        maxLives: 3,
+        regionsTaken: 4,
+        protectedUntil: null,
+      }),
+    ).toMatchObject({ takenOver: true, regionsTaken: 4 });
+  });
+
+  it('lehnt Zwischenzustände ab', () => {
+    const hit = {
+      takenOver: false,
+      livesLeft: 2,
+      maxLives: 3,
+      regionsTaken: null,
+      protectedUntil: at,
+    };
+    const takeover = {
+      takenOver: true,
+      livesLeft: 0,
+      maxLives: 3,
+      regionsTaken: 4,
+      protectedUntil: null,
+    };
+    for (const bad of [
+      { ...hit, livesLeft: 0 },
+      { ...hit, livesLeft: 3 },
+      { ...hit, regionsTaken: 2 },
+      { ...takeover, regionsTaken: null },
+      { ...takeover, livesLeft: 1 },
+      { ...takeover, protectedUntil: at },
+    ]) {
+      expect(capitalEffectSchema.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
+    }
   });
 });

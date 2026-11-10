@@ -17,19 +17,28 @@ export const dbEnvSchema = z.object({
 });
 export type DbEnv = z.infer<typeof dbEnvSchema>;
 
-const LOOPBACK_HOSTS = new Set(['localhost', '[::1]']);
+/** Loopback-Adresse oder Unix-Socket-Verzeichnis? */
+function isLocalHost(host: string): boolean {
+  const name = host.toLowerCase().replace(/^\[(.+)\]$/, '$1');
+  if (name.startsWith('/')) return true; // Unix-Socket
+  return name === 'localhost' || name === '::1' || /^127(\.\d{1,3}){3}$/.test(name);
+}
 
-/** Zeigt die URL auf diesen Rechner (Loopback-Adresse oder Unix-Socket)? */
-export function isLocalDatabaseUrl(databaseUrl: string): boolean {
-  let url: URL;
+/**
+ * Zeigt die URL auf diesen Rechner (Loopback-Adresse oder Unix-Socket)? Geprüft wird der Host, den
+ * der Treiber tatsächlich nimmt (pg-connection-string, pg): `?host=` hat Vorrang vor dem Host der
+ * URL; fehlen beide, gilt `PGHOST`, sonst `localhost`.
+ */
+export function isLocalDatabaseUrl(databaseUrl: string, pgHost?: string): boolean {
+  let host: string;
   try {
-    url = new URL(databaseUrl);
+    const url = new URL(databaseUrl);
+    host =
+      url.searchParams.get('host') || decodeURIComponent(url.hostname) || pgHost || 'localhost';
   } catch {
     return false;
   }
-  const host = url.hostname.toLowerCase();
-  if (host === '') return true; // Unix-Socket, z. B. postgres:///rdw?host=/var/run/postgresql
-  return LOOPBACK_HOSTS.has(host) || /^127(\.\d{1,3}){3}$/.test(host);
+  return isLocalHost(host);
 }
 
 /**
@@ -38,8 +47,12 @@ export function isLocalDatabaseUrl(databaseUrl: string): boolean {
  * liefern. Deshalb gelten diese beiden Umgebungen nur für eine Datenbank auf diesem Rechner;
  * entfernte Datenbanken brauchen `staging` oder `production` (und damit deren Schutz).
  */
-export function localEnvProblem(appEnv: AppEnv, databaseUrl: string): string | null {
-  if ((appEnv === 'local' || appEnv === 'test') && !isLocalDatabaseUrl(databaseUrl)) {
+export function localEnvProblem(
+  appEnv: AppEnv,
+  databaseUrl: string,
+  pgHost?: string,
+): string | null {
+  if ((appEnv === 'local' || appEnv === 'test') && !isLocalDatabaseUrl(databaseUrl, pgHost)) {
     return `muss bei APP_ENV=${appEnv} auf diesen Rechner zeigen (localhost, 127.0.0.1, ::1 oder Unix-Socket); für entfernte Datenbanken APP_ENV=staging oder production setzen`;
   }
   return null;
@@ -52,7 +65,7 @@ export function parseDbEnv(env: Record<string, string | undefined>): DbEnv {
     const problems = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
     throw new Error(`Ungültige Umgebung: ${problems}`);
   }
-  const problem = localEnvProblem(result.data.APP_ENV, result.data.DATABASE_URL);
+  const problem = localEnvProblem(result.data.APP_ENV, result.data.DATABASE_URL, env.PGHOST);
   if (problem) throw new Error(`Ungültige Umgebung: DATABASE_URL: ${problem}`);
   return result.data;
 }

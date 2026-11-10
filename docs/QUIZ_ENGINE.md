@@ -163,7 +163,7 @@ type Performance = {
   triviaCorrect: boolean;            // TIMED_OUT ⇒ false
   estimateDistance: Decimal | null;  // null ⇒ +∞
   estimateEffectiveMs: number | null;// null ⇒ +∞
-  answeredBoth: boolean;             // beide Fragen innerhalb ihres Zeitlimits beantwortet
+  answeredAll: boolean;              // jede gestellte Frage innerhalb ihres Zeitlimits beantwortet
 };
 
 type Outcome =
@@ -187,7 +187,7 @@ function resolveDuel(att: Performance, def: Performance | 'NO_DEFENSE'): Outcome
 
 // Verteidigungspunkte (GAME_RULES §5.5): nur die eigene Leistung des Verteidigers zählt, nicht der Ausgang
 function defensePoints(def: Performance | 'NO_DEFENSE', p: { forDefending: number; bonusCorrect: number }): number {
-  if (def === 'NO_DEFENSE' || !def.answeredBoth) return 0;
+  if (def === 'NO_DEFENSE' || !def.answeredAll) return 0;
   return p.forDefending + (def.triviaCorrect ? p.bonusCorrect : 0);
 }
 ```
@@ -207,7 +207,7 @@ Das Gate ist fest (PO-Entscheidung [O-01]); einen Schalter für andere Varianten
 
 ### 8.1 Beispiele (Testfälle)
 
-Verteidigungspunkte mit den Eternal-Werten aus [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18) (5 Teilnahme, +5 bei richtiger Antwort), Paarlimit nicht erreicht. Wo nichts anderes steht, hat der Verteidiger beide Fragen rechtzeitig beantwortet.
+Verteidigungspunkte mit den Eternal-Werten aus [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18) (5 Teilnahme, +5 bei richtiger Antwort), Paarlimit nicht erreicht. Wo nichts anderes steht, hat der Verteidiger jede ihm gestellte Frage rechtzeitig beantwortet. Die Schätzfrage zählt dafür nur, wenn sie ihm gestellt wurde (Tiebreaker, GAME_RULES §5.1); ob der Verteidiger sie im PvP immer sieht, entscheidet [O-19](DECISIONS.md#o-19-schätzfrage-als-tiebreaker-im-pvp). Fall 11 setzt voraus, dass sie gestellt wurde.
 
 | # | Angreifer | Verteidiger | Ergebnis | Stufe | Verteidigungspunkte |
 |---|---|---|---|---|---|
@@ -221,7 +221,8 @@ Verteidigungspunkte mit den Eternal-Werten aus [GAME_RULES.md §5.5](GAME_RULES.
 | 8 | richtig, 1386, 5000 ms | richtig, 1386, 5000 ms | Verteidiger | FULL_TIE | 10 |
 | 9 | falsch | keine Antwort bis Frist | niemand: Angriff gescheitert (`ATTACK_FAILED`), Gebiet bleibt | ATTACKER_GATE | 0 |
 | 10 | falsch | falsch, rechtzeitig | Verteidiger | ATTACKER_GATE | 5 |
-| 11 | falsch | Trivia richtig, Schätzfrage verpasst | Verteidiger | ATTACKER_GATE | 0 (Quiz nicht vollständig) |
+| 11 | falsch | Trivia richtig, gestellte Schätzfrage verpasst | Verteidiger | ATTACKER_GATE | 0 (Quiz nicht vollständig) |
+| 12 | richtig | falsch, keine Schätzfrage gestellt | Angreifer | TRIVIA | 5 (alle gestellten Fragen beantwortet) |
 
 ## 9. Inhaltspipeline und Umfang
 

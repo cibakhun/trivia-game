@@ -67,5 +67,15 @@ describe('Serverkonfiguration', () => {
     expect(
       parseServerConfig({ ...base, DATABASE_URL: 'postgres://u@localhost:5432/rdw' }).appEnv,
     ).toBe('local');
+    // Der Treiber nimmt `?host=` vor dem Host der URL und ohne Host PGHOST
+    expect(() =>
+      parseServerConfig({
+        ...base,
+        DATABASE_URL: 'postgres://u@localhost/rdw?host=db.example.net',
+      }),
+    ).toThrow(/DATABASE_URL/);
+    expect(() =>
+      parseServerConfig({ ...base, DATABASE_URL: 'postgres:///rdw', PGHOST: 'db.example.net' }),
+    ).toThrow(/DATABASE_URL/);
   });
 });

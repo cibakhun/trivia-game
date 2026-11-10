@@ -166,14 +166,23 @@ describe('Leistung aus gespeicherten Antworten', () => {
       triviaCorrect: true,
       estimateDistance: distance,
       estimateEffectiveMs: 5000,
-      answeredBoth: true,
+      answeredAll: true,
     });
     expect(performanceFromSteps(null, null)).toEqual({
       triviaCorrect: false,
       estimateDistance: null,
       estimateEffectiveMs: null,
-      answeredBoth: false,
+      answeredAll: false,
     });
-    expect(performanceFromSteps({ correct: false }, null).answeredBoth).toBe(false);
+    expect(performanceFromSteps({ correct: false }, null).answeredAll).toBe(false);
+  });
+
+  it('verlangt die Schätzfrage nur, wenn sie gestellt wurde (Tiebreaker, GAME_RULES §5.5)', () => {
+    expect(performanceFromSteps({ correct: false }, null, false)).toMatchObject({
+      triviaCorrect: false,
+      estimateDistance: null,
+      answeredAll: true,
+    });
+    expect(performanceFromSteps(null, null, false).answeredAll).toBe(false);
   });
 });

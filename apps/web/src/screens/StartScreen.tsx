@@ -1,7 +1,7 @@
 import type { WorldsResponse } from '@rdw/protocol';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, newActionKey } from '../api/client.ts';
-import { ErrorNote } from '../components/ErrorNote.tsx';
+import { ClientError, ErrorNote } from '../components/ErrorNote.tsx';
 import { t } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
 import { useSession } from '../session.tsx';
@@ -58,8 +58,14 @@ export function StartScreen() {
     const key = joinKeys.current.get(worldId) ?? newActionKey();
     joinKeys.current.set(worldId, key);
     const joined = await api.join(worldId, key);
+    // Fertig ist der Beitritt erst, wenn das Profil das neue Reich kennt. Scheitert das Nachladen,
+    // bleibt der Schlüssel: Ein erneuter Klick liefert denselben Beitritt (Idempotenz) statt
+    // ALREADY_JOINED und lädt das Profil noch einmal.
+    const me = await reload();
+    if (!me?.instances.some((i) => i.instanceId === joined.instanceId && i.kingdom !== null)) {
+      throw new ClientError('start.joinIncomplete');
+    }
     joinKeys.current.delete(worldId);
-    await reload();
     navigate({ name: 'play', instanceId: joined.instanceId });
   }
 

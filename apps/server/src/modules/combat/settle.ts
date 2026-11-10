@@ -54,6 +54,8 @@ function performanceOf(rows: readonly AnswerRow[]): Performance {
     estimate && estimate.distance !== null && estimate.effective_ms !== null
       ? { distance: parseDecimal(estimate.distance), effectiveMs: estimate.effective_ms }
       : null,
+    // Ohne Zeile für Schritt 1 wurde die Schätzfrage nie gestellt (Tiebreaker nicht nötig)
+    rows.some((row) => row.step_index === 1),
   );
 }
 
@@ -75,7 +77,7 @@ function summary(rows: readonly AnswerRow[], perf: Performance | null): Record<s
           effectiveMs: step(1)?.effective_ms,
         }
       : null,
-    answeredBoth: perf?.answeredBoth ?? false,
+    answeredAll: perf?.answeredAll ?? false,
   };
 }
 
@@ -269,6 +271,12 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       ? capitalHit.livesLeft
       : 0
     : null;
+  // Schutz nach einem Treffer, einmal berechnet für Region und Ergebnis: Das Ergebnis ist
+  // unveränderlich und behält ihn, auch wenn ein späterer Treffer den Schutz der Region ersetzt.
+  const capitalProtectedUntil =
+    capitalHit?.kind === 'HIT' && capitalRules.protectionAfterHit > 0
+      ? new Date(now.getTime() + capitalRules.protectionAfterHit)
+      : null;
   // Bei einer Übernahme alle Regionen des Reichs (Regionenzahl, von takeOverRegions geprüft)
   const regionsGained = conquered ? (takeover?.region_count ?? 1) : 0;
   const resolvedDuel = attackerPerf !== null;
@@ -291,6 +299,7 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       core_version: CORE_VERSION,
       capital_lives_left: capitalLivesLeft,
       regions_taken: takeover ? regionsGained : null,
+      capital_protected_until: capitalProtectedUntil,
     })
     .execute();
 
@@ -308,7 +317,7 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
         chunk,
         hits: capitalHit.damage.hits,
         livesLeft: capitalHit.livesLeft,
-        protection: capitalRules.protectionAfterHit,
+        protectedUntil: capitalProtectedUntil,
       })),
     );
   } else if (conquered) {
@@ -517,7 +526,7 @@ function describe(perf: Performance): Record<string, unknown> {
     triviaCorrect: perf.triviaCorrect,
     estimateDistance: perf.estimateDistance ? formatDecimal(perf.estimateDistance) : null,
     estimateEffectiveMs: perf.estimateEffectiveMs,
-    answeredBoth: perf.answeredBoth,
+    answeredAll: perf.answeredAll,
   };
 }
 
@@ -669,16 +678,15 @@ async function damageCapital(
     readonly chunk: { x: number; y: number };
     readonly hits: number;
     readonly livesLeft: number;
-    readonly protection: number;
+    readonly protectedUntil: Date | null;
   },
 ): Promise<WorldEvent[]> {
   const protectedRow = await tx
     .updateTable('region_state')
     .set({
       active_siege_id: null,
-      protected_until:
-        hit.protection > 0 ? sql<Date>`game_now() + ${intervalMs(hit.protection)}` : null,
-      protection_reason: hit.protection > 0 ? 'CAPITAL_HIT' : null,
+      protected_until: hit.protectedUntil,
+      protection_reason: hit.protectedUntil ? 'CAPITAL_HIT' : null,
       version: sql<string>`version + 1`,
       updated_at: gameNow,
     })

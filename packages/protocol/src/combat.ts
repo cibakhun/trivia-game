@@ -166,19 +166,36 @@ export type BattleSide = z.infer<typeof battleSideSchema>;
 
 /**
  * Wirkung eines Siegs über eine Hauptstadt (GAME_RULES §3, ADR-037): Sie verliert ein Leben;
- * nimmt der Sieg das letzte, übernimmt der Angreifer das ganze Reich.
+ * nimmt der Sieg das letzte, übernimmt der Angreifer das ganze Reich. Die beiden Fälle sind
+ * getrennt, damit kein Zwischenzustand gültig ist (wie `battle_results_capital_effect`).
  */
-export const capitalEffectSchema = z
-  .object({
-    livesLeft: z.number().int().min(0),
-    maxLives: z.number().int().min(1),
-    takenOver: z.boolean(),
-    /** Übernommene Regionen samt Hauptstadt; `null` ohne Übernahme. */
-    regionsTaken: z.number().int().min(1).nullable(),
-    /** Schutz der getroffenen Hauptstadt (nur ohne Übernahme und solange er läuft). */
-    protectedUntil: timestampSchema.nullable(),
-  })
-  .strict();
+export const capitalEffectSchema = z.discriminatedUnion('takenOver', [
+  z
+    .object({
+      takenOver: z.literal(false),
+      /** Verbleibende Leben, mindestens eines. */
+      livesLeft: z.number().int().min(1),
+      maxLives: z.number().int().min(1),
+      regionsTaken: z.null(),
+      /** Schutz, den dieser Treffer der Hauptstadt gab; `null` ohne Schutz. */
+      protectedUntil: timestampSchema.nullable(),
+    })
+    .strict()
+    .refine((effect) => effect.livesLeft < effect.maxLives, {
+      message: 'nach einem Treffer fehlt mindestens ein Leben',
+      path: ['livesLeft'],
+    }),
+  z
+    .object({
+      takenOver: z.literal(true),
+      livesLeft: z.literal(0),
+      maxLives: z.number().int().min(1),
+      /** Übernommene Regionen samt Hauptstadt. */
+      regionsTaken: z.number().int().min(1),
+      protectedUntil: z.null(),
+    })
+    .strict(),
+]);
 export type CapitalEffect = z.infer<typeof capitalEffectSchema>;
 
 export const resolutionSchema = z

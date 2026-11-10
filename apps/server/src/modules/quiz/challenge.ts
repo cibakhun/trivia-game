@@ -12,6 +12,7 @@ import {
   type AnswerRequest,
   type AnswerResponse,
   type BattleSide,
+  type CapitalEffect,
   type ChallengeView,
   type Locale,
   type PresentResponse,
@@ -621,6 +622,37 @@ function canonical(value: string | null): string | null {
  * Gezeigt werden nur Fragen, die der Spieler gesehen hat: Eine nie gestellte Frage bleibt im
  * Bestand und kann später gestellt werden.
  */
+/** Wirkung auf eine Hauptstadt aus dem gespeicherten Ergebnis (Prüfung in Migration 0010). */
+function capitalEffect(row: {
+  readonly capital_lives_left: number | null;
+  readonly regions_taken: number | null;
+  readonly capital_protected_until: Date | null;
+  readonly rules_snapshot: unknown;
+}): CapitalEffect | null {
+  const livesLeft = row.capital_lives_left;
+  if (livesLeft === null) return null;
+  const maxLives = capitalOf(parseSnapshot(row.rules_snapshot)).lives;
+  if (livesLeft > 0) {
+    return {
+      takenOver: false,
+      livesLeft,
+      maxLives,
+      regionsTaken: null,
+      protectedUntil: row.capital_protected_until?.toISOString() ?? null,
+    };
+  }
+  if (row.regions_taken === null) {
+    throw new Error('Übernahme ohne Regionenzahl (battle_results_capital_effect verletzt)');
+  }
+  return {
+    takenOver: true,
+    livesLeft: 0,
+    maxLives,
+    regionsTaken: row.regions_taken,
+    protectedUntil: null,
+  };
+}
+
 export async function loadResolution(db: Db, siegeId: string): Promise<Resolution | null> {
   const row = await db
     .selectFrom('sieges as s')
@@ -641,6 +673,7 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
       's.rules_snapshot',
       'b.capital_lives_left',
       'b.regions_taken',
+      'b.capital_protected_until',
       'c.id as challenge_id',
       'rs.owner_kingdom_id',
       sql<Date | null>`case when rs.protected_until > game_now() then rs.protected_until end`.as(
@@ -705,8 +738,6 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
   const won = row.status === 'ATTACKER_WON' || row.status === 'ATTACKER_WON_BY_TIMEOUT';
   const livesLeft = row.capital_lives_left;
   const conquered = won && (livesLeft === null || livesLeft === 0);
-  const stillDefended =
-    row.owner_kingdom_id !== null && row.owner_kingdom_id === row.defender_kingdom_id;
   return {
     siegeId: row.id,
     status: row.status as SiegeStatus,
@@ -718,17 +749,7 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
       conquered && row.owner_kingdom_id === row.attacker_kingdom_id
         ? (row.protected_until?.toISOString() ?? null)
         : null,
-    capital:
-      livesLeft === null
-        ? null
-        : {
-            livesLeft,
-            maxLives: capitalOf(parseSnapshot(row.rules_snapshot)).lives,
-            takenOver: livesLeft === 0,
-            regionsTaken: row.regions_taken,
-            protectedUntil:
-              livesLeft > 0 && stillDefended ? (row.protected_until?.toISOString() ?? null) : null,
-          },
+    capital: capitalEffect(row),
     trivia: triviaContent
       ? {
           prompt: triviaContent.prompt,

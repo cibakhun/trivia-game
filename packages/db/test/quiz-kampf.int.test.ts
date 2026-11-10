@@ -14,6 +14,7 @@ import {
   QUESTION_KINDS,
   QUESTION_ORIGINS,
   QUESTION_VERSION_STATUSES,
+  REGION_PROTECTION_REASONS,
   TRANSLATION_STATUSES,
 } from '@rdw/protocol';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -204,6 +205,14 @@ describe('Fragen: Wertelisten wie in @rdw/protocol', () => {
     ['question_translations', 'locale', LOCALES],
   ] as const)('%s.%s', async (table, column, expected) => {
     expect(await checkValues(table, column)).toEqual([...expected].sort());
+  });
+});
+
+describe('Regionen: Wertelisten wie in @rdw/protocol', () => {
+  it('region_state.protection_reason', async () => {
+    expect(await checkValues('region_state', 'protection_reason')).toEqual(
+      [...REGION_PROTECTION_REASONS].sort(),
+    );
   });
 });
 
@@ -902,6 +911,36 @@ describe('Kämpfe: Belagerungen', () => {
     await expectPgError(result(failed, 'DEFENDER', 'ATTACKER_GATE'), CHECK);
     await result(won, 'ATTACKER', 'TRIVIA');
     await result(failed, null, 'ATTACKER_GATE');
+  });
+
+  it('nimmt Hauptstadt-Wirkungen nur in den drei gültigen Formen an (0009/0010)', async () => {
+    const result = async (capital: Record<string, unknown>) => {
+      const id = await insertSiege(resolved('ATTACKER_WON', 'ATTACKER', 'TRIVIA'));
+      return insert('battle_results', {
+        siege_id: id,
+        winner_role: 'ATTACKER',
+        reason: 'TRIVIA',
+        attacker_summary: '{}',
+        defender_summary: '{}',
+        core_version: 'test',
+        ...capital,
+      });
+    };
+    const soon = new Date(Date.now() + 3_600_000);
+    // keine Hauptstadt, Treffer mit und ohne Schutz, Übernahme
+    await result({});
+    await result({ capital_lives_left: 2, capital_protected_until: soon });
+    await result({ capital_lives_left: 1 });
+    await result({ capital_lives_left: 0, regions_taken: 5 });
+    for (const invalid of [
+      { regions_taken: 3 },
+      { capital_protected_until: soon },
+      { capital_lives_left: 0 },
+      { capital_lives_left: 1, regions_taken: 3 },
+      { capital_lives_left: 0, regions_taken: 3, capital_protected_until: soon },
+    ]) {
+      await expectPgError(result(invalid), CHECK, 'battle_results_capital_effect');
+    }
   });
 
   it('erlaubt höchstens eine aktive Belagerung je Region (I2)', async () => {
