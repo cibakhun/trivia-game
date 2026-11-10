@@ -162,19 +162,19 @@ describe('Fragenauswahl (QUIZ_ENGINE §5)', () => {
 describe('Leistung aus gespeicherten Antworten', () => {
   it('zählt verpasste Schritte als falsch bzw. unendlich', () => {
     const distance = parseDecimal('4');
-    expect(performanceFromSteps({ correct: true }, { distance, effectiveMs: 5000 })).toEqual({
+    expect(performanceFromSteps({ correct: true }, { distance, effectiveMs: 5000 }, true)).toEqual({
       triviaCorrect: true,
       estimateDistance: distance,
       estimateEffectiveMs: 5000,
       answeredAll: true,
     });
-    expect(performanceFromSteps(null, null)).toEqual({
+    expect(performanceFromSteps(null, null, true)).toEqual({
       triviaCorrect: false,
       estimateDistance: null,
       estimateEffectiveMs: null,
       answeredAll: false,
     });
-    expect(performanceFromSteps({ correct: false }, null).answeredAll).toBe(false);
+    expect(performanceFromSteps({ correct: false }, null, true).answeredAll).toBe(false);
   });
 
   it('verlangt die Schätzfrage nur, wenn sie gestellt wurde (Tiebreaker, GAME_RULES §5.5)', () => {

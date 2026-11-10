@@ -66,11 +66,8 @@ function setup() {
   const fake = fakeSource();
   let now = T0;
   let changes = 0;
-  const loader = new MapLoader(
-    fake.source,
-    () => changes++,
-    () => now,
-  );
+  const loader = new MapLoader(fake.source, () => now);
+  loader.subscribe(() => changes++);
   return {
     ...fake,
     loader,
@@ -108,12 +105,49 @@ describe('Kartendaten laden (WORLD_SYSTEM §3.3)', () => {
     expect(calls.static).toEqual([['5:5'], ['5:5']]);
   });
 
-  it('fragt einen Chunk nicht doppelt an, solange sein Abruf läuft', async () => {
-    const { loader, calls } = setup();
+  it('fragt einen Chunk nicht doppelt an und wartet auf den laufenden Abruf', async () => {
+    const fake = fakeSource();
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const loader = new MapLoader({
+      mapStatic: async (chunks) => {
+        await gate;
+        return fake.source.mapStatic(chunks);
+      },
+      mapState: (chunks) => fake.source.mapState(chunks),
+    });
     const first = loader.ensureChunks([LAND]);
-    await loader.ensureChunks([LAND]);
+    let secondDone = false;
+    const second = loader.ensureChunks([LAND]).then(() => {
+      secondDone = true;
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(secondDone).toBe(false);
+
+    release();
+    await second;
+    // Der zweite Aufruf endet erst mit den Daten des ersten Abrufs
+    expect(loader.data.statics.has('1')).toBe(true);
     await first;
-    expect(calls.static).toEqual([['0:0']]);
+    expect(fake.calls.static).toEqual([['0:0']]);
+  });
+
+  it('meldet Änderungen an Abonnenten und liefert stabile Stände', async () => {
+    const { loader } = setup();
+    const before = loader.getSnapshot();
+    expect(loader.getSnapshot()).toBe(before);
+    let calls = 0;
+    const unsubscribe = loader.subscribe(() => calls++);
+    await loader.ensureChunks([LAND]);
+    expect(calls).toBeGreaterThan(0);
+    expect(loader.getSnapshot()).not.toBe(before);
+    unsubscribe();
+    const seen = calls;
+    await loader.refresh();
+    expect(calls).toBe(seen);
   });
 
   it('lässt eine gelungene Auffrischung einen gescheiterten Chunk-Abruf nicht verdecken', async () => {

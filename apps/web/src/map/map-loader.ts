@@ -39,46 +39,75 @@ function batches<T>(items: readonly T[], size: number): T[][] {
   return result;
 }
 
+/** Was die Oberfläche liest; ein neues Objekt nach jeder Änderung. */
+export interface MapSnapshot {
+  readonly data: MapData;
+  /** Fehler des letzten Chunk-Abrufs, sonst der letzten Auffrischung; `null` ohne Fehler. */
+  readonly error: unknown;
+}
+
 export class MapLoader {
-  #data: MapData = EMPTY;
   // Getrennte Fehler: Eine gelungene Auffrischung darf einen fehlgeschlagenen Chunk-Abruf nicht
   // verdecken, dessen Regionen weiterhin fehlen.
   #loadError: unknown = null;
   #refreshError: unknown = null;
+  #snapshot: MapSnapshot = { data: EMPTY, error: null };
+  readonly #listeners = new Set<() => void>();
   /** Chunks mit Regionen; nur sie werden aufgefrischt. */
   readonly #loaded = new Map<string, ChunkCoord>();
   /** Leere Chunks mit Ablaufzeitpunkt (ms seit Epoche). */
   readonly #emptyUntil = new Map<string, number>();
-  readonly #pending = new Set<string>();
+  /** Laufende Abrufe je Chunk; ein zweiter Aufruf wartet auf denselben Abruf. */
+  readonly #inflight = new Map<string, Promise<void>>();
 
   constructor(
     private readonly source: MapSource,
-    /** Wird nach jeder Änderung von `data` oder `error` gerufen. */
-    private readonly onChange: () => void = () => {},
     private readonly clock: () => number = Date.now,
   ) {}
 
-  /** Neues Objekt nach jeder Änderung (für React-Abhängigkeiten). */
+  /** Für `useSyncExternalStore`: meldet jede Änderung von Daten oder Fehler. */
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.#listeners.add(listener);
+    return () => this.#listeners.delete(listener);
+  };
+
+  readonly getSnapshot = (): MapSnapshot => this.#snapshot;
+
   get data(): MapData {
-    return this.#data;
+    return this.#snapshot.data;
   }
 
-  /** Fehler des letzten Chunk-Abrufs, sonst der letzten Auffrischung; `null` ohne Fehler. */
   get error(): unknown {
-    return this.#loadError ?? this.#refreshError;
+    return this.#snapshot.error;
   }
 
-  /** Lädt fehlende Chunks (statisch und Zustand). */
+  /**
+   * Lädt fehlende Chunks (statisch und Zustand). Erfüllt sich erst, wenn alle angefragten Chunks
+   * geladen sind, auch die, die ein anderer Aufruf gerade lädt; Fehler stehen danach in `error`.
+   */
   async ensureChunks(chunks: readonly ChunkCoord[]): Promise<void> {
     const now = this.clock();
-    const missing = chunks.filter((chunk) => {
+    const waiting = new Set<Promise<void>>();
+    const missing: ChunkCoord[] = [];
+    for (const chunk of chunks) {
       const key = chunkKey(chunk);
-      return (
-        !this.#loaded.has(key) && !this.#pending.has(key) && (this.#emptyUntil.get(key) ?? 0) <= now
-      );
-    });
-    if (missing.length === 0) return;
-    for (const chunk of missing) this.#pending.add(chunkKey(chunk));
+      const running = this.#inflight.get(key);
+      if (running) waiting.add(running);
+      else if (!this.#loaded.has(key) && (this.#emptyUntil.get(key) ?? 0) <= now) {
+        missing.push(chunk);
+      }
+    }
+    if (missing.length > 0) {
+      const load = this.#load(missing);
+      for (const chunk of missing) this.#inflight.set(chunkKey(chunk), load);
+      waiting.add(load);
+    }
+    await Promise.all(waiting);
+  }
+
+  async #load(missing: readonly ChunkCoord[]): Promise<void> {
+    // Erst nach dem Eintragen in #inflight weiterarbeiten (ensureChunks trägt synchron ein)
+    await Promise.resolve();
     try {
       for (const batch of batches(missing, MAX_CHUNKS_PER_REQUEST)) {
         const [statics, state] = await Promise.all([
@@ -107,7 +136,7 @@ export class MapLoader {
     } catch (e) {
       this.#setErrors(e, this.#refreshError);
     } finally {
-      for (const chunk of missing) this.#pending.delete(chunkKey(chunk));
+      for (const chunk of missing) this.#inflight.delete(chunkKey(chunk));
     }
   }
 
@@ -133,20 +162,25 @@ export class MapLoader {
     states: readonly RegionStateDto[],
     kingdoms: readonly KingdomSummary[],
   ): void {
-    const nextStatics = new Map(this.#data.statics);
+    const { data } = this.#snapshot;
+    const nextStatics = new Map(data.statics);
     for (const region of statics) nextStatics.set(region.id, region);
-    const nextStates = new Map(this.#data.states);
+    const nextStates = new Map(data.states);
     for (const state of states) nextStates.set(state.id, state);
-    const nextKingdoms = new Map(this.#data.kingdoms);
+    const nextKingdoms = new Map(data.kingdoms);
     for (const kingdom of kingdoms) nextKingdoms.set(kingdom.id, kingdom);
-    this.#data = { statics: nextStatics, states: nextStates, kingdoms: nextKingdoms };
-    this.onChange();
+    this.#publish({ statics: nextStatics, states: nextStates, kingdoms: nextKingdoms });
   }
 
   #setErrors(loadError: unknown, refreshError: unknown): void {
     if (loadError === this.#loadError && refreshError === this.#refreshError) return;
     this.#loadError = loadError;
     this.#refreshError = refreshError;
-    this.onChange();
+    this.#publish(this.#snapshot.data);
+  }
+
+  #publish(data: MapData): void {
+    this.#snapshot = { data, error: this.#loadError ?? this.#refreshError };
+    for (const listener of this.#listeners) listener();
   }
 }

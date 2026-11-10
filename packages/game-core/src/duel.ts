@@ -32,13 +32,13 @@ export interface EstimateStep {
 /**
  * Leistung einer Seite aus ihren gespeicherten Antworten. Verpasste oder nie gestellte Schritte
  * zählen als falsch bzw. als unendlicher Abstand und unendliche Zeit (GAME_RULES §5.2).
- * `estimateAsked = false`: Die Schätzfrage wurde dieser Seite nie gestellt (Tiebreaker nicht
- * nötig); sie fehlt dann nicht für `answeredAll`.
+ * `estimateAsked`: Wurde dieser Seite die Schätzfrage gestellt? Ohne sie (Tiebreaker nicht nötig)
+ * fehlt sie nicht für `answeredAll`; jeder Aufrufer muss das ausdrücklich angeben.
  */
 export function performanceFromSteps(
   trivia: TriviaStep | null,
   estimate: EstimateStep | null,
-  estimateAsked = true,
+  estimateAsked: boolean,
 ): Performance {
   return {
     triviaCorrect: trivia?.correct ?? false,

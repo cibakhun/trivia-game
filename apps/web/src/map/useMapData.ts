@@ -1,26 +1,25 @@
-import type { ChunkCoord } from '@rdw/game-core';
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import { api } from '../api/client.ts';
 import { MapLoader } from './map-loader.ts';
 
 /** Kartendaten der Instanz für die Oberfläche; die Buchführung steckt in `MapLoader`. */
 export function useMapData(instanceId: string) {
-  const [, setVersion] = useState(0);
   const loader = useMemo(
     () =>
-      new MapLoader(
-        {
-          mapStatic: (chunks) => api.mapStatic(instanceId, chunks),
-          mapState: (chunks) => api.mapState(instanceId, chunks),
-        },
-        () => setVersion((version) => version + 1),
-      ),
+      new MapLoader({
+        mapStatic: (chunks) => api.mapStatic(instanceId, chunks),
+        mapState: (chunks) => api.mapState(instanceId, chunks),
+      }),
     [instanceId],
   );
-  const ensureChunks = useCallback(
-    (chunks: readonly ChunkCoord[]) => loader.ensureChunks(chunks),
+  const { data, error } = useSyncExternalStore(loader.subscribe, loader.getSnapshot);
+  // Methoden der Instanz sind stabil, solange sich `instanceId` nicht ändert
+  const actions = useMemo(
+    () => ({
+      ensureChunks: loader.ensureChunks.bind(loader),
+      refresh: loader.refresh.bind(loader),
+    }),
     [loader],
   );
-  const refresh = useCallback(() => loader.refresh(), [loader]);
-  return { data: loader.data, error: loader.error, ensureChunks, refresh };
+  return { data, error, ...actions };
 }

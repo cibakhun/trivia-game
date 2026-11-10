@@ -617,11 +617,6 @@ function canonical(value: string | null): string | null {
   return value === null ? null : formatDecimal(parseDecimal(value));
 }
 
-/**
- * Vollständige Auflösung beider Seiten (QUIZ_ENGINE §7.2), sobald die Belagerung beendet ist.
- * Gezeigt werden nur Fragen, die der Spieler gesehen hat: Eine nie gestellte Frage bleibt im
- * Bestand und kann später gestellt werden.
- */
 /** Wirkung auf eine Hauptstadt aus dem gespeicherten Ergebnis (Prüfung in Migration 0010). */
 function capitalEffect(row: {
   readonly capital_lives_left: number | null;
@@ -653,6 +648,11 @@ function capitalEffect(row: {
   };
 }
 
+/**
+ * Vollständige Auflösung beider Seiten (QUIZ_ENGINE §7.2), sobald die Belagerung beendet ist.
+ * Gezeigt werden nur Fragen, die der Spieler gesehen hat: Eine nie gestellte Frage bleibt im
+ * Bestand und kann später gestellt werden.
+ */
 export async function loadResolution(db: Db, siegeId: string): Promise<Resolution | null> {
   const row = await db
     .selectFrom('sieges as s')
