@@ -63,7 +63,14 @@ export async function authenticate(db: Db, token: unknown): Promise<AuthContext 
     .executeTakeFirst();
   if (!row) return null;
   if (row.due) {
+    // Sperrfolge wie beim Sichern, Anmelden und Passwortwechsel: erst das Konto, dann die
+    // Sitzung. Umgekehrt könnte eine Verlängerung mit einem Passwortwechsel verklemmen.
     await db.transaction().execute(async (tx) => {
+      await tx
+        .updateTable('users')
+        .set({ last_seen_at: gameNow })
+        .where('id', '=', row.user_id)
+        .execute();
       await tx
         .updateTable('sessions')
         .set({
@@ -71,11 +78,6 @@ export async function authenticate(db: Db, token: unknown): Promise<AuthContext 
           expires_at: sql<Date>`game_now() + ${intervalMs(SESSION_TTL_MS)}`,
         })
         .where('token_hash', '=', tokenHash)
-        .execute();
-      await tx
-        .updateTable('users')
-        .set({ last_seen_at: gameNow })
-        .where('id', '=', row.user_id)
         .execute();
     });
   }

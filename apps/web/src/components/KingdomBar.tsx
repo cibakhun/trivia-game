@@ -1,4 +1,5 @@
 import type { KingdomSummary } from '@rdw/protocol';
+import type { ReactNode } from 'react';
 import { formatTime, t, tp } from '../i18n/i18n.ts';
 import { cssColor, kingdomColor } from '../map/palette.ts';
 
@@ -6,7 +7,14 @@ import { cssColor, kingdomColor } from '../map/palette.ts';
  * Reichsanzeige: Farbe, Rang und Name (GAME_RULES §3.7–3.8), Regionenzahl, Anfänger- bzw.
  * Wiederaufbauschutz (§7, §3 Punkt 6).
  */
-export function KingdomBar({ kingdom }: { readonly kingdom: KingdomSummary }) {
+export function KingdomBar({
+  kingdom,
+  children,
+}: {
+  readonly kingdom: KingdomSummary;
+  /** Navigation am rechten Rand (Welten, Konto). */
+  readonly children?: ReactNode;
+}) {
   return (
     <header className="kingdom-bar" aria-label={t('kingdom.yours')}>
       <span
@@ -33,6 +41,7 @@ export function KingdomBar({ kingdom }: { readonly kingdom: KingdomSummary }) {
           {t('kingdom.respawnProtection', { time: formatTime(kingdom.protectedUntil) })}
         </div>
       ) : null}
+      {children}
     </header>
   );
 }

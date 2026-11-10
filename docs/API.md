@@ -22,14 +22,27 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 | Methode | Pfad | Zweck |
 |---|---|---|
 | GET | `/auth/bootstrap` | Anmeldestatus; ohne Sitzung setzt es das Cookie `guest_bootstrap` ([§1](#1-konventionen)) |
-| POST | `/auth/guest` | Gastkonto anlegen, Sitzung setzen (Modell offen: [O-03]) |
-| POST | `/auth/register` | Gast in vollwertiges Konto umwandeln |
-| POST | `/auth/login`, `/auth/logout` | |
-| GET | `/me` | Profil, Einstellungen, aktive Instanzen |
+| POST | `/auth/guest` | Gastkonto anlegen, Sitzung setzen ([O-03]) |
+| POST | `/auth/register` | Gast in gesichertes Konto umwandeln (Benutzername, Passwort, Spielername) |
+| POST | `/auth/login`, `/auth/logout` | Anmelden mit Benutzername und Passwort, Abmelden |
+| GET | `/me` | Konto, Profil, Einstellungen, aktive Instanzen |
+| PATCH | `/me/profile` | Spielername ändern (nur gesicherte Konten) |
+| POST | `/me/password` | Passwort ändern (bisheriges Passwort nötig) |
+| GET | `/names/player` | fünf freie Spielernamen als Vorschläge |
 | PATCH | `/me/settings` | Sprache, Zeitzone, Benachrichtigungen, Auto-Verlängerung |
 | POST | `/me/push-subscriptions` | Web-Push-Abonnement registrieren |
 | POST | `/me/export` | Datenexport anstoßen (Datenschutz) |
 | DELETE | `/me` | Kontolöschung beantragen |
+
+Stand Phase 2 Paket 2 (O-03, O-10, [ADR-043](DECISIONS.md), [ADR-044](DECISIONS.md)): umgesetzt sind `bootstrap`, `guest`, `register`, `login`, `logout`, `GET /me`, `PATCH /me/profile`, `POST /me/password`, `GET /names/player` und `GET /instances/:id/kingdom-names`; Einstellungen, Push, Export und Löschantrag folgen.
+
+- **`POST /auth/register`** (201, mit Gastsitzung und `Idempotency-Key`): Körper `{ username, password, playerName: { adjective, noun, number } }`. Benutzername 3–24 Zeichen aus `A–Z a–z 0–9 Ä Ö Ü ä ö ü ß _ . -`, ohne Rücksicht auf Groß- und Kleinschreibung eindeutig, wird nie öffentlich gezeigt; Passwort 10–128 Zeichen. Konto-ID und Spielstand bleiben, alle Sitzungen des Kontos werden durch eine neue ersetzt. Antwort `{ user: { id, isGuest: false }, serverTime }`. Fehler: `ALREADY_REGISTERED` (409), `USERNAME_TAKEN` (409), `PLAYER_NAME_TAKEN` (409, `details.displayName`), `INVALID_NAME` (422). Ein E-Mail-Feld gibt es noch nicht ([O-03]); ein unbekanntes Feld ergibt `VALIDATION_FAILED`.
+- **`POST /auth/login`** (200): Körper `{ username, password }` (nur Längen geprüft). Unbekannter Name, falsches Passwort, Gastkonto und Konto mit Löschantrag antworten gleich mit `INVALID_CREDENTIALS` (401) nach gleichem Aufwand. Nach 10 Fehlversuchen je Benutzername oder 100 je Adresse in 15 min antwortet der Server bis zum Fensterende mit `RATE_LIMITED` (429, `details.retryAfterMs`), auch bei richtigem Passwort. Eine Sitzung, mit der die Anfrage kam, wird beendet (auch die eines anderen Kontos); andere Geräte bleiben angemeldet.
+- **`PATCH /me/profile`** (200, mit `Idempotency-Key`): Körper `{ playerName }`; Antwort `{ profile: { displayName, playerName }, serverTime }`, bei Wiederholung das gespeicherte Profil dieser Änderung. Gäste: `GUEST_ACCOUNT` (403).
+- **`POST /me/password`** (204, mit `Idempotency-Key`; Passwörter gehen nicht in den Anfrage-Hash): Körper `{ currentPassword, newPassword }`. Falsches bisheriges Passwort: `INVALID_CREDENTIALS` (403), gebremst wie die Anmeldung; Gäste: `GUEST_ACCOUNT` (403). Die Sitzung der Anfrage bleibt, alle anderen des Kontos enden.
+- **`GET /me`** enthält zusätzlich `user.username` (nur für den Spieler selbst) und `profile: { displayName, playerName }` (beides `null` bei Gästen).
+- **Namensvorschläge:** `GET /names/player` und `GET /instances/:id/kingdom-names` liefern `{ suggestions: [{ parts, name }], serverTime }` mit bis zu fünf Namen, die noch niemand trägt (Spieler) bzw. in der Instanz noch nicht vorkommen (Reiche). Angenommen wird jede gültige Kombination der Bausteine, nicht nur ein gezeigter Vorschlag; andere Werte ergeben `INVALID_NAME`.
+- **Passwort vergessen:** Ohne E-Mail setzt die Spielleitung ein neues Passwort mit `pnpm account:reset-password --username=NAME` (Ausgabe einmalig, alle Sitzungen enden; nicht für Konten mit Löschantrag). In Produktion ist der Befehl gesperrt, bis Änderungen an Zugangsdaten mit Akteur und Begründung in `audit_events` protokolliert werden ([§2.5](#25-redaktion-und-administration)).
 
 ### 2.2 Welten und Karte
 
@@ -45,6 +58,8 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 | GET | `/instances/:id/leaderboard?type=regions\|defense` | Ranglisten nach Regionen bzw. Verteidigungspunkten (abgeleitet, bis 60 s verzögert) |
 
 Stand Phase 1 Paket 2 (Schemas in `packages/protocol/src/api.ts`): umgesetzt sind `GET /worlds`, `POST /worlds/:worldId/join`, `map/static`, `map/state`, `regions/:regionId` und `kingdoms/:kingdomId`; alle verlangen eine Sitzung, Kartendaten sind auch ohne Teilnahme lesbar. Regions-IDs sind Dezimaltext (`bigint`), Zeitpunkte ISO-8601 in UTC, abgelaufene Schutzzeiten erscheinen als `null`. Höchstens 64 Chunks je Abfrage. `map/static` liefert je angefragtem Chunk die Regionen (auch leere Chunks) mit `ETag`; `Cache-Control: private, max-age=31536000, immutable` nur, wenn jeder angefragte Chunk Regionen hat, sonst `no-cache`, weil ein neuer Ring ihn noch füllen kann. `map/state` liefert Zustand, beteiligte Reiche und `seq` aus einem Schnappschuss (`repeatable read`); `sinceSeq` wird noch nicht ausgewertet (immer voller Zustand), Deltas kommen mit dem WebSocket in Phase 2; bis dahin lädt der Client alle 30 s neu (ADR-036). `regions/:regionId` enthält seit Paket 3 `attack: { allowed, mode, defenderKind, reason, until }` für den Anfragenden: `reason` ist einer der Ablehnungscodes aus [§5](#5-fehlercodes-auszug) in der Prüfreihenfolge von [GAME_RULES.md §4](GAME_RULES.md), `until` das Schutzende bzw. der nächste freie Versuch. Seit Phase 2 Paket 1 sind Ziele im Spielerbesitz angreifbar (`mode: "PVP"`); `attack.endsOwnProtection` ist `true`, wenn der Angriff den eigenen Anfänger- oder Wiederaufbauschutz beenden würde, damit der Client vorher warnt. Seit Migration 0009 (ADR-037) enthält es `capital: { lives, maxLives, nextLifeAt }`, wenn die Region eine Hauptstadt ist (sonst `null`; erholte Leben eingerechnet, `nextLifeAt` ist `null` bei vollen Leben), und `protectionReason` kennt zusätzlich `CAPITAL_HIT` (Schutz nach einem Treffer auf die Hauptstadt). `join` wählt die Startregion nach [WORLD_SYSTEM.md §4.2](WORLD_SYSTEM.md#42-startregion-für-neue-spieler-e) und liefert Reich, Hauptstadt und `tutorialTargetRegionId`; `/me` liefert dieses Ziel, solange das Reich genau eine Region hat, und seit Paket 4 je Instanz `openChallengeId`: die Herausforderung eines noch offenen eigenen Angriffs oder (seit Phase 2) einer begonnenen Verteidigung (sonst `null`), damit der Client nach einem Reload ins Quiz zurückkehrt, und `incomingSieges`: die Zahl der eröffneten Belagerungen gegen das eigene Reich; vorher löst `/me` fällige Kämpfe des Spielers auf, als Angreifer und als Verteidiger (ADR-034).
+
+Seit Phase 2 Paket 2 nehmen `join` und `respawn` den freiwilligen Körper `{ kingdomName: { prefix, suffix } }` (ein Vorschlag aus `GET /instances/:id/kingdom-names`); ohne Körper zieht der Server den Namen wie bisher. Ein Name außerhalb der Bausteine ergibt `INVALID_NAME`, der Name gehört zum Anfrage-Hash der Idempotenz.
 
 `POST /instances/:id/respawn` (201, mit `Idempotency-Key`, seit Phase 2 Paket 1) gründet nach einem Totalverlust ein neues Reich in einer geeigneten Startregion, mit Wiederaufbauschutz (`protection.respawn`, `protectionReason: "RESPAWN"`) und der nächsten Generation; Antwort wie `join`. Besteht das aktuelle Reich noch: `KINGDOM_ACTIVE`; ohne Teilnahme: `NOT_FOUND`.
 
@@ -182,6 +197,12 @@ Ereignisse sind **Hinweise auf Zustandsänderungen**, nicht die einzige Quelle: 
 | `IDEMPOTENCY_KEY_REQUIRED`, `IDEMPOTENCY_KEY_REUSED` | Header fehlt bzw. Schlüssel mit anderem Anfrageinhalt wiederverwendet |
 | `GUEST_BOOTSTRAP_REQUIRED`, `GUEST_BOOTSTRAP_USED` | `/auth/guest` ohne Bootstrap-Cookie bzw. Wiederholung, nachdem das Gastkonto bereits benutzt wurde ([§1](#1-konventionen)) |
 | `VALIDATION_FAILED` | Pfad, Abfrage oder Körper ungültig (`details.issues`) (400) |
+| `INVALID_CREDENTIALS` | Anmeldung: Benutzername oder Passwort falsch (401); Passwortwechsel: bisheriges Passwort falsch (403) |
+| `RATE_LIMITED` | zu viele Fehlversuche; erneut ab `details.retryAfterMs` (429) |
+| `ALREADY_REGISTERED` | Konto ist bereits gesichert (409) |
+| `GUEST_ACCOUNT` | nur für gesicherte Konten (403) |
+| `USERNAME_TAKEN`, `PLAYER_NAME_TAKEN` | Benutzer- bzw. Spielername vergeben (409) |
+| `INVALID_NAME` | Name nicht aus den erlaubten Bausteinen (422) |
 | `UNAUTHENTICATED` | keine gültige Sitzung (401) |
 | `CSRF_ORIGIN_MISMATCH` | zustandsändernde Anfrage ohne passenden `Origin` (403) |
 | `NOT_FOUND` | unbekannter Pfad, unbekannte Welt, Instanz, Region oder unbekanntes Reich (404) |

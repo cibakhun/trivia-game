@@ -2,11 +2,14 @@ import { useSyncExternalStore } from 'react';
 
 /**
  * Kleiner Router über die History-API für die Routen aus ARCHITECTURE §12:
- * `/` (Start), `/play/:instanceId` (Karte), `/challenge/:challengeId` (Vollbild-Quiz).
+ * `/` (Start), `/welten` (Weltwahl), `/konto` (Konto), `/play/:instanceId` (Karte),
+ * `/challenge/:challengeId` (Vollbild-Quiz).
  */
 
 export type Route =
   | { readonly name: 'start' }
+  | { readonly name: 'worlds' }
+  | { readonly name: 'account' }
   | { readonly name: 'play'; readonly instanceId: string }
   | { readonly name: 'challenge'; readonly challengeId: string };
 
@@ -14,6 +17,8 @@ export type Route =
 const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
 
 export function parseRoute(pathname: string): Route {
+  if (/^\/welten\/?$/.test(pathname)) return { name: 'worlds' };
+  if (/^\/konto\/?$/.test(pathname)) return { name: 'account' };
   const play = new RegExp(`^/play/(${ID})/?$`).exec(pathname);
   if (play?.[1]) return { name: 'play', instanceId: play[1] };
   const challenge = new RegExp(`^/challenge/(${ID})/?$`).exec(pathname);
@@ -25,6 +30,10 @@ export function routePath(route: Route): string {
   switch (route.name) {
     case 'start':
       return '/';
+    case 'worlds':
+      return '/welten';
+    case 'account':
+      return '/konto';
     case 'play':
       return `/play/${route.instanceId}`;
     case 'challenge':

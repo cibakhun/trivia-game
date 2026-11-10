@@ -30,6 +30,14 @@ function sqlState(error: unknown): string | undefined {
   return typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code) ? code : undefined;
 }
 
+/** Verstoß gegen den eindeutigen Index bzw. Constraint `constraint` (SQLSTATE 23505). */
+export function isUniqueViolation(error: unknown, constraint: string): boolean {
+  return (
+    sqlState(error) === '23505' &&
+    (error as { constraint?: unknown } | null)?.constraint === constraint
+  );
+}
+
 /** Einheitliches Fehlerformat für alle Antworten, auch für Fehler von Fastify selbst. */
 export function registerErrorHandling(app: FastifyInstance): void {
   app.setErrorHandler((error: FastifyError | ApiError, request, reply) => {

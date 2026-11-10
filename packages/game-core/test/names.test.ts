@@ -3,11 +3,18 @@ import {
   KINGDOM_COLOR_COUNT,
   NAME_PREFIXES,
   NAME_SUFFIXES,
+  PLAYER_NAME_ADJECTIVES,
+  PLAYER_NAME_NOUNS,
   createRng,
   factionNamingRng,
   generateKingdomName,
+  isKingdomNameParts,
+  isPlayerNameParts,
   kingdomName,
   pickKingdomColor,
+  playerDisplayName,
+  suggestKingdomNames,
+  suggestPlayerNames,
   type Rng,
 } from '../src/index.ts';
 
@@ -78,5 +85,85 @@ describe('Reichsfarben', () => {
     const color = pickKingdomColor(rng(4));
     expect(color).toBeGreaterThanOrEqual(0);
     expect(color).toBeLessThan(KINGDOM_COLOR_COUNT);
+  });
+});
+
+describe('Namen aus Vorschlägen (O-10, ADR-044)', () => {
+  it('beugt die Eigenschaft nach dem Geschlecht des Nomens', () => {
+    expect(playerDisplayName({ adjective: 'Kühn', noun: 'Falke', number: null })).toBe(
+      'Kühner Falke',
+    );
+    expect(playerDisplayName({ adjective: 'Weis', noun: 'Eule', number: null })).toBe('Weise Eule');
+    expect(playerDisplayName({ adjective: 'Flink', noun: 'Wiesel', number: 7 })).toBe(
+      'Flinkes Wiesel 7',
+    );
+    expect(() => playerDisplayName({ adjective: 'Kühn', noun: 'Hund', number: null })).toThrow();
+  });
+
+  it('kennt nur Bausteine aus den Listen', () => {
+    expect(isPlayerNameParts({ adjective: 'Kühn', noun: 'Falke', number: null })).toBe(true);
+    expect(isPlayerNameParts({ adjective: 'Kühn', noun: 'Falke', number: 99 })).toBe(true);
+    for (const bad of [
+      { adjective: 'Böse', noun: 'Falke', number: null },
+      { adjective: 'Kühn', noun: 'toString', number: null },
+      { adjective: 'Kühn', noun: 'Falke', number: 1 },
+      { adjective: 'Kühn', noun: 'Falke', number: 100 },
+      { adjective: 'Kühn', noun: 'Falke', number: 2.5 },
+      { adjective: 'Kühn', noun: 'Falke' },
+      null,
+      'Kühner Falke',
+    ]) {
+      expect(isPlayerNameParts(bad), JSON.stringify(bad)).toBe(false);
+    }
+    expect(isKingdomNameParts({ prefix: 'Falken', suffix: 'stein' })).toBe(true);
+    expect(isKingdomNameParts({ prefix: 'Falken', suffix: 'hausen' })).toBe(false);
+    expect(isKingdomNameParts({ prefix: 'Vergessenes Reich #', suffix: '1234' })).toBe(false);
+  });
+
+  it('hat keine doppelten Bausteine und nur beugbare Stämme', () => {
+    expect(new Set(PLAYER_NAME_ADJECTIVES).size).toBe(PLAYER_NAME_ADJECTIVES.length);
+    for (const adjective of PLAYER_NAME_ADJECTIVES) {
+      // ein Stamm endet nicht auf -e oder -el (sonst „Weiseer“, „Edeler“)
+      expect(adjective).not.toMatch(/(e|el)$/);
+    }
+    expect(Object.values(PLAYER_NAME_NOUNS).every((g) => ['M', 'F', 'N'].includes(g))).toBe(true);
+  });
+
+  it('schlägt verschiedene freie Spielernamen vor, bei Bedarf mit Zahl', () => {
+    const names = suggestPlayerNames(rng(5), new Set(), 5);
+    expect(names).toHaveLength(5);
+    expect(new Set(names.map(playerDisplayName)).size).toBe(5);
+    expect(names.every((parts) => isPlayerNameParts(parts) && parts.number === null)).toBe(true);
+    // alle Namen ohne Zahl vergeben: Vorschläge tragen eine Zahl
+    const taken = new Set<string>();
+    for (const adjective of PLAYER_NAME_ADJECTIVES) {
+      for (const noun of Object.keys(PLAYER_NAME_NOUNS)) {
+        taken.add(playerDisplayName({ adjective, noun, number: null }));
+      }
+    }
+    const numbered = suggestPlayerNames(rng(6), taken, 3);
+    expect(numbered).toHaveLength(3);
+    expect(new Set(numbered.map(playerDisplayName)).size).toBe(3);
+    for (const parts of numbered) {
+      // gültig heißt auch: Zahl 2–99
+      expect(isPlayerNameParts(parts), JSON.stringify(parts)).toBe(true);
+      expect(parts.number).not.toBeNull();
+      expect(taken.has(playerDisplayName(parts))).toBe(false);
+    }
+  });
+
+  it('schlägt Reichsnamen vor, die in der Welt noch nicht vorkommen', () => {
+    const taken = new Set(['Falkenstein', 'Rosental']);
+    const names = suggestKingdomNames(rng(8), taken, 5);
+    expect(names).toHaveLength(5);
+    const texts = names.map(kingdomName);
+    expect(new Set(texts).size).toBe(5);
+    expect(texts.some((name) => taken.has(name))).toBe(false);
+    // sind fast alle vergeben, kommen eben weniger Vorschläge
+    const all = new Set(NAME_PREFIXES.flatMap((p) => NAME_SUFFIXES.map((s) => `${p}${s}`)));
+    all.delete('Adlerau');
+    expect(suggestKingdomNames(fixed(Array<number>(200).fill(0)), all, 5)).toEqual([
+      { prefix: 'Adler', suffix: 'au' },
+    ]);
   });
 });

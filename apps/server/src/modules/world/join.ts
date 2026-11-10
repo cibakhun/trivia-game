@@ -10,6 +10,7 @@ import {
   pickKingdomColor,
   spawnCandidates,
   tutorialTarget,
+  type KingdomNameParts,
 } from '@rdw/game-core';
 import { parseRulesConfig, type JoinResponse, type RulesConfig } from '@rdw/protocol';
 import { sql } from 'kysely';
@@ -33,6 +34,8 @@ export interface JoinContext {
   readonly worldId: string;
   readonly rngSecret: Uint8Array;
   readonly rngKeyId: string;
+  /** Vom Spieler gewählter Reichsname (geprüfte Bausteine); sonst gezogen (O-10, ADR-044). */
+  readonly kingdomName?: KingdomNameParts | undefined;
 }
 
 export async function joinWorld(tx: Tx, ctx: JoinContext): Promise<JoinResponse> {
@@ -84,6 +87,7 @@ export async function joinWorld(tx: Tx, ctx: JoinContext): Promise<JoinResponse>
     rngSecret: ctx.rngSecret,
     rngKeyId: ctx.rngKeyId,
     source: 'JOIN',
+    chosenName: ctx.kingdomName,
   });
   await tx
     .insertInto('world_participants')
@@ -103,6 +107,7 @@ export interface RespawnContext {
   readonly instanceId: string;
   readonly rngSecret: Uint8Array;
   readonly rngKeyId: string;
+  readonly kingdomName?: KingdomNameParts | undefined;
 }
 
 /**
@@ -142,6 +147,7 @@ export async function respawnKingdom(tx: Tx, ctx: RespawnContext): Promise<JoinR
     rngSecret: ctx.rngSecret,
     rngKeyId: ctx.rngKeyId,
     source: 'RESPAWN',
+    chosenName: ctx.kingdomName,
   });
   await tx
     .updateTable('world_participants')
@@ -160,6 +166,7 @@ interface FoundParams {
   readonly rngKeyId: string;
   /** Erster Beitritt (Anfängerschutz) oder Neustart (Wiederaufbauschutz). */
   readonly source: 'JOIN' | 'RESPAWN';
+  readonly chosenName: KingdomNameParts | undefined;
 }
 
 /** Gründet das nächste Reich des Spielers; die Teilnahme schreibt der Aufrufer. */
@@ -184,7 +191,9 @@ async function foundKingdom(tx: Tx, ctx: FoundParams): Promise<JoinResponse> {
     throw new ApiError(409, 'NO_START_REGION', 'Keine freie Startregion', { instanceId });
   const start = snapshot.regions.find((region) => region.id === chosen.id);
   if (!start) throw new Error('Startregion fehlt im Schnappschuss');
-  const name = generateKingdomName(rng, snapshot.names);
+  // Gezogen wird immer, damit die Folge des Zufallsstroms (Farbe) nicht von der Wahl abhängt.
+  const drawn = generateKingdomName(rng, snapshot.names);
+  const name = ctx.chosenName ?? drawn;
   const color = pickKingdomColor(rng, snapshot.colorUsage);
 
   const kingdomId = newId();

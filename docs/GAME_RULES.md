@@ -45,6 +45,7 @@ Kennzeichnung: **[V]** verbindlich · **[A]** Annahme aus dem Brief (konfigurier
 | 250+ | Imperium |
 
 8. Königreichsnamen werden im MVP aus Bausteinen generiert, nicht frei eingegeben [E, [O-10]] – das vermeidet Moderationspflichten für nutzergenerierte Inhalte (Brief §14.3). Umsetzung: Vorsilbe + Endung aus festen deutschen Listen (`names.ts` in `game-core`, z. B. „Falkenstein“), ist der Name in der Instanz vergeben, wird neu gezogen, insgesamt höchstens achtmal (danach bleibt der letzte Name); Farbe ist ein Index 0–15, bevorzugt eine wenig benutzte. Gespeichert werden die Bausteine (`kingdoms.name_parts`), angezeigt wird Rang + Name.
+9. **Namenswahl** [V, PO 2026-11-10, [O-10], ADR-044]: Beim Beitritt und bei der Neugründung wählt der Spieler den Reichsnamen aus fünf Vorschlägen, die in der Instanz noch nicht vorkommen (weitere Vorschläge auf Wunsch); ohne Wahl zieht der Server wie bisher. Der Spielername, unter dem andere einen Spieler kennen, entsteht beim Sichern des Kontos ebenso aus Vorschlägen: Adjektiv + passend gebeugte Endung + Tier oder Rolle, bei Bedarf mit Zahl 2–99 (z. B. „Kühner Falke“, „Flinkes Wiesel 7“), weltweit eindeutig und für gesicherte Konten änderbar. Gäste haben keinen Spielernamen. Der private Benutzername für die Anmeldung erscheint nirgends im Spiel. Freie Namen gibt es erst mit Meldefunktion. Wird ein Gastkonto nach 90 Tagen ohne Besuch gelöscht, bleibt sein Reich mit Regionen und Historie bestehen und heißt danach „Vergessenes Reich #NNNN“ (ADR-045).
 
 ## 4. Angriffsberechtigung
 

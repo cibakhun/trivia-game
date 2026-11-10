@@ -7,6 +7,7 @@ import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fas
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { buildApp, createWorld, type CreatedWorld, type ServerConfig } from '../src/index.ts';
+import type { ThrottleOptions } from '../src/modules/identity/throttle.ts';
 
 /** Testhelfer für den Server: eigene Datenbank je Datei, Anfragen per `inject` mit Cookie-Speicher. */
 
@@ -34,13 +35,15 @@ export interface TestServer {
   close(): Promise<void>;
 }
 
-export async function startTestServer(): Promise<TestServer> {
+export async function startTestServer(
+  options: { readonly loginThrottle?: ThrottleOptions } = {},
+): Promise<TestServer> {
   const database = await createTestDatabase();
   // kein db.destroy(): drop() beendet den Pool
   const db = createDb(database.pool);
   let app: FastifyInstance;
   try {
-    app = await buildApp({ db, config: testConfig(database.url), logger: false });
+    app = await buildApp({ db, config: testConfig(database.url), logger: false, ...options });
   } catch (error) {
     // sonst blieben Testdatenbank und Pool liegen
     await database.drop();
@@ -98,7 +101,7 @@ export class TestClient {
   readonly cookies = new Map<string, string>();
   constructor(private readonly app: FastifyInstance) {}
 
-  async request(method: 'GET' | 'POST', path: string, options: RequestOptions = {}) {
+  async request(method: 'GET' | 'POST' | 'PATCH', path: string, options: RequestOptions = {}) {
     const headers: Record<string, string> = { ...options.headers };
     const origin =
       options.origin === undefined ? (method === 'GET' ? null : ORIGIN) : options.origin;
@@ -131,6 +134,10 @@ export class TestClient {
 
   post(path: string, options?: RequestOptions) {
     return this.request('POST', path, options);
+  }
+
+  patch(path: string, options?: RequestOptions) {
+    return this.request('PATCH', path, options);
   }
 
   /** Bootstrap und Gastkonto in einem Schritt. */

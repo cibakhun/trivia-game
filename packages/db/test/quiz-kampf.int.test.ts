@@ -1309,7 +1309,7 @@ describe('Kämpfe: Teilnehmer, Herausforderung und Antworten (I11)', () => {
     );
     await q(
       `update quiz_answers set status = 'ANSWERED', received_at = game_now(), answer_option_key = 'a',
-         is_correct = true, effective_ms = 4000 where id = $1`,
+         raw_input = 'a', is_correct = true, effective_ms = 4000 where id = $1`,
       [id],
     );
     await expectPgError(
@@ -1317,6 +1317,20 @@ describe('Kämpfe: Teilnehmer, Herausforderung und Antworten (I11)', () => {
       RESTRICT,
     );
     await expectPgError(q(`truncate quiz_answers`), RESTRICT);
+    // Einzige erlaubte Änderung danach: den Rohtext schwärzen (Kontolöschung, 0011), allein und
+    // nur zu leer
+    await expectPgError(
+      q(`update quiz_answers set raw_input = null, is_correct = false where id = $1`, [id]),
+      RESTRICT,
+    );
+    await expectPgError(q(`update quiz_answers set raw_input = 'b' where id = $1`, [id]), RESTRICT);
+    await q(`update quiz_answers set raw_input = null where id = $1`, [id]);
+    const { rows } = await q(
+      `select raw_input, answer_option_key, is_correct from quiz_answers where id = $1`,
+      [id],
+    );
+    expect(rows[0]).toEqual({ raw_input: null, answer_option_key: 'a', is_correct: true });
+    await expectPgError(q(`update quiz_answers set raw_input = 'a' where id = $1`, [id]), RESTRICT);
   });
 
   it('verbindet Antworten nur mit Teilnehmern desselben Kampfes', async () => {
@@ -1436,6 +1450,47 @@ describe('Outbox world_events', () => {
     );
     // DELETE bleibt für die Aufbewahrung erlaubt
     await q(`delete from world_events where instance_id = $1`, [world.instanceId]);
+  });
+
+  it('erlaubt als einzige Änderung das Schwärzen persönlicher Ereignisse (0011)', async () => {
+    const world = await createWorld();
+    const userId = await insertUser();
+    await insert('world_events', {
+      instance_id: world.instanceId,
+      type: 'siege.resolved',
+      user_id: userId,
+      payload: JSON.stringify({ siegeId: randomUUID() }),
+    });
+    await insert('world_events', { instance_id: world.instanceId, type: 'region.changed' });
+    const redact = `update world_events set type = 'REDACTED', payload = '{}', user_id = null
+                     where instance_id = $1`;
+    // öffentliche Ereignisse (ohne Konto) lassen sich nicht schwärzen; die Anweisung trifft beide
+    await expectPgError(q(redact, [world.instanceId]), RESTRICT);
+    // halbe Schwärzung oder eine andere Änderung dabei: abgelehnt
+    await expectPgError(
+      q(`update world_events set type = 'REDACTED', payload = '{}' where user_id = $1`, [userId]),
+      RESTRICT,
+    );
+    await expectPgError(
+      q(
+        `update world_events set type = 'REDACTED', payload = '{}', user_id = null,
+           created_at = created_at - interval '1 day' where user_id = $1`,
+        [userId],
+      ),
+      RESTRICT,
+    );
+    await q(
+      `update world_events set type = 'REDACTED', payload = '{}', user_id = null where user_id = $1`,
+      [userId],
+    );
+    const { rows } = await q(
+      `select type, seq::int as seq, user_id from world_events where instance_id = $1 order by seq`,
+      [world.instanceId],
+    );
+    expect(rows).toEqual([
+      { type: 'REDACTED', seq: 1, user_id: null },
+      { type: 'region.changed', seq: 2, user_id: null },
+    ]);
   });
 });
 

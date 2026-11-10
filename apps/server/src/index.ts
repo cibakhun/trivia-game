@@ -11,3 +11,9 @@ export {
   settleOpenSiegesOfUser,
   startChallengeSweeper,
 } from './modules/combat/sweeper.ts';
+export {
+  ACCOUNT_REFERENCES,
+  cleanupAccounts,
+  deleteAccount,
+  GUEST_INACTIVITY_MS,
+} from './modules/identity/deletion.ts';

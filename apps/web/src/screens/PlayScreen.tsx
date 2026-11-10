@@ -1,9 +1,10 @@
 import { axialKey, neighbors, type Axial } from '@rdw/game-core';
-import type { AttackResponse, SiegesResponse } from '@rdw/protocol';
+import type { AttackResponse, KingdomNamePartsDto, SiegesResponse } from '@rdw/protocol';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { api, newActionKey } from '../api/client.ts';
-import { ErrorNote } from '../components/ErrorNote.tsx';
+import { ActionKey, api } from '../api/client.ts';
+import { ClientError, ErrorNote } from '../components/ErrorNote.tsx';
 import { KingdomBar } from '../components/KingdomBar.tsx';
+import { NamePicker, type NameChoice } from '../components/NamePicker.tsx';
 import { RegionPanel } from '../components/RegionPanel.tsx';
 import { SiegePanel } from '../components/SiegePanel.tsx';
 import { t } from '../i18n/i18n.ts';
@@ -36,9 +37,10 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   // Eigener Fehler der Belagerungsliste: verschwindet mit dem nächsten erfolgreichen Laden
   const [siegeError, setSiegeError] = useState<unknown>(null);
   const [respawning, setRespawning] = useState(false);
+  const [kingdomName, setKingdomName] = useState<NameChoice<KingdomNamePartsDto> | null>(null);
   const viewportTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Eine Neugründung = ein Schlüssel, auch nach einem Netzfehler
-  const respawnKey = useRef(newActionKey());
+  const respawnKey = useRef(new ActionKey());
 
   const loadSieges = useCallback(async () => {
     try {
@@ -145,6 +147,11 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
     return result.sort((a, b) => a.tier - b.tier || (BigInt(a.id) < BigInt(b.id) ? -1 : 1));
   }, [regions]);
 
+  const loadKingdomNames = useCallback(
+    async () => (await api.kingdomNames(instanceId)).suggestions,
+    [instanceId],
+  );
+
   function onAttack(attack: AttackResponse, label: string) {
     rememberAttack(attack, label);
     navigate({ name: 'challenge', challengeId: attack.challengeId });
@@ -153,10 +160,21 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   async function respawn() {
     setRespawning(true);
     setSetupError(null);
+    const key = respawnKey.current;
     try {
-      await api.respawn(instanceId, respawnKey.current);
-      respawnKey.current = newActionKey();
-      await reload();
+      try {
+        await api.respawn(instanceId, key.for(kingdomName?.parts), kingdomName?.parts);
+      } catch (e) {
+        key.settle(e);
+        throw e;
+      }
+      // Fertig erst, wenn das Profil das neue Reich kennt; bis dahin bleiben Name und Schlüssel,
+      // ein erneuter Klick liefert dieselbe Neugründung (Idempotenz) statt KINGDOM_ACTIVE.
+      const me = await reload();
+      const again = me?.instances.find((i) => i.instanceId === instanceId);
+      if (again?.kingdom?.status !== 'ACTIVE') throw new ClientError('kingdom.respawnIncomplete');
+      key.settle();
+      setKingdomName(null);
       await refresh();
     } catch (e) {
       setSetupError(e);
@@ -178,7 +196,23 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
 
   return (
     <div className="play">
-      {kingdom ? <KingdomBar kingdom={kingdom} /> : null}
+      {kingdom ? (
+        <KingdomBar kingdom={kingdom}>
+          <nav className="kingdom-nav" aria-label={t('nav.label')}>
+            <button type="button" className="link" onClick={() => navigate({ name: 'worlds' })}>
+              {t('nav.worlds')}
+            </button>
+            <button
+              type="button"
+              className="link"
+              data-testid="nav-account"
+              onClick={() => navigate({ name: 'account' })}
+            >
+              {me?.user.isGuest ? t('nav.secureAccount') : t('nav.account')}
+            </button>
+          </nav>
+        </KingdomBar>
+      ) : null}
       <div className="play-body">
         <MapCanvas
           regions={regions}
@@ -194,10 +228,17 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
             <section className="card card-accent" data-testid="fallen">
               <p className="note">{t('kingdom.fallen')}</p>
               <p>{t('kingdom.fallenHint')}</p>
+              <NamePicker
+                legend={t('names.kingdomLegend')}
+                load={loadKingdomNames}
+                value={kingdomName}
+                onChange={setKingdomName}
+                testId="kingdom-name-picker"
+              />
               <button
                 type="button"
                 className="button button-primary"
-                disabled={respawning}
+                disabled={respawning || !kingdomName}
                 onClick={() => void respawn()}
               >
                 {respawning ? t('kingdom.respawning') : t('kingdom.respawn')}

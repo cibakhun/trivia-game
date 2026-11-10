@@ -114,9 +114,10 @@ export interface NpcProfilesTable {
 export interface PlayerProfilesTable {
   user_id: string;
   display_name: string;
-  name_seed: number;
   cosmetic_avatar: string | null;
   created_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  name_parts: ColumnType<JsonValue, string, string>;
+  updated_at: ColumnType<Date, Date | string | undefined, Date | string>;
 }
 
 export interface PlayerQuestionExposureTable {
@@ -357,6 +358,7 @@ export interface UsersTable {
   guest_bootstrap_hash: Buffer | null;
   deletion_requested_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   deleted_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+  username: string | null;
 }
 
 export interface WorldEventsTable {

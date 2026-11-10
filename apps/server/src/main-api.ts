@@ -3,6 +3,7 @@ import type { FastifyBaseLogger } from 'fastify';
 import { buildApp } from './app.ts';
 import { parseServerConfig } from './infra/config.ts';
 import { startChallengeSweeper } from './modules/combat/sweeper.ts';
+import { startAccountCleanup } from './modules/identity/deletion.ts';
 
 /** Startpunkt der Rolle `api` (ARCHITECTURE §5): `pnpm --filter @rdw/server start`. */
 async function main(): Promise<void> {
@@ -21,9 +22,12 @@ async function main(): Promise<void> {
   logger.current = app.log;
   // Bis zum Worker-Prozess (Phase 3) räumt der api-Prozess liegen gebliebene Kämpfe auf (ADR-034).
   const stopSweeper = startChallengeSweeper(db, app.log);
+  // Ebenso die Kontopflege: inaktive Gäste nach 90 Tagen, abgelaufene Sitzungen (ADR-045).
+  const stopAccountCleanup = startAccountCleanup(db, app.log);
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, 'Beende');
     stopSweeper();
+    stopAccountCleanup();
     await app.close();
     await db.destroy();
   };
