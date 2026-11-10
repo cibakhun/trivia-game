@@ -23,6 +23,7 @@ import { gameNow, intervalMs } from '../../infra/clock.ts';
 import { canonicalJson, sha256Hex } from '../../infra/crypto.ts';
 import { appendBattleEvents, insertWorldEvents, type WorldEvent } from '../../infra/events.ts';
 import { recordExposure } from '../quiz/questions.ts';
+import { OPEN_SIEGE_STATUSES } from './siege-status.ts';
 import { capitalOf, parseSnapshot, pvpOf, type SiegeRulesSnapshot } from './snapshot.ts';
 
 /**
@@ -48,8 +49,7 @@ export type SettleResult = 'RESOLVED' | 'OPENED' | 'PENDING' | 'NOOP';
 type EndStatus =
   'ATTACKER_WON' | 'ATTACKER_WON_BY_TIMEOUT' | 'DEFENDER_WON' | 'ATTACK_FAILED' | 'CANCELLED';
 
-/** Belagerungen, die noch nicht beendet sind (`RESOLVING` wird nie gespeichert). */
-export const OPEN_SIEGE_STATUSES = ['PREPARING', 'AWAITING_DEFENSE', 'DEFENDING'] as const;
+export { OPEN_SIEGE_STATUSES };
 
 interface AnswerRow {
   readonly role: string;

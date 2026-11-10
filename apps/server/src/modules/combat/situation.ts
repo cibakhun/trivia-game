@@ -14,6 +14,7 @@ import {
 } from '@rdw/protocol';
 import { sql } from 'kysely';
 import { ApiError } from '../../infra/errors.ts';
+import { OPEN_SIEGE_STATUSES, openChallengeOf } from './siege-status.ts';
 
 /**
  * Lage vor einem Angriff (GAME_RULES §4): sammelt alle Eingaben der Berechtigungsprüfung. Beim
@@ -245,18 +246,7 @@ export async function loadAttackSituation(
  * Ein eigener Angriff in Vorbereitung oder eine begonnene Verteidigung.
  */
 export async function hasChallengeInProgress(db: Db, kingdomId: string): Promise<boolean> {
-  const running = await db
-    .selectFrom('sieges')
-    .select('id')
-    .where((eb) =>
-      eb.or([
-        eb.and([eb('attacker_kingdom_id', '=', kingdomId), eb('status', '=', 'PREPARING')]),
-        eb.and([eb('defender_kingdom_id', '=', kingdomId), eb('status', '=', 'DEFENDING')]),
-      ]),
-    )
-    .limit(1)
-    .executeTakeFirst();
-  return running !== undefined;
+  return (await openChallengeOf(db, kingdomId)) !== null;
 }
 
 /** Zählungen für einen PvP-Angriff (SIEGE_SYSTEM §7), im gleitenden Fenster der Regeln. */
@@ -294,7 +284,7 @@ async function loadPvpCounts(
     .selectFrom('sieges')
     .select((eb) => eb.fn.countAll<string>().as('open'))
     .where('defender_kingdom_id', '=', params.defenderKingdomId)
-    .where('status', 'in', ['PREPARING', 'AWAITING_DEFENSE', 'DEFENDING'])
+    .where('status', 'in', [...OPEN_SIEGE_STATUSES])
     .executeTakeFirstOrThrow();
   let lastCapitalHitAt: number | null = null;
   if (params.targetRegionId !== null) {

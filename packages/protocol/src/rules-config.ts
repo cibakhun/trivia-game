@@ -219,6 +219,21 @@ export const rulesConfigSchema = z
         message: 'Jede Belagerung braucht einen Versuch: Versuche ≥ Belagerungen',
       });
     }
+    // [O-20] B: Mit einer Sperre so lang wie die Erholung könnte ein einzelner Angreifer eine
+    // Spielerhauptstadt nie allein einnehmen, weil sie sich vor seinem nächsten Treffer erholt.
+    const capital = cfg.capital;
+    if (
+      capital?.lifeRegen !== undefined &&
+      capital.lifeRegen !== null &&
+      capital.hitCooldownPerAttacker !== undefined &&
+      capital.hitCooldownPerAttacker >= capital.lifeRegen
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['capital', 'hitCooldownPerAttacker'],
+        message: 'Die Sperre je Angreifer muss kürzer sein als die Erholung eines Lebens',
+      });
+    }
   });
 
 export type RulesConfig = z.infer<typeof rulesConfigSchema>;

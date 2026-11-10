@@ -43,8 +43,11 @@ async function main(): Promise<void> {
     process.exitCode = 2;
     return;
   }
-  if (rulesName === 'playtest' && env.APP_ENV === 'production') {
-    console.error('Abbruch: Spieltest-Regeln sind in Produktion nicht erlaubt.');
+  // Kurze Fristen sind keine Spielregel: nur auf dem eigenen Rechner und in Tests (ADR-042)
+  if (rulesName === 'playtest' && env.APP_ENV !== 'local' && env.APP_ENV !== 'test') {
+    console.error(
+      `Abbruch: Spieltest-Regeln gibt es nur mit APP_ENV=local oder test (hier: ${env.APP_ENV}).`,
+    );
     process.exitCode = 2;
     return;
   }

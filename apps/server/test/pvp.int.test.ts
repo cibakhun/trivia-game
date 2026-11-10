@@ -15,12 +15,14 @@ import {
   type AnswerResponse,
   type AttackResponse,
   type JoinResponse,
+  type QuestionKind,
   type RulesConfig,
 } from '@rdw/protocol';
 import { sql } from 'kysely';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { expireStaleChallenges, type CreatedWorld } from '../src/index.ts';
+import { loadCandidates } from '../src/modules/quiz/questions.ts';
 import {
   TestClient,
   createTestWorld,
@@ -768,7 +770,7 @@ describe('PvP: Punkte, Hauptstadt und Grenzen', () => {
     expect((await attack(pair.attacker, capital)).statusCode).toBe(201);
   });
 
-  it('nutzt mit Standardregeln 24 Stunden Frist und begrenzt neue Belagerungen je Angreifer', async () => {
+  it('nutzt mit Standardregeln 24 Stunden Frist und sperrt die belagerte Region', async () => {
     const pair = await pvpPair({ rules: DEFAULT_RULES.ETERNAL });
     const started = await openSiege(pair, { trivia: true, exactEstimate: true });
     const row = await siegeRow(started.siegeId);
@@ -778,6 +780,75 @@ describe('PvP: Punkte, Hauptstadt und Grenzen', () => {
     expect(errorOf(await attack(pair.attacker, pair.target))).toMatchObject({
       code: 'REGION_UNDER_SIEGE',
     });
+  });
+
+  it('begrenzt neu eröffnete Belagerungen je Angreifer im gleitenden Fenster', async () => {
+    const rules: RulesConfig = {
+      ...PLAYTEST,
+      attack: {
+        ...PLAYTEST.attack,
+        maxNewPvpSiegesPerAttacker: { count: 1, windowMs: 60 * MINUTE },
+      },
+    };
+    const pair = await pvpPair({ rules });
+    await openSiege(pair, { trivia: true, exactEstimate: true });
+    const second = await neutralNextTo(pair.instanceId, pair.attacker.joined.capitalRegionId);
+    await transferRegion(second, pair.defender.joined.kingdom.id);
+    const refused = errorOf(await attack(pair.attacker, second));
+    expect(refused).toMatchObject({ status: 409, code: 'ATTACKER_SIEGE_LIMIT' });
+    expect(refused.details).toHaveProperty('resetAt');
+    // Nach dem Fenster wieder erlaubt (die erste Belagerung ist inzwischen durch Zeitablauf entschieden)
+    await advanceGameClock(server.database.pool, 61 * MINUTE);
+    expect((await attack(pair.attacker, second)).statusCode).toBe(201);
+  });
+
+  it('löst eine abgelaufene eigene Verteidigung auf, bevor sie eine neue blockiert', async () => {
+    const pair = await pvpPair();
+    const first = await openSiege(pair, { trivia: true, exactEstimate: true });
+    const secondTarget = await neutralNextTo(pair.instanceId, pair.attacker.joined.capitalRegionId);
+    await transferRegion(secondTarget, pair.defender.joined.kingdom.id);
+    const second = await openSiege(pair, { trivia: true, exactEstimate: true }, secondTarget);
+    // Verteidigung der ersten Belagerung begonnen und liegen gelassen
+    expect((await startDefense(pair.defender, first.siegeId)).statusCode).toBe(200);
+    expect(errorOf(await startDefense(pair.defender, second.siegeId))).toMatchObject({
+      status: 409,
+      code: 'CHALLENGE_IN_PROGRESS',
+    });
+    // Wissensfrage samt Kulanz abgelaufen: Die erste Belagerung wird aufgelöst, die zweite beginnt
+    await advanceGameClock(server.database.pool, 30_000);
+    expect((await startDefense(pair.defender, second.siegeId)).statusCode).toBe(200);
+    expect((await siegeRow(first.siegeId)).status).toBe('ATTACKER_WON');
+  });
+
+  it('meidet Fragen aus offenen Belagerungen beider Spieler', async () => {
+    const pair = await pvpPair();
+    const started = await openSiege(pair, { trivia: true, exactEstimate: true });
+    const steps = await server.db
+      .selectFrom('quiz_challenge_steps as st')
+      .innerJoin('question_versions as v', 'v.id', 'st.version_id')
+      .select(['st.kind', 'v.question_id'])
+      .where('st.challenge_id', '=', started.challengeId)
+      .execute();
+    const now = new Date(Date.now() + 365 * 24 * 60 * MINUTE);
+    for (const step of steps) {
+      // Der Verteidiger hat die Fragen noch nie gestellt bekommen, sie gelten trotzdem als gesehen
+      const candidates = await loadCandidates(server.db, {
+        kind: step.kind as QuestionKind,
+        userIds: [pair.defender.userId],
+        allowFixtures: true,
+        now,
+      });
+      expect(candidates.find((c) => c.questionId === step.question_id)?.lastSeenAt).toBe(
+        now.getTime(),
+      );
+      const exposure = await server.db
+        .selectFrom('player_question_exposure')
+        .select('question_id')
+        .where('user_id', '=', pair.defender.userId)
+        .where('question_id', '=', step.question_id)
+        .execute();
+      expect(exposure).toEqual([]);
+    }
   });
 });
 

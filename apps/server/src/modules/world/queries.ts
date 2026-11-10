@@ -1,6 +1,7 @@
 import type { Db } from '@rdw/db';
 import type { MyInstance, WorldsResponse } from '@rdw/protocol';
 import { sql } from 'kysely';
+import { openChallengeOf } from '../combat/siege-status.ts';
 import { loadKingdoms } from '../kingdom/queries.ts';
 import { tutorialTargetNear } from './spawn-snapshot.ts';
 
@@ -120,26 +121,7 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
         : null;
     const kingdomId = row.current_kingdom_id;
     // Laufende Herausforderung: eigener Angriff in Vorbereitung oder begonnene Verteidigung
-    const open = kingdomId
-      ? await db
-          .selectFrom('sieges as s')
-          .innerJoin('quiz_challenges as c', 'c.siege_id', 's.id')
-          .select('c.id')
-          .where((eb) =>
-            eb.or([
-              eb.and([
-                eb('s.attacker_kingdom_id', '=', kingdomId),
-                eb('s.status', '=', 'PREPARING'),
-              ]),
-              eb.and([
-                eb('s.defender_kingdom_id', '=', kingdomId),
-                eb('s.status', '=', 'DEFENDING'),
-              ]),
-            ]),
-          )
-          .orderBy('s.created_at')
-          .executeTakeFirst()
-      : undefined;
+    const openChallengeId = kingdomId ? await openChallengeOf(db, kingdomId) : null;
     const incoming = kingdomId
       ? await db
           .selectFrom('sieges')
@@ -156,7 +138,7 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
       status: row.status as InstanceStatus,
       kingdom,
       tutorialTargetRegionId: tutorial,
-      openChallengeId: open?.id ?? null,
+      openChallengeId,
       incomingSieges: Number(incoming?.n ?? 0),
     });
   }

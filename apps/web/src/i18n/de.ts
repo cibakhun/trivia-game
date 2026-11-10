@@ -169,6 +169,7 @@ export const de = {
     none: 'Keine laufenden Belagerungen.',
     incomingItem: '{attacker} belagert {region}',
     outgoingItem: 'Du belagerst {region} von {defender}',
+    outgoingGarrison: 'Du greifst {region} an',
     deadline: 'Frist bis {time}',
     defend: 'Verteidigen',
     defending: 'Verteidigung läuft',
@@ -176,6 +177,7 @@ export const de = {
     open: 'Ansehen',
     blocked: {
       DEADLINE_TOO_CLOSE: 'Zu wenig Zeit bis zum Fristende.',
+      DEADLINE_PASSED: 'Die Frist ist abgelaufen.',
       CHALLENGE_IN_PROGRESS: 'Beende zuerst deine laufende Herausforderung.',
     },
     outcome: {
@@ -207,7 +209,7 @@ export const de = {
     defenseLost: 'Region verloren',
     defenseCapitalHit: 'Deine Hauptstadt wurde getroffen',
     defenseTakenOver: 'Dein Reich wurde übernommen',
-    defenseNone: 'Angriff abgewehrt',
+    defenseNone: 'Region gehalten',
     defenseCapitalLivesLeft: {
       one: 'Deine Hauptstadt hat ein Leben verloren, ihr bleibt noch {count} von {max}.',
       other: 'Deine Hauptstadt hat ein Leben verloren, ihr bleiben noch {count} von {max}.',

@@ -254,7 +254,8 @@ export async function listSieges(
     let canDefend = false;
     if (role === 'DEFENDER' && status === 'AWAITING_DEFENSE' && row.deadline_at) {
       const block = defenseBlock(row.deadline_at, now, parseSnapshot(row.rules_snapshot));
-      if (block !== null) defendBlockedBy = 'DEADLINE_TOO_CLOSE';
+      // Nach der Frist, aber vor dem Abwicklungspuffer ist die Belagerung noch offen
+      if (block !== null) defendBlockedBy = block;
       else if (row.defender_kingdom_id && (await isBusy(row.defender_kingdom_id))) {
         defendBlockedBy = 'CHALLENGE_IN_PROGRESS';
       } else canDefend = true;
@@ -282,9 +283,8 @@ export async function listSieges(
       reason: (row.outcome_reason as SiegeSummary['reason']) ?? null,
       defensePoints: row.defense_points ?? null,
     };
-    if (!open) {
-      if (recent.length < RECENT_LIMIT) recent.push(summary);
-    } else if (role === 'DEFENDER') incoming.push(summary);
+    if (!open) recent.push(summary);
+    else if (role === 'DEFENDER') incoming.push(summary);
     else outgoing.push(summary);
   }
   // Dringendste zuerst: kürzeste Restzeit (ohne Frist ans Ende)
@@ -292,12 +292,13 @@ export async function listSieges(
     (a.remainingMs ?? Number.MAX_SAFE_INTEGER) - (b.remainingMs ?? Number.MAX_SAFE_INTEGER);
   incoming.sort(byUrgency);
   outgoing.sort(byUrgency);
+  // Die zuletzt entschiedenen, nicht die zuletzt begonnenen Kämpfe
   recent.sort((a, b) => (b.resolvedAt ?? '').localeCompare(a.resolvedAt ?? ''));
   return {
     instanceId: params.instanceId,
     incoming,
     outgoing,
-    recent,
+    recent: recent.slice(0, RECENT_LIMIT),
     serverTime: now.toISOString(),
   };
 }

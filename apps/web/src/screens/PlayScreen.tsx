@@ -33,6 +33,8 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   const [centre, setCentre] = useState<Axial | null>(null);
   const [setupError, setSetupError] = useState<unknown>(null);
   const [sieges, setSieges] = useState<SiegesResponse | null>(null);
+  // Eigener Fehler der Belagerungsliste: verschwindet mit dem nächsten erfolgreichen Laden
+  const [siegeError, setSiegeError] = useState<unknown>(null);
   const [respawning, setRespawning] = useState(false);
   const viewportTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Eine Neugründung = ein Schlüssel, auch nach einem Netzfehler
@@ -41,8 +43,9 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   const loadSieges = useCallback(async () => {
     try {
       setSieges(await api.sieges(instanceId));
+      setSiegeError(null);
     } catch (e) {
-      setSetupError(e);
+      setSiegeError(e);
     }
   }, [instanceId]);
 
@@ -265,7 +268,9 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
               {t('map.centre')}
             </button>
           ) : null}
-          {error || setupError ? <ErrorNote error={error ?? setupError} /> : null}
+          {error || setupError || siegeError ? (
+            <ErrorNote error={error ?? setupError ?? siegeError} />
+          ) : null}
         </aside>
       </div>
     </div>

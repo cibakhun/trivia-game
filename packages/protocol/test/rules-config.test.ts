@@ -193,6 +193,23 @@ describe('rulesConfigSchema', () => {
     );
   });
 
+  it('verlangt eine Sperre je Angreifer, die kürzer ist als die Erholung eines Lebens', () => {
+    const cfg = clone('ETERNAL');
+    cfg.capital = { lives: 3, lifeRegen: HOUR_MS, protectionAfterHit: 0 };
+    cfg.capital.hitCooldownPerAttacker = HOUR_MS;
+    expect(issues(cfg)).toContain('capital.hitCooldownPerAttacker');
+    cfg.capital.hitCooldownPerAttacker = HOUR_MS - 1;
+    expect(issues(cfg)).toEqual([]);
+    // ohne Erholung gibt es nichts, wogegen die Sperre wirken könnte
+    cfg.capital = {
+      lives: 3,
+      lifeRegen: null,
+      protectionAfterHit: 0,
+      hitCooldownPerAttacker: DAY_MS,
+    };
+    expect(issues(cfg)).toEqual([]);
+  });
+
   it('verlangt maxDeadline ≥ baseDeadline', () => {
     const cfg = clone('ETERNAL');
     cfg.defense.maxDeadline = cfg.defense.baseDeadline - 1;

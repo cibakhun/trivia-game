@@ -83,10 +83,12 @@ export function SiegePanel({
             {outgoing.map((siege) => (
               <li key={siege.siegeId}>
                 <button type="button" className="link" onClick={() => openChallenge(siege)}>
-                  {t('sieges.outgoingItem', {
-                    region: regionLabel(siege),
-                    defender: siege.defender?.name ?? t('kingdom.garrison'),
-                  })}
+                  {siege.defender
+                    ? t('sieges.outgoingItem', {
+                        region: regionLabel(siege),
+                        defender: siege.defender.name,
+                      })
+                    : t('sieges.outgoingGarrison', { region: regionLabel(siege) })}
                 </button>
                 <p className="muted">
                   {siege.status === 'PREPARING'

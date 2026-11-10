@@ -238,7 +238,7 @@ export const resolutionSchema = z
      * Verteidigungspunkte des Verteidigers aus diesem Kampf (GAME_RULES §5.5): nur im PvP, nur
      * für eine vollständige eigene Verteidigung und nur bis zum Paarlimit, sonst 0.
      */
-    defensePoints: z.number().int().min(0),
+    defensePoints: z.number().int().min(0).max(100),
     resolvedAt: timestampSchema,
   })
   .strict();
@@ -313,7 +313,11 @@ export const defenseResponseSchema = z
 export type DefenseResponse = z.infer<typeof defenseResponseSchema>;
 
 /** Warum eine Verteidigung gerade nicht beginnen kann. */
-export const DEFENSE_BLOCKS = ['DEADLINE_TOO_CLOSE', 'CHALLENGE_IN_PROGRESS'] as const;
+export const DEFENSE_BLOCKS = [
+  'DEADLINE_TOO_CLOSE',
+  'DEADLINE_PASSED',
+  'CHALLENGE_IN_PROGRESS',
+] as const;
 
 export const siegeSummarySchema = z
   .object({
@@ -348,7 +352,7 @@ export const siegeSummarySchema = z
     resolvedAt: timestampSchema.nullable(),
     winner: z.enum(['ATTACKER', 'DEFENDER', 'NONE']).nullable(),
     reason: outcomeReasonSchema.nullable(),
-    defensePoints: z.number().int().min(0).nullable(),
+    defensePoints: z.number().int().min(0).max(100).nullable(),
   })
   .strict();
 export type SiegeSummary = z.infer<typeof siegeSummarySchema>;

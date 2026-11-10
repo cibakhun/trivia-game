@@ -2,6 +2,7 @@ import type { Db } from '@rdw/db';
 import { RECENT_CATEGORY_COUNT, type QuestionCandidate } from '@rdw/game-core';
 import { DEFAULT_LOCALE, type EstimateScaleType, type QuestionKind } from '@rdw/protocol';
 import { sql } from 'kysely';
+import { OPEN_SIEGE_STATUSES } from '../combat/siege-status.ts';
 
 /**
  * Fragenbestand für Herausforderungen (Modul quiz, ARCHITECTURE §6). Gestellt werden nur
@@ -20,9 +21,6 @@ export interface CandidateQuery {
   /** Spielzeit der Auswahl. */
   readonly now: Date;
 }
-
-/** Belagerungen, deren Fragen noch nicht alle Beteiligten gesehen haben. */
-const OPEN_SIEGE_STATUSES = ['PREPARING', 'AWAITING_DEFENSE', 'DEFENDING'] as const;
 
 export async function loadCandidates(db: Db, query: CandidateQuery): Promise<QuestionCandidate[]> {
   const rows = await db

@@ -17,7 +17,8 @@ export function ResolutionView({
 }) {
   const capital = resolution.capital;
   const defending = role === 'DEFENDER';
-  const won = defending ? resolution.winner !== 'ATTACKER' : resolution.winner === 'ATTACKER';
+  // Ohne Sieger (abgebrochen, verfallen, Gate ohne Verteidigung) ist die Überschrift neutral
+  const won = resolution.winner === (defending ? 'DEFENDER' : 'ATTACKER');
   const headline = defending
     ? resolution.winner === 'ATTACKER'
       ? capital
@@ -50,7 +51,10 @@ export function ResolutionView({
   const theirs = defending ? resolution.attacker : resolution.defender;
   return (
     <section className="resolution" aria-labelledby="result-title" data-testid="resolution">
-      <h1 id="result-title" className={won ? 'won' : 'lost'}>
+      <h1
+        id="result-title"
+        className={resolution.winner === 'NONE' ? undefined : won ? 'won' : 'lost'}
+      >
         {headline}
       </h1>
       <p>{reasonText}</p>

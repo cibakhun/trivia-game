@@ -231,7 +231,7 @@ export const myInstanceSchema = z
      * oder eine begonnene Verteidigung, sonst `null`.
      */
     openChallengeId: entityIdSchema.nullable(),
-    /** Offene Belagerungen gegen das eigene Reich, die noch auf die Verteidigung warten. */
+    /** Eröffnete, noch offene Belagerungen gegen das eigene Reich (vor oder während der Verteidigung). */
     incomingSieges: z.number().int().min(0),
   })
   .strict();

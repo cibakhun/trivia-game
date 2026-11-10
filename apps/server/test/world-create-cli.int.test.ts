@@ -60,13 +60,19 @@ describe('pnpm world:create (Kommandozeile)', () => {
     expect(await worldCount()).toBe(0);
   });
 
-  it('verweigert Spieltest-Regeln in Produktion auch mit Freigabe', async () => {
+  it('verweigert Spieltest-Regeln außerhalb von local und test, auch mit Freigabe', async () => {
     const result = await runCli(['--slug=prod-play', '--rules=playtest', '--production-approved'], {
       APP_ENV: 'production',
       DATABASE_URL: db.url,
     });
     expect(result.code).toBe(2);
-    expect(result.stderr).toMatch(/Spieltest-Regeln sind in Produktion nicht erlaubt/);
+    expect(result.stderr).toMatch(/Spieltest-Regeln gibt es nur mit APP_ENV=local oder test/);
+    const staging = await runCli(['--slug=staging-play', '--rules=playtest'], {
+      APP_ENV: 'staging',
+      DATABASE_URL: db.url,
+    });
+    expect(staging.code).toBe(2);
+    expect(staging.stderr).toMatch(/hier: staging/);
     const unknown = await runCli(['--rules=schnell'], { APP_ENV: 'test', DATABASE_URL: db.url });
     expect(unknown.code).toBe(2);
     expect(unknown.stderr).toMatch(/Unbekannte Regeln/);

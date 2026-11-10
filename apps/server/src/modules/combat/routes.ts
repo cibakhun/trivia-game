@@ -78,6 +78,8 @@ export function combatRoutes(app: FastifyInstance, ctx: AppContext): void {
   app.post('/sieges/:siegeId/defense', async (request): Promise<DefenseResponse> => {
     const auth = requireAuth(request);
     const { siegeId } = parseInput(siegeParams, request.params);
+    // Abgelaufene eigene Herausforderungen zuerst auflösen, sonst blockieren sie die Verteidigung
+    await settleOpenSiegesOfUser(ctx.db, auth.userId, request.log);
     return startDefense(ctx.db, { userId: auth.userId, siegeId });
   });
 

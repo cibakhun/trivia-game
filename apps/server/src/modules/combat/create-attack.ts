@@ -38,8 +38,9 @@ import { makeSnapshot } from './snapshot.ts';
  * Angriff starten (SIEGE_SYSTEM §2 Schritt 1 und §4, ARCHITECTURE §7): Berechtigung unter Sperren
  * prüfen, Belagerung `PREPARING` anlegen und die Region reservieren, Fragen wählen und im PvE die
  * NPC-Antworten erzeugen und versiegeln – alles in einer Transaktion, bevor der Spieler die
- * erste Frage sieht. Im PvP antwortet der Verteidiger später selbst; die Fragen hat dann keiner
- * der beiden Spieler kürzlich gesehen. Läuft in der Transaktion des Idempotenzspeichers.
+ * erste Frage sieht. Im PvP antwortet der Verteidiger später selbst; die Auswahl meidet dann
+ * Fragen, die einer der beiden kürzlich gesehen hat, soweit der Bestand reicht (sonst Rückfall,
+ * protokolliert als `fallback`). Läuft in der Transaktion des Idempotenzspeichers.
  */
 
 export interface CreateAttackContext {
