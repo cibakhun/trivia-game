@@ -132,7 +132,8 @@ async function loadHead(db: Db, challengeId: string, userId: string): Promise<Ch
 /**
  * Wird nach der Trivia-Frage die Schätzfrage gestellt? Im PvE steht die Antwort der Verteidigung
  * (NPC oder Garnison) vorab fest; die Schätzfrage entscheidet nur, wenn beide richtig lagen.
- * PvP ist noch nicht gebaut; dort ist die Reihenfolge offen ([O-19]) und bleibt wie bisher.
+ * PvP ist noch nicht gebaut; dort wird die Schätzfrage immer gestellt und zählt nur bei
+ * Gleichstand ([O-19] Option A).
  */
 async function estimateNeeded(
   tx: Tx,

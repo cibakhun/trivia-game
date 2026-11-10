@@ -69,7 +69,7 @@ Umsetzung in vier aufeinander folgenden Pull Requests:
 | Paket | Inhalt |
 |---|---|
 | Konto | Registrierung/Anmeldung nach [O-03], generierte öffentliche Namen ([O-10]) |
-| PvP | Belagerungen mit verdecktem Gate, Verteidigung, Verteidigungspunkte ([O-18]), Fristen (in Tests kurz konfiguriert), Auflösungstransaktion, Lazy Resolution |
+| PvP | Belagerungen mit verdecktem Gate, Verteidigung, Verteidigungspunkte ([O-18]), Schätzfrage immer gestellt, zählt nur bei Gleichstand ([O-19]), Hauptstadt-Leben für Spielerreiche mit voller Frist und Sperre je Angreifer (`capital.hitCooldownPerAttacker`, [O-20]), Fristen (in Tests kurz konfiguriert), Auflösungstransaktion, Lazy Resolution |
 | Echtzeit | WebSocket-Gateway, Outbox, Chunk-Abos, `resume`/Snapshot |
 | Nebenläufigkeit | Harness und Tests N1–N4, N8, N12 |
 | Staging | erste erreichbare Testumgebung, falls [O-11] freigegeben; sonst Test im lokalen Netz |
@@ -121,7 +121,7 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 |---|---|
 | Schritt 1.0 | keine ([O-01] ist entschieden) |
 | Phase 1 | ~~[O-02] Fragenbeschaffung~~ vertagt (PO 2026-11-09): Phase 1 mit den 40 Testfragen, Klärung vor der Beta |
-| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte, [O-19] Schätzfrage als Tiebreaker im PvP, [O-20] Übernahme von Spielerreichen |
+| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte, ~~[O-19] Schätzfrage als Tiebreaker im PvP~~ und ~~[O-20] Übernahme von Spielerreichen~~ entschieden (PO 2026-11-10) |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |
 | Closed Beta | [O-11] Hosting, [O-12] Name |

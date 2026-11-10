@@ -53,7 +53,8 @@ export function performanceFromSteps(
  * die Trivia-Frage richtig beantwortet haben. Sonst steht der Ausgang schon nach der Trivia-Frage
  * fest (Angreifer falsch: verdecktes Gate; nur der Verteidiger falsch: Trivia-Sieg), und
  * `resolveDuel` wertet die Schätzung in diesen Fällen ohnehin nicht aus. Gilt im PvE, wo die
- * Verteidigung vorab feststeht; für PvP ist die Reihenfolge offen ([O-19]).
+ * Verteidigung vorab feststeht; im PvP wird die Schätzfrage immer gestellt und zählt nur bei
+ * Gleichstand ([O-19] Option A).
  */
 export function estimateDecides(attackerTriviaCorrect: boolean, defenderTriviaCorrect: boolean) {
   return attackerTriviaCorrect && defenderTriviaCorrect;

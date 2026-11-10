@@ -18,10 +18,11 @@ Der Client erhält nie Daten, die er vor der Auflösung nicht sehen darf (richti
 ## 2. Anwendungssicherheit [E]
 
 - **Authentifizierung:** Argon2id für Passwörter; Sitzungstoken 256 Bit zufällig, nur als Hash gespeichert; `HttpOnly`, `Secure`, `SameSite=Lax`; Rotation bei Anmeldung; Ablauf 30 Tage gleitend. Admin- und Redaktionskonten zusätzlich mit TOTP-Zweitfaktor.
-- **CSRF:** Zustandsändernde Anfragen müssen den Header `Origin` mit genau der Herkunft des Clients tragen (fehlt er, wird abgelehnt); dazu `SameSite=Lax` für die Sitzung und `SameSite=Strict` für das Bootstrap-Cookie. Kein Double-Submit-Token, weil es ein für Skripte lesbares Cookie bräuchte ([ADR-028](DECISIONS.md)).
+- **CSRF:** Zustandsändernde Anfragen müssen den Header `Origin` mit genau der Herkunft des Clients tragen (fehlt er, wird abgelehnt); einzige Ausnahme sind lesende Anfragen, die fällige Kämpfe auswerten (nächster Punkt). Dazu `SameSite=Lax` für die Sitzung und `SameSite=Strict` für das Bootstrap-Cookie. Kein Double-Submit-Token, weil es ein für Skripte lesbares Cookie bräuchte ([ADR-028](DECISIONS.md)).
 - **Eingaben:** Jede Anfrage wird per zod-Schema validiert; unbekannte Felder werden verworfen. SQL ausschließlich parametrisiert über Kysely.
 - **Header:** strikte Content-Security-Policy (keine Inline-Skripte, keine Fremd-Skripte), HSTS, `X-Content-Type-Options`, `Referrer-Policy`.
-- **Rate Limiting:** je Sitzung und IP für Anmeldung, Angriffe, Antworten, Verlängerungen.
+- **Lesende Anfragen mit Auswertung:** `GET /me`, `GET /challenges/:id` und die Regionsdetails werten fällige Kämpfe des anfragenden Spielers aus (Lazy Resolution, gleiche Regeln wie der Aufräumlauf); die Kartenabfragen tun das nicht. Ein von einer fremden Seite ausgelöster GET kann damit nur ein Ergebnis festschreiben, das schon feststeht; Ausgang und Frist ändert er nicht, und die Antwort bekommt die fremde Seite nicht zu sehen (`SameSite=Lax`, kein CORS). Vom PO am 2026-11-10 so akzeptiert.
+- **Rate Limiting:** je Sitzung und IP für Anmeldung, Angriffe, Antworten, Verlängerungen. Für `POST /auth/guest` (legt ohne Anmeldung ein Konto an) je IP spätestens vor der ersten öffentlichen Umgebung (PO 2026-11-10); lokal und in Tests ohne.
 - **Secrets:** nur über Umgebungsvariablen/Secret-Store; `.env` in `.gitignore`; Secret-Scanning in CI.
 - **Abhängigkeiten:** Lockfile, automatische Update-PRs, `pnpm audit` in CI, Lizenz-Allowlist (§6).
 - **Ziel-Standard:** OWASP ASVS Stufe 2; externer Penetrationstest vor öffentlichem Start (Phase 7).
