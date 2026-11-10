@@ -3,7 +3,13 @@ import { createDb } from '@rdw/db';
 import { createTestDatabase } from '@rdw/db/testing';
 import { TEST_WORLD_SEED, testWorldPreset } from '@rdw/game-core';
 import { PLAYTEST_RULES } from '@rdw/protocol';
-import { buildApp, createWorld, startChallengeSweeper } from '@rdw/server';
+import {
+  buildApp,
+  createWorld,
+  matchContextFrom,
+  startChallengeSweeper,
+  startMatchDriver,
+} from '@rdw/server';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { build, preview } from 'vite';
@@ -12,7 +18,7 @@ import { E2E_API_ORIGIN, E2E_API_PORT, E2E_WEB_ORIGIN, E2E_WEB_PORT } from './en
 /**
  * Startet die E2E-Umgebung (TEST_PLAN §2): eigene, frisch migrierte Testdatenbank mit den
  * 40 Testfragen und zwei Testwelten (`e2e` mit Standardregeln, `spieltest` mit kurzen Fristen für
- * PvP), den api-Prozess im selben Node-Prozess und den gebauten Client über `vite preview` mit
+ * PvP), den api-Prozess samt Ablaufsteuerung der Partien im selben Node-Prozess und den gebauten Client über `vite preview` mit
  * Proxy auf `/api`. Braucht `TEST_DATABASE_URL`; nie gegen Staging oder Produktion.
  */
 
@@ -64,25 +70,25 @@ export async function startStack(): Promise<E2eStack> {
       rules: { config: PLAYTEST_RULES, label: 'PLAYTEST_RULES (E2E)' },
     });
 
-    const app = await buildApp({
-      db,
-      logger: false,
-      config: {
-        appEnv: 'test',
-        databaseUrl: database.url,
-        host: '127.0.0.1',
-        port: E2E_API_PORT,
-        publicOrigin: E2E_WEB_ORIGIN,
-        cookieSecure: false,
-        rngSecret: new Uint8Array(randomBytes(32)),
-        rngKeyId: 'e2e',
-        logLevel: 'silent',
-      },
-    });
+    const config = {
+      appEnv: 'test',
+      databaseUrl: database.url,
+      host: '127.0.0.1',
+      port: E2E_API_PORT,
+      publicOrigin: E2E_WEB_ORIGIN,
+      cookieSecure: false,
+      rngSecret: new Uint8Array(randomBytes(32)),
+      rngKeyId: 'e2e',
+      logLevel: 'silent',
+    } as const;
+    const app = await buildApp({ db, logger: false, config });
     stops.push(() => app.close());
     await app.listen({ host: '127.0.0.1', port: E2E_API_PORT });
     const stopSweeper = startChallengeSweeper(db, app.log);
     stops.push(() => Promise.resolve(stopSweeper()));
+    // Ablaufsteuerung der Partien wie im api-Prozess (Fristen, Auflösung, Bots)
+    const stopMatchDriver = startMatchDriver(db, matchContextFrom(config), app.log);
+    stops.push(() => Promise.resolve(stopMatchDriver()));
 
     // gebauter Client statt Dev-Server: keine Nachoptimierung von Abhängigkeiten mitten im Test
     process.env.API_ORIGIN = E2E_API_ORIGIN;

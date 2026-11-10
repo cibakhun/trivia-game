@@ -84,3 +84,35 @@ export async function defenderTriviaCorrect(challengeId: string): Promise<boolea
     .executeTakeFirstOrThrow();
   return row.is_correct === true;
 }
+
+/** Was ein Spieler für die richtige Antwort der Frage `seq` einer Partie anklickt oder eingibt. */
+export type MatchSolution =
+  | { readonly kind: 'TRIVIA'; readonly optionText: string }
+  | { readonly kind: 'ESTIMATE'; readonly input: string };
+
+export async function matchSolution(matchId: string, seq: number): Promise<MatchSolution> {
+  const question = await testDb()
+    .selectFrom('match_questions as q')
+    .innerJoin('question_versions as v', 'v.id', 'q.version_id')
+    .select(['q.kind', 'q.version_id', 'v.answer_value'])
+    .where('q.match_id', '=', matchId)
+    .where('q.seq', '=', seq)
+    .executeTakeFirstOrThrow();
+  if (question.kind === 'ESTIMATE') {
+    if (question.answer_value === null) throw new Error('Schätzwert fehlt');
+    return { kind: 'ESTIMATE', input: question.answer_value.replace('.', ',') };
+  }
+  const row = await testDb()
+    .selectFrom('question_options as o')
+    .innerJoin('question_translations as t', (join) =>
+      join.onRef('t.version_id', '=', 'o.version_id').on('t.locale', '=', 'de'),
+    )
+    .select(['o.option_key', 't.option_texts'])
+    .where('o.version_id', '=', question.version_id)
+    .where('o.is_correct', '=', true)
+    .executeTakeFirstOrThrow();
+  const texts = (row.option_texts ?? {}) as Record<string, unknown>;
+  const text = texts[row.option_key];
+  if (typeof text !== 'string') throw new Error(`Optionstext fehlt: ${row.option_key}`);
+  return { kind: 'TRIVIA', optionText: text };
+}

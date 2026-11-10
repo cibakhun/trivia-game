@@ -77,6 +77,8 @@ Abdeckungsziele: `game-core` ≥ 95 % Zeilen und Zweige; Server-Module ≥ 80 %.
 | E2E-01 Erste Eroberung | 1 | Browser | Gast startet, Tutorial-Garnison, besitzt danach 2 Regionen; nach Reload unverändert (umgesetzt: `apps/web/e2e/e2e-01.spec.ts`) |
 | E2E-02 Trivia-Sieg | 2 | Browser, 2 Kontexte | Angreifer richtig, Verteidiger falsch (umgesetzt: `apps/web/e2e/e2e-02-pvp.spec.ts`) |
 | E2E-03 Schätzfrage | 2 | Browser, 2 Kontexte | beide richtig, nähere Schätzung gewinnt (umgesetzt: `apps/web/e2e/e2e-02-pvp.spec.ts`) |
+| E2E-P1 Testpartie gegen Bots | M4 | Browser | ganze Testpartie zu dritt gegen Bots (leicht, schwer) mit Spieltestzeiten: Aufstellung, Start, Wahlen auf der Karte, jede eigene Frage richtig beantwortet, Reload mitten in einer Frage, Auflösungen, Abrechnung mit drei Plätzen, keine Statistik (umgesetzt: `apps/web/e2e/e2e-partie.spec.ts`) |
+| E2E-P2 Partie mit zwei Browsern | M4 | Browser, 2 Kontexte | normale Partie zu zweit: Code eröffnen, mit Code in Kleinschreibung beitreten, Start erst mit Mitspieler, beide spielen gleichzeitig bis zur Abrechnung, Statistik zählt für beide (umgesetzt: `apps/web/e2e/e2e-partie.spec.ts`) |
 | E2E-04 Zeit-Tiebreaker | 2 | Integration + Browser | gleiche Schätzung; Zeiten über Test-Uhr gesteuert, damit deterministisch |
 | E2E-05 Keine Verteidigung | 3 | Browser + Zeitversatz | 24 h vorstellen, Gebiet übertragen, beide Seiten informiert |
 | E2E-06 Itemverlängerung | 4 | Browser | 24 → 36 h mit Chronos-Siegel; Vorschau vor Bestätigung |
@@ -186,4 +188,11 @@ Integration (gegen PostgreSQL 16): Migrationsläufer (leere DB, Idempotenz, geä
 - Wiederanlauf: Frage auf einer Instanz abgeholt, auf einer neuen Instanz (gleiche Datenbank, nichts im Speicher) beantwortet; zu späte Antwort `STEP_EXPIRED`; die Ablaufsteuerung allein löst nach dem Schließen auf (`MISSED` mit Präsentation), die Partie läuft weiter.
 - Gleichzeitige Antworten beider Menschen: beide angenommen, genau eine Auflösung; abgegebene Antworten und Ereignisse unveränderlich (Trigger).
 - Kontolöschung kennt die neuen Spalten `matches.host_user_id` und `match_players.user_id` (Anonymisierung, `account-deletion.int.test.ts`); Stärken der Bots in game-core und protocol gleich (`match.test.ts`); Anfrageschemas (`packages/protocol/test/match-api.test.ts`).
-- Offen: gleichzeitige Clients per WebSocket (M3), Browser (M4); Last mit vielen gleichzeitigen Partien; Aufgeben einer laufenden Partie (nicht vorgesehen, MATCH_RULES §10).
+- Offen: gleichzeitige Clients per WebSocket (M3), Browser (M4, erledigt); Last mit vielen gleichzeitigen Partien; Aufgeben einer laufenden Partie (nicht vorgesehen, MATCH_RULES §10).
+
+**Partie Paket M4 – Browser (2026-11-10, ADR-050).** Unit-Tests ohne Browser, zwei E2E-Tests im Browser.
+
+- Ereignisse: Jedes Ereignis ganzer Partien über die Schnittstelle (Testpartie zu dritt, normale Partie zu zweit mit Zeitablauf) und aus 200 simulierten Partien je Spielerzahl passt zum Schema des Clients (`match.int.test.ts`, `match-simulation.test.ts`).
+- Browser-Logik (`apps/web/test/match.test.ts`): Sechsecke der Wendelmark mit Nachbarn im richtigen Abstand und ganz im Bild; Abfrageabstand je Status; Zustand des Bildschirms für eigene und fremde Wahl, Frage abholen (auch nach einem Reload, nicht für Zuschauer), Frage, gespeichert, verpasst, Auflösung, Abrechnung, Aufstellung, Abbruch; Auflösung mit ihren Folgen bis zur nächsten Frage; Texte für Abschnitt, Wahl, Duell, Rangfolge und Verlauf. Routen `/partie` und `/partie/:id` (`router.test.ts`), Texte für jeden Code der Partie (`i18n.test.ts`).
+- E2E-P1 und E2E-P2 (§5) mit der Ablaufsteuerung im Testserver; die Lösung liest nur der Test aus der Datenbank. Je Test rund eine Minute. E2E-Konto folgt der neuen Startseite (Weiterspielen statt Weiterleitung).
+- Offen: Spieltest beim Product Owner; Zuschauen bei fremden Duellen nur über die Auflösung (keine Anzeige, wer schon geantwortet hat; kommt mit M3); Bildschirmleser-Prüfung der Karte; Verhalten bei sehr langsamer Verbindung (Abfrage verzögert die Anzeige, nicht die Wertung).

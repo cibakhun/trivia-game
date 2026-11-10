@@ -1,4 +1,9 @@
-import { DEFAULT_MATCH_RULES, matchRulesForSeats, type MatchRules } from '@rdw/protocol';
+import {
+  DEFAULT_MATCH_RULES,
+  matchRulesForSeats,
+  parseMatchEvent,
+  type MatchRules,
+} from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   applyMatchInput,
@@ -348,6 +353,22 @@ for (const plan of PLANS) {
       const rate = (k: MatchBotStrength) => wins[k] / played[k];
       expect(rate('HARD')).toBeGreaterThan(rate('MEDIUM'));
       expect(rate('MEDIUM')).toBeGreaterThan(rate('EASY'));
+    });
+
+    it('jedes Ereignis passt zum Schema, das der Client liest (protocol)', () => {
+      // Der Server speichert Ereignisse ohne `kind` als Inhalt (engine.ts, eventPayload)
+      for (const { events } of runs.slice(0, 200)) {
+        events.forEach((event, i) => {
+          const { kind, ...payload } = event;
+          const parsed = parseMatchEvent({
+            seq: i + 1,
+            type: kind,
+            payload,
+            at: '2026-11-10T00:00:00.000Z',
+          });
+          expect(parsed?.type, JSON.stringify(event)).toBe(kind);
+        });
+      }
     });
 
     it('ist mit denselben Strömen bitgleich wiederholbar', () => {

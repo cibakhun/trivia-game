@@ -3,6 +3,7 @@ export * from './combat.ts';
 export * from './decimal-string.ts';
 export * from './locale.ts';
 export * from './match-api.ts';
+export * from './match-events.ts';
 export * from './match-rules.ts';
 export * from './number-input.ts';
 export * from './question.ts';

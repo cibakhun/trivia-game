@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { LoginForm } from '../components/AccountForms.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { WorldList } from '../components/WorldList.tsx';
@@ -7,8 +7,9 @@ import { navigate } from '../router.ts';
 import { useSession } from '../session.tsx';
 
 /**
- * Start: als Gast spielen oder anmelden, dann Welt wählen und beitreten. Wer schon ein Reich hat,
- * kommt direkt zur Karte; andere Welten erreicht er über „Welten“.
+ * Start: als Gast spielen oder anmelden, dann die Partie (Hauptspiel, ADR-046) oder eine Welt
+ * wählen. Wer in einer Welt schon ein Reich hat, findet es unter „Weiterspielen“; eine
+ * automatische Weiterleitung zur Karte gibt es nicht mehr, damit die Partie erreichbar bleibt.
  */
 export function StartScreen() {
   const { state, startGuest, reload, switching } = useSession();
@@ -16,12 +17,6 @@ export function StartScreen() {
   const [error, setError] = useState<unknown>(null);
 
   const me = state.status === 'ready' ? state.me : null;
-  // Auch ein gefallenes Reich führt zur Karte (dort steht der Hinweis); erneut beitreten geht nicht
-  const playing = me?.instances.find((i) => i.kingdom !== null) ?? null;
-
-  useEffect(() => {
-    if (playing) navigate({ name: 'play', instanceId: playing.instanceId }, { replace: true });
-  }, [playing]);
 
   async function guest() {
     setBusy(true);
@@ -63,8 +58,19 @@ export function StartScreen() {
           </section>
         </>
       ) : null}
-      {me && !playing ? (
+      {me ? (
         <>
+          <section className="card card-accent stack" aria-labelledby="match-title">
+            <h2 id="match-title">{t('match.title')}</h2>
+            <p>{t('match.startText')}</p>
+            <button
+              type="button"
+              className="button button-primary"
+              onClick={() => navigate({ name: 'matches' })}
+            >
+              {t('match.play')}
+            </button>
+          </section>
           <WorldList />
           <nav className="page-nav" aria-label={t('nav.label')}>
             <button type="button" className="link" onClick={() => navigate({ name: 'account' })}>

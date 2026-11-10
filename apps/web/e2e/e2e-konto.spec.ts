@@ -53,6 +53,9 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   await expect(login.getByRole('alert')).toHaveText('Benutzername oder Passwort ist falsch.');
   await login.getByLabel('Passwort').fill(PASSWORD);
   await login.getByRole('button', { name: 'Anmelden' }).click();
+  // Die Startseite bietet die Partie und die eigene Welt zum Weiterspielen (ADR-050)
+  await expect(other.getByRole('button', { name: 'Partie spielen' })).toBeVisible();
+  await other.getByTestId('world-e2e').getByRole('button', { name: 'Weiterspielen' }).click();
   await expect(other).toHaveURL(playUrl);
   await expect(other.getByRole('banner')).toContainText(kingdomName);
   await expect(other.getByTestId('nav-account')).toHaveText('Konto');

@@ -199,6 +199,9 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
       {kingdom ? (
         <KingdomBar kingdom={kingdom}>
           <nav className="kingdom-nav" aria-label={t('nav.label')}>
+            <button type="button" className="link" onClick={() => navigate({ name: 'matches' })}>
+              {t('nav.match')}
+            </button>
             <button type="button" className="link" onClick={() => navigate({ name: 'worlds' })}>
               {t('nav.worlds')}
             </button>

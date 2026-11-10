@@ -3,7 +3,8 @@ import { useSyncExternalStore } from 'react';
 /**
  * Kleiner Router über die History-API für die Routen aus ARCHITECTURE §12:
  * `/` (Start), `/welten` (Weltwahl), `/konto` (Konto), `/play/:instanceId` (Karte),
- * `/challenge/:challengeId` (Vollbild-Quiz).
+ * `/challenge/:challengeId` (Vollbild-Quiz), dazu die Partie: `/partie` (anlegen, beitreten) und
+ * `/partie/:matchId` (Aufstellung, Spiel, Ergebnis).
  */
 
 export type Route =
@@ -11,7 +12,9 @@ export type Route =
   | { readonly name: 'worlds' }
   | { readonly name: 'account' }
   | { readonly name: 'play'; readonly instanceId: string }
-  | { readonly name: 'challenge'; readonly challengeId: string };
+  | { readonly name: 'challenge'; readonly challengeId: string }
+  | { readonly name: 'matches' }
+  | { readonly name: 'match'; readonly matchId: string };
 
 /** UUID-Form (8-4-4-4-12); andere Werte führen zur Startseite statt zu einem sicheren Fehlerabruf. */
 const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
@@ -23,6 +26,9 @@ export function parseRoute(pathname: string): Route {
   if (play?.[1]) return { name: 'play', instanceId: play[1] };
   const challenge = new RegExp(`^/challenge/(${ID})/?$`).exec(pathname);
   if (challenge?.[1]) return { name: 'challenge', challengeId: challenge[1] };
+  if (/^\/partie\/?$/.test(pathname)) return { name: 'matches' };
+  const match = new RegExp(`^/partie/(${ID})/?$`).exec(pathname);
+  if (match?.[1]) return { name: 'match', matchId: match[1] };
   return { name: 'start' };
 }
 
@@ -38,6 +44,10 @@ export function routePath(route: Route): string {
       return `/play/${route.instanceId}`;
     case 'challenge':
       return `/challenge/${route.challengeId}`;
+    case 'matches':
+      return '/partie';
+    case 'match':
+      return `/partie/${route.matchId}`;
   }
 }
 

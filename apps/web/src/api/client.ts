@@ -12,6 +12,11 @@ import {
   kingdomNameSuggestionsSchema,
   mapStateResponseSchema,
   mapStaticResponseSchema,
+  matchActionResponseSchema,
+  matchAnswerResponseSchema,
+  matchListResponseSchema,
+  matchPresentResponseSchema,
+  matchViewSchema,
   meResponseSchema,
   playerNameSuggestionsSchema,
   presentResponseSchema,
@@ -24,6 +29,8 @@ import {
   type ChunkRef,
   type KingdomNamePartsDto,
   type LoginRequest,
+  type MatchAnswerRequest,
+  type MatchCreateRequest,
   type PasswordChangeRequest,
   type PlayerNamePartsDto,
   type RegisterRequest,
@@ -190,6 +197,39 @@ export const api = {
     request('POST', `/instances/${instanceId}/respawn`, joinResponseSchema, {
       idempotencyKey,
       ...(kingdomName ? { body: { kingdomName } } : {}),
+    }),
+  // Partie (API.md §2.6)
+  matches: () => request('GET', '/matches', matchListResponseSchema),
+  createMatch: (body: MatchCreateRequest, idempotencyKey: string) =>
+    request('POST', '/matches', matchActionResponseSchema, { body, idempotencyKey }),
+  joinMatch: (inviteCode: string, idempotencyKey: string) =>
+    request('POST', '/matches/join', matchActionResponseSchema, {
+      body: { inviteCode },
+      idempotencyKey,
+    }),
+  leaveMatch: (matchId: string, idempotencyKey: string) =>
+    request('POST', `/matches/${matchId}/leave`, matchActionResponseSchema, { idempotencyKey }),
+  startMatch: (matchId: string, idempotencyKey: string) =>
+    request('POST', `/matches/${matchId}/start`, matchActionResponseSchema, { idempotencyKey }),
+  match: (matchId: string, after: number) =>
+    request('GET', `/matches/${matchId}?after=${after}`, matchViewSchema),
+  pickRegion: (matchId: string, region: number, idempotencyKey: string) =>
+    request('POST', `/matches/${matchId}/pick`, matchActionResponseSchema, {
+      body: { region },
+      idempotencyKey,
+    }),
+  // Wie `present` der Herausforderung ohne Schlüssel: Eine Wiederholung liefert dieselbe Frage
+  presentMatchQuestion: (matchId: string, seq: number) =>
+    request('POST', `/matches/${matchId}/questions/${seq}/present`, matchPresentResponseSchema),
+  answerMatchQuestion: (
+    matchId: string,
+    seq: number,
+    body: MatchAnswerRequest,
+    idempotencyKey: string,
+  ) =>
+    request('POST', `/matches/${matchId}/questions/${seq}/answer`, matchAnswerResponseSchema, {
+      body,
+      idempotencyKey,
     }),
 };
 

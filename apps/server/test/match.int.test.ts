@@ -7,6 +7,7 @@ import {
   matchListResponseSchema,
   matchPresentResponseSchema,
   matchViewSchema,
+  parseMatchEvent,
   type MatchCreateRequest,
   type MatchView,
 } from '@rdw/protocol';
@@ -179,6 +180,25 @@ async function statistics(userId: string) {
     .select(['matches_played', 'matches_won'])
     .where('user_id', '=', userId)
     .executeTakeFirstOrThrow();
+}
+
+/** Ereignisse, die nicht zum Schema des Clients passen (protocol `match-events.ts`). */
+async function unreadableEvents(matchId: string): Promise<unknown[]> {
+  const rows = await server.db
+    .selectFrom('match_events')
+    .select(['seq', 'type', 'payload', 'at'])
+    .where('match_id', '=', matchId)
+    .orderBy('seq')
+    .execute();
+  return rows.filter(
+    (r) =>
+      parseMatchEvent({
+        seq: r.seq,
+        type: r.type,
+        payload: r.payload as Record<string, unknown>,
+        at: r.at.toISOString(),
+      }) === null,
+  );
 }
 
 async function eventTypes(matchId: string): Promise<string[]> {
@@ -398,6 +418,7 @@ describe('Testpartie mit Bots', () => {
     expect(types[0]).toBe('MATCH_CREATED');
     expect(types).toContain('MATCH_STARTED');
     expect(types.at(-1)).toBe('MATCH_FINISHED');
+    expect(await unreadableEvents(matchId)).toEqual([]);
 
     // Jede Frage ist aufgelöst und hat je Sitz genau eine Antwortzeile
     const questions = await server.db
@@ -447,6 +468,7 @@ describe('Partie zu zweit', () => {
     expect(final.match.status).toBe('FINISHED');
     const types = await eventTypes(matchId);
     expect(types).toContain('AUTO_PICKED');
+    expect(await unreadableEvents(matchId)).toEqual([]);
     // Wer nie abholt, bekommt bei der Auflösung eine verpasste Antwort ohne Präsentation
     const idleSeat = (await view(idle, matchId)).mySeat;
     const missed = await server.db
