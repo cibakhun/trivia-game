@@ -1,0 +1,41 @@
+# Assets: Herkunft und Lizenzen
+
+Jede Grafik, Schrift, jeder Klang und jedes Bild im Spiel steht hier mit Herkunft und Lizenz, **bevor** es eingebaut wird (ADR-051). Ziel: rechtlich risikoarm, also nur eigene Werke oder klar lizenzierte freie Werke.
+
+## Regeln
+
+- Erlaubt sind eigene Werke und freie Lizenzen, die kommerzielle Nutzung und Weitergabe erlauben: SIL Open Font License, CC0, CC BY (mit Namensnennung hier und im Spiel), MIT, Apache 2.0.
+- Nicht erlaubt: Material aus anderen Spielen, Marken, Logos oder Karten realer Länder als Spielkarte; Bilder aus der Websuche; Lizenzen mit „nicht kommerziell“ (NC) oder „keine Bearbeitung“ (ND).
+- KI-erzeugte Bilder oder Klänge nur nach Entscheidung des Product Owners (Rechtslage und Herkunft der Trainingsdaten ungeklärt).
+- Schriften und Bibliotheken werden mit dem Spiel ausgeliefert, nicht von fremden Servern geladen (Datenschutz).
+
+## Schriften
+
+| Asset | Urheber | Lizenz | Quelle im Projekt | Hinweis |
+|---|---|---|---|---|
+| Alegreya, Schnitte 500, 700, 800 (latin) | The Alegreya Project Authors (Juan Pablo del Peral, Huerta Tipográfica) | SIL Open Font License 1.1 | npm `@fontsource/alegreya` 5.3.0 | Lizenztext: `apps/web/public/lizenzen/Alegreya-OFL.txt`, im Spiel unter `/lizenzen/` abrufbar |
+| Alegreya Sans, Schnitte 400, 500, 700, 800 (latin) | The Alegreya Sans Project Authors (Juan Pablo del Peral, Huerta Tipográfica) | SIL Open Font License 1.1 | npm `@fontsource/alegreya-sans` 5.3.0 | Lizenztext: `apps/web/public/lizenzen/Alegreya-Sans-OFL.txt` |
+
+Die OFL erlaubt Einbetten, Weitergeben und Verkaufen zusammen mit Software; die Schrift darf nur nicht allein verkauft werden, und der Lizenztext muss beiliegen.
+
+## Grafik (eigene Werke)
+
+Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext; es gibt keine Bilddateien.
+
+| Asset | Datei | Herkunft |
+|---|---|---|
+| Landkarte der Wendelmark (Grenzen, Küste, Fluss, Meer, Kompass, Titelschild) | `apps/web/src/art/map-art.ts`, `match/MatchBoard.tsx` | eigenes Verfahren, aus den Feldern der Regeln erzeugt |
+| Motive Baum, Tanne, Berg, Hügel, Feld, Gras, Schilf, See, Haus, Turm, Wellen, Burg, Schild, Schwerter | `apps/web/src/art/ArtDefs.tsx` | eigene Zeichnungen |
+| Wappenbilder ◆ ● ▲ und Wappenmuster | `apps/web/src/art/ArtDefs.tsx`, `art/SeatCrest.tsx` | eigene Zeichnungen, Grundformen |
+| Spielwappen (Schild, Buch, Krone) | `apps/web/src/art/Emblem.tsx` | eigene Zeichnung |
+| Lorbeerkranz der Siegerseite | `apps/web/src/match/ResultPanel.tsx` | eigene Zeichnung |
+| Papierkorn des Hintergrunds | `apps/web/src/theme.css` (SVG-Rauschfilter) | eigenes Verfahren |
+| Zierzeichen ❦ ❧ ⚑ ✓ | Unicode-Zeichen aus der Schrift | Teil der Schriften bzw. Systemschrift |
+
+## Klänge
+
+Noch keine. Geplant: selbst erzeugt per Web Audio im Browser (ART_DIRECTION §7).
+
+## Bibliotheken mit sichtbarem Anteil
+
+Bibliotheken stehen in den `package.json`-Dateien; sie bringen keine Grafiken ins Spiel.

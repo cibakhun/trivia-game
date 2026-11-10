@@ -1,3 +1,4 @@
+import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatDecimal, formatNumber, t } from '../i18n/i18n.ts';
 import type { Reveal } from './match-model.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
@@ -37,6 +38,11 @@ export function RevealPanel({
           <ul className="result-options">
             {q.options.map((o) => (
               <li key={o.token} className={o.token === solution.optionToken ? 'correct' : ''}>
+                {o.token === solution.optionToken ? (
+                  <span className="tick" aria-hidden="true">
+                    ✓
+                  </span>
+                ) : null}
                 {o.text}
               </li>
             ))}
@@ -49,48 +55,59 @@ export function RevealPanel({
           </p>
         )}
       </div>
-      <table className="sides">
-        <thead>
-          <tr>
-            <th scope="col">{t('match.reveal.player')}</th>
-            <th scope="col">{t('match.reveal.answer')}</th>
-            <th scope="col">{t('match.reveal.result')}</th>
-            {q.kind === 'ESTIMATE' ? <th scope="col">{t('match.reveal.time')}</th> : null}
-          </tr>
-        </thead>
-        <tbody>
-          {q.answers.map((a) => (
-            <tr key={a.seat} data-seat={a.seat}>
-              <th scope="row">{name(a.seat)}</th>
-              <td>
-                {!a.answered
-                  ? t('match.reveal.noAnswer')
-                  : q.kind === 'TRIVIA'
-                    ? (a.optionText ?? '?')
-                    : `${a.value === null ? '?' : formatDecimal(a.value)}${unit}`}
-              </td>
-              <td>
-                {q.kind === 'TRIVIA'
-                  ? a.correct
-                    ? t('result.correct')
-                    : t('result.wrong')
-                  : a.distance === null
-                    ? '–'
-                    : t('match.reveal.distance', { value: formatDecimal(a.distance) })}
-              </td>
-              {q.kind === 'ESTIMATE' ? (
-                <td>
-                  {a.effectiveMs === null
-                    ? '–'
-                    : t('result.seconds', {
-                        value: formatNumber(Math.round(a.effectiveMs / 100) / 10),
-                      })}
-                </td>
-              ) : null}
+      <div className="table-wrap">
+        <table className="sides">
+          <thead>
+            <tr>
+              <th scope="col">{t('match.reveal.player')}</th>
+              <th scope="col">{t('match.reveal.answer')}</th>
+              <th scope="col">{t('match.reveal.result')}</th>
+              {q.kind === 'ESTIMATE' ? <th scope="col">{t('match.reveal.time')}</th> : null}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {q.answers.map((a) => (
+              <tr
+                key={a.seat}
+                data-seat={a.seat}
+                className={q.kind === 'TRIVIA' && a.answered ? (a.correct ? 'right' : 'wrong') : ''}
+              >
+                <th scope="row">
+                  <span className="who">
+                    <SeatCrest seat={a.seat} size={22} />
+                    {name(a.seat)}
+                  </span>
+                </th>
+                <td>
+                  {!a.answered
+                    ? t('match.reveal.noAnswer')
+                    : q.kind === 'TRIVIA'
+                      ? (a.optionText ?? '?')
+                      : `${a.value === null ? '?' : formatDecimal(a.value)}${unit}`}
+                </td>
+                <td className="verdict">
+                  {q.kind === 'TRIVIA'
+                    ? a.correct
+                      ? t('result.correct')
+                      : t('result.wrong')
+                    : a.distance === null
+                      ? '–'
+                      : t('match.reveal.distance', { value: formatDecimal(a.distance) })}
+                </td>
+                {q.kind === 'ESTIMATE' ? (
+                  <td>
+                    {a.effectiveMs === null
+                      ? '–'
+                      : t('result.seconds', {
+                          value: formatNumber(Math.round(a.effectiveMs / 100) / 10),
+                        })}
+                  </td>
+                ) : null}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {lines.length > 0 ? (
         <ul className="outcome" data-testid="reveal-outcome">
           {lines.map((line, i) => (

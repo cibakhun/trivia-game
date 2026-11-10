@@ -215,10 +215,10 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
       data-seq={seq ?? undefined}
     >
       <header className="match-head">
-        <div>
+        <div className="match-title">
           <h1>{title}</h1>
           {label ? (
-            <p className="muted" data-testid="match-step">
+            <p className="step-ribbon" data-testid="match-step">
               {label}
             </p>
           ) : null}
@@ -241,6 +241,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
 
       {view?.board && map ? (
         <div className="match-body">
+          {state === 'pick' ? <TurnBanner key={view.lastEventSeq} /> : null}
           <div className="match-panel">
             <StatePanel
               view={view}
@@ -319,7 +320,11 @@ function StatePanel({
     case 'pick':
     case 'waiting-pick':
       return (
-        <section className="card stack" data-testid="match-pick" aria-live="polite">
+        <section
+          className={`card stack pick-card${state === 'pick' ? ' turn' : ''}`}
+          data-testid="match-pick"
+          aria-live="polite"
+        >
           <p>
             <strong>{pickText(view, name)}</strong>
           </p>
@@ -385,6 +390,24 @@ function StatePanel({
     case 'abandoned':
       return null;
   }
+}
+
+/**
+ * Kurzes Banner „Du bist dran!“ über der Karte, sobald dieser Sitz wählen darf. Nur Zierde: Den
+ * Auftrag liest die Karte daneben vor (aria-live).
+ */
+function TurnBanner() {
+  const [shown, setShown] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setShown(false), 1800);
+    return () => clearTimeout(timer);
+  }, []);
+  if (!shown) return null;
+  return (
+    <div className="turn-banner" aria-hidden="true">
+      <span>{t('match.pick.banner')}</span>
+    </div>
+  );
 }
 
 function MatchLog({

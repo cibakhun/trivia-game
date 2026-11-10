@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Emblem } from '../art/Emblem.tsx';
+import { HeroMap } from '../art/HeroMap.tsx';
 import { LoginForm } from '../components/AccountForms.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { WorldList } from '../components/WorldList.tsx';
@@ -32,8 +34,12 @@ export function StartScreen() {
 
   return (
     <main className="start">
-      <h1>{t('app.title')}</h1>
-      <p className="tagline">{t('start.tagline')}</p>
+      <header className="hero">
+        <Emblem size={84} />
+        <h1>{t('app.title')}</h1>
+        <p className="tagline">{t('start.tagline')}</p>
+      </header>
+      <HeroMap />
       {state.status === 'loading' ? <p>{t('app.loading')}</p> : null}
       {state.status === 'error' ? (
         <ErrorNote error={state.error} onRetry={() => void reload()} />

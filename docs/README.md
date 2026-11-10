@@ -13,6 +13,7 @@ Anforderungsbasis: [`brief/PRD-0.1.md`](brief/PRD-0.1.md) (Original-Briefing des
 | 4 | [GAME_RULES.md](GAME_RULES.md) | Regelwerk mit Kennzeichnung (verbindlich / Annahme / Empfehlung / offen) und Parametertabelle |
 | 4a | [MATCH_RULES.md](MATCH_RULES.md) | **Regelwerk der rundenbasierten Partie** (Hauptspiel seit 2026-11-10, ADR-046) mit Parametertabelle und Simulationswerten |
 | 5 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architekturübersicht, Stack, Diagramme, Modulgrenzen, Zeit- und Zufallsmodell |
+| 5a | [ART_DIRECTION.md](ART_DIRECTION.md) | **Gestaltung „Alte Landkarte“**: Farben, Schriften, Karte, Bewegung (ADR-051); Herkunft und Lizenzen aller Assets in [ASSETS.md](ASSETS.md) |
 | 6 | [DATA_MODEL.md](DATA_MODEL.md) | Konsistentes Datenmodell, Constraints, Indizes, Migrationsstrategie |
 | 7 | [API.md](API.md) | HTTP-API- und Echtzeit-Entwurf |
 | 8 | [QUIZ_ENGINE.md](QUIZ_ENGINE.md) | Fragenmodell, Mehrsprachigkeit, Herausforderungsprotokoll, Zeitmessung, Duellauswertung |

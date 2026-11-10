@@ -8,6 +8,8 @@ import { Countdown } from './Countdown.tsx';
  * Server ohne Hinweis auf die richtige Antwort.
  */
 
+const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
+
 export type PanelQuestion =
   | {
       readonly kind: 'TRIVIA';
@@ -67,7 +69,9 @@ export function QuestionPanel({
       data-testid={testId}
       data-kind={question.kind}
     >
-      <p className="muted">{question.kind === 'TRIVIA' ? t('quiz.trivia') : t('quiz.estimate')}</p>
+      <p className="question-kind">
+        {question.kind === 'TRIVIA' ? t('quiz.trivia') : t('quiz.estimate')}
+      </p>
       {note}
       <Countdown deadline={deadline} totalMs={question.timeLimitMs} onExpire={onExpire} />
       {reloaded ? <p className="muted">{t('quiz.reloaded')}</p> : null}
@@ -76,7 +80,7 @@ export function QuestionPanel({
       </h2>
       {question.kind === 'TRIVIA' ? (
         <ul className="options">
-          {question.options.map((option) => (
+          {question.options.map((option, i) => (
             <li key={option.token}>
               <button
                 type="button"
@@ -84,7 +88,11 @@ export function QuestionPanel({
                 disabled={busy}
                 onClick={() => onAnswerTrivia(option.token)}
               >
-                {option.text}
+                {/* Buchstabe nur zur Zierde: Der Name der Schaltfläche bleibt der Antworttext */}
+                <span className="option-key" aria-hidden="true">
+                  {OPTION_KEYS[i] ?? ''}
+                </span>
+                <span className="option-text">{option.text}</span>
               </button>
             </li>
           ))}
