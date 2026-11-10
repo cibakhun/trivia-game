@@ -160,6 +160,15 @@ input:focus-visible {
   color: var(--danger);
 }
 
+.capital-lives p {
+  margin: 0.25rem 0;
+}
+
+.hearts {
+  color: var(--danger);
+  letter-spacing: 0.1em;
+}
+
 /* Start */
 .start {
   max-width: 560px;

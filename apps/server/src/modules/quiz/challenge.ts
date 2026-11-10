@@ -27,7 +27,7 @@ import { randomToken } from '../../infra/crypto.ts';
 import { ApiError } from '../../infra/errors.ts';
 import { appendBattleEvents } from '../../infra/events.ts';
 import { settleSiege } from '../combat/settle.ts';
-import { parseSnapshot, type SiegeRulesSnapshot } from '../combat/snapshot.ts';
+import { capitalOf, parseSnapshot, type SiegeRulesSnapshot } from '../combat/snapshot.ts';
 import { loadKingdoms } from '../kingdom/queries.ts';
 import { loadQuestionContent, recordExposure, type QuestionContent } from './questions.ts';
 
@@ -638,6 +638,9 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
       's.attacker_kingdom_id',
       's.defender_kingdom_id',
       's.defender_kind',
+      's.rules_snapshot',
+      'b.capital_lives_left',
+      'b.regions_taken',
       'c.id as challenge_id',
       'rs.owner_kingdom_id',
       sql<Date | null>`case when rs.protected_until > game_now() then rs.protected_until end`.as(
@@ -698,7 +701,12 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
   const attackerOrder = readPresentation(
     attackerRows.find((a) => a.step_index === 0)?.presentation,
   ).options.map((o) => o.key);
-  const conquered = row.status === 'ATTACKER_WON' || row.status === 'ATTACKER_WON_BY_TIMEOUT';
+  // Ein Sieg über eine Hauptstadt mit verbleibenden Leben erobert die Region nicht (ADR-037).
+  const won = row.status === 'ATTACKER_WON' || row.status === 'ATTACKER_WON_BY_TIMEOUT';
+  const livesLeft = row.capital_lives_left;
+  const conquered = won && (livesLeft === null || livesLeft === 0);
+  const stillDefended =
+    row.owner_kingdom_id !== null && row.owner_kingdom_id === row.defender_kingdom_id;
   return {
     siegeId: row.id,
     status: row.status as SiegeStatus,
@@ -710,6 +718,17 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
       conquered && row.owner_kingdom_id === row.attacker_kingdom_id
         ? (row.protected_until?.toISOString() ?? null)
         : null,
+    capital:
+      livesLeft === null
+        ? null
+        : {
+            livesLeft,
+            maxLives: capitalOf(parseSnapshot(row.rules_snapshot)).lives,
+            takenOver: livesLeft === 0,
+            regionsTaken: row.regions_taken,
+            protectedUntil:
+              livesLeft > 0 && stillDefended ? (row.protected_until?.toISOString() ?? null) : null,
+          },
     trivia: triviaContent
       ? {
           prompt: triviaContent.prompt,

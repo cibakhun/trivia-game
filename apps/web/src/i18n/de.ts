@@ -74,6 +74,10 @@ export const de = {
     tierLabel: 'Stufe',
     owner: 'Besitzer',
     capital: 'Hauptstadt',
+    capitalLives: 'Leben der Hauptstadt: {lives} von {max}',
+    capitalNextLife: 'Nächstes Leben ab {time}',
+    capitalRule:
+      'Jeder Sieg kostet die Hauptstadt ein Leben. Wer ihr letztes Leben nimmt, übernimmt das ganze Reich.',
     underSiege: 'Wird gerade angegriffen',
     protectedUntil: 'Geschützt bis {time}',
     close: 'Schließen',
@@ -131,6 +135,19 @@ export const de = {
   },
   result: {
     won: 'Region erobert!',
+    capitalHit: 'Treffer auf die Hauptstadt!',
+    takenOver: 'Reich übernommen!',
+    capitalLivesLeft: {
+      one: 'Die Hauptstadt von {name} hat ein Leben verloren, ihr bleibt noch {count} von {max}. Wer ihr letztes Leben nimmt, übernimmt das ganze Reich.',
+      other:
+        'Die Hauptstadt von {name} hat ein Leben verloren, ihr bleiben noch {count} von {max}. Wer ihr letztes Leben nimmt, übernimmt das ganze Reich.',
+    },
+    capitalProtectedUntil: 'Die Hauptstadt ist geschützt bis {time}.',
+    regionsTaken: {
+      one: 'Du hast die Hauptstadt von {name} eingenommen und das ganze Reich übernommen: {count} Region gehört jetzt dir.',
+      other:
+        'Du hast die Hauptstadt von {name} eingenommen und das ganze Reich übernommen: {count} Regionen gehören jetzt dir.',
+    },
     lost: 'Angriff gescheitert',
     none: 'Angriff verfallen',
     reason: {

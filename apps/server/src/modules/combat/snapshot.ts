@@ -1,4 +1,10 @@
-import type { RulesConfig } from '@rdw/protocol';
+import {
+  DEFAULT_CAPITAL_RULES,
+  capitalRules,
+  capitalRulesSchema,
+  type CapitalRulesConfig,
+  type RulesConfig,
+} from '@rdw/protocol';
 import { z } from 'zod';
 
 /**
@@ -21,6 +27,8 @@ export const siegeRulesSnapshotSchema = z.object({
     afterConquest: duration,
     newPlayerUntilRegions: z.number().int().min(1).nullable(),
   }),
+  /** Seit Migration 0009; ältere Belagerungen nehmen die Eternal-Standardwerte (`capitalOf`). */
+  capital: capitalRulesSchema.optional(),
 });
 export type SiegeRulesSnapshot = z.infer<typeof siegeRulesSnapshotSchema>;
 
@@ -38,7 +46,16 @@ export function makeSnapshot(
       afterConquest: rules.protection.afterConquest,
       newPlayerUntilRegions: rules.protection.newPlayer.untilRegions,
     },
+    capital: capitalRules(rules),
   };
+}
+
+/**
+ * Hauptstadt-Regeln einer Belagerung. Belagerungen vor Migration 0009 tragen keine; sie laufen
+ * höchstens Minuten, und bis dahin gab es nur Eternal-Testwelten.
+ */
+export function capitalOf(snapshot: SiegeRulesSnapshot): CapitalRulesConfig {
+  return snapshot.capital ?? { ...DEFAULT_CAPITAL_RULES.ETERNAL };
 }
 
 export function parseSnapshot(value: unknown): SiegeRulesSnapshot {

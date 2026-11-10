@@ -1,6 +1,12 @@
 import type { Db } from '@rdw/db';
-import { kingdomName, kingdomRank } from '@rdw/game-core';
-import type { KingdomProfile, KingdomSummary } from '@rdw/protocol';
+import { capitalLives, kingdomName, kingdomRank } from '@rdw/game-core';
+import {
+  capitalRules,
+  type CapitalLivesDto,
+  type KingdomProfile,
+  type KingdomSummary,
+  type RulesConfig,
+} from '@rdw/protocol';
 import { sql } from 'kysely';
 
 /**
@@ -118,4 +124,32 @@ export async function loadKingdomProfile(
 ): Promise<KingdomProfile | null> {
   const row = await kingdomQuery(db, instanceId).where('k.id', '=', kingdomId).executeTakeFirst();
   return row ? toProfile(row) : null;
+}
+
+/**
+ * Aktuelle Leben der Hauptstadt eines Reichs (GAME_RULES §3) nach den Regeln der Instanz;
+ * erholte Leben sind eingerechnet. `null`, wenn es das Reich nicht gibt.
+ */
+export async function loadCapitalLives(
+  db: Db,
+  kingdomId: string,
+  rules: Pick<RulesConfig, 'mode' | 'capital'>,
+  now: Date,
+): Promise<CapitalLivesDto | null> {
+  const row = await db
+    .selectFrom('kingdoms')
+    .select(['capital_hits', 'capital_hit_at'])
+    .where('id', '=', kingdomId)
+    .executeTakeFirst();
+  if (!row) return null;
+  const lives = capitalLives(
+    { hits: row.capital_hits, lastHitAt: row.capital_hit_at?.getTime() ?? null },
+    capitalRules(rules),
+    now.getTime(),
+  );
+  return {
+    lives: lives.lives,
+    maxLives: lives.maxLives,
+    nextLifeAt: lives.nextLifeAt === null ? null : new Date(lives.nextLifeAt).toISOString(),
+  };
 }

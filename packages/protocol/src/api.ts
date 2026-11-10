@@ -382,6 +382,19 @@ export const attackEligibilitySchema = z
   .strict();
 export type AttackEligibilityDto = z.infer<typeof attackEligibilitySchema>;
 
+/** Gründe für Regionsschutz: nach Eroberung, nach einem Treffer auf die Hauptstadt, Betrieb. */
+export const REGION_PROTECTION_REASONS = ['CONQUEST', 'CAPITAL_HIT', 'ADMIN'] as const;
+
+export const capitalLivesSchema = z
+  .object({
+    lives: z.number().int().min(0),
+    maxLives: z.number().int().min(1),
+    /** Nächstes zurückkehrendes Leben; `null` bei vollen Leben oder ohne Erholung. */
+    nextLifeAt: timestampSchema.nullable(),
+  })
+  .strict();
+export type CapitalLivesDto = z.infer<typeof capitalLivesSchema>;
+
 export const regionDetailResponseSchema = z
   .object({
     region: staticRegionSchema
@@ -392,11 +405,13 @@ export const regionDetailResponseSchema = z
         isCapital: z.boolean(),
         ownedSince: timestampSchema.nullable(),
         protectedUntil: timestampSchema.nullable(),
-        protectionReason: z.enum(['CONQUEST', 'ADMIN']).nullable(),
+        protectionReason: z.enum(REGION_PROTECTION_REASONS).nullable(),
         underSiege: z.boolean(),
       })
       .strict(),
     owner: kingdomSummarySchema.nullable(),
+    /** Leben der Hauptstadt (GAME_RULES §3); nur wenn die Region eine Hauptstadt ist. */
+    capital: capitalLivesSchema.nullable(),
     attack: attackEligibilitySchema,
     serverTime: timestampSchema,
   })

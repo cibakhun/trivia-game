@@ -1,5 +1,6 @@
 import type { Db } from '@rdw/db';
 import {
+  REGION_PROTECTION_REASONS,
   chunkListSchema,
   entityIdSchema,
   regionIdSchema,
@@ -20,7 +21,7 @@ import { parseInput } from '../../infra/validation.ts';
 import { eligibilityDto, loadAttackSituation } from '../combat/situation.ts';
 import { settleOpenSiegesOfUser } from '../combat/sweeper.ts';
 import { requireAuth } from '../identity/auth-hook.ts';
-import { loadKingdomProfile, loadKingdoms } from '../kingdom/queries.ts';
+import { loadCapitalLives, loadKingdomProfile, loadKingdoms } from '../kingdom/queries.ts';
 
 /**
  * Karte (API.md §2.2, WORLD_SYSTEM §3.3): statische Chunk-Daten (unveränderlich, per ETag
@@ -213,6 +214,10 @@ export function mapRoutes(app: FastifyInstance, ctx: AppContext): void {
         userId: auth.userId,
         regionId,
       });
+      const capital =
+        row.is_capital && row.owner_kingdom_id
+          ? await loadCapitalLives(ctx.db, row.owner_kingdom_id, situation.rules, situation.now)
+          : null;
       return {
         region: {
           id: row.id,
@@ -227,12 +232,11 @@ export function mapRoutes(app: FastifyInstance, ctx: AppContext): void {
           ownedSince: row.owned_since?.toISOString() ?? null,
           protectedUntil: row.protected_until?.toISOString() ?? null,
           protectionReason:
-            row.protection_reason === 'CONQUEST' || row.protection_reason === 'ADMIN'
-              ? row.protection_reason
-              : null,
+            REGION_PROTECTION_REASONS.find((r) => r === row.protection_reason) ?? null,
           underSiege: row.under_siege,
         },
         owner,
+        capital,
         attack: eligibilityDto(situation.eligibility),
         serverTime: situation.now.toISOString(),
       };

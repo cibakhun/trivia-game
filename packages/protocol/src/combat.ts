@@ -164,6 +164,23 @@ export const battleSideSchema = z
   .strict();
 export type BattleSide = z.infer<typeof battleSideSchema>;
 
+/**
+ * Wirkung eines Siegs über eine Hauptstadt (GAME_RULES §3, ADR-037): Sie verliert ein Leben;
+ * nimmt der Sieg das letzte, übernimmt der Angreifer das ganze Reich.
+ */
+export const capitalEffectSchema = z
+  .object({
+    livesLeft: z.number().int().min(0),
+    maxLives: z.number().int().min(1),
+    takenOver: z.boolean(),
+    /** Übernommene Regionen samt Hauptstadt; `null` ohne Übernahme. */
+    regionsTaken: z.number().int().min(1).nullable(),
+    /** Schutz der getroffenen Hauptstadt (nur ohne Übernahme und solange er läuft). */
+    protectedUntil: timestampSchema.nullable(),
+  })
+  .strict();
+export type CapitalEffect = z.infer<typeof capitalEffectSchema>;
+
 export const resolutionSchema = z
   .object({
     siegeId: entityIdSchema,
@@ -171,9 +188,12 @@ export const resolutionSchema = z
     winner: z.enum(['ATTACKER', 'DEFENDER', 'NONE']),
     reason: outcomeReasonSchema,
     regionId: regionIdSchema,
+    /** Die Zielregion gehört jetzt dem Angreifer (eine Hauptstadt erst mit dem letzten Leben). */
     conquered: z.boolean(),
     /** Schutz nach Eroberung (nur wenn erobert und noch aktiv). */
     regionProtectedUntil: timestampSchema.nullable(),
+    /** Nur bei einem Sieg über eine Hauptstadt. */
+    capital: capitalEffectSchema.nullable(),
     trivia: z
       .object({
         prompt: z.string(),

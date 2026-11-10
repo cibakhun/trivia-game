@@ -4,7 +4,6 @@ import {
   ATTACK_REFUSALS,
   attemptResetAt,
   checkAttackEligibility,
-  chooseNewCapital,
   isAdjacentToAny,
   type AttackEligibilityInput,
 } from '../src/index.ts';
@@ -163,29 +162,7 @@ describe('Angriffsberechtigung (GAME_RULES §4)', () => {
   });
 });
 
-describe('Hauptstadtwechsel (GAME_RULES §3.3)', () => {
-  it('nimmt die Region mit den meisten eigenen Nachbarn, dann die älteste, dann die kleinste ID', () => {
-    const regions = [
-      { id: '10', q: 0, r: 0, ownedSince: 5 },
-      { id: '11', q: 1, r: 0, ownedSince: 1 },
-      { id: '12', q: 2, r: 0, ownedSince: 1 },
-      { id: '9', q: 5, r: 5, ownedSince: 0 },
-    ];
-    // 11 hat zwei eigene Nachbarn (10, 12)
-    expect(chooseNewCapital(regions)?.id).toBe('11');
-    const pair = [
-      { id: '30', q: 0, r: 0, ownedSince: 7 },
-      { id: '20', q: 1, r: 0, ownedSince: 9 },
-    ];
-    expect(chooseNewCapital(pair)?.id).toBe('30');
-    const same = [
-      { id: '100', q: 0, r: 0, ownedSince: 7 },
-      { id: '99', q: 1, r: 0, ownedSince: 7 },
-    ];
-    expect(chooseNewCapital(same)?.id).toBe('99');
-    expect(chooseNewCapital([])).toBeNull();
-  });
-
+describe('Nachbarschaft (GAME_RULES §4.4)', () => {
   it('prüft die Nachbarschaft zum eigenen Gebiet', () => {
     expect(isAdjacentToAny({ q: 0, r: 0 }, [{ q: 1, r: -1 }])).toBe(true);
     expect(isAdjacentToAny({ q: 0, r: 0 }, [{ q: 2, r: 0 }])).toBe(false);

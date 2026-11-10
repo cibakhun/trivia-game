@@ -40,7 +40,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 | Einstieg | Tutorial (3 Schritte), fairer Startplatz, Anfängerschutz |
 | PvE | sofortige Kämpfe gegen Garnisonen und NPC-Reiche |
 | PvP | asynchrone Belagerungen mit verdecktem Gate und Verteidigungspunkten, 24-h-Frist, automatischer Verlust bei Zeitablauf, Angriffs- und Versuchskontingente, max. 4 offene Belagerungen pro Reich, Schutzzeiten, Rangabstandsschutz |
-| Reich | Hauptstadt, Hauptstadtwechsel, Totalverlust mit Neustart, Statistik, Ränge |
+| Reich | Hauptstadt mit drei Leben, Übernahme des ganzen Reichs mit dem letzten Leben (ADR-037), Totalverlust mit Neustart, Statistik, Ränge |
 | Items | drei Zeit-Items, Drops mit Anti-Farming, Inventar + Ablage, **manuelle** Verlängerung bis 48 h |
 | UI | Karte (Desktop + Mobil), Regionsdetails, Quiz, Belagerungs-Dashboard, Inventar, Mitteilungen, Ranglisten (Regionen, Verteidigung) |
 | Benachrichtigung | In-App + Web Push ([O-04]) |

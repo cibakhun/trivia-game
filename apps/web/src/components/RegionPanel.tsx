@@ -87,6 +87,28 @@ export function RegionPanel({
             <dd>{region.tier}</dd>
           </dl>
           {region.isCapital ? <p className="badge">{t('region.capital')}</p> : null}
+          {detail.capital ? (
+            <div className="capital-lives" data-testid="capital-lives">
+              <p>
+                <span className="hearts" aria-hidden="true">
+                  {'♥'.repeat(detail.capital.lives)}
+                  {'♡'.repeat(Math.max(0, detail.capital.maxLives - detail.capital.lives))}
+                </span>{' '}
+                {t('region.capitalLives', {
+                  lives: detail.capital.lives,
+                  max: detail.capital.maxLives,
+                })}
+              </p>
+              {detail.capital.nextLifeAt ? (
+                <p className="muted">
+                  {t('region.capitalNextLife', { time: formatTime(detail.capital.nextLifeAt) })}
+                </p>
+              ) : null}
+              {detail.owner?.id !== ownKingdomId ? (
+                <p className="muted">{t('region.capitalRule')}</p>
+              ) : null}
+            </div>
+          ) : null}
           {region.underSiege ? <p className="badge badge-siege">{t('region.underSiege')}</p> : null}
           {region.protectedUntil ? (
             <p className="badge">

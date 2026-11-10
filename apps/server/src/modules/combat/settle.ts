@@ -2,9 +2,9 @@ import type { Db, Tx } from '@rdw/db';
 import {
   CHALLENGE_START_WINDOW_MS,
   CORE_VERSION,
-  chooseNewCapital,
   estimateDecides,
   formatDecimal,
+  hitCapital,
   kingdomRank,
   parseDecimal,
   performanceFromSteps,
@@ -15,15 +15,17 @@ import {
 import { sql } from 'kysely';
 import { gameNow, intervalMs } from '../../infra/clock.ts';
 import { appendBattleEvents, insertWorldEvents, type WorldEvent } from '../../infra/events.ts';
-import { parseSnapshot } from './snapshot.ts';
+import { capitalOf, parseSnapshot } from './snapshot.ts';
 
 /**
- * Abschluss eines PvE-Kampfes (SIEGE_SYSTEM §2 Schritt 3–4, §5.3): abgelaufene Schritte auf
+ * Abschluss eines PvE-Kampfes (SIEGE_SYSTEM §2 Schritt 3–4, §5.3, §8): abgelaufene Schritte auf
  * `TIMED_OUT` setzen, nie begonnene Herausforderungen beenden, vollständige auswerten und die
  * Wirkungen schreiben – in einer Transaktion mit fester Sperrreihenfolge
- * (Reiche → Region → Belagerung). Jeder Aufruf ist idempotent: Ist die Belagerung schon beendet
- * oder noch nicht fertig, ändert er nichts. Aufrufer: letzte Antwort, Lesezugriffe („lazy
- * resolution“), neuer Angriff desselben Spielers und der Aufräumlauf.
+ * (Reiche → Region → Belagerung). Ein Sieg über eine Hauptstadt kostet sie ein Leben; nimmt er
+ * das letzte, übernimmt der Angreifer das ganze Reich (GAME_RULES §3, ADR-037). Jeder Aufruf ist
+ * idempotent: Ist die Belagerung schon beendet oder noch nicht fertig, ändert er nichts.
+ * Aufrufer: letzte Antwort, Lesezugriffe („lazy resolution“), neuer Angriff desselben Spielers
+ * und der Aufräumlauf.
  */
 
 export type SettleResult = 'RESOLVED' | 'PENDING' | 'NOOP';
@@ -103,6 +105,8 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       'owner_user_id',
       'npc_faction_id',
       'protection_reason',
+      'capital_hits',
+      'capital_hit_at',
     ])
     .where('id', 'in', kingdomIds)
     .orderBy('id')
@@ -244,7 +248,29 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
     .where('version', '=', siege.version)
     .executeTakeFirst();
   if (updated.numUpdatedRows !== 1n) throw new Error(`Belagerung ${siegeId}: Version geändert`);
-  const conquered = ending.status === 'ATTACKER_WON';
+  const won = ending.status === 'ATTACKER_WON';
+  // Hauptstadt: Treffer (ein Leben weniger, Region bleibt) oder Übernahme des ganzen Reichs
+  const capitalRules = capitalOf(snapshot);
+  const capitalHit =
+    won && defenderKingdom && region.is_capital
+      ? hitCapital(
+          {
+            hits: defenderKingdom.capital_hits,
+            lastHitAt: defenderKingdom.capital_hit_at?.getTime() ?? null,
+          },
+          capitalRules,
+          now.getTime(),
+        )
+      : null;
+  const conquered = won && capitalHit?.kind !== 'HIT';
+  const takeover = capitalHit?.kind === 'TAKEOVER' ? defenderKingdom : undefined;
+  const capitalLivesLeft = capitalHit
+    ? capitalHit.kind === 'HIT'
+      ? capitalHit.livesLeft
+      : 0
+    : null;
+  // Bei einer Übernahme alle Regionen des Reichs (Regionenzahl, von takeOverRegions geprüft)
+  const regionsGained = conquered ? (takeover?.region_count ?? 1) : 0;
   const resolvedDuel = attackerPerf !== null;
   await tx
     .insertInto('battle_results')
@@ -263,6 +289,8 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       defense_points: 0,
       decided_at: gameNow,
       core_version: CORE_VERSION,
+      capital_lives_left: capitalLivesLeft,
+      regions_taken: takeover ? regionsGained : null,
     })
     .execute();
 
@@ -270,7 +298,20 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
   const chunk = { x: region.chunk_x, y: region.chunk_y };
   const attackerUserId = attackerKingdom.owner_user_id;
 
-  if (conquered) {
+  if (capitalHit?.kind === 'HIT' && defenderKingdom) {
+    events.push(
+      ...(await damageCapital(tx, {
+        kingdomId: defenderKingdom.id,
+        attackerKingdomId: siege.attacker_kingdom_id,
+        regionId: region.region_id,
+        siegeId,
+        chunk,
+        hits: capitalHit.damage.hits,
+        livesLeft: capitalHit.livesLeft,
+        protection: capitalRules.protectionAfterHit,
+      })),
+    );
+  } else if (conquered) {
     const protection = snapshot.protection.afterConquest;
     const conquest = await tx
       .updateTable('region_state')
@@ -312,9 +353,22 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       })
       .execute();
 
-    // Angreifer: eine Region mehr; Anfängerschutz endet bei der Regionsgrenze (GAME_RULES §7)
+    // Übernahme: alle übrigen Regionen des Reichs gehen mit der Hauptstadt an den Angreifer
+    const taken = takeover
+      ? await takeOverRegions(tx, {
+          from: takeover.id,
+          to: siege.attacker_kingdom_id,
+          capitalRegionId: region.region_id,
+          siegeId,
+          protection,
+          expected: regionsGained - 1,
+        })
+      : [];
+    events.push(...taken);
+
+    // Angreifer: Regionen dazu; Anfängerschutz endet bei der Regionsgrenze (GAME_RULES §7)
     const before = attackerKingdom.region_count;
-    const after = before + 1;
+    const after = before + regionsGained;
     const untilRegions = snapshot.protection.newPlayerUntilRegions;
     const endsNewbie =
       attackerKingdom.protection_reason === 'NEWBIE' &&
@@ -333,27 +387,44 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       .updateTable('kingdom_statistics')
       .set({
         max_regions: sql<number>`greatest(max_regions, ${after})`,
-        // PvE-Eroberungen: NPC-Fraktion oder neutrale Garnison, beide antworten als NPC
-        // (DATA_MODEL §4); diese Auswertung ist nur für PvE
-        npc_regions_conquered: sql<number>`npc_regions_conquered + 1`,
+        // Im PvE gewonnene Regionen: NPC-Fraktion oder neutrale Garnison, beide antworten als
+        // NPC; bei einer Übernahme alle Regionen des Reichs (DATA_MODEL §4). Nur PvE.
+        npc_regions_conquered: sql<number>`npc_regions_conquered + ${regionsGained}`,
         updated_at: gameNow,
       })
       .where('kingdom_id', '=', siege.attacker_kingdom_id)
       .execute();
+    if (takeover) {
+      await tx
+        .insertInto('kingdom_history')
+        .values({
+          kingdom_id: siege.attacker_kingdom_id,
+          kind: 'TAKEOVER',
+          payload: JSON.stringify({
+            kingdomId: takeover.id,
+            capitalRegionId: region.region_id,
+            regions: regionsGained,
+            siegeId,
+          }),
+          at: gameNow,
+        })
+        .execute();
+    }
     await recordRankChange(tx, siege.attacker_kingdom_id, before, after);
     events.push(await kingdomChanged(tx, siege.attacker_kingdom_id, chunk));
 
-    if (defenderKingdom) {
+    if (takeover) {
       events.push(
-        ...(await loseRegion(
-          tx,
-          defenderKingdom,
-          region.region_id,
-          region.is_capital,
+        ...(await fallKingdom(tx, takeover, {
+          cause: 'TAKEOVER',
+          byKingdomId: siege.attacker_kingdom_id,
+          regionId: region.region_id,
           siegeId,
           chunk,
-        )),
+        })),
       );
+    } else if (defenderKingdom) {
+      events.push(...(await loseRegion(tx, defenderKingdom, region.region_id, siegeId, chunk)));
     }
   } else {
     const released = await tx
@@ -384,7 +455,7 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
     await tx
       .updateTable('kingdom_statistics')
       .set(
-        conquered
+        won
           ? { defenses_lost: sql<number>`defenses_lost + 1`, updated_at: gameNow }
           : { defenses_won: sql<number>`defenses_won + 1`, updated_at: gameNow },
       )
@@ -398,9 +469,9 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
       .updateTable('player_statistics')
       .set({
         battles: sql<number>`battles + 1`,
-        battles_won: sql<number>`battles_won + ${conquered ? 1 : 0}`,
+        battles_won: sql<number>`battles_won + ${won ? 1 : 0}`,
         conquests: sql<number>`conquests + ${conquered ? 1 : 0}`,
-        regions_max: sql<number>`greatest(regions_max, ${attackerKingdom.region_count + (conquered ? 1 : 0)})`,
+        regions_max: sql<number>`greatest(regions_max, ${attackerKingdom.region_count + regionsGained})`,
         trivia_answered: sql<number>`trivia_answered + ${trivia ? 1 : 0}`,
         trivia_correct: sql<number>`trivia_correct + ${trivia && step0.is_correct ? 1 : 0}`,
         updated_at: gameNow,
@@ -432,6 +503,8 @@ async function settleInTransaction(tx: Tx, siegeId: string): Promise<SettleResul
         regionId: region.region_id,
         status: ending.status,
         conquered,
+        capitalLivesLeft,
+        kingdomTakenOver: takeover?.id ?? null,
       },
     });
   }
@@ -494,121 +567,343 @@ async function kingdomChanged(
   };
 }
 
+interface KingdomRef {
+  readonly id: string;
+  readonly region_count: number;
+  readonly npc_faction_id: string | null;
+}
+
 /**
- * Das Verteidigerreich verliert die Region: Regionenzahl, ggf. neue Hauptstadt (GAME_RULES §3.3)
- * oder Totalverlust (§3.5, SIEGE_SYSTEM §8). Eine Fraktion ohne Regionen ruht (NPC_SYSTEM §5.4).
+ * Das Verteidigerreich verliert eine Region, die nicht seine Hauptstadt ist (eine Hauptstadt geht
+ * nur mit dem ganzen Reich, `takeOverRegions`). Ohne Regionen fällt es (nur bei Daten ohne
+ * Hauptstadt möglich, z. B. von Hand bereinigte Reiche).
  */
 async function loseRegion(
   tx: Tx,
-  kingdom: { id: string; kind: string; region_count: number; npc_faction_id: string | null },
+  kingdom: KingdomRef,
   regionId: string,
-  wasCapital: boolean,
   siegeId: string,
   chunk: { x: number; y: number },
 ): Promise<WorldEvent[]> {
-  const events: WorldEvent[] = [];
   const before = kingdom.region_count;
   const after = Math.max(0, before - 1);
   if (after === 0) {
-    await tx
-      .updateTable('kingdoms')
-      .set({
-        region_count: 0,
-        status: 'FALLEN',
-        fallen_at: gameNow,
-        version: sql<string>`version + 1`,
-      })
-      .where('id', '=', kingdom.id)
-      .execute();
-    await tx
-      .insertInto('kingdom_history')
-      .values({
-        kingdom_id: kingdom.id,
-        kind: 'FALLEN',
-        payload: JSON.stringify({ lastRegionId: regionId, siegeId }),
-        at: gameNow,
-      })
-      .execute();
-    if (kingdom.npc_faction_id) {
-      await tx
-        .updateTable('npc_factions')
-        .set({ status: 'DORMANT' })
-        .where('id', '=', kingdom.npc_faction_id)
-        .execute();
-    }
-  } else {
-    await tx
-      .updateTable('kingdoms')
-      .set({ region_count: after, version: sql<string>`version + 1` })
-      .where('id', '=', kingdom.id)
-      .execute();
-    if (wasCapital) {
-      // Besitzwechsel sperren immer zuerst das Reich (hier schon gesperrt); die Regionen des Reichs
-      // brauchen deshalb keine eigene Sperre.
-      const owned = await tx
-        .selectFrom('region_state as s')
-        .innerJoin('regions as r', 'r.id', 's.region_id')
-        .select([
-          's.region_id',
-          'r.q',
-          'r.r',
-          's.owned_since',
-          's.chunk_x',
-          's.chunk_y',
-          sql<Date | null>`case when s.protected_until > game_now() then s.protected_until end`.as(
-            'protected_until',
-          ),
-          sql<boolean>`s.active_siege_id is not null`.as('under_siege'),
-        ])
-        .where('s.owner_kingdom_id', '=', kingdom.id)
-        .orderBy('s.region_id')
-        .execute();
-      const capital = chooseNewCapital(
-        owned.map((o) => ({
-          id: o.region_id,
-          q: o.q,
-          r: o.r,
-          ownedSince: o.owned_since?.getTime() ?? 0,
-        })),
-      );
-      if (capital) {
-        const row = owned.find((o) => o.region_id === capital.id);
-        await tx
-          .updateTable('region_state')
-          .set({ is_capital: true, version: sql<string>`version + 1`, updated_at: gameNow })
-          .where('region_id', '=', capital.id)
-          .execute();
-        await tx
-          .insertInto('kingdom_history')
-          .values({
-            kingdom_id: kingdom.id,
-            kind: 'CAPITAL_CHANGED',
-            payload: JSON.stringify({
-              from: regionId,
-              to: capital.id,
-              cause: 'CAPITAL_LOST',
-              siegeId,
-            }),
-            at: gameNow,
-          })
-          .execute();
-        if (row) {
-          events.push({
-            type: 'region.changed',
-            chunk: { x: row.chunk_x, y: row.chunk_y },
-            payload: {
-              regionId: capital.id,
-              ownerKingdomId: kingdom.id,
-              isCapital: true,
-              protectedUntil: row.protected_until?.toISOString() ?? null,
-              underSiege: row.under_siege,
-            },
-          });
-        }
-      }
-    }
+    return fallKingdom(tx, kingdom, { cause: 'LAST_REGION', regionId, siegeId, chunk });
   }
+  await tx
+    .updateTable('kingdoms')
+    .set({ region_count: after, version: sql<string>`version + 1` })
+    .where('id', '=', kingdom.id)
+    .execute();
   await recordRankChange(tx, kingdom.id, before, after);
-  events.push(await kingdomChanged(tx, kingdom.id, chunk));
+  return [await kingdomChanged(tx, kingdom.id, chunk)];
+}
+
+/**
+ * Totalverlust (GAME_RULES §3 Punkt 6, SIEGE_SYSTEM §8): Das Reich hat keine Regionen mehr und
+ * fällt; eine NPC-Fraktion ruht danach (NPC_SYSTEM §5.4). Die Regionen hat der Aufrufer schon
+ * übertragen.
+ */
+async function fallKingdom(
+  tx: Tx,
+  kingdom: KingdomRef,
+  details: {
+    readonly cause: 'TAKEOVER' | 'LAST_REGION';
+    readonly byKingdomId?: string;
+    readonly regionId: string;
+    readonly siegeId: string;
+    readonly chunk: { x: number; y: number };
+  },
+): Promise<WorldEvent[]> {
+  await tx
+    .updateTable('kingdoms')
+    .set({
+      region_count: 0,
+      status: 'FALLEN',
+      fallen_at: gameNow,
+      version: sql<string>`version + 1`,
+    })
+    .where('id', '=', kingdom.id)
+    .execute();
+  await tx
+    .insertInto('kingdom_history')
+    .values({
+      kingdom_id: kingdom.id,
+      kind: 'FALLEN',
+      payload: JSON.stringify(
+        details.cause === 'TAKEOVER'
+          ? {
+              cause: 'TAKEOVER',
+              byKingdomId: details.byKingdomId,
+              capitalRegionId: details.regionId,
+              regions: kingdom.region_count,
+              siegeId: details.siegeId,
+            }
+          : { cause: 'LAST_REGION', lastRegionId: details.regionId, siegeId: details.siegeId },
+      ),
+      at: gameNow,
+    })
+    .execute();
+  if (kingdom.npc_faction_id) {
+    await tx
+      .updateTable('npc_factions')
+      .set({ status: 'DORMANT' })
+      .where('id', '=', kingdom.npc_faction_id)
+      .execute();
+  }
+  await recordRankChange(tx, kingdom.id, kingdom.region_count, 0);
+  return [await kingdomChanged(tx, kingdom.id, details.chunk)];
+}
+
+/**
+ * Treffer ohne Übernahme: Die Hauptstadt verliert ein Leben, bleibt beim Reich und ist für
+ * `protection` geschützt. Der Erholungstakt beginnt neu (`capital_hit_at`).
+ */
+async function damageCapital(
+  tx: Tx,
+  hit: {
+    readonly kingdomId: string;
+    readonly attackerKingdomId: string;
+    readonly regionId: string;
+    readonly siegeId: string;
+    readonly chunk: { x: number; y: number };
+    readonly hits: number;
+    readonly livesLeft: number;
+    readonly protection: number;
+  },
+): Promise<WorldEvent[]> {
+  const protectedRow = await tx
+    .updateTable('region_state')
+    .set({
+      active_siege_id: null,
+      protected_until:
+        hit.protection > 0 ? sql<Date>`game_now() + ${intervalMs(hit.protection)}` : null,
+      protection_reason: hit.protection > 0 ? 'CAPITAL_HIT' : null,
+      version: sql<string>`version + 1`,
+      updated_at: gameNow,
+    })
+    .where('region_id', '=', hit.regionId)
+    .where('active_siege_id', '=', hit.siegeId)
+    .returning(['protected_until'])
+    .executeTakeFirstOrThrow();
+  await tx
+    .updateTable('kingdoms')
+    .set({
+      capital_hits: hit.hits,
+      capital_hit_at: gameNow,
+      version: sql<string>`version + 1`,
+    })
+    .where('id', '=', hit.kingdomId)
+    .execute();
+  await tx
+    .insertInto('kingdom_history')
+    .values({
+      kingdom_id: hit.kingdomId,
+      kind: 'CAPITAL_HIT',
+      payload: JSON.stringify({
+        regionId: hit.regionId,
+        byKingdomId: hit.attackerKingdomId,
+        livesLeft: hit.livesLeft,
+        siegeId: hit.siegeId,
+      }),
+      at: gameNow,
+    })
+    .execute();
+  return [
+    {
+      type: 'region.changed',
+      chunk: hit.chunk,
+      payload: {
+        regionId: hit.regionId,
+        ownerKingdomId: hit.kingdomId,
+        isCapital: true,
+        protectedUntil: protectedRow.protected_until?.toISOString() ?? null,
+        underSiege: false,
+      },
+    },
+    await kingdomChanged(tx, hit.kingdomId, hit.chunk),
+  ];
+}
+
+/**
+ * Übernahme (GAME_RULES §3 Punkt 4): Alle übrigen Regionen des Reichs gehen an den Angreifer,
+ * frisch erobert und mit Eroberungsschutz. Laufende Angriffe Dritter auf diese Regionen werden
+ * abgebrochen (`CANCELLED`), weil ihr Verteidiger nicht mehr besteht. Beide Reiche sind bereits
+ * gesperrt; wer Regionen dieses Reichs ändert, sperrt zuerst das Reich (SIEGE_SYSTEM §5.1).
+ */
+async function takeOverRegions(
+  tx: Tx,
+  params: {
+    readonly from: string;
+    readonly to: string;
+    readonly capitalRegionId: string;
+    readonly siegeId: string;
+    readonly protection: number;
+    /** Erwartete Zahl (Regionenzahl des Reichs ohne Hauptstadt), Prüfung der Invariante. */
+    readonly expected: number;
+  },
+): Promise<WorldEvent[]> {
+  const rest = await tx
+    .selectFrom('region_state')
+    .select(['region_id', 'instance_id', 'active_siege_id'])
+    .where('owner_kingdom_id', '=', params.from)
+    .where('region_id', '<>', params.capitalRegionId)
+    .orderBy('region_id')
+    .execute();
+  if (rest.length !== params.expected) {
+    throw new Error(
+      `Übernahme ${params.siegeId}: ${rest.length} Regionen statt ${params.expected} (Regionenzahl)`,
+    );
+  }
+  if (rest.length === 0) return [];
+
+  const events: WorldEvent[] = [];
+  for (const row of rest) {
+    if (row.active_siege_id) events.push(...(await cancelSiege(tx, row.active_siege_id)));
+  }
+  const ids = rest.map((row) => row.region_id);
+  const moved = await tx
+    .updateTable('region_state')
+    .set({
+      owner_kingdom_id: params.to,
+      is_capital: false,
+      owned_since: gameNow,
+      protected_until:
+        params.protection > 0 ? sql<Date>`game_now() + ${intervalMs(params.protection)}` : null,
+      protection_reason: params.protection > 0 ? 'CONQUEST' : null,
+      active_siege_id: null,
+      version: sql<string>`version + 1`,
+      updated_at: gameNow,
+    })
+    .where('region_id', 'in', ids)
+    .where('owner_kingdom_id', '=', params.from)
+    .returning(['region_id', 'chunk_x', 'chunk_y', 'protected_until'])
+    .execute();
+  if (moved.length !== rest.length) {
+    throw new Error(`Übernahme ${params.siegeId}: Regionen während der Übernahme verändert`);
+  }
+  await tx
+    .insertInto('region_history')
+    .values(
+      rest.map((row) => ({
+        region_id: row.region_id,
+        instance_id: row.instance_id,
+        from_kingdom_id: params.from,
+        to_kingdom_id: params.to,
+        cause: 'TAKEOVER',
+        siege_id: params.siegeId,
+        at: gameNow,
+      })),
+    )
+    .execute();
+  for (const row of moved) {
+    events.push({
+      type: 'region.changed',
+      chunk: { x: row.chunk_x, y: row.chunk_y },
+      payload: {
+        regionId: row.region_id,
+        ownerKingdomId: params.to,
+        isCapital: false,
+        protectedUntil: row.protected_until?.toISOString() ?? null,
+        underSiege: false,
+      },
+    });
+  }
   return events;
+}
+
+/**
+ * Bricht eine offene Belagerung ab, deren Ziel bei einer Übernahme den Besitzer wechselt. Die
+ * Reservierung der Region löst der Aufrufer mit der Übertragung.
+ */
+async function cancelSiege(tx: Tx, siegeId: string): Promise<WorldEvent[]> {
+  const siege = await tx
+    .selectFrom('sieges as s')
+    .innerJoin('kingdoms as k', 'k.id', 's.attacker_kingdom_id')
+    .select([
+      's.status',
+      's.version',
+      's.mode',
+      's.defender_kind',
+      's.target_region_id',
+      'k.owner_user_id',
+    ])
+    .where('s.id', '=', siegeId)
+    .forUpdate('s')
+    .executeTakeFirstOrThrow();
+  if (siege.status !== 'PREPARING') {
+    throw new Error(`Belagerung ${siegeId} reserviert eine Region, ist aber ${siege.status}`);
+  }
+  await tx
+    .updateTable('sieges')
+    .set({
+      status: 'CANCELLED',
+      outcome: 'NONE',
+      outcome_reason: 'CANCELLED',
+      resolved_at: gameNow,
+      version: sql<number>`version + 1`,
+    })
+    .where('id', '=', siegeId)
+    .where('version', '=', siege.version)
+    .execute();
+  const answers = await tx
+    .selectFrom('quiz_answers as a')
+    .innerJoin('siege_participants as p', 'p.id', 'a.participant_id')
+    .select([
+      'p.role',
+      'a.step_index',
+      'a.status',
+      'a.is_correct',
+      'a.distance',
+      'a.effective_ms',
+      'a.answer_option_key',
+      'a.answer_value',
+    ])
+    .where('a.siege_id', '=', siegeId)
+    .where('p.role', '=', 'ATTACKER')
+    .orderBy('a.step_index')
+    .execute();
+  await tx
+    .insertInto('battle_results')
+    .values({
+      siege_id: siegeId,
+      winner_role: null,
+      reason: 'CANCELLED',
+      attacker_summary: JSON.stringify(summary(answers, null)),
+      defender_summary: JSON.stringify({ kind: siege.defender_kind, cancelled: 'TAKEOVER' }),
+      defended: false,
+      defense_points: 0,
+      decided_at: gameNow,
+      core_version: CORE_VERSION,
+    })
+    .execute();
+  await appendBattleEvents(tx, siegeId, [
+    {
+      type: 'RESOLVED',
+      payload: {
+        status: 'CANCELLED',
+        outcome: 'NONE',
+        reason: 'CANCELLED',
+        cause: 'TAKEOVER',
+        coreVersion: CORE_VERSION,
+      },
+    },
+  ]);
+  return siege.owner_user_id
+    ? [
+        {
+          type: 'siege.resolved',
+          userId: siege.owner_user_id,
+          payload: {
+            siegeId,
+            mode: siege.mode,
+            regionId: siege.target_region_id,
+            status: 'CANCELLED',
+            conquered: false,
+            capitalLivesLeft: null,
+            kingdomTakenOver: null,
+          },
+        },
+      ]
+    : [];
 }

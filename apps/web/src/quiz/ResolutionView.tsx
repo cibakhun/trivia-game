@@ -1,5 +1,5 @@
 import type { BattleSide, Resolution } from '@rdw/protocol';
-import { formatDecimal, formatTime, t, tDynamic } from '../i18n/i18n.ts';
+import { formatDecimal, formatTime, t, tDynamic, tp } from '../i18n/i18n.ts';
 
 /**
  * Vollständige Auflösung nach dem Kampf (QUIZ_ENGINE §7.2): Ergebnis, Grund, Lösung und beide
@@ -12,19 +12,40 @@ export function ResolutionView({
   readonly resolution: Resolution;
   readonly onDone: () => void;
 }) {
+  const capital = resolution.capital;
   const headline =
     resolution.winner === 'ATTACKER'
-      ? t('result.won')
+      ? capital
+        ? capital.takenOver
+          ? t('result.takenOver')
+          : t('result.capitalHit')
+        : t('result.won')
       : resolution.winner === 'DEFENDER'
         ? t('result.lost')
         : t('result.none');
   const unit = resolution.estimate?.unitLabel;
+  const defenderName = resolution.defender.kingdom?.name ?? t('result.opponent');
   return (
     <section className="resolution" aria-labelledby="result-title" data-testid="resolution">
-      <h1 id="result-title" className={resolution.conquered ? 'won' : 'lost'}>
+      <h1 id="result-title" className={resolution.winner === 'ATTACKER' ? 'won' : 'lost'}>
         {headline}
       </h1>
       <p>{tDynamic(`result.reason.${resolution.reason}`, 'errors.generic')}</p>
+      {capital ? (
+        <p data-testid="capital-effect">
+          {capital.takenOver
+            ? tp('result.regionsTaken', capital.regionsTaken ?? 1, { name: defenderName })
+            : tp('result.capitalLivesLeft', capital.livesLeft, {
+                name: defenderName,
+                max: capital.maxLives,
+              })}
+        </p>
+      ) : null}
+      {capital?.protectedUntil ? (
+        <p className="muted">
+          {t('result.capitalProtectedUntil', { time: formatTime(capital.protectedUntil) })}
+        </p>
+      ) : null}
       {resolution.regionProtectedUntil ? (
         <p className="muted">
           {t('result.protectedUntil', { time: formatTime(resolution.regionProtectedUntil) })}

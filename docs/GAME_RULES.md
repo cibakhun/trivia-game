@@ -29,10 +29,11 @@ Kennzeichnung: **[V]** verbindlich · **[A]** Annahme aus dem Brief (konfigurier
 
 1. Ein Spieler hat pro Weltinstanz höchstens ein aktives Königreich [A, Brief §4.4].
 2. Die erste beanspruchte Region ist die Hauptstadt [A].
-3. Verliert ein Königreich die Hauptstadt und besitzt noch Regionen, wird automatisch eine neue gewählt [A]: die eigene Region mit den meisten eigenen Nachbarn; bei Gleichstand die am längsten gehaltene; danach die kleinste ID [E]. Der Wechsel ist sofort und protokolliert.
-4. Hauptstädte sind angreifbar, außer unter Anfänger- oder Wiederaufbauschutz [A, Brief §4.5].
-5. **Totalverlust:** Das Königreich erhält den Status `FALLEN`, bleibt mit Statistik und Historie erhalten [V-nah, Brief §4.5/§15.4]. Der Spieler kann sofort ein neues Königreich in einer geeigneten Startregion gründen [A] und erhält 24 h Wiederaufbauschutz [E]. Inventar gehört zum Spieler in der Instanz, nicht zum Königreich, und bleibt erhalten [E].
-6. Ränge sind rein kosmetisch und beeinflussen keine Spielwerte [A, Brief §4.4]:
+3. **Hauptstadt-Leben** [V, PO 2026-11-10; Werte E, ADR-037]: Eine Hauptstadt hat drei Leben (`capital.lives`). Jeder Sieg eines Angreifers über die Hauptstadt kostet ein Leben; die Hauptstadt bleibt dann beim Reich und ist eine Stunde geschützt (`capital.protectionAfterHit`, Schutzgrund `CAPITAL_HIT`). Ohne neuen Treffer kehrt je 24 h ein Leben zurück (`capital.lifeRegen`), höchstens bis zum vollen Stand; jeder Treffer startet diesen Takt neu. Ein Sieg des Verteidigers kostet nichts. Die Regel gilt für Spieler- und NPC-Reiche gleich; welche Folgen eine Übernahme für ein Spielerreich hat, ist vor PvP zu klären ([O-20]).
+4. **Übernahme:** Der Sieg, der das letzte Leben nimmt, übernimmt das ganze Reich: Alle Regionen gehen an den Angreifer (die Hauptstadt als Eroberung, die übrigen als Übernahme, alle mit Eroberungsschutz), das Reich fällt (Punkt 6). Laufende Angriffe Dritter auf Regionen dieses Reichs werden abgebrochen (`CANCELLED`). Die frühere Hauptstadt wird eine gewöhnliche Region des Angreifers; eine Hauptstadt wechselt nie mehr automatisch, weil sie nur mit dem ganzen Reich verloren gehen kann (ersetzt den Hauptstadtwechsel der Fassung vom 2026-11-09).
+5. Hauptstädte sind angreifbar, außer unter Anfänger- oder Wiederaufbauschutz [A, Brief §4.5] und im Schutz nach einem Treffer.
+6. **Totalverlust:** Das Königreich erhält den Status `FALLEN`, bleibt mit Statistik und Historie erhalten [V-nah, Brief §4.5/§15.4]. Der Spieler kann sofort ein neues Königreich in einer geeigneten Startregion gründen [A] und erhält 24 h Wiederaufbauschutz [E]. Inventar gehört zum Spieler in der Instanz, nicht zum Königreich, und bleibt erhalten [E].
+7. Ränge sind rein kosmetisch und beeinflussen keine Spielwerte [A, Brief §4.4]:
 
 | Regionen | Rang |
 |---|---|
@@ -43,7 +44,7 @@ Kennzeichnung: **[V]** verbindlich · **[A]** Annahme aus dem Brief (konfigurier
 | 100–249 | Großreich |
 | 250+ | Imperium |
 
-7. Königreichsnamen werden im MVP aus Bausteinen generiert, nicht frei eingegeben [E, [O-10]] – das vermeidet Moderationspflichten für nutzergenerierte Inhalte (Brief §14.3). Umsetzung: Vorsilbe + Endung aus festen deutschen Listen (`names.ts` in `game-core`, z. B. „Falkenstein“), ist der Name in der Instanz vergeben, wird neu gezogen, insgesamt höchstens achtmal (danach bleibt der letzte Name); Farbe ist ein Index 0–15, bevorzugt eine wenig benutzte. Gespeichert werden die Bausteine (`kingdoms.name_parts`), angezeigt wird Rang + Name.
+8. Königreichsnamen werden im MVP aus Bausteinen generiert, nicht frei eingegeben [E, [O-10]] – das vermeidet Moderationspflichten für nutzergenerierte Inhalte (Brief §14.3). Umsetzung: Vorsilbe + Endung aus festen deutschen Listen (`names.ts` in `game-core`, z. B. „Falkenstein“), ist der Name in der Instanz vergeben, wird neu gezogen, insgesamt höchstens achtmal (danach bleibt der letzte Name); Farbe ist ein Index 0–15, bevorzugt eine wenig benutzte. Gespeichert werden die Bausteine (`kingdoms.name_parts`), angezeigt wird Rang + Name.
 
 ## 4. Angriffsberechtigung
 
@@ -206,6 +207,9 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | `protection.newPlayer` | 72 h / 10 Regionen | 2 h | 15 min | E |
 | `protection.respawn` | 24 h | 1 h | 10 min | E |
 | `protection.rankGap.factor` / `.maxTargetRegions` | 4 / 15 | 4 / 10 | – | E |
+| `capital.lives` (§3.3) | 3 | 3 | 3 | V (PO 2026-11-10) |
+| `capital.lifeRegen` (ein Leben zurück ohne neuen Treffer) | 24 h | 24 h | 4 h | E |
+| `capital.protectionAfterHit` | 1 h | 1 h | 10 min | E |
 | `items.enabled` | ja | nein | nein | E |
 | `items.inventoryCap` | 10 | – | – | A |
 | `items.dropEligibleConquestsPerDay` | 6 | – | – | E (Begründung: ITEM_SYSTEM §4.4) |

@@ -748,11 +748,13 @@ describe('Gebietseroberung PvE', () => {
     expect(map.chunks[0]?.regions.filter((r) => r.ownerKingdomId === kingdom.id)).toHaveLength(5);
   });
 
-  it('verlegt die Hauptstadt eines NPC-Reichs und lässt es fallen', async () => {
-    const player = await newPlayer();
+  it('nimmt einer NPC-Hauptstadt Leben und übernimmt mit dem letzten das ganze Reich', async () => {
+    const shared = await createTestWorld(server.db);
+    const player = await newPlayer(shared);
+    const rival = await newPlayer(shared);
     const { instanceId, kingdom } = player.joined;
-    // Aufbau: das kleinste NPC-Reich auf Hauptstadt und einen Nachbarn verkleinern und dem
-    // Spieler eine Region neben der Hauptstadt geben.
+    // Aufbau: das kleinste NPC-Reich auf Hauptstadt und einen Nachbarn verkleinern; der Spieler
+    // bekommt eine Region neben der Hauptstadt, der Rivale eine neben dem Nachbarn.
     const npc = await server.db
       .selectFrom('kingdoms')
       .select(['id', 'npc_faction_id'])
@@ -771,59 +773,178 @@ describe('Gebietseroberung PvE', () => {
     for (const region of npcRegions) {
       if (region.id !== capital.id && region.id !== keep.id) await transferRegion(region.id, null);
     }
-    const foothold = (await regionsOf(instanceId)).find(
-      (r) => r.owner_kingdom_id === null && areNeighbors(r, capital),
-    );
+    const free = (await regionsOf(instanceId)).filter((r) => r.owner_kingdom_id === null);
+    const foothold = free.find((r) => areNeighbors(r, capital));
     if (!foothold) throw new Error('Kein freier Nachbar der NPC-Hauptstadt');
+    const rivalFoothold = free.find((r) => r.id !== foothold.id && areNeighbors(r, keep));
+    if (!rivalFoothold) throw new Error('Kein freier Nachbar der NPC-Region');
     await transferRegion(foothold.id, kingdom.id);
+    await transferRegion(rivalFoothold.id, rival.joined.kingdom.id);
     expect((await kingdomRow(npc.id)).region_count).toBe(2);
 
     const detail = await regionDetail(player, capital.id);
     expect(detail.attack).toMatchObject({ allowed: true, mode: 'PVE', defenderKind: 'NPC' });
     expect(detail.owner?.id).toBe(npc.id);
+    expect(detail.capital).toEqual({ lives: 3, maxLives: 3, nextLifeAt: null });
+    expect((await regionDetail(player, keep.id)).capital).toBeNull();
 
-    // Hauptstadt erobert → neue Hauptstadt im Rest des Reichs
-    const first = await startAttack(player, capital.id);
-    expect(first.defender).toMatchObject({ kind: 'NPC', kingdom: { id: npc.id } });
-    const won = await playChallenge(player, first.challengeId, true);
-    expect(won.resolution).toMatchObject({
-      conquered: true,
-      defender: { kind: 'NPC', kingdom: { id: npc.id } },
+    /** Gewinnt einen Angriff auf die Hauptstadt und gibt die Auflösung zurück. */
+    const winAgainstCapital = async () => {
+      const started = await startAttack(player, capital.id);
+      expect(started.defender).toMatchObject({ kind: 'NPC', kingdom: { id: npc.id } });
+      const result = await playChallenge(player, started.challengeId, true);
+      expect(result.resolution?.winner).toBe('ATTACKER');
+      return { siegeId: started.siegeId, resolution: result.resolution };
+    };
+    const capitalHits = async () =>
+      server.db
+        .selectFrom('kingdoms')
+        .select(['capital_hits'])
+        .where('id', '=', npc.id)
+        .executeTakeFirstOrThrow();
+
+    // 1. Sieg: ein Leben weniger, Hauptstadt bleibt beim Reich und ist eine Stunde geschützt
+    const first = await winAgainstCapital();
+    expect(first.resolution).toMatchObject({
+      status: 'ATTACKER_WON',
+      conquered: false,
+      regionProtectedUntil: null,
+      capital: { livesLeft: 2, maxLives: 3, takenOver: false, regionsTaken: null },
     });
-    expect(await capitalOf(npc.id)).toBe(keep.id);
-    expect((await kingdomRow(npc.id)).region_count).toBe(1);
+    expect(first.resolution?.capital?.protectedUntil).not.toBeNull();
+    const hitState = await regionState(capital.id);
+    expect(hitState).toMatchObject({
+      owner_kingdom_id: npc.id,
+      is_capital: true,
+      active_siege_id: null,
+      protection_reason: 'CAPITAL_HIT',
+    });
+    expect(hitState.protected_seconds).toBeGreaterThan(3590);
+    expect(hitState.protected_seconds).toBeLessThanOrEqual(3600);
+    expect(await capitalHits()).toEqual({ capital_hits: 1 });
+    expect(await kingdomRow(npc.id)).toMatchObject({ region_count: 2, status: 'ACTIVE' });
+    expect(await kingdomRow(kingdom.id)).toMatchObject({ region_count: 2 });
+    const afterHit = await regionDetail(player, capital.id);
+    expect(afterHit.capital).toMatchObject({ lives: 2, maxLives: 3 });
+    expect(afterHit.region.protectionReason).toBe('CAPITAL_HIT');
+    expect(afterHit.attack).toMatchObject({ allowed: false, reason: 'REGION_PROTECTED' });
+    expect(
+      await server.db
+        .selectFrom('battle_results')
+        .select(['capital_lives_left', 'regions_taken'])
+        .where('siege_id', '=', first.siegeId)
+        .executeTakeFirstOrThrow(),
+    ).toEqual({ capital_lives_left: 2, regions_taken: null });
+
+    // 2. Sieg nach Ablauf des Schutzes: noch ein Leben
+    await advanceGameClock(server.database.pool, 3_601_000);
+    const second = await winAgainstCapital();
+    expect(second.resolution?.capital).toMatchObject({ livesLeft: 1, takenOver: false });
+
+    // Ein Tag ohne Treffer gibt ein Leben zurück; der nächste Sieg lässt deshalb wieder eines übrig
+    await advanceGameClock(server.database.pool, 86_400_000);
+    const regenerated = await regionDetail(player, capital.id);
+    expect(regenerated.capital).toMatchObject({ lives: 2, maxLives: 3 });
+    expect(regenerated.capital?.nextLifeAt).not.toBeNull();
+    const third = await winAgainstCapital();
+    expect(third.resolution?.capital).toMatchObject({ livesLeft: 1, takenOver: false });
+
+    // Nach dem Schutz greift der Rivale den Nachbarn an, beantwortet aber noch nichts
+    await advanceGameClock(server.database.pool, 3_601_000);
+    const rivalAttack = await startAttack(rival, keep.id);
+    const seqBefore = await eventSeq(instanceId);
+
+    // 4. Sieg nimmt das letzte Leben: das ganze Reich geht an den Spieler
+    const last = await winAgainstCapital();
+    expect(last.resolution).toMatchObject({
+      status: 'ATTACKER_WON',
+      conquered: true,
+      capital: {
+        livesLeft: 0,
+        maxLives: 3,
+        takenOver: true,
+        regionsTaken: 2,
+        protectedUntil: null,
+      },
+    });
+    expect(last.resolution?.regionProtectedUntil).not.toBeNull();
     expect(await regionState(capital.id)).toMatchObject({
       owner_kingdom_id: kingdom.id,
       is_capital: false,
+      protection_reason: 'CONQUEST',
     });
-
-    // Letzte Region erobert → Reich fällt, Fraktion ruht
-    const second = await startAttack(player, keep.id);
-    expect((await playChallenge(player, second.challengeId, true)).resolution?.conquered).toBe(
-      true,
-    );
+    expect(await regionState(keep.id)).toMatchObject({
+      owner_kingdom_id: kingdom.id,
+      is_capital: false,
+      active_siege_id: null,
+      protection_reason: 'CONQUEST',
+    });
+    expect(await kingdomRow(kingdom.id)).toMatchObject({ region_count: 4, status: 'ACTIVE' });
     const fallen = await kingdomRow(npc.id);
     expect(fallen).toMatchObject({ region_count: 0, status: 'FALLEN' });
     expect(fallen.fallen_at).not.toBeNull();
     expect(await capitalOf(npc.id)).toBeNull();
     const history = await server.db
+      .selectFrom('region_history')
+      .select(['region_id', 'cause', 'from_kingdom_id', 'to_kingdom_id', 'siege_id'])
+      .where('siege_id', '=', last.siegeId)
+      .orderBy('id')
+      .execute();
+    expect(history).toEqual([
+      {
+        region_id: capital.id,
+        cause: 'CONQUEST_PVE',
+        from_kingdom_id: npc.id,
+        to_kingdom_id: kingdom.id,
+        siege_id: last.siegeId,
+      },
+      {
+        region_id: keep.id,
+        cause: 'TAKEOVER',
+        from_kingdom_id: npc.id,
+        to_kingdom_id: kingdom.id,
+        siege_id: last.siegeId,
+      },
+    ]);
+    const npcHistory = await server.db
       .selectFrom('kingdom_history')
       .select(['kind', 'payload'])
       .where('kingdom_id', '=', npc.id)
       .orderBy('id')
       .execute();
-    expect(history.map((h) => h.kind)).toEqual([
+    expect(npcHistory.map((h) => h.kind)).toEqual([
       'FOUNDED',
-      'CAPITAL_CHANGED',
+      'CAPITAL_HIT',
+      'CAPITAL_HIT',
+      'CAPITAL_HIT',
       'FALLEN',
       'RANK_CHANGED',
     ]);
-    expect(history[1]?.payload).toMatchObject({
-      from: capital.id,
-      to: keep.id,
-      cause: 'CAPITAL_LOST',
+    expect(npcHistory[1]?.payload).toEqual({
+      regionId: capital.id,
+      byKingdomId: kingdom.id,
+      livesLeft: 2,
+      siegeId: first.siegeId,
     });
-    expect(history[3]?.payload).toEqual({ from: 'SETTLEMENT', to: null, regionCount: 0 });
+    expect(npcHistory[4]?.payload).toEqual({
+      cause: 'TAKEOVER',
+      byKingdomId: kingdom.id,
+      capitalRegionId: capital.id,
+      regions: 2,
+      siegeId: last.siegeId,
+    });
+    const takeoverEntry = await server.db
+      .selectFrom('kingdom_history')
+      .select('payload')
+      .where('kingdom_id', '=', kingdom.id)
+      .where('kind', '=', 'TAKEOVER')
+      .executeTakeFirstOrThrow();
+    expect(takeoverEntry.payload).toEqual({
+      kingdomId: npc.id,
+      capitalRegionId: capital.id,
+      regions: 2,
+      siegeId: last.siegeId,
+    });
     const faction = await server.db
       .selectFrom('npc_factions')
       .select('status')
@@ -836,7 +957,53 @@ describe('Gebietseroberung PvE', () => {
         .select(['defenses_lost'])
         .where('kingdom_id', '=', npc.id)
         .executeTakeFirst(),
-    ).toEqual({ defenses_lost: 2 });
+    ).toEqual({ defenses_lost: 4 });
+    expect(
+      await server.db
+        .selectFrom('player_statistics')
+        .select(['battles_won', 'conquests', 'regions_max'])
+        .where('user_id', '=', player.userId)
+        .executeTakeFirstOrThrow(),
+    ).toEqual({ battles_won: 4, conquests: 1, regions_max: 4 });
+
+    // Der Angriff des Rivalen ist abgebrochen, sein Ziel gehört jetzt dem Spieler
+    expect(await siegeRow(rivalAttack.siegeId)).toMatchObject({
+      status: 'CANCELLED',
+      outcome: 'NONE',
+      outcome_reason: 'CANCELLED',
+    });
+    const rivalView = challengeViewSchema.parse(
+      (await rival.client.get(`/challenges/${rivalAttack.challengeId}`)).json(),
+    );
+    expect(rivalView).toMatchObject({
+      status: 'CANCELLED',
+      resolution: { status: 'CANCELLED', conquered: false, capital: null },
+    });
+    expect(errorOf(await present(rival.client, rivalAttack.challengeId, 0))).toMatchObject({
+      status: 409,
+      code: 'CHALLENGE_CLOSED',
+    });
+    const events = await worldEventsSince(instanceId, seqBefore);
+    const resolved = events
+      .filter((e) => e.type === 'siege.resolved')
+      .map((e) => ({ userId: e.user_id, ...(e.payload as Record<string, unknown>) }));
+    expect(resolved).toMatchObject([
+      { userId: rival.userId, siegeId: rivalAttack.siegeId, status: 'CANCELLED', conquered: false },
+      {
+        userId: player.userId,
+        siegeId: last.siegeId,
+        status: 'ATTACKER_WON',
+        conquered: true,
+        capitalLivesLeft: 0,
+        kingdomTakenOver: npc.id,
+      },
+    ]);
+    // Reservierung und Eroberung der Hauptstadt, Übernahme des Nachbarn
+    expect(
+      events
+        .filter((e) => e.type === 'region.changed')
+        .map((e) => (e.payload as { regionId: string }).regionId),
+    ).toEqual([capital.id, capital.id, keep.id]);
   });
 });
 
@@ -1125,6 +1292,8 @@ describe('Fragen und Antworten', () => {
   });
 
   it('beendet nie begonnene Herausforderungen im Aufräumlauf', async () => {
+    // Offene Angriffe früherer Tests sind nach deren Zeitsprüngen schon fällig
+    await expireStaleChallenges(server.db);
     const player = await newPlayer();
     const target = tutorialTarget(player);
     const started = await startAttack(player, target);
