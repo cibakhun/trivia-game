@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_MATCH_RULES,
+  matchRulesForSeats,
   matchRulesSchema,
   PLAYTEST_MATCH_RULES,
   SECOND_MS,
@@ -36,6 +37,19 @@ describe('Regeln der Partie', () => {
     expect({ ...PLAYTEST_MATCH_RULES, timers: DEFAULT_MATCH_RULES.timers }).toEqual(
       DEFAULT_MATCH_RULES,
     );
+  });
+
+  it('passt Spielerzahl und Landnahme für zwei Spieler an', () => {
+    const two = matchRulesForSeats(DEFAULT_MATCH_RULES, 2);
+    expect(matchRulesSchema.parse(two)).toEqual(two);
+    expect(two.seats).toBe(2);
+    expect(two.landGrab.picksByPlace).toEqual([2, 1]);
+    expect({ ...two, seats: 3, landGrab: DEFAULT_MATCH_RULES.landGrab }).toEqual(
+      DEFAULT_MATCH_RULES,
+    );
+    expect(matchRulesForSeats(two, 3)).toEqual(DEFAULT_MATCH_RULES);
+    expect(matchRulesSchema.safeParse({ ...DEFAULT_MATCH_RULES, seats: 4 }).success).toBe(false);
+    expect(matchRulesSchema.safeParse({ ...DEFAULT_MATCH_RULES, seats: 1 }).success).toBe(false);
   });
 
   it('lehnt unstimmige Landnahme-Wahlen ab', () => {

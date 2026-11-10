@@ -3,29 +3,36 @@ import {
   legalRegions,
   mapOf,
   matchPoints,
+  NPC_BASE_PROFILES,
+  regionDistance,
+  regionNeighbors,
   regionsOf,
   type MatchState,
-} from './match.ts';
-import { regionDistance, regionNeighbors } from './match-map.ts';
-import { NPC_BASE_PROFILES, type NpcProfile } from './npc.ts';
-import type { Rng } from './rng.ts';
+  type NpcProfile,
+  type Rng,
+} from '../src/index.ts';
 
 /**
- * Bots der Partie (docs/MATCH_RULES.md §7). Sie antworten wie NPCs im PvE über das Antwortmodell
- * (`generateNpcAnswer`, `generateNpcEstimate`, Strom `npc-answer`), versiegelt vor der Frage.
- * Ihre Wahlen treffen sie mit einfachen, festen Regeln; Gleichstände entscheidet der Strom
- * `match`. Die Stärke wirkt nur auf die Antworten, nicht auf die Wahlen.
+ * Testspieler für Unit-Tests und die Simulation der Partie (docs/MATCH_RULES.md §7). Im Spiel gibt
+ * es keine Bots, eine Partie spielen nur Menschen (PO 2026-11-10, ADR-048); deshalb liegt diese
+ * Logik bei den Tests und nicht in `src`.
+ *
+ * Testspieler antworten über das NPC-Antwortmodell (`generateNpcAnswer`, `generateNpcEstimate`)
+ * und wählen mit einfachen, festen Regeln; Gleichstände entscheidet der übergebene Strom. Die
+ * Stärke wirkt nur auf die Antworten, nicht auf die Wahlen.
  */
 
-export const MATCH_BOT_STRENGTHS = ['EASY', 'MEDIUM', 'HARD'] as const;
-export type MatchBotStrength = (typeof MATCH_BOT_STRENGTHS)[number];
+export const TEST_PLAYER_STRENGTHS = ['EASY', 'MEDIUM', 'HARD'] as const;
+export type TestPlayerStrength = (typeof TEST_PLAYER_STRENGTHS)[number];
 
-/** Leicht, mittel, schwer = die NPC-Archetypen LIGHT, MEDIUM, HEAVY (NPC_SYSTEM §2) [E]. */
-export const MATCH_BOT_PROFILES: Readonly<Record<MatchBotStrength, NpcProfile>> = Object.freeze({
-  EASY: NPC_BASE_PROFILES.LIGHT,
-  MEDIUM: NPC_BASE_PROFILES.MEDIUM,
-  HARD: NPC_BASE_PROFILES.HEAVY,
-});
+/** Leicht, mittel, schwer = die NPC-Archetypen LIGHT, MEDIUM, HEAVY (NPC_SYSTEM §2). */
+export const TEST_PLAYER_PROFILES: Readonly<Record<TestPlayerStrength, NpcProfile>> = Object.freeze(
+  {
+    EASY: NPC_BASE_PROFILES.LIGHT,
+    MEDIUM: NPC_BASE_PROFILES.MEDIUM,
+    HARD: NPC_BASE_PROFILES.HEAVY,
+  },
+);
 
 function pickBest(options: readonly number[], score: (region: number) => number, rng: Rng): number {
   let best: number[] = [];
@@ -45,25 +52,14 @@ function pickBest(options: readonly number[], score: (region: number) => number,
 }
 
 /**
- * Wahl nach Zeitablauf: eine zufällige wählbare Region. Bewusst ohne die Bot-Regeln, damit
- * Abwarten keinen Vorteil bringt.
- */
-export function autoPickRegion(state: MatchState, rng: Rng): number {
-  const options = legalRegions(state);
-  const choice = options[rng.nextUint32() % options.length];
-  if (choice === undefined) throw new Error('Keine wählbare Region');
-  return choice;
-}
-
-/**
- * Wahl eines Bots im aktuellen Schritt:
+ * Wahl eines Testspielers im aktuellen Schritt:
  * - Hauptstadt: möglichst weit weg von den anderen (bis 3 Felder zählt), dann viele Nachbarn;
  * - Landnahme: viele eigene Nachbarn (zusammenhängendes Gebiet), dann viele freie;
  * - Angriffsziel: größter unmittelbarer Gewinn. Eine Region bringt ihren Wert; eine Hauptstadt
  *   mit einem letzten Leben das ganze Reich, sonst nur die Hälfte ihres Werts, weil der Treffer
  *   allein noch nichts einbringt.
  */
-export function chooseRegionForBot(state: MatchState, rng: Rng): number {
+export function chooseRegionForTestPlayer(state: MatchState, rng: Rng): number {
   const map = mapOf(state);
   const options = legalRegions(state);
   const { step } = state;

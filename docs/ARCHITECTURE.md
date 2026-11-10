@@ -160,7 +160,7 @@ seed  = HMAC-SHA256(RNG_SECRET[key_id], purpose || ":" || entity_id)
 rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, versioniert als rng_version
 ```
 
-- `purpose` z. B. `npc-answer`, `drop`, `question-pick`, `spawn`, `match` (Sitzverteilung, Wahlen nach Zeitablauf und Bot-Wahlen einer Partie, [MATCH_RULES.md §7](MATCH_RULES.md#7-bots-und-zufall)); `entity_id` z. B. die Kampf-ID.
+- `purpose` z. B. `npc-answer`, `drop`, `question-pick`, `spawn`, `match` (Sitzverteilung und Wahlen nach Zeitablauf einer Partie, [MATCH_RULES.md §7](MATCH_RULES.md#7-zufall-und-testspieler)); `entity_id` z. B. die Kampf-ID.
 - Gespeichert werden `key_id`, `rng_version` und die gezogenen Werte im Ereignisprotokoll. Mit dem Geheimnis lässt sich jede Entscheidung exakt nachrechnen (Audit); ohne Geheimnis kann kein Spieler Ergebnisse vorhersagen.
 - Weil der Seed aus der Entitäts-ID abgeleitet ist, liefert eine wiederholte Verarbeitung (Retry, doppelter Request) **denselben** Wurf – Drops können nicht durch Wiederholen neu gewürfelt werden.
 - Kartengenerierung nutzt einen öffentlichen Welt-Seed (nicht geheim, reproduzierbar).

@@ -1,9 +1,8 @@
-import { DEFAULT_MATCH_RULES, PLAYTEST_MATCH_RULES } from '@rdw/protocol';
+import { DEFAULT_MATCH_RULES, matchRulesForSeats, PLAYTEST_MATCH_RULES } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   applyMatchInput,
   autoPickRegion,
-  chooseRegionForBot,
   createMatch,
   createRng,
   currentChooser,
@@ -25,6 +24,7 @@ import {
   type MatchRegionState,
   type MatchState,
 } from '../src/index.ts';
+import { chooseRegionForTestPlayer } from './match-test-players.ts';
 
 // Wendelmark-IDs, die die Tests benutzen (Reihen 4, 5, 6, 5, 4 von oben links)
 const ESCHENHAIN = 0; // oben links, Hauptstadt von Sitz 0
@@ -587,17 +587,17 @@ describe('Feldzug', () => {
   });
 });
 
-describe('Bots und Zeitablauf', () => {
+describe('Testspieler und Zeitablauf', () => {
   it('wählen in jedem Schritt eine erlaubte Region', () => {
     let state = createMatch(DEFAULT_MATCH_RULES);
     const rng = seededRng(7);
     while (state.step.kind === 'CAPITAL_PICK') {
-      const region = chooseRegionForBot(state, rng);
+      const region = chooseRegionForTestPlayer(state, rng);
       expect(legalRegions(state)).toContain(region);
       state = play(state, { kind: 'PICK_CAPITAL', seat: state.step.seat, region }).state;
     }
     const capitals = state.seats.map((s) => s.capital as number);
-    // Bots halten Abstand: mindestens drei Felder zwischen ihren Hauptstädten
+    // Testspieler halten Abstand: mindestens drei Felder zwischen ihren Hauptstädten
     for (const a of capitals)
       for (const b of capitals)
         if (a !== b) expect(regionDistance(WENDELMARK, a, b)).toBeGreaterThanOrEqual(3);
@@ -606,7 +606,7 @@ describe('Bots und Zeitablauf', () => {
       kind: 'LAND_ESTIMATES',
       answers: [0, 1, 2].map((seat) => ({ seat, ...est(String(seat), 1000) })),
     }).state;
-    const pick = chooseRegionForBot(state, rng);
+    const pick = chooseRegionForTestPlayer(state, rng);
     expect(legalRegions(state)).toContain(pick);
     expect(legalRegions(state)).toContain(autoPickRegion(state, rng));
   });
@@ -614,14 +614,110 @@ describe('Bots und Zeitablauf', () => {
   it('greifen eine Hauptstadt mit letztem Leben vor jeder anderen Region an', () => {
     const start = campaignState();
     const seats = start.seats.map((s, seat) => (seat === 2 ? { ...s, capitalHits: 2 } : s));
-    expect(chooseRegionForBot({ ...start, seats }, seededRng(1))).toBe(TANNENRUH);
+    expect(chooseRegionForTestPlayer({ ...start, seats }, seededRng(1))).toBe(TANNENRUH);
     // Sonst die wertvollste Region; eine volle Hauptstadt zählt nur halb (150 > 100)
     const fortified = start.regions.map((r, id) => (id === UFERLAND ? { ...r, value: 200 } : r));
-    expect(chooseRegionForBot({ ...start, regions: fortified }, seededRng(1))).toBe(UFERLAND);
+    expect(chooseRegionForTestPlayer({ ...start, regions: fortified }, seededRng(1))).toBe(
+      UFERLAND,
+    );
   });
 
   it('haben im Duell nichts zu wählen', () => {
     const target = play(campaignState(), { kind: 'PICK_TARGET', seat: 0, region: SALZWEIDE });
-    expect(() => chooseRegionForBot(target.state, seededRng(1))).toThrow();
+    expect(() => chooseRegionForTestPlayer(target.state, seededRng(1))).toThrow();
+  });
+});
+
+describe('Partie zu zweit', () => {
+  const TWO = matchRulesForSeats(DEFAULT_MATCH_RULES, 2);
+
+  function withTwoCapitals(): MatchState {
+    const state = play(createMatch(TWO), { kind: 'PICK_CAPITAL', seat: 0, region: ESCHENHAIN });
+    return play(state.state, { kind: 'PICK_CAPITAL', seat: 1, region: MUEHLBACH }).state;
+  }
+
+  it('beginnt nach der zweiten Hauptstadt die Landnahme mit 22 freien Regionen', () => {
+    const state = withTwoCapitals();
+    expect(state.seats).toHaveLength(2);
+    expect(state.step).toEqual({ kind: 'LAND_ESTIMATE', round: 1 });
+    expect(pendingQuestion(state)).toEqual({ type: 'ESTIMATE', seats: [0, 1] });
+    expect(freeRegions(state)).toHaveLength(22);
+  });
+
+  it('der Erste wählt zwei Regionen, der Zweite eine; die achte Runde vergibt die letzte', () => {
+    const first = play(withTwoCapitals(), {
+      kind: 'LAND_ESTIMATES',
+      answers: [
+        { seat: 0, ...est('5', 1000) },
+        { seat: 1, ...est('3', 2000) },
+      ],
+    });
+    expect(first.events).toEqual([
+      {
+        kind: 'LAND_RANKED',
+        round: 1,
+        ranking: [
+          { seat: 1, place: 1, picks: 2, distance: '3', effectiveMs: 2000 },
+          { seat: 0, place: 2, picks: 1, distance: '5', effectiveMs: 1000 },
+        ],
+      },
+    ]);
+    expect(first.state.step).toEqual({ kind: 'LAND_PICK', round: 1, queue: [1, 1, 0] });
+
+    const { state, events } = finishLandGrab(withTwoCapitals());
+    expect(events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(8);
+    expect(events.filter((e) => e.kind === 'REGION_CLAIMED')).toHaveLength(22);
+    // Runde 8 beginnt bei Sitz 1; er liegt vorn und bekommt die letzte Region
+    expect(events.filter((e) => e.kind === 'REGION_CLAIMED' && e.round === 8)).toEqual([
+      { kind: 'REGION_CLAIMED', round: 8, seat: 1, region: expect.any(Number) as number },
+    ]);
+    expect(freeRegions(state)).toEqual([]);
+    expect(state.questions).toBe(8);
+    expect(state.step).toEqual({ kind: 'CAMPAIGN_TARGET', round: 1, attacker: 0, queue: [1] });
+  });
+
+  it('im Feldzug greifen beide abwechselnd zuerst an, nach vier Runden ist Schluss', () => {
+    let { state } = finishLandGrab(withTwoCapitals());
+    const attackers: number[] = [];
+    while (state.step.kind === 'CAMPAIGN_TARGET') {
+      attackers.push(state.step.attacker);
+      state = duel(state, legalRegions(state)[0] as number, false, false).state;
+    }
+    expect(attackers).toEqual([0, 1, 1, 0, 0, 1, 1, 0]);
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' });
+    expect(state.duels).toBe(8);
+    expect(state.questions).toBe(16);
+    expect(matchStandings(state).map((s) => s.place)).toHaveLength(2);
+  });
+
+  it('nimmt der Angreifer das letzte Leben, endet die Partie sofort', () => {
+    const base = createMatch(TWO);
+    const seatOne = new Set([MUEHLBACH, FUCHSMOOR, SALZWEIDE]);
+    const start: MatchState = {
+      ...base,
+      regions: base.regions.map((r, id) => ({
+        ...r,
+        owner: seatOne.has(id) ? 1 : 0,
+        capitalOf: id === ESCHENHAIN ? 0 : id === MUEHLBACH ? 1 : null,
+        value: id === ESCHENHAIN || id === MUEHLBACH ? 300 : 100,
+      })),
+      seats: [
+        { ...(base.seats[0] as MatchState['seats'][number]), capital: ESCHENHAIN },
+        { ...(base.seats[1] as MatchState['seats'][number]), capital: MUEHLBACH, capitalHits: 2 },
+      ],
+      step: { kind: 'CAMPAIGN_TARGET', round: 2, attacker: 0, queue: [] },
+    };
+    const { state, events } = duel(start, MUEHLBACH, true, false);
+    expect(events.map((e) => e.kind)).toEqual([
+      'DUEL_RESOLVED',
+      'KINGDOM_ELIMINATED',
+      'MATCH_FINISHED',
+    ]);
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'LAST_KINGDOM' });
+    expect(matchStandings(state)).toMatchObject([
+      // Eschenhain und die eroberte Mühlbach je 300, dazu 22 gewöhnliche Regionen
+      { seat: 0, place: 1, points: 2 * 300 + 22 * 100, eliminated: false },
+      { seat: 1, place: 2, points: 0, eliminated: true },
+    ]);
   });
 });

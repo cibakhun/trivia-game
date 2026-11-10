@@ -416,6 +416,18 @@ export function legalRegions(state: MatchState): number[] {
 }
 
 /**
+ * Wahl nach Zeitablauf: eine zufällige wählbare Region (Strom `match`). Bewusst ohne Strategie,
+ * damit Abwarten keinen Vorteil bringt.
+ */
+export function autoPickRegion(state: MatchState, rng: Rng): number {
+  const options = legalRegions(state);
+  const choice = options[rng.nextUint32() % options.length];
+  if (choice === undefined)
+    throw new Error(`Im Schritt ${state.step.kind} gibt es nichts zu wählen`);
+  return choice;
+}
+
+/**
  * Endstand: Punkte absteigend; ein ausgeschiedenes Reich liegt hinter jedem lebenden, ein später
  * ausgeschiedenes vor einem früher ausgeschiedenen; dann mehr Regionen, dann mehr Hauptstadtleben.
  * Wer in allem gleich liegt, teilt sich den Platz.

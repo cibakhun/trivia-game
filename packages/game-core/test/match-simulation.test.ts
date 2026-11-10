@@ -1,9 +1,8 @@
-import { DEFAULT_MATCH_RULES } from '@rdw/protocol';
+import { DEFAULT_MATCH_RULES, matchRulesForSeats, type MatchRules } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   applyMatchInput,
   autoPickRegion,
-  chooseRegionForBot,
   createMatch,
   createRng,
   currentChooser,
@@ -12,14 +11,12 @@ import {
   freeRegions,
   generateNpcAnswer,
   generateNpcEstimate,
-  MATCH_BOT_PROFILES,
-  MATCH_BOT_STRENGTHS,
   matchPhase,
   matchStandings,
   pendingQuestion,
   regionsOf,
   scoreEstimate,
-  type MatchBotStrength,
+  WENDELMARK,
   type MatchEstimateAnswer,
   type MatchEvent,
   type MatchInput,
@@ -27,21 +24,43 @@ import {
   type NpcEstimateSpec,
   type Rng,
 } from '../src/index.ts';
+import {
+  chooseRegionForTestPlayer,
+  TEST_PLAYER_PROFILES,
+  TEST_PLAYER_STRENGTHS,
+  type TestPlayerStrength,
+} from './match-test-players.ts';
 
 /**
- * Simulation von 1 000 Bot-Partien (Abnahme M1, docs/MATCH_RULES.md §9): Nach jedem Schritt gelten
- * die Invarianten, jede Partie endet, die Punkte stimmen, und keine Partie braucht mehr Fragen
- * oder Zeit als geplant. Ein Teil der Sitze verpasst Fragen und Wahlen wie ein Mensch, der nicht
- * rechtzeitig antwortet.
+ * Simulation von je 1 000 Partien zu dritt und zu zweit mit Testspielern (Abnahme M1,
+ * docs/MATCH_RULES.md §9): Nach jedem Schritt gelten die Invarianten, jede Partie endet, die
+ * Punkte stimmen, und keine Partie braucht mehr Fragen oder Zeit als geplant. Sitz 0 verpasst
+ * Fragen und Wahlen wie ein Mensch, der nicht rechtzeitig antwortet.
  */
 
 const MATCHES = 1000;
-const RULES = DEFAULT_MATCH_RULES;
-const { timers } = RULES;
-/** Plan: 7 Schätzfragen + 12 Wissensfragen + bis zu 12 Schätzfragen bei Gleichstand. */
-const MAX_QUESTIONS = 31;
-/** Plan: unter 18 Minuten, auch wenn jeder Timer voll ausläuft. */
-const MAX_DURATION_MS = 18 * 60_000;
+
+interface Plan {
+  readonly rules: MatchRules;
+  /** Schätzfragen der Landnahme. */
+  readonly landRounds: number;
+  /** Landnahme + Wissensfrage je Duell + Schätzfrage bei Gleichstand in jedem Duell. */
+  readonly maxQuestions: number;
+  /** Obergrenze, auch wenn jeder Timer voll ausläuft. */
+  readonly maxDurationMs: number;
+}
+
+const PLANS: readonly Plan[] = [
+  // 21 freie Regionen bei 2 + 1 Wahlen: 7 Runden; 4 · 3 = 12 Duelle; unter 18 Minuten
+  { rules: DEFAULT_MATCH_RULES, landRounds: 7, maxQuestions: 31, maxDurationMs: 18 * 60_000 },
+  // 22 freie Regionen bei 2 + 1 Wahlen: 7 volle Runden und eine achte; 4 · 2 = 8 Duelle
+  {
+    rules: matchRulesForSeats(DEFAULT_MATCH_RULES, 2),
+    landRounds: 8,
+    maxQuestions: 24,
+    maxDurationMs: 15 * 60_000,
+  },
+];
 
 function seededRng(i: number, salt: number): Rng {
   const seed = new Uint8Array(16);
@@ -74,30 +93,31 @@ function randomEstimateSpec(rng: Rng): NpcEstimateSpec {
       };
 }
 
-function scoreBot(
+function scoreEstimateOf(
   rng: Rng,
-  strength: MatchBotStrength,
+  strength: TestPlayerStrength,
   spec: NpcEstimateSpec,
   missed: boolean,
+  timeLimitMs: number,
 ): MatchEstimateAnswer {
   // Gezogen wird immer, damit ein verpasster Schritt die Folge der anderen nicht verschiebt.
-  const answer = generateNpcEstimate(rng, MATCH_BOT_PROFILES[strength], spec, timers.estimateMs);
+  const answer = generateNpcEstimate(rng, TEST_PLAYER_PROFILES[strength], spec, timeLimitMs);
   if (missed) return { distance: null, effectiveMs: null };
   const scored = scoreEstimate(formatDecimal(answer.estimate), spec);
-  if (!scored.ok) throw new Error('Bot-Schätzung außerhalb des Bereichs');
+  if (!scored.ok) throw new Error('Schätzung außerhalb des Bereichs');
   return { distance: scored.distance, effectiveMs: answer.estimateMs };
 }
 
 interface Simulated {
   readonly state: MatchState;
   readonly events: readonly MatchEvent[];
-  readonly strengths: readonly MatchBotStrength[];
+  readonly strengths: readonly TestPlayerStrength[];
   readonly durationMs: number;
   readonly steps: number;
 }
 
-function checkInvariants(state: MatchState, capitals: ReadonlySet<number>): void {
-  const { values, capital } = RULES;
+function checkInvariants(plan: Plan, state: MatchState, capitals: ReadonlySet<number>): void {
+  const { values, capital, campaign } = state.rules;
   state.regions.forEach((r, id) => {
     if (r.owner !== null && !(r.owner >= 0 && r.owner < state.seats.length)) {
       throw new Error(`Region ${id}: unbekannter Besitzer ${r.owner}`);
@@ -129,24 +149,28 @@ function checkInvariants(state: MatchState, capitals: ReadonlySet<number>): void
   }
   // Während der Schätzfrage eines Duells ist dessen Wissensfrage schon gezählt
   const openDuel = state.step.kind === 'DUEL_ESTIMATE' ? 1 : 0;
-  if (state.questions > 7 + 2 * (state.duels + openDuel))
+  if (state.questions > plan.landRounds + 2 * (state.duels + openDuel))
     throw new Error('Mehr Fragen als möglich');
-  if (state.duels > RULES.campaign.rounds * RULES.seats) throw new Error('Zu viele Duelle');
+  if (state.duels > campaign.rounds * state.seats.length) throw new Error('Zu viele Duelle');
 }
 
-function simulate(index: number): Simulated {
-  const choices = seededRng(index, 1); // Strom `match`: Stärken, Zeitabläufe, Bot-Wahlen
-  const answers = seededRng(index, 2); // Strom `npc-answer`
+function simulate(plan: Plan, index: number): Simulated {
+  const { rules } = plan;
+  const { timers } = rules;
+  const choices = seededRng(index, 1); // Wie Strom `match`: Stärken, Zeitabläufe, Wahlen
+  const answers = seededRng(index, 2); // Wie Strom `npc-answer`
   const questions = seededRng(index, 3); // Fragen
-  const strengths = [0, 1, 2].map(
+  const strengths = Array.from(
+    { length: rules.seats },
     () =>
-      MATCH_BOT_STRENGTHS[choices.nextUint32() % MATCH_BOT_STRENGTHS.length] as MatchBotStrength,
+      TEST_PLAYER_STRENGTHS[
+        choices.nextUint32() % TEST_PLAYER_STRENGTHS.length
+      ] as TestPlayerStrength,
   );
   // Sitz 0 spielt wie ein Mensch, der manchmal nicht rechtzeitig antwortet oder wählt
-  const missRate = [0.15, 0, 0];
-  const missed = (seat: number) => choices.nextFloat() < (missRate[seat] ?? 0);
+  const missed = (seat: number) => choices.nextFloat() < (seat === 0 ? 0.15 : 0);
 
-  let state = createMatch(RULES);
+  let state = createMatch(rules);
   const events: MatchEvent[] = [];
   const capitals = new Set<number>();
   let durationMs = 0;
@@ -165,7 +189,7 @@ function simulate(index: number): Simulated {
         const seat = currentChooser(state) as number;
         const region = missed(seat)
           ? autoPickRegion(state, choices)
-          : chooseRegionForBot(state, choices);
+          : chooseRegionForTestPlayer(state, choices);
         const kind =
           step.kind === 'CAPITAL_PICK'
             ? 'PICK_CAPITAL'
@@ -184,7 +208,13 @@ function simulate(index: number): Simulated {
           kind: 'LAND_ESTIMATES',
           answers: seats.map((seat) => ({
             seat,
-            ...scoreBot(answers, strengths[seat] as MatchBotStrength, spec, missed(seat)),
+            ...scoreEstimateOf(
+              answers,
+              strengths[seat] as TestPlayerStrength,
+              spec,
+              missed(seat),
+              timers.estimateMs,
+            ),
           })),
         };
         durationMs += timers.estimateMs + timers.revealMs;
@@ -198,7 +228,7 @@ function simulate(index: number): Simulated {
         const answer = (seat: number) => {
           const a = generateNpcAnswer(
             answers,
-            MATCH_BOT_PROFILES[strengths[seat] as MatchBotStrength],
+            TEST_PLAYER_PROFILES[strengths[seat] as TestPlayerStrength],
             {
               triviaB,
               wrongOptionCount: 3,
@@ -207,7 +237,7 @@ function simulate(index: number): Simulated {
             },
           );
           const scored = scoreEstimate(formatDecimal(a.estimate), spec);
-          if (!scored.ok) throw new Error('Bot-Schätzung außerhalb des Bereichs');
+          if (!scored.ok) throw new Error('Schätzung außerhalb des Bereichs');
           const miss = missed(seat);
           return {
             correct: a.triviaCorrect && !miss,
@@ -239,90 +269,95 @@ function simulate(index: number): Simulated {
     if (!result.ok) throw new Error(`Partie ${index}, ${step.kind}: ${result.error}`);
     state = result.state;
     events.push(...result.events);
-    checkInvariants(state, capitals);
+    checkInvariants(plan, state, capitals);
   }
   return { state, events, strengths, durationMs, steps };
 }
 
-describe(`Simulation von ${MATCHES} Bot-Partien`, () => {
-  const runs = Array.from({ length: MATCHES }, (_, i) => simulate(i));
+for (const plan of PLANS) {
+  const { seats } = plan.rules;
+  const claimed = WENDELMARK.regions.length - seats;
 
-  it('jede Partie endet regelgerecht und in der geplanten Länge', () => {
-    for (const run of runs) {
-      const { state, events } = run;
-      expect(state.step.kind).toBe('FINISHED');
-      expect(state.questions).toBeLessThanOrEqual(MAX_QUESTIONS);
-      expect(state.duels).toBeLessThanOrEqual(12);
-      expect(run.durationMs).toBeLessThanOrEqual(MAX_DURATION_MS);
-      expect(events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(7);
-      expect(events.filter((e) => e.kind === 'REGION_CLAIMED')).toHaveLength(21);
-    }
-  });
+  describe(`Simulation von ${MATCHES} Partien mit ${seats} Spielern`, () => {
+    const runs = Array.from({ length: MATCHES }, (_, i) => simulate(plan, i));
 
-  it('die Punkte sind die Summe der Regionswerte, der Endstand ist stimmig', () => {
-    for (const { state, events } of runs) {
-      const standings = matchStandings(state);
-      const finished = events.at(-1);
-      expect(finished).toEqual({
-        kind: 'MATCH_FINISHED',
-        reason: (state.step as { reason: string }).reason,
-        standings,
-      });
-      const total = state.regions.reduce((sum, r) => sum + r.value, 0);
-      expect(standings.reduce((sum, s) => sum + s.points, 0)).toBe(total);
-      expect(standings.some((s) => s.place === 1)).toBe(true);
-      for (const s of standings) {
-        if (s.eliminated) expect(s.points).toBe(0);
-        expect(s.place).toBeGreaterThanOrEqual(1);
-        expect(s.place).toBeLessThanOrEqual(3);
+    it('jede Partie endet regelgerecht und in der geplanten Länge', () => {
+      for (const run of runs) {
+        const { state, events } = run;
+        expect(state.step.kind).toBe('FINISHED');
+        expect(state.questions).toBeLessThanOrEqual(plan.maxQuestions);
+        expect(state.duels).toBeLessThanOrEqual(plan.rules.campaign.rounds * seats);
+        expect(run.durationMs).toBeLessThanOrEqual(plan.maxDurationMs);
+        expect(events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(plan.landRounds);
+        expect(events.filter((e) => e.kind === 'REGION_CLAIMED')).toHaveLength(claimed);
       }
-    }
-  });
+    });
 
-  it('übernimmt Reiche und befestigt Regionen in nennenswerter Zahl', () => {
-    const takeovers = runs.filter((r) =>
-      r.events.some((e) => e.kind === 'KINGDOM_ELIMINATED'),
-    ).length;
-    const lastKingdom = runs.filter(
-      (r) => r.state.step.kind === 'FINISHED' && r.state.step.reason === 'LAST_KINGDOM',
-    ).length;
-    const fortified = runs.reduce(
-      (n, r) =>
-        n + r.events.filter((e) => e.kind === 'DUEL_RESOLVED' && e.effect === 'FORTIFIED').length,
-      0,
-    );
-    const estimates = runs.reduce(
-      (n, r) =>
-        n +
-        r.events.filter(
-          (e) => e.kind === 'DUEL_RESOLVED' && (e.reason === 'ESTIMATE' || e.reason === 'SPEED'),
-        ).length,
-      0,
-    );
-    expect(takeovers).toBeGreaterThan(0);
-    expect(lastKingdom).toBeLessThan(takeovers + 1);
-    expect(fortified).toBeGreaterThan(MATCHES);
-    expect(estimates).toBeGreaterThan(MATCHES);
-  });
-
-  it('stärkere Bots gewinnen öfter', () => {
-    const wins = { EASY: 0, MEDIUM: 0, HARD: 0 };
-    const seats = { EASY: 0, MEDIUM: 0, HARD: 0 };
-    for (const run of runs) {
-      for (const s of matchStandings(run.state)) {
-        const strength = run.strengths[s.seat] as MatchBotStrength;
-        seats[strength] += 1;
-        if (s.place === 1) wins[strength] += 1;
+    it('die Punkte sind die Summe der Regionswerte, der Endstand ist stimmig', () => {
+      for (const { state, events } of runs) {
+        const standings = matchStandings(state);
+        const finished = events.at(-1);
+        expect(finished).toEqual({
+          kind: 'MATCH_FINISHED',
+          reason: (state.step as { reason: string }).reason,
+          standings,
+        });
+        const total = state.regions.reduce((sum, r) => sum + r.value, 0);
+        expect(standings.reduce((sum, s) => sum + s.points, 0)).toBe(total);
+        expect(standings.some((s) => s.place === 1)).toBe(true);
+        for (const s of standings) {
+          if (s.eliminated) expect(s.points).toBe(0);
+          expect(s.place).toBeGreaterThanOrEqual(1);
+          expect(s.place).toBeLessThanOrEqual(seats);
+        }
       }
-    }
-    const rate = (k: MatchBotStrength) => wins[k] / seats[k];
-    expect(rate('HARD')).toBeGreaterThan(rate('MEDIUM'));
-    expect(rate('MEDIUM')).toBeGreaterThan(rate('EASY'));
-  });
+    });
 
-  it('ist mit denselben Strömen bitgleich wiederholbar', () => {
-    const again = simulate(17);
-    expect(again.events).toEqual(runs[17]?.events);
-    expect(again.state).toEqual(runs[17]?.state);
+    it('übernimmt Reiche und befestigt Regionen in nennenswerter Zahl', () => {
+      const takeovers = runs.filter((r) =>
+        r.events.some((e) => e.kind === 'KINGDOM_ELIMINATED'),
+      ).length;
+      const lastKingdom = runs.filter(
+        (r) => r.state.step.kind === 'FINISHED' && r.state.step.reason === 'LAST_KINGDOM',
+      ).length;
+      const fortified = runs.reduce(
+        (n, r) =>
+          n + r.events.filter((e) => e.kind === 'DUEL_RESOLVED' && e.effect === 'FORTIFIED').length,
+        0,
+      );
+      const estimates = runs.reduce(
+        (n, r) =>
+          n +
+          r.events.filter(
+            (e) => e.kind === 'DUEL_RESOLVED' && (e.reason === 'ESTIMATE' || e.reason === 'SPEED'),
+          ).length,
+        0,
+      );
+      expect(takeovers).toBeGreaterThan(0);
+      expect(lastKingdom).toBeLessThan(takeovers + 1);
+      expect(fortified).toBeGreaterThan(MATCHES);
+      expect(estimates).toBeGreaterThan(MATCHES);
+    });
+
+    it('stärkere Testspieler gewinnen öfter', () => {
+      const wins = { EASY: 0, MEDIUM: 0, HARD: 0 };
+      const played = { EASY: 0, MEDIUM: 0, HARD: 0 };
+      for (const run of runs) {
+        for (const s of matchStandings(run.state)) {
+          const strength = run.strengths[s.seat] as TestPlayerStrength;
+          played[strength] += 1;
+          if (s.place === 1) wins[strength] += 1;
+        }
+      }
+      const rate = (k: TestPlayerStrength) => wins[k] / played[k];
+      expect(rate('HARD')).toBeGreaterThan(rate('MEDIUM'));
+      expect(rate('MEDIUM')).toBeGreaterThan(rate('EASY'));
+    });
+
+    it('ist mit denselben Strömen bitgleich wiederholbar', () => {
+      const again = simulate(plan, 17);
+      expect(again.events).toEqual(runs[17]?.events);
+      expect(again.state).toEqual(runs[17]?.state);
+    });
   });
-});
+}

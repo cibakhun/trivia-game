@@ -22,8 +22,11 @@ export const matchRulesSchema = z
   .object({
     schemaVersion: z.literal(1),
     map: matchMapIdSchema,
-    /** Reiche je Partie; freie Plätze füllen Bots. Die Karte ist auf drei ausgelegt. */
-    seats: z.literal(3),
+    /**
+     * Spieler je Partie, nur Menschen (keine Bots, PO 2026-11-10, ADR-048). Die Wendelmark trägt
+     * zwei oder drei Reiche.
+     */
+    seats: z.union([z.literal(2), z.literal(3)]),
     capital: z
       .object({
         /** Leben der Hauptstadt; der Sieg, der das letzte nimmt, übernimmt das Reich (ADR-037). */
@@ -99,7 +102,10 @@ export const matchRulesSchema = z
   });
 export type MatchRules = z.infer<typeof matchRulesSchema>;
 
-/** Standardwerte aus dem Plan vom 2026-11-10 (ADR-047), nach dem ersten Spieltest nachjustieren. */
+/**
+ * Standardwerte aus dem Plan vom 2026-11-10 für drei Spieler (ADR-047); für zwei über
+ * `matchRulesForSeats`. Nach dem ersten Spieltest nachjustieren.
+ */
 export const DEFAULT_MATCH_RULES: MatchRules = Object.freeze({
   schemaVersion: 1,
   map: 'WENDELMARK',
@@ -116,6 +122,21 @@ export const DEFAULT_MATCH_RULES: MatchRules = Object.freeze({
     latencyAllowanceCapMs: 500,
   },
 });
+
+export const MATCH_SEAT_COUNTS = [2, 3] as const;
+export type MatchSeatCount = (typeof MATCH_SEAT_COUNTS)[number];
+
+/**
+ * Landnahme-Wahlen je Spielerzahl [E]: zu dritt 2, 1, 0; zu zweit 2, 1 (auf der Wendelmark sieben
+ * volle Runden und eine achte mit der letzten Region).
+ */
+export const LAND_GRAB_PICKS_BY_SEATS: Readonly<Record<MatchSeatCount, readonly number[]>> =
+  Object.freeze({ 2: [2, 1], 3: [2, 1, 0] });
+
+/** Regeln für eine Partie mit `seats` Spielern: Spielerzahl und Landnahme-Wahlen ersetzt. */
+export function matchRulesForSeats(rules: MatchRules, seats: MatchSeatCount): MatchRules {
+  return { ...rules, seats, landGrab: { picksByPlace: [...LAND_GRAB_PICKS_BY_SEATS[seats]] } };
+}
 
 /** Verkürzte Zeiten für Tests und schnelle Spieltests; Regeln sonst gleich. */
 export const PLAYTEST_MATCH_RULES: MatchRules = Object.freeze({

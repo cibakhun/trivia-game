@@ -13,8 +13,7 @@
 export const RNG_VERSION = 1;
 
 /**
- * `match`: Sitzverteilung, Wahlen nach Zeitablauf und Bot-Entscheidungen einer Partie
- * (docs/MATCH_RULES.md §7); die Bot-Antworten kommen wie im PvE aus `npc-answer`.
+ * `match`: Sitzverteilung und Wahlen nach Zeitablauf einer Partie (docs/MATCH_RULES.md §7).
  */
 export const RNG_PURPOSES = ['npc-answer', 'drop', 'question-pick', 'spawn', 'match'] as const;
 export type RngPurpose = (typeof RNG_PURPOSES)[number];
