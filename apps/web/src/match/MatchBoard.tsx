@@ -3,6 +3,7 @@ import { DEFAULT_MATCH_RULES } from '@rdw/protocol';
 import type { MatchMap } from '@rdw/game-core';
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { ArtDefs, symbolRef, type SymbolId } from '../art/ArtDefs.tsx';
+import { attackArrow, attackSource, type ArrowShape } from '../art/attack.ts';
 import { mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
@@ -83,6 +84,20 @@ export function MatchBoard({
   }
 
   const contestedArt = contested === null ? null : art.regions[contested];
+  const attacker = board.step.attacker;
+  const arrow = useMemo(() => {
+    if (contested === null || attacker === null) return null;
+    const from = attackSource(
+      map,
+      {
+        owner: board.regions.map((r) => r.owner),
+        capital: board.regions.findIndex((r) => r.capitalOf === attacker),
+      },
+      attacker,
+      contested,
+    );
+    return from === null ? null : attackArrow(art, from, contested);
+  }, [art, map, board.regions, attacker, contested]);
   const hotArt = hot !== null && choosable.has(hot) ? art.regions[hot] : undefined;
 
   return (
@@ -218,6 +233,7 @@ export function MatchBoard({
                 state.capitalOf === null ? 0 : (board.seats[state.capitalOf]?.capitalLivesLeft ?? 0)
               }
               maxLives={maxLives}
+              contested={contested === region.id}
               settled={settled}
               size={s}
             />
@@ -232,7 +248,16 @@ export function MatchBoard({
             <path key={region.id} d={region.d} className="legal-ring" />
           ))}
         {hotArt ? <path d={hotArt.d} className="hot-ring" /> : null}
-        {contestedArt ? <Contested prefix={prefix} region={contestedArt} size={s} /> : null}
+        {contestedArt ? (
+          <Contested
+            prefix={prefix}
+            region={contestedArt}
+            arrow={arrow}
+            attacker={attacker}
+            settled={settled}
+            size={s}
+          />
+        ) : null}
       </g>
 
       <Compass art={art} />
@@ -249,6 +274,7 @@ function RegionArt({
   capitalOf,
   lives,
   maxLives,
+  contested,
   settled,
   size: s,
 }: {
@@ -259,6 +285,8 @@ function RegionArt({
   readonly capitalOf: number | null;
   readonly lives: number;
   readonly maxLives: number;
+  /** Umkämpft: Das obere Motiv weicht dem Angriffspfeil. */
+  readonly contested: boolean;
   readonly settled: boolean;
   readonly size: number;
 }) {
@@ -279,7 +307,7 @@ function RegionArt({
   return (
     <g className={`region-label${owner === null ? ' free' : ` seat-${owner}`}`}>
       {region.decor
-        .filter((d) => !capital || d.slot === 'side')
+        .filter((d) => (!capital && !contested) || d.slot === 'side')
         .map((d, i) => (
           <use
             key={i}
@@ -346,25 +374,43 @@ function RegionArt({
 function Contested({
   prefix,
   region,
+  arrow,
+  attacker,
+  settled,
   size: s,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
+  readonly arrow: ArrowShape | null;
+  readonly attacker: number | null;
+  readonly settled: boolean;
   readonly size: number;
 }) {
-  const x = region.cx;
-  const y = region.cy - 0.62 * s;
+  // Siegel auf der Grenze zwischen Angreifer und Ziel, sonst oben rechts neben dem Namen
+  const x = arrow ? arrow.mid.x : region.cx + 0.55 * s;
+  const y = arrow ? arrow.mid.y : region.cy - 0.55 * s;
   return (
     <g className="contested-mark">
       <path d={region.d} className="contested-ring" />
-      <circle cx={x} cy={y} r={0.23 * s} className="contested-seal" />
+      {arrow && attacker !== null ? (
+        <g
+          key={arrow.d}
+          className={`attack-arrow seat-${attacker}${settled ? ' draw' : ''}`}
+          style={{ ['--arrow' as string]: `var(--seat-${attacker})` }}
+        >
+          <path d={arrow.d} pathLength={1} className="arrow-ink" />
+          <path d={arrow.d} pathLength={1} className="arrow-shaft" />
+          <path d={arrow.head} className="arrow-head" />
+        </g>
+      ) : null}
+      <circle cx={x} cy={y} r={0.18 * s} className="contested-seal" />
       <g className="swords">
         <use
           href={symbolRef(prefix, 'swords')}
-          x={x - 0.2 * s}
-          y={y - 0.2 * s}
-          width={0.4 * s}
-          height={0.4 * s}
+          x={x - 0.15 * s}
+          y={y - 0.15 * s}
+          width={0.3 * s}
+          height={0.3 * s}
         />
       </g>
     </g>

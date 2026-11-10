@@ -1,6 +1,6 @@
 # Gestaltung: „Alte Landkarte“
 
-Stilleitfaden für das Aussehen von Reiche des Wissens (ADR-051). Vorbild ist nur der Ablauf des Genres; Name, Karte, Grafik und Look sind eigen (ADR-046). Herkunft und Lizenz jedes Bausteins stehen in [ASSETS.md](ASSETS.md).
+Stilleitfaden für das Aussehen von Reiche des Wissens (ADR-051, angenommen 2026-11-10). Vorbild ist nur der Ablauf des Genres; Name, Karte, Grafik und Look sind eigen (ADR-046). Herkunft und Lizenz jedes Bausteins stehen in [ASSETS.md](ASSETS.md).
 
 ## 1. Look
 
@@ -61,7 +61,8 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern: genau die Nachbarn der Reg
 | Hauptstadt getroffen | Die Burg wackelt, ein Schild kippt weg |
 | Du bist dran | Goldenes Band „Du bist dran!“ über der Karte (1,8 s), die Karte der Anweisung leuchtet |
 | Wählbare Regionen | Goldener, laufender Strichrand und sanftes Leuchten |
-| Duell | Rot pulsierender Rand und gekreuzte Schwerter über der umkämpften Region |
+| Duell | Rot pulsierender Rand um die umkämpfte Region; ein Pfeil in der Farbe des Angreifers zeichnet sich aus seiner angrenzenden Region (nahe seiner Hauptstadt) hinein, das Siegel mit gekreuzten Schwertern sitzt auf der Grenze. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
+| Große Momente | Band über der Karte (1,8 s): „Die Landnahme beginnt“, „Der Feldzug beginnt“, „Runde 2 von 4“ (letzte Runde mit Hinweis), Tintenband; „Ein Reich fällt!“ in der Farbe und mit dem Wappen des Siegers. Ankündigungen erst, wenn gewählt wird; mehrere nacheinander; auf schmalen Bildschirmen mitten im Bild |
 | Punkte ändern sich | Die Zahl zählt hoch (0,7 s) |
 | Auflösung | Die Karte rollt sich auf, die richtige Antwort leuchtet grün, Zeilen erscheinen nacheinander |
 | Sieg | Lorbeerkranz mit Krone und kreisendem Strahlenkranz |
@@ -71,6 +72,14 @@ Regeln:
 - **Keine Bewegung, solange die Zeit einer Frage läuft** (ARCHITECTURE §15): Frage und Antworten stehen sofort da, und die Dauerbewegungen der Karte ruhen.
 - Beim ersten Aufbau einer Seite laufen keine Änderungsanimationen, nur bei echten Änderungen.
 - „Bewegung reduzieren“ im System schaltet alle Animationen ab (CSS `prefers-reduced-motion`, auch die Zählanimation).
+
+## 5a. Klänge
+
+Elf kurze Klänge, im Browser erzeugt (Web Audio, keine Dateien, `apps/web/src/audio/sound.ts`, Liste in [ASSETS.md](ASSETS.md)): Horn, Federstrich, Holzklick, Glocke, dumpfer Schlag, Trommel, Schildklang, Donner, fallende Folge, Fanfare. Regeln:
+
+- Schalter „Ton“ in der Kopfzeile der Partie; die Wahl bleibt im Browser gespeichert, Standard ist an.
+- Ton erst nach der ersten Berührung oder Taste (Regel der Browser), nichts beim ersten Aufbau einer Seite.
+- Während einer laufenden Frage nur der Klick der eigenen Antwort; Ergebnis und Folgen klingen in der Auflösung, die eigene Antwort zuerst, die Folge des Duells kurz danach.
 
 ## 6. Bausteine im Code
 
@@ -82,12 +91,14 @@ Regeln:
 | `apps/web/src/art/ArtDefs.tsx` | Motive als SVG-Symbole, Wappenmuster, Papierfilter |
 | `apps/web/src/art/map-art.css` | Aussehen und Bewegungen der Karte |
 | `apps/web/src/art/SeatCrest.tsx`, `LifeShields.tsx`, `Emblem.tsx`, `HeroMap.tsx`, `CountUp.tsx` | Wappen je Sitz, Hauptstadtleben als Schilde (Spielstand und Abrechnung), Spielwappen, Kartenbild der Startseite, zählende Zahlen |
-| `apps/web/src/match/MatchBoard.tsx` | Karte der Partie mit Bedienung |
+| `apps/web/src/match/MatchBoard.tsx`, `art/attack.ts` | Karte der Partie mit Bedienung, Angriffspfeil |
+| `apps/web/src/match/moments.ts`, `useMoments.ts`, `DuelHeader.tsx` | Große Momente als Band, Fragekopf im Duell |
+| `apps/web/src/audio/sound.ts`, `match/sound-cues.ts`, `components/SoundToggle.tsx` | Klänge, ihre Anlässe, Ton-Schalter |
+| `apps/web/src/art/Icons.tsx`, `match/LobbyPanel.tsx` | Tuschezeichen der Partie-Seite, Aufstellung mit Code-Plättchen und Platzschilden |
 
 Neue Grafik entsteht als SVG im Code oder als Datei mit Eintrag in [ASSETS.md](ASSETS.md). Farben nur über Tokens, Bewegungen mit Abschaltung bei „Bewegung reduzieren“.
 
 ## 7. Nächste Schritte
 
-- Klänge (selbst erzeugt per Web Audio, abschaltbar).
-- Eternal-Karte (PixiJS) im selben Stil.
+- Eternal-Karte (PixiJS) im selben Stil, sobald Eternal weitergeht (ruht seit 2026-11-10).
 - Weitere Partiekarten: brauchen nur neue Felder und Namen, die Grafik entsteht automatisch.

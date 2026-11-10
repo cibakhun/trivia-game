@@ -30,11 +30,26 @@ Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext;
 | Spielwappen (Schild, Buch, Krone) | `apps/web/src/art/Emblem.tsx` | eigene Zeichnung |
 | Lorbeerkranz der Siegerseite | `apps/web/src/match/ResultPanel.tsx` | eigene Zeichnung |
 | Papierkorn des Hintergrunds | `apps/web/src/theme.css` (SVG-Rauschfilter) | eigenes Verfahren |
-| Zierzeichen ❦ ❧ ⚑ ✓ | Unicode-Zeichen aus der Schrift | Teil der Schriften bzw. Systemschrift |
+| Angriffspfeil, Duellsiegel, Schwerter im Fragekopf | `apps/web/src/art/attack.ts`, `art/Swords.tsx`, `match/MatchBoard.tsx` | eigene Zeichnungen |
+| Tuschezeichen Banner, Schlüssel, Übungsscheibe, Schriftrolle | `apps/web/src/art/Icons.tsx` | eigene Zeichnungen |
+| Schilde der Plätze in der Aufstellung, Lautsprecher am Ton-Schalter | `apps/web/src/match/LobbyPanel.tsx`, `components/SoundToggle.tsx` | eigene Zeichnungen |
+| Zierzeichen ❦ ❧ ✓ | Unicode-Zeichen aus der Schrift | Teil der Schriften bzw. Systemschrift |
 
 ## Klänge
 
-Noch keine. Geplant: selbst erzeugt per Web Audio im Browser (ART_DIRECTION §7).
+Alle Klänge entstehen beim Spielen im Browser (Web Audio: Oszillatoren, gefiltertes Rauschen mit festem Startwert), es gibt keine Tondateien. Rezepte in `apps/web/src/audio/sound.ts`, eigene Werke.
+
+| Klang | Anlass |
+|---|---|
+| Horn (zwei Töne) | Du bist dran |
+| Federstrich | Eine Region oder Hauptstadt wird gewählt |
+| Holzklick | Eigene Antwort abgegeben |
+| Glocke (Dreiklang) / dumpfer Schlag | Eigene Antwort richtig / falsch |
+| Trommel mit steigendem Dreiklang | Region erobert |
+| Schildklang | Region gehalten (befestigt) |
+| Donner | Treffer auf eine Hauptstadt |
+| fallende Moll-Folge | Ein Reich fällt |
+| Fanfare / leise fallende Folge | Sieg / anderer Platz |
 
 ## Bibliotheken mit sichtbarem Anteil
 

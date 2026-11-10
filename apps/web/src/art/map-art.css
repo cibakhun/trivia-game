@@ -301,6 +301,38 @@
   animation: swords-clash 1.1s ease-in-out infinite;
 }
 
+/* Angriffspfeil: Tintenstrich in der Farbe des Angreifers, zeichnet sich einmal ein */
+.map-art .attack-arrow {
+  pointer-events: none;
+}
+.map-art .arrow-ink {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 8;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+.map-art .arrow-shaft {
+  fill: none;
+  stroke: var(--arrow);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+}
+.map-art .arrow-head {
+  fill: var(--arrow);
+  stroke: var(--map-ink);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.map-art .attack-arrow.draw .arrow-ink,
+.map-art .attack-arrow.draw .arrow-shaft {
+  stroke-dasharray: 1;
+  animation: arrow-draw 0.7s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+}
+.map-art .attack-arrow.draw .arrow-head {
+  animation: arrow-head 0.7s ease-out both;
+}
+
 /* Kompass und Titelschild */
 .map-art .compass-ring {
   fill: none;
@@ -381,6 +413,25 @@
   }
   to {
     clip-path: circle(75% at 50% 50%);
+    opacity: 1;
+  }
+}
+
+@keyframes arrow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes arrow-head {
+  0%,
+  70% {
+    opacity: 0;
+  }
+  100% {
     opacity: 1;
   }
 }
@@ -499,7 +550,10 @@
   .map-art .legal-ring,
   .map-art .legal-glow,
   .map-art .contested-ring,
-  .map-art .contested-mark .swords {
+  .map-art .contested-mark .swords,
+  .map-art .attack-arrow.draw .arrow-ink,
+  .map-art .attack-arrow.draw .arrow-shaft,
+  .map-art .attack-arrow.draw .arrow-head {
     animation: none;
   }
   .map-art .legal-glow {

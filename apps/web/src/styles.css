@@ -121,6 +121,76 @@ select:focus-visible {
   border-left: 4px solid var(--accent);
 }
 
+/* Duellkopf: Wappen gegeneinander, Schwerter dazwischen, ohne Bewegung (Fragezeit läuft) */
+.duel-head {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.6rem 0.75rem 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.duel-sides {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.duel-side {
+  display: grid;
+  justify-items: center;
+  gap: 0.1rem;
+  text-align: center;
+  padding: 0.3rem 0.25rem;
+  border-radius: var(--radius);
+}
+
+.duel-side.seat-0 {
+  background: color-mix(in srgb, var(--seat-0) 12%, transparent);
+}
+
+.duel-side.seat-1 {
+  background: color-mix(in srgb, var(--seat-1) 12%, transparent);
+}
+
+.duel-side.seat-2 {
+  background: color-mix(in srgb, var(--seat-2) 12%, transparent);
+}
+
+.duel-name {
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.duel-role {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.swords-icon .swords-steel {
+  fill: var(--map-steel);
+  stroke: var(--map-ink);
+}
+
+.swords-icon .swords-grip {
+  fill: var(--map-roof);
+}
+
+.duel-title {
+  margin: 0;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
 .note-error {
   border-color: var(--danger);
   color: var(--danger);
@@ -296,10 +366,103 @@ select:focus-visible {
   gap: 1rem;
 }
 
+/* Partie spielen: breiter, zwei Karten nebeneinander, Tuschezeichen an den Überschriften */
+.page-wide {
+  max-width: 920px;
+}
+
+.hub-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.hub-head h1 {
+  margin-bottom: 0.2rem;
+}
+
+.hub-head p {
+  margin: 0;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.icon-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.icon .icon-ink {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon .icon-fill {
+  fill: var(--map-roof);
+}
+
+.icon .icon-gold {
+  fill: var(--map-gold);
+}
+
+.icon .icon-paper {
+  fill: var(--map-land);
+}
+
 .page-nav {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem 1.25rem;
+}
+
+/* Ton an/aus: kleiner Knopf mit Lautsprecher, durchgestrichen wenn aus */
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 36px;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sound-toggle:hover {
+  background: var(--surface-2);
+}
+
+.sound-toggle:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sound-toggle svg .speaker {
+  fill: currentColor;
+}
+
+.sound-toggle svg .waves {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.sound-toggle[aria-pressed='false'] {
+  color: var(--muted);
 }
 
 .form {
@@ -983,6 +1146,14 @@ select:focus-visible {
   grid-template-columns: minmax(0, 1.25fr) minmax(340px, 1fr);
 }
 
+/* Untereinander liegt die Karte oft außer Sicht: Bänder dann mitten im Bildschirm */
+@media (max-width: 900px) {
+  .moment-layer {
+    position: fixed;
+    inset: 0;
+  }
+}
+
 @media (max-width: 900px) {
   .match-body,
   .match-page[data-state='finished'] .match-body {
@@ -1038,8 +1209,12 @@ select:focus-visible {
 }
 
 /* Während einer Frage ruhen die Dauerbewegungen der Karte */
+/*
+ * Während einer Frage bewegt sich auf der Karte nichts (ARCHITECTURE §15): Änderungen springen
+ * auf ihr Endbild, Dauerbewegungen stehen still.
+ */
 .match-page[data-state='question'] .map-art * {
-  animation-play-state: paused;
+  animation: none;
 }
 
 .match-panel .question {
@@ -1056,18 +1231,32 @@ select:focus-visible {
   animation: turn-glow 1.6s ease-in-out infinite;
 }
 
+/* Ebene für Bänder über der Karte: liegt im selben Rasterfeld wie die Karte */
+.moment-layer {
+  grid-area: board;
+  position: relative;
+  z-index: 5;
+  align-self: stretch;
+  pointer-events: none;
+}
+
 .turn-banner {
   position: absolute;
-  z-index: 5;
   left: 50%;
-  top: 38%;
+  top: 42%;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  max-width: min(92%, 36rem);
   pointer-events: none;
   transform: translate(-50%, -50%);
   animation: banner 1.8s ease-in-out both;
 }
 
-.turn-banner span {
-  display: block;
+.moment-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   padding: 0.6rem 2.6rem;
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 4vw, 2.6rem);
@@ -1077,6 +1266,50 @@ select:focus-visible {
   background: linear-gradient(var(--primary-top), var(--primary-bottom));
   box-shadow: var(--shadow-raised);
   clip-path: polygon(0 0, 100% 0, calc(100% - 1.2rem) 50%, 100% 100%, 0 100%, 1.2rem 50%);
+}
+
+/* Phase und Runde: dunkles Tintenband mit goldener Schrift */
+.moment-ink .moment-ribbon {
+  color: var(--primary-top);
+  background: linear-gradient(#3d2b1a, #24180c);
+}
+
+@media (prefers-color-scheme: dark) {
+  .moment-ink .moment-ribbon {
+    background: linear-gradient(#6a4c2c, #46311b);
+  }
+}
+
+/* Ein Reich fällt: Band in der Farbe des Siegers, mit dessen Wappen */
+.moment-seat .moment-ribbon {
+  color: #fff;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+}
+
+.moment-ribbon[data-seat='0'] {
+  background: var(--seat-0);
+}
+
+.moment-ribbon[data-seat='1'] {
+  background: var(--seat-1);
+}
+
+.moment-ribbon[data-seat='2'] {
+  background: var(--seat-2);
+}
+
+.moment-ribbon .crest .crest-shield {
+  stroke: #fff;
+}
+
+.moment-detail {
+  padding: 0.3rem 0.9rem;
+  border-radius: var(--radius);
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: var(--shadow-card);
 }
 
 .lobby {
@@ -1101,12 +1334,31 @@ select:focus-visible {
 }
 
 .invite-code {
-  font-size: 2.2rem;
-  letter-spacing: 0.25em;
-  padding: 0.2rem 0.4rem 0.2rem 0.65rem;
-  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  /* Plättchen bleiben Inline-Blöcke: So bleibt der Text des Codes ohne Umbrüche kopierbar */
+  font-size: 2rem;
+  line-height: 1;
+  font-family: var(--font-display);
+  font-weight: 800;
   color: var(--text);
-  border-bottom: 3px double var(--accent);
+  white-space: nowrap;
+}
+
+.invite-tile {
+  display: inline-block;
+  min-width: 1.45em;
+  margin: 0 0.08em;
+  padding: 0.22em 0.1em 0.18em;
+  border-radius: 6px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    0 2px 0 var(--border-strong),
+    0 1px 0 rgb(255 255 255 / 0.5) inset;
+}
+
+.invite-copy {
+  min-height: 36px;
 }
 
 .lobby h3 {
@@ -1114,30 +1366,61 @@ select:focus-visible {
   margin-bottom: 0;
 }
 
-.lobby-players {
-  margin: 0.3rem 0 0;
-  padding: 0;
-  list-style: none;
+/* Plätze als Schilde: belegt mit Anfangsbuchstaben, frei gestrichelt */
+.lobby-seats {
   display: grid;
-  gap: 0.35rem;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.45rem;
 }
 
-.lobby-players li {
-  padding: 0.45rem 0.7rem;
+.lobby-seats > ul {
+  display: contents;
+}
+
+.lobby-players li,
+.lobby-free li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  padding: 0.5rem 0.65rem;
   border-radius: var(--radius);
   background: var(--surface-2);
   border: 1px solid var(--border);
+}
+
+.lobby-players li {
   animation: row-in 0.35s ease-out both;
 }
 
-.lobby-players li::before {
-  content: '⚑';
-  margin-right: 0.5rem;
-  color: var(--accent);
+.lobby-free li {
+  background: transparent;
+  border-style: dashed;
+  color: var(--muted);
 }
 
-.lobby-players .badge {
-  margin-left: 0.5rem;
+.lobby-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.player-shield path {
+  fill: var(--primary-top);
+  stroke: var(--map-ink);
+  stroke-linejoin: round;
+}
+
+.player-shield text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 52px;
+  fill: var(--primary-text);
+}
+
+.player-shield.free path {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-dasharray: 10 8;
 }
 
 /* Spielstand: Wappenbanner je Sitz */

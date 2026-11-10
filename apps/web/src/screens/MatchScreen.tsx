@@ -1,7 +1,11 @@
 import type { MatchAnswerRequest, MatchView } from '@rdw/protocol';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActionKey, ApiRequestError, NetworkError, api, newActionKey } from '../api/client.ts';
+import { playSound } from '../audio/sound.ts';
 import { ErrorNote } from '../components/ErrorNote.tsx';
+import { SoundToggle } from '../components/SoundToggle.tsx';
+import { SeatCrest } from '../art/SeatCrest.tsx';
+import { DuelHeader } from '../match/DuelHeader.tsx';
 import { t } from '../i18n/i18n.ts';
 import { LobbyPanel } from '../match/LobbyPanel.tsx';
 import { MatchBoard } from '../match/MatchBoard.tsx';
@@ -17,7 +21,6 @@ import {
   logText,
   mapOfView,
   pickText,
-  questionContext,
   regionNames,
   seatNames,
   stepLabel,
@@ -25,7 +28,10 @@ import {
 import { ResultPanel } from '../match/ResultPanel.tsx';
 import { RevealPanel } from '../match/RevealPanel.tsx';
 import { SeatList } from '../match/SeatList.tsx';
+import type { Moment } from '../match/moments.ts';
 import { useMatchFeed } from '../match/useMatchFeed.ts';
+import { useMatchSounds } from '../match/useMatchSounds.ts';
+import { useMoments } from '../match/useMoments.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { QuestionPanel } from '../quiz/QuestionPanel.tsx';
 import { navigate } from '../router.ts';
@@ -107,6 +113,8 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
   const map = useMemo(() => (view ? mapOfView(view) : null), [view]);
   const name = useMemo(() => (view ? seatNames(view) : () => ''), [view]);
   const region = useMemo(() => (map ? regionNames(map) : () => ''), [map]);
+  const moment = useMoments(view, state, events, name);
+  useMatchSounds(view, state, events);
 
   async function runAction(action: () => Promise<void>) {
     setBusy(true);
@@ -166,6 +174,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
   }
 
   function answer(current: LocalQuestion, body: MatchAnswerRequest) {
+    playSound('answer');
     const markAs = (status: LocalQuestion['status']) =>
       setLocal((l) => (l && l.seq === current.seq ? { ...l, status } : l));
     void runAction(async () => {
@@ -224,6 +233,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
           ) : null}
         </div>
         <nav className="page-nav" aria-label={t('nav.label')}>
+          <SoundToggle />
           <button type="button" className="link" onClick={() => navigate({ name: 'start' })}>
             {t('nav.back')}
           </button>
@@ -241,7 +251,9 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
 
       {view?.board && map ? (
         <div className="match-body">
-          {state === 'pick' ? <TurnBanner key={view.lastEventSeq} /> : null}
+          <div className="moment-layer" aria-hidden="true">
+            {moment ? <MomentBanner key={moment.key} moment={moment} /> : null}
+          </div>
           <div className="match-panel">
             <StatePanel
               view={view}
@@ -313,8 +325,7 @@ function StatePanel({
     phaseDeadline === null ? null : (
       <Countdown deadline={phaseDeadline} totalMs={totalMs} onExpire={noop} />
     );
-  const context = questionContext(view, name, region);
-  const contextNote = context ? <p className="note">{context}</p> : null;
+  const contextNote = <DuelHeader view={view} name={name} region={region} />;
 
   switch (state) {
     case 'pick':
@@ -396,16 +407,16 @@ function StatePanel({
  * Kurzes Banner „Du bist dran!“ über der Karte, sobald dieser Sitz wählen darf. Nur Zierde: Den
  * Auftrag liest die Karte daneben vor (aria-live).
  */
-function TurnBanner() {
-  const [shown, setShown] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => setShown(false), 1800);
-    return () => clearTimeout(timer);
-  }, []);
-  if (!shown) return null;
+function MomentBanner({ moment }: { readonly moment: Moment }) {
   return (
-    <div className="turn-banner" aria-hidden="true">
-      <span>{t('match.pick.banner')}</span>
+    <div className={`turn-banner moment-${moment.tone}`}>
+      <span className="moment-ribbon" data-seat={moment.seat ?? undefined}>
+        {moment.tone === 'seat' && moment.seat !== null ? (
+          <SeatCrest seat={moment.seat} size={34} />
+        ) : null}
+        <span className="moment-title">{moment.title}</span>
+      </span>
+      {moment.detail ? <span className="moment-detail">{moment.detail}</span> : null}
     </div>
   );
 }
