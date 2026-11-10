@@ -4,6 +4,8 @@ import { buildApp } from './app.ts';
 import { parseServerConfig } from './infra/config.ts';
 import { startChallengeSweeper } from './modules/combat/sweeper.ts';
 import { startAccountCleanup } from './modules/identity/deletion.ts';
+import { matchContextFrom } from './modules/match/context.ts';
+import { startMatchDriver } from './modules/match/driver.ts';
 
 /** Startpunkt der Rolle `api` (ARCHITECTURE §5): `pnpm --filter @rdw/server start`. */
 async function main(): Promise<void> {
@@ -24,10 +26,13 @@ async function main(): Promise<void> {
   const stopSweeper = startChallengeSweeper(db, app.log);
   // Ebenso die Kontopflege: inaktive Gäste nach 90 Tagen, abgelaufene Sitzungen (ADR-045).
   const stopAccountCleanup = startAccountCleanup(db, app.log);
+  // Ablaufsteuerung der Partien: Fristen, Auflösungen, verwaiste Aufstellungen (ADR-049).
+  const stopMatchDriver = startMatchDriver(db, matchContextFrom(config), app.log);
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, 'Beende');
     stopSweeper();
     stopAccountCleanup();
+    stopMatchDriver();
     await app.close();
     await db.destroy();
   };

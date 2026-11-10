@@ -65,6 +65,17 @@ export const ERROR_CODES = [
   'INVALID_OPTION_TOKEN',
   'INVALID_NUMBER_INPUT',
   'ANSWER_OUT_OF_RANGE',
+  // Partie (API.md §2.6, MATCH_RULES)
+  'INVITE_CODE_UNKNOWN',
+  'MATCH_FULL',
+  'MATCH_NOT_IN_LOBBY',
+  'MATCH_NOT_RUNNING',
+  'ALREADY_IN_MATCH',
+  'NOT_HOST',
+  'NOT_ENOUGH_PLAYERS',
+  'TEST_MATCHES_DISABLED',
+  'NOT_YOUR_TURN',
+  'INVALID_REGION',
 ] as const;
 export const errorCodeSchema = z.enum(ERROR_CODES);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;

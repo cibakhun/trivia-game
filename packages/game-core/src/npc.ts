@@ -134,19 +134,22 @@ export function estimateSpread(
   return Math.min(Math.max(raw, p.sMin), p.sMax);
 }
 
+/** Was das Modell von einer Schätzfrage braucht. */
+export interface NpcEstimateSpec {
+  readonly answerValue: string;
+  readonly answerPrecision: number;
+  readonly inputMin: string;
+  readonly inputMax: string;
+  readonly scaleType: EstimateScaleType;
+  readonly scale: number;
+}
+
 export interface NpcQuestionSpec {
   /** Schwierigkeit `b` der Trivia-Frage (redaktionell oder kalibriert). */
   readonly triviaB: number;
   /** Zahl der falschen Optionen der Trivia-Frage (≥ 1). */
   readonly wrongOptionCount: number;
-  readonly estimate: {
-    readonly answerValue: string;
-    readonly answerPrecision: number;
-    readonly inputMin: string;
-    readonly inputMax: string;
-    readonly scaleType: EstimateScaleType;
-    readonly scale: number;
-  };
+  readonly estimate: NpcEstimateSpec;
   /** Zeitlimit der Schätzfrage in ms. */
   readonly estimateTimeLimitMs: number;
 }
@@ -169,36 +172,63 @@ export interface NpcAnswer {
   };
 }
 
+export interface NpcTrivia {
+  readonly correct: boolean;
+  /** Index der gewählten falschen Option (0 … wrongOptionCount − 1), `null` wenn richtig. */
+  readonly wrongOptionIndex: number | null;
+  readonly pCorrect: number;
+  readonly draw: number;
+}
+
 /**
- * Erzeugt die NPC-Antworten einer Herausforderung aus dem Strom `npc-answer:{challenge_id}`.
- * Ziehungen in fester Reihenfolge: Trivia (1 Wert), Schätzung (Normalverteilung, 2 Werte),
- * Zeit (Normalverteilung, 2 Werte). Die falsche Option ergibt sich ohne weitere Ziehung aus dem
- * Trivia-Wert, damit die Reihenfolge stabil bleibt.
+ * Trivia-Antwort aus dem Strom (1 Wert). Die falsche Option ergibt sich ohne weitere Ziehung aus
+ * demselben Wert. Allein genutzt für reine Wissensfragen (Duell der Partie), sonst als erster
+ * Schritt von `generateNpcAnswer`.
  */
-export function generateNpcAnswer(
+export function generateNpcTrivia(
   rng: Rng,
   profile: NpcProfile,
-  question: NpcQuestionSpec,
-  spreadParams: EstimateSpreadParams = DEFAULT_ESTIMATE_SPREAD,
-): NpcAnswer {
-  if (!Number.isInteger(question.wrongOptionCount) || question.wrongOptionCount < 1) {
+  triviaB: number,
+  wrongOptionCount: number,
+): NpcTrivia {
+  if (!Number.isInteger(wrongOptionCount) || wrongOptionCount < 1) {
     throw new RangeError('wrongOptionCount muss ≥ 1 sein');
   }
-  const { estimate: spec } = question;
-  if (!(spec.scale > 0)) throw new RangeError('estimate_scale muss positiv sein');
-
-  // 1. Trivia
-  const pCorrect = triviaProbability(profile.theta, question.triviaB);
-  const uTrivia = rng.nextFloat();
-  const triviaCorrect = uTrivia < pCorrect;
-  const wrongOptionIndex = triviaCorrect
+  const pCorrect = triviaProbability(profile.theta, triviaB);
+  const draw = rng.nextFloat();
+  const correct = draw < pCorrect;
+  const wrongOptionIndex = correct
     ? null
     : Math.min(
-        question.wrongOptionCount - 1,
-        Math.floor(((uTrivia - pCorrect) / (1 - pCorrect)) * question.wrongOptionCount),
+        wrongOptionCount - 1,
+        Math.floor(((draw - pCorrect) / (1 - pCorrect)) * wrongOptionCount),
       );
+  return { correct, wrongOptionIndex, pCorrect, draw };
+}
 
-  // 2. Schätzung
+export interface NpcEstimate {
+  /** Gerundete und begrenzte Schätzung (kanonisch über `formatDecimal`). */
+  readonly estimate: Decimal;
+  /** Antwortzeit in ms; gilt als effektive Zeit ohne Latenzausgleich. */
+  readonly estimateMs: number;
+  readonly spread: number;
+  readonly draws: { readonly estimate: number; readonly time: number };
+}
+
+/**
+ * Schätzung und Antwortzeit aus dem Strom: Schätzung (Normalverteilung, 2 Werte), dann Zeit
+ * (Normalverteilung, 2 Werte). Allein genutzt für reine Schätzfragen (Landnahme der Partie),
+ * sonst nach der Trivia-Ziehung von `generateNpcAnswer`.
+ */
+export function generateNpcEstimate(
+  rng: Rng,
+  profile: NpcProfile,
+  spec: NpcEstimateSpec,
+  timeLimitMs: number,
+  spreadParams: EstimateSpreadParams = DEFAULT_ESTIMATE_SPREAD,
+): NpcEstimate {
+  if (!(spec.scale > 0)) throw new RangeError('estimate_scale muss positiv sein');
+
   const spread = estimateSpread(profile.theta, spreadParams);
   const zEstimate = rng.nextNormal();
   const truth = decimalToNumber(parseDecimal(spec.answerValue));
@@ -221,24 +251,53 @@ export function generateNpcAnswer(
     max,
   );
 
-  // 3. Antwortzeit: log-normal um den Median, höchstens 1 s unter dem Zeitlimit
+  // Antwortzeit: log-normal um den Median, höchstens 1 s unter dem Zeitlimit
   const zTime = rng.nextNormal();
-  const upper = Math.max(0, question.estimateTimeLimitMs - 1_000);
+  const upper = Math.max(0, timeLimitMs - 1_000);
   const lower = Math.min(1_000, upper);
   const sampled = Math.round(profile.estimateMedianMs * Math.exp(zTime * profile.responseLogSigma));
   const estimateMs = Math.min(Math.max(sampled, lower), upper);
 
+  return { estimate, estimateMs, spread, draws: { estimate: zEstimate, time: zTime } };
+}
+
+/**
+ * Erzeugt die NPC-Antworten einer Herausforderung aus dem Strom `npc-answer:{challenge_id}`.
+ * Ziehungen in fester Reihenfolge: Trivia (1 Wert), Schätzung (Normalverteilung, 2 Werte),
+ * Zeit (Normalverteilung, 2 Werte). Die falsche Option ergibt sich ohne weitere Ziehung aus dem
+ * Trivia-Wert, damit die Reihenfolge stabil bleibt.
+ */
+export function generateNpcAnswer(
+  rng: Rng,
+  profile: NpcProfile,
+  question: NpcQuestionSpec,
+  spreadParams: EstimateSpreadParams = DEFAULT_ESTIMATE_SPREAD,
+): NpcAnswer {
+  if (!(question.estimate.scale > 0)) throw new RangeError('estimate_scale muss positiv sein');
+
+  // 1. Trivia
+  const trivia = generateNpcTrivia(rng, profile, question.triviaB, question.wrongOptionCount);
+
+  // 2. Schätzung und 3. Antwortzeit
+  const estimate = generateNpcEstimate(
+    rng,
+    profile,
+    question.estimate,
+    question.estimateTimeLimitMs,
+    spreadParams,
+  );
+
   return {
-    triviaCorrect,
-    wrongOptionIndex,
-    estimate,
-    estimateMs,
+    triviaCorrect: trivia.correct,
+    wrongOptionIndex: trivia.wrongOptionIndex,
+    estimate: estimate.estimate,
+    estimateMs: estimate.estimateMs,
     audit: {
       theta: profile.theta,
       b: question.triviaB,
-      pCorrect,
-      spread,
-      draws: { trivia: uTrivia, estimate: zEstimate, time: zTime },
+      pCorrect: trivia.pCorrect,
+      spread: estimate.spread,
+      draws: { trivia: trivia.draw, estimate: estimate.draws.estimate, time: estimate.draws.time },
     },
   };
 }

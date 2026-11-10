@@ -108,6 +108,7 @@ Abhängigkeitsregel: `game-core` hängt von nichts ab außer `protocol`-Typen; `
 | combat | Kampfauswertung, Belagerungen, Limits | `sieges`, `siege_participants`, `battle_results`, `battle_events` |
 | items | Itemdefinitionen, Inventar, Drops, Verbrauch, Auto-Verlängerung | `item_definitions`, `player_items`, `inventory_transactions`, `item_usage`, `reward_events` |
 | npc | Fraktionen, Antwortprofile, Weltsimulation | `npc_factions`, `npc_profiles`, `npc_actions` |
+| match | rundenbasierte Partie: Aufstellung, Ablaufsteuerung mit Fristen, Fragen und Antworten je Sitz, Bots in Testpartien, Ereignisprotokoll ([MATCH_RULES.md](MATCH_RULES.md), ADR-049) | `matches`, `match_players`, `match_questions`, `match_answers`, `match_events` |
 | notifications | In-App-Mitteilungen, Web Push | `notifications`, `push_subscriptions` |
 | admin/ops | Admin-Werkzeuge, Audit, Missbrauchssignale, Outbox | `audit_events`, `abuse_signals`, `world_events` |
 
@@ -160,7 +161,7 @@ seed  = HMAC-SHA256(RNG_SECRET[key_id], purpose || ":" || entity_id)
 rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, versioniert als rng_version
 ```
 
-- `purpose` z. B. `npc-answer`, `drop`, `question-pick`; `entity_id` z. B. die Kampf-ID.
+- `purpose` z. B. `npc-answer`, `drop`, `question-pick`, `spawn`, `match` (Sitzverteilung, Wahlen nach Zeitablauf und Bot-Wahlen einer Partie, [MATCH_RULES.md §7](MATCH_RULES.md#7-bots-in-testpartien-und-zufall)); `entity_id` z. B. die Kampf-ID.
 - Gespeichert werden `key_id`, `rng_version` und die gezogenen Werte im Ereignisprotokoll. Mit dem Geheimnis lässt sich jede Entscheidung exakt nachrechnen (Audit); ohne Geheimnis kann kein Spieler Ergebnisse vorhersagen.
 - Weil der Seed aus der Entitäts-ID abgeleitet ist, liefert eine wiederholte Verarbeitung (Retry, doppelter Request) **denselben** Wurf – Drops können nicht durch Wiederholen neu gewürfelt werden.
 - Kartengenerierung nutzt einen öffentlichen Welt-Seed (nicht geheim, reproduzierbar).
@@ -181,6 +182,8 @@ rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, version
 | `siege.resolveTimeout` | eingeplant auf `deadline_at + settleGrace`, umgerechnet in reale Zeit (`− game_clock.offset`); neu eingeplant bei Verlängerung | Statusvergleich unter Zeilensperre; prüft `isTimeoutDue` erneut; ohne Wirkung, wenn bereits aufgelöst oder Frist verlängert |
 | `siege.sweepExpired` | jede Minute | **autoritativer Auslöser:** löst alle Belagerungen auf, für die `isTimeoutDue` gilt (`game_now() ≥ deadline_at + settleGrace`, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)) – deckt verlorene Jobs, Server-Neustart (E2E-08) und nachträglich geänderten Zeitversatz ab |
 | `challenge.expireStale` | jede Minute | setzt Schritte, deren `answer_deadline_at + settleGrace` verstrichen ist, auf `TIMED_OUT` (Browser geschlossen) und schließt die Herausforderung ab. **Angreifer-Herausforderung:** PvE wird sofort ausgewertet; im PvP wird die Belagerung eröffnet (`AWAITING_DEFENSE`, verdecktes Gate); eine nie begonnene (erste Frage nicht innerhalb von 2 min abgerufen) endet als `ATTACK_FAILED` ohne Versuchsverbrauch. **Verteidiger-Herausforderung:** Die bestehende Belagerung wird in derselben Transaktion regulär ausgewertet; verpasste Schritte zählen als falsch bzw. unendlich, Verteidigungspunkte gibt es dafür nicht (`answeredAll = false`). Läuft der Timeout-Pfad zuerst, tut er dasselbe ([SIEGE_SYSTEM.md §5.3](SIEGE_SYSTEM.md#53-auflösungstransaktion)) |
+| `match.advanceDue` | etwa alle 500 ms (bis zum Worker im `api`-Prozess), dazu bei jeder Ansicht, Wahl und Antwort einer Partie | Zeilensperre der Partie (`SKIP LOCKED`), prüft die Frist erneut; ein Lauf rückt eine Partie höchstens bis zur nächsten Frist vor, die ab jetzt zählt (ADR-049) |
+| `match.expireLobbies` | mit `match.advanceDue` | Aufstellung älter als 2 h → `ABANDONED`; Statusvergleich unter Sperre |
 | `items.autoExtend` | alle 5 Minuten | eine Verlängerung pro Belagerung und Auslösefenster, Idempotenzschlüssel je Belagerung + Fenster |
 | `npc.tick` | je Instanz alle N Minuten | Aktionen tragen deterministische IDs je Tick; doppelte Ausführung schreibt nichts doppelt |
 | `season.open` / `season.close` | Zeitplan | Statusübergänge mit Bedingung |

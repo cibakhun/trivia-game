@@ -12,6 +12,8 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 
 „Erstes spielbares MVP“ im Sinne des Briefs ist **M3**: das kleinste Produkt, das die Kernfantasie (Brief §1.1) vollständig erlebbar macht – inklusive asynchroner Verteidigung und Zeit-Items.
 
+**Kurswechsel 2026-11-10 (ADR-046):** Vor M3 kommt die rundenbasierte **Partie** als erstes fertiges Spiel (§5). Das erste MVP, das Spieler von außen ausprobieren, ist damit die Partie; die Meilensteine der Eternal-Welt bleiben, verschieben sich aber um die Partie-Pakete M1–M5. Die Pakete der Partie heißen ebenfalls M1–M5 ([DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md#partie--rundenbasiertes-hauptspiel-adr-046)); gemeint sind dort Pakete, hier Meilensteine.
+
 ## 2. M1 – Spielbarer Prototyp (Phase 1)
 
 **Enthalten:** eine Testwelt mit ≈ 150 Regionen; neutrale Regionen und 2–3 statische NPC-Reiche (leicht/mittel/schwer); Gastkonto mit dauerhafter Sitzung; Startregion und Hauptstadt; PvE-Eroberung mit Trivia + Schätzfrage, Gate und Tiebreakern; sofortige Auflösung mit Erklärung; Schutzzeit; Reichsanzeige mit Rang; Oberfläche auf Deutsch (ADR-023); 150 geprüfte Fragen (bis zur Entscheidung über [O-02] die 40 Testfragen).
@@ -68,3 +70,11 @@ Siehe Indikatoren in [PRODUCT_VISION.md §5](PRODUCT_VISION.md#5-erfolgskriterie
 - Wie oft entscheidet die Geschwindigkeit, und wie fair fühlt sich das an → `cap`, Schätzfragen-Redaktion.
 - Itemfüllstände → Tageskontingent für Drops.
 - Verteilung der Reichsgrößen nach 2–4 Wochen → Belagerungskapazität ([O-05]), Rangabstand ([O-07]).
+
+## 5. Partie – erstes fertiges Spiel (ADR-046)
+
+**Enthalten:** Partie mit Freunden per Einladungscode, zwei oder drei Menschen; Testpartie mit Bots zum Testen, nicht in Produktion (ADR-048); Wendelmark als feste Karte; Hauptstadtwahl, Landnahme mit Schätzfragen, vier Feldzugrunden mit Duellen, Abrechnung nach Regionswerten ([MATCH_RULES.md](MATCH_RULES.md)); Timer, die der Server führt, auch über einen Neustart hinweg; gleichzeitige Fragen per WebSocket; Gast und gesichertes Konto mit Spielernamen (ADR-043, ADR-044); Ergebnis in der Spielerstatistik; genug Fragen, damit sich in den ersten fünf Partien eines Spielers keine wiederholt (nach E2 nur lokal, KI-Entwürfe nie ungeprüft veröffentlicht).
+
+**Nicht enthalten:** Warteschlange mit Fremden und Rangliste mit Wertungszahl (brauchen einen erreichbaren Server, [O-11]), Items, Chat, freie Namen, Monetarisierung.
+
+**Abnahme:** Simulation von je 1 000 Partien zu dritt und zu zweit ohne Verstoß (M1); Integrationstest einer ganzen Partie mit Neustart (M2); drei Testclients sehen jede Frage gleichzeitig (M3); E2E ganze Testpartie gegen zwei Bots und normale Partie mit zwei Browsern (M4); Spieltest des Product Owners auf seinem Rechner; Standardwerte danach bestätigt oder nachjustiert (E3).

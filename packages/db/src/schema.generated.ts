@@ -87,6 +87,80 @@ export interface KingdomsTable {
   capital_hit_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
 }
 
+export interface MatchAnswersTable {
+  match_id: string;
+  seq: number;
+  seat: number;
+  status: string;
+  presented_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+  answer_deadline_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+  received_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+  reloads: ColumnType<number, number | undefined, number>;
+  answer_option_key: string | null;
+  answer_value: ColumnType<string | null, string | number | null, string | number | null>;
+  client_elapsed_ms: number | null;
+  server_elapsed_ms: number | null;
+  effective_ms: number | null;
+  is_correct: boolean | null;
+  distance: ColumnType<string | null, string | number | null, string | number | null>;
+  idempotency_key: string | null;
+  audit: ColumnType<JsonValue | null, string | null, string | null>;
+  created_at: ColumnType<Date, Date | string | undefined, Date | string>;
+}
+
+export interface MatchEventsTable {
+  match_id: string;
+  seq: number;
+  type: string;
+  payload: ColumnType<JsonValue, string, string>;
+  at: ColumnType<Date, Date | string | undefined, Date | string>;
+}
+
+export interface MatchPlayersTable {
+  match_id: string;
+  join_order: number;
+  user_id: string | null;
+  bot_strength: string | null;
+  seat: number | null;
+  joined_at: ColumnType<Date, Date | string | undefined, Date | string>;
+}
+
+export interface MatchQuestionsTable {
+  match_id: string;
+  seq: number;
+  kind: string;
+  purpose: string;
+  version_id: string;
+  seats: number[];
+  presentation: ColumnType<JsonValue, string, string>;
+  time_limit_ms: number;
+  opened_at: ColumnType<Date, Date | string, Date | string>;
+  closes_at: ColumnType<Date, Date | string, Date | string>;
+  resolved_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+}
+
+export interface MatchesTable {
+  id: string;
+  kind: string;
+  status: string;
+  host_user_id: string;
+  invite_code: string;
+  rules_preset: string;
+  test_seats: number | null;
+  test_bot_strengths: string[] | null;
+  rules: ColumnType<JsonValue | null, string | null, string | null>;
+  state: ColumnType<JsonValue | null, string | null, string | null>;
+  phase: string | null;
+  phase_deadline_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+  question_seq: number | null;
+  rng_key_id: string;
+  rng_version: number;
+  draws: ColumnType<number, number | undefined, number>;
+  created_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  started_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+  finished_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+}
+
 export interface NpcFactionsTable {
   id: string;
   instance_id: string;
@@ -150,6 +224,8 @@ export interface PlayerStatisticsTable {
   skill_rating: ColumnType<string, string | number | undefined, string | number>;
   skill_rd: ColumnType<string, string | number | undefined, string | number>;
   updated_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  matches_played: ColumnType<number, number | undefined, number>;
+  matches_won: ColumnType<number, number | undefined, number>;
 }
 
 export interface QuestionOptionsTable {
@@ -435,6 +511,11 @@ export interface Database {
   kingdom_history: KingdomHistoryTable;
   kingdom_statistics: KingdomStatisticsTable;
   kingdoms: KingdomsTable;
+  match_answers: MatchAnswersTable;
+  match_events: MatchEventsTable;
+  match_players: MatchPlayersTable;
+  match_questions: MatchQuestionsTable;
+  matches: MatchesTable;
   npc_factions: NpcFactionsTable;
   npc_profiles: NpcProfilesTable;
   player_profiles: PlayerProfilesTable;

@@ -9,6 +9,7 @@ import { combatRoutes } from './modules/combat/routes.ts';
 import { registerAuth } from './modules/identity/auth-hook.ts';
 import { identityRoutes } from './modules/identity/routes.ts';
 import { mapRoutes } from './modules/map/routes.ts';
+import { matchRoutes } from './modules/match/routes.ts';
 import { worldRoutes } from './modules/world/routes.ts';
 
 export interface BuildAppOptions extends AppContext {
@@ -58,6 +59,7 @@ export async function buildApp(options: BuildAppOptions): Promise<FastifyInstanc
       worldRoutes(api, ctx);
       mapRoutes(api, ctx);
       combatRoutes(api, ctx);
+      matchRoutes(api, ctx);
       done();
     },
     { prefix: API_PREFIX },
