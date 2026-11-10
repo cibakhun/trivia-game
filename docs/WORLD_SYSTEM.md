@@ -51,6 +51,8 @@ Deterministisch aus `map_seed` und Chunk-Koordinate (jeder Chunk ist einzeln erz
 
 Eine Region ist im Datenmodell eine Zeile in `regions` (statisch) plus eine in `region_state` (dynamisch). Erzeugte Chunks werden vollständig materialisiert; nur sie existieren für das Spiel.
 
+**Testwelt (Phase 1):** `pnpm world:create` legt eine Eternal-Welt mit einer laufenden Instanz an: Sechseck mit Radius 7 in Chunk 0:0 (`testWorldPreset`, Seed `TEST_WORLD_SEED` = 2175 → 150 Regionen), eine schwere (10 Regionen), zwei mittlere (je 8) und drei leichte Fraktionen (je 5), Regeln `DEFAULT_RULES.ETERNAL`, Kapazität 20. Namen und Farben der NPC-Reiche hängen nur vom öffentlichen Seed ab (`factionNamingRng`). Die Ausgangslage ist kein Eintrag in `region_history`; die Instanz speichert `mapgen_version` (ADR-031).
+
 ### 3.3 Darstellung großer Karten
 
 - Statische Chunk-Daten sind unveränderlich und lange cachebar; dynamischer Zustand wird pro Chunk und als Delta übertragen ([API.md §2.2](API.md#22-welten-und-karte)).
@@ -77,7 +79,9 @@ Kandidaten müssen erfüllen:
 - mindestens 1 leichte NPC-Fraktion im Radius 8 (Brief §10.1),
 - Abstand ≥ 6 zu Reichen mit ≥ 15 Regionen und ≥ 3 zu jeder anderen Spielerhauptstadt (Schutz vor unmittelbarer Übermacht).
 
-Unter den Kandidaten wird nach Punktwert (freier Raum, Nähe zu anderen Neulingen für spätere Interaktion, Abstand zu Großreichen) die beste gewählt; Gleichstand per Zufallsstrom. Zusätzlich gilt der Anfängerschutz und der Rangabstandsschutz ([GAME_RULES.md §7](GAME_RULES.md#7-limits-und-schutzzeiten)) – zusammen erfüllen sie „Große Königreiche dürfen Anfängergebiete nicht unmittelbar vollständig kontrollieren“ (Brief §10.1).
+- mindestens 1 freier neutraler direkter Nachbar, damit die Tutorial-Garnison angreifbar ist [E].
+
+Unter den Kandidaten wird nach Punktwert (freier Raum, Nähe zu anderen Neulingen für spätere Interaktion, Abstand zu Großreichen) die beste gewählt; Gleichstand per Zufallsstrom. Umsetzung (`spawnCandidates`, `chooseStartRegion` in `game-core`): Punktwert = 2 × neutrale Regionen im Radius 2 + Abstand zum nächsten Großreich (höchstens 12) + 3, wenn eine Neulingshauptstadt (< 15 Regionen) höchstens 8 entfernt liegt. Der Zufallsstrom ist `spawn` mit Entität `{instance_id}.{user_id}.{generation}`; daraus werden der Reihe nach Gleichstand, Reichsname und Farbe gezogen, die Prüfspur steht in `kingdom_history` (`FOUNDED`). Der Beitritt sperrt die Instanzzeile, damit gleichzeitige Beitritte nacheinander wählen (ADR-030). Tutorial-Ziel ist der freie neutrale Nachbar der Hauptstadt mit der niedrigsten Stufe (`tutorialTarget`). Zusätzlich gilt der Anfängerschutz und der Rangabstandsschutz ([GAME_RULES.md §7](GAME_RULES.md#7-limits-und-schutzzeiten)) – zusammen erfüllen sie „Große Königreiche dürfen Anfängergebiete nicht unmittelbar vollständig kontrollieren“ (Brief §10.1).
 
 Gleiche Kriterien gelten für den Neustart nach Totalverlust (Brief §4.5).
 

@@ -120,6 +120,22 @@ const itemsSchema = z.discriminatedUnion('enabled', [
   z.object({ enabled: z.literal(false) }).strict(),
 ]);
 
+/**
+ * Hauptstadt-Leben (GAME_RULES §3, ADR-037): Jeder Angreifersieg kostet ein Leben, der Sieg, der
+ * das letzte nimmt, übernimmt das Reich. Fehlt der Abschnitt (Welten vor Migration 0009), gelten
+ * die Standardwerte des Modus (`capitalRules`).
+ */
+export const capitalRulesSchema = z
+  .object({
+    lives: z.number().int().min(1).max(10),
+    /** Ohne neuen Treffer kehrt nach dieser Zeit ein Leben zurück; `null` = nie. */
+    lifeRegen: positiveDurationMs.nullable(),
+    /** Schutz der Hauptstadt nach einem Treffer, der sie nicht einnimmt. */
+    protectionAfterHit: durationMs,
+  })
+  .strict();
+export type CapitalRulesConfig = z.infer<typeof capitalRulesSchema>;
+
 const npcSchema = z
   .object({
     maxActionsPerFactionPerHour: count,
@@ -145,6 +161,7 @@ export const rulesConfigSchema = z
     protection: protectionSchema,
     items: itemsSchema,
     npc: npcSchema,
+    capital: capitalRulesSchema.optional(),
   })
   .strict()
   .superRefine((cfg, ctx) => {
@@ -219,6 +236,22 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
   return value as DeepReadonly<T>;
 }
 
+/**
+ * Hauptstadt-Leben je Modus (GAME_RULES §10): `lives` = 3 ist PO-Vorgabe [V], `lifeRegen` und
+ * `protectionAfterHit` sind Empfehlungen [E]. Auch Rückfall für Welten ohne Abschnitt.
+ */
+export const DEFAULT_CAPITAL_RULES: DeepReadonly<Record<WorldMode, CapitalRulesConfig>> =
+  deepFreeze({
+    ETERNAL: { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: 1 * HOUR_MS },
+    WEEKLY: { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: 1 * HOUR_MS },
+    DAILY: { lives: 3, lifeRegen: 4 * HOUR_MS, protectionAfterHit: 10 * MINUTE_MS },
+  });
+
+/** Hauptstadt-Regeln einer Konfiguration; ohne eigenen Abschnitt die Standardwerte des Modus. */
+export function capitalRules(rules: Pick<RulesConfig, 'mode' | 'capital'>): CapitalRulesConfig {
+  return rules.capital ?? { ...DEFAULT_CAPITAL_RULES[rules.mode] };
+}
+
 /** Standardwerte je Modus aus docs/GAME_RULES.md §10 (Kennzeichnungen dort); unveränderlich. */
 export const DEFAULT_RULES: DeepReadonly<Record<WorldMode, RulesConfig>> = deepFreeze({
   ETERNAL: {
@@ -260,6 +293,7 @@ export const DEFAULT_RULES: DeepReadonly<Record<WorldMode, RulesConfig>> = deepF
       autoUse: { triggerBeforeDeadline: 6 * HOUR_MS },
     },
     npc: { maxActionsPerFactionPerHour: 2, maxOpenSiegesAgainstHumanKingdom: 1 },
+    capital: { ...DEFAULT_CAPITAL_RULES.ETERNAL },
   },
   WEEKLY: {
     schemaVersion: 1,
@@ -292,6 +326,7 @@ export const DEFAULT_RULES: DeepReadonly<Record<WorldMode, RulesConfig>> = deepF
     },
     items: { enabled: false },
     npc: { maxActionsPerFactionPerHour: 4, maxOpenSiegesAgainstHumanKingdom: 1 },
+    capital: { ...DEFAULT_CAPITAL_RULES.WEEKLY },
   },
   DAILY: {
     schemaVersion: 1,
@@ -324,5 +359,6 @@ export const DEFAULT_RULES: DeepReadonly<Record<WorldMode, RulesConfig>> = deepF
     },
     items: { enabled: false },
     npc: { maxActionsPerFactionPerHour: 12, maxOpenSiegesAgainstHumanKingdom: 1 },
+    capital: { ...DEFAULT_CAPITAL_RULES.DAILY },
   },
 });

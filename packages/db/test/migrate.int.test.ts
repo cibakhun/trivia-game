@@ -35,7 +35,9 @@ describe('Migrationsdateien', () => {
 
   it('lehnt Lücken, falsche Namen und eigene Transaktionen ab', async () => {
     const gap = await copyMigrations('gap');
-    await writeFile(path.join(gap, '0009_luecke.sql'), 'select 1;');
+    // eine Nummer überspringen, unabhängig von der Zahl der vorhandenen Migrationen
+    const skipped = String((await loadMigrations()).length + 2).padStart(4, '0');
+    await writeFile(path.join(gap, `${skipped}_luecke.sql`), 'select 1;');
     await expect(loadMigrations(gap)).rejects.toThrow(/Lücke/);
 
     const badName = await copyMigrations('bad-name');

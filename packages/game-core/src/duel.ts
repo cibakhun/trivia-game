@@ -12,8 +12,51 @@ export interface Performance {
   readonly estimateDistance: Decimal | null;
   /** Effektive Antwortzeit der Schätzfrage in ms; `null` zählt als +∞. */
   readonly estimateEffectiveMs: number | null;
-  /** Beide Fragen jeweils innerhalb ihres Zeitlimits beantwortet. */
-  readonly answeredBoth: boolean;
+  /**
+   * Jede gestellte Frage innerhalb ihres Zeitlimits beantwortet (GAME_RULES §5.5). Die Schätzfrage
+   * zählt nur mit, wenn sie gestellt wurde; seit der Tiebreaker-Regel kommt sie nicht immer.
+   */
+  readonly answeredAll: boolean;
+}
+
+/** Ergebnis eines Schritts aus den gespeicherten Antworten; `null` = nie gestellt oder verpasst. */
+export interface TriviaStep {
+  readonly correct: boolean;
+}
+
+export interface EstimateStep {
+  readonly distance: Decimal;
+  readonly effectiveMs: number;
+}
+
+/**
+ * Leistung einer Seite aus ihren gespeicherten Antworten. Verpasste oder nie gestellte Schritte
+ * zählen als falsch bzw. als unendlicher Abstand und unendliche Zeit (GAME_RULES §5.2).
+ * `estimateAsked`: Wurde dieser Seite die Schätzfrage gestellt? Ohne sie (Tiebreaker nicht nötig)
+ * fehlt sie nicht für `answeredAll`; jeder Aufrufer muss das ausdrücklich angeben.
+ */
+export function performanceFromSteps(
+  trivia: TriviaStep | null,
+  estimate: EstimateStep | null,
+  estimateAsked: boolean,
+): Performance {
+  return {
+    triviaCorrect: trivia?.correct ?? false,
+    estimateDistance: estimate?.distance ?? null,
+    estimateEffectiveMs: estimate?.effectiveMs ?? null,
+    answeredAll: trivia !== null && (estimate !== null || !estimateAsked),
+  };
+}
+
+/**
+ * Die Schätzfrage ist nur der Tiebreaker (PO 2026-11-10): Sie wird gestellt, wenn beide Seiten
+ * die Trivia-Frage richtig beantwortet haben. Sonst steht der Ausgang schon nach der Trivia-Frage
+ * fest (Angreifer falsch: verdecktes Gate; nur der Verteidiger falsch: Trivia-Sieg), und
+ * `resolveDuel` wertet die Schätzung in diesen Fällen ohnehin nicht aus. Gilt im PvE, wo die
+ * Verteidigung vorab feststeht; für PvP ist die Reihenfolge offen ([O-19]).
+ */
+export function estimateDecides(attackerTriviaCorrect: boolean, defenderTriviaCorrect: boolean) {
+  return attackerTriviaCorrect && defenderTriviaCorrect;
 }
 
 /** Der Verteidiger hat bis zur Frist keine Verteidigung begonnen. */
@@ -79,7 +122,7 @@ export interface DefensePointValues {
  * verknüpfte Konten prüft die Auflösungstransaktion.
  */
 export function defensePoints(def: Defense, values: DefensePointValues): number {
-  if (def === NO_DEFENSE || !def.answeredBoth) return 0;
+  if (def === NO_DEFENSE || !def.answeredAll) return 0;
   return values.forDefending + (def.triviaCorrect ? values.bonusCorrect : 0);
 }
 

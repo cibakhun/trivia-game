@@ -9,8 +9,8 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "migrate": "tsx src/cli/migrate.ts",
-    "types": "tsx src/cli/types.ts"
+    "migrate": "tsx --env-file-if-exists=../../.env src/cli/migrate.ts",
+    "types": "tsx --env-file-if-exists=../../.env src/cli/types.ts"
   },
   "dependencies": {
     "kysely": "0.29.7",

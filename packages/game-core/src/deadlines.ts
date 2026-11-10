@@ -121,6 +121,12 @@ export function extendDeadline(
   return { ok: true, newDeadlineAt, gainedMs, forfeitedMs: effectMs - gainedMs };
 }
 
+/**
+ * Eine Herausforderung, deren erste Frage nicht innerhalb dieser Zeit abgerufen wurde, endet als
+ * nie begonnen (`ATTACK_FAILED`, `NEVER_STARTED`) ohne Versuchsverbrauch (ARCHITECTURE §11) [E].
+ */
+export const CHALLENGE_START_WINDOW_MS = 120_000;
+
 /** Zeitlimit eines Schritts: `answer_deadline_at = P + time_limit + cap` (exklusiv). */
 export function answerDeadlineAt(presentedAt: number, timeLimitMs: number, capMs: number): number {
   assertInstant('presentedAt', presentedAt);

@@ -118,6 +118,7 @@ Für das Tutorial (Brief §15.1, „erste Eroberung in Minuten“) wird die erst
 ### 5.4 Gleichgewicht
 
 - Regionsobergrenze je Archetyp (Tabelle §2) verhindert, dass NPCs die Karte übernehmen.
+- NPC-Hauptstädte haben wie Spielerhauptstädte drei Leben (GAME_RULES §3 Punkt 3, ADR-037): Erst der dritte Sieg ohne Erholungspause nimmt die Hauptstadt ein, und mit ihr geht das ganze NPC-Reich an den Angreifer. Kleine Randregionen einer Fraktion lassen sich einzeln erobern, das Reich selbst fällt nur über die Hauptstadt.
 - Eine Fraktion ohne Regionen ist `DORMANT` und kann nach einer Abklingzeit in einer freien Gegend neu entstehen (Brief §6.4 „nach Niederlagen wieder expandieren“).
 - Weltweiter Zielkorridor: Anteil neutraler Regionen im äußersten Ring ≥ 30 % (Raum für Neulinge). Wird er unterschritten, pausiert NPC-Expansion dort.
 - Admin-Notschalter je Instanz: NPC-Aktivität drosseln oder anhalten (Brief §13.5).

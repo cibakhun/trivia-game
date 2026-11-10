@@ -102,8 +102,50 @@ export default tseslint.config(
       ],
     },
   },
+  // Client: läuft im Browser, kennt weder Node noch Datenbank noch Server-Code.
   {
-    files: ['**/*.js', 'packages/db/**/*.ts', 'tools/**/*.ts', '**/test/**/*.ts', '*.config.ts'],
+    files: ['apps/web/src/**/*.{ts,tsx}'],
+    languageOptions: { globals: globals.browser },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: nodeBuiltins.map((name) => ({
+            name,
+            message: 'Der Client läuft im Browser: keine Node-Module.',
+          })),
+          patterns: [
+            {
+              group: [
+                'pg',
+                'pg-*',
+                'kysely',
+                'kysely/*',
+                '@rdw/db',
+                '@rdw/db/*',
+                '@rdw/server',
+                '@rdw/server/*',
+                '@rdw/content-tools',
+                '@rdw/content-tools/*',
+              ],
+              message: 'Der Client spricht nur über die HTTP-API mit dem Server (ARCHITECTURE §5).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      '**/*.js',
+      'apps/server/**/*.ts',
+      'apps/web/e2e/**/*.ts',
+      'apps/web/vite.config.ts',
+      'packages/db/**/*.ts',
+      'tools/**/*.ts',
+      '**/test/**/*.ts',
+      '*.config.ts',
+    ],
     languageOptions: { globals: globals.node },
   },
   {

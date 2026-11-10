@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  capitalRules,
   DAY_MS,
+  DEFAULT_CAPITAL_RULES,
   DEFAULT_RULES,
   HOUR_MS,
   MINUTE_MS,
@@ -94,6 +96,22 @@ describe('DEFAULT_RULES', () => {
     });
     expect([e, w, d].map((r) => r.npc.maxActionsPerFactionPerHour)).toEqual([2, 4, 12]);
     expect([e, w, d].map((r) => r.npc.maxOpenSiegesAgainstHumanKingdom)).toEqual([1, 1, 1]);
+    expect([e, w, d].map((r) => r.capital)).toEqual([
+      { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: HOUR_MS },
+      { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: HOUR_MS },
+      { lives: 3, lifeRegen: 4 * HOUR_MS, protectionAfterHit: 10 * MINUTE_MS },
+    ]);
+  });
+
+  it('gibt Welten ohne Hauptstadt-Abschnitt die Standardwerte des Modus', () => {
+    for (const mode of WORLD_MODES) {
+      const { capital, ...older } = clone(mode);
+      expect(capitalRules(parseRulesConfig(older))).toEqual(capital);
+      expect(capitalRules(DEFAULT_RULES[mode])).toEqual(DEFAULT_CAPITAL_RULES[mode]);
+    }
+    const own = clone('ETERNAL');
+    own.capital = { lives: 1, lifeRegen: null, protectionAfterHit: 0 };
+    expect(capitalRules(parseRulesConfig(own))).toEqual(own.capital);
   });
 
   it('ist bis in jede Ebene unveränderlich, in allen Modi', () => {
@@ -130,6 +148,14 @@ describe('rulesConfigSchema', () => {
     const b = clone('ETERNAL');
     b.defense.startBuffer = -1;
     expect(issues(b)).toContain('defense.startBuffer');
+  });
+
+  it('verlangt mindestens ein Hauptstadt-Leben und eine positive Erholungszeit', () => {
+    const cfg = clone('ETERNAL');
+    cfg.capital = { lives: 0, lifeRegen: 0, protectionAfterHit: -1 };
+    expect(issues(cfg)).toEqual(
+      expect.arrayContaining(['capital.lives', 'capital.lifeRegen', 'capital.protectionAfterHit']),
+    );
   });
 
   it('verlangt maxDeadline ≥ baseDeadline', () => {

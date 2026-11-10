@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { kingdomRank } from '../src/index.ts';
+import { KINGDOM_RANK_CODES } from '@rdw/protocol';
+import { KINGDOM_RANKS, kingdomRank } from '../src/index.ts';
 
-describe('kingdomRank (GAME_RULES §3.6)', () => {
+describe('kingdomRank (GAME_RULES §3.7)', () => {
   it.each([
     [0, null],
     [1, 'SETTLEMENT'],
@@ -22,5 +23,11 @@ describe('kingdomRank (GAME_RULES §3.6)', () => {
 
   it.each([-1, 1.5, Number.NaN])('lehnt %s ab', (n) => {
     expect(() => kingdomRank(n)).toThrow(RangeError);
+  });
+});
+
+describe('Ränge in der Schnittstelle', () => {
+  it('entsprechen der Liste in protocol', () => {
+    expect([...KINGDOM_RANK_CODES]).toEqual([...KINGDOM_RANKS]);
   });
 });

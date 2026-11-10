@@ -40,8 +40,8 @@ async function insertInstance(): Promise<string> {
   );
   await q(`update worlds set current_rules_id = $1 where id = $2`, [rulesId, worldId]);
   await q(
-    `insert into world_instances (id, world_id, rules_id, map_seed, capacity, starts_at)
-     values ($1, $2, $3, 42, 1000, game_now())`,
+    `insert into world_instances (id, world_id, rules_id, map_seed, mapgen_version, capacity, starts_at)
+     values ($1, $2, $3, 42, 1, 1000, game_now())`,
     [instanceId, worldId, rulesId],
   );
   return instanceId;
@@ -196,8 +196,8 @@ describe('Welten', () => {
     );
     await expect(
       q(
-        `insert into world_instances (id, world_id, rules_id, map_seed, capacity, starts_at)
-         values ($1, $2, $3, 1, 10, game_now())`,
+        `insert into world_instances (id, world_id, rules_id, map_seed, mapgen_version, capacity, starts_at)
+         values ($1, $2, $3, 1, 1, 10, game_now())`,
         [randomUUID(), worldId, foreignRules],
       ),
     ).rejects.toThrow(/world_instances_rules_fk/);
@@ -256,6 +256,33 @@ describe('Königreiche', () => {
     await insert('ACTIVE');
     await expect(insert('ACTIVE')).rejects.toThrow(/kingdoms_one_active_per_player/);
     await expect(insert('FALLEN')).resolves.toBeDefined();
+  });
+
+  it('Hauptstadt-Treffer brauchen einen Zeitpunkt (Migration 0009)', async () => {
+    const instanceId = await insertInstance();
+    const userId = await insertUser();
+    const kingdomId = randomUUID();
+    await q(
+      `insert into kingdoms (id, instance_id, kind, owner_user_id, name_parts, color) values ($1, $2, 'PLAYER', $3, '{}', 1)`,
+      [kingdomId, instanceId, userId],
+    );
+    const { rows } = await q(`select capital_hits, capital_hit_at from kingdoms where id = $1`, [
+      kingdomId,
+    ]);
+    expect(rows[0]).toEqual({ capital_hits: 0, capital_hit_at: null });
+    await expect(
+      q(`update kingdoms set capital_hits = 1 where id = $1`, [kingdomId]),
+    ).rejects.toThrow(/kingdoms_capital_hit_at/);
+    await expect(
+      q(`update kingdoms set capital_hits = -1, capital_hit_at = game_now() where id = $1`, [
+        kingdomId,
+      ]),
+    ).rejects.toThrow(/kingdoms_capital_hits_check/);
+    await expect(
+      q(`update kingdoms set capital_hits = 2, capital_hit_at = game_now() where id = $1`, [
+        kingdomId,
+      ]),
+    ).resolves.toBeDefined();
   });
 
   it('generation ist je Spieler und Instanz eindeutig', async () => {

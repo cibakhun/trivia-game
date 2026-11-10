@@ -22,6 +22,8 @@ Alle Arten nutzen dieselbe Tabelle `sieges`, dieselbe Herausforderung (`quiz_cha
 
 Dass die NPC-Antwort *vor* der Spielerantwort feststeht, ist im Ereignisprotokoll belegbar und schließt jeden Verdacht eines „reagierenden“ NPCs aus [E].
 
+Stand Phase 1 Paket 3 (ADR-032 bis ADR-034): umgesetzt ohne Drop-Wurf (Phase 4). Die NPC-Antworten tragen im Ereignis `NPC_ANSWERS_SEALED` ein SHA-256-Commitment. Die Auswertung (Schritt 3) läuft in einer eigenen Transaktion direkt nach dem Speichern der letzten Antwort, mit den Sperren aus §5.1 und der Prüfung N12. Bei Sieg kommen Regionshistorie (`CONQUEST_PVE`), Regionenzahl, Ende des Anfängerschutzes ab `untilRegions`, Rangwechsel, Hauptstadt-Leben bzw. Übernahme des Verteidigerreichs (§8, seit Migration 0009, ADR-037; Fraktion ruht) und Statistiken hinzu. Bei Niederlage wird die Reservierung gelöst. Outbox-Ereignisse: `region.changed`, `kingdom.changed` und persönlich `siege.resolved`. Dynamische NPC-Stärke ([NPC_SYSTEM.md](NPC_SYSTEM.md)) und Spielstärkewert folgen mit der Kalibrierung.
+
 ## 3. Zustandsmaschine
 
 ```mermaid
@@ -151,7 +153,9 @@ UPDATE sieges SET status = :final, outcome = :winner, outcome_reason = :reason,
        resolved_at = game_now(), version = version + 1
  WHERE id = :siege AND version = :v;
 INSERT INTO battle_results (...);  INSERT INTO battle_events (...);
--- falls Angreifer gewinnt:
+--   Hauptstadt (§8): capital_lives_left, regions_taken, capital_protected_until
+-- falls Angreifer gewinnt, genau einer der drei Fälle:
+-- (a) Ziel ist keine Hauptstadt: Eroberung
 UPDATE region_state SET owner_kingdom_id = :att, is_capital = false, owned_since = game_now(),
        protected_until = game_now() + :protection, protection_reason = 'CONQUEST',
        active_siege_id = NULL, version = version + 1, updated_at = game_now()
@@ -159,9 +163,21 @@ UPDATE region_state SET owner_kingdom_id = :att, is_capital = false, owned_since
 UPDATE kingdoms SET region_count = region_count + 1 WHERE id = :att;
 -- nur wenn :def nicht NULL (Ziel gehörte einem Reich, nicht neutral):
 UPDATE kingdoms SET region_count = region_count - 1 WHERE id = :def;
---   Hauptstadt verloren → neue Hauptstadt wählen; region_count = 0 → Reich FALLEN
 INSERT INTO region_history (...);   -- from_kingdom_id = :def (NULL bei neutralem Ziel)
---   Drop-Wurf → reward_events (+ player_items)
+--     :def ohne Regionen → FALLEN
+-- (b) Hauptstadt von :def, danach noch Leben übrig: kein Besitzwechsel
+UPDATE region_state SET active_siege_id = NULL, protected_until = :capital_protected_until,
+       protection_reason = 'CAPITAL_HIT', version = version + 1, updated_at = game_now()
+ WHERE region_id = :target AND active_siege_id = :siege;
+UPDATE kingdoms SET capital_hits = :hits, capital_hit_at = game_now() WHERE id = :def;
+INSERT INTO kingdom_history (...);  -- CAPITAL_HIT
+-- (c) Hauptstadt von :def, letztes Leben: Übernahme des ganzen Reichs (:n = region_count von :def)
+--     Hauptstadt wie (a) erobert, alle übrigen Regionen von :def an :att (cause TAKEOVER,
+--     Eroberungsschutz), offene Angriffe Dritter darauf CANCELLED
+UPDATE kingdoms SET region_count = region_count + :n WHERE id = :att;
+UPDATE kingdoms SET region_count = 0, status = 'FALLEN' WHERE id = :def;
+INSERT INTO kingdom_history (...);  -- TAKEOVER bei :att, FALLEN bei :def
+--   in (a) und (c): Drop-Wurf → reward_events (+ player_items)
 -- falls Verteidiger gewinnt (DEFENDER_WON) oder Angriff am verdeckten Gate scheitert (ATTACK_FAILED):
 UPDATE region_state SET active_siege_id = NULL, version = version + 1
  WHERE region_id = :target AND active_siege_id = :siege;
@@ -229,8 +245,11 @@ Alle Zählungen erfolgen unter Sperre des betroffenen Reichs; parallele Anfragen
 
 ## 8. Hauptstadt und Totalverlust in der Auflösung
 
-- Verliert der Verteidiger seine Hauptstadt und hat noch Regionen: neue Hauptstadt nach [GAME_RULES.md §3](GAME_RULES.md#3-königreich-hauptstadt-ränge-totalverlust), Eintrag in `kingdom_history`, Mitteilung.
-- Sinkt `region_count` auf 0: Reich `FALLEN`, offene ausgehende Belagerungen des Reichs werden bei ihrer Auflösung `CANCELLED`, Spieler erhält eine Niederlagenmeldung mit Rückblick (größte Ausdehnung, gewonnene Kämpfe) und den Button „Neues Reich gründen“ (Brief §15.4).
+Regeln: [GAME_RULES.md §3](GAME_RULES.md#3-königreich-hauptstadt-ränge-totalverlust) Punkt 3 und 4, Umsetzung `settle.ts` mit `hitCapital` aus game-core (ADR-037).
+
+- **Treffer:** Gewinnt der Angreifer gegen eine Hauptstadt, die danach noch Leben hat, bleibt sie beim Verteidiger. Gespeichert werden die nicht erholten Treffer (`kingdoms.capital_hits`) und der Zeitpunkt (`capital_hit_at`), die Region bekommt den Schutz `CAPITAL_HIT` (`capital.protectionAfterHit`), `kingdom_history` den Eintrag `CAPITAL_HIT`. Die Belagerung endet trotzdem als `ATTACKER_WON`; `battle_results.capital_lives_left` hält die verbleibenden Leben, die Auflösung meldet `conquered: false` und `capital`.
+- **Übernahme:** Nimmt der Sieg das letzte Leben, wird die Hauptstadt erobert wie jede Region (`CONQUEST_PVE`), und alle übrigen Regionen des Reichs gehen in derselben Transaktion an den Angreifer (`region_history.cause = TAKEOVER`, Eroberungsschutz). Offene Belagerungen Dritter auf diese Regionen werden mit `CANCELLED` beendet (Ergebnis, Kampfprotokoll, `siege.resolved` an den Angreifer). Das Reich fällt (`kingdom_history` `FALLEN` mit `cause: TAKEOVER`), der Angreifer erhält `TAKEOVER`; `battle_results.capital_lives_left = 0`, `regions_taken` = Zahl der Regionen. Gesperrt sind beide Reiche; wer Regionen eines Reichs ändert, sperrt zuerst das Reich (§5.1), deshalb brauchen die übernommenen Regionen keine eigene Sperre.
+- Sinkt `region_count` ohne Übernahme auf 0 (nur bei Daten ohne Hauptstadt): Reich `FALLEN`, offene ausgehende Belagerungen des Reichs werden bei ihrer Auflösung `CANCELLED`, Spieler erhält eine Niederlagenmeldung mit Rückblick (größte Ausdehnung, gewonnene Kämpfe) und den Button „Neues Reich gründen“ (Brief §15.4).
 
 ## 9. Belagerungs-Dashboard
 

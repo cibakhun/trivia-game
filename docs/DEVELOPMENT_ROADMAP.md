@@ -60,9 +60,9 @@ Abnahme (Brief): Ein Spieler erobert wiederholt NPC-Gebiete, erweitert sein Reic
 Umsetzung in vier aufeinander folgenden Pull Requests:
 
 1. Tabellen für Fragen und Kämpfe, Betrieb und NPC-Profile (Migrationen 0005–0007), typisierter Datenbankzugriff mit Drift-Prüfung, Fragenimport – umgesetzt am 2026-11-10
-2. Kartengenerator, Testwelt, Server-Grundgerüst, Gastkonto mit Sitzung, Beitritt mit Startregion und Hauptstadt, Kartenabfragen
-3. PvE-Kampf: Berechtigung, Herausforderung (present/answer), versiegelte NPC-Antworten, Auflösung, Besitzwechsel, Schutzzeit, Historie, Outbox; Integration „Gebietseroberung PvE“
-4. Client (PixiJS-Karte, Regionsdetails, Quiz, Reichsanzeige) und E2E-01
+2. Kartengenerator, Testwelt, Server-Grundgerüst, Gastkonto mit Sitzung, Beitritt mit Startregion und Hauptstadt, Kartenabfragen – umgesetzt am 2026-11-10
+3. PvE-Kampf: Berechtigung, Herausforderung (present/answer), versiegelte NPC-Antworten, Auflösung, Besitzwechsel, Schutzzeit, Historie, Outbox; Integration „Gebietseroberung PvE“ – umgesetzt am 2026-11-10 (Item-Drops folgen mit Phase 4, dynamische NPC-Stärke und Spielstärkewert mit der Kalibrierung)
+4. Client (PixiJS-Karte, Regionsdetails, Quiz, Reichsanzeige) und E2E-01 – umgesetzt am 2026-11-10 (ohne WebSocket, ADR-036)
 
 ### Phase 2 – Echter Multiplayer
 
@@ -82,7 +82,7 @@ Abnahme (Brief): Zwei echte Spieler kämpfen auf derselben Karte ohne inkonsiste
 |---|---|
 | Fristen | 24 h, Startsperre, pg-boss-Timeout-Jobs, Sweeper, Neustartfestigkeit |
 | Limits und Schutz | Angriffs- und Versuchskontingente, offene Belagerungen je Reich, Schutz nach Eroberung, Anfänger-, Wiederaufbau-, Rangabstandsschutz |
-| Reich | Hauptstadtwechsel, Totalverlust, Neustart |
+| Reich | Hauptstadt-Leben und Übernahme (für NPC-Reiche seit 2026-11-10, ADR-037), Totalverlust, Neustart |
 | UI | Belagerungs-Dashboard, Mitteilungen in der App |
 | Benachrichtigung | Web Push (nach [O-04]), Erinnerungen 6 h / 1 h |
 
@@ -121,7 +121,7 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 |---|---|
 | Schritt 1.0 | keine ([O-01] ist entschieden) |
 | Phase 1 | ~~[O-02] Fragenbeschaffung~~ vertagt (PO 2026-11-09): Phase 1 mit den 40 Testfragen, Klärung vor der Beta |
-| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte |
+| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte, [O-19] Schätzfrage als Tiebreaker im PvP, [O-20] Übernahme von Spielerreichen |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |
 | Closed Beta | [O-11] Hosting, [O-12] Name |

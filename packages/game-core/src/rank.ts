@@ -1,4 +1,4 @@
-/** Königreichsränge (docs/GAME_RULES.md §3.6); rein kosmetisch, ohne Einfluss auf Spielwerte. */
+/** Königreichsränge (docs/GAME_RULES.md §3.7); rein kosmetisch, ohne Einfluss auf Spielwerte. */
 
 export const KINGDOM_RANKS = [
   'SETTLEMENT', // Siedlung

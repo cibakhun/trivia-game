@@ -20,7 +20,9 @@ Bezug: Brief §12, §18, §20. Begründungen der Einzelentscheidungen stehen als
 | Frontend | React + Vite (SPA) | Spiel-Client braucht kein SSR; Vite ist schnell und einfach zu hosten (statische Dateien) | Next.js: SSR/Server-Komponenten bringen hier keinen Nutzen, aber zusätzliche Server-Komplexität |
 | Kartenrenderer | PixiJS (WebGL, Canvas-Fallback) | Zehntausende Hexfelder flüssig, Viewport-Culling, Sprite-Batching | SVG (bricht bei > 2 000 Feldern ein), eigenes WebGL (zu aufwendig) |
 | UI-Zustand | TanStack Query (Serverzustand) + Zustand (lokaler UI-Zustand) | klare Trennung autoritativer Daten vs. UI | Redux (mehr Boilerplate) |
+|  | *Phase 1: React-Zustand und kleine Hooks, eigener Router (ADR-036); die Bibliotheken kommen, wenn Ereignisse über den WebSocket den Zustand ändern* |  |  |
 | i18n UI | i18next / react-i18next, ICU-Pluralformen | Texte über Schlüssel statt im Code, auch mit nur Deutsch (ADR-023); eine weitere Sprache bleibt so ohne Umbau möglich | – |
+|  | *Phase 1: eigenes typisiertes Modul mit denselben Schlüsseln (ADR-036); i18next erst mit einer zweiten Sprache* |  |  |
 | HTTP-Server | Fastify | schnell, Schema-Validierung, gutes Plugin-Ökosystem, WebSocket-Plugin | Express (langsamer, weniger Typisierung), NestJS (schwergewichtig) |
 | Validierung / Verträge | zod, geteilt in `packages/protocol` | ein Schema für Client, Server, Konfiguration | – |
 | Echtzeit | WebSocket (`@fastify/websocket` / `ws`) | bidirektional, Browser-nativ | Socket.IO (eigenes Protokoll, nicht nötig), SSE (nur unidirektional) |
@@ -178,7 +180,7 @@ rng   = sfc32(seed)          // kleiner, schneller, gut getesteter PRNG, version
 |---|---|---|
 | `siege.resolveTimeout` | eingeplant auf `deadline_at + settleGrace`, umgerechnet in reale Zeit (`− game_clock.offset`); neu eingeplant bei Verlängerung | Statusvergleich unter Zeilensperre; prüft `isTimeoutDue` erneut; ohne Wirkung, wenn bereits aufgelöst oder Frist verlängert |
 | `siege.sweepExpired` | jede Minute | **autoritativer Auslöser:** löst alle Belagerungen auf, für die `isTimeoutDue` gilt (`game_now() ≥ deadline_at + settleGrace`, [SIEGE_SYSTEM.md §6.1](SIEGE_SYSTEM.md#61-fristgrenze--eine-regel-für-alle-pfade-e)) – deckt verlorene Jobs, Server-Neustart (E2E-08) und nachträglich geänderten Zeitversatz ab |
-| `challenge.expireStale` | jede Minute | setzt Schritte, deren `answer_deadline_at + settleGrace` verstrichen ist, auf `TIMED_OUT` (Browser geschlossen) und schließt die Herausforderung ab. **Angreifer-Herausforderung:** PvE wird sofort ausgewertet; im PvP wird die Belagerung eröffnet (`AWAITING_DEFENSE`, verdecktes Gate); eine nie begonnene (erste Frage nicht innerhalb von 2 min abgerufen) endet als `ATTACK_FAILED` ohne Versuchsverbrauch. **Verteidiger-Herausforderung:** Die bestehende Belagerung wird in derselben Transaktion regulär ausgewertet; verpasste Schritte zählen als falsch bzw. unendlich, Verteidigungspunkte gibt es dafür nicht (`answeredBoth = false`). Läuft der Timeout-Pfad zuerst, tut er dasselbe ([SIEGE_SYSTEM.md §5.3](SIEGE_SYSTEM.md#53-auflösungstransaktion)) |
+| `challenge.expireStale` | jede Minute | setzt Schritte, deren `answer_deadline_at + settleGrace` verstrichen ist, auf `TIMED_OUT` (Browser geschlossen) und schließt die Herausforderung ab. **Angreifer-Herausforderung:** PvE wird sofort ausgewertet; im PvP wird die Belagerung eröffnet (`AWAITING_DEFENSE`, verdecktes Gate); eine nie begonnene (erste Frage nicht innerhalb von 2 min abgerufen) endet als `ATTACK_FAILED` ohne Versuchsverbrauch. **Verteidiger-Herausforderung:** Die bestehende Belagerung wird in derselben Transaktion regulär ausgewertet; verpasste Schritte zählen als falsch bzw. unendlich, Verteidigungspunkte gibt es dafür nicht (`answeredAll = false`). Läuft der Timeout-Pfad zuerst, tut er dasselbe ([SIEGE_SYSTEM.md §5.3](SIEGE_SYSTEM.md#53-auflösungstransaktion)) |
 | `items.autoExtend` | alle 5 Minuten | eine Verlängerung pro Belagerung und Auslösefenster, Idempotenzschlüssel je Belagerung + Fenster |
 | `npc.tick` | je Instanz alle N Minuten | Aktionen tragen deterministische IDs je Tick; doppelte Ausführung schreibt nichts doppelt |
 | `season.open` / `season.close` | Zeitplan | Statusübergänge mit Bedingung |
@@ -194,7 +196,7 @@ Wichtig: **Kein Ergebnis hängt davon ab, wann ein Job läuft.** Eine Verteidige
 
 - **Deployment-Konfiguration und Secrets** ausschließlich über Umgebungsvariablen, beim Start per zod validiert; Start bricht bei fehlenden/ungültigen Werten ab.
 - **Spielbezogene Konfiguration** (`world_rules`, `game_clock`) liegt in PostgreSQL und wird beim Laden und bei jeder Änderung per zod validiert (siehe unten).
-- Secrets (DB-URL, `RNG_SECRET`, Sitzungs-Pepper, VAPID-Schlüssel) nie im Repository; `.env.example` dokumentiert nur Namen.
+- Secrets (DB-URL, `RNG_SECRET`, VAPID-Schlüssel) nie im Repository (Sitzungstoken brauchen keinen Pepper, ADR-029); `.env.example` dokumentiert nur Namen.
 - Umgebungen: `local` (Entwickler, Docker-Compose-Postgres), `test` (CI, flüchtige DB), `staging` (eigene DB, Zeitversatz erlaubt, Test-Accounts), `production` (Zeitversatz gesperrt, Admin-Aktionen protokolliert). Staging und Produktion teilen keine Datenbank, keine Secrets und keine Push-Schlüssel.
 - Spielregeln sind **Daten** (`world_rules`), keine Umgebungsvariablen. Änderungen erzeugen eine neue Regelversion mit Audit-Eintrag.
 

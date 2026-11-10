@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseDbEnv } from '../src/env.ts';
+import { isLocalDatabaseUrl, parseDbEnv } from '../src/env.ts';
 import { hasTransactionControl, stripSqlLiterals } from '../src/migrate.ts';
 
 describe('hasTransactionControl', () => {
@@ -69,5 +69,48 @@ describe('parseDbEnv', () => {
     expect(() => parseDbEnv({ APP_ENV: 'local', DATABASE_URL: 'mysql://x/y' })).toThrow(
       /DATABASE_URL/,
     );
+  });
+
+  it('erlaubt local und test nur gegen eine Datenbank auf diesem Rechner', () => {
+    // eine liegengebliebene Entwickler-.env mit APP_ENV=local darf den Schutz nicht aufheben
+    const remote = 'postgres://rdw@prod-db.example.net:5432/rdw';
+    expect(() => parseDbEnv({ APP_ENV: 'local', DATABASE_URL: remote })).toThrow(/DATABASE_URL/);
+    expect(() => parseDbEnv({ APP_ENV: 'test', DATABASE_URL: remote })).toThrow(/DATABASE_URL/);
+    expect(parseDbEnv({ APP_ENV: 'production', DATABASE_URL: remote }).APP_ENV).toBe('production');
+    expect(parseDbEnv({ APP_ENV: 'local', DATABASE_URL: url }).APP_ENV).toBe('local');
+  });
+
+  it('erkennt Loopback-Adressen und Unix-Sockets', () => {
+    for (const local of [
+      'postgres://rdw@localhost/rdw',
+      'postgres://rdw@127.0.0.1:54329/rdw',
+      'postgres://rdw@127.1.2.3/rdw',
+      'postgres://rdw@[::1]:5432/rdw',
+      'postgres:///rdw?host=/var/run/postgresql',
+      'postgres://rdw@%2Fvar%2Frun%2Fpostgresql/rdw',
+      'postgres:///rdw',
+      'postgres://rdw@db.example.net/rdw?host=127.0.0.1',
+    ]) {
+      expect(isLocalDatabaseUrl(local), local).toBe(true);
+    }
+    for (const remote of [
+      'postgres://rdw@10.0.0.5/rdw',
+      'postgres://rdw@localhost.example.net/rdw',
+      'postgres://rdw@127.0.0.1.example.net/rdw',
+      // `?host=` hat beim Treiber Vorrang vor dem Host der URL
+      'postgres://rdw@localhost/rdw?host=db.example.net',
+      'postgres://rdw@127.0.0.1:5432/rdw?host=10.0.0.5',
+      'kein url',
+    ]) {
+      expect(isLocalDatabaseUrl(remote), remote).toBe(false);
+    }
+  });
+
+  it('nimmt ohne Host in der URL PGHOST wie der Treiber', () => {
+    expect(isLocalDatabaseUrl('postgres:///rdw', '/tmp')).toBe(true);
+    expect(isLocalDatabaseUrl('postgres:///rdw', 'db.example.net')).toBe(false);
+    expect(() =>
+      parseDbEnv({ APP_ENV: 'local', DATABASE_URL: 'postgres:///rdw', PGHOST: 'db.example.net' }),
+    ).toThrow(/DATABASE_URL/);
   });
 });

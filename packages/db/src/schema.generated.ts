@@ -25,6 +25,9 @@ export interface BattleResultsTable {
   defense_points: ColumnType<number, number | undefined, number>;
   decided_at: ColumnType<Date, Date | string | undefined, Date | string>;
   core_version: string;
+  capital_lives_left: number | null;
+  regions_taken: number | null;
+  capital_protected_until: ColumnType<Date | null, Date | string | null, Date | string | null>;
 }
 
 export interface GameClockTable {
@@ -80,6 +83,8 @@ export interface KingdomsTable {
   founded_at: ColumnType<Date, Date | string | undefined, Date | string>;
   fallen_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   version: ColumnType<string, string | number | bigint | undefined, string | number | bigint>;
+  capital_hits: ColumnType<number, number | undefined, number>;
+  capital_hit_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
 }
 
 export interface NpcFactionsTable {
@@ -378,6 +383,7 @@ export interface WorldInstancesTable {
   ends_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   closed_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   event_seq: ColumnType<string, string | number | bigint | undefined, string | number | bigint>;
+  mapgen_version: number;
 }
 
 export interface WorldParticipantsTable {

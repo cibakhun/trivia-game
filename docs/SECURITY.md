@@ -18,7 +18,7 @@ Der Client erhält nie Daten, die er vor der Auflösung nicht sehen darf (richti
 ## 2. Anwendungssicherheit [E]
 
 - **Authentifizierung:** Argon2id für Passwörter; Sitzungstoken 256 Bit zufällig, nur als Hash gespeichert; `HttpOnly`, `Secure`, `SameSite=Lax`; Rotation bei Anmeldung; Ablauf 30 Tage gleitend. Admin- und Redaktionskonten zusätzlich mit TOTP-Zweitfaktor.
-- **CSRF:** Prüfung von `Origin` plus Double-Submit-Token für zustandsändernde Anfragen.
+- **CSRF:** Zustandsändernde Anfragen müssen den Header `Origin` mit genau der Herkunft des Clients tragen (fehlt er, wird abgelehnt); dazu `SameSite=Lax` für die Sitzung und `SameSite=Strict` für das Bootstrap-Cookie. Kein Double-Submit-Token, weil es ein für Skripte lesbares Cookie bräuchte ([ADR-028](DECISIONS.md)).
 - **Eingaben:** Jede Anfrage wird per zod-Schema validiert; unbekannte Felder werden verworfen. SQL ausschließlich parametrisiert über Kysely.
 - **Header:** strikte Content-Security-Policy (keine Inline-Skripte, keine Fremd-Skripte), HSTS, `X-Content-Type-Options`, `Referrer-Policy`.
 - **Rate Limiting:** je Sitzung und IP für Anmeldung, Angriffe, Antworten, Verlängerungen.
