@@ -1,6 +1,7 @@
 import type { Db } from '@rdw/db';
 import type { MyInstance, WorldsResponse } from '@rdw/protocol';
 import { sql } from 'kysely';
+import { openChallengeOf } from '../combat/siege-status.ts';
 import { loadKingdoms } from '../kingdom/queries.ts';
 import { tutorialTargetNear } from './spawn-snapshot.ts';
 
@@ -79,8 +80,9 @@ export async function listWorlds(db: Db, userId: string): Promise<WorldsResponse
 }
 
 /**
- * Instanzen, an denen der Spieler teilnimmt, mit aktuellem Reich, Tutorial-Ziel und laufender
- * Herausforderung. Fällige Kämpfe löst der Aufrufer vorher auf.
+ * Instanzen, an denen der Spieler teilnimmt, mit aktuellem Reich, Tutorial-Ziel, laufender
+ * Herausforderung und Zahl der offenen Belagerungen gegen sein Reich. Fällige Kämpfe löst der
+ * Aufrufer vorher auf.
  */
 export async function listMyInstances(db: Db, userId: string): Promise<MyInstance[]> {
   const rows = await db
@@ -117,14 +119,16 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
       kingdom?.status === 'ACTIVE' && kingdom.regionCount === 1 && row.q !== null && row.r !== null
         ? await tutorialTargetNear(db, row.instance_id, { q: row.q, r: row.r })
         : null;
-    const open = row.current_kingdom_id
+    const kingdomId = row.current_kingdom_id;
+    // Laufende Herausforderung: eigener Angriff in Vorbereitung oder begonnene Verteidigung
+    const openChallengeId = kingdomId ? await openChallengeOf(db, kingdomId) : null;
+    const incoming = kingdomId
       ? await db
-          .selectFrom('sieges as s')
-          .innerJoin('quiz_challenges as c', 'c.siege_id', 's.id')
-          .select('c.id')
-          .where('s.attacker_kingdom_id', '=', row.current_kingdom_id)
-          .where('s.status', '=', 'PREPARING')
-          .executeTakeFirst()
+          .selectFrom('sieges')
+          .select((eb) => eb.fn.countAll<string>().as('n'))
+          .where('defender_kingdom_id', '=', kingdomId)
+          .where('status', 'in', ['AWAITING_DEFENSE', 'DEFENDING'])
+          .executeTakeFirstOrThrow()
       : undefined;
     result.push({
       instanceId: row.instance_id,
@@ -134,7 +138,8 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
       status: row.status as InstanceStatus,
       kingdom,
       tutorialTargetRegionId: tutorial,
-      openChallengeId: open?.id ?? null,
+      openChallengeId,
+      incomingSieges: Number(incoming?.n ?? 0),
     });
   }
   return result;

@@ -4,7 +4,7 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 ## Status
 
-**Phase 1 (Singleplayer-Prototyp) in Arbeit.** Regelkern, Protokoll, Datenbank, Fragenimport, Kartengenerator mit Testwelt und der Server mit Gastkonto, Beitritt, Kartenabfragen und PvE-Kampf (Angriff, Fragen, Antworten, Auflösung) stehen mit Tests, ebenso der Browser-Client (Karte, Regionsdetails, Vollbild-Quiz, Reichsanzeige) mit dem E2E-Test „Erste Eroberung“. Planung in [`docs/`](docs/README.md):
+**Phase 1 (Singleplayer-Prototyp) abgeschlossen, Phase 2 (echter Multiplayer) in Arbeit.** Regelkern, Protokoll, Datenbank, Fragenimport, Kartengenerator mit Testwelt und der Server mit Gastkonto, Beitritt, Kartenabfragen und PvE-Kampf (Angriff, Fragen, Antworten, Auflösung) stehen mit Tests, ebenso der Browser-Client (Karte, Regionsdetails, Vollbild-Quiz, Reichsanzeige) mit dem E2E-Test „Erste Eroberung“. Seit Phase 2 Paket 1 gibt es PvP: Belagerungen mit Verteidigungsfrist, Verteidigung, Belagerungsübersicht und Neugründung nach dem Fall, mit den E2E-Tests „Trivia-Sieg“ und „Schätzfrage“. Planung in [`docs/`](docs/README.md):
 
 - Anforderungen: [`docs/brief/PRD-0.1.md`](docs/brief/PRD-0.1.md)
 - MVP-Definition: [`docs/MVP.md`](docs/MVP.md)
@@ -16,8 +16,8 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 | Pfad | Inhalt |
 |---|---|
-| `apps/server` | Server (Rolle `api`, Fastify): Sitzungen, Gastkonto, Welten und Beitritt, Kartenabfragen, PvE-Kampf; Werkzeug `world:create` |
-| `apps/web` | Browser-Client (React, Vite, PixiJS): Start als Gast, Karte, Regionsdetails, Vollbild-Quiz mit Auflösung, Reichsanzeige; deutsche Texte über Schlüssel; E2E-Tests mit Playwright |
+| `apps/server` | Server (Rolle `api`, Fastify): Sitzungen, Gastkonto, Welten und Beitritt, Kartenabfragen, PvE- und PvP-Kampf, Neugründung; Werkzeug `world:create` |
+| `apps/web` | Browser-Client (React, Vite, PixiJS): Start als Gast, Karte, Regionsdetails, Vollbild-Quiz mit Auflösung, Reichsanzeige, Belagerungsübersicht mit Verteidigung; deutsche Texte über Schlüssel; E2E-Tests mit Playwright |
 | `packages/protocol` | zod-Schemas: REST-Schnittstelle (Fehlercodes, Antworten), Regelkonfiguration mit Standardwerten je Modus, Zahlparser (Deutsch), Fragen-Enums |
 | `packages/game-core` | reine Spielregeln: Hex-Karte und Chunks, Kartengenerator, Startregion, Reichsnamen, Ränge, Duellauswertung mit verdecktem Gate, Verteidigungspunkte, effektive Antwortzeit, Fristen, Zufall (HMAC + sfc32), Drops, NPC-Antwortmodell |
 | `packages/db` | SQL-Migrationen, Migrationsläufer, typisierter Zugriff (Kysely), `game_now()`, Testhelfer |
@@ -41,6 +41,7 @@ pnpm db:migrate               # Migrationen auf DATABASE_URL anwenden (--status 
 pnpm db:types                 # Kysely-Typen aus dem migrierten Schema erzeugen (--check: nur vergleichen)
 pnpm content:import --fixtures  # Fragen importieren, lokal mit den 40 Testfragen (--dry-run: Probelauf)
 pnpm world:create             # Testwelt anlegen (150 Regionen, sechs NPC-Fraktionen)
+pnpm world:create --slug=spieltest --rules=playtest  # zweite Welt mit 10 min Verteidigungsfrist für PvP-Tests
 pnpm api:start                # Server starten (braucht PUBLIC_ORIGIN, RNG_SECRET, RNG_KEY_ID)
 pnpm web:dev                  # Client auf http://127.0.0.1:5173, /api geht an 127.0.0.1:3000 (API_ORIGIN)
 pnpm e2e                      # E2E-Tests im Browser (eigene Testdatenbank über TEST_DATABASE_URL)
@@ -48,7 +49,9 @@ pnpm e2e                      # E2E-Tests im Browser (eigene Testdatenbank über
 
 `pnpm db:migrate`, `pnpm db:types`, `pnpm content:import`, `pnpm world:create`, `pnpm api:start` und `pnpm web:dev` (nur `API_ORIGIN`) lesen `.env` im Hauptordner selbst; gesetzte Umgebungsvariablen haben Vorrang. `pnpm check`, `pnpm test:integration` und `pnpm e2e` lesen `.env` nicht: Für die beiden letzten `TEST_DATABASE_URL` in der Shell setzen, z. B. `export TEST_DATABASE_URL=postgres://rdw:…@127.0.0.1:5432/postgres` (PowerShell: `$env:TEST_DATABASE_URL = "…"`). Mit `APP_ENV=local` oder `test` verweigern die Befehle eine Datenbank, die nicht auf diesem Rechner liegt; so hebt eine liegengebliebene Entwickler-`.env` auf einem Server die Freigabeschutze nicht auf. Der Client läuft unter `http://127.0.0.1:5173` (wie `PUBLIC_ORIGIN` in `.env.example`; `localhost` wäre eine andere Herkunft und wird abgelehnt). Vor dem ersten `pnpm e2e` einmal `pnpm --filter @rdw/web exec playwright install chromium`.
 
-`pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie. `pnpm content:import` verlangt in Produktion ebenfalls `--production-approved`, außer beim Probelauf mit `--dry-run`, der nichts übernimmt; Testfragen (`--fixtures`) lehnt der Import außerhalb von `local` und `test` immer ab. `pnpm world:create` legt in Produktion nur mit `--production-approved` eine Welt an.
+`pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie. `pnpm content:import` verlangt in Produktion ebenfalls `--production-approved`, außer beim Probelauf mit `--dry-run`, der nichts übernimmt; Testfragen (`--fixtures`) lehnt der Import außerhalb von `local` und `test` immer ab. `pnpm world:create` legt in Produktion nur mit `--production-approved` eine Welt an; Spieltest-Regeln (`--rules=playtest`) gibt es nur mit `APP_ENV=local` oder `test`.
+
+**PvP lokal ausprobieren:** Spieltest-Welt wie oben anlegen, Server und Client starten und das Spiel in zwei Browserfenstern öffnen, eines davon privat (eigenes Gastkonto). Beide treten der Welt „spieltest“ bei. Die Startregionen liegen meist 3 bis 8 Felder auseinander: Beide erobern zuerst ein paar neutrale Regionen aufeinander zu (nach 2 Minuten endet ohnehin der Anfängerschutz). Sobald die Reiche aneinandergrenzen, greift einer eine Region des anderen an und beantwortet beide Fragen. Der andere sieht die Belagerung in der Seitenleiste und hat 10 Minuten zum Verteidigen. Wer sein Reich verliert, gründet über „Neues Reich gründen“ neu.
 
 ## Stack
 

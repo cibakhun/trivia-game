@@ -7,6 +7,7 @@ import {
   HOUR_MS,
   MINUTE_MS,
   parseRulesConfig,
+  PLAYTEST_RULES,
   rulesConfigSchema,
   SECOND_MS,
   WORLD_MODES,
@@ -96,10 +97,26 @@ describe('DEFAULT_RULES', () => {
     });
     expect([e, w, d].map((r) => r.npc.maxActionsPerFactionPerHour)).toEqual([2, 4, 12]);
     expect([e, w, d].map((r) => r.npc.maxOpenSiegesAgainstHumanKingdom)).toEqual([1, 1, 1]);
+    // Sperre je Angreifer halb so lang wie die Erholung ([O-20] B, PO-Nachtrag 2026-11-10)
     expect([e, w, d].map((r) => r.capital)).toEqual([
-      { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: HOUR_MS },
-      { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: HOUR_MS },
-      { lives: 3, lifeRegen: 4 * HOUR_MS, protectionAfterHit: 10 * MINUTE_MS },
+      {
+        lives: 3,
+        lifeRegen: 24 * HOUR_MS,
+        protectionAfterHit: HOUR_MS,
+        hitCooldownPerAttacker: 12 * HOUR_MS,
+      },
+      {
+        lives: 3,
+        lifeRegen: 24 * HOUR_MS,
+        protectionAfterHit: HOUR_MS,
+        hitCooldownPerAttacker: 12 * HOUR_MS,
+      },
+      {
+        lives: 3,
+        lifeRegen: 4 * HOUR_MS,
+        protectionAfterHit: 10 * MINUTE_MS,
+        hitCooldownPerAttacker: 2 * HOUR_MS,
+      },
     ]);
   });
 
@@ -110,8 +127,26 @@ describe('DEFAULT_RULES', () => {
       expect(capitalRules(DEFAULT_RULES[mode])).toEqual(DEFAULT_CAPITAL_RULES[mode]);
     }
     const own = clone('ETERNAL');
-    own.capital = { lives: 1, lifeRegen: null, protectionAfterHit: 0 };
+    own.capital = { lives: 1, lifeRegen: null, protectionAfterHit: 0, hitCooldownPerAttacker: 1 };
     expect(capitalRules(parseRulesConfig(own))).toEqual(own.capital);
+    // Abschnitt aus Phase 1 ohne Sperre: Standardwert des Modus für die Sperre
+    const daily = clone('DAILY');
+    daily.capital = { lives: 2, lifeRegen: null, protectionAfterHit: 0 };
+    expect(capitalRules(parseRulesConfig(daily))).toEqual({
+      lives: 2,
+      lifeRegen: null,
+      protectionAfterHit: 0,
+      hitCooldownPerAttacker: 2 * HOUR_MS,
+    });
+  });
+
+  it('Spieltest-Regeln sind gültig und kurz genug für einen Test in Minuten', () => {
+    expect(parseRulesConfig(PLAYTEST_RULES)).toEqual(PLAYTEST_RULES);
+    expect(PLAYTEST_RULES.defense.baseDeadline).toBe(10 * MINUTE_MS);
+    expect(PLAYTEST_RULES.protection.newPlayer.duration).toBe(2 * MINUTE_MS);
+    expect(PLAYTEST_RULES.protection.rankGap).toBeNull();
+    const capital = capitalRules(PLAYTEST_RULES);
+    expect(capital.hitCooldownPerAttacker).toBeLessThan(capital.lifeRegen ?? 0);
   });
 
   it('ist bis in jede Ebene unveränderlich, in allen Modi', () => {
@@ -156,6 +191,23 @@ describe('rulesConfigSchema', () => {
     expect(issues(cfg)).toEqual(
       expect.arrayContaining(['capital.lives', 'capital.lifeRegen', 'capital.protectionAfterHit']),
     );
+  });
+
+  it('verlangt eine Sperre je Angreifer, die kürzer ist als die Erholung eines Lebens', () => {
+    const cfg = clone('ETERNAL');
+    cfg.capital = { lives: 3, lifeRegen: HOUR_MS, protectionAfterHit: 0 };
+    cfg.capital.hitCooldownPerAttacker = HOUR_MS;
+    expect(issues(cfg)).toContain('capital.hitCooldownPerAttacker');
+    cfg.capital.hitCooldownPerAttacker = HOUR_MS - 1;
+    expect(issues(cfg)).toEqual([]);
+    // ohne Erholung gibt es nichts, wogegen die Sperre wirken könnte
+    cfg.capital = {
+      lives: 3,
+      lifeRegen: null,
+      protectionAfterHit: 0,
+      hitCooldownPerAttacker: DAY_MS,
+    };
+    expect(issues(cfg)).toEqual([]);
   });
 
   it('verlangt maxDeadline ≥ baseDeadline', () => {

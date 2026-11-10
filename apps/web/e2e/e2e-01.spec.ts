@@ -21,7 +21,7 @@ test('E2E-01: Gast erobert die Tutorial-Garnison und besitzt danach zwei Regione
 }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
-  await page.getByRole('button', { name: 'Beitreten' }).click();
+  await page.getByTestId('world-e2e').getByRole('button', { name: 'Beitreten' }).click();
 
   await expect(page).toHaveURL(/\/play\//);
   await expect(page.getByTestId('kingdom-rank')).toHaveText('Siedlung');

@@ -401,6 +401,7 @@ describe('Angriffsberechtigung in den Regionsdetails', () => {
       defenderKind: null,
       reason: 'OWN_REGION',
       until: null,
+      endsOwnProtection: false,
     });
     expect((await regionDetail(player, tutorialTarget(player))).attack).toEqual({
       allowed: true,
@@ -408,6 +409,7 @@ describe('Angriffsberechtigung in den Regionsdetails', () => {
       defenderKind: 'NEUTRAL',
       reason: null,
       until: null,
+      endsOwnProtection: false,
     });
     const far = await distantRegion(instanceId, kingdom.id);
     expect((await regionDetail(player, far)).attack.reason).toBe('NOT_ADJACENT');
@@ -1083,7 +1085,7 @@ describe('Angriff: Prüfungen und Idempotenz', () => {
       .execute();
   });
 
-  it('lehnt Angriffe auf Spielerreiche ab: Schutz, dann PvP erst ab Phase 2', async () => {
+  it('lehnt geschützte Spielerreiche ab und warnt, dass ein PvP-Angriff den eigenen Schutz beendet', async () => {
     const player = await newPlayer(world);
     const other = await newPlayer(world);
     const target = await neutralNeighbour(player.joined.instanceId, player.joined.kingdom.id);
@@ -1100,16 +1102,14 @@ describe('Angriff: Prüfungen und Idempotenz', () => {
       .set({ protected_until: null, protection_reason: null })
       .where('id', '=', other.joined.kingdom.id)
       .execute();
+    // Der Angreifer hat noch Anfängerschutz: Der Angriff ist erlaubt, beendet ihn aber.
     expect((await regionDetail(player, target)).attack).toEqual({
-      allowed: false,
+      allowed: true,
       mode: 'PVP',
       defenderKind: 'PLAYER',
-      reason: 'PVP_NOT_AVAILABLE',
+      reason: null,
       until: null,
-    });
-    expect(errorOf(await attack(player.client, player.joined.instanceId, target))).toMatchObject({
-      status: 409,
-      code: 'PVP_NOT_AVAILABLE',
+      endsOwnProtection: true,
     });
   });
 

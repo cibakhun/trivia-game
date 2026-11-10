@@ -395,6 +395,7 @@ describe('Beitritt (POST /worlds/:worldId/join)', () => {
         kingdom: joined.kingdom,
         tutorialTargetRegionId: joined.tutorialTargetRegionId,
         openChallengeId: null,
+        incomingSieges: 0,
       },
     ]);
     const after = worldsResponseSchema.parse((await client.get('/worlds')).json());

@@ -3,10 +3,10 @@
  * Werkzeug zu starten). Ergebnis: die erkannten Werte oder das erste ungültige Argument.
  */
 const FLAGS = new Set(['--production-approved']);
-const OPTIONS = new Set(['--slug', '--seed', '--capacity']);
+const OPTIONS = new Set(['--slug', '--seed', '--capacity', '--rules']);
 
 export const WORLD_CREATE_USAGE =
-  'erlaubt: --slug=…, --seed=…, --capacity=…, --production-approved';
+  'erlaubt: --slug=…, --seed=…, --capacity=…, --rules=default|playtest, --production-approved';
 
 export function parseWorldCreateArgs(argv: readonly string[]): Map<string, string> | string {
   const result = new Map<string, string>();

@@ -132,9 +132,20 @@ export const capitalRulesSchema = z
     lifeRegen: positiveDurationMs.nullable(),
     /** Schutz der Hauptstadt nach einem Treffer, der sie nicht einnimmt. */
     protectionAfterHit: durationMs,
+    /**
+     * Nur Spielerhauptstädte im PvP ([O-20] B): Ein angreifendes Reich darf dieselbe Hauptstadt
+     * erst nach dieser Zeit seit seinem letzten Treffer wieder angreifen. Halb so lang wie
+     * `lifeRegen`, damit ein einzelner Angreifer allein einnehmen kann. Fehlt der Wert (Welten vor
+     * Phase 2), gilt der Standardwert des Modus (`capitalRules`).
+     */
+    hitCooldownPerAttacker: durationMs.optional(),
   })
   .strict();
 export type CapitalRulesConfig = z.infer<typeof capitalRulesSchema>;
+/** Hauptstadt-Regeln mit allen Werten (Standardwerte des Modus eingesetzt). */
+export type ResolvedCapitalRules = Omit<CapitalRulesConfig, 'hitCooldownPerAttacker'> & {
+  readonly hitCooldownPerAttacker: number;
+};
 
 const npcSchema = z
   .object({
@@ -208,6 +219,21 @@ export const rulesConfigSchema = z
         message: 'Jede Belagerung braucht einen Versuch: Versuche ≥ Belagerungen',
       });
     }
+    // [O-20] B: Mit einer Sperre so lang wie die Erholung könnte ein einzelner Angreifer eine
+    // Spielerhauptstadt nie allein einnehmen, weil sie sich vor seinem nächsten Treffer erholt.
+    const capital = cfg.capital;
+    if (
+      capital?.lifeRegen !== undefined &&
+      capital.lifeRegen !== null &&
+      capital.hitCooldownPerAttacker !== undefined &&
+      capital.hitCooldownPerAttacker >= capital.lifeRegen
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['capital', 'hitCooldownPerAttacker'],
+        message: 'Die Sperre je Angreifer muss kürzer sein als die Erholung eines Lebens',
+      });
+    }
   });
 
 export type RulesConfig = z.infer<typeof rulesConfigSchema>;
@@ -240,16 +266,40 @@ function deepFreeze<T>(value: T): DeepReadonly<T> {
  * Hauptstadt-Leben je Modus (GAME_RULES §10), alle Werte vom PO bestätigt [V]. Auch Rückfall für
  * Welten ohne Abschnitt.
  */
-export const DEFAULT_CAPITAL_RULES: DeepReadonly<Record<WorldMode, CapitalRulesConfig>> =
+export const DEFAULT_CAPITAL_RULES: DeepReadonly<Record<WorldMode, ResolvedCapitalRules>> =
   deepFreeze({
-    ETERNAL: { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: 1 * HOUR_MS },
-    WEEKLY: { lives: 3, lifeRegen: 24 * HOUR_MS, protectionAfterHit: 1 * HOUR_MS },
-    DAILY: { lives: 3, lifeRegen: 4 * HOUR_MS, protectionAfterHit: 10 * MINUTE_MS },
+    ETERNAL: {
+      lives: 3,
+      lifeRegen: 24 * HOUR_MS,
+      protectionAfterHit: 1 * HOUR_MS,
+      hitCooldownPerAttacker: 12 * HOUR_MS,
+    },
+    WEEKLY: {
+      lives: 3,
+      lifeRegen: 24 * HOUR_MS,
+      protectionAfterHit: 1 * HOUR_MS,
+      hitCooldownPerAttacker: 12 * HOUR_MS,
+    },
+    DAILY: {
+      lives: 3,
+      lifeRegen: 4 * HOUR_MS,
+      protectionAfterHit: 10 * MINUTE_MS,
+      hitCooldownPerAttacker: 2 * HOUR_MS,
+    },
   });
 
-/** Hauptstadt-Regeln einer Konfiguration; ohne eigenen Abschnitt die Standardwerte des Modus. */
-export function capitalRules(rules: Pick<RulesConfig, 'mode' | 'capital'>): CapitalRulesConfig {
-  return rules.capital ?? { ...DEFAULT_CAPITAL_RULES[rules.mode] };
+/**
+ * Hauptstadt-Regeln einer Konfiguration; fehlende Werte (ohne eigenen Abschnitt alle) kommen aus
+ * den Standardwerten des Modus.
+ */
+export function capitalRules(rules: Pick<RulesConfig, 'mode' | 'capital'>): ResolvedCapitalRules {
+  const defaults = DEFAULT_CAPITAL_RULES[rules.mode];
+  const own = rules.capital;
+  if (!own) return { ...defaults };
+  return {
+    ...own,
+    hitCooldownPerAttacker: own.hitCooldownPerAttacker ?? defaults.hitCooldownPerAttacker,
+  };
 }
 
 /** Standardwerte je Modus aus docs/GAME_RULES.md §10 (Kennzeichnungen dort); unveränderlich. */
@@ -360,5 +410,51 @@ export const DEFAULT_RULES: DeepReadonly<Record<WorldMode, RulesConfig>> = deepF
     items: { enabled: false },
     npc: { maxActionsPerFactionPerHour: 12, maxOpenSiegesAgainstHumanKingdom: 1 },
     capital: { ...DEFAULT_CAPITAL_RULES.DAILY },
+  },
+});
+
+/**
+ * Spieltest-Regeln (nur `local` und `test`, `pnpm world:create --rules=playtest`): eine
+ * Eternal-Welt mit kurzen Zeiten, damit zwei Spieler PvP in wenigen Minuten ausprobieren können –
+ * Verteidigungsfrist 10 min, Anfängerschutz 2 min, kein Rangabstand, Hauptstadt erholt sich nach
+ * 30 min. Keine Spielregel, nie in Produktion.
+ */
+export const PLAYTEST_RULES: DeepReadonly<RulesConfig> = deepFreeze({
+  schemaVersion: 1,
+  mode: 'ETERNAL',
+  defense: {
+    baseDeadline: 10 * MINUTE_MS,
+    maxDeadline: 10 * MINUTE_MS,
+    startBuffer: 10 * SECOND_MS,
+    settleGrace: 5 * SECOND_MS,
+    pointsForDefending: 5,
+    pointsBonusCorrect: 5,
+    pointsPairLimitPerDay: 2,
+  },
+  quiz: {
+    triviaTimeLimit: 20 * SECOND_MS,
+    estimateTimeLimit: 30 * SECOND_MS,
+    latencyAllowanceCapMs: 500,
+  },
+  attack: {
+    maxNewPvpSiegesPerAttacker: { count: 20, windowMs: HOUR_MS },
+    maxPvpAttemptsPerAttacker: { count: 40, windowMs: HOUR_MS },
+    maxOpenSiegesPerDefender: 4,
+    maxPveAttemptsPerPlayer: { count: null, windowMs: HOUR_MS },
+  },
+  protection: {
+    afterConquest: 2 * MINUTE_MS,
+    newPlayer: { duration: 2 * MINUTE_MS, untilRegions: 10 },
+    respawn: 2 * MINUTE_MS,
+    rankGap: null,
+  },
+  // Ohne Items keine Verlängerung: maxDeadline = baseDeadline
+  items: { enabled: false },
+  npc: { maxActionsPerFactionPerHour: 2, maxOpenSiegesAgainstHumanKingdom: 1 },
+  capital: {
+    lives: 3,
+    lifeRegen: 30 * MINUTE_MS,
+    protectionAfterHit: 2 * MINUTE_MS,
+    hitCooldownPerAttacker: 15 * MINUTE_MS,
   },
 });

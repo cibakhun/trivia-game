@@ -1,10 +1,11 @@
 import { axialKey, neighbors, type Axial } from '@rdw/game-core';
-import type { AttackResponse } from '@rdw/protocol';
+import type { AttackResponse, SiegesResponse } from '@rdw/protocol';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { api } from '../api/client.ts';
+import { api, newActionKey } from '../api/client.ts';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { KingdomBar } from '../components/KingdomBar.tsx';
 import { RegionPanel } from '../components/RegionPanel.tsx';
+import { SiegePanel } from '../components/SiegePanel.tsx';
 import { t } from '../i18n/i18n.ts';
 import { MapCanvas } from '../map/MapCanvas.tsx';
 import type { MapRegion } from '../map/MapView.ts';
@@ -18,7 +19,10 @@ import { rememberAttack } from './attack-memory.ts';
 /** Ohne WebSocket (Phase 2) wird der Kartenzustand regelmäßig neu gelesen. */
 const REFRESH_MS = 30_000;
 
-/** Karte mit Reichsanzeige, Tutorial-Hinweis, angrenzenden Regionen und Regionsdetails. */
+/**
+ * Karte mit Reichsanzeige, Belagerungen, Tutorial-Hinweis, angrenzenden Regionen und
+ * Regionsdetails; nach einem Totalverlust die Neugründung.
+ */
 export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   const { state, reload } = useSession();
   const me = state.status === 'ready' ? state.me : null;
@@ -28,7 +32,28 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [centre, setCentre] = useState<Axial | null>(null);
   const [setupError, setSetupError] = useState<unknown>(null);
+  const [sieges, setSieges] = useState<SiegesResponse | null>(null);
+  // Eigener Fehler der Belagerungsliste: verschwindet mit dem nächsten erfolgreichen Laden
+  const [siegeError, setSiegeError] = useState<unknown>(null);
+  const [respawning, setRespawning] = useState(false);
   const viewportTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Eine Neugründung = ein Schlüssel, auch nach einem Netzfehler
+  const respawnKey = useRef(newActionKey());
+
+  const loadSieges = useCallback(async () => {
+    try {
+      setSieges(await api.sieges(instanceId));
+      setSiegeError(null);
+    } catch (e) {
+      setSiegeError(e);
+    }
+  }, [instanceId]);
+
+  // Belagerungen beim Öffnen und mit jedem Neuladen von /me (z. B. neue eingehende Belagerung)
+  const incomingCount = mine?.incomingSieges ?? 0;
+  useEffect(() => {
+    void loadSieges();
+  }, [loadSieges, incomingCount]);
 
   // Ohne Teilnahme zurück zum Start; laufender Angriff (z. B. nach Reload) wird fortgesetzt
   useEffect(() => {
@@ -67,9 +92,10 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
       if (document.visibilityState !== 'visible') return;
       void refresh();
       void reload();
+      void loadSieges();
     }, REFRESH_MS);
     return () => clearInterval(timer);
-  }, [refresh, reload]);
+  }, [refresh, reload, loadSieges]);
 
   useEffect(
     () => () => {
@@ -124,6 +150,21 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
     navigate({ name: 'challenge', challengeId: attack.challengeId });
   }
 
+  async function respawn() {
+    setRespawning(true);
+    setSetupError(null);
+    try {
+      await api.respawn(instanceId, respawnKey.current);
+      respawnKey.current = newActionKey();
+      await reload();
+      await refresh();
+    } catch (e) {
+      setSetupError(e);
+    } finally {
+      setRespawning(false);
+    }
+  }
+
   if (state.status === 'error') {
     return <ErrorNote error={state.error} onRetry={() => void reload()} />;
   }
@@ -149,7 +190,24 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
           onError={setSetupError}
         />
         <aside className="side">
-          {kingdom?.status === 'FALLEN' ? <p className="note">{t('kingdom.fallen')}</p> : null}
+          {kingdom?.status === 'FALLEN' ? (
+            <section className="card card-accent" data-testid="fallen">
+              <p className="note">{t('kingdom.fallen')}</p>
+              <p>{t('kingdom.fallenHint')}</p>
+              <button
+                type="button"
+                className="button button-primary"
+                disabled={respawning}
+                onClick={() => void respawn()}
+              >
+                {respawning ? t('kingdom.respawning') : t('kingdom.respawn')}
+              </button>
+            </section>
+          ) : null}
+          {sieges &&
+          (sieges.incoming.length > 0 || sieges.outgoing.length > 0 || sieges.recent.length > 0) ? (
+            <SiegePanel sieges={sieges} onSelectRegion={setSelected} />
+          ) : null}
           {tutorial ? (
             <section className="card card-accent" aria-labelledby="tutorial-title">
               <h2 id="tutorial-title">{t('tutorial.title')}</h2>
@@ -210,7 +268,9 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
               {t('map.centre')}
             </button>
           ) : null}
-          {error || setupError ? <ErrorNote error={error ?? setupError} /> : null}
+          {error || setupError || siegeError ? (
+            <ErrorNote error={error ?? setupError ?? siegeError} />
+          ) : null}
         </aside>
       </div>
     </div>

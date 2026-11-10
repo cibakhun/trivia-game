@@ -198,9 +198,13 @@ export const capitalEffectSchema = z.discriminatedUnion('takenOver', [
 ]);
 export type CapitalEffect = z.infer<typeof capitalEffectSchema>;
 
+export const participantRoleSchema = z.enum(['ATTACKER', 'DEFENDER']);
+export type ParticipantRole = z.infer<typeof participantRoleSchema>;
+
 export const resolutionSchema = z
   .object({
     siegeId: entityIdSchema,
+    mode: attackModeSchema,
     status: siegeStatusSchema,
     winner: z.enum(['ATTACKER', 'DEFENDER', 'NONE']),
     reason: outcomeReasonSchema,
@@ -230,6 +234,11 @@ export const resolutionSchema = z
       .nullable(),
     attacker: battleSideSchema,
     defender: battleSideSchema,
+    /**
+     * Verteidigungspunkte des Verteidigers aus diesem Kampf (GAME_RULES §5.5): nur im PvP, nur
+     * für eine vollständige eigene Verteidigung und nur bis zum Paarlimit, sonst 0.
+     */
+    defensePoints: z.number().int().min(0).max(100),
     resolvedAt: timestampSchema,
   })
   .strict();
@@ -247,8 +256,14 @@ export const challengeViewSchema = z
     siegeId: entityIdSchema,
     instanceId: entityIdSchema,
     mode: attackModeSchema,
+    /** Rolle des Anfragenden: Angreifer oder (nur PvP) Verteidiger. */
+    role: participantRoleSchema,
     targetRegionId: regionIdSchema,
+    /** Gegnerisches Reich; `null` bei einer neutralen Garnison. */
+    opponent: kingdomSummarySchema.nullable(),
     status: siegeStatusSchema,
+    /** Nur PvP ab Eröffnung: Ende der Verteidigungsfrist (`deadline_at`). */
+    deadlineAt: timestampSchema.nullable(),
     steps: z.array(challengeStepInfoSchema.extend({ status: z.enum(STEP_STATUSES) }).strict()),
     /** Nächster offener Schritt; `null`, wenn alle Schritte erledigt sind. */
     currentStep: stepIndexSchema.nullable(),
@@ -277,3 +292,82 @@ export const answerResponseSchema = z
   })
   .strict();
 export type AnswerResponse = z.infer<typeof answerResponseSchema>;
+
+// ---------------------------------------------------------------------------------------------
+// PvP-Belagerungen (API.md §2.3, SIEGE_SYSTEM §4 und §9)
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Verteidigung beginnen: Die Belagerung geht in `DEFENDING`, und die Wissensfrage ist ab jetzt
+ * gestellt (ihre Zeit läuft). Die Frage kommt direkt mit, damit keine Lücke zwischen Beginn und
+ * Frage entsteht, in der die Restzeit der Frist schrumpft.
+ */
+export const defenseResponseSchema = z
+  .object({
+    siegeId: entityIdSchema,
+    challengeId: entityIdSchema,
+    question: presentedQuestionSchema,
+    serverTime: timestampSchema,
+  })
+  .strict();
+export type DefenseResponse = z.infer<typeof defenseResponseSchema>;
+
+/** Warum eine Verteidigung gerade nicht beginnen kann. */
+export const DEFENSE_BLOCKS = [
+  'DEADLINE_TOO_CLOSE',
+  'DEADLINE_PASSED',
+  'CHALLENGE_IN_PROGRESS',
+] as const;
+
+export const siegeSummarySchema = z
+  .object({
+    siegeId: entityIdSchema,
+    challengeId: entityIdSchema,
+    mode: attackModeSchema,
+    /** Rolle des Anfragenden in diesem Kampf. */
+    role: participantRoleSchema,
+    status: siegeStatusSchema,
+    regionId: regionIdSchema,
+    region: z
+      .object({
+        q: z.number().int(),
+        r: z.number().int(),
+        biome: z.number().int().min(0),
+        tier: z.number().int().min(0).max(10),
+        isCapital: z.boolean(),
+      })
+      .strict(),
+    attacker: kingdomSummarySchema,
+    /** `null` bei neutralen Garnisonen. */
+    defender: kingdomSummarySchema.nullable(),
+    createdAt: timestampSchema,
+    openedAt: timestampSchema.nullable(),
+    deadlineAt: timestampSchema.nullable(),
+    /** Restzeit bis `deadlineAt`, nie negativ; `null` ohne Frist. */
+    remainingMs: z.number().int().min(0).nullable(),
+    defenseStartedAt: timestampSchema.nullable(),
+    /** Nur Verteidiger einer wartenden Belagerung: Verteidigung jetzt möglich. */
+    canDefend: z.boolean(),
+    defendBlockedBy: z.enum(DEFENSE_BLOCKS).nullable(),
+    resolvedAt: timestampSchema.nullable(),
+    winner: z.enum(['ATTACKER', 'DEFENDER', 'NONE']).nullable(),
+    reason: outcomeReasonSchema.nullable(),
+    defensePoints: z.number().int().min(0).max(100).nullable(),
+  })
+  .strict();
+export type SiegeSummary = z.infer<typeof siegeSummarySchema>;
+
+/**
+ * Belagerungsübersicht eines Spielers in einer Instanz (SIEGE_SYSTEM §9): eingehende und eigene
+ * offene Belagerungen (dringendste zuerst) und die zuletzt beendeten Kämpfe.
+ */
+export const siegesResponseSchema = z
+  .object({
+    instanceId: entityIdSchema,
+    incoming: z.array(siegeSummarySchema),
+    outgoing: z.array(siegeSummarySchema),
+    recent: z.array(siegeSummarySchema),
+    serverTime: timestampSchema,
+  })
+  .strict();
+export type SiegesResponse = z.infer<typeof siegesResponseSchema>;

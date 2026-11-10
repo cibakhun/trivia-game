@@ -1,20 +1,35 @@
-import type { BattleSide, Resolution } from '@rdw/protocol';
-import { formatDecimal, formatTime, t, tDynamic, tp } from '../i18n/i18n.ts';
+import type { BattleSide, ParticipantRole, Resolution } from '@rdw/protocol';
+import { formatDecimal, formatTime, hasMessage, t, tDynamic, tp } from '../i18n/i18n.ts';
 
 /**
  * Vollständige Auflösung nach dem Kampf (QUIZ_ENGINE §7.2): Ergebnis, Grund, Lösung und beide
- * Seiten mit Antwort, Schätzung, Abstand und effektiver Zeit.
+ * Seiten mit Antwort, Schätzung, Abstand und effektiver Zeit. Aus Sicht der eigenen Rolle: Im PvP
+ * sieht der Verteidiger sein Ergebnis und seine Verteidigungspunkte.
  */
 export function ResolutionView({
   resolution,
+  role = 'ATTACKER',
   onDone,
 }: {
   readonly resolution: Resolution;
+  readonly role?: ParticipantRole;
   readonly onDone: () => void;
 }) {
   const capital = resolution.capital;
-  const headline =
-    resolution.winner === 'ATTACKER'
+  const defending = role === 'DEFENDER';
+  // Ohne Sieger (abgebrochen, verfallen, Gate ohne Verteidigung) ist die Überschrift neutral
+  const won = resolution.winner === (defending ? 'DEFENDER' : 'ATTACKER');
+  const headline = defending
+    ? resolution.winner === 'ATTACKER'
+      ? capital
+        ? capital.takenOver
+          ? t('result.defenseTakenOver')
+          : t('result.defenseCapitalHit')
+        : t('result.defenseLost')
+      : resolution.winner === 'DEFENDER'
+        ? t('result.defenseWon')
+        : t('result.defenseNone')
+    : resolution.winner === 'ATTACKER'
       ? capital
         ? capital.takenOver
           ? t('result.takenOver')
@@ -25,20 +40,43 @@ export function ResolutionView({
         : t('result.none');
   const unit = resolution.estimate?.unitLabel;
   const defenderName = resolution.defender.kingdom?.name ?? t('result.opponent');
+  const attackerName = resolution.attacker.kingdom?.name ?? t('result.opponent');
+  // Fehlt ein Text aus Verteidigersicht, gilt der allgemeine
+  const defenderReason = `result.reasonDefender.${resolution.reason}`;
+  const reasonText = tDynamic(
+    defending && hasMessage(defenderReason) ? defenderReason : `result.reason.${resolution.reason}`,
+    'errors.generic',
+  );
+  const mine = defending ? resolution.defender : resolution.attacker;
+  const theirs = defending ? resolution.attacker : resolution.defender;
   return (
     <section className="resolution" aria-labelledby="result-title" data-testid="resolution">
-      <h1 id="result-title" className={resolution.winner === 'ATTACKER' ? 'won' : 'lost'}>
+      <h1
+        id="result-title"
+        className={resolution.winner === 'NONE' ? undefined : won ? 'won' : 'lost'}
+      >
         {headline}
       </h1>
-      <p>{tDynamic(`result.reason.${resolution.reason}`, 'errors.generic')}</p>
+      <p>{reasonText}</p>
       {capital ? (
         <p data-testid="capital-effect">
-          {capital.takenOver
-            ? tp('result.regionsTaken', capital.regionsTaken, { name: defenderName })
-            : tp('result.capitalLivesLeft', capital.livesLeft, {
-                name: defenderName,
-                max: capital.maxLives,
-              })}
+          {defending
+            ? capital.takenOver
+              ? tp('result.defenseRegionsTaken', capital.regionsTaken, { name: attackerName })
+              : tp('result.defenseCapitalLivesLeft', capital.livesLeft, { max: capital.maxLives })
+            : capital.takenOver
+              ? tp('result.regionsTaken', capital.regionsTaken, { name: defenderName })
+              : tp('result.capitalLivesLeft', capital.livesLeft, {
+                  name: defenderName,
+                  max: capital.maxLives,
+                })}
+        </p>
+      ) : null}
+      {defending && resolution.mode === 'PVP' ? (
+        <p data-testid="defense-points">
+          {resolution.defensePoints > 0
+            ? tp('result.defensePoints', resolution.defensePoints)
+            : t('result.defenseNoPoints')}
         </p>
       ) : null}
       {capital?.protectedUntil ? (
@@ -96,18 +134,18 @@ export function ResolutionView({
           </tr>
         </thead>
         <tbody>
-          <SideRow label={t('result.answer')} pick={(s) => triviaText(s)} resolution={resolution} />
+          <SideRow label={t('result.answer')} pick={(s) => triviaText(s)} sides={[mine, theirs]} />
           {resolution.estimate ? (
             <>
               <SideRow
                 label={t('result.estimateValue')}
                 pick={(s) => (s.estimate ? formatDecimal(s.estimate) : t('result.noAnswer'))}
-                resolution={resolution}
+                sides={[mine, theirs]}
               />
               <SideRow
                 label={t('result.distance')}
                 pick={(s) => (s.estimateDistance ? formatDecimal(s.estimateDistance) : '–')}
-                resolution={resolution}
+                sides={[mine, theirs]}
               />
               <SideRow
                 label={t('result.time')}
@@ -118,7 +156,7 @@ export function ResolutionView({
                         value: formatDecimal((s.estimateEffectiveMs / 1000).toFixed(1)),
                       })
                 }
-                resolution={resolution}
+                sides={[mine, theirs]}
               />
             </>
           ) : null}
@@ -137,20 +175,21 @@ function triviaText(side: BattleSide): string {
   return `${side.triviaAnswer} (${side.triviaCorrect ? t('result.correct') : t('result.wrong')})`;
 }
 
+/** Zeile der Vergleichstabelle: erst die eigene Seite („Du“), dann der Gegner. */
 function SideRow({
   label,
   pick,
-  resolution,
+  sides,
 }: {
   readonly label: string;
   readonly pick: (side: BattleSide) => string;
-  readonly resolution: Resolution;
+  readonly sides: readonly [BattleSide, BattleSide];
 }) {
   return (
     <tr>
       <th scope="row">{label}</th>
-      <td>{pick(resolution.attacker)}</td>
-      <td>{pick(resolution.defender)}</td>
+      <td>{pick(sides[0])}</td>
+      <td>{pick(sides[1])}</td>
     </tr>
   );
 }

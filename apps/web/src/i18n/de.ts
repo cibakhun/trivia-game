@@ -30,7 +30,12 @@ export const de = {
     regions: { one: '{count} Region', other: '{count} Regionen' },
     noRegions: 'keine Regionen',
     newbieProtection: 'Anfängerschutz bis {time}',
+    respawnProtection: 'Wiederaufbauschutz bis {time}',
     fallen: 'Dein Reich ist gefallen.',
+    fallenHint:
+      'Gründe ein neues Reich in einer freien Region. Es ist eine Zeit lang vor Angriffen geschützt.',
+    respawn: 'Neues Reich gründen',
+    respawning: 'Reich wird gegründet …',
     yours: 'Dein Reich',
     neutral: 'Neutral',
     garrison: 'Neutrale Garnison',
@@ -84,7 +89,12 @@ export const de = {
     protectedUntil: 'Geschützt bis {time}',
     close: 'Schließen',
     attack: 'Angreifen',
+    attackPlayer: 'Spieler angreifen',
     attacking: 'Angriff wird vorbereitet …',
+    pvpHint:
+      'Ein Spielerreich verteidigt sich selbst: Nach deinen Antworten hat es Zeit, die gleichen Fragen zu beantworten.',
+    endsOwnProtection:
+      'Achtung: Ein Angriff auf einen Spieler beendet deinen eigenen Schutz sofort.',
   },
   attack: {
     reason: {
@@ -96,17 +106,33 @@ export const de = {
       REGION_PROTECTED: 'Die Region ist geschützt bis {until}.',
       KINGDOM_PROTECTED: 'Das Reich steht unter Schutz bis {until}.',
       RANK_GAP: 'Das Reich ist zu klein für einen Angriff von dir.',
-      CHALLENGE_IN_PROGRESS: 'Du hast bereits einen laufenden Angriff.',
+      CAPITAL_HIT_COOLDOWN: 'Du hast diese Hauptstadt gerade getroffen. Wieder möglich ab {until}.',
+      CHALLENGE_IN_PROGRESS:
+        'Du hast bereits einen laufenden Angriff oder eine laufende Verteidigung.',
+      ATTACKER_SIEGE_LIMIT:
+        'Du hast alle Belagerungen für jetzt eröffnet. Wieder möglich ab {until}.',
       ATTACKER_ATTEMPT_LIMIT:
         'Du hast alle Angriffe für jetzt verbraucht. Wieder möglich ab {until}.',
-      PVP_NOT_AVAILABLE: 'Kämpfe gegen andere Spieler kommen in einer späteren Version.',
+      DEFENDER_SIEGE_LIMIT: 'Dieses Reich wird gerade schon von zu vielen Seiten belagert.',
     },
   },
   quiz: {
     title: 'Angriff auf {region}',
+    titleDefense: 'Verteidigung von {region}',
     regionUnknown: 'eine Region',
     defenderGarrison: 'Gegner: neutrale Garnison',
     defenderKingdom: 'Gegner: {name}',
+    introPvp:
+      'Du beantwortest eine Wissensfrage und danach eine Schätzfrage. Die Schätzung zählt nur, wenn ihr beide die Wissensfrage richtig habt. Danach hat dein Gegner Zeit, sich mit denselben Fragen zu verteidigen. Die Zeit läuft ab dem Start.',
+    defenseIntro:
+      'Der Angreifer hat seine Antworten bereits abgegeben. Beantworte dieselben Fragen: zuerst die Wissensfrage, dann die Schätzfrage. Die Schätzung zählt nur, wenn ihr beide die Wissensfrage richtig habt. Die Zeit läuft ab dem Start.',
+    defenseDeadline: 'Verteidigen bis {time}.',
+    defend: 'Verteidigung beginnen',
+    opened: 'Belagerung eröffnet',
+    openedText:
+      'Deine Antworten sind gespeichert und versiegelt. {name} kann sich bis {time} verteidigen. Verteidigt sich niemand rechtzeitig, entscheidet deine Antwort allein.',
+    openedDefending: '{name} verteidigt sich gerade.',
+    estimateCountsIfTie: 'Die Schätzung zählt nur, wenn ihr beide die Wissensfrage richtig habt.',
     intro:
       'Zuerst kommt eine Wissensfrage. Nur wenn ihr beide richtig liegt, entscheidet danach eine Schätzfrage, sonst ist der Kampf damit entschieden. Die Zeit läuft ab dem Start. Der Gegner hat seine Antworten bereits abgegeben.',
     start: 'Start',
@@ -135,6 +161,33 @@ export const de = {
     backToMap: 'Zur Karte',
     closed: 'Dieser Angriff ist bereits beendet.',
   },
+  sieges: {
+    title: 'Belagerungen',
+    incoming: 'Gegen dich',
+    outgoing: 'Deine Angriffe',
+    recent: 'Zuletzt entschieden',
+    none: 'Keine laufenden Belagerungen.',
+    incomingItem: '{attacker} belagert {region}',
+    outgoingItem: 'Du belagerst {region} von {defender}',
+    outgoingGarrison: 'Du greifst {region} an',
+    deadline: 'Frist bis {time}',
+    defend: 'Verteidigen',
+    defending: 'Verteidigung läuft',
+    preparing: 'Antworten werden gegeben',
+    open: 'Ansehen',
+    blocked: {
+      DEADLINE_TOO_CLOSE: 'Zu wenig Zeit bis zum Fristende.',
+      DEADLINE_PASSED: 'Die Frist ist abgelaufen.',
+      CHALLENGE_IN_PROGRESS: 'Beende zuerst deine laufende Herausforderung.',
+    },
+    outcome: {
+      won: 'gewonnen',
+      lost: 'verloren',
+      none: 'ohne Ergebnis',
+    },
+    recentItem: '{region}: {outcome}',
+    capital: 'Hauptstadt',
+  },
   result: {
     won: 'Region erobert!',
     capitalHit: 'Treffer auf die Hauptstadt!',
@@ -152,6 +205,24 @@ export const de = {
     },
     lost: 'Angriff gescheitert',
     none: 'Angriff verfallen',
+    defenseWon: 'Verteidigung erfolgreich!',
+    defenseLost: 'Region verloren',
+    defenseCapitalHit: 'Deine Hauptstadt wurde getroffen',
+    defenseTakenOver: 'Dein Reich wurde übernommen',
+    defenseNone: 'Region gehalten',
+    defenseCapitalLivesLeft: {
+      one: 'Deine Hauptstadt hat ein Leben verloren, ihr bleibt noch {count} von {max}.',
+      other: 'Deine Hauptstadt hat ein Leben verloren, ihr bleiben noch {count} von {max}.',
+    },
+    defenseRegionsTaken: {
+      one: '{name} hat deine Hauptstadt eingenommen und {count} Region übernommen.',
+      other: '{name} hat deine Hauptstadt eingenommen und {count} Regionen übernommen.',
+    },
+    defensePoints: {
+      one: 'Du erhältst {count} Verteidigungspunkt.',
+      other: 'Du erhältst {count} Verteidigungspunkte.',
+    },
+    defenseNoPoints: 'Für diese Verteidigung gibt es keine Verteidigungspunkte.',
     reason: {
       TIMEOUT: 'Der Gegner hat sich nicht verteidigt.',
       ATTACKER_GATE: 'Deine Antwort auf die Wissensfrage war falsch.',
@@ -164,6 +235,13 @@ export const de = {
       SEASON_CUTOFF: 'Die Saison erlaubt keine Angriffe mehr.',
       CANCELLED: 'Der Angriff wurde abgebrochen.',
       INSTANCE_CLOSED: 'Die Welt wurde geschlossen.',
+    },
+    /** Gründe aus Sicht des Verteidigers; fehlende fallen auf `reason` zurück. */
+    reasonDefender: {
+      TIMEOUT: 'Du hast dich nicht rechtzeitig verteidigt.',
+      ATTACKER_GATE: 'Der Angreifer lag bei der Wissensfrage falsch.',
+      TRIVIA: 'Der Angreifer lag bei der Wissensfrage richtig, du nicht.',
+      CANCELLED: 'Der Angriff wurde abgebrochen.',
     },
     protectedUntil: 'Die Region ist geschützt bis {time}.',
     question: 'Frage',
@@ -200,6 +278,10 @@ export const de = {
     CHALLENGE_CLOSED: 'Dieser Angriff ist bereits beendet.',
     STEP_NOT_AVAILABLE: 'Diese Frage ist gerade nicht verfügbar.',
     STEP_EXPIRED: 'Die Zeit für diese Frage ist abgelaufen.',
+    DEADLINE_PASSED: 'Die Frist für die Verteidigung ist abgelaufen.',
+    DEADLINE_TOO_CLOSE:
+      'Bis zum Fristende bleibt zu wenig Zeit für beide Fragen. Die Verteidigung ist nicht mehr möglich.',
+    KINGDOM_ACTIVE: 'Dein Reich besteht noch.',
     INVALID_OPTION_TOKEN: 'Diese Antwort gehört nicht zur Frage.',
     INVALID_NUMBER_INPUT: 'Bitte gib eine Zahl ein, zum Beispiel 1.234,5.',
     ANSWER_OUT_OF_RANGE: 'Diese Zahl liegt außerhalb des möglichen Bereichs.',
