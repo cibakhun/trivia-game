@@ -19,6 +19,7 @@
     "db:migrate": "pnpm --filter @rdw/db migrate",
     "db:types": "pnpm --filter @rdw/db types",
     "world:create": "pnpm --filter @rdw/server world:create",
+    "account:reset-password": "pnpm --filter @rdw/server account:reset-password",
     "api:start": "pnpm --filter @rdw/server start",
     "web:dev": "pnpm --filter @rdw/web dev",
     "e2e": "pnpm --filter @rdw/web e2e",

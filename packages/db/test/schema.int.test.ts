@@ -108,20 +108,79 @@ describe('users', () => {
     );
   });
 
+  /** Gesichertes Konto mit gültigen Anmeldedaten (0011). */
+  const registered = (username: string, extra: Record<string, unknown> = {}) => ({
+    is_guest: false,
+    username,
+    password_hash: '$argon2id$v=19$m=19456,t=2,p=1$c2FsdA$aGFzaA',
+    ...extra,
+  });
+
   it('E-Mail ist ohne Groß-/Kleinschreibung eindeutig', async () => {
-    await insertUser({ is_guest: false, email: 'Krisz@Example.org' });
-    await expect(insertUser({ is_guest: false, email: 'krisz@example.org' })).rejects.toThrow(
-      /users_email_unique/,
+    await insertUser(registered('mail-eins', { email: 'Krisz@Example.org' }));
+    await expect(
+      insertUser(registered('mail-zwei', { email: 'krisz@example.org' })),
+    ).rejects.toThrow(/users_email_unique/);
+  });
+
+  it('Benutzername ist ohne Groß-/Kleinschreibung eindeutig und hat ein festes Format', async () => {
+    await insertUser(registered('Krisz.Spielt'));
+    await expect(insertUser(registered('krisz.spielt'))).rejects.toThrow(/users_username_unique/);
+    await expect(insertUser(registered('Jörg_ß-1'))).resolves.toBeTypeOf('string');
+    for (const bad of ['ab', 'a'.repeat(25), 'mit leer', 'x@y', 'Ünï']) {
+      await expect(insertUser(registered(bad)), bad).rejects.toThrow(/users_username_format/);
+    }
+  });
+
+  it('Gäste haben keine, gesicherte Konten beide Anmeldedaten (Argon2id)', async () => {
+    await expect(insertUser({ username: 'gast-name' })).rejects.toThrow(
+      /users_guest_without_credentials/,
     );
+    await expect(insertUser({ is_guest: false })).rejects.toThrow(
+      /users_registered_with_credentials/,
+    );
+    await expect(insertUser({ is_guest: false, username: 'ohne-passwort' })).rejects.toThrow(
+      /users_registered_with_credentials/,
+    );
+    await expect(
+      insertUser(registered('falscher-hash', { password_hash: '$2b$10$abc' })),
+    ).rejects.toThrow(/users_password_argon2id/);
   });
 
   it('Platzhalterkonten gelöschter Konten tragen keine personenbezogenen Daten', async () => {
     await expect(
       insertUser({ is_guest: false, email: 'weg@example.org', deleted_at: new Date() }),
     ).rejects.toThrow(/users_deleted_without_personal_data/);
+    await expect(
+      insertUser({ is_guest: false, username: 'weg-name', deleted_at: new Date() }),
+    ).rejects.toThrow(/users_deleted_without_personal_data/);
     await expect(insertUser({ is_guest: false, deleted_at: new Date() })).resolves.toBeTypeOf(
       'string',
     );
+  });
+
+  it('Spielerprofil speichert die Namensbausteine, der Anzeigename ist eindeutig', async () => {
+    const first = await insertUser();
+    const second = await insertUser();
+    const parts = JSON.stringify({ adjective: 'Kühn', noun: 'Falke', number: null });
+    await q(`insert into player_profiles (user_id, display_name, name_parts) values ($1, $2, $3)`, [
+      first,
+      'Kühner Falke',
+      parts,
+    ]);
+    await expect(
+      q(`insert into player_profiles (user_id, display_name, name_parts) values ($1, $2, $3)`, [
+        second,
+        'Kühner Falke',
+        parts,
+      ]),
+    ).rejects.toThrow(/player_profiles_display_name_key/);
+    await expect(
+      q(`insert into player_profiles (user_id, display_name, name_parts) values ($1, $2, '[]')`, [
+        second,
+        'Weise Eule',
+      ]),
+    ).rejects.toThrow(/check/);
   });
 
   it('Bootstrap-Hash ist ein eindeutiger SHA-256-Wert', async () => {
@@ -309,7 +368,36 @@ describe('Königreiche', () => {
     await q(`insert into kingdom_history (kingdom_id, kind) values ($1, 'FOUNDED')`, [kingdomId]);
     await expect(
       q(`update kingdom_history set kind = 'FALLEN' where kingdom_id = $1`, [kingdomId]),
-    ).rejects.toThrow(/unveränderlich/);
+    ).rejects.toThrow(/nur anhängen/);
+    // Einzige erlaubte Änderung: Die Kontolöschung entfernt die Konto-ID aus der Gründungsspur
+    const spawn = { spawn: { rngEntityId: `i.${userId}.1`, candidates: 3 }, generation: 1 };
+    await q(`insert into kingdom_history (kingdom_id, kind, payload) values ($1, 'FOUNDED', $2)`, [
+      kingdomId,
+      JSON.stringify(spawn),
+    ]);
+    const tracked = `kingdom_id = $1 and payload ? 'spawn'`;
+    await expect(
+      q(`update kingdom_history set payload = '{}' where ${tracked}`, [kingdomId]),
+    ).rejects.toThrow(/nur anhängen/);
+    await expect(
+      q(
+        `update kingdom_history set payload = payload #- '{spawn,rngEntityId}', at = at + interval '1 s'
+         where ${tracked}`,
+        [kingdomId],
+      ),
+    ).rejects.toThrow(/nur anhängen/);
+    await q(
+      `update kingdom_history set payload = payload #- '{spawn,rngEntityId}' where ${tracked}`,
+      [kingdomId],
+    );
+    const { rows } = await q(`select payload from kingdom_history where ${tracked}`, [kingdomId]);
+    expect(rows).toEqual([{ payload: { spawn: { candidates: 3 }, generation: 1 } }]);
+    // Ein zweites Mal gibt es nichts mehr zu entfernen
+    await expect(
+      q(`update kingdom_history set payload = payload #- '{spawn,rngEntityId}' where ${tracked}`, [
+        kingdomId,
+      ]),
+    ).rejects.toThrow(/nur anhängen/);
     // TRUNCATE umgeht Zeilentrigger und würde das ganze Protokoll löschen
     await expect(q(`truncate kingdom_history`)).rejects.toThrow(/unveränderlich/);
     await expect(q(`truncate region_history`)).rejects.toThrow(/unveränderlich/);

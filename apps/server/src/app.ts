@@ -20,7 +20,11 @@ export interface BuildAppOptions extends AppContext {
  * Herkunft prüfen (vor jedem Datenbankzugriff) → Sitzung prüfen → Route.
  */
 export async function buildApp(options: BuildAppOptions): Promise<FastifyInstance> {
-  const ctx: AppContext = { db: options.db, config: options.config };
+  const ctx: AppContext = {
+    db: options.db,
+    config: options.config,
+    ...(options.loginThrottle ? { loginThrottle: options.loginThrottle } : {}),
+  };
   const app = Fastify({
     logger: options.logger ?? { level: options.config.logLevel },
     bodyLimit: 16 * 1024,

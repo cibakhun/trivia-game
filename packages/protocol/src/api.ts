@@ -27,6 +27,14 @@ export const ERROR_CODES = [
   'IDEMPOTENCY_KEY_REUSED',
   'GUEST_BOOTSTRAP_REQUIRED',
   'GUEST_BOOTSTRAP_USED',
+  // Konto (API.md §2.1, ADR-043)
+  'INVALID_CREDENTIALS',
+  'RATE_LIMITED',
+  'ALREADY_REGISTERED',
+  'GUEST_ACCOUNT',
+  'USERNAME_TAKEN',
+  'PLAYER_NAME_TAKEN',
+  'INVALID_NAME',
   'ALREADY_JOINED',
   'INSTANCE_FULL',
   'INSTANCE_NOT_ACTIVE',
@@ -156,6 +164,111 @@ export const guestResponseSchema = z
   .strict();
 export type GuestResponse = z.infer<typeof guestResponseSchema>;
 
+/**
+ * Anmeldename gesicherter Konten (ADR-043): 3–24 Zeichen aus Buchstaben (mit Umlauten und ß),
+ * Ziffern, `_`, `.` und `-`; Groß- und Kleinschreibung zählt nicht. Er ist nur zum Anmelden da
+ * und wird anderen Spielern nie gezeigt. Gleiche Regel wie `users_username_format`.
+ */
+export const USERNAME_PATTERN = /^[A-Za-z0-9ÄÖÜäöüß_.-]{3,24}$/;
+export const usernameSchema = z
+  .string()
+  .transform((value) => value.normalize('NFC'))
+  .pipe(z.string().regex(USERNAME_PATTERN));
+
+/** Passwortlänge (ADR-043, vorläufig): keine Zeichenklassenregeln, aber Mindestlänge. */
+export const PASSWORD_MIN_LENGTH = 10;
+export const PASSWORD_MAX_LENGTH = 128;
+export const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
+
+/** Spielername aus Bausteinen (O-10, ADR-044); welche Bausteine gelten, prüft der Server. */
+export const playerNamePartsSchema = z
+  .object({
+    adjective: z.string().min(1).max(32),
+    noun: z.string().min(1).max(32),
+    number: z.number().int().min(2).max(99).nullable(),
+  })
+  .strict();
+export type PlayerNamePartsDto = z.infer<typeof playerNamePartsSchema>;
+
+/** Reichsname aus Vorsilbe und Endung (GAME_RULES §3.8). */
+export const kingdomNamePartsSchema = z
+  .object({ prefix: z.string().min(1).max(32), suffix: z.string().min(1).max(32) })
+  .strict();
+export type KingdomNamePartsDto = z.infer<typeof kingdomNamePartsSchema>;
+
+/** `POST /auth/register`: Gastkonto sichern (O-03). */
+export const registerRequestSchema = z
+  .object({ username: usernameSchema, password: passwordSchema, playerName: playerNamePartsSchema })
+  .strict();
+export type RegisterRequest = z.input<typeof registerRequestSchema>;
+
+/** `POST /auth/login`. Beim Anmelden wird nur die Länge geprüft, nicht das Format. */
+export const loginRequestSchema = z
+  .object({
+    username: z.string().min(1).max(64),
+    password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+  })
+  .strict();
+export type LoginRequest = z.infer<typeof loginRequestSchema>;
+
+/** Antwort auf Sichern und Anmelden: das Konto der neuen Sitzung. */
+export const sessionResponseSchema = guestResponseSchema;
+export type SessionResponse = GuestResponse;
+
+/** `POST /me/password`. */
+export const passwordChangeRequestSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+    newPassword: passwordSchema,
+  })
+  .strict();
+export type PasswordChangeRequest = z.infer<typeof passwordChangeRequestSchema>;
+
+/** `PATCH /me/profile`. */
+export const profileUpdateRequestSchema = z.object({ playerName: playerNamePartsSchema }).strict();
+export type ProfileUpdateRequest = z.infer<typeof profileUpdateRequestSchema>;
+
+export const profileSchema = z
+  .object({
+    /** Öffentlicher Spielername; `null`, solange keiner gewählt ist (Gäste). */
+    displayName: z.string().min(1).nullable(),
+    playerName: playerNamePartsSchema.nullable(),
+  })
+  .strict();
+export type ProfileDto = z.infer<typeof profileSchema>;
+
+export const profileResponseSchema = z
+  .object({ profile: profileSchema, serverTime: timestampSchema })
+  .strict();
+export type ProfileResponse = z.infer<typeof profileResponseSchema>;
+
+/** `GET /names/player` und `GET /instances/:id/kingdom-names`. */
+export const playerNameSuggestionsSchema = z
+  .object({
+    suggestions: z.array(
+      z.object({ parts: playerNamePartsSchema, name: z.string().min(1) }).strict(),
+    ),
+    serverTime: timestampSchema,
+  })
+  .strict();
+export type PlayerNameSuggestions = z.infer<typeof playerNameSuggestionsSchema>;
+
+export const kingdomNameSuggestionsSchema = z
+  .object({
+    suggestions: z.array(
+      z.object({ parts: kingdomNamePartsSchema, name: z.string().min(1) }).strict(),
+    ),
+    serverTime: timestampSchema,
+  })
+  .strict();
+export type KingdomNameSuggestions = z.infer<typeof kingdomNameSuggestionsSchema>;
+
+/** Körper von Beitritt und Neugründung: optional ein gewählter Reichsname. */
+export const foundKingdomRequestSchema = z
+  .object({ kingdomName: kingdomNamePartsSchema.optional() })
+  .strict();
+export type FoundKingdomRequest = z.infer<typeof foundKingdomRequestSchema>;
+
 // ---------------------------------------------------------------------------------------------
 // Reiche
 // ---------------------------------------------------------------------------------------------
@@ -176,7 +289,7 @@ export const kingdomSummarySchema = z
     kind: z.enum(['PLAYER', 'NPC']),
     /** Anzeigename aus `nameParts` (generiert, nicht frei gewählt; GAME_RULES §3.8). */
     name: z.string().min(1),
-    nameParts: z.object({ prefix: z.string().min(1), suffix: z.string().min(1) }).strict(),
+    nameParts: kingdomNamePartsSchema,
     color: z.number().int().min(0),
     status: z.enum(['ACTIVE', 'FALLEN', 'DISSOLVED']),
     regionCount: z.number().int().min(0),
@@ -239,7 +352,14 @@ export type MyInstance = z.infer<typeof myInstanceSchema>;
 
 export const meResponseSchema = z
   .object({
-    user: userSummarySchema.extend({ createdAt: timestampSchema }).strict(),
+    user: userSummarySchema
+      .extend({
+        createdAt: timestampSchema,
+        /** Eigener Anmeldename; `null` bei Gästen. Nur in der eigenen Antwort. */
+        username: z.string().nullable(),
+      })
+      .strict(),
+    profile: profileSchema,
     settings: z.object({ locale: localeSchema }).strict(),
     instances: z.array(myInstanceSchema),
     serverTime: timestampSchema,
