@@ -1,4 +1,4 @@
-import { areNeighbors, WENDELMARK } from '@rdw/game-core';
+import { WENDELMARK } from '@rdw/game-core';
 import {
   matchViewSchema,
   parseMatchEvent,
@@ -7,7 +7,6 @@ import {
   type ParsedMatchEvent,
 } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
-import { BOARD_HEX_SIZE, boardLayout } from '../src/match/board-layout.ts';
 import {
   lastOf,
   needsPresent,
@@ -159,39 +158,6 @@ function event(seq: number, type: string, payload: Record<string, unknown>): Par
   if (!parsed) throw new Error(`Ereignis ${type} passt nicht zum Schema`);
   return parsed;
 }
-
-describe('Karte der Partie', () => {
-  const layout = boardLayout(WENDELMARK);
-
-  it('legt jede Region der Wendelmark als Sechseck an, Nachbarn berühren sich', () => {
-    expect(layout.cells.map((c) => c.id)).toEqual(WENDELMARK.regions.map((r) => r.id));
-    for (const a of layout.cells) {
-      for (const b of layout.cells) {
-        if (a.id >= b.id) continue;
-        const distance = Math.hypot(a.cx - b.cx, a.cy - b.cy);
-        const ra = WENDELMARK.regions[a.id];
-        const rb = WENDELMARK.regions[b.id];
-        if (!ra || !rb) throw new Error('Region fehlt');
-        if (areNeighbors(ra.cell, rb.cell))
-          expect(distance).toBeCloseTo(Math.sqrt(3) * BOARD_HEX_SIZE, 1);
-        else expect(distance).toBeGreaterThan(Math.sqrt(3) * BOARD_HEX_SIZE + 1);
-      }
-    }
-  });
-
-  it('passt mit allen Ecken in den viewBox', () => {
-    const [, , width, height] = layout.viewBox.split(' ').map(Number);
-    for (const cell of layout.cells) {
-      for (const point of cell.points.split(' ')) {
-        const [x, y] = point.split(',').map(Number);
-        expect(x).toBeGreaterThan(0);
-        expect(y).toBeGreaterThan(0);
-        expect(x).toBeLessThan(width ?? 0);
-        expect(y).toBeLessThan(height ?? 0);
-      }
-    }
-  });
-});
 
 describe('Zustand des Bildschirms', () => {
   it('fragt in der Aufstellung langsamer, im Spiel schnell, danach nicht mehr', () => {

@@ -7,6 +7,8 @@ import {
 } from '@rdw/protocol';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { ActionKey, ApiRequestError, api } from '../api/client.ts';
+import { Icon } from '../art/Icons.tsx';
+import { Swords } from '../art/Swords.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { formatTime, t } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
@@ -88,10 +90,13 @@ export function MatchesScreen() {
   const codeValid = INVITE_CODE_PATTERN.test(code.trim().toUpperCase());
 
   return (
-    <main className="page" data-testid="matches-screen">
-      <header>
-        <h1>{t('match.hub.title')}</h1>
-        <p className="muted">{t('match.startText')}</p>
+    <main className="page page-wide hub" data-testid="matches-screen">
+      <header className="hub-head">
+        <Swords size={46} />
+        <div>
+          <h1>{t('match.hub.title')}</h1>
+          <p className="muted">{t('match.startText')}</p>
+        </div>
       </header>
       {error ? <ErrorNote error={error} /> : null}
       {list === null && !error ? <p>{t('app.loading')}</p> : null}
@@ -120,55 +125,66 @@ export function MatchesScreen() {
 
       {list && !open ? (
         <>
-          <section className="card stack" aria-labelledby="new-title">
-            <h2 id="new-title">{t('match.hub.newTitle')}</h2>
-            <p className="muted">{t('match.hub.newText')}</p>
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={shortTimers}
-                onChange={(e) => setShortTimers(e.target.checked)}
-              />
-              {t('match.hub.shortTimers')}
-            </label>
-            <button
-              type="button"
-              className="button button-primary"
-              disabled={busy}
-              onClick={() =>
-                create({ kind: 'STANDARD', rules: shortTimers ? 'PLAYTEST' : 'DEFAULT' })
-              }
-            >
-              {t('match.hub.create')}
-            </button>
-          </section>
-
-          <section className="card stack" aria-labelledby="join-title">
-            <h2 id="join-title">{t('match.hub.joinTitle')}</h2>
-            <form className="form" onSubmit={join}>
-              <div className="field">
-                <label htmlFor="invite-code">{t('match.hub.codeLabel')}</label>
+          <div className="hub-grid">
+            <section className="card stack" aria-labelledby="new-title">
+              <h2 id="new-title" className="icon-title">
+                <Icon kind="banner" />
+                {t('match.hub.newTitle')}
+              </h2>
+              <p className="muted">{t('match.hub.newText')}</p>
+              <label className="check">
                 <input
-                  id="invite-code"
-                  className="code-input"
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  maxLength={8}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
+                  type="checkbox"
+                  checked={shortTimers}
+                  onChange={(e) => setShortTimers(e.target.checked)}
                 />
-                <span className="field-hint">{t('match.hub.codeHint')}</span>
-              </div>
-              <button type="submit" className="button" disabled={busy || !codeValid}>
-                {t('match.hub.join')}
+                {t('match.hub.shortTimers')}
+              </label>
+              <button
+                type="button"
+                className="button button-primary"
+                disabled={busy}
+                onClick={() =>
+                  create({ kind: 'STANDARD', rules: shortTimers ? 'PLAYTEST' : 'DEFAULT' })
+                }
+              >
+                {t('match.hub.create')}
               </button>
-            </form>
-          </section>
+            </section>
+
+            <section className="card stack" aria-labelledby="join-title">
+              <h2 id="join-title" className="icon-title">
+                <Icon kind="key" />
+                {t('match.hub.joinTitle')}
+              </h2>
+              <form className="form" onSubmit={join}>
+                <div className="field">
+                  <label htmlFor="invite-code">{t('match.hub.codeLabel')}</label>
+                  <input
+                    id="invite-code"
+                    className="code-input"
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    spellCheck={false}
+                    maxLength={8}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                  <span className="field-hint">{t('match.hub.codeHint')}</span>
+                </div>
+                <button type="submit" className="button" disabled={busy || !codeValid}>
+                  {t('match.hub.join')}
+                </button>
+              </form>
+            </section>
+          </div>
 
           {list.testMatchesEnabled ? (
             <section className="card stack" aria-labelledby="test-title" data-testid="test-match">
-              <h2 id="test-title">{t('match.hub.testTitle')}</h2>
+              <h2 id="test-title" className="icon-title">
+                <Icon kind="target" />
+                {t('match.hub.testTitle')}
+              </h2>
               <p className="muted">{t('match.hub.testText')}</p>
               <fieldset className="choices">
                 <legend>{t('match.hub.seatsLegend')}</legend>
@@ -236,7 +252,10 @@ export function MatchesScreen() {
 
       {recent.length > 0 ? (
         <section className="card stack" aria-labelledby="recent-title">
-          <h2 id="recent-title">{t('match.hub.recentTitle')}</h2>
+          <h2 id="recent-title" className="icon-title">
+            <Icon kind="scroll" />
+            {t('match.hub.recentTitle')}
+          </h2>
           <ul className="world-list">
             {recent.map((m) => (
               <li key={m.id} className="world-row">

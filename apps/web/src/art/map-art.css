@@ -1,0 +1,571 @@
+/*
+ * Karte der Partie, Stil „Alte Landkarte“ (docs/ART_DIRECTION.md). Größen in Einheiten des
+ * viewBox (Sechseckgröße 60). Farben aus den Tokens in theme.css.
+ */
+
+.map-art {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-map);
+  background: var(--map-sea);
+  font-family: var(--font-display);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-art .sea {
+  fill: var(--map-sea);
+}
+
+.map-art .sea-marks use {
+  opacity: 0.75;
+}
+
+.art-ink {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.art-water-ink {
+  fill: none;
+  stroke: var(--map-water-ink);
+  stroke-linecap: round;
+}
+
+.art-sea-ink {
+  fill: none;
+  stroke: var(--map-sea-ink);
+  stroke-linecap: round;
+}
+
+.art-leaf {
+  fill: var(--map-leaf);
+}
+.art-pine {
+  fill: var(--map-pine);
+}
+.art-stone {
+  fill: var(--map-stone);
+}
+.art-shade {
+  fill: var(--map-shade);
+}
+.art-snow {
+  fill: var(--map-snow);
+}
+.art-wheat {
+  fill: var(--map-wheat);
+}
+.art-water {
+  fill: var(--map-water);
+}
+.art-reed {
+  fill: var(--map-reed);
+}
+.art-roof {
+  fill: var(--map-roof);
+}
+.art-land {
+  fill: var(--map-land);
+}
+.art-gate {
+  fill: var(--map-gate);
+}
+.art-steel {
+  fill: var(--map-steel);
+}
+.art-flag {
+  fill: var(--flag, var(--map-roof));
+}
+
+.map-art .pattern-line {
+  stroke: var(--map-pattern);
+}
+.map-art .pattern-dot {
+  fill: var(--map-pattern);
+}
+
+/* Küste: Ringe im Wasser wie auf alten Seekarten */
+.map-art .ripple {
+  fill: none;
+  stroke-linejoin: round;
+}
+.map-art .ripple-3 {
+  stroke: var(--map-ripple);
+  stroke-width: 44;
+  opacity: 0.18;
+}
+.map-art .ripple-2 {
+  stroke: var(--map-ripple);
+  stroke-width: 26;
+  opacity: 0.28;
+}
+.map-art .ripple-1 {
+  stroke: var(--map-ripple);
+  stroke-width: 11;
+  opacity: 0.45;
+}
+
+.map-art .land {
+  fill: var(--map-land);
+  stroke: var(--map-land);
+  stroke-width: 0.6;
+}
+
+.map-art .wash-fill {
+  opacity: 0.5;
+}
+.map-art .wash-pattern {
+  opacity: 0.55;
+}
+.map-art .wash-edge {
+  fill: none;
+  stroke-width: 9;
+  opacity: 0.55;
+}
+
+.map-art .seat-0 .wash-fill,
+.map-art .seat-0 .wash-edge {
+  fill: var(--seat-0);
+  stroke: var(--seat-0);
+}
+.map-art .seat-1 .wash-fill,
+.map-art .seat-1 .wash-edge {
+  fill: var(--seat-1);
+  stroke: var(--seat-1);
+}
+.map-art .seat-2 .wash-fill,
+.map-art .seat-2 .wash-edge {
+  fill: var(--seat-2);
+  stroke: var(--seat-2);
+}
+.map-art .wash-edge {
+  fill: none !important;
+}
+
+.map-art .region-borders path {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 1.3;
+  stroke-opacity: 0.6;
+  stroke-dasharray: 5 2.5;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.map-art .coastline {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.map-art .river {
+  pointer-events: none;
+}
+.map-art .river-bank {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.75;
+}
+.map-art .river-water {
+  fill: none;
+  stroke: var(--map-water);
+  stroke-width: 3.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Beschriftung, Motive, Münzen, Burgen */
+.map-art .region-art,
+.map-art .region-decor,
+.map-art .contested-mark {
+  pointer-events: none;
+}
+
+.map-art .board-name {
+  font-size: 13px;
+  font-weight: 700;
+  fill: var(--map-ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  paint-order: stroke;
+  stroke: var(--map-label-halo);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+  letter-spacing: 0.02em;
+}
+
+.map-art .coin circle {
+  fill: var(--map-coin);
+  stroke: var(--map-gold);
+  stroke-width: 2.4;
+}
+.map-art .seat-0 .coin circle {
+  stroke: var(--seat-0);
+}
+.map-art .seat-1 .coin circle {
+  stroke: var(--seat-1);
+}
+.map-art .seat-2 .coin circle {
+  stroke: var(--seat-2);
+}
+
+.map-art .board-value {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  fill: var(--map-ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.map-art .badge-shield {
+  stroke: var(--map-ink);
+}
+.map-art .seat-fill-0 {
+  fill: var(--seat-0);
+}
+.map-art .seat-fill-1 {
+  fill: var(--seat-1);
+}
+.map-art .seat-fill-2 {
+  fill: var(--seat-2);
+}
+.map-art .badge-emblem {
+  fill: #fff;
+}
+
+.map-art .life use {
+  fill: var(--flag);
+  stroke: var(--map-ink);
+}
+.map-art .life-off use {
+  fill: var(--map-land);
+  stroke: var(--map-ink-soft);
+  stroke-dasharray: 9 7;
+}
+
+/* Wählbare Regionen: Leuchten und laufende Goldkante */
+.map-art .board-region.legal {
+  cursor: pointer;
+}
+.map-art .board-region.legal:focus {
+  outline: none;
+}
+.map-art .legal-glow {
+  fill: var(--map-gold);
+  opacity: 0.16;
+  animation: legal-pulse 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+.map-art .legal-ring {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 3.5;
+  stroke-dasharray: 8 6;
+  stroke-linejoin: round;
+  animation: march 1.2s linear infinite;
+}
+.map-art .hot-ring {
+  fill: var(--map-gold);
+  fill-opacity: 0.22;
+  stroke: var(--map-focus);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+/* Duell: rot pulsierender Rand und Schwerter */
+.map-art .contested-ring {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 4.5;
+  stroke-linejoin: round;
+  animation: contested-pulse 1.1s ease-in-out infinite;
+}
+.map-art .contested-seal {
+  fill: var(--map-coin);
+  stroke: var(--danger);
+  stroke-width: 2.5;
+}
+.map-art .contested-mark .swords {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: swords-clash 1.1s ease-in-out infinite;
+}
+
+/* Angriffspfeil: Tintenstrich in der Farbe des Angreifers, zeichnet sich einmal ein */
+.map-art .attack-arrow {
+  pointer-events: none;
+}
+.map-art .arrow-ink {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 8;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+.map-art .arrow-shaft {
+  fill: none;
+  stroke: var(--arrow);
+  stroke-width: 4.6;
+  stroke-linecap: round;
+}
+.map-art .arrow-head {
+  fill: var(--arrow);
+  stroke: var(--map-ink);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.map-art .attack-arrow.draw .arrow-ink,
+.map-art .attack-arrow.draw .arrow-shaft {
+  stroke-dasharray: 1;
+  animation: arrow-draw 0.7s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+}
+.map-art .attack-arrow.draw .arrow-head {
+  animation: arrow-head 0.7s ease-out both;
+}
+
+/* Kompass und Titelschild */
+.map-art .compass-ring {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 1.6;
+  opacity: 0.8;
+}
+.map-art .compass-ring.thin {
+  stroke-width: 0.8;
+  stroke-dasharray: 2 3;
+}
+.map-art .compass-light {
+  fill: var(--map-land);
+  stroke: var(--map-ink);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.map-art .compass-dark {
+  fill: var(--map-ink);
+  stroke: var(--map-ink);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.map-art .compass-hub {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+}
+.map-art .compass-north {
+  font-size: 15px;
+  font-weight: 700;
+  fill: var(--map-ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+.map-art .cartouche-scroll {
+  fill: var(--map-land);
+  stroke: var(--map-ink);
+  stroke-width: 2;
+}
+.map-art .cartouche-rule {
+  stroke: var(--map-gold);
+  stroke-width: 1.6;
+}
+.map-art .cartouche-title {
+  font-size: 22px;
+  font-weight: 800;
+  fill: var(--map-ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+  letter-spacing: 0.12em;
+  font-variant: small-caps;
+}
+
+/* Änderungen: Tinte breitet sich aus, Münze springt, Burg wackelt, Schild zerbricht */
+.map-art .ink-in {
+  animation: ink-spread 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.map-art .coin.pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: coin-pop 0.6s ease-out;
+}
+.map-art .castle.hit {
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+  animation: castle-hit 0.7s ease-out;
+}
+.map-art .life-off.breaking {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: shield-break 0.8s ease-out;
+}
+
+@keyframes ink-spread {
+  from {
+    clip-path: circle(0% at 50% 50%);
+    opacity: 0.4;
+  }
+  to {
+    clip-path: circle(75% at 50% 50%);
+    opacity: 1;
+  }
+}
+
+@keyframes arrow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes arrow-head {
+  0%,
+  70% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes legal-pulse {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes march {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+
+@keyframes contested-pulse {
+  0%,
+  100% {
+    stroke-opacity: 1;
+    stroke-width: 4.5;
+  }
+  50% {
+    stroke-opacity: 0.45;
+    stroke-width: 7;
+  }
+}
+
+@keyframes swords-clash {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.12) rotate(-4deg);
+  }
+}
+
+@keyframes coin-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes castle-hit {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0);
+  }
+  20% {
+    transform: translateX(-4px) rotate(-4deg);
+  }
+  40% {
+    transform: translateX(4px) rotate(3deg);
+  }
+  60% {
+    transform: translateX(-2px) rotate(-2deg);
+  }
+  80% {
+    transform: translateX(1px) rotate(1deg);
+  }
+}
+
+@keyframes shield-break {
+  0% {
+    transform: scale(1.3) rotate(0);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1.1) rotate(-14deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+/* Handy hochkant: enger Ausschnitt, größere Namen und Münzen, ohne Kleinmotive an den Ecken */
+.map-art.narrow .cartouche,
+.map-art.narrow .compass {
+  display: none;
+}
+
+.map-art.narrow .board-name {
+  font-size: 17px;
+  stroke-width: 4;
+  transform: translateY(-3px);
+}
+
+.map-art.narrow .coin,
+.map-art.narrow .owner-badge {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(1.25) translateY(2px);
+}
+
+.map-art.narrow .arrow-ink {
+  stroke-width: 10;
+}
+.map-art.narrow .arrow-shaft {
+  stroke-width: 5.8;
+}
+
+.map-art.narrow .decor {
+  opacity: 0.8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-art .ink-in,
+  .map-art .coin.pop,
+  .map-art .castle.hit,
+  .map-art .life-off.breaking,
+  .map-art .legal-ring,
+  .map-art .legal-glow,
+  .map-art .contested-ring,
+  .map-art .contested-mark .swords,
+  .map-art .attack-arrow.draw .arrow-ink,
+  .map-art .attack-arrow.draw .arrow-shaft,
+  .map-art .attack-arrow.draw .arrow-head {
+    animation: none;
+  }
+  .map-art .legal-glow {
+    opacity: 0.2;
+  }
+}

@@ -1,0 +1,175 @@
+/*
+ * Gestaltung „Alte Landkarte“ (docs/ART_DIRECTION.md): Pergament, Tinte, Gold. Tagkarte hell,
+ * Nachtkarte im dunklen Systemmodus. Schriften: Alegreya (Überschriften, Karte) und Alegreya Sans
+ * (Text), beide SIL Open Font License 1.1, mit dem Spiel ausgeliefert (docs/ASSETS.md).
+ */
+
+:root {
+  --font-display: 'Alegreya', Georgia, 'Times New Roman', serif;
+  --font-body: 'Alegreya Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --bg: #ecdfc3;
+  --bg-deep: #dfcda8;
+  --surface: #fbf5e6;
+  --surface-2: #f3e8cf;
+  --text: #2e2116;
+  --muted: #6b5640;
+  --border: #ccb68e;
+  --border-strong: #8a6d47;
+  --primary: #c18a2a;
+  --primary-top: #e6b95c;
+  --primary-bottom: #bf8526;
+  --primary-edge: #8a5f17;
+  --primary-text: #261606;
+  /* Textlinks getrennt von Schaltflächen, damit beide Kontraste in hell und dunkel reichen */
+  --link: #7a3d12;
+  --accent: #b8862f;
+  --focus: #1f5fbf;
+  --danger: #a3261b;
+  --success: #2f6b2a;
+  /* Sitze der Partie: Farbe plus Wappenbild (◆ ● ▲) und Muster; Weiß darauf mindestens 5,2:1 */
+  --seat-0: #2c59a8;
+  --seat-1: #b23a24;
+  --seat-2: #2e7a46;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.55) inset, 0 2px 8px rgb(70 45 15 / 0.12);
+  --shadow-raised: 0 6px 18px rgb(70 45 15 / 0.2);
+  --shadow-map: 0 8px 28px rgb(60 38 12 / 0.28), 0 0 0 1px rgb(60 38 12 / 0.45);
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.5 -0.1'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* Karte */
+  --map-sea: #c7d6cd;
+  --map-sea-ink: #6f8e8f;
+  --map-ripple: #7c9b9b;
+  --map-land: #f2e6c6;
+  --map-ink: #3d2b1a;
+  --map-ink-soft: rgb(61 43 26 / 0.5);
+  --map-leaf: #adc086;
+  --map-pine: #7f9b6b;
+  --map-stone: #ddd1b6;
+  --map-shade: rgb(61 43 26 / 0.26);
+  --map-snow: #fdfaf2;
+  --map-wheat: #e5c77c;
+  --map-water: #93b9c7;
+  --map-water-ink: #4f7d8d;
+  --map-reed: #9a7a4a;
+  --map-roof: #b9664b;
+  --map-gate: #6b4a2e;
+  --map-steel: #e1e0d8;
+  --map-gold: #c4902c;
+  --map-coin: #fbf3dc;
+  --map-label-halo: rgb(246 236 210 / 0.92);
+  --map-pattern: rgb(45 28 12 / 0.4);
+  --map-focus: #1f5fbf;
+
+  font-family: var(--font-body);
+  font-size: 17px;
+  /* Zahlen auf einer Linie: Punkte und Zeiten lesen sich so schneller */
+  font-variant-numeric: lining-nums;
+  line-height: 1.45;
+  color: var(--text);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #18140e;
+    --bg-deep: #100d09;
+    --surface: #251f17;
+    --surface-2: #2e271d;
+    --text: #f0e6d0;
+    --muted: #bba98a;
+    --border: #4c4031;
+    --border-strong: #8d7550;
+    --primary: #d9a548;
+    --primary-top: #e8bd66;
+    --primary-bottom: #c48b2b;
+    --primary-edge: #f0c97a;
+    --primary-text: #1d1206;
+    --link: #ebba68;
+    --accent: #e0b155;
+    --focus: #8ab8ff;
+    --danger: #f08a78;
+    --success: #94d283;
+    --seat-0: #4f7fd0;
+    --seat-1: #d0573f;
+    --seat-2: #3f9862;
+    --shadow-card: 0 2px 10px rgb(0 0 0 / 0.35);
+    --shadow-raised: 0 8px 22px rgb(0 0 0 / 0.45);
+    --shadow-map: 0 10px 30px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(234 219 187 / 0.2);
+
+    --map-sea: #16252b;
+    --map-sea-ink: #4f7078;
+    --map-ripple: #3f6067;
+    --map-land: #3b3327;
+    --map-ink: #ecdcbc;
+    --map-ink-soft: rgb(236 220 188 / 0.45);
+    --map-leaf: #5f7046;
+    --map-pine: #4b603d;
+    --map-stone: #6d6250;
+    --map-shade: rgb(0 0 0 / 0.32);
+    --map-snow: #ddd5c4;
+    --map-wheat: #8f7a40;
+    --map-water: #4c7b8a;
+    --map-water-ink: #8fbccb;
+    --map-reed: #8a6d45;
+    --map-roof: #9b513b;
+    --map-gate: #231a11;
+    --map-steel: #b3b2aa;
+    --map-gold: #e0b155;
+    --map-coin: #2c251b;
+    --map-label-halo: rgb(50 43 32 / 0.92);
+    --map-pattern: rgb(255 240 210 / 0.26);
+    --map-focus: #8ab8ff;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 50% 30%, transparent 55%, rgb(90 60 20 / 0.16) 100%),
+    var(--paper-grain);
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    background-image:
+      radial-gradient(ellipse at 50% 30%, transparent 50%, rgb(0 0 0 / 0.45) 100%),
+      var(--paper-grain);
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+  letter-spacing: 0.01em;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  accent-color: var(--primary-bottom);
+}

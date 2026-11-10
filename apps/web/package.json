@@ -11,6 +11,8 @@
     "e2e": "playwright test -c e2e/playwright.config.ts"
   },
   "dependencies": {
+    "@fontsource/alegreya": "5.3.0",
+    "@fontsource/alegreya-sans": "5.3.0",
     "@rdw/game-core": "workspace:*",
     "@rdw/protocol": "workspace:*",
     "pixi.js": "8.22.0",
