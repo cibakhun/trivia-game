@@ -1462,11 +1462,9 @@ select:focus-visible {
   color: var(--muted);
 }
 
-.sides tr.me th {
-  text-decoration: underline;
-  text-decoration-color: var(--accent);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.25em;
+/* Die eigene Zeile hebt sich golden ab */
+.sides tr.me {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .laurel {
