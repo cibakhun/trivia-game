@@ -6,6 +6,8 @@
 
 alter table regions add constraint regions_id_instance unique (id, instance_id);
 alter table kingdoms add constraint kingdoms_id_instance unique (id, instance_id);
+-- Ziel des Verteidiger-Fremdschlüssels: Die Art des Verteidigers in sieges passt zum Reich.
+alter table kingdoms add constraint kingdoms_id_instance_kind unique (id, instance_id, kind);
 alter table npc_factions add constraint npc_factions_id_instance unique (id, instance_id);
 
 -- ---------------------------------------------------------------------------------------------
@@ -98,8 +100,9 @@ create table sieges (
     references regions (id, instance_id),
   constraint sieges_attacker_fk foreign key (attacker_kingdom_id, instance_id)
     references kingdoms (id, instance_id),
-  constraint sieges_defender_fk foreign key (defender_kingdom_id, instance_id)
-    references kingdoms (id, instance_id),
+  -- mit der Art: PvE nur gegen NPC-Reiche, PvP nur gegen Spielerreiche (neutral: kein Reich)
+  constraint sieges_defender_fk foreign key (defender_kingdom_id, instance_id, defender_kind)
+    references kingdoms (id, instance_id, kind),
   constraint sieges_not_self check (attacker_kingdom_id is distinct from defender_kingdom_id),
   -- Fristen: PvE nie; PvP leer bis zur Eröffnung, ab opened_at alle gesetzt und geordnet (I10)
   constraint sieges_deadlines check (
@@ -114,6 +117,10 @@ create table sieges (
     (mode = 'PVE' and defender_kind in ('NPC', 'NEUTRAL')) or (mode = 'PVP' and defender_kind = 'PLAYER')
   ),
   constraint sieges_neutral_without_kingdom check ((defender_kind = 'NEUTRAL') = (defender_kingdom_id is null)),
+  -- PvE wird sofort ausgewertet: keine Verteidigungszustände, kein Sieg durch Fristablauf
+  constraint sieges_mode_status check (
+    mode = 'PVP' or status not in ('AWAITING_DEFENSE', 'DEFENDING', 'ATTACKER_WON_BY_TIMEOUT')
+  ),
   -- Endzustände tragen Zeitpunkt und Ergebnis, aktive nicht
   constraint sieges_terminal_fields check (
     (status in ('PREPARING', 'AWAITING_DEFENSE', 'DEFENDING', 'RESOLVING')
@@ -121,11 +128,19 @@ create table sieges (
     or (status not in ('PREPARING', 'AWAITING_DEFENSE', 'DEFENDING', 'RESOLVING')
       and resolved_at is not null and outcome is not null and outcome_reason is not null)
   ),
+  -- Ausgang und Grund passen zum Endzustand (resolveDuel/siegeEndState, SIEGE_SYSTEM §3)
   constraint sieges_outcome_matches_status check (
     outcome is null
-    or (status in ('ATTACKER_WON', 'ATTACKER_WON_BY_TIMEOUT') and outcome = 'ATTACKER')
-    or (status = 'DEFENDER_WON' and outcome = 'DEFENDER')
-    or (status in ('ATTACK_FAILED', 'CANCELLED', 'EXPIRED_INVALID') and outcome = 'NONE')
+    or (status = 'ATTACKER_WON' and outcome = 'ATTACKER'
+        and outcome_reason in ('TRIVIA', 'ESTIMATE', 'SPEED'))
+    or (status = 'ATTACKER_WON_BY_TIMEOUT' and outcome = 'ATTACKER' and outcome_reason = 'TIMEOUT')
+    or (status = 'DEFENDER_WON' and outcome = 'DEFENDER'
+        and outcome_reason in ('ATTACKER_GATE', 'ESTIMATE', 'SPEED', 'FULL_TIE'))
+    or (status = 'ATTACK_FAILED' and outcome = 'NONE'
+        and outcome_reason in ('ATTACKER_GATE', 'ABANDONED', 'NEVER_STARTED', 'SEASON_CUTOFF'))
+    or (status = 'CANCELLED' and outcome = 'NONE' and outcome_reason = 'CANCELLED')
+    or (status = 'EXPIRED_INVALID' and outcome = 'NONE'
+        and outcome_reason in ('INSTANCE_CLOSED', 'SEASON_CUTOFF'))
   )
 );
 -- Höchstens eine aktive Belagerung pro Region (I2, N1).
@@ -137,7 +152,7 @@ create index sieges_by_attacker_time on sieges (attacker_kingdom_id, attack_pres
 create index sieges_due on sieges (deadline_at) where status in ('AWAITING_DEFENSE', 'DEFENDING');
 create index sieges_target on sieges (target_region_id, instance_id);
 create index sieges_attacker on sieges (attacker_kingdom_id, instance_id);
-create index sieges_defender on sieges (defender_kingdom_id, instance_id);
+create index sieges_defender on sieges (defender_kingdom_id, instance_id, defender_kind);
 create index sieges_instance on sieges (instance_id);
 
 -- Zeiger der Region auf ihre aktive Belagerung: existiert und betrifft genau diese Region (I3).
@@ -203,6 +218,42 @@ create table quiz_challenge_steps (
 );
 create index quiz_challenge_steps_version on quiz_challenge_steps (version_id, kind);
 
+-- Gestellt werden nur freigegebene Versionen aktiver Fragen. Ausnahme: Testfragen, die nur in
+-- local und test existieren (der Import lehnt sie sonst ab, ADR-026), für den Prototyp (O-02).
+create function quiz_challenge_step_guard() returns trigger
+  language plpgsql
+  set search_path = pg_catalog, pg_temp
+  as $$
+  begin
+    if not exists (
+      select 1 from public.question_versions v join public.questions q on q.id = v.question_id
+      where v.id = new.version_id
+        and ((v.status = 'APPROVED' and q.status = 'ACTIVE') or (q.is_fixture and v.status <> 'RETIRED'))
+    ) then
+      raise exception 'quiz_challenge_steps: Version % ist nicht freigegeben oder die Frage nicht aktiv',
+        new.version_id using errcode = 'check_violation';
+    end if;
+    return new;
+  end
+  $$;
+
+create trigger quiz_challenge_steps_guard
+  before insert on quiz_challenge_steps
+  for each row execute function quiz_challenge_step_guard();
+-- Herausforderung und Fragenauswahl sind fest, sobald sie angelegt sind.
+create trigger quiz_challenges_immutable
+  before update or delete on quiz_challenges
+  for each row execute function forbid_row_change();
+create trigger quiz_challenges_no_truncate
+  before truncate on quiz_challenges
+  for each statement execute function forbid_row_change();
+create trigger quiz_challenge_steps_immutable
+  before update or delete on quiz_challenge_steps
+  for each row execute function forbid_row_change();
+create trigger quiz_challenge_steps_no_truncate
+  before truncate on quiz_challenge_steps
+  for each statement execute function forbid_row_change();
+
 create table quiz_answers (
   id                 uuid primary key,
   challenge_id       uuid not null,
@@ -245,7 +296,8 @@ create table quiz_answers (
   ),
   constraint quiz_answers_answered check (
     (status = 'PRESENTED' and received_at is null and is_correct is null and effective_ms is null)
-    or (status = 'ANSWERED' and received_at is not null and is_correct is not null)
+    or (status = 'ANSWERED' and received_at is not null and received_at < answer_deadline_at
+        and is_correct is not null)
     or (status = 'TIMED_OUT' and is_correct is null)
     or status = 'GENERATED'
   ),
@@ -256,12 +308,24 @@ create index quiz_answers_participant on quiz_answers (participant_id, siege_id)
 create index quiz_answers_step on quiz_answers (challenge_id, step_index);
 create index quiz_answers_open on quiz_answers (answer_deadline_at) where status = 'PRESENTED';
 
+-- NPC-Teilnehmer antworten nur vorab (GENERATED), Menschen nur auf präsentierte Fragen.
 -- Abgegebene Antworten sind unveränderlich (I11); nur PRESENTED darf einmal übergehen.
 create function quiz_answer_guard() returns trigger
   language plpgsql
   set search_path = pg_catalog, pg_temp
   as $$
+  declare
+    is_npc boolean;
   begin
+    if tg_op = 'INSERT' then
+      select p.npc_profile_id is not null into is_npc
+      from public.siege_participants p where p.id = new.participant_id;
+      if is_npc is not null and is_npc <> (new.status = 'GENERATED') then
+        raise exception 'quiz_answers: GENERATED genau für NPC-Teilnehmer (Status %)', new.status
+          using errcode = 'check_violation';
+      end if;
+      return new;
+    end if;
     if tg_op = 'DELETE' then
       raise exception 'quiz_answers: Antworten werden nicht gelöscht' using errcode = 'restrict_violation';
     end if;
@@ -282,7 +346,7 @@ create function quiz_answer_guard() returns trigger
   $$;
 
 create trigger quiz_answers_guard
-  before update or delete on quiz_answers
+  before insert or update or delete on quiz_answers
   for each row execute function quiz_answer_guard();
 create trigger quiz_answers_no_truncate
   before truncate on quiz_answers
@@ -297,7 +361,7 @@ create table battle_results (
   winner_role      text null check (winner_role in ('ATTACKER', 'DEFENDER')),
   reason           text not null check (reason in (
                      'TIMEOUT', 'ATTACKER_GATE', 'TRIVIA', 'ESTIMATE', 'SPEED', 'FULL_TIE',
-                     'ABANDONED', 'NEVER_STARTED', 'SEASON_CUTOFF', 'CANCELLED')),
+                     'ABANDONED', 'NEVER_STARTED', 'SEASON_CUTOFF', 'CANCELLED', 'INSTANCE_CLOSED')),
   attacker_summary jsonb not null check (jsonb_typeof(attacker_summary) = 'object'),
   defender_summary jsonb not null check (jsonb_typeof(defender_summary) = 'object'),
   defended         boolean not null default false,
@@ -306,6 +370,31 @@ create table battle_results (
   core_version     text not null check (length(core_version) between 1 and 40)
 );
 
+-- Das Ergebnis wiederholt Ausgang und Grund der beendeten Belagerung; die Auflösung setzt erst
+-- den Endzustand und schreibt dann das Ergebnis (SIEGE_SYSTEM §5.3).
+create function battle_result_guard() returns trigger
+  language plpgsql
+  set search_path = pg_catalog, pg_temp
+  as $$
+  declare
+    s record;
+  begin
+    select status, outcome, outcome_reason into s from public.sieges where id = new.siege_id;
+    if not found then
+      return new;  -- meldet der Fremdschlüssel
+    end if;
+    if s.outcome is null or new.reason <> s.outcome_reason
+       or new.winner_role is distinct from nullif(s.outcome, 'NONE') then
+      raise exception 'battle_results: Ergebnis passt nicht zur Belagerung % (%, %)',
+        new.siege_id, s.status, s.outcome_reason using errcode = 'check_violation';
+    end if;
+    return new;
+  end
+  $$;
+
+create trigger battle_results_guard
+  before insert on battle_results
+  for each row execute function battle_result_guard();
 create trigger battle_results_immutable
   before update or delete on battle_results
   for each row execute function forbid_row_change();

@@ -16,12 +16,15 @@ create table questions (
   tags               text[] not null default '{}',
   origin             text not null check (origin in ('EDITORIAL', 'AI_ASSISTED', 'LICENSED')),
   license_note       text null,
-  is_fixture         boolean not null default false,
+  is_fixture         boolean not null default false,  -- fest ab dem Anlegen (Trigger unten)
   created_by         uuid null references users (id) on delete restrict,
   created_at         timestamptz not null default game_now(),
   -- Testfragen sind nie im aktiven Pool (ADR-021); ACTIVE verlangt eine aktuelle Version.
   constraint questions_fixture_never_active check (not is_fixture or status <> 'ACTIVE'),
   constraint questions_active_has_version check (status <> 'ACTIVE' or current_version_id is not null),
+  -- Lizenzhinweis genau bei lizenzierten Fragen (wie tools/content/src/validate.ts)
+  constraint questions_license_note check ((origin = 'LICENSED') = (license_note is not null)),
+  constraint questions_tags_not_null check (array_position(tags, null) is null),
   unique (id, kind)                -- Ziel des Fremdschlüssels aus question_versions
 );
 create index questions_pool on questions (kind, category, status);
@@ -42,7 +45,10 @@ create table question_versions (
   input_max             numeric null check (input_max > '-Infinity' and input_max < 'Infinity'),
   estimate_scale_type   text null check (estimate_scale_type in ('LINEAR', 'LOG')),
   estimate_scale        numeric null check (estimate_scale > 0 and estimate_scale < 'Infinity'),
-  sources               jsonb not null check (jsonb_typeof(sources) = 'array'),
+  -- mindestens eine überprüfbare Quelle (Brief §5.2); CASE, weil AND keine Reihenfolge garantiert
+  sources               jsonb not null check (
+                          case when jsonb_typeof(sources) = 'array' then jsonb_array_length(sources) >= 1
+                          else false end),
   status                text not null default 'DRAFT'
                         check (status in ('DRAFT', 'IN_REVIEW', 'APPROVED', 'RETIRED')),
   approved_at           timestamptz null,
@@ -62,14 +68,20 @@ create table question_versions (
     or (kind = 'ESTIMATE' and answer_value is not null and answer_precision is not null
       and answer_unit is not null and input_min is not null and input_max is not null
       and estimate_scale_type is not null and estimate_scale is not null
-      and input_min <= answer_value and answer_value <= input_max)
+      and input_min <= answer_value and answer_value <= input_max
+      and (estimate_scale_type <> 'LOG' or answer_value > 0))  -- LOG-Skala: positiver Zielwert
   ),
   -- approved_at setzt der Freigabe-Trigger; zurückgezogene Versionen behalten ihn (oder nie freigegeben)
   constraint question_versions_approved_at check (
     (status = 'APPROVED' and approved_at is not null)
     or (status in ('DRAFT', 'IN_REVIEW') and approved_at is null)
     or status = 'RETIRED'
-  )
+  ),
+  -- höchstens eine freigegebene Version je Frage; geprüft beim Commit, damit der Import die neue
+  -- Version freigeben und danach die alte zurückziehen kann
+  constraint question_versions_one_approved
+    exclude using btree (question_id with =) where (status = 'APPROVED')
+    deferrable initially deferred
 );
 create index question_versions_question on question_versions (question_id, kind);
 
@@ -196,6 +208,25 @@ create function question_version_guard() returns trigger
           raise exception 'Freigabe: Trivia braucht mindestens 4 Optionen und genau eine richtige: %', q.key
             using errcode = 'check_violation';
         end if;
+        -- jede Sprache beschriftet genau die Optionen der Version, jeweils mit nichtleerem Text
+        select t.locale into locale_missing
+        from public.question_translations t
+        where t.version_id = new.id
+          and (t.option_texts is null
+               or (select array_agg(k order by k) from jsonb_object_keys(t.option_texts) k)
+                  is distinct from (select array_agg(o.option_key order by o.option_key)
+                                    from public.question_options o where o.version_id = new.id)
+               or exists (select 1 from jsonb_each(t.option_texts) e
+                          where jsonb_typeof(e.value) <> 'string' or btrim(e.value #>> '{}') = ''))
+        limit 1;
+        if locale_missing is not null then
+          raise exception 'Freigabe: Optionstexte (%) passen nicht zu den Optionen: %', locale_missing, q.key
+            using errcode = 'check_violation';
+        end if;
+      elsif exists (select 1 from public.question_translations t
+                    where t.version_id = new.id and t.option_texts is not null) then
+        raise exception 'Freigabe: Schätzfragen haben keine Optionstexte: %', q.key
+          using errcode = 'check_violation';
       end if;
       -- der Zeitpunkt der Freigabe kommt immer aus der Datenbank
       new.approved_at := public.game_now();
@@ -250,12 +281,16 @@ create trigger question_reviews_no_truncate
   before truncate on question_reviews
   for each statement execute function forbid_row_change();
 
--- Eine Frage ist nur aktiv, wenn ihre aktuelle Version freigegeben ist.
+-- Eine Frage ist nur aktiv, wenn ihre aktuelle Version freigegeben ist. Die Markierung als
+-- Testfrage ist fest: Sonst könnte eine freigegebene Frage nachträglich zur Testfrage werden.
 create function question_active_guard() returns trigger
   language plpgsql
   set search_path = pg_catalog, pg_temp
   as $$
   begin
+    if tg_op = 'UPDATE' and new.is_fixture <> old.is_fixture then
+      raise exception 'questions: is_fixture ist fest (%)', new.key using errcode = 'restrict_violation';
+    end if;
     if new.status = 'ACTIVE' and not exists (
       select 1 from public.question_versions v
       where v.id = new.current_version_id and v.status = 'APPROVED'

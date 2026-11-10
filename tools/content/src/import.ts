@@ -1,5 +1,5 @@
-import { createHash, randomUUID } from 'node:crypto';
-import type { Db, Tx } from '@rdw/db';
+import { createHash } from 'node:crypto';
+import { newId, type Db, type Tx } from '@rdw/db';
 import { sql } from 'kysely';
 import type { QuestionFile } from './schema.ts';
 import type { ValidatedQuestion } from './validate.ts';
@@ -49,14 +49,17 @@ export interface ImportSummary {
   readonly missingInFiles: string[];
 }
 
-/** Inhalt einer Version: alles außer Status und Feldern, die zur Frage gehören. */
+/**
+ * Inhalt einer Version: alles außer Status und Feldern, die zur Frage gehören. Optionen und
+ * Prüfungen speichert die Datenbank ohne Reihenfolge, deshalb zählt ihre Reihenfolge nicht.
+ */
 function versionContent(q: QuestionFile): unknown {
   return {
     kind: q.kind,
     difficulty: q.difficulty,
     sources: q.sources,
-    reviews: q.reviews,
-    trivia: q.trivia ?? null,
+    reviews: q.reviews.map(canonicalJson).sort(),
+    trivia: q.trivia ? { ...q.trivia, options: [...q.trivia.options].sort() } : null,
     estimate: q.estimate ?? null,
     translations: q.translations,
   };
@@ -124,7 +127,7 @@ async function insertVersionParts(tx: Tx, versionId: string, q: QuestionFile): P
       .insertInto('question_reviews')
       .values(
         q.reviews.map((r) => ({
-          id: randomUUID(),
+          id: newId(),
           version_id: versionId,
           kind: r.kind,
           locale: r.kind === 'LANGUAGE' ? r.locale : null,
@@ -167,7 +170,7 @@ async function insertVersion(
   q: QuestionFile,
   hash: string,
 ): Promise<VersionRow> {
-  const id = randomUUID();
+  const id = newId();
   await tx
     .insertInto('question_versions')
     .values({ id, question_id: questionId, version, kind: q.kind, ...versionFields(q, hash) })
@@ -277,7 +280,7 @@ async function importOne(tx: Tx, item: ValidatedQuestion): Promise<Outcome> {
 
   const retire = new Set<string>();
   if (!existing) {
-    const questionId = randomUUID();
+    const questionId = newId();
     await tx
       .insertInto('questions')
       .values({

@@ -1,21 +1,21 @@
 import { mkdtemp, readFile, writeFile, cp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { loadMigrations, migrate, migrationStatus, MIGRATIONS_DIR } from '../src/index.ts';
 import { createTestDatabase, type TestDatabase } from '../src/testing/index.ts';
 
 let db: TestDatabase;
 let workDir: string;
 
+// Aufräumen nur, wenn das Anlegen gelang: sonst überdeckt ein Folgefehler die Ursache.
 beforeAll(async () => {
   db = await createTestDatabase({ migrate: false });
   workDir = await mkdtemp(path.join(tmpdir(), 'rdw-migrations-'));
-});
-
-afterAll(async () => {
-  await db.drop();
-  await rm(workDir, { recursive: true, force: true });
+  return async () => {
+    await db.drop();
+    await rm(workDir, { recursive: true, force: true });
+  };
 });
 
 async function copyMigrations(name: string): Promise<string> {

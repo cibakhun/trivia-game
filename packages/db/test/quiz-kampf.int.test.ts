@@ -16,7 +16,7 @@ import {
   QUESTION_VERSION_STATUSES,
   TRANSLATION_STATUSES,
 } from '@rdw/protocol';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '../src/testing/index.ts';
 
 /**
@@ -41,6 +41,9 @@ const CHECK = '23514';
 const FOREIGN_KEY = '23503';
 const UNIQUE = '23505';
 const RESTRICT = '23001';
+const EXCLUSION = '23P01';
+
+const SOURCES = JSON.stringify([{ title: 'Testquelle', url: 'https://example.org' }]);
 
 async function insert(table: string, row: Record<string, unknown>): Promise<void> {
   const cols = Object.keys(row);
@@ -66,11 +69,10 @@ async function checkValues(table: string, column: string): Promise<string[]> {
   return [...def.matchAll(/'([^']+)'::text/g)].map((m) => m[1] ?? '').sort();
 }
 
+// Aufräumen nur, wenn das Anlegen gelang: sonst überdeckt ein Folgefehler die Ursache.
 beforeAll(async () => {
   db = await createTestDatabase();
-});
-afterAll(async () => {
-  await db.drop();
+  return () => db.drop();
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -85,6 +87,8 @@ interface QuestionSetup {
   readonly translation?: 'DRAFT' | 'REVIEWED' | 'APPROVED' | null;
   readonly factReview?: boolean;
   readonly languageReview?: boolean;
+  /** Optionstexte der Übersetzung; Standard: ein Text je Option. */
+  readonly optionTexts?: Record<string, unknown> | null;
 }
 
 interface CreatedQuestion {
@@ -113,7 +117,7 @@ async function createQuestion(setup: QuestionSetup = {}): Promise<CreatedQuestio
     version: 1,
     kind,
     difficulty: 2,
-    sources: JSON.stringify([{ title: 'Testquelle', url: 'https://example.org' }]),
+    sources: SOURCES,
     content_hash: 'b'.repeat(64),
     ...(kind === 'ESTIMATE'
       ? {
@@ -127,24 +131,31 @@ async function createQuestion(setup: QuestionSetup = {}): Promise<CreatedQuestio
         }
       : {}),
   });
-  if (kind === 'TRIVIA') {
-    const count = setup.options ?? 4;
-    const correct = setup.correct ?? 1;
-    for (let i = 0; i < count; i += 1) {
-      await insert('question_options', {
-        version_id: versionId,
-        option_key: String.fromCharCode(97 + i),
-        is_correct: i < correct,
-      });
-    }
+  const optionKeys =
+    kind === 'TRIVIA'
+      ? Array.from({ length: setup.options ?? 4 }, (_, i) => String.fromCharCode(97 + i))
+      : [];
+  const correct = setup.correct ?? 1;
+  for (const [i, key] of optionKeys.entries()) {
+    await insert('question_options', {
+      version_id: versionId,
+      option_key: key,
+      is_correct: i < correct,
+    });
   }
+  const optionTexts =
+    setup.optionTexts !== undefined
+      ? setup.optionTexts
+      : kind === 'TRIVIA'
+        ? Object.fromEntries(optionKeys.map((key) => [key, key.toUpperCase()]))
+        : null;
   const translation = setup.translation === undefined ? 'APPROVED' : setup.translation;
   if (translation !== null) {
     await insert('question_translations', {
       version_id: versionId,
       locale: 'de',
       prompt: 'Wie lautet die richtige Antwort?',
-      option_texts: kind === 'TRIVIA' ? JSON.stringify({ a: 'A', b: 'B', c: 'C', d: 'D' }) : null,
+      option_texts: optionTexts === null ? null : JSON.stringify(optionTexts),
       status: translation,
     });
   }
@@ -172,6 +183,15 @@ async function createQuestion(setup: QuestionSetup = {}): Promise<CreatedQuestio
 
 const approve = (versionId: string) =>
   q(`update question_versions set status = 'APPROVED' where id = $1`, [versionId]);
+
+/** Freigeben und als aktuelle Version aktivieren. */
+async function activate({ questionId, versionId }: CreatedQuestion): Promise<void> {
+  await approve(versionId);
+  await q(`update questions set current_version_id = $1, status = 'ACTIVE' where id = $2`, [
+    versionId,
+    questionId,
+  ]);
+}
 
 describe('Fragen: Wertelisten wie in @rdw/protocol', () => {
   it.each([
@@ -215,6 +235,28 @@ describe('Fragen: Freigabe (Brief §5.6)', () => {
     ['ohne Fragetext', { translation: null }, /ohne Fragetext/],
     ['nur drei Optionen', { options: 3 }, /mindestens 4 Optionen/],
     ['keine richtige Option', { correct: 0 }, /genau eine richtige/],
+    ['ohne Optionstexte', { optionTexts: null }, /Optionstexte \(de\)/],
+    ['Optionstext fehlt', { optionTexts: { a: 'A', b: 'B', c: 'C' } }, /Optionstexte \(de\)/],
+    [
+      'Optionstext zu viel',
+      { optionTexts: { a: 'A', b: 'B', c: 'C', d: 'D', e: 'E' } },
+      /Optionstexte \(de\)/,
+    ],
+    [
+      'leerer Optionstext',
+      { optionTexts: { a: 'A', b: ' ', c: 'C', d: 'D' } },
+      /Optionstexte \(de\)/,
+    ],
+    [
+      'Optionstext keine Zeichenkette',
+      { optionTexts: { a: 'A', b: 2, c: 'C', d: 'D' } },
+      /Optionstexte/,
+    ],
+    [
+      'Schätzfrage mit Optionstexten',
+      { kind: 'ESTIMATE', optionTexts: { a: 'A' } },
+      /Schätzfragen haben keine Optionstexte/,
+    ],
   ] as const)('verweigert die Freigabe: %s', async (_name, setup, message) => {
     const { versionId } = await createQuestion(setup);
     await expect(approve(versionId)).rejects.toThrow(message);
@@ -234,11 +276,115 @@ describe('Fragen: Freigabe (Brief §5.6)', () => {
         version: 2,
         kind: 'TRIVIA',
         difficulty: 2,
-        sources: '[]',
+        sources: SOURCES,
         content_hash: 'c'.repeat(64),
         status: 'APPROVED',
       }),
       CHECK,
+    );
+  });
+
+  it('hält höchstens eine freigegebene Version je Frage (beim Commit geprüft)', async () => {
+    const first = await createQuestion();
+    await activate(first);
+    const client = await db.pool.connect();
+    const second = randomUUID();
+    const newVersion = async () => {
+      await client.query(
+        `insert into question_versions (id, question_id, version, kind, difficulty, sources, content_hash)
+         values ($1, $2, 2, 'TRIVIA', 2, $3, $4)`,
+        [second, first.questionId, SOURCES, 'e'.repeat(64)],
+      );
+      await client.query(
+        `insert into question_options (version_id, option_key, is_correct)
+         select $1, option_key, is_correct from question_options where version_id = $2`,
+        [second, first.versionId],
+      );
+      for (const table of ['question_translations', 'question_reviews']) {
+        const columns =
+          table === 'question_reviews'
+            ? `gen_random_uuid(), $1, kind, locale, reviewer_name, reviewed_on, notes`
+            : `$1, locale, prompt, option_texts, unit_label, explanation, status`;
+        await client.query(
+          `insert into ${table} select ${columns} from ${table} where version_id = $2`,
+          [second, first.versionId],
+        );
+      }
+      await client.query(`update question_versions set status = 'APPROVED' where id = $1`, [
+        second,
+      ]);
+    };
+    try {
+      await client.query('begin');
+      await newVersion();
+      await expect(client.query('commit')).rejects.toMatchObject({
+        code: EXCLUSION,
+        constraint: 'question_versions_one_approved',
+      });
+      // so macht es der Import: neue Version freigeben, umstellen, alte zurückziehen
+      await client.query('begin');
+      await newVersion();
+      await client.query(`update questions set current_version_id = $1 where id = $2`, [
+        second,
+        first.questionId,
+      ]);
+      await client.query(`update question_versions set status = 'RETIRED' where id = $1`, [
+        first.versionId,
+      ]);
+      await client.query('commit');
+    } finally {
+      await client.query('rollback').catch(() => undefined);
+      client.release();
+    }
+  });
+});
+
+describe('Fragen: Inhaltsregeln wie im Werkzeug (tools/content/src/validate.ts)', () => {
+  it('verlangt mindestens eine Quelle', async () => {
+    const { versionId } = await createQuestion();
+    await expectPgError(
+      q(`update question_versions set sources = '[]' where id = $1`, [versionId]),
+      CHECK,
+    );
+    await expectPgError(
+      q(`update question_versions set sources = '{}' where id = $1`, [versionId]),
+      CHECK,
+    );
+  });
+
+  it('verlangt bei LOG-Skala einen positiven Zielwert', async () => {
+    const { versionId } = await createQuestion({ kind: 'ESTIMATE' });
+    await q(`update question_versions set estimate_scale_type = 'LOG' where id = $1`, [versionId]);
+    await expectPgError(
+      q(`update question_versions set answer_value = 0 where id = $1`, [versionId]),
+      CHECK,
+      'question_versions_kind_fields',
+    );
+  });
+
+  it('verlangt den Lizenzhinweis genau bei lizenzierten Fragen', async () => {
+    const { questionId } = await createQuestion();
+    await expectPgError(
+      q(`update questions set origin = 'LICENSED' where id = $1`, [questionId]),
+      CHECK,
+      'questions_license_note',
+    );
+    await expectPgError(
+      q(`update questions set license_note = 'CC BY 4.0' where id = $1`, [questionId]),
+      CHECK,
+      'questions_license_note',
+    );
+    await q(`update questions set origin = 'LICENSED', license_note = 'CC BY 4.0' where id = $1`, [
+      questionId,
+    ]);
+  });
+
+  it('lässt keine leeren Tags zu', async () => {
+    const { questionId } = await createQuestion();
+    await expectPgError(
+      q(`update questions set tags = array['region:HU', null] where id = $1`, [questionId]),
+      CHECK,
+      'questions_tags_not_null',
     );
   });
 });
@@ -336,8 +482,21 @@ describe('Fragen: aktiver Pool', () => {
     // und wird nicht nachträglich zur Testfrage
     await expectPgError(
       q(`update questions set is_fixture = true where id = $1`, [ready.questionId]),
-      CHECK,
-      'questions_fixture_never_active',
+      RESTRICT,
+    );
+  });
+
+  it('macht keine Frage nachträglich zur Testfrage oder umgekehrt', async () => {
+    const approved = await createQuestion();
+    await approve(approved.versionId); // freigegeben, aber (noch) nicht aktiv
+    await expectPgError(
+      q(`update questions set is_fixture = true where id = $1`, [approved.questionId]),
+      RESTRICT,
+    );
+    const fixture = await createQuestion({ fixture: true });
+    await expectPgError(
+      q(`update questions set is_fixture = false where id = $1`, [fixture.questionId]),
+      RESTRICT,
     );
   });
 
@@ -356,7 +515,7 @@ describe('Fragen: aktiver Pool', () => {
     const base = {
       question_id: questionId,
       difficulty: 2,
-      sources: '[]',
+      sources: SOURCES,
       content_hash: 'd'.repeat(64),
     };
     await expectPgError(
@@ -503,6 +662,22 @@ async function insertSiege(overrides: Record<string, unknown> = {}): Promise<str
   return id;
 }
 
+async function insertSiegeIn(world: World, target: string): Promise<string> {
+  const id = randomUUID();
+  await insert('sieges', {
+    id,
+    instance_id: world.instanceId,
+    mode: 'PVE',
+    target_region_id: target,
+    attacker_kingdom_id: world.kingdomId,
+    defender_kind: 'NEUTRAL',
+    status: 'PREPARING',
+    rules_snapshot: '{}',
+    idempotency_key: randomUUID(),
+  });
+  return id;
+}
+
 const resolved = (status: string, outcome: string, reason: string) => ({
   status,
   outcome,
@@ -591,6 +766,20 @@ describe('Kämpfe: Belagerungen', () => {
       'sieges_deadlines',
     );
     await expectPgError(insertSiege({ mode: 'PVP' }), CHECK, 'sieges_mode_defender');
+    // die Art des Verteidigers muss zum Reich passen: PvE nie gegen ein Spielerreich
+    await expectPgError(
+      insertSiege({ defender_kind: 'NPC', defender_kingdom_id: worldA.otherKingdomId }),
+      FOREIGN_KEY,
+      'sieges_defender_fk',
+    );
+    // PvE wird sofort ausgewertet: keine Verteidigungszustände, kein Sieg durch Fristablauf
+    await expectPgError(insertSiege({ status: 'AWAITING_DEFENSE' }), CHECK, 'sieges_mode_status');
+    await expectPgError(insertSiege({ status: 'DEFENDING' }), CHECK, 'sieges_mode_status');
+    await expectPgError(
+      insertSiege(resolved('ATTACKER_WON_BY_TIMEOUT', 'ATTACKER', 'TIMEOUT')),
+      CHECK,
+      'sieges_mode_status',
+    );
     await expectPgError(
       insertSiege({ defender_kingdom_id: worldA.otherKingdomId }),
       CHECK,
@@ -610,11 +799,30 @@ describe('Kämpfe: Belagerungen', () => {
   it('verlangt Ergebnisfelder genau in Endzuständen', async () => {
     await expectPgError(insertSiege({ status: 'ATTACKER_WON' }), CHECK, 'sieges_terminal_fields');
     await expectPgError(insertSiege({ resolved_at: new Date() }), CHECK, 'sieges_terminal_fields');
-    await expectPgError(
-      insertSiege(resolved('DEFENDER_WON', 'ATTACKER', 'ESTIMATE')),
-      CHECK,
-      'sieges_outcome_matches_status',
-    );
+    for (const [status, outcome, reason] of [
+      ['DEFENDER_WON', 'ATTACKER', 'ESTIMATE'],
+      ['ATTACKER_WON', 'ATTACKER', 'CANCELLED'],
+      ['ATTACKER_WON', 'ATTACKER', 'FULL_TIE'],
+      ['DEFENDER_WON', 'DEFENDER', 'TRIVIA'],
+      ['ATTACK_FAILED', 'NONE', 'TRIVIA'],
+      ['CANCELLED', 'NONE', 'INSTANCE_CLOSED'],
+      ['EXPIRED_INVALID', 'NONE', 'CANCELLED'],
+    ] as const) {
+      await expectPgError(
+        insertSiege(resolved(status, outcome, reason)),
+        CHECK,
+        'sieges_outcome_matches_status',
+      );
+    }
+    // Abbrüche aus PREPARING und technisches Ende (SIEGE_SYSTEM §3)
+    for (const [status, reason] of [
+      ['ATTACK_FAILED', 'ABANDONED'],
+      ['ATTACK_FAILED', 'NEVER_STARTED'],
+      ['ATTACK_FAILED', 'SEASON_CUTOFF'],
+      ['EXPIRED_INVALID', 'INSTANCE_CLOSED'],
+    ] as const) {
+      await insertSiege(resolved(status, 'NONE', reason));
+    }
   });
 
   it('nimmt jeden Ausgang von resolveDuel samt Ergebniszeile an', async () => {
@@ -645,6 +853,42 @@ describe('Kämpfe: Belagerungen', () => {
         core_version: 'test',
       });
     }
+    // auch das technische Ende bekommt ein Ergebnis (I6)
+    const closed = await insertSiege(resolved('EXPIRED_INVALID', 'NONE', 'INSTANCE_CLOSED'));
+    await insert('battle_results', {
+      siege_id: closed,
+      reason: 'INSTANCE_CLOSED',
+      attacker_summary: '{}',
+      defender_summary: '{}',
+      core_version: 'test',
+    });
+  });
+
+  it('nimmt nur ein Ergebnis an, das zur beendeten Belagerung passt', async () => {
+    const result = (siegeId: string, winner: string | null, reason: string) =>
+      insert('battle_results', {
+        siege_id: siegeId,
+        winner_role: winner,
+        reason,
+        attacker_summary: '{}',
+        defender_summary: '{}',
+        core_version: 'test',
+      });
+    const active = await insertSiege({ target_region_id: region(worldA, 1) });
+    await expectPgError(result(active, 'ATTACKER', 'TRIVIA'), CHECK);
+    await q(
+      `update sieges set status = 'CANCELLED', outcome = 'NONE', outcome_reason = 'CANCELLED',
+         resolved_at = game_now() where id = $1`,
+      [active],
+    );
+    const won = await insertSiege(resolved('ATTACKER_WON', 'ATTACKER', 'TRIVIA'));
+    await expectPgError(result(won, 'DEFENDER', 'TRIVIA'), CHECK);
+    await expectPgError(result(won, null, 'TRIVIA'), CHECK);
+    await expectPgError(result(won, 'ATTACKER', 'ESTIMATE'), CHECK);
+    const failed = await insertSiege(resolved('ATTACK_FAILED', 'NONE', 'ATTACKER_GATE'));
+    await expectPgError(result(failed, 'DEFENDER', 'ATTACKER_GATE'), CHECK);
+    await result(won, 'ATTACKER', 'TRIVIA');
+    await result(failed, null, 'ATTACKER_GATE');
   });
 
   it('erlaubt höchstens eine aktive Belagerung je Region (I2)', async () => {
@@ -756,8 +1000,11 @@ describe('Kämpfe: Teilnehmer, Herausforderung und Antworten (I11)', () => {
       role: 'DEFENDER',
       npc_profile_id: '00000000-0000-4000-8000-000000000001',
     });
-    triviaVersionId = (await createQuestion()).versionId;
-    estimateVersionId = (await createQuestion({ kind: 'ESTIMATE' })).versionId;
+    // Testfrage (nur local/test) und freigegebene, aktive Schätzfrage
+    triviaVersionId = (await createQuestion({ fixture: true })).versionId;
+    const estimate = await createQuestion({ kind: 'ESTIMATE' });
+    await activate(estimate);
+    estimateVersionId = estimate.versionId;
     challengeId = randomUUID();
     await insert('quiz_challenges', {
       id: challengeId,
@@ -849,6 +1096,54 @@ describe('Kämpfe: Teilnehmer, Herausforderung und Antworten (I11)', () => {
     );
   });
 
+  it('stellt nur freigegebene Versionen aktiver Fragen oder Testfragen', async () => {
+    const other = randomUUID();
+    const secondSiege = await insertSiegeIn(world, region(world, 2));
+    await insert('quiz_challenges', {
+      id: other,
+      siege_id: secondSiege,
+      target_difficulty: 0,
+      rng_key_id: 'test',
+      rng_version: 1,
+    });
+    const step = (versionId: string) =>
+      insert('quiz_challenge_steps', {
+        challenge_id: other,
+        step_index: 0,
+        kind: 'TRIVIA',
+        version_id: versionId,
+        time_limit_ms: 20000,
+      });
+    await expectPgError(step((await createQuestion()).versionId), CHECK); // Entwurf
+    const approvedOnly = await createQuestion();
+    await approve(approvedOnly.versionId);
+    await expectPgError(step(approvedOnly.versionId), CHECK); // Frage nicht aktiv
+    const suspended = await createQuestion();
+    await activate(suspended);
+    await q(`update questions set status = 'SUSPENDED' where id = $1`, [suspended.questionId]);
+    await expectPgError(step(suspended.versionId), CHECK);
+    const active = await createQuestion();
+    await activate(active);
+    await step(active.versionId);
+  });
+
+  it('hält Herausforderung und Fragenauswahl fest', async () => {
+    await expectPgError(
+      q(`update quiz_challenge_steps set time_limit_ms = 60000 where challenge_id = $1`, [
+        challengeId,
+      ]),
+      RESTRICT,
+    );
+    await expectPgError(
+      q(`delete from quiz_challenge_steps where challenge_id = $1`, [challengeId]),
+      RESTRICT,
+    );
+    await expectPgError(
+      q(`update quiz_challenges set target_difficulty = 1 where id = $1`, [challengeId]),
+      RESTRICT,
+    );
+  });
+
   it('nimmt NPC-Antworten nur mit Audit und ohne Präsentation an', async () => {
     const npcAnswer = {
       challenge_id: challengeId,
@@ -875,6 +1170,68 @@ describe('Kämpfe: Teilnehmer, Herausforderung und Antworten (I11)', () => {
       RESTRICT,
     );
     await expectPgError(q(`delete from quiz_answers where id = $1`, [id]), RESTRICT);
+  });
+
+  it('lässt NPCs nur vorab antworten und Menschen nur auf präsentierte Fragen', async () => {
+    const presentedAt = new Date();
+    await expectPgError(
+      insert('quiz_answers', {
+        id: randomUUID(),
+        challenge_id: challengeId,
+        siege_id: siegeId,
+        participant_id: humanId,
+        step_index: 1,
+        answer_value: 5,
+        status: 'GENERATED',
+        audit: '{}',
+      }),
+      CHECK,
+    );
+    await expectPgError(
+      insert('quiz_answers', {
+        id: randomUUID(),
+        challenge_id: challengeId,
+        siege_id: siegeId,
+        participant_id: npcId,
+        step_index: 1,
+        locale: 'de',
+        presentation: '{}',
+        presented_at: presentedAt,
+        answer_deadline_at: new Date(presentedAt.getTime() + 31000),
+        status: 'PRESENTED',
+      }),
+      CHECK,
+    );
+  });
+
+  it('nimmt eine Antwort nach der Frist nicht als ANSWERED an', async () => {
+    const id = randomUUID();
+    const presentedAt = new Date(Date.now() - 60_000);
+    await insert('quiz_answers', {
+      id,
+      challenge_id: challengeId,
+      siege_id: siegeId,
+      participant_id: humanId,
+      step_index: 1,
+      locale: 'de',
+      presentation: '{}',
+      presented_at: presentedAt,
+      answer_deadline_at: new Date(presentedAt.getTime() + 31000),
+      status: 'PRESENTED',
+    });
+    await expectPgError(
+      q(
+        `update quiz_answers set status = 'ANSWERED', received_at = answer_deadline_at,
+           answer_value = 5, is_correct = false where id = $1`,
+        [id],
+      ),
+      CHECK,
+      'quiz_answers_answered',
+    );
+    await q(
+      `update quiz_answers set status = 'TIMED_OUT', received_at = answer_deadline_at where id = $1`,
+      [id],
+    );
   });
 
   it('lässt eine präsentierte Frage genau einmal beantworten', async () => {
@@ -916,7 +1273,7 @@ describe('Kämpfe: Teilnehmer, Herausforderung und Antworten (I11)', () => {
         id: randomUUID(),
         challenge_id: challengeId,
         siege_id: otherSiegeId,
-        participant_id: humanId,
+        participant_id: npcId,
         step_index: 1,
         status: 'GENERATED',
         audit: '{}',
@@ -931,36 +1288,79 @@ describe('Kämpfe: Teilnehmer, Herausforderung und Antworten (I11)', () => {
 // ---------------------------------------------------------------------------------------------
 
 describe('Outbox world_events', () => {
-  it('ist nur anhängbar und prüft Typ und Chunk', async () => {
+  const seqs = async (instanceId: string) =>
+    (
+      await q(`select seq::int as seq from world_events where instance_id = $1 order by id`, [
+        instanceId,
+      ])
+    ).rows.map((row) => row.seq);
+
+  it('vergibt seq lückenlos je Instanz, auch über einen Rollback hinweg (ADR-027)', async () => {
     const world = await createWorld();
+    const other = await createWorld();
     await insert('world_events', {
       instance_id: world.instanceId,
-      seq: 1,
       chunk_x: 0,
       chunk_y: 0,
       type: 'region.conquered',
       payload: JSON.stringify({ regionId: region(world, 0) }),
     });
+    await insert('world_events', { instance_id: other.instanceId, type: 'region.changed' });
+    const client = await db.pool.connect();
+    try {
+      await client.query('begin');
+      await client.query(
+        `insert into world_events (instance_id, type) values ($1, 'region.changed')`,
+        [world.instanceId],
+      );
+      await client.query('rollback');
+    } finally {
+      client.release();
+    }
+    // mehrere Zeilen einer Anweisung in Einfügereihenfolge
+    await q(
+      `insert into world_events (instance_id, type, payload)
+       values ($1, 'siege.started', '{"n": 1}'), ($1, 'siege.resolved', '{"n": 2}')`,
+      [world.instanceId],
+    );
+    expect(await seqs(world.instanceId)).toEqual([1, 2, 3]);
+    expect(await seqs(other.instanceId)).toEqual([1]);
+    const { rows } = await q(
+      `select type, event_seq::int as counter from world_events e
+       join world_instances w on w.id = e.instance_id where e.instance_id = $1 and e.seq = 3`,
+      [world.instanceId],
+    );
+    expect(rows[0]).toEqual({ type: 'siege.resolved', counter: 3 });
+  });
+
+  it('lehnt eine vorgegebene seq und unbekannte Instanzen ab', async () => {
+    const world = await createWorld();
+    await expectPgError(
+      insert('world_events', { instance_id: world.instanceId, seq: 7, type: 'region.changed' }),
+      CHECK,
+    );
+    await expectPgError(
+      insert('world_events', { instance_id: randomUUID(), type: 'region.changed' }),
+      FOREIGN_KEY,
+    );
+  });
+
+  it('ist nur anhängbar und prüft Typ und Chunk', async () => {
+    const world = await createWorld();
+    await insert('world_events', { instance_id: world.instanceId, type: 'region.changed' });
+    // Platzhalter für geschwärzte persönliche Ereignisse (SECURITY.md §5.2)
+    await insert('world_events', { instance_id: world.instanceId, type: 'REDACTED' });
     await expectPgError(
       q(`update world_events set payload = '{}' where instance_id = $1`, [world.instanceId]),
       RESTRICT,
     );
     await expectPgError(q(`truncate world_events`), RESTRICT);
     await expectPgError(
-      insert('world_events', { instance_id: world.instanceId, seq: 1, type: 'region.changed' }),
-      UNIQUE,
-    );
-    await expectPgError(
-      insert('world_events', { instance_id: world.instanceId, seq: 2, type: 'RegionChanged' }),
+      insert('world_events', { instance_id: world.instanceId, type: 'RegionChanged' }),
       CHECK,
     );
     await expectPgError(
-      insert('world_events', {
-        instance_id: world.instanceId,
-        seq: 2,
-        chunk_x: 1,
-        type: 'region.changed',
-      }),
+      insert('world_events', { instance_id: world.instanceId, chunk_x: 1, type: 'region.changed' }),
       CHECK,
     );
     // DELETE bleibt für die Aufbewahrung erlaubt

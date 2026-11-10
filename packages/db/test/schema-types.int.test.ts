@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { readSchemaTypes, renderSchemaTypes } from '../src/schema-file.ts';
 import { createTestDatabase, type TestDatabase } from '../src/testing/index.ts';
 
@@ -6,11 +6,10 @@ import { createTestDatabase, type TestDatabase } from '../src/testing/index.ts';
 
 let db: TestDatabase;
 
+// Aufräumen nur, wenn das Anlegen gelang: sonst überdeckt ein Folgefehler die Ursache.
 beforeAll(async () => {
   db = await createTestDatabase();
-});
-afterAll(async () => {
-  await db.drop();
+  return () => db.drop();
 });
 
 describe('schema.generated.ts', () => {

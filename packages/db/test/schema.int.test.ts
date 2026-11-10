@@ -2,18 +2,17 @@ import { randomUUID } from 'node:crypto';
 import { chunkOf } from '@rdw/game-core';
 import { DEFAULT_RULES, parseRulesConfig } from '@rdw/protocol';
 import fc from 'fast-check';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { createTestDatabase, type TestDatabase } from '../src/testing/index.ts';
 
 let db: TestDatabase;
 const q = (text: string, values?: unknown[]) =>
   db.pool.query<Record<string, unknown>>(text, values);
 
+// Aufräumen nur, wenn das Anlegen gelang: sonst überdeckt ein Folgefehler die Ursache.
 beforeAll(async () => {
   db = await createTestDatabase();
-});
-afterAll(async () => {
-  await db.drop();
+  return () => db.drop();
 });
 
 async function insertUser(overrides: Record<string, unknown> = {}): Promise<string> {

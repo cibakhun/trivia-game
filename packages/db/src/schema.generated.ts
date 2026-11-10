@@ -357,7 +357,7 @@ export interface UsersTable {
 export interface WorldEventsTable {
   id: ColumnType<string, never, never>;
   instance_id: string;
-  seq: ColumnType<string, string | number | bigint, string | number | bigint>;
+  seq: ColumnType<string, string | number | bigint | undefined, string | number | bigint>;
   chunk_x: number | null;
   chunk_y: number | null;
   user_id: string | null;

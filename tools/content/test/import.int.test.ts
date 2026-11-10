@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { createDb, type Db } from '@rdw/db';
 import { createTestDatabase, type TestDatabase } from '@rdw/db/testing';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { stringify } from 'yaml';
 import {
   importQuestions,
@@ -19,13 +19,12 @@ const today = '2026-11-09';
 let testDb: TestDatabase;
 let db: Db;
 
+// Aufräumen nur, wenn das Anlegen gelang: sonst überdeckt ein Folgefehler die Ursache.
 beforeAll(async () => {
   testDb = await createTestDatabase();
   db = createDb(testDb.pool);
-});
-afterAll(async () => {
   // db.destroy() würde den Pool beenden; drop() übernimmt das.
-  await testDb.drop();
+  return () => testDb.drop();
 });
 
 function trivia(key: string, overrides: Record<string, unknown> = {}): Record<string, unknown> {

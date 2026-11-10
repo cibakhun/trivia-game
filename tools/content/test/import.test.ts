@@ -44,8 +44,23 @@ describe('contentHash', () => {
   });
 
   it('ignoriert Status und Felder der Frage (Kategorie, Tags, Herkunft)', () => {
-    const changed = { ...base, status: 'IN_REVIEW', category: 'HISTORY', tags: ['region:HU'] };
+    const changed = {
+      ...base,
+      status: 'IN_REVIEW',
+      category: 'HISTORY',
+      origin: 'EDITORIAL',
+      tags: ['region:HU'],
+    };
     expect(contentHash(parse(stringify(changed)))).toBe(hash);
+  });
+
+  it('ignoriert die Reihenfolge von Optionen und Prüfungen (ohne Reihenfolge gespeichert)', () => {
+    const fact = { kind: 'FACT', reviewer: 'Anna', date: '2026-11-09' };
+    const language = { kind: 'LANGUAGE', locale: 'de', reviewer: 'Ben', date: '2026-11-09' };
+    const reviewed = contentHash(parse(stringify({ ...base, reviews: [fact, language] })));
+    expect(contentHash(parse(stringify({ ...base, reviews: [language, fact] })))).toBe(reviewed);
+    const options = { ...base, trivia: { ...base.trivia, options: ['d', 'c', 'b', 'a'] } };
+    expect(contentHash(parse(stringify(options)))).toBe(hash);
   });
 
   it('ändert sich mit dem Inhalt der Version', () => {
