@@ -57,7 +57,8 @@ export function WorldList() {
     try {
       let joinedInstance: string;
       try {
-        joinedInstance = (await api.join(worldId, key.current, kingdomName?.parts)).instanceId;
+        joinedInstance = (await api.join(worldId, key.for(kingdomName?.parts), kingdomName?.parts))
+          .instanceId;
       } catch (e) {
         key.settle(e);
         throw e;
@@ -93,7 +94,8 @@ export function WorldList() {
       <ul className="world-list">
         {worlds?.map((world) => {
           const instance = world.instances.at(-1);
-          const mine = world.instances.find((i) => i.joined);
+          // Die jüngste eigene Instanz (Liste aufsteigend nach Start)
+          const mine = world.instances.findLast((i) => i.joined);
           return (
             <li key={world.id} className="world" data-testid={`world-${world.slug}`}>
               <div className="world-row">

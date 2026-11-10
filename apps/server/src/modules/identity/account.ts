@@ -2,7 +2,7 @@ import type { Db, Tx } from '@rdw/db';
 import type { PlayerNameParts } from '@rdw/game-core';
 import { sql } from 'kysely';
 import { ApiError, isUniqueViolation } from '../../infra/errors.ts';
-import { hashPassword, verifyPassword } from './passwords.ts';
+import { verifyPassword } from './passwords.ts';
 import { setPlayerName } from './profile.ts';
 import { createSession } from './sessions.ts';
 import type { LoginThrottle } from './throttle.ts';
@@ -91,6 +91,19 @@ export async function login(
   }
   throttle.recordSuccess(input.username);
   const sessionToken = await db.transaction().execute(async (tx) => {
+    // Argon2 lief ohne Sperre. Wurde das Passwort inzwischen zurückgesetzt oder geändert (beides
+    // beendet alle Sitzungen), darf die Prüfung gegen den alten Hash keine neue Sitzung ergeben.
+    const current = await tx
+      .selectFrom('users')
+      .select('password_hash')
+      .where('id', '=', user.id)
+      .where('deleted_at', 'is', null)
+      .where('deletion_requested_at', 'is', null)
+      .forUpdate()
+      .executeTakeFirst();
+    if (current?.password_hash !== user.password_hash) {
+      throw new ApiError(401, 'INVALID_CREDENTIALS', 'Benutzername oder Passwort falsch');
+    }
     if (input.currentTokenHash) {
       await tx.deleteFrom('sessions').where('token_hash', '=', input.currentTokenHash).execute();
     }
@@ -102,7 +115,8 @@ export async function login(
 export interface PasswordChangeInput {
   readonly userId: string;
   readonly currentPassword: string;
-  readonly newPassword: string;
+  /** Hash des neuen Passworts, vor der Transaktion berechnet. */
+  readonly newPasswordHash: string;
   readonly address: string;
   /** Die Sitzung der Anfrage bleibt, alle anderen Sitzungen des Kontos enden. */
   readonly keepTokenHash: Buffer;
@@ -112,7 +126,8 @@ export interface PasswordChangeInput {
  * Prüft das bisherige Passwort (mit derselben Bremse wie die Anmeldung) und setzt das neue. Läuft
  * in der Transaktion des Idempotenzspeichers: Eine Wiederholung nach Erfolg liefert die
  * gespeicherte Antwort, statt am inzwischen geänderten Passwort zu scheitern. Die Kontozeile ist
- * gesperrt, gleichzeitige Änderungen laufen nacheinander.
+ * gesperrt, gleichzeitige Änderungen laufen nacheinander. Sperrfolge wie überall: erst das Konto,
+ * dann seine Sitzungen.
  */
 export async function changePassword(
   tx: Tx,
@@ -138,7 +153,7 @@ export async function changePassword(
   throttle.recordSuccess(throttleKey);
   await tx
     .updateTable('users')
-    .set({ password_hash: await hashPassword(input.newPassword) })
+    .set({ password_hash: input.newPasswordHash })
     .where('id', '=', input.userId)
     .execute();
   await tx

@@ -160,8 +160,8 @@ describe('users', () => {
   });
 
   it('Spielerprofil speichert die Namensbausteine, der Anzeigename ist eindeutig', async () => {
-    const first = await insertUser();
-    const second = await insertUser();
+    const first = await insertUser(registered('profil-eins'));
+    const second = await insertUser(registered('profil-zwei'));
     const parts = JSON.stringify({ adjective: 'Kühn', noun: 'Falke', number: null });
     await q(`insert into player_profiles (user_id, display_name, name_parts) values ($1, $2, $3)`, [
       first,
@@ -235,6 +235,47 @@ describe('Welten', () => {
       /unveränderlich/,
     );
     await expect(q(`delete from world_rules where id = $1`, [rules.id])).rejects.toThrow(
+      /unveränderlich/,
+    );
+  });
+
+  it('Regelversionen: nur der Ersteller darf auf ein gelöschtes Konto umgestellt werden', async () => {
+    const author = await insertUser();
+    const placeholder = await insertUser({ is_guest: false, deleted_at: new Date() });
+    const other = await insertUser();
+    const instanceId = await insertInstance();
+    const { rows } = await q(`select rules_id from world_instances where id = $1`, [instanceId]);
+    const old = rows[0]!['rules_id'] as string;
+    const { rows: created } = await q(
+      `insert into world_rules (id, world_id, version, config, config_hash, created_by)
+       select $1, world_id, 2, config, config_hash, $2 from world_rules where id = $3
+       returning id`,
+      [randomUUID(), author, old],
+    );
+    const rulesId = created[0]!['id'] as string;
+    const createdBy = async () =>
+      (await q(`select created_by from world_rules where id = $1`, [rulesId])).rows[0]![
+        'created_by'
+      ];
+
+    // Auf ein lebendes Konto, zusammen mit anderen Spalten oder ohne Ersteller: abgelehnt
+    await expect(
+      q(`update world_rules set created_by = $1 where id = $2`, [other, rulesId]),
+    ).rejects.toThrow(/unveränderlich/);
+    await expect(
+      q(`update world_rules set created_by = $1, notes = 'x' where id = $2`, [
+        placeholder,
+        rulesId,
+      ]),
+    ).rejects.toThrow(/unveränderlich/);
+    await expect(
+      q(`update world_rules set created_by = $1 where id = $2`, [placeholder, old]),
+    ).rejects.toThrow(/unveränderlich/);
+    expect(await createdBy()).toBe(author);
+
+    await q(`update world_rules set created_by = $1 where id = $2`, [placeholder, rulesId]);
+    expect(await createdBy()).toBe(placeholder);
+    await expect(q(`delete from world_rules where id = $1`, [rulesId])).rejects.toThrow(
       /unveränderlich/,
     );
   });

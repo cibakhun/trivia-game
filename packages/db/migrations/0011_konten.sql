@@ -9,9 +9,10 @@
 -- 2. Spielernamen werden aus Bausteinen gewählt (O-10). Statt eines Zufallsstartwerts speichert
 --    das Profil die gewählten Bausteine. Die Tabelle ist bis hierher leer (nichts legte Profile an),
 --    deshalb geht die neue Pflichtspalte ohne Standardwert.
--- 3. Die Löschung inaktiver Gäste (90 Tage, O-03) schwärzt persönliche Ereignisse der Outbox und
---    die Rohtexte der Antworten (SECURITY §5.2). Das sind die einzigen erlaubten Änderungen an
---    diesen Protokolltabellen; die Trigger lassen genau sie zu.
+-- 3. Die Löschung inaktiver Gäste (90 Tage, O-03) schwärzt persönliche Ereignisse der Outbox, die
+--    Rohtexte der Antworten und die Konto-ID in der Gründungsspur der Reiche und stellt
+--    Regelversionen auf das Platzhalterkonto um (SECURITY §5.2). Das sind die einzigen erlaubten
+--    Änderungen an diesen Tabellen; die Trigger lassen genau sie zu.
 
 alter table users
   add column username citext null,
@@ -88,6 +89,34 @@ drop trigger kingdom_history_append_only on kingdom_history;
 create trigger kingdom_history_append_only
   before update on kingdom_history
   for each row execute function kingdom_history_redact_only();
+
+-- Regelversionen: unveränderlich wie in 0003. Die Kontolöschung stellt nur created_by auf das
+-- Platzhalterkonto um (ein Konto mit deleted_at), alles andere bleibt gleich.
+create function world_rules_redact_only() returns trigger
+  language plpgsql
+  set search_path = pg_catalog, pg_temp
+  as $$
+  declare
+    unchanged public.world_rules;
+  begin
+    if tg_op = 'UPDATE' and old.created_by is not null and new.created_by <> old.created_by then
+      unchanged := new;
+      unchanged.created_by := old.created_by;
+      if unchanged is not distinct from old and exists (
+        select 1 from public.users u where u.id = new.created_by and u.deleted_at is not null
+      ) then
+        return new;
+      end if;
+    end if;
+    raise exception 'world_rules: Zeilen sind unveränderlich (%); erlaubt ist nur das Umstellen auf ein gelöschtes Konto', tg_op
+      using errcode = 'restrict_violation';
+  end
+  $$;
+
+drop trigger world_rules_immutable on world_rules;
+create trigger world_rules_immutable
+  before update or delete on world_rules
+  for each row execute function world_rules_redact_only();
 
 -- Antworten: wie 0006, dazu die Schwärzung des Rohtexts einer abgegebenen Antwort (raw_input
 -- wird leer, alles andere bleibt gleich).

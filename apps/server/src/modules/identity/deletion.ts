@@ -1,7 +1,7 @@
 import { newId, type Db, type Tx } from '@rdw/db';
 import { DAY_MS, HOUR_MS } from '@rdw/protocol';
 import type { FastifyBaseLogger } from 'fastify';
-import { sql } from 'kysely';
+import { sql, type RawBuilder } from 'kysely';
 import { randomInt } from 'node:crypto';
 import { gameNow, intervalMs } from '../../infra/clock.ts';
 import { OPEN_SIEGE_STATUSES } from '../combat/siege-status.ts';
@@ -42,8 +42,13 @@ export const ACCOUNT_REFERENCES: Readonly<Record<string, ReferenceHandling>> = O
 
 /** Inaktive Gastkonten werden nach dieser Zeit ohne Anmeldung gelöscht (O-03). */
 export const GUEST_INACTIVITY_MS = 90 * DAY_MS;
-/** Höchstens so viele Konten je Lauf. */
+/** Höchstens so viele Löschungen je Lauf. */
 const CLEANUP_BATCH = 50;
+/**
+ * Höchstens so viele Konten werden je Lauf geprüft, auch wenn viele davon warten müssen (offene
+ * Belagerung) oder scheitern. So verdrängen die ältesten nicht dauerhaft alle späteren.
+ */
+const CLEANUP_CANDIDATE_FACTOR = 4;
 
 /** Name eines Reichs, dessen Konto gelöscht ist („Vergessenes Reich #4821“). */
 export function forgottenKingdomName(): { prefix: string; suffix: string } {
@@ -167,33 +172,51 @@ export interface AccountCleanupResult {
 }
 
 /**
- * Ein Lauf der Kontopflege: inaktive Gäste löschen (höchstens `CLEANUP_BATCH`), abgelaufene
- * Sitzungen löschen, Bootstrap-Hashes nach 24 h leeren (API.md §1: dann ist auch das Cookie
- * abgelaufen).
+ * Ein Lauf der Kontopflege: inaktive Gäste löschen (höchstens `batch` Löschungen, die ältesten
+ * zuerst, dabei höchstens viermal so viele Konten prüfen), abgelaufene Sitzungen löschen,
+ * Bootstrap-Hashes nach 24 h leeren (API.md §1: dann ist auch das Cookie abgelaufen).
  */
 export async function cleanupAccounts(
   db: Db,
   log?: Pick<FastifyBaseLogger, 'error'>,
+  batch = CLEANUP_BATCH,
 ): Promise<AccountCleanupResult> {
-  const due = await db
-    .selectFrom('users')
-    .select('id')
-    .where('is_guest', '=', true)
-    .where('deleted_at', 'is', null)
-    .where(
-      sql<boolean>`coalesce(last_seen_at, created_at) < game_now() - ${intervalMs(GUEST_INACTIVITY_MS)}`,
-    )
-    .orderBy(sql`coalesce(last_seen_at, created_at)`)
-    .limit(CLEANUP_BATCH)
-    .execute();
   let deletedGuests = 0;
-  for (const { id } of due) {
-    try {
-      if (await deleteInactiveGuest(db, id, log)) deletedGuests += 1;
-    } catch (error) {
-      // Ein Konto, das sich nicht löschen lässt, hält die anderen nicht auf
-      log?.error({ err: error, userId: id }, 'Gastkonto konnte nicht gelöscht werden');
+  let examined = 0;
+  // Blättern statt fester Liste: Wer warten muss oder scheitert, verdrängt die Späteren nicht.
+  // Der Zeitstempel bleibt Text, damit die Mikrosekunden beim Weiterblättern erhalten bleiben.
+  let after: { readonly seenAt: string; readonly id: string } | null = null;
+  while (deletedGuests < batch && examined < batch * CLEANUP_CANDIDATE_FACTOR) {
+    const keyset: RawBuilder<boolean> =
+      after === null
+        ? sql<boolean>`true`
+        : sql<boolean>`(coalesce(last_seen_at, created_at), id) > (${after.seenAt}::timestamptz, ${after.id}::uuid)`;
+    const page = await db
+      .selectFrom('users')
+      .select(['id', sql<string>`coalesce(last_seen_at, created_at)::text`.as('seen_at')])
+      .where('is_guest', '=', true)
+      .where('deleted_at', 'is', null)
+      .where(
+        sql<boolean>`coalesce(last_seen_at, created_at) < game_now() - ${intervalMs(GUEST_INACTIVITY_MS)}`,
+      )
+      .where(keyset)
+      .orderBy(sql`coalesce(last_seen_at, created_at)`)
+      .orderBy('id')
+      .limit(batch)
+      .execute();
+    for (const { id } of page) {
+      if (deletedGuests >= batch || examined >= batch * CLEANUP_CANDIDATE_FACTOR) break;
+      examined += 1;
+      try {
+        if (await deleteInactiveGuest(db, id, log)) deletedGuests += 1;
+      } catch (error) {
+        // Ein Konto, das sich nicht löschen lässt, hält die anderen nicht auf
+        log?.error({ err: error, userId: id }, 'Gastkonto konnte nicht gelöscht werden');
+      }
     }
+    const last = page.at(-1);
+    if (!last || page.length < batch) break;
+    after = { seenAt: last.seen_at, id: last.id };
   }
   const sessions = await db
     .deleteFrom('sessions')

@@ -48,6 +48,9 @@ export const de = {
     registerTitle: 'Konto sichern',
     register: 'Konto sichern',
     registered: 'Dein Konto ist gesichert.',
+    registerIncomplete:
+      'Dein Konto ist gesichert, aber dein Profil ließ sich noch nicht laden. Bitte versuche es erneut.',
+    required: 'Bitte ausfüllen.',
     username: 'Benutzername',
     usernameHint:
       '3 bis 24 Zeichen: Buchstaben, Ziffern, Unterstrich, Punkt, Bindestrich. Nur für die Anmeldung, andere sehen ihn nie.',
@@ -102,6 +105,8 @@ export const de = {
       'Gründe ein neues Reich in einer freien Region. Es ist eine Zeit lang vor Angriffen geschützt.',
     respawn: 'Neues Reich gründen',
     respawning: 'Reich wird gegründet …',
+    respawnIncomplete:
+      'Dein neues Reich ist gegründet, ließ sich aber noch nicht laden. Bitte versuche es erneut.',
     yours: 'Dein Reich',
     neutral: 'Neutral',
     garrison: 'Neutrale Garnison',

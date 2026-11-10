@@ -1,8 +1,8 @@
 import { axialKey, neighbors, type Axial } from '@rdw/game-core';
 import type { AttackResponse, KingdomNamePartsDto, SiegesResponse } from '@rdw/protocol';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { api, newActionKey } from '../api/client.ts';
-import { ErrorNote } from '../components/ErrorNote.tsx';
+import { ActionKey, api } from '../api/client.ts';
+import { ClientError, ErrorNote } from '../components/ErrorNote.tsx';
 import { KingdomBar } from '../components/KingdomBar.tsx';
 import { NamePicker, type NameChoice } from '../components/NamePicker.tsx';
 import { RegionPanel } from '../components/RegionPanel.tsx';
@@ -40,7 +40,7 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   const [kingdomName, setKingdomName] = useState<NameChoice<KingdomNamePartsDto> | null>(null);
   const viewportTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Eine Neugründung = ein Schlüssel, auch nach einem Netzfehler
-  const respawnKey = useRef(newActionKey());
+  const respawnKey = useRef(new ActionKey());
 
   const loadSieges = useCallback(async () => {
     try {
@@ -160,11 +160,21 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
   async function respawn() {
     setRespawning(true);
     setSetupError(null);
+    const key = respawnKey.current;
     try {
-      await api.respawn(instanceId, respawnKey.current, kingdomName?.parts);
-      respawnKey.current = newActionKey();
+      try {
+        await api.respawn(instanceId, key.for(kingdomName?.parts), kingdomName?.parts);
+      } catch (e) {
+        key.settle(e);
+        throw e;
+      }
+      // Fertig erst, wenn das Profil das neue Reich kennt; bis dahin bleiben Name und Schlüssel,
+      // ein erneuter Klick liefert dieselbe Neugründung (Idempotenz) statt KINGDOM_ACTIVE.
+      const me = await reload();
+      const again = me?.instances.find((i) => i.instanceId === instanceId);
+      if (again?.kingdom?.status !== 'ACTIVE') throw new ClientError('kingdom.respawnIncomplete');
+      key.settle();
       setKingdomName(null);
-      await reload();
       await refresh();
     } catch (e) {
       setSetupError(e);

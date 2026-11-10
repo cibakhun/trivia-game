@@ -421,6 +421,22 @@ describe('Spielername ändern (PATCH /me/profile)', () => {
     expect((await rename(player.client, playerName)).statusCode).toBe(200);
   });
 
+  it('liefert bei Wiederholung die gespeicherte Antwort, auch nach einer späteren Änderung', async () => {
+    const player = await registeredPlayer();
+    const key = randomUUID();
+    const first: PlayerNameParts = { adjective: 'Wach', noun: 'Luchs', number: 17 };
+    const second: PlayerNameParts = { adjective: 'Wach', noun: 'Luchs', number: 18 };
+    expect((await rename(player.client, first, key)).statusCode).toBe(200);
+    expect((await rename(player.client, second)).statusCode).toBe(200);
+
+    const replay = await rename(player.client, first, key);
+    expect(replay.statusCode, replay.body).toBe(200);
+    expect(replay.headers['idempotency-replayed']).toBe('true');
+    expect(profileResponseSchema.parse(replay.json()).profile.displayName).toBe('Wacher Luchs 17');
+    // ohne erneute Wirkung
+    expect((await me(player.client)).profile.displayName).toBe('Wacher Luchs 18');
+  });
+
   it('lehnt vergebene Namen und Gastkonten ab', async () => {
     const first = await registeredPlayer();
     const second = await registeredPlayer();

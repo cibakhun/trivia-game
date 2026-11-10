@@ -143,7 +143,10 @@ describe('Namen aus Vorschlägen (O-10, ADR-044)', () => {
     }
     const numbered = suggestPlayerNames(rng(6), taken, 3);
     expect(numbered).toHaveLength(3);
+    expect(new Set(numbered.map(playerDisplayName)).size).toBe(3);
     for (const parts of numbered) {
+      // gültig heißt auch: Zahl 2–99
+      expect(isPlayerNameParts(parts), JSON.stringify(parts)).toBe(true);
       expect(parts.number).not.toBeNull();
       expect(taken.has(playerDisplayName(parts))).toBe(false);
     }

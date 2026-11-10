@@ -20,6 +20,8 @@ export interface ThrottleLimit {
 export interface ThrottleOptions {
   readonly perName: ThrottleLimit;
   readonly perAddress: ThrottleLimit;
+  /** Obergrenze der gespeicherten Fenster (Standard `MAX_WINDOWS`). */
+  readonly maxWindows?: number;
   readonly now?: () => number;
 }
 
@@ -36,12 +38,28 @@ interface Window {
 /** Ab dieser Zahl von Einträgen werden abgelaufene Fenster beim nächsten Aufruf entfernt. */
 const PRUNE_THRESHOLD = 10_000;
 
+/**
+ * Höchstens so viele Fenster (je Name und je Adresse zusammen, grob 20 MB). Fehlversuche von sehr
+ * vielen Adressen mit immer neuen Namen könnten den Speicher sonst innerhalb eines Fensters
+ * füllen. Darüber fallen die ältesten Fenster weg: Eine Flut kann so einzelne Zähler
+ * zurücksetzen, aber den Prozess nicht erschöpfen.
+ */
+export const MAX_WINDOWS = 100_000;
+
 export class LoginThrottle {
+  /** In Einfügereihenfolge: vorne stehen die ältesten Fenster. */
   private readonly windows = new Map<string, Window>();
   private readonly now: () => number;
+  private readonly maxWindows: number;
 
   constructor(private readonly options: ThrottleOptions = DEFAULT_THROTTLE) {
     this.now = options.now ?? Date.now;
+    this.maxWindows = options.maxWindows ?? MAX_WINDOWS;
+  }
+
+  /** Zahl der gespeicherten Fenster (für Tests). */
+  get size(): number {
+    return this.windows.size;
   }
 
   /** Lehnt mit `RATE_LIMITED` ab, wenn Name oder Adresse gesperrt sind. */
@@ -78,9 +96,20 @@ export class LoginThrottle {
   private count(key: string, limit: ThrottleLimit, now: number): void {
     const window = this.windows.get(key);
     if (!window || now >= window.startedAt + limit.windowMs) {
+      // Neu einfügen, damit die Reihenfolge der Map dem Alter des Fensters folgt
+      this.windows.delete(key);
       this.windows.set(key, { count: 1, startedAt: now });
+      if (this.windows.size > this.maxWindows) this.evict(now);
     } else {
       window.count += 1;
+    }
+  }
+
+  private evict(now: number): void {
+    this.prune(now);
+    for (const key of this.windows.keys()) {
+      if (this.windows.size <= this.maxWindows) break;
+      this.windows.delete(key);
     }
   }
 

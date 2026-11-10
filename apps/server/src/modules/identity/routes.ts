@@ -5,6 +5,7 @@ import {
   localeSchema,
   loginRequestSchema,
   passwordChangeRequestSchema,
+  profileSchema,
   profileUpdateRequestSchema,
   registerRequestSchema,
   type AuthStatus,
@@ -46,6 +47,7 @@ import { createSession, deleteSession, SESSION_COOKIE } from './sessions.ts';
 import { LoginThrottle } from './throttle.ts';
 
 const instanceParams = z.object({ instanceId: entityIdSchema });
+const storedProfileSchema = z.object({ profile: profileSchema });
 
 /**
  * Konto (API.md §2.1): Bootstrap, Gastkonto, Sichern, Anmelden, Abmelden, Profil, Passwort und
@@ -192,17 +194,21 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
       },
       async (tx) => {
         await setPlayerName(tx, auth.userId, playerName);
-        return { status: 200, body: { displayName: playerDisplayName(playerName) } };
+        return { status: 200, body: { profile: await loadProfile(tx, auth.userId) } };
       },
     );
     if (outcome.replayed) reply.header('idempotency-replayed', 'true');
+    // Eine Wiederholung liefert das gespeicherte Profil dieser Änderung (API.md §1)
+    const stored = storedProfileSchema.parse(outcome.body);
     const now = await readGameNow(ctx.db);
-    return { profile: await loadProfile(ctx.db, auth.userId), serverTime: now.toISOString() };
+    return { profile: stored.profile, serverTime: now.toISOString() };
   });
 
   app.post('/me/password', async (request, reply) => {
     const auth = requireAuth(request);
     const body = parseInput(passwordChangeRequestSchema, request.body);
+    // Argon2 vor der Transaktion, damit Kontosperre und Verbindung nicht darauf warten
+    const newPasswordHash = await hashPassword(body.newPassword);
     const outcome = await runIdempotent(
       ctx.db,
       {
@@ -216,7 +222,7 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
         await changePassword(tx, throttle, {
           userId: auth.userId,
           currentPassword: body.currentPassword,
-          newPassword: body.newPassword,
+          newPasswordHash,
           address: request.ip,
           keepTokenHash: auth.tokenHash,
         });

@@ -1,5 +1,13 @@
 import type { MeResponse } from '@rdw/protocol';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { api, ApiRequestError } from './api/client.ts';
 
 /**
@@ -13,9 +21,19 @@ export type SessionState =
   | { readonly status: 'ready'; readonly me: MeResponse }
   | { readonly status: 'error'; readonly error: unknown };
 
+export interface ReloadOptions {
+  /**
+   * Nach einem Wechsel des Kontos (Anmelden, Sichern) ist der bisherige Stand falsch: Ein
+   * vorübergehender Fehler beim Nachladen ersetzt ihn dann, statt ihn stehen zu lassen.
+   */
+  readonly discardStale?: boolean;
+}
+
 interface SessionValue {
   readonly state: SessionState;
-  readonly reload: () => Promise<MeResponse | null>;
+  readonly reload: (options?: ReloadOptions) => Promise<MeResponse | null>;
+  /** Läuft gerade ein Kontowechsel (Gast, Anmelden, Abmelden)? Solange ruhen die Knöpfe dafür. */
+  readonly switching: boolean;
   readonly startGuest: () => Promise<void>;
   /** Anmelden mit Benutzername und Passwort; eine laufende Sitzung wird ersetzt. */
   readonly login: (username: string, password: string) => Promise<void>;
@@ -33,7 +51,7 @@ function isTransient(error: unknown): boolean {
 export function SessionProvider({ children }: { readonly children: ReactNode }) {
   const [state, setState] = useState<SessionState>({ status: 'loading' });
 
-  const reload = useCallback(async (): Promise<MeResponse | null> => {
+  const reload = useCallback(async (options: ReloadOptions = {}): Promise<MeResponse | null> => {
     try {
       const status = await api.bootstrap();
       if (!status.authenticated) {
@@ -52,37 +70,56 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
         // Stand nicht; nur ohne geladenen Stand wird er zum Zustand. Andere API-Fehler ersetzen
         // den Stand, damit kein veraltetes Profil stehen bleibt.
         setState((previous) =>
-          previous.status === 'ready' && isTransient(error) ? previous : { status: 'error', error },
+          previous.status === 'ready' && isTransient(error) && !options.discardStale
+            ? previous
+            : { status: 'error', error },
         );
       }
       return null;
     }
   }, []);
 
-  const startGuest = useCallback(async () => {
-    await api.guest();
-    await reload();
-  }, [reload]);
-
-  const login = useCallback(
-    async (username: string, password: string) => {
-      await api.login({ username, password });
-      await reload();
+  // Kontowechsel laufen nacheinander: Eine langsame Gastanmeldung darf eine spätere Anmeldung
+  // nicht überschreiben, denn beide ersetzen das Sitzungscookie.
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+  const pending = useRef(0);
+  const [switching, setSwitching] = useState(false);
+  const switchAccount = useCallback(
+    async (change: () => Promise<unknown>) => {
+      pending.current += 1;
+      setSwitching(true);
+      const run = queue.current
+        .catch(() => undefined)
+        .then(async () => {
+          await change();
+          await reload({ discardStale: true });
+        });
+      queue.current = run;
+      try {
+        await run;
+      } finally {
+        pending.current -= 1;
+        if (pending.current === 0) setSwitching(false);
+      }
     },
     [reload],
   );
 
-  const logout = useCallback(async () => {
-    await api.logout();
-    await reload();
-  }, [reload]);
+  const startGuest = useCallback(() => switchAccount(() => api.guest()), [switchAccount]);
+
+  const login = useCallback(
+    (username: string, password: string) => switchAccount(() => api.login({ username, password })),
+    [switchAccount],
+  );
+
+  const logout = useCallback(() => switchAccount(() => api.logout()), [switchAccount]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
   return (
-    <SessionContext.Provider value={{ state, reload, startGuest, login, logout }}>
+    <SessionContext.Provider value={{ state, reload, switching, startGuest, login, logout }}>
       {children}
     </SessionContext.Provider>
   );

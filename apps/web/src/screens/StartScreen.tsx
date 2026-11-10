@@ -11,7 +11,7 @@ import { useSession } from '../session.tsx';
  * kommt direkt zur Karte; andere Welten erreicht er über „Welten“.
  */
 export function StartScreen() {
-  const { state, startGuest, reload } = useSession();
+  const { state, startGuest, reload, switching } = useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
@@ -49,7 +49,7 @@ export function StartScreen() {
             <button
               type="button"
               className="button button-primary"
-              disabled={busy}
+              disabled={busy || switching}
               onClick={() => void guest()}
             >
               {t('start.guest')}

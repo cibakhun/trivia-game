@@ -133,12 +133,15 @@ export function RegisterForm({ onDone }: { readonly onDone: () => void }) {
           { username, password, playerName: playerName.parts },
           key.current.current,
         );
-        key.current.settle();
       } catch (e) {
         key.current.settle(e);
         throw e;
       }
-      await reload();
+      // Fertig erst, wenn das Profil das gesicherte Konto zeigt. Bis dahin bleibt der Schlüssel:
+      // Ein erneuter Klick liefert dieselbe Sicherung (Idempotenz) statt ALREADY_REGISTERED.
+      const me = await reload({ discardStale: true });
+      if (!me || me.user.isGuest) throw new ClientError('account.registerIncomplete');
+      key.current.settle();
       onDone();
     });
   }
@@ -215,13 +218,16 @@ export function LoginForm({
   readonly warning?: string;
   readonly onDone?: () => void;
 }) {
-  const { login } = useSession();
+  const { login, switching } = useSession();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [checked, setChecked] = useState(false);
   const { busy, error, submit } = useSubmit();
+  const show = (value: string) => (checked && value === '' ? t('account.required') : null);
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    setChecked(true);
     if (username === '' || password === '') return;
     void submit(async () => {
       await login(username, password);
@@ -230,9 +236,9 @@ export function LoginForm({
   }
 
   return (
-    <form className="form" onSubmit={onSubmit} data-testid="login-form">
+    <form className="form" onSubmit={onSubmit} noValidate data-testid="login-form">
       {warning ? <p className="note">{warning}</p> : null}
-      <Field label={t('account.username')}>
+      <Field label={t('account.username')} problem={show(username)}>
         {(ids) => (
           <input
             id={ids.id}
@@ -240,11 +246,12 @@ export function LoginForm({
             autoComplete="username"
             maxLength={64}
             required
+            aria-describedby={ids.describedBy}
             onChange={(event) => setUsername(event.target.value)}
           />
         )}
       </Field>
-      <Field label={t('account.password')}>
+      <Field label={t('account.password')} problem={show(password)}>
         {(ids) => (
           <PasswordInput
             ids={ids}
@@ -254,7 +261,7 @@ export function LoginForm({
           />
         )}
       </Field>
-      <button type="submit" className="button button-primary" disabled={busy}>
+      <button type="submit" className="button button-primary" disabled={busy || switching}>
         {t('account.login')}
       </button>
       {error ? <ErrorNote error={error} /> : null}
@@ -352,7 +359,10 @@ export function PasswordForm({ onDone }: { readonly onDone: () => void }) {
 
   return (
     <form className="form" onSubmit={onSubmit} noValidate data-testid="password-form">
-      <Field label={t('account.currentPassword')}>
+      <Field
+        label={t('account.currentPassword')}
+        problem={checked && current === '' ? t('account.required') : null}
+      >
         {(ids) => (
           <PasswordInput
             ids={ids}

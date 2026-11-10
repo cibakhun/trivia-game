@@ -302,6 +302,49 @@ describe('Kaskade der Kontolöschung (SECURITY §5.2)', () => {
   });
 });
 
+describe('Kontopflege bei Konten, die warten oder scheitern', () => {
+  it('stellt Regelversionen des Kontos auf den Platzhalter um', async () => {
+    // Gäste legen keine Regeln an; die Kaskade muss es trotzdem können (später DELETE /me)
+    const world = await createTestWorld(server.db, { rules: PLAYTEST });
+    const client = new TestClient(server.app);
+    const userId = await client.signUpGuest();
+    const rulesId = randomUUID();
+    await sql`insert into world_rules (id, world_id, version, config, config_hash, created_by)
+              select ${rulesId}, world_id, 2, config, config_hash, ${userId}
+              from world_rules where id = ${world.rulesId}`.execute(server.db);
+    await lastSeenDaysAgo(userId, 95);
+
+    expect((await cleanupAccounts(server.db)).deletedGuests).toBe(1);
+    expect(await userExists(userId)).toBe(false);
+    const rules = await server.db
+      .selectFrom('world_rules as r')
+      .innerJoin('users as u', 'u.id', 'r.created_by')
+      .select(['u.deleted_at'])
+      .where('r.id', '=', rulesId)
+      .executeTakeFirstOrThrow();
+    expect(rules.deleted_at).not.toBeNull();
+  });
+
+  it('prüft nach wartenden Konten die späteren im selben Lauf', async () => {
+    // Der älteste Gast wartet auf eine offene Belagerung, der jüngere wird trotzdem gelöscht
+    const pair = await pvpPair();
+    const started = await startAttack(pair.attacker, pair.target);
+    await playAttacker(pair.attacker, started.challengeId, { trivia: true, exactEstimate: true });
+    await lastSeenDaysAgo(pair.attacker.userId, 200);
+    const later = new TestClient(server.app);
+    const laterId = await later.signUpGuest();
+    await lastSeenDaysAgo(laterId, 100);
+
+    expect((await cleanupAccounts(server.db, undefined, 1)).deletedGuests).toBe(1);
+    expect(await userExists(pair.attacker.userId)).toBe(true);
+    expect(await userExists(laterId)).toBe(false);
+
+    // Aufräumen für spätere Tests: Frist ablaufen lassen, dann ist auch der Älteste dran
+    await advanceGameClock(server.database.pool, 11 * 60_000);
+    expect((await cleanupAccounts(server.db)).deletedGuests).toBe(1);
+  });
+});
+
 // ---------------------------------------------------------------------------------------------
 
 const CLI = fileURLToPath(new URL('../src/cli/account-reset-password.ts', import.meta.url));
@@ -352,7 +395,7 @@ describe('pnpm account:reset-password (Kommandozeile)', () => {
     expect(ok.json<{ user: { id: string } }>().user.id).toBe(userId);
   });
 
-  it('bricht ohne Freigabe in Produktion, bei Gästen und falschen Argumenten ab', async () => {
+  it('bricht in Produktion, bei Gästen, Löschanträgen und falschen Argumenten ab', async () => {
     const client = new TestClient(server.app);
     await client.signUpGuest();
     const username = await register(client);
@@ -366,9 +409,10 @@ describe('pnpm account:reset-password (Kommandozeile)', () => {
       ).password_hash;
     const before = await hash();
 
+    // Gesperrt, bis es audit_events gibt
     const production = await runCli([`--username=${username}`], 'production');
     expect(production.code).toBe(2);
-    expect(production.stderr).toMatch(/nur mit Freigabe/);
+    expect(production.stderr).toMatch(/In Produktion gesperrt/);
 
     const unknown = await runCli(['--username=niemand_hier']);
     expect(unknown.code).toBe(1);
@@ -386,5 +430,16 @@ describe('pnpm account:reset-password (Kommandozeile)', () => {
     }
     expect(await hash()).toBe(before);
     expect((await client.get('/me')).statusCode).toBe(200);
+
+    // Mit Löschantrag meldet sich niemand an; neue Zugangsdaten gibt es dann auch nicht
+    await server.db
+      .updateTable('users')
+      .set({ deletion_requested_at: new Date() })
+      .where('username', '=', username)
+      .execute();
+    const requested = await runCli([`--username=${username}`]);
+    expect(requested.code).toBe(1);
+    expect(requested.stderr).toMatch(/ohne Löschantrag/);
+    expect(await hash()).toBe(before);
   });
 });

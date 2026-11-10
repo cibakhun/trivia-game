@@ -196,13 +196,25 @@ export const api = {
 /**
  * Schlüssel einer Nutzeraktion über Wiederholungen hinweg. Nach einer Antwort des Servers (Erfolg
  * oder Ablehnung) gibt es für den nächsten Versuch einen neuen Schlüssel: Eine Ablehnung speichert
- * nichts. Nach einem Netzfehler bleibt er, denn ob das Kommando wirkte, ist offen.
+ * nichts. Nach einem Netzfehler bleibt er, denn ob das Kommando wirkte, ist offen; nur eine
+ * geänderte Eingabe (etwa ein anderer Reichsname) bekommt einen neuen, sonst antwortete der
+ * Server mit `IDEMPOTENCY_KEY_REUSED`.
  */
 export class ActionKey {
   private key: string | null = null;
+  private payload: string | null = null;
 
   get current(): string {
-    this.key ??= newActionKey();
+    return this.for(undefined);
+  }
+
+  /** Schlüssel für diese Eingabe; dieselbe Eingabe behält ihn bis zur nächsten Antwort. */
+  for(payload: unknown): string {
+    const fingerprint = JSON.stringify(payload ?? null);
+    if (this.key === null || this.payload !== fingerprint) {
+      this.key = newActionKey();
+      this.payload = fingerprint;
+    }
     return this.key;
   }
 
