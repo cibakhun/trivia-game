@@ -3,6 +3,13 @@ import {
   ATTACK_REFUSAL_CODES,
   ERROR_CODES,
   KINGDOM_RANK_CODES,
+  MATCH_ABANDON_REASONS,
+  MATCH_BOT_STRENGTH_CODES,
+  MATCH_DUEL_EFFECTS,
+  MATCH_DUEL_REASONS,
+  MATCH_FINISH_REASONS,
+  MATCH_KINDS,
+  MATCH_STATUSES,
   OUTCOME_REASONS,
   WORLD_MODES,
 } from '@rdw/protocol';
@@ -44,6 +51,22 @@ describe('deutsche Texte', () => {
       ...KINGDOM_RANK_CODES.map((rank) => `rank.${rank}`),
       ...WORLD_MODES.map((mode) => `start.worldMode.${mode}`),
       ...BIOMES.map((biome) => `biome.${biome}`),
+    ];
+    expect(keys.filter((key) => !hasMessage(key))).toEqual([]);
+  });
+
+  it('haben jeden Code der Partie: Art, Status, Bot, Duell, Ende, Abbruch', () => {
+    const keys = [
+      ...MATCH_KINDS.map((kind) => `match.kind.${kind}`),
+      ...MATCH_STATUSES.map((status) => `match.status.${status}`),
+      ...MATCH_BOT_STRENGTH_CODES.map((strength) => `match.bot.${strength}`),
+      ...MATCH_DUEL_REASONS.map((reason) => `match.duel.reason.${reason}`),
+      // CAPITAL_HIT hat Pluralformen
+      ...MATCH_DUEL_EFFECTS.filter((e) => e !== 'CAPITAL_HIT').map((e) => `match.duel.${e}`),
+      'match.duel.CAPITAL_HIT.one',
+      'match.duel.CAPITAL_HIT.other',
+      ...MATCH_FINISH_REASONS.map((reason) => `match.result.reason.${reason}`),
+      ...MATCH_ABANDON_REASONS.map((reason) => `match.abandoned.reason.${reason}`),
     ];
     expect(keys.filter((key) => !hasMessage(key))).toEqual([]);
   });

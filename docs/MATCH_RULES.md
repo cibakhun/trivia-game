@@ -55,7 +55,7 @@ Nicht beantwortet zählt als falsch bzw. als unendlicher Abstand. Die Schätzfra
 | Schätzfrage | 20 s | nicht beantwortet = unendlicher Abstand |
 | Auflösung nach jeder Frage | 5 s | – |
 
-Zeitmessung und Latenzausgleich wie [QUIZ_ENGINE.md §6.2](QUIZ_ENGINE.md) (`cap` = 500 ms). Jeder Sitz holt die Frage selbst ab; seine Zeit läuft ab dem Abholen (Zeitlimit + `cap`), höchstens bis die Frage schließt: Zeitlimit + `cap` + 2 s zum Abholen ab dem Öffnen **[E]**. Haben alle Menschen geantwortet, wird sofort aufgelöst, sonst 1 s nach dem Schließen, damit eine rechtzeitig eingegangene Antwort nicht an einer Sperre verloren geht **[E]** (ADR-049). Wer die Verbindung verliert, bleibt in der Partie; verpasste Fragen und Wahlen behandelt der Server wie oben. `PLAYTEST_MATCH_RULES` verkürzt die Zeiten auf 8 s, 10 s, 5 s und 2 s, sonst gleiche Regeln.
+Zeitmessung und Latenzausgleich wie [QUIZ_ENGINE.md §6.2](QUIZ_ENGINE.md) (`cap` = 500 ms). Jeder Sitz holt die Frage selbst ab; seine Zeit läuft ab dem Abholen (Zeitlimit + `cap`), höchstens bis die Frage schließt: Zeitlimit + `cap` + 2 s zum Abholen ab dem Öffnen **[E]**. Haben alle Menschen geantwortet, wird sofort aufgelöst, sonst 1 s nach dem Schließen, damit eine rechtzeitig eingegangene Antwort nicht an einer Sperre verloren geht **[E]** (ADR-049). Wer die Verbindung verliert, bleibt in der Partie; verpasste Fragen und Wahlen behandelt der Server wie oben. Der Browser holt eine Frage ohne Klick ab, sobald sie an den eigenen Sitz geht, und zeigt die Restzeit aus `remainingMs` (ADR-050). `PLAYTEST_MATCH_RULES` verkürzt die Zeiten auf 8 s, 10 s, 5 s und 2 s, sonst gleiche Regeln.
 
 ## 6. Wertung
 

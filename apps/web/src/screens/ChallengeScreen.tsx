@@ -8,12 +8,12 @@ import type {
   PresentedQuestion,
   Resolution,
 } from '@rdw/protocol';
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiRequestError, api, newActionKey } from '../api/client.ts';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { formatTime, t, tp } from '../i18n/i18n.ts';
 import { biomeName } from '../map/palette.ts';
-import { Countdown } from '../quiz/Countdown.tsx';
+import { QuestionPanel } from '../quiz/QuestionPanel.tsx';
 import { ResolutionView } from '../quiz/ResolutionView.tsx';
 import { navigate } from '../router.ts';
 import { useSession } from '../session.tsx';
@@ -346,12 +346,21 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
         ) : null}
 
         {phase.kind === 'question' ? (
-          <QuestionView
+          <QuestionPanel
             key={`${phase.question.step}-${phase.question.presentedAt}`}
-            mode={mode}
-            phase={phase}
+            question={phase.question}
+            deadline={phase.deadline}
+            reloaded={phase.reloaded}
             busy={busy}
             estimate={estimate}
+            note={
+              phase.question.kind === 'ESTIMATE' ? (
+                // PvE: nur bei Gleichstand gestellt; PvP: immer gestellt, zählt nur bei Gleichstand
+                <p className="note">
+                  {mode === 'PVP' ? t('quiz.estimateCountsIfTie') : t('quiz.tiebreak')}
+                </p>
+              ) : null
+            }
             onEstimate={setEstimate}
             onExpire={() => waitForResult(SETTLE_WAIT_MS)}
             onAnswerTrivia={(token) =>
@@ -404,98 +413,5 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
         ) : null}
       </div>
     </div>
-  );
-}
-
-function QuestionView({
-  mode,
-  phase,
-  busy,
-  estimate,
-  onEstimate,
-  onExpire,
-  onAnswerTrivia,
-  onAnswerEstimate,
-}: {
-  readonly mode: AttackMode;
-  readonly phase: Extract<Phase, { kind: 'question' }>;
-  readonly busy: boolean;
-  readonly estimate: string;
-  readonly onEstimate: (value: string) => void;
-  readonly onExpire: () => void;
-  readonly onAnswerTrivia: (token: string) => void;
-  readonly onAnswerEstimate: () => void;
-}) {
-  const { question } = phase;
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (question.kind === 'ESTIMATE') input.current?.focus();
-  }, [question.kind]);
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (estimate.trim() !== '') onAnswerEstimate();
-  }
-
-  return (
-    <section className="question" aria-labelledby="question-prompt" data-testid="question">
-      <p className="muted">{question.kind === 'TRIVIA' ? t('quiz.trivia') : t('quiz.estimate')}</p>
-      {question.kind === 'ESTIMATE' ? (
-        // PvE: nur bei Gleichstand gestellt; PvP: immer gestellt, zählt nur bei Gleichstand
-        <p className="note">
-          {mode === 'PVP' ? t('quiz.estimateCountsIfTie') : t('quiz.tiebreak')}
-        </p>
-      ) : null}
-      <Countdown deadline={phase.deadline} totalMs={question.timeLimitMs} onExpire={onExpire} />
-      {phase.reloaded ? <p className="muted">{t('quiz.reloaded')}</p> : null}
-      <h2 id="question-prompt" className="prompt">
-        {question.prompt}
-      </h2>
-      {question.kind === 'TRIVIA' ? (
-        <ul className="options">
-          {question.options.map((option) => (
-            <li key={option.token}>
-              <button
-                type="button"
-                className="option"
-                disabled={busy}
-                onClick={() => onAnswerTrivia(option.token)}
-              >
-                {option.text}
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <form className="estimate" onSubmit={onSubmit}>
-          <label htmlFor="estimate-input">
-            {t('quiz.estimateLabel')}
-            {question.unitLabel ? ` ${t('quiz.estimateUnit', { unit: question.unitLabel })}` : ''}
-          </label>
-          <input
-            id="estimate-input"
-            ref={input}
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            value={estimate}
-            disabled={busy}
-            onChange={(event) => onEstimate(event.target.value)}
-          />
-          <p className="muted">
-            {question.answerPrecision === 0
-              ? t('quiz.estimateWhole')
-              : tp('quiz.estimatePrecision', question.answerPrecision)}
-          </p>
-          <button
-            type="submit"
-            className="button button-primary button-wide"
-            disabled={busy || estimate.trim() === ''}
-          >
-            {busy ? t('quiz.sending') : t('quiz.submit')}
-          </button>
-        </form>
-      )}
-    </section>
   );
 }
