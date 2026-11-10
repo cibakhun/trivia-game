@@ -19,7 +19,9 @@ create table world_events (
   payload     jsonb not null default '{}'::jsonb check (jsonb_typeof(payload) = 'object'),
   created_at  timestamptz not null default game_now(),
   unique (instance_id, seq),
-  check ((chunk_x is null) = (chunk_y is null))
+  check ((chunk_x is null) = (chunk_y is null)),
+  -- ein Platzhalter hält weder Konto noch Inhalt (SECURITY.md §5.2)
+  constraint world_events_redacted check (type <> 'REDACTED' or (user_id is null and payload = '{}'::jsonb))
 );
 create index world_events_user on world_events (user_id);
 create index world_events_created on world_events (created_at);

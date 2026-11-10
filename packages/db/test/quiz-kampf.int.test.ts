@@ -379,13 +379,25 @@ describe('Fragen: Inhaltsregeln wie im Werkzeug (tools/content/src/validate.ts)'
     ]);
   });
 
-  it('lässt keine leeren Tags zu', async () => {
+  it('lässt nur Tags im Format der Fragendateien zu', async () => {
     const { questionId } = await createQuestion();
-    await expectPgError(
-      q(`update questions set tags = array['region:HU', null] where id = $1`, [questionId]),
-      CHECK,
-      'questions_tags_not_null',
+    for (const bad of [
+      "array['region:HU', null]",
+      "array['']",
+      "array['Region:HU']",
+      "array['region:']",
+    ]) {
+      await expectPgError(
+        q(`update questions set tags = ${bad}::text[] where id = $1`, [questionId]),
+        CHECK,
+        'questions_tags_valid',
+      );
+    }
+    await q(
+      `update questions set tags = array['fixture', 'region:HU', 'thema:a_b-1'] where id = $1`,
+      [questionId],
     );
+    await q(`update questions set tags = '{}' where id = $1`, [questionId]);
   });
 });
 
@@ -1350,6 +1362,25 @@ describe('Outbox world_events', () => {
     await insert('world_events', { instance_id: world.instanceId, type: 'region.changed' });
     // Platzhalter für geschwärzte persönliche Ereignisse (SECURITY.md §5.2)
     await insert('world_events', { instance_id: world.instanceId, type: 'REDACTED' });
+    // … aber nur ohne Konto und ohne Inhalt
+    await expectPgError(
+      insert('world_events', {
+        instance_id: world.instanceId,
+        type: 'REDACTED',
+        user_id: await insertUser(),
+      }),
+      CHECK,
+      'world_events_redacted',
+    );
+    await expectPgError(
+      insert('world_events', {
+        instance_id: world.instanceId,
+        type: 'REDACTED',
+        payload: JSON.stringify({ regionId: '1' }),
+      }),
+      CHECK,
+      'world_events_redacted',
+    );
     await expectPgError(
       q(`update world_events set payload = '{}' where instance_id = $1`, [world.instanceId]),
       RESTRICT,

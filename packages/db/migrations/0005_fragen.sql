@@ -3,6 +3,16 @@
 -- Fragen kommen aus den YAML-Dateien (ADR-021) über den Import in tools/content; `key` ist der
 -- stabile Dateischlüssel. Testfragen (content/fixtures) tragen is_fixture und werden nie freigegeben.
 
+-- Tags wie im Fragenformat (tools/content/src/schema.ts): `fixture` oder `region:HU`; kein NULL,
+-- kein leerer Text. Als Funktion, weil ein CHECK keine Unterabfrage über die Elemente erlaubt.
+create function question_tags_valid(tags text[]) returns boolean
+  language sql immutable
+  set search_path = pg_catalog, pg_temp
+  as $$
+    select coalesce(bool_and(t is not null and t ~ '^[a-z]+(:[A-Za-z0-9_-]+)?$'), true)
+    from unnest(tags) as t
+  $$;
+
 create table questions (
   id                 uuid primary key,
   key                text not null unique check (key ~ '^[a-z0-9]+(-[a-z0-9]+)*$' and length(key) <= 80),
@@ -24,7 +34,7 @@ create table questions (
   constraint questions_active_has_version check (status <> 'ACTIVE' or current_version_id is not null),
   -- Lizenzhinweis genau bei lizenzierten Fragen (wie tools/content/src/validate.ts)
   constraint questions_license_note check ((origin = 'LICENSED') = (license_note is not null)),
-  constraint questions_tags_not_null check (array_position(tags, null) is null),
+  constraint questions_tags_valid check (question_tags_valid(tags)),
   unique (id, kind)                -- Ziel des Fremdschlüssels aus question_versions
 );
 create index questions_pool on questions (kind, category, status);

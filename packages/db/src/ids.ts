@@ -2,8 +2,9 @@ import { randomBytes } from 'node:crypto';
 
 /**
  * IDs fachlicher Entitäten: UUIDv7 nach RFC 9562 §5.7, in der Anwendung erzeugt
- * (DATA_MODEL §1). 48 Bit Unix-Millisekunden, Version 7, 74 Bit Zufall: zeitlich sortierbar,
- * deshalb fügen sich neue Zeilen am Ende des B-Baums an.
+ * (DATA_MODEL §1). 48 Bit Unix-Millisekunden, Version 7, 74 Bit Zufall: über Millisekunden
+ * hinweg sortierbar, innerhalb derselben Millisekunde zufällig geordnet. Neue Zeilen landen deshalb
+ * nahe am Ende des B-Baums (gute Lokalität), aber nicht garantiert ganz am Ende.
  */
 export function newId(now: number = Date.now()): string {
   if (!Number.isInteger(now) || now < 0 || now >= 2 ** 48) {
