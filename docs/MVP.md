@@ -14,7 +14,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 
 ## 2. M1 – Spielbarer Prototyp (Phase 1)
 
-**Enthalten:** eine Testwelt mit ≈ 150 Regionen; neutrale Regionen und 2–3 statische NPC-Reiche (leicht/mittel/schwer); Gastkonto mit dauerhafter Sitzung; Startregion und Hauptstadt; PvE-Eroberung mit Trivia + Schätzfrage, Gate und Tiebreakern; sofortige Auflösung mit Erklärung; Schutzzeit; Reichsanzeige mit Rang; Oberfläche in de/hu/en; 150 geprüfte Fragen.
+**Enthalten:** eine Testwelt mit ≈ 150 Regionen; neutrale Regionen und 2–3 statische NPC-Reiche (leicht/mittel/schwer); Gastkonto mit dauerhafter Sitzung; Startregion und Hauptstadt; PvE-Eroberung mit Trivia + Schätzfrage, Gate und Tiebreakern; sofortige Auflösung mit Erklärung; Schutzzeit; Reichsanzeige mit Rang; Oberfläche auf Deutsch (ADR-023); 150 geprüfte Fragen (bis zur Entscheidung über [O-02] die 40 Testfragen).
 
 **Nicht enthalten:** PvP, Items, NPC-Expansion, Benachrichtigungen, Registrierung.
 
@@ -26,7 +26,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 
 **Nicht enthalten:** 24-h-Fristen mit Timeout-Jobs und Neustartfestigkeit, Web Push, vollständige Limits und Schutzzeiten (Phase 3), Items (Phase 4) sowie alles aus §4.2.
 
-**Abnahme:** Brief Phase 2 (zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse) + E2E-02, -03, -04, -09, -10 + Invariantenjob ohne Verstoß nach einer internen Testsitzung mit 2–5 Spielern.
+**Abnahme:** Brief Phase 2 (zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse) + E2E-02, -03, -04, -09 (E2E-10 ruht, ADR-023) + Invariantenjob ohne Verstoß nach einer internen Testsitzung mit 2–5 Spielern.
 
 ## 4. M3 – Erstes spielbares MVP (Closed Beta)
 
@@ -36,7 +36,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 |---|---|
 | Welt | **eine Eternal-Instanz**, Kern aus 3 × 3 Chunks (≈ 2 000 spielbare Regionen), feste Größe |
 | NPCs | 6–10 Fraktionen (leicht/mittel/schwer), verteidigen ihre Gebiete, **keine** Expansion und **keine** Angriffe auf Spieler |
-| Konten | Gast + Upgrade auf Konto ([O-03]); generierte Anzeigenamen; Sprache de/hu/en; Kontolöschung, Datenexport |
+| Konten | Gast + Upgrade auf Konto ([O-03]); generierte Anzeigenamen; Sprache Deutsch; Kontolöschung, Datenexport |
 | Einstieg | Tutorial (3 Schritte), fairer Startplatz, Anfängerschutz |
 | PvE | sofortige Kämpfe gegen Garnisonen und NPC-Reiche |
 | PvP | asynchrone Belagerungen mit verdecktem Gate und Verteidigungspunkten, 24-h-Frist, automatischer Verlust bei Zeitablauf, Angriffs- und Versuchskontingente, max. 4 offene Belagerungen pro Reich, Schutzzeiten, Rangabstandsschutz |
@@ -44,7 +44,7 @@ Bezug: Brief §16, §20 „Erste konkrete Lieferung“, §21. Dieses Dokument le
 | Items | drei Zeit-Items, Drops mit Anti-Farming, Inventar + Ablage, **manuelle** Verlängerung bis 48 h |
 | UI | Karte (Desktop + Mobil), Regionsdetails, Quiz, Belagerungs-Dashboard, Inventar, Mitteilungen, Ranglisten (Regionen, Verteidigung) |
 | Benachrichtigung | In-App + Web Push ([O-04]) |
-| Inhalte | ≈ 400 Trivia + 250 Schätzfragen, dreisprachig geprüft, Fehlermeldefunktion |
+| Inhalte | ≈ 400 Trivia + 250 Schätzfragen, geprüft, Fehlermeldefunktion |
 | Betrieb | Staging + Beta-Umgebung ([O-11]), tägliche Backups mit getesteter Wiederherstellung, Monitoring und Alarme, Invariantenjob, Admin-Grundwerkzeuge (Kampf-Rekonstruktion, Belagerung abbrechen, Frage suspendieren, Missbrauchsliste) |
 | Recht | Entwurf Datenschutzerklärung und Impressum, Nutzungsbedingungen, Asset-Register |
 
@@ -54,7 +54,7 @@ Daily/Weekly (Phase 6) · automatische Itemverwendung (Phase 4b) · NPC-Expansio
 
 ### 4.3 Abnahmekriterien M3
 
-1. Alle Abnahmekriterien der Phasen 1–4 und E2E-01 bis -11 grün.
+1. Alle Abnahmekriterien der Phasen 1–4 und E2E-01 bis -11 grün (ohne das ruhende E2E-10).
 2. 7 Tage Staging-Testlauf mit simulierten Spielern (Bots über die öffentliche API) ohne Invariantenverletzung.
 3. Wiederherstellung aus Backup erfolgreich geprobt.
 4. Kampf-Rekonstruktion für eine zufällige Stichprobe von 20 Kämpfen nachvollziehbar.

@@ -1,0 +1,29 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-geo-laengster-fluss-europas
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Volga"
+    url: https://en.wikipedia.org/wiki/Volga
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der längste Fluss Europas?"
+    options:
+      a: "Wolga"
+      b: "Donau"
+      c: "Rhein"
+      d: "Dnepr"

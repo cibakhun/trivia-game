@@ -94,9 +94,9 @@ Folgen [E]: Auch falsche Angriffe belegen bis zur Auflösung einen der offenen B
 
 Maßgeblich ist die serverseitig bestimmte Antwortzeit der Schätzfrage [V]. Sie wird aus Serverzeitstempeln gebildet; eine vom Client gemeldete Zeit wird nur innerhalb eines gemessenen Latenzfensters (höchstens 500 ms) berücksichtigt [E]. Details und unvermeidbare Unterschiede: [QUIZ_ENGINE.md §6](QUIZ_ENGINE.md#6-zeitmessung-und-latenzausgleich).
 
-### 5.4 Mehrsprachigkeit
+### 5.4 Sprache
 
-Beide Teilnehmer erhalten dieselbe Fragenversion, jeweils in ihrer Sprache; bewertet wird die sprachunabhängige Antwort-ID bzw. der normalisierte Zahlenwert [V, Brief §10.3].
+Gespielt wird nur auf Deutsch [V, PO 2026-11-09, ADR-023; der Brief sah de/hu/en vor]. Bewertet wird trotzdem die sprachunabhängige Antwort-ID bzw. der normalisierte Zahlenwert [V, Brief §10.3]; Daten und Schnittstellen behalten die Sprachkennung, damit eine weitere Sprache später ohne Umbau ergänzt werden kann. Dann erhalten beide Teilnehmer dieselbe Fragenversion, jeweils in ihrer Sprache.
 
 ### 5.5 Verteidigungspunkte [V Grundsatz, E Werte, [O-18]]
 

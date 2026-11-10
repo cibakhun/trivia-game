@@ -1,0 +1,29 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-art-komponist-zauberfloete
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "The Magic Flute"
+    url: https://en.wikipedia.org/wiki/The_Magic_Flute
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer komponierte die Oper „Die Zauberflöte“?"
+    options:
+      a: "Ludwig van Beethoven"
+      b: "Joseph Haydn"
+      c: "Giuseppe Verdi"
+      d: "Wolfgang Amadeus Mozart"

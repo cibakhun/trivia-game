@@ -1,6 +1,6 @@
 # Dokumentation – Reiche des Wissens (Arbeitstitel)
 
-Stand: Phase 0 (Analyse und Architektur), 2026-11-09.
+Stand: Schritt 1.0 (Grundlagen) umgesetzt, 2026-11-09; Spiel nur auf Deutsch (ADR-023). Planung aus Phase 0; Code unter `packages/`, `tools/`, `content/`.
 Anforderungsbasis: [`brief/PRD-0.1.md`](brief/PRD-0.1.md) (Original-Briefing des Product Owners, unverändert).
 
 ## Lesereihenfolge

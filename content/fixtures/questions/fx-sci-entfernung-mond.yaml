@@ -1,0 +1,30 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-sci-entfernung-mond
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Moon Fact Sheet (NASA)"
+    url: https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html
+    accessed: "2026-11-09"
+reviews: []
+estimate:
+  answer_value: "384400"
+  answer_precision: 0
+  answer_unit: km
+  input_min: "1000"
+  input_max: "10000000"
+  scale_type: LOG
+  scale: 0.5
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie weit ist der Mond im Mittel von der Erde entfernt (in Kilometern)?"
+    unit_label: "Kilometer"

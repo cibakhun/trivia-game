@@ -51,7 +51,7 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 | POST | `/instances/:id/attacks` | `{ targetRegionId }` → `{ siegeId, challengeId, mode }` |
 | GET | `/challenges/:id` | aktueller Stand für Wiederaufnahme nach Reload: aktueller Schritt, Frage (falls präsentiert), `remainingMs` |
 | POST | `/challenges/:id/steps/:i/present` | Frage ausliefern, `presented_at` setzen (wiederholbar, liefert dieselbe Frage) |
-| POST | `/challenges/:id/steps/:i/answer` | `{ optionToken }` bzw. `{ rawInput, locale }` plus `{ clientElapsedMs }` → Bestätigung; bei Schritt 0 inklusive Schätzfrage; nach Schritt 1 ggf. Auflösung |
+| POST | `/challenges/:id/steps/:i/answer` | `{ optionToken }` bzw. `{ rawInput, locale }` plus `{ clientElapsedMs }` (ganze Millisekunden; `locale` derzeit immer `de`, ADR-023) → Bestätigung; bei Schritt 0 inklusive Schätzfrage; nach Schritt 1 ggf. Auflösung |
 | GET | `/sieges?role=defender&status=open` | Belagerungs-Dashboard |
 | GET | `/sieges?role=attacker&status=open` | eigene laufende Angriffe |
 | GET | `/sieges/:id` | Details; nach Auflösung inkl. vollständiger Auflösung beider Seiten |

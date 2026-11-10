@@ -57,11 +57,11 @@ Vorteil gegenüber einer festen Tabelle: Sobald Fragen aus Spieldaten kalibriert
 
 ### 3.3 Antwortzeit [E]
 
-Log-normalverteilt mit Median je Archetyp (Tabelle §2), abgeschnitten auf 1 s unter dem Zeitlimit. NPC-Zeiten gelten als „effektive Zeit“ ohne Latenzausgleich.
+Log-normalverteilt mit Median je Archetyp (Tabelle §2), abgeschnitten auf 1 s unter dem Zeitlimit. NPC-Zeiten gelten als „effektive Zeit“ ohne Latenzausgleich. Umsetzung in `game-core` (Schritt 1.0): Streuung `σ(ln t) = 0,35`, Untergrenze 1 s, ganze Millisekunden; neutrale Garnisonen außerhalb der Startzone erhalten θ linear über die Regionsstufe (Stufe 0: −1,4, Stufe 10: +0,5). Alle drei Werte sind Startwerte für die Kalibrierung in Phase 5.
 
 ### 3.4 Erzeugung und Versiegelung
 
-- Zufallsstrom `HMAC(secret, "npc-answer:" + challenge_id)` → drei Ziehungen (Trivia, Schätzung, Zeit), in fester Reihenfolge.
+- Zufallsstrom `HMAC(secret, "npc-answer:" + challenge_id)` → drei Ziehungen (Trivia, Schätzung, Zeit), in fester Reihenfolge. Die Schätzung und die Zeit verbrauchen je zwei Werte des Stroms (Box-Muller), die Trivia-Ziehung einen; bei falscher Antwort ergibt sich die gewählte falsche Option aus demselben Trivia-Wert, ohne weitere Ziehung ([DECISIONS.md ADR-018](DECISIONS.md#architekturentscheidungen-adr)).
 - Die NPC-Antworten werden **beim Anlegen der Herausforderung** als `quiz_answers` mit Status `GENERATED` gespeichert – vor jeder Spielerantwort. Das Ereignisprotokoll enthält `θ_eff`, `b`, die Ziehungen und `rng_version`, sodass Admins jede NPC-Leistung nachrechnen können.
 
 ## 4. Dynamische Schwierigkeit [V Grundsatz, E Umsetzung]

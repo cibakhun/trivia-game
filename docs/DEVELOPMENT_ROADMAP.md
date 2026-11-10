@@ -24,23 +24,25 @@ Jede Implementierungsphase besteht aus mehreren kleinen Pull Requests. Jeder Imp
 
 ## 2. Phasen im Detail
 
-### Phase 0 – Analyse und Architektur ✅ (dieser Stand)
+### Phase 0 – Analyse und Architektur ✅
 
 Lieferung: dieses Dokumentationspaket. Keine produktiven Änderungen.
 
-### Schritt 1.0 – Grundlagen (risikoarm, unabhängig von offenen Produktentscheidungen)
+### Schritt 1.0 – Grundlagen ✅ (risikoarm, unabhängig von offenen Produktentscheidungen)
 
 | Paket | Inhalt |
 |---|---|
 | Monorepo | pnpm Workspaces, TypeScript strict, ESLint/Prettier, Abhängigkeitsregeln zwischen Paketen |
 | CI | GitHub Actions: Install, Lint, Typecheck, Unit, Integration mit Postgres-Service-Container |
-| `protocol` | zod-Schema der Regelkonfiguration mit Standardwerten aus [GAME_RULES.md §10](GAME_RULES.md#10-parametertabelle); Zahlparser de/hu/en |
+| `protocol` | zod-Schema der Regelkonfiguration mit Standardwerten aus [GAME_RULES.md §10](GAME_RULES.md#10-parametertabelle); Zahlparser (Deutsch, ADR-023) |
 | `game-core` | Hex-Mathematik und Chunks, Rang-Funktion, `resolveDuel` mit verdecktem Gate ([O-01] entschieden), effektive Zeit, Fristberechnung, Drop-Ziehung, RNG (HMAC + sfc32), NPC-Antwortmodell |
 | `db` | Migrationsläufer, erste Migrationen (Konten, Welten, Regionen, Reiche), `game_now()`, Testhelfer |
 | Lokal | `docker-compose.yml` für Postgres, `.env.example` |
-| Inhalte | YAML-Schema für Fragen, Validierungswerkzeug, 40 Fixture-Fragen (de/hu/en) |
+| Inhalte | YAML-Schema für Fragen, Validierungswerkzeug, 40 Fixture-Fragen (Deutsch) |
 
 Abnahme: CI grün; Unit-Tests nach [TEST_PLAN.md §3](TEST_PLAN.md#3-unit-tests-brief-171) für alle Kernfunktionen.
+
+Umgesetzt am 2026-11-09 (Stand der Tests: [TEST_PLAN.md §7](TEST_PLAN.md#7-aktueller-stand)). Verschoben nach Phase 1, weil erst dort Abfragen entstehen: Kysely mit generierten Tabellentypen und die Drift-Prüfung „Schema gegen eingecheckten Typ-Stand“ aus [DATA_MODEL.md §6](DATA_MODEL.md#6-migrationsstrategie); die Basis-NPC-Profile als Referenzdaten kommen mit dem PvE-Ablauf, der sie nutzt.
 
 ### Phase 1 – Singleplayer-Gameplay-Prototyp
 
@@ -50,8 +52,8 @@ Abnahme: CI grün; Unit-Tests nach [TEST_PLAN.md §3](TEST_PLAN.md#3-unit-tests-
 | Konto | Gastkonto mit Sitzung (dauerhaft, damit „nach erneutem Login“ funktioniert) |
 | Einstieg | Beitritt, Startregion, Hauptstadt, Tutorial-Garnison |
 | Kampf PvE | Angriffsberechtigung, Herausforderungsprotokoll (present/answer, Zeitlimits, Reload), versiegelte NPC-Antworten, Auflösung, Besitzwechsel, Schutzzeit, Historie |
-| Client | PixiJS-Karte mit Chunk-Laden, Regionsdetails, Quiz-Vollbild, Reichsanzeige mit Rang, i18n de/hu/en |
-| Inhalte | 100 Trivia + 50 Schätzfragen, geprüft, dreisprachig |
+| Client | PixiJS-Karte mit Chunk-Laden, Regionsdetails, Quiz-Vollbild, Reichsanzeige mit Rang, Oberfläche auf Deutsch (Texte trotzdem über i18n-Schlüssel, ADR-023) |
+| Inhalte | 100 Trivia + 50 Schätzfragen, geprüft, auf Deutsch; bis zur Entscheidung über [O-02] mit den 40 Testfragen (PO 2026-11-09) |
 
 Abnahme (Brief): Ein Spieler erobert wiederholt NPC-Gebiete, erweitert sein Reich und sieht nach erneutem Login den korrekten Weltzustand. Tests: E2E-01, Integration „Gebietseroberung PvE“.
 
@@ -65,7 +67,7 @@ Abnahme (Brief): Ein Spieler erobert wiederholt NPC-Gebiete, erweitert sein Reic
 | Nebenläufigkeit | Harness und Tests N1–N4, N8, N12 |
 | Staging | erste erreichbare Testumgebung, falls [O-11] freigegeben; sonst Test im lokalen Netz |
 
-Abnahme (Brief): Zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse. Tests: E2E-02, -03, -04, -09, -10.
+Abnahme (Brief): Zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse. Tests: E2E-02, -03, -04, -09 (E2E-10 ruht bis zu einer zweiten Sprache, ADR-023).
 
 ### Phase 3 – Eternal-Belagerungen
 
@@ -111,7 +113,7 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 | Vor | Entscheidungen |
 |---|---|
 | Schritt 1.0 | keine ([O-01] ist entschieden) |
-| Phase 1 | [O-02] Fragenbeschaffung (für 150 Fragen) |
+| Phase 1 | ~~[O-02] Fragenbeschaffung~~ vertagt (PO 2026-11-09): Phase 1 mit den 40 Testfragen, Klärung vor der Beta |
 | Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |

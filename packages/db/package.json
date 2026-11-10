@@ -1,0 +1,23 @@
+{
+  "name": "@rdw/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "migrate": "tsx src/cli/migrate.ts"
+  },
+  "dependencies": {
+    "pg": "8.23.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@rdw/game-core": "workspace:*",
+    "@rdw/protocol": "workspace:*",
+    "@types/pg": "8.23.1"
+  }
+}

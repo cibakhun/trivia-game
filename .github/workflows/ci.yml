@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, Typen, Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Wegwerf-Datenbank nur für diesen Lauf, kein Geheimnis.
+          POSTGRES_USER: rdw
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+          POSTGRES_DB: rdw
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rdw -d rdw"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgres://rdw:ci-only-not-a-secret@localhost:5432/rdw
+      TEST_DATABASE_URL: postgres://rdw:ci-only-not-a-secret@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      # pnpm über Corepack (in Node enthalten) in der Version aus package.json (packageManager);
+      # so läuft keine Aktion eines Drittanbieters mit Zugriff auf den Checkout.
+      - name: pnpm aktivieren
+        id: pnpm
+        run: |
+          corepack enable
+          pnpm --version
+          echo "store=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+      # setup-node kann den pnpm-Speicher nicht cachen, weil pnpm dort noch nicht installiert ist;
+      # daher eigener Cache-Schritt (GitHub-eigene Aktion wie checkout und setup-node).
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm.outputs.store }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+      - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
+      - name: Formatierung
+        run: pnpm format:check
+      - name: Typprüfung
+        run: pnpm typecheck
+      - name: Unit-Tests
+        run: pnpm test
+      - name: Fragen prüfen
+        run: pnpm content:validate
+      - name: Integrationstests (PostgreSQL)
+        run: pnpm test:integration
+      - name: Migrationen auf leere Datenbank
+        run: pnpm db:migrate

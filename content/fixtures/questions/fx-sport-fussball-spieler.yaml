@@ -1,0 +1,29 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-sport-fussball-spieler
+kind: TRIVIA
+category: SPORTS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Association football"
+    url: https://en.wikipedia.org/wiki/Association_football
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Spieler einer Mannschaft stehen beim Fußball gleichzeitig auf dem Platz, Torwart eingeschlossen?"
+    options:
+      a: "9"
+      b: "10"
+      c: "11"
+      d: "12"

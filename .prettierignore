@@ -1,0 +1,8 @@
+# Lockfile wird von pnpm geschrieben.
+pnpm-lock.yaml
+# Bewusst ausgenommen: Doku (Markdown mit Tabellen und deutscher Typografie) und Fragendateien
+# werden von Hand gepflegt; Prettier würde Tabellen umbrechen und YAML-Anführungszeichen ändern.
+# Die Fragendateien prüft stattdessen `pnpm content:validate` (Schema und Fachregeln).
+docs/
+content/
+*.md

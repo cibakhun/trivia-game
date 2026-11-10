@@ -1,0 +1,29 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-pol-sitz-eu-parlament
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "European Parliament"
+    url: https://en.wikipedia.org/wiki/European_Parliament
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welcher Stadt hat das Europäische Parlament seinen offiziellen Sitz?"
+    options:
+      a: "Straßburg"
+      b: "Brüssel"
+      c: "Luxemburg"
+      d: "Den Haag"

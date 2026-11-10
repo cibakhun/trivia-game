@@ -1,0 +1,29 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-lit-autor-faust
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Goethe's Faust"
+    url: https://en.wikipedia.org/wiki/Goethe%27s_Faust
+    accessed: "2026-11-09"
+reviews: []
+trivia:
+  options: [a, b, c, d]
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schrieb das Drama „Faust“ (erster Teil 1808)?"
+    options:
+      a: "Johann Wolfgang von Goethe"
+      b: "Friedrich Schiller"
+      c: "Gotthold Ephraim Lessing"
+      d: "Heinrich Heine"

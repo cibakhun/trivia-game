@@ -20,7 +20,7 @@ Bezug: Brief §12, §18, §20. Begründungen der Einzelentscheidungen stehen als
 | Frontend | React + Vite (SPA) | Spiel-Client braucht kein SSR; Vite ist schnell und einfach zu hosten (statische Dateien) | Next.js: SSR/Server-Komponenten bringen hier keinen Nutzen, aber zusätzliche Server-Komplexität |
 | Kartenrenderer | PixiJS (WebGL, Canvas-Fallback) | Zehntausende Hexfelder flüssig, Viewport-Culling, Sprite-Batching | SVG (bricht bei > 2 000 Feldern ein), eigenes WebGL (zu aufwendig) |
 | UI-Zustand | TanStack Query (Serverzustand) + Zustand (lokaler UI-Zustand) | klare Trennung autoritativer Daten vs. UI | Redux (mehr Boilerplate) |
-| i18n UI | i18next / react-i18next, ICU-Pluralformen | reif, unterstützt Ungarisch-Plural, lazy Laden | – |
+| i18n UI | i18next / react-i18next, ICU-Pluralformen | Texte über Schlüssel statt im Code, auch mit nur Deutsch (ADR-023); eine weitere Sprache bleibt so ohne Umbau möglich | – |
 | HTTP-Server | Fastify | schnell, Schema-Validierung, gutes Plugin-Ökosystem, WebSocket-Plugin | Express (langsamer, weniger Typisierung), NestJS (schwergewichtig) |
 | Validierung / Verträge | zod, geteilt in `packages/protocol` | ein Schema für Client, Server, Konfiguration | – |
 | Echtzeit | WebSocket (`@fastify/websocket` / `ws`) | bidirektional, Browser-nativ | Socket.IO (eigenes Protokoll, nicht nötig), SSE (nur unidirektional) |

@@ -1,0 +1,30 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-geo-hoehe-grossglockner
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Grossglockner"
+    url: https://en.wikipedia.org/wiki/Grossglockner
+    accessed: "2026-11-09"
+reviews: []
+estimate:
+  answer_value: "3798"
+  answer_precision: 0
+  answer_unit: m
+  input_min: "0"
+  input_max: "9000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie hoch ist der Großglockner, der höchste Berg Österreichs (in Metern)?"
+    unit_label: "Meter"

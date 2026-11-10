@@ -4,7 +4,7 @@ Zwei Teile: **Architekturentscheidungen**, die Claude im Rahmen der Entscheidung
 
 ## Architekturentscheidungen (ADR)
 
-Status aller ADRs: *angenommen, 2026-11-09, Phase 0*. Revidierbar, solange der jeweilige Teil noch nicht produktiv ist.
+Status ADR-001 bis ADR-016: *angenommen, 2026-11-09, Phase 0*. Alle ADRs sind revidierbar, solange der jeweilige Teil noch nicht produktiv ist.
 
 | ID | Entscheidung | Begründung | Verworfene Alternativen | Kosten einer späteren Änderung |
 |---|---|---|---|---|
@@ -24,6 +24,18 @@ Status aller ADRs: *angenommen, 2026-11-09, Phase 0*. Revidierbar, solange der j
 | ADR-014 | Eigene Sitzungsverwaltung (Token-Hash in DB, Argon2id) | Datenminimierung, keine Drittanbieter-AVV | externer Identity-Provider | mittel |
 | ADR-015 | Fragen als YAML in Git, Import als unveränderliche Versionen | Review per PR, Herkunft und Versionierung, Diff-bar | Admin-CMS als einzige Quelle | gering |
 | ADR-016 | Regeln als versionierte Daten (`world_rules`), Fristwerte als Snapshot in jeder Belagerung | Balancing ohne Deployment; keine rückwirkenden Änderungen | Umgebungsvariablen, Konstanten im Code | gering |
+
+Status ADR-017 bis ADR-022: *angenommen, 2026-11-09, Schritt 1.0*. ADR-023 setzt eine Entscheidung des Product Owners um.
+
+| ID | Entscheidung | Begründung | Verworfene Alternativen | Kosten einer späteren Änderung |
+|---|---|---|---|---|
+| ADR-017 | Workspace-Pakete ohne Build-Schritt: Pakete exportieren TypeScript-Quellen (`exports: ./src/index.ts`), Vitest, tsx und Vite laden sie direkt; `tsc --noEmit` prüft je Paket, `game-core` und `protocol` zusätzlich ohne Node-Typen | keine veralteten Build-Stände, schnelle Tests, Laufzeitneutralität von `game-core`/`protocol` wird vom Compiler geprüft | Build je Paket mit Project References | gering (Build für den Server-Container später ergänzbar) |
+| ADR-018 | Zufall konkret: HMAC-SHA256 über WebCrypto, `sfc32` aus den ersten 16 Byte (vier Wörter, Big Endian), 12 verworfene Startwerte, Gleitkommawert = `uint32 / 2^32`, Normalverteilung per Box-Muller mit genau zwei Werten; Entitäts-IDs nur ASCII `[A-Za-z0-9._-]`; `RNG_VERSION = 1` | läuft unverändert in Browser und Node, keine Abhängigkeit, feste Ziehungsreihenfolge; ganze Zahlen und `nextFloat` sind bitgenau gleich, Normalwerte nur bis auf Rundung (ECMAScript legt `Math.log`/`Math.cos` nicht bitgenau fest), daher rechnet und protokolliert der Server | Node-`crypto` (nicht im Browser), Mersenne Twister, xoshiro128** | gering bis zu Produktionsdaten, danach nur als neue `rng_version` |
+| ADR-019 | Exakte Dezimalarithmetik in `game-core` mit BigInt (`units / 10^scale`); Eingaben kommen als kanonische Zeichenkette aus dem Zahlparser in `protocol`; Gleitkomma → Dezimal (nur NPC-Modell) über `toFixed`, das laut Spezifikation den exakten Binärwert „Hälfte von null weg“ rundet | exakte Abstände und Rundung ohne Bibliothek; `protocol` braucht `game-core` nicht | decimal.js / big.js | gering |
+| ADR-020 | Schreibschutz von `game_clock`: Ein Versatz ≠ 0 ist nur erlaubt, wenn die Datenbank selbst `rdw.allow_game_clock_offset = on` trägt (`ALTER DATABASE … SET`; für diese nicht registrierte Einstellung nur Superuser oder wer per `GRANT SET ON PARAMETER` berechtigt wurde, nicht der Datenbankbesitzer, geprüft mit PostgreSQL 16). Der Trigger liest den Katalog, ein `SET` in der Sitzung genügt nicht; Funktionen lösen Namen schemaqualifiziert auf, damit temporäre Tabellen den Katalog oder `game_clock` nicht überdecken, und der Versatz wird über die Textform verglichen (`1 month -30 days` gilt sonst als 0) | Produktion ist ohne Zutun geschützt; Test und Staging schalten den Versatz einmalig frei | Umgebungsvariable der Anwendung (umgehbar), eigene Funktion je Umgebung | gering |
+| ADR-021 | Fragendateien: eine Frage je YAML-Datei, Dateiname = stabiler Schlüssel `key`, Feldnamen wie die Tabellenspalten, Dezimalwerte als Zeichenkette, dokumentierte Prüfungen (`reviews`) in der Datei; Testfragen nur unter `content/fixtures/` mit Tag `fixture`, nie freigebbar | Review per Pull Request, Freigaberegel (Brief §5.6) maschinell prüfbar | eine Datei je Kategorie, Datenbank als Quelle | gering |
+| ADR-022 | Eigener Migrationsläufer (`pg`): Prüfsumme je Datei, Advisory-Sperre, eine Transaktion je Datei, lückenlose Nummerierung, Abbruch in Produktion ohne `--production-approved`, `APP_ENV` ohne Standardwert, unbekannte Argumente brechen ab | setzt die Läuferregeln aus [DATA_MODEL.md §6](DATA_MODEL.md#6-migrationsstrategie) um (nummeriert, nur vorwärts, Prüfsumme, Produktionsfreigabe); die Schema-Drift-Prüfung (§6.2) folgt mit den Kysely-Typen in Phase 1, Referenzdaten, Backup und Partitionierung (§6.3, §6.5, §6.6) sind Betriebsregeln außerhalb des Läufers | node-pg-migrate, Kysely-Migrator (TypeScript statt SQL) | gering |
+| ADR-023 | **Nur Deutsch** (PO-Entscheidung 2026-11-09): Oberfläche, Fragen und Zahleneingabe nur auf Deutsch. `LOCALES = ['de']`; Sprachkennung bleibt in Fragendateien, `player_settings.locale`, API und Zahlparser; mehrsprachige Regeln ([QUIZ_ENGINE.md §4](QUIZ_ENGINE.md#4-mehrsprachigkeit-und-sprach-fairness)) ruhen | weniger Redaktionsaufwand (keine Übersetzungen und muttersprachlichen Prüfungen), keine Sprach-Fairness-Probleme in Duellen; eine weitere Sprache bleibt eine Erweiterung statt ein Umbau | Sprachkennung ganz entfernen (spätere Sprache wäre ein Schema-Umbau); de/hu/en wie im Brief | gering, solange die Sprachkennung bleibt |
 
 ## Offene Entscheidungen
 
@@ -49,8 +61,10 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 
 **Priorität:** P1 · **Wirkung:** Qualität, Fairness, größter laufender Aufwand · **Brief:** §5.6, §19 J
 
-**Frage:** Wer erstellt und prüft die Fragen in drei Sprachen, und in welchem Umfang?
-**Empfehlung:** KI-gestützte Entwürfe durch Claude in YAML, faktische Prüfung mit Quelle, muttersprachliche Prüfung für hu und de durch den Product Owner oder beauftragte Personen; en durch eine zweite Person. Ziel 150 Fragen für Phase 1, ≈ 650 für die Closed Beta ([QUIZ_ENGINE.md §9](QUIZ_ENGINE.md#9-inhaltspipeline-und-umfang)). Zu klären: Wer prüft, gibt es ein Budget für externe Lektorate?
+**Status: vertagt am 2026-11-09 durch den Product Owner.** Phase 1 läuft mit den 40 KI-Testfragen (DRAFT, nie veröffentlichbar); wer echte Fragen erstellt und prüft, wird vor der Beta geklärt. Gespielt wird nur auf Deutsch (ADR-023), Übersetzungen entfallen.
+
+**Frage:** Wer erstellt und prüft die Fragen, und in welchem Umfang?
+**Empfehlung:** KI-gestützte Entwürfe durch Claude in YAML, faktische Prüfung mit Quelle und sprachliche Prüfung auf Deutsch durch den Product Owner oder beauftragte Personen. Ziel 150 Fragen für den Abschluss von Phase 1, ≈ 650 für die Closed Beta ([QUIZ_ENGINE.md §9](QUIZ_ENGINE.md#9-inhaltspipeline-und-umfang)). Zu klären: Wer prüft, gibt es ein Budget für externes Lektorat?
 
 ### O-03 Kontomodell und Anmeldung
 
@@ -93,7 +107,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 ### O-10 Öffentliche Namen
 
 **Priorität:** P2 (vor Phase 2) · **Wirkung:** Moderation, Recht · **Brief:** §14.3
-**Empfehlung:** Generierte Spieler- und Reichsnamen aus Bausteinen (de/hu/en), auswählbar aus Vorschlägen. Freie Namen erst mit Melde- und Moderationsprozess.
+**Empfehlung:** Generierte Spieler- und Reichsnamen aus deutschen Bausteinen (ADR-023), auswählbar aus Vorschlägen. Freie Namen erst mit Melde- und Moderationsprozess.
 
 ### O-11 Hosting und Staging (kostenpflichtig)
 
@@ -103,7 +117,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 ### O-12 Markenname
 
 **Priorität:** P2 (vor öffentlicher Nutzung des Namens) · **Wirkung:** Recht, Marke · **Brief:** Kopf, §14.1
-**Empfehlung:** Markenrecherche für „Reiche des Wissens“ und die ungarische/englische Entsprechung vor Domainkauf und öffentlicher Beta; bis dahin Arbeitstitel nur intern.
+**Empfehlung:** Markenrecherche für „Reiche des Wissens“ vor Domainkauf und öffentlicher Beta; bis dahin Arbeitstitel nur intern.
 
 ### O-13 NPC-Angriffe auf Spieler
 
@@ -143,6 +157,9 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | Datum | Änderung |
 |---|---|
 | 2026-11-09 | Phase 0: ADR-001 bis ADR-016 angenommen, O-01 bis O-17 erfasst |
+| 2026-11-09 | Schritt 1.0: ADR-017 bis ADR-022 angenommen (Pakete ohne Build, Zufall, Dezimalarithmetik, Schreibschutz der Spielzeit, Fragendateien, Migrationsläufer) |
+| 2026-11-09 | PO: Spiel nur auf Deutsch (ADR-023); O-02 vertagt, Phase 1 mit Testfragen |
+| 2026-11-09 | Review-Korrekturen in PR #2: Spieluhr-Schutz gegen Kalenderversatz und überdeckende temporäre Tabellen, `APP_ENV` Pflicht, Transaktionsprüfung des Migrationsläufers über die ganze Datei, zusammengesetzte Fremdschlüssel (Welt, Region), Protokolle ohne UPDATE, TRUNCATE-Schutz, alle Fremdschlüssel indiziert |
 | 2026-11-09 | O-01 entschieden (PO): verdecktes Angreifer-Gate mit Verteidigungspunkten; O-18 neu erfasst |
 | 2026-11-09 | O-18 teilweise entschieden (PO): Punkte für jede eigene Verteidigung, mehr bei richtiger Trivia-Antwort, auch bei Gebietsverlust |
 | 2026-11-09 | O-18 Richtung (PO): Punkte voraussichtlich für Kosmetik oder Emojis an andere Spieler, kein Spielvorteil |

@@ -1,0 +1,30 @@
+# Testdaten (Fixture), KI-gestützt erstellt am 2026-11-09; nie für den Spielbetrieb.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Quellen sind ungeprüfte Vorschläge: `accessed` ist hier das Entwurfsdatum, kein Abrufdatum.
+schema_version: 1
+key: fx-sci-normfallbeschleunigung
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags: [fixture]
+sources:
+  - title: "Standard gravity"
+    url: https://en.wikipedia.org/wiki/Standard_gravity
+    accessed: "2026-11-09"
+reviews: []
+estimate:
+  answer_value: "9.8"
+  answer_precision: 1
+  answer_unit: m/s2
+  input_min: "0"
+  input_max: "100"
+  scale_type: LINEAR
+  scale: 1
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie groß ist die Normfallbeschleunigung g (in m/s², auf eine Nachkommastelle)?"
+    unit_label: "m/s²"

@@ -1,0 +1,7 @@
+packages:
+  - packages/*
+  - tools/*
+
+# esbuild (über tsx/vite) darf sein Installationsskript ausführen.
+onlyBuiltDependencies:
+  - esbuild
