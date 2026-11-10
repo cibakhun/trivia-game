@@ -79,6 +79,10 @@ describe('Übersetzungsfunktionen', () => {
     expect(errorMessage('REGION_PROTECTED', { until })).not.toContain('{until}');
     expect(errorMessage('ATTACKER_ATTEMPT_LIMIT', { resetAt: until })).not.toContain('{until}');
     expect(errorMessage('INSTANCE_FULL')).toBe('Diese Welt ist voll.');
+    expect(errorMessage('RATE_LIMITED', { retryAfterMs: 61_000 })).toBe(
+      'Zu viele Fehlversuche. Bitte versuche es in 2 Min. erneut.',
+    );
+    expect(errorMessage('RATE_LIMITED', { retryAfterMs: 500 })).toContain('in 1 Min.');
     expect(errorMessage('GIBT_ES_NICHT')).toBe(t('errors.generic'));
   });
 });

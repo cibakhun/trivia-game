@@ -7,8 +7,8 @@ import {
 } from './answers.ts';
 
 /**
- * E2E-01 Erste Eroberung (TEST_PLAN §5, Brief §17.3): Ein neuer Gast tritt der Testwelt bei,
- * erobert die Tutorial-Garnison und besitzt danach zwei Regionen, auch nach einem Reload. Die
+ * E2E-01 Erste Eroberung (TEST_PLAN §5, Brief §17.3): Ein neuer Gast tritt der Testwelt mit einem
+ * gewählten Reichsnamen bei, erobert die Tutorial-Garnison und besitzt danach zwei Regionen, auch nach einem Reload. Die
  * Schätzfrage kommt nur, wenn auch die Garnison die Wissensfrage richtig hat (versiegelt, zufällig).
  */
 
@@ -21,9 +21,18 @@ test('E2E-01: Gast erobert die Tutorial-Garnison und besitzt danach zwei Regione
 }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
-  await page.getByTestId('world-e2e').getByRole('button', { name: 'Beitreten' }).click();
+  const world = page.getByTestId('world-e2e');
+  await world.getByRole('button', { name: 'Beitreten' }).click();
+  // Reichsname aus Vorschlägen (O-10): der erste ist vorgewählt, gewählt wird der zweite
+  const picker = world.getByTestId('kingdom-name-picker');
+  await expect(picker.getByRole('radio').first()).toBeChecked();
+  const chosen = picker.getByRole('radio').nth(1);
+  const kingdomName = (await picker.locator('label').nth(1).innerText()).trim();
+  await chosen.check();
+  await world.getByRole('button', { name: 'Reich gründen' }).click();
 
   await expect(page).toHaveURL(/\/play\//);
+  await expect(page.getByRole('banner')).toContainText(kingdomName);
   await expect(page.getByTestId('kingdom-rank')).toHaveText('Siedlung');
   await expect(page.getByTestId('kingdom-regions')).toHaveText('1 Region');
 

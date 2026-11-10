@@ -11,6 +11,14 @@ describe('Router', () => {
     expect(routePath({ name: 'play', instanceId: ID })).toBe(`/play/${ID}`);
   });
 
+  it('kennt Weltwahl und Konto', () => {
+    expect(parseRoute('/welten')).toEqual({ name: 'worlds' });
+    expect(parseRoute('/konto/')).toEqual({ name: 'account' });
+    expect(routePath({ name: 'worlds' })).toBe('/welten');
+    expect(routePath({ name: 'account' })).toBe('/konto');
+    expect(parseRoute('/kontos')).toEqual({ name: 'start' });
+  });
+
   it('schickt IDs ohne UUID-Form zur Startseite', () => {
     expect(parseRoute('/play/------------------------------------')).toEqual({ name: 'start' });
     expect(parseRoute('/challenge/0b8f5a3e1c2d4e5f8a9b0c1d2e3f4a5b----')).toEqual({

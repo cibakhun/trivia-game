@@ -94,7 +94,13 @@ export function formatTime(iso: string): string {
 /** Ablehnungsgründe eines Angriffs (mit Zeitpunkt) und sonstige Fehlercodes als Text. */
 export function errorMessage(code: string, details?: Readonly<Record<string, unknown>>): string {
   const until = details?.until ?? details?.resetAt;
-  const params = typeof until === 'string' ? { until: formatTime(until) } : undefined;
+  const retry = details?.retryAfterMs;
+  const params: Params | undefined =
+    typeof until === 'string'
+      ? { until: formatTime(until) }
+      : typeof retry === 'number'
+        ? { minutes: Math.max(1, Math.ceil(retry / 60_000)) }
+        : undefined;
   if ((ATTACK_REFUSAL_CODES as readonly string[]).includes(code)) {
     return tDynamic(`attack.reason.${code}`, 'errors.generic', params);
   }

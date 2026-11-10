@@ -3,8 +3,8 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { api, ApiRequestError } from './api/client.ts';
 
 /**
- * Sitzung des Spielers: Gastkonto (Cookie, API.md §1) und Profil mit Reichen. Der Zustand wird
- * nach jeder Aktion neu vom Server gelesen; der Client hält keine eigene Wahrheit.
+ * Sitzung des Spielers: Gast- oder gesichertes Konto (Cookie, API.md §1) und Profil mit Reichen.
+ * Der Zustand wird nach jeder Aktion neu vom Server gelesen; der Client hält keine eigene Wahrheit.
  */
 
 export type SessionState =
@@ -17,6 +17,9 @@ interface SessionValue {
   readonly state: SessionState;
   readonly reload: () => Promise<MeResponse | null>;
   readonly startGuest: () => Promise<void>;
+  /** Anmelden mit Benutzername und Passwort; eine laufende Sitzung wird ersetzt. */
+  readonly login: (username: string, password: string) => Promise<void>;
+  readonly logout: () => Promise<void>;
 }
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -61,12 +64,25 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
     await reload();
   }, [reload]);
 
+  const login = useCallback(
+    async (username: string, password: string) => {
+      await api.login({ username, password });
+      await reload();
+    },
+    [reload],
+  );
+
+  const logout = useCallback(async () => {
+    await api.logout();
+    await reload();
+  }, [reload]);
+
   useEffect(() => {
     void reload();
   }, [reload]);
 
   return (
-    <SessionContext.Provider value={{ state, reload, startGuest }}>
+    <SessionContext.Provider value={{ state, reload, startGuest, login, logout }}>
       {children}
     </SessionContext.Provider>
   );

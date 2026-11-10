@@ -28,7 +28,9 @@ async function joinPlaytest(browser: Browser): Promise<Page> {
   const page = await context.newPage();
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
-  await page.getByTestId('world-spieltest').getByRole('button', { name: 'Beitreten' }).click();
+  const world = page.getByTestId('world-spieltest');
+  await world.getByRole('button', { name: 'Beitreten' }).click();
+  await world.getByRole('button', { name: 'Reich gründen' }).click();
   await expect(page).toHaveURL(/\/play\//);
   await expect(page.getByTestId('kingdom-regions')).toHaveText('1 Region');
   return page;

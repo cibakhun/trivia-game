@@ -191,9 +191,126 @@ input:focus-visible {
 }
 
 .world {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.world-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+}
+
+.join-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Seiten mit Formularen (Konto, Welten) */
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.field label {
+  font-weight: 600;
+}
+
+.field input {
+  font: inherit;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.field-problem {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.95rem;
+}
+
+.name-picker {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.name-picker legend {
+  font-weight: 600;
+  padding: 0 0.3rem;
+}
+
+.name-picker p {
+  margin: 0;
+}
+
+.name-choices {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.name-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.name-choice input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+}
+
+.note-success {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.button-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.kingdom-nav {
+  margin-left: auto;
+  display: flex;
   gap: 1rem;
 }
 

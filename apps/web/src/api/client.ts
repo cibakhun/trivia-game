@@ -9,17 +9,26 @@ import {
   errorBodySchema,
   guestResponseSchema,
   joinResponseSchema,
+  kingdomNameSuggestionsSchema,
   mapStateResponseSchema,
   mapStaticResponseSchema,
   meResponseSchema,
+  playerNameSuggestionsSchema,
   presentResponseSchema,
+  profileResponseSchema,
   regionDetailResponseSchema,
+  sessionResponseSchema,
   siegesResponseSchema,
   worldsResponseSchema,
   type AnswerRequest,
   type ChunkRef,
+  type KingdomNamePartsDto,
+  type LoginRequest,
+  type PasswordChangeRequest,
+  type PlayerNamePartsDto,
+  type RegisterRequest,
 } from '@rdw/protocol';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 /**
  * Zugriff auf die REST-Schnittstelle (API.md). Jede Antwort wird gegen das Schema aus `protocol`
@@ -61,7 +70,12 @@ export function newActionKey(): string {
 
 const NETWORK_RETRIES = 2;
 
-async function send(method: 'GET' | 'POST', path: string, options: RequestOptions) {
+type Method = 'GET' | 'POST' | 'PATCH';
+
+/** Antworten ohne Inhalt (204). */
+const noContent = z.undefined();
+
+async function send(method: Method, path: string, options: RequestOptions) {
   const headers: Record<string, string> = { accept: 'application/json' };
   if (options.body !== undefined) headers['content-type'] = 'application/json';
   if (options.idempotencyKey) headers[IDEMPOTENCY_KEY_HEADER] = options.idempotencyKey;
@@ -84,7 +98,7 @@ async function send(method: 'GET' | 'POST', path: string, options: RequestOption
 }
 
 async function request<S extends z.ZodType>(
-  method: 'GET' | 'POST',
+  method: Method,
   path: string,
   schema: S,
   options: RequestOptions = {},
@@ -116,10 +130,29 @@ export const api = {
   bootstrap: () => request('GET', '/auth/bootstrap', authStatusSchema),
   // Ohne Idempotency-Key: Schutz vor Doppelanlage über das Bootstrap-Cookie (API.md §1)
   guest: () => request('POST', '/auth/guest', guestResponseSchema),
+  // Konto (API.md §2.1). Anmelden und Abmelden ohne Schlüssel: Beide sind ohne Nebenwirkung
+  // wiederholbar, eine neue Sitzung ersetzt die alte.
+  register: (body: RegisterRequest, idempotencyKey: string) =>
+    request('POST', '/auth/register', sessionResponseSchema, { body, idempotencyKey }),
+  login: (body: LoginRequest) => request('POST', '/auth/login', sessionResponseSchema, { body }),
+  logout: () => request('POST', '/auth/logout', noContent),
   me: () => request('GET', '/me', meResponseSchema),
+  updateProfile: (playerName: PlayerNamePartsDto, idempotencyKey: string) =>
+    request('PATCH', '/me/profile', profileResponseSchema, {
+      body: { playerName },
+      idempotencyKey,
+    }),
+  changePassword: (body: PasswordChangeRequest, idempotencyKey: string) =>
+    request('POST', '/me/password', noContent, { body, idempotencyKey }),
+  playerNames: () => request('GET', '/names/player', playerNameSuggestionsSchema),
+  kingdomNames: (instanceId: string) =>
+    request('GET', `/instances/${instanceId}/kingdom-names`, kingdomNameSuggestionsSchema),
   worlds: () => request('GET', '/worlds', worldsResponseSchema),
-  join: (worldId: string, idempotencyKey: string) =>
-    request('POST', `/worlds/${worldId}/join`, joinResponseSchema, { idempotencyKey }),
+  join: (worldId: string, idempotencyKey: string, kingdomName?: KingdomNamePartsDto) =>
+    request('POST', `/worlds/${worldId}/join`, joinResponseSchema, {
+      idempotencyKey,
+      ...(kingdomName ? { body: { kingdomName } } : {}),
+    }),
   mapStatic: (instanceId: string, chunks: readonly ChunkRef[]) =>
     request(
       'GET',
@@ -153,6 +186,27 @@ export const api = {
     request('GET', `/instances/${instanceId}/sieges`, siegesResponseSchema),
   // Wie `present` ohne Schlüssel: Eine Wiederholung liefert dieselbe Frage (ADR-033)
   defend: (siegeId: string) => request('POST', `/sieges/${siegeId}/defense`, defenseResponseSchema),
-  respawn: (instanceId: string, idempotencyKey: string) =>
-    request('POST', `/instances/${instanceId}/respawn`, joinResponseSchema, { idempotencyKey }),
+  respawn: (instanceId: string, idempotencyKey: string, kingdomName?: KingdomNamePartsDto) =>
+    request('POST', `/instances/${instanceId}/respawn`, joinResponseSchema, {
+      idempotencyKey,
+      ...(kingdomName ? { body: { kingdomName } } : {}),
+    }),
 };
+
+/**
+ * Schlüssel einer Nutzeraktion über Wiederholungen hinweg. Nach einer Antwort des Servers (Erfolg
+ * oder Ablehnung) gibt es für den nächsten Versuch einen neuen Schlüssel: Eine Ablehnung speichert
+ * nichts. Nach einem Netzfehler bleibt er, denn ob das Kommando wirkte, ist offen.
+ */
+export class ActionKey {
+  private key: string | null = null;
+
+  get current(): string {
+    this.key ??= newActionKey();
+    return this.key;
+  }
+
+  settle(error?: unknown): void {
+    if (!(error instanceof NetworkError)) this.key = null;
+  }
+}
