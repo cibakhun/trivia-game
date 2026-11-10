@@ -50,6 +50,7 @@ const TYPE_MAP: Readonly<Record<string, MappedType>> = {
   interval: { select: 'object', insert: 'string', update: 'string' },
   _text: same('string[]'),
   _uuid: same('string[]'),
+  _int2: same('number[]'),
 };
 
 function columnType(row: ColumnRow): string {

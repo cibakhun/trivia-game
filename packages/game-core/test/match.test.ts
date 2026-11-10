@@ -1,4 +1,9 @@
-import { DEFAULT_MATCH_RULES, matchRulesForSeats, PLAYTEST_MATCH_RULES } from '@rdw/protocol';
+import {
+  DEFAULT_MATCH_RULES,
+  MATCH_BOT_STRENGTH_CODES,
+  matchRulesForSeats,
+  PLAYTEST_MATCH_RULES,
+} from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   applyMatchInput,
@@ -9,6 +14,8 @@ import {
   currentChooser,
   drawSeatOrder,
   freeRegions,
+  MATCH_BOT_PROFILES,
+  MATCH_BOT_STRENGTHS,
   legalRegions,
   matchPhase,
   matchPoints,
@@ -588,6 +595,11 @@ describe('Feldzug', () => {
 });
 
 describe('Bots und Zeitablauf', () => {
+  it('Stärken in game-core und protocol sind dieselben', () => {
+    expect([...MATCH_BOT_STRENGTHS]).toEqual([...MATCH_BOT_STRENGTH_CODES]);
+    expect(Object.keys(MATCH_BOT_PROFILES)).toEqual([...MATCH_BOT_STRENGTH_CODES]);
+  });
+
   it('wählen in jedem Schritt eine erlaubte Region', () => {
     let state = createMatch(DEFAULT_MATCH_RULES);
     const rng = seededRng(7);

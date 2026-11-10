@@ -38,6 +38,8 @@ export const ACCOUNT_REFERENCES: Readonly<Record<string, ReferenceHandling>> = O
   'kingdoms.owner_user_id': 'ANONYMIZE',
   'season_results.user_id': 'ANONYMIZE',
   'siege_participants.user_id': 'ANONYMIZE',
+  'matches.host_user_id': 'ANONYMIZE',
+  'match_players.user_id': 'ANONYMIZE',
 });
 
 /** Inaktive Gastkonten werden nach dieser Zeit ohne Anmeldung gelöscht (O-03). */

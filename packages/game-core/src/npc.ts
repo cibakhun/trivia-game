@@ -172,6 +172,40 @@ export interface NpcAnswer {
   };
 }
 
+export interface NpcTrivia {
+  readonly correct: boolean;
+  /** Index der gewählten falschen Option (0 … wrongOptionCount − 1), `null` wenn richtig. */
+  readonly wrongOptionIndex: number | null;
+  readonly pCorrect: number;
+  readonly draw: number;
+}
+
+/**
+ * Trivia-Antwort aus dem Strom (1 Wert). Die falsche Option ergibt sich ohne weitere Ziehung aus
+ * demselben Wert. Allein genutzt für reine Wissensfragen (Duell der Partie), sonst als erster
+ * Schritt von `generateNpcAnswer`.
+ */
+export function generateNpcTrivia(
+  rng: Rng,
+  profile: NpcProfile,
+  triviaB: number,
+  wrongOptionCount: number,
+): NpcTrivia {
+  if (!Number.isInteger(wrongOptionCount) || wrongOptionCount < 1) {
+    throw new RangeError('wrongOptionCount muss ≥ 1 sein');
+  }
+  const pCorrect = triviaProbability(profile.theta, triviaB);
+  const draw = rng.nextFloat();
+  const correct = draw < pCorrect;
+  const wrongOptionIndex = correct
+    ? null
+    : Math.min(
+        wrongOptionCount - 1,
+        Math.floor(((draw - pCorrect) / (1 - pCorrect)) * wrongOptionCount),
+      );
+  return { correct, wrongOptionIndex, pCorrect, draw };
+}
+
 export interface NpcEstimate {
   /** Gerundete und begrenzte Schätzung (kanonisch über `formatDecimal`). */
   readonly estimate: Decimal;
@@ -239,21 +273,10 @@ export function generateNpcAnswer(
   question: NpcQuestionSpec,
   spreadParams: EstimateSpreadParams = DEFAULT_ESTIMATE_SPREAD,
 ): NpcAnswer {
-  if (!Number.isInteger(question.wrongOptionCount) || question.wrongOptionCount < 1) {
-    throw new RangeError('wrongOptionCount muss ≥ 1 sein');
-  }
   if (!(question.estimate.scale > 0)) throw new RangeError('estimate_scale muss positiv sein');
 
   // 1. Trivia
-  const pCorrect = triviaProbability(profile.theta, question.triviaB);
-  const uTrivia = rng.nextFloat();
-  const triviaCorrect = uTrivia < pCorrect;
-  const wrongOptionIndex = triviaCorrect
-    ? null
-    : Math.min(
-        question.wrongOptionCount - 1,
-        Math.floor(((uTrivia - pCorrect) / (1 - pCorrect)) * question.wrongOptionCount),
-      );
+  const trivia = generateNpcTrivia(rng, profile, question.triviaB, question.wrongOptionCount);
 
   // 2. Schätzung und 3. Antwortzeit
   const estimate = generateNpcEstimate(
@@ -265,16 +288,16 @@ export function generateNpcAnswer(
   );
 
   return {
-    triviaCorrect,
-    wrongOptionIndex,
+    triviaCorrect: trivia.correct,
+    wrongOptionIndex: trivia.wrongOptionIndex,
     estimate: estimate.estimate,
     estimateMs: estimate.estimateMs,
     audit: {
       theta: profile.theta,
       b: question.triviaB,
-      pCorrect,
+      pCorrect: trivia.pCorrect,
       spread: estimate.spread,
-      draws: { trivia: uTrivia, estimate: estimate.draws.estimate, time: estimate.draws.time },
+      draws: { trivia: trivia.draw, estimate: estimate.draws.estimate, time: estimate.draws.time },
     },
   };
 }

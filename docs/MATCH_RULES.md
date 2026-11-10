@@ -22,7 +22,7 @@ Eine feste, eigene Karte **Wendelmark** mit 24 Regionen in fünf Reihen (4, 5, 6
 
 ## 3. Ablauf
 
-1. **Aufstellung** (Server, ab M2): Wer eine Partie anlegt, bekommt einen Einladungscode mit 6 Zeichen; mit zwei oder drei Spielern startet er die Partie **[E]**. In einer normalen Partie spielen nur Menschen, allein startet keine **[V, ADR-048]**. In einer **Testpartie** füllen Bots die freien Plätze, sodass auch ein einzelner Mensch spielen kann (§7). Die Sitze werden gelost (`drawSeatOrder`, Strom `match`) **[E]**.
+1. **Aufstellung** (Server, ab M2, [API.md §2.6](API.md#26-partie)): Wer eine Partie anlegt, bekommt einen Einladungscode mit 6 Zeichen; mit zwei oder drei Spielern startet er die Partie **[E]**. Jedes Konto ist höchstens in einer offenen Partie; eine nicht gestartete Aufstellung verfällt nach zwei Stunden, verlässt der Gastgeber sie, fällt sie aus **[E]**. In einer normalen Partie spielen nur Menschen, allein startet keine **[V, ADR-048]**. In einer **Testpartie** füllen Bots die freien Plätze, sodass auch ein einzelner Mensch spielen kann (§7). Die Sitze werden gelost (`drawSeatOrder`, Strom `match`) **[E]**.
 2. **Hauptstadtwahl:** Die Sitze wählen nacheinander eine freie Region mit mindestens `capital.minDistance` = 2 Feldern Abstand zu jeder gewählten Hauptstadt (ein Feld dazwischen). Die Hauptstadt ist 300 wert **[E]**.
 3. **Landnahme:** Jede Runde stellt allen dieselbe Schätzfrage. Rangfolge nach Abstand, bei gleichem Abstand nach effektiver Antwortzeit, bei völligem Gleichstand nach der Reihenfolge der Runde **[E]**. Nicht beantwortet zählt als unendlicher Abstand und unendliche Zeit. Zu dritt wählt der Erste zwei freie Regionen, der Zweite eine, der Dritte keine (`landGrab.picksByPlace` = 2, 1, 0); zu zweit der Erste zwei, der Zweite eine (2, 1) **[E]**; gewählt wird nacheinander, erst beide Regionen des Ersten. Wählbar ist eine freie Region am eigenen Gebiet, gibt es keine, jede freie. Die Runden laufen, bis alle Regionen vergeben sind (auf der Wendelmark zu dritt sieben, zu zweit acht).
 4. **Feldzug:** `campaign.rounds` = 4 Runden; in jeder greift jedes lebende Reich einmal an, in der Reihenfolge der Runde **[E]**. Der Angreifer wählt eine gegnerische Region an seinem Gebiet (gibt es keine, jede gegnerische); dann folgt das Duell (§4).
@@ -55,7 +55,7 @@ Nicht beantwortet zählt als falsch bzw. als unendlicher Abstand. Die Schätzfra
 | Schätzfrage | 20 s | nicht beantwortet = unendlicher Abstand |
 | Auflösung nach jeder Frage | 5 s | – |
 
-Zeitmessung und Latenzausgleich wie [QUIZ_ENGINE.md §6.2](QUIZ_ENGINE.md) (`cap` = 500 ms). Wer die Verbindung verliert, bleibt in der Partie; verpasste Fragen und Wahlen behandelt der Server wie oben. `PLAYTEST_MATCH_RULES` verkürzt die Zeiten auf 8 s, 10 s, 5 s und 2 s, sonst gleiche Regeln.
+Zeitmessung und Latenzausgleich wie [QUIZ_ENGINE.md §6.2](QUIZ_ENGINE.md) (`cap` = 500 ms). Jeder Sitz holt die Frage selbst ab; seine Zeit läuft ab dem Abholen (Zeitlimit + `cap`), höchstens bis die Frage schließt: Zeitlimit + `cap` + 2 s zum Abholen ab dem Öffnen **[E]**. Haben alle Menschen geantwortet, wird sofort aufgelöst, sonst 1 s nach dem Schließen, damit eine rechtzeitig eingegangene Antwort nicht an einer Sperre verloren geht **[E]** (ADR-049). Wer die Verbindung verliert, bleibt in der Partie; verpasste Fragen und Wahlen behandelt der Server wie oben. `PLAYTEST_MATCH_RULES` verkürzt die Zeiten auf 8 s, 10 s, 5 s und 2 s, sonst gleiche Regeln.
 
 ## 6. Wertung
 
@@ -107,5 +107,6 @@ Der Sitzvorteil kommt aus der ersten Hauptstadtwahl: Wer zuerst wählt, nimmt di
 
 - Standardwerte bestätigen oder nachjustieren (E3, nach dem ersten Spieltest).
 - Vorteil der ersten Hauptstadtwahl (§9), zu zweit rund 57 zu 43: im Spieltest beobachten. Mögliche Ausgleiche: zu zweit feste, spiegelbildliche Hauptstädte (gemessen 50 zu 50, aber ohne eigene Wahl); Hauptstadtwahl nach einer Schätzfrage statt nach Sitz; ein Ausgleich für den später Wählenden.
-- Fragenquelle für mehr als eine Partie ohne Wiederholung (E2, Paket M5).
+- Fragenquelle für mehr als eine Partie ohne Wiederholung (E2, Paket M5). Bis dahin wiederholt sich innerhalb einer Partie keine Frage, solange der Bestand andere hat; mit den 40 Testfragen kommen in langen Partien Wiederholungen vor.
+- Laufende Partie verlassen oder aufgeben: heute nicht vorgesehen; wer geht, verpasst alle weiteren Fragen und Wahlen, die Partie läuft bis zum Ende weiter. Ob es ein Aufgeben gibt und wie es zählt, entscheidet der Product Owner nach dem Spieltest.
 - Partien mit Fremden über eine Warteschlange und eine Rangliste brauchen einen erreichbaren Server ([O-11]).

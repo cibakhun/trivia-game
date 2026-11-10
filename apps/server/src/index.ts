@@ -17,3 +17,6 @@ export {
   deleteAccount,
   GUEST_INACTIVITY_MS,
 } from './modules/identity/deletion.ts';
+export { matchContextFrom, type MatchContext } from './modules/match/context.ts';
+export { advanceMatch, runMatchDriverOnce, startMatchDriver } from './modules/match/driver.ts';
+export { expireLobbies, LOBBY_TTL_MS } from './modules/match/lobby.ts';
