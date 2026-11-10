@@ -4,7 +4,7 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 ## Status
 
-**Schritt 1.0 – Grundlagen umgesetzt.** Regelkern, Protokoll, Datenbankgrundlagen und Fragenformat stehen mit Tests; ein spielbarer Prototyp folgt in Phase 1. Planung in [`docs/`](docs/README.md):
+**Phase 1 (Singleplayer-Prototyp) in Arbeit.** Regelkern, Protokoll, Datenbank, Fragenimport, Kartengenerator mit Testwelt und der Server mit Gastkonto, Beitritt und Kartenabfragen stehen mit Tests; PvE-Kampf und Client folgen. Planung in [`docs/`](docs/README.md):
 
 - Anforderungen: [`docs/brief/PRD-0.1.md`](docs/brief/PRD-0.1.md)
 - MVP-Definition: [`docs/MVP.md`](docs/MVP.md)
@@ -16,10 +16,11 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 | Pfad | Inhalt |
 |---|---|
-| `packages/protocol` | zod-Schemas: Regelkonfiguration mit Standardwerten je Modus, Zahlparser (Deutsch), Fragen-Enums |
-| `packages/game-core` | reine Spielregeln: Hex-Karte und Chunks, Ränge, Duellauswertung mit verdecktem Gate, Verteidigungspunkte, effektive Antwortzeit, Fristen, Zufall (HMAC + sfc32), Drops, NPC-Antwortmodell |
-| `packages/db` | SQL-Migrationen, Migrationsläufer, `game_now()`, Testhelfer |
-| `tools/content` | Prüfwerkzeug für Fragendateien |
+| `apps/server` | Server (Rolle `api`, Fastify): Sitzungen, Gastkonto, Welten und Beitritt, Kartenabfragen; Werkzeug `world:create` |
+| `packages/protocol` | zod-Schemas: REST-Schnittstelle (Fehlercodes, Antworten), Regelkonfiguration mit Standardwerten je Modus, Zahlparser (Deutsch), Fragen-Enums |
+| `packages/game-core` | reine Spielregeln: Hex-Karte und Chunks, Kartengenerator, Startregion, Reichsnamen, Ränge, Duellauswertung mit verdecktem Gate, Verteidigungspunkte, effektive Antwortzeit, Fristen, Zufall (HMAC + sfc32), Drops, NPC-Antwortmodell |
+| `packages/db` | SQL-Migrationen, Migrationsläufer, typisierter Zugriff (Kysely), `game_now()`, Testhelfer |
+| `tools/content` | Prüf- und Importwerkzeug für Fragendateien |
 | `content/` | Fragen als YAML ([Format](content/README.md)), derzeit 40 Testfragen |
 
 Abhängigkeitsregel: `game-core` und `protocol` laufen in Browser und Server (keine Node-Module, keine Datenbank); `game-core` nutzt von `protocol` nur Typen. ESLint erzwingt das.
@@ -38,9 +39,11 @@ pnpm test:integration         # Integrationstests (je Testdatei eine eigene Date
 pnpm db:migrate               # Migrationen auf DATABASE_URL anwenden (--status zeigt nur den Plan)
 pnpm db:types                 # Kysely-Typen aus dem migrierten Schema erzeugen (--check: nur vergleichen)
 pnpm content:import --fixtures  # Fragen importieren, lokal mit den 40 Testfragen (--dry-run: Probelauf)
+pnpm world:create             # Testwelt anlegen (150 Regionen, sechs NPC-Fraktionen)
+pnpm api:start                # Server starten (braucht PUBLIC_ORIGIN, RNG_SECRET, RNG_KEY_ID)
 ```
 
-`pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie. `pnpm content:import` verlangt in Produktion ebenfalls `--production-approved`, außer beim Probelauf mit `--dry-run`, der nichts übernimmt; Testfragen (`--fixtures`) lehnt der Import außerhalb von `local` und `test` immer ab.
+`pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie. `pnpm content:import` verlangt in Produktion ebenfalls `--production-approved`, außer beim Probelauf mit `--dry-run`, der nichts übernimmt; Testfragen (`--fixtures`) lehnt der Import außerhalb von `local` und `test` immer ab. `pnpm world:create` legt in Produktion nur mit `--production-approved` eine Welt an.
 
 ## Stack
 

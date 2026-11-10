@@ -378,6 +378,7 @@ export interface WorldInstancesTable {
   ends_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   closed_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   event_seq: ColumnType<string, string | number | bigint | undefined, string | number | bigint>;
+  mapgen_version: number;
 }
 
 export interface WorldParticipantsTable {

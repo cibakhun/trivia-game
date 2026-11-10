@@ -40,8 +40,8 @@ async function insertInstance(): Promise<string> {
   );
   await q(`update worlds set current_rules_id = $1 where id = $2`, [rulesId, worldId]);
   await q(
-    `insert into world_instances (id, world_id, rules_id, map_seed, capacity, starts_at)
-     values ($1, $2, $3, 42, 1000, game_now())`,
+    `insert into world_instances (id, world_id, rules_id, map_seed, mapgen_version, capacity, starts_at)
+     values ($1, $2, $3, 42, 1, 1000, game_now())`,
     [instanceId, worldId, rulesId],
   );
   return instanceId;
@@ -196,8 +196,8 @@ describe('Welten', () => {
     );
     await expect(
       q(
-        `insert into world_instances (id, world_id, rules_id, map_seed, capacity, starts_at)
-         values ($1, $2, $3, 1, 10, game_now())`,
+        `insert into world_instances (id, world_id, rules_id, map_seed, mapgen_version, capacity, starts_at)
+         values ($1, $2, $3, 1, 1, 10, game_now())`,
         [randomUUID(), worldId, foreignRules],
       ),
     ).rejects.toThrow(/world_instances_rules_fk/);

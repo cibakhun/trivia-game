@@ -609,6 +609,7 @@ async function createWorld(): Promise<World> {
     world_id: worldId,
     rules_id: rulesId,
     map_seed: 1,
+    mapgen_version: 1,
     capacity: 100,
     starts_at: new Date(),
   });

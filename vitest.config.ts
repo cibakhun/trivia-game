@@ -8,7 +8,11 @@ export default defineConfig({
       {
         test: {
           name: 'unit',
-          include: ['packages/*/test/**/*.test.ts', 'tools/*/test/**/*.test.ts'],
+          include: [
+            'apps/*/test/**/*.test.ts',
+            'packages/*/test/**/*.test.ts',
+            'tools/*/test/**/*.test.ts',
+          ],
           exclude: ['**/*.int.test.ts', '**/node_modules/**'],
           environment: 'node',
         },
@@ -16,7 +20,11 @@ export default defineConfig({
       {
         test: {
           name: 'integration',
-          include: ['packages/*/test/**/*.int.test.ts', 'tools/*/test/**/*.int.test.ts'],
+          include: [
+            'apps/*/test/**/*.int.test.ts',
+            'packages/*/test/**/*.int.test.ts',
+            'tools/*/test/**/*.int.test.ts',
+          ],
           environment: 'node',
           testTimeout: 30_000,
           hookTimeout: 60_000,
@@ -27,7 +35,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      include: ['packages/*/src/**', 'tools/*/src/**'],
+      include: ['apps/*/src/**', 'packages/*/src/**', 'tools/*/src/**'],
     },
   },
 });

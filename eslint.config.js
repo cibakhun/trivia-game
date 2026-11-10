@@ -103,7 +103,14 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.js', 'packages/db/**/*.ts', 'tools/**/*.ts', '**/test/**/*.ts', '*.config.ts'],
+    files: [
+      '**/*.js',
+      'apps/server/**/*.ts',
+      'packages/db/**/*.ts',
+      'tools/**/*.ts',
+      '**/test/**/*.ts',
+      '*.config.ts',
+    ],
     languageOptions: { globals: globals.node },
   },
   {

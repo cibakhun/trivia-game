@@ -60,7 +60,7 @@ Abnahme (Brief): Ein Spieler erobert wiederholt NPC-Gebiete, erweitert sein Reic
 Umsetzung in vier aufeinander folgenden Pull Requests:
 
 1. Tabellen für Fragen und Kämpfe, Betrieb und NPC-Profile (Migrationen 0005–0007), typisierter Datenbankzugriff mit Drift-Prüfung, Fragenimport – umgesetzt am 2026-11-10
-2. Kartengenerator, Testwelt, Server-Grundgerüst, Gastkonto mit Sitzung, Beitritt mit Startregion und Hauptstadt, Kartenabfragen
+2. Kartengenerator, Testwelt, Server-Grundgerüst, Gastkonto mit Sitzung, Beitritt mit Startregion und Hauptstadt, Kartenabfragen – umgesetzt am 2026-11-10
 3. PvE-Kampf: Berechtigung, Herausforderung (present/answer), versiegelte NPC-Antworten, Auflösung, Besitzwechsel, Schutzzeit, Historie, Outbox; Integration „Gebietseroberung PvE“
 4. Client (PixiJS-Karte, Regionsdetails, Quiz, Reichsanzeige) und E2E-01
 

@@ -43,7 +43,7 @@ Kennzeichnung: **[V]** verbindlich · **[A]** Annahme aus dem Brief (konfigurier
 | 100–249 | Großreich |
 | 250+ | Imperium |
 
-7. Königreichsnamen werden im MVP aus Bausteinen generiert, nicht frei eingegeben [E, [O-10]] – das vermeidet Moderationspflichten für nutzergenerierte Inhalte (Brief §14.3).
+7. Königreichsnamen werden im MVP aus Bausteinen generiert, nicht frei eingegeben [E, [O-10]] – das vermeidet Moderationspflichten für nutzergenerierte Inhalte (Brief §14.3). Umsetzung: Vorsilbe + Endung aus festen deutschen Listen (`names.ts` in `game-core`, z. B. „Falkenstein“), vergebene Namen der Instanz werden bis zu acht Mal neu gezogen; Farbe ist ein Index 0–15, bevorzugt eine wenig benutzte. Gespeichert werden die Bausteine (`kingdoms.name_parts`), angezeigt wird Rang + Name.
 
 ## 4. Angriffsberechtigung
 
