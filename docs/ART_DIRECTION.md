@@ -61,7 +61,7 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern: genau die Nachbarn der Reg
 | Hauptstadt getroffen | Die Burg wackelt, ein Schild kippt weg |
 | Du bist dran | Goldenes Band „Du bist dran!“ über der Karte (1,8 s), die Karte der Anweisung leuchtet |
 | Wählbare Regionen | Goldener, laufender Strichrand und sanftes Leuchten |
-| Duell | Rot pulsierender Rand um die umkämpfte Region; ein Pfeil in der Farbe des Angreifers zeichnet sich aus seiner angrenzenden Region (nahe seiner Hauptstadt) hinein, das Siegel mit gekreuzten Schwertern sitzt auf der Grenze. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
+| Duell | Rot pulsierender Rand um die umkämpfte Region; ein Pfeil in der Farbe des Angreifers zeichnet sich aus seiner angrenzenden Region (nahe seiner Hauptstadt) hinein, das Siegel mit gekreuzten Schwertern sitzt auf der Grenze. Pfeil und Siegel suchen sich eine Lage, die keine Namen, Münzen und Burgen verdeckt, und liegen über den Landschaftsmotiven, aber unter Namen und Münzen, damit ein Name auch im engsten Fall lesbar bleibt. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
 | Große Momente | Band über der Karte (1,8 s): „Die Landnahme beginnt“, „Der Feldzug beginnt“, „Runde 2 von 4“ (letzte Runde mit Hinweis), Tintenband; „Ein Reich fällt!“ in der Farbe und mit dem Wappen des Siegers. Ankündigungen erst, wenn gewählt wird; mehrere nacheinander; auf schmalen Bildschirmen mitten im Bild |
 | Punkte ändern sich | Die Zahl zählt hoch (0,7 s) |
 | Auflösung | Die Karte rollt sich auf, die richtige Antwort leuchtet grün, Zeilen erscheinen nacheinander |

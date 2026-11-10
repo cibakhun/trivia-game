@@ -3,7 +3,13 @@ import { DEFAULT_MATCH_RULES } from '@rdw/protocol';
 import type { MatchMap } from '@rdw/game-core';
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { ArtDefs, symbolRef, type SymbolId } from '../art/ArtDefs.tsx';
-import { attackArrow, attackSource, type ArrowShape } from '../art/attack.ts';
+import {
+  arrowScale,
+  attackArrow,
+  attackSource,
+  regionMarks,
+  type ArrowShape,
+} from '../art/attack.ts';
 import { mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
@@ -87,17 +93,25 @@ export function MatchBoard({
   const attacker = board.step.attacker;
   const arrow = useMemo(() => {
     if (contested === null || attacker === null) return null;
+    const capital = board.regions.findIndex((r) => r.capitalOf === attacker);
     const from = attackSource(
       map,
-      {
-        owner: board.regions.map((r) => r.owner),
-        capital: board.regions.findIndex((r) => r.capitalOf === attacker),
-      },
+      { owner: board.regions.map((r) => r.owner), capital: capital < 0 ? null : capital },
       attacker,
       contested,
     );
-    return from === null ? null : attackArrow(art, from, contested);
-  }, [art, map, board.regions, attacker, contested]);
+    if (from === null) return null;
+    // Pfeil und Siegel weichen Namen, Münzen und Burgen aus
+    const marks = art.regions.flatMap((region) => {
+      const state = board.regions[region.id];
+      return regionMarks(region, art.size, {
+        owned: (state?.owner ?? null) !== null,
+        capital: (state?.capitalOf ?? null) !== null,
+        narrow,
+      });
+    });
+    return attackArrow(art, from, contested, marks, arrowScale(narrow));
+  }, [art, map, board.regions, attacker, contested, narrow]);
   const hotArt = hot !== null && choosable.has(hot) ? art.regions[hot] : undefined;
 
   return (
@@ -217,6 +231,32 @@ export function MatchBoard({
       ) : null}
       <path d={art.coast} className="coastline" aria-hidden="true" />
 
+      <g className="region-decor" aria-hidden="true">
+        {art.regions.map((region) => (
+          <RegionDecor
+            key={region.id}
+            prefix={prefix}
+            region={region}
+            capital={(board.regions[region.id]?.capitalOf ?? null) !== null}
+            contested={contested === region.id}
+          />
+        ))}
+      </g>
+
+      {/* Rand, Pfeil und Siegel über den Motiven, aber unter Namen und Münzen: Wo es eng wird,
+          bleibt der Name lesbar */}
+      {contestedArt ? (
+        <Contested
+          prefix={prefix}
+          region={contestedArt}
+          arrow={arrow}
+          attacker={attacker}
+          settled={settled}
+          size={s}
+          scale={arrowScale(narrow)}
+        />
+      ) : null}
+
       <g className="region-art" aria-hidden="true">
         {art.regions.map((region) => {
           const state = board.regions[region.id];
@@ -233,7 +273,6 @@ export function MatchBoard({
                 state.capitalOf === null ? 0 : (board.seats[state.capitalOf]?.capitalLivesLeft ?? 0)
               }
               maxLives={maxLives}
-              contested={contested === region.id}
               settled={settled}
               size={s}
             />
@@ -248,21 +287,44 @@ export function MatchBoard({
             <path key={region.id} d={region.d} className="legal-ring" />
           ))}
         {hotArt ? <path d={hotArt.d} className="hot-ring" /> : null}
-        {contestedArt ? (
-          <Contested
-            prefix={prefix}
-            region={contestedArt}
-            arrow={arrow}
-            attacker={attacker}
-            settled={settled}
-            size={s}
-          />
-        ) : null}
       </g>
 
       <Compass art={art} />
       <Cartouche art={art} title={map.name} />
     </svg>
+  );
+}
+
+/** Landschaftsmotive einer Region; bei Hauptstädten und umkämpften Regionen nur die seitlichen. */
+function RegionDecor({
+  prefix,
+  region,
+  capital,
+  contested,
+}: {
+  readonly prefix: string;
+  readonly region: ArtRegion;
+  readonly capital: boolean;
+  /** Umkämpft: Das obere Motiv weicht Pfeil und Siegel. */
+  readonly contested: boolean;
+}) {
+  return (
+    <>
+      {region.decor
+        .filter((d) => (!capital && !contested) || d.slot === 'side')
+        .map((d, i) => (
+          <use
+            key={i}
+            href={symbolRef(prefix, d.kind)}
+            x={d.x - d.size / 2}
+            y={d.y - d.size / 2}
+            width={d.size}
+            height={d.size}
+            transform={d.flip ? `translate(${2 * d.x} 0) scale(-1 1)` : undefined}
+            className="decor"
+          />
+        ))}
+    </>
   );
 }
 
@@ -274,7 +336,6 @@ function RegionArt({
   capitalOf,
   lives,
   maxLives,
-  contested,
   settled,
   size: s,
 }: {
@@ -285,8 +346,6 @@ function RegionArt({
   readonly capitalOf: number | null;
   readonly lives: number;
   readonly maxLives: number;
-  /** Umkämpft: Das obere Motiv weicht dem Angriffspfeil. */
-  readonly contested: boolean;
   readonly settled: boolean;
   readonly size: number;
 }) {
@@ -306,20 +365,6 @@ function RegionArt({
   const coinY = capital ? cy + 0.08 * s : cy + 0.3 * s;
   return (
     <g className={`region-label${owner === null ? ' free' : ` seat-${owner}`}`}>
-      {region.decor
-        .filter((d) => (!capital && !contested) || d.slot === 'side')
-        .map((d, i) => (
-          <use
-            key={i}
-            href={symbolRef(prefix, d.kind)}
-            x={d.x - d.size / 2}
-            y={d.y - d.size / 2}
-            width={d.size}
-            height={d.size}
-            transform={d.flip ? `translate(${2 * d.x} 0) scale(-1 1)` : undefined}
-            className="decor"
-          />
-        ))}
       {capital ? (
         <>
           <g
@@ -378,6 +423,7 @@ function Contested({
   attacker,
   settled,
   size: s,
+  scale,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
@@ -385,12 +431,14 @@ function Contested({
   readonly attacker: number | null;
   readonly settled: boolean;
   readonly size: number;
+  /** Siegel auf schmalen Bildschirmen etwas größer. */
+  readonly scale: number;
 }) {
   // Siegel auf der Grenze zwischen Angreifer und Ziel, sonst oben rechts neben dem Namen
   const x = arrow ? arrow.mid.x : region.cx + 0.55 * s;
   const y = arrow ? arrow.mid.y : region.cy - 0.55 * s;
   return (
-    <g className="contested-mark">
+    <g className="contested-mark" aria-hidden="true">
       <path d={region.d} className="contested-ring" />
       {arrow && attacker !== null ? (
         <g
@@ -403,14 +451,14 @@ function Contested({
           <path d={arrow.head} className="arrow-head" />
         </g>
       ) : null}
-      <circle cx={x} cy={y} r={0.18 * s} className="contested-seal" />
+      <circle cx={x} cy={y} r={0.18 * s * scale} className="contested-seal" />
       <g className="swords">
         <use
           href={symbolRef(prefix, 'swords')}
-          x={x - 0.15 * s}
-          y={y - 0.15 * s}
-          width={0.3 * s}
-          height={0.3 * s}
+          x={x - 0.15 * s * scale}
+          y={y - 0.15 * s * scale}
+          width={0.3 * s * scale}
+          height={0.3 * s * scale}
         />
       </g>
     </g>

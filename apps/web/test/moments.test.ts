@@ -1,7 +1,7 @@
 import { WENDELMARK } from '@rdw/game-core';
 import { parseMatchEvent, type ParsedMatchEvent } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
-import { attackArrow, attackSource } from '../src/art/attack.ts';
+import { arrowScale, attackArrow, attackSource, regionMarks } from '../src/art/attack.ts';
 import { mapArt } from '../src/art/map-art.ts';
 import { momentsBetween, type MomentSnapshot } from '../src/match/moments.ts';
 
@@ -125,11 +125,45 @@ describe('Angriffspfeil', () => {
     expect(arrow).not.toBeNull();
     const a = art.regions[from]!;
     const b = art.regions[to]!;
-    const dist = (p: { x: number; y: number }, q: { cx: number; cy: number }) =>
+    const near = (p: { x: number; y: number }, q: { cx: number; cy: number }) =>
       Math.hypot(p.x - q.cx, p.y - q.cy);
-    const mid = arrow!.mid;
-    expect(dist(mid, a)).toBeLessThan(Math.hypot(a.cx - b.cx, a.cy - b.cy));
-    expect(dist(mid, b)).toBeLessThan(Math.hypot(a.cx - b.cx, a.cy - b.cy));
+    // Schaft beginnt beim Angreifer, Spitze im Ziel, Siegel ungefähr auf der Grenze
+    expect(near(arrow!.tail, a)).toBeLessThan(near(arrow!.tail, b));
+    expect(near(arrow!.tip, b)).toBeLessThan(near(arrow!.tip, a));
+    const gap = Math.hypot(a.cx - b.cx, a.cy - b.cy);
+    expect(near(arrow!.mid, a)).toBeLessThan(gap);
+    expect(near(arrow!.mid, b)).toBeLessThan(gap);
     expect(arrow!.d).toMatch(/^M[\d.-]+ [\d.-]+Q/);
+  });
+
+  it('das Siegel weicht Namen, Münzen und Burgen aus', () => {
+    const art = mapArt(WENDELMARK);
+    const s = art.size;
+    for (const narrow of [false, true]) {
+      // Jede Nachbarschaft der Karte, alle Regionen besetzt, Hauptstadt im Angreiferfeld
+      const covered: string[] = [];
+      let pairs = 0;
+      for (const [from, list] of WENDELMARK.adjacency.entries()) {
+        for (const to of list) {
+          const marks = art.regions.flatMap((region) =>
+            regionMarks(region, s, { owned: true, capital: region.id === from, narrow }),
+          );
+          const arrow = attackArrow(art, from, to, marks, arrowScale(narrow));
+          expect(arrow).not.toBeNull();
+          pairs++;
+          const r = 0.18 * s * arrowScale(narrow);
+          const hit = marks.some((m) => {
+            const dx = Math.max(m.x0 - arrow!.mid.x, 0, arrow!.mid.x - m.x1);
+            const dy = Math.max(m.y0 - arrow!.mid.y, 0, arrow!.mid.y - m.y1);
+            return dx * dx + dy * dy < r * r;
+          });
+          if (hit) covered.push(`${from}→${to}`);
+        }
+      }
+      expect(pairs).toBeGreaterThan(100);
+      // Breit passt es überall; schmal sind die Namen größer, dort darf es in seltenen Fällen eng
+      // werden (die Namen liegen ohnehin über Pfeil und Siegel)
+      expect(covered.length, covered.join(' ')).toBeLessThanOrEqual(narrow ? 2 : 0);
+    }
   });
 });

@@ -1213,7 +1213,8 @@ select:focus-visible {
  * Während einer Frage bewegt sich auf der Karte nichts (ARCHITECTURE §15): Änderungen springen
  * auf ihr Endbild, Dauerbewegungen stehen still.
  */
-.match-page[data-state='question'] .map-art * {
+.match-page[data-state='question'] .map-art *,
+.match-page[data-state='question'] .map-art .attack-arrow.draw * {
   animation: none;
 }
 

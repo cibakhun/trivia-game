@@ -185,7 +185,9 @@
 }
 
 /* Beschriftung, Motive, Münzen, Burgen */
-.map-art .region-art {
+.map-art .region-art,
+.map-art .region-decor,
+.map-art .contested-mark {
   pointer-events: none;
 }
 
@@ -536,6 +538,13 @@
   transform-box: fill-box;
   transform-origin: center;
   transform: scale(1.25) translateY(2px);
+}
+
+.map-art.narrow .arrow-ink {
+  stroke-width: 10;
+}
+.map-art.narrow .arrow-shaft {
+  stroke-width: 5.8;
 }
 
 .map-art.narrow .decor {

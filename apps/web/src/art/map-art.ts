@@ -42,6 +42,8 @@ export interface ArtRegion {
   readonly name: string;
   /** Umriss als geschlossener SVG-Pfad. */
   readonly d: string;
+  /** Derselbe Umriss als Punkte (für Treffertests wie beim Angriffspfeil). */
+  readonly outline: readonly Point[];
   /** Mittelpunkt des Feldes, Anker für Name, Wert und Burg. */
   readonly cx: number;
   readonly cy: number;
@@ -387,9 +389,14 @@ export function mapArt(map: MatchMap, size = ART_HEX_SIZE): MapArt {
   const shiftPath = (points: readonly Point[]) => pathOf(points.map(shift));
   const shifted: ArtRegion[] = regions.map(({ outline, ...region }) => {
     const centre = shift({ x: region.cx, y: region.cy });
+    const points = outline.map((p) => {
+      const q = shift(p);
+      return { x: r2(q.x), y: r2(q.y) };
+    });
     return {
       ...region,
-      d: shiftPath(outline),
+      d: pathOf(points),
+      outline: points,
       cx: r2(centre.x),
       cy: r2(centre.y),
       decor: region.decor.map((decor) => {
