@@ -14,6 +14,7 @@ export * from './duel.ts';
 export * from './hex.ts';
 export * from './mapgen.ts';
 export * from './match.ts';
+export * from './match-bots.ts';
 export * from './match-map.ts';
 export * from './names.ts';
 export * from './npc.ts';

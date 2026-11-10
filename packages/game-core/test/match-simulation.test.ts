@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyMatchInput,
   autoPickRegion,
+  chooseRegionForBot,
   createMatch,
   createRng,
   currentChooser,
@@ -11,12 +12,15 @@ import {
   freeRegions,
   generateNpcAnswer,
   generateNpcEstimate,
+  MATCH_BOT_PROFILES,
+  MATCH_BOT_STRENGTHS,
   matchPhase,
   matchStandings,
   pendingQuestion,
   regionsOf,
   scoreEstimate,
   WENDELMARK,
+  type MatchBotStrength,
   type MatchEstimateAnswer,
   type MatchEvent,
   type MatchInput,
@@ -24,15 +28,9 @@ import {
   type NpcEstimateSpec,
   type Rng,
 } from '../src/index.ts';
-import {
-  chooseRegionForTestPlayer,
-  TEST_PLAYER_PROFILES,
-  TEST_PLAYER_STRENGTHS,
-  type TestPlayerStrength,
-} from './match-test-players.ts';
 
 /**
- * Simulation von je 1 000 Partien zu dritt und zu zweit mit Testspielern (Abnahme M1,
+ * Simulation von je 1 000 Partien zu dritt und zu zweit mit Bots (Abnahme M1,
  * docs/MATCH_RULES.md §9): Nach jedem Schritt gelten die Invarianten, jede Partie endet, die
  * Punkte stimmen, und keine Partie braucht mehr Fragen oder Zeit als geplant. Sitz 0 verpasst
  * Fragen und Wahlen wie ein Mensch, der nicht rechtzeitig antwortet.
@@ -95,13 +93,13 @@ function randomEstimateSpec(rng: Rng): NpcEstimateSpec {
 
 function scoreEstimateOf(
   rng: Rng,
-  strength: TestPlayerStrength,
+  strength: MatchBotStrength,
   spec: NpcEstimateSpec,
   missed: boolean,
   timeLimitMs: number,
 ): MatchEstimateAnswer {
   // Gezogen wird immer, damit ein verpasster Schritt die Folge der anderen nicht verschiebt.
-  const answer = generateNpcEstimate(rng, TEST_PLAYER_PROFILES[strength], spec, timeLimitMs);
+  const answer = generateNpcEstimate(rng, MATCH_BOT_PROFILES[strength], spec, timeLimitMs);
   if (missed) return { distance: null, effectiveMs: null };
   const scored = scoreEstimate(formatDecimal(answer.estimate), spec);
   if (!scored.ok) throw new Error('Schätzung außerhalb des Bereichs');
@@ -111,7 +109,7 @@ function scoreEstimateOf(
 interface Simulated {
   readonly state: MatchState;
   readonly events: readonly MatchEvent[];
-  readonly strengths: readonly TestPlayerStrength[];
+  readonly strengths: readonly MatchBotStrength[];
   readonly durationMs: number;
   readonly steps: number;
 }
@@ -163,9 +161,7 @@ function simulate(plan: Plan, index: number): Simulated {
   const strengths = Array.from(
     { length: rules.seats },
     () =>
-      TEST_PLAYER_STRENGTHS[
-        choices.nextUint32() % TEST_PLAYER_STRENGTHS.length
-      ] as TestPlayerStrength,
+      MATCH_BOT_STRENGTHS[choices.nextUint32() % MATCH_BOT_STRENGTHS.length] as MatchBotStrength,
   );
   // Sitz 0 spielt wie ein Mensch, der manchmal nicht rechtzeitig antwortet oder wählt
   const missed = (seat: number) => choices.nextFloat() < (seat === 0 ? 0.15 : 0);
@@ -189,7 +185,7 @@ function simulate(plan: Plan, index: number): Simulated {
         const seat = currentChooser(state) as number;
         const region = missed(seat)
           ? autoPickRegion(state, choices)
-          : chooseRegionForTestPlayer(state, choices);
+          : chooseRegionForBot(state, choices);
         const kind =
           step.kind === 'CAPITAL_PICK'
             ? 'PICK_CAPITAL'
@@ -210,7 +206,7 @@ function simulate(plan: Plan, index: number): Simulated {
             seat,
             ...scoreEstimateOf(
               answers,
-              strengths[seat] as TestPlayerStrength,
+              strengths[seat] as MatchBotStrength,
               spec,
               missed(seat),
               timers.estimateMs,
@@ -228,7 +224,7 @@ function simulate(plan: Plan, index: number): Simulated {
         const answer = (seat: number) => {
           const a = generateNpcAnswer(
             answers,
-            TEST_PLAYER_PROFILES[strengths[seat] as TestPlayerStrength],
+            MATCH_BOT_PROFILES[strengths[seat] as MatchBotStrength],
             {
               triviaB,
               wrongOptionCount: 3,
@@ -339,17 +335,17 @@ for (const plan of PLANS) {
       expect(estimates).toBeGreaterThan(MATCHES);
     });
 
-    it('stärkere Testspieler gewinnen öfter', () => {
+    it('stärkere Bots gewinnen öfter', () => {
       const wins = { EASY: 0, MEDIUM: 0, HARD: 0 };
       const played = { EASY: 0, MEDIUM: 0, HARD: 0 };
       for (const run of runs) {
         for (const s of matchStandings(run.state)) {
-          const strength = run.strengths[s.seat] as TestPlayerStrength;
+          const strength = run.strengths[s.seat] as MatchBotStrength;
           played[strength] += 1;
           if (s.place === 1) wins[strength] += 1;
         }
       }
-      const rate = (k: TestPlayerStrength) => wins[k] / played[k];
+      const rate = (k: MatchBotStrength) => wins[k] / played[k];
       expect(rate('HARD')).toBeGreaterThan(rate('MEDIUM'));
       expect(rate('MEDIUM')).toBeGreaterThan(rate('EASY'));
     });

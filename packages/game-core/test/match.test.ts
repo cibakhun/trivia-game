@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyMatchInput,
   autoPickRegion,
+  chooseRegionForBot,
   createMatch,
   createRng,
   currentChooser,
@@ -24,7 +25,6 @@ import {
   type MatchRegionState,
   type MatchState,
 } from '../src/index.ts';
-import { chooseRegionForTestPlayer } from './match-test-players.ts';
 
 // Wendelmark-IDs, die die Tests benutzen (Reihen 4, 5, 6, 5, 4 von oben links)
 const ESCHENHAIN = 0; // oben links, Hauptstadt von Sitz 0
@@ -587,17 +587,17 @@ describe('Feldzug', () => {
   });
 });
 
-describe('Testspieler und Zeitablauf', () => {
+describe('Bots und Zeitablauf', () => {
   it('wählen in jedem Schritt eine erlaubte Region', () => {
     let state = createMatch(DEFAULT_MATCH_RULES);
     const rng = seededRng(7);
     while (state.step.kind === 'CAPITAL_PICK') {
-      const region = chooseRegionForTestPlayer(state, rng);
+      const region = chooseRegionForBot(state, rng);
       expect(legalRegions(state)).toContain(region);
       state = play(state, { kind: 'PICK_CAPITAL', seat: state.step.seat, region }).state;
     }
     const capitals = state.seats.map((s) => s.capital as number);
-    // Testspieler halten Abstand: mindestens drei Felder zwischen ihren Hauptstädten
+    // Bots halten Abstand: mindestens drei Felder zwischen ihren Hauptstädten
     for (const a of capitals)
       for (const b of capitals)
         if (a !== b) expect(regionDistance(WENDELMARK, a, b)).toBeGreaterThanOrEqual(3);
@@ -606,7 +606,7 @@ describe('Testspieler und Zeitablauf', () => {
       kind: 'LAND_ESTIMATES',
       answers: [0, 1, 2].map((seat) => ({ seat, ...est(String(seat), 1000) })),
     }).state;
-    const pick = chooseRegionForTestPlayer(state, rng);
+    const pick = chooseRegionForBot(state, rng);
     expect(legalRegions(state)).toContain(pick);
     expect(legalRegions(state)).toContain(autoPickRegion(state, rng));
   });
@@ -614,17 +614,15 @@ describe('Testspieler und Zeitablauf', () => {
   it('greifen eine Hauptstadt mit letztem Leben vor jeder anderen Region an', () => {
     const start = campaignState();
     const seats = start.seats.map((s, seat) => (seat === 2 ? { ...s, capitalHits: 2 } : s));
-    expect(chooseRegionForTestPlayer({ ...start, seats }, seededRng(1))).toBe(TANNENRUH);
+    expect(chooseRegionForBot({ ...start, seats }, seededRng(1))).toBe(TANNENRUH);
     // Sonst die wertvollste Region; eine volle Hauptstadt zählt nur halb (150 > 100)
     const fortified = start.regions.map((r, id) => (id === UFERLAND ? { ...r, value: 200 } : r));
-    expect(chooseRegionForTestPlayer({ ...start, regions: fortified }, seededRng(1))).toBe(
-      UFERLAND,
-    );
+    expect(chooseRegionForBot({ ...start, regions: fortified }, seededRng(1))).toBe(UFERLAND);
   });
 
   it('haben im Duell nichts zu wählen', () => {
     const target = play(campaignState(), { kind: 'PICK_TARGET', seat: 0, region: SALZWEIDE });
-    expect(() => chooseRegionForTestPlayer(target.state, seededRng(1))).toThrow();
+    expect(() => chooseRegionForBot(target.state, seededRng(1))).toThrow();
   });
 });
 

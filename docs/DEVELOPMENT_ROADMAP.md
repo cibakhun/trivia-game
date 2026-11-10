@@ -88,14 +88,14 @@ Umsetzung in vier Pull Requests, je Paket einer, in der Reihenfolge PvP, Konto, 
 
 ### Partie – rundenbasiertes Hauptspiel (ADR-046)
 
-Zwei oder drei Menschen auf der festen Karte Wendelmark, ohne Bots (ADR-048), gleichzeitige Fragen mit Timern, höchstens etwa 18 Minuten je Partie; Regeln in [MATCH_RULES.md](MATCH_RULES.md). Fünf Pull Requests in dieser Reihenfolge, jeder erst nach dem „merge“ des Product Owners im Hauptzweig; spielbar wird die Partie mit M4.
+Zwei oder drei Menschen auf der festen Karte Wendelmark, Bots nur in Testpartien (ADR-048), gleichzeitige Fragen mit Timern, höchstens etwa 18 Minuten je Partie; Regeln in [MATCH_RULES.md](MATCH_RULES.md). Fünf Pull Requests in dieser Reihenfolge, jeder erst nach dem „merge“ des Product Owners im Hauptzweig; spielbar wird die Partie mit M4.
 
 | Paket | Inhalt | Abnahme |
 |---|---|---|
-| M1 Regeln | Zustandsmaschine in `game-core` (Karte, Hauptstadtwahl, Landnahme, Duell, Hauptstadtleben, Wertung) für zwei oder drei Spieler, Regelkonfiguration, Testspieler für die Simulation, Doku – umgesetzt am 2026-11-10 (ADR-047, ADR-048) | Unit-Tests je Regel; Simulation von je 1 000 Partien zu dritt und zu zweit ohne Verstoß |
-| M2 Server | Migration für Partien, Plätze, Fragen und Antworten; Ablaufsteuerung mit Timern und Wiederanlauf nach Neustart; Endpunkte für Anlegen mit Einladungscode, Beitritt, Start mit zwei oder drei Spielern, Wahl, Antwort und Zustand | Integrationstest einer ganzen Partie mit kurzen Zeiten; Neustart mitten in einer Frage |
+| M1 Regeln | Zustandsmaschine in `game-core` (Karte, Hauptstadtwahl, Landnahme, Duell, Hauptstadtleben, Wertung) für zwei oder drei Spieler, Bots für Testpartien, Regelkonfiguration, Doku – umgesetzt am 2026-11-10 (ADR-047, ADR-048) | Unit-Tests je Regel; Simulation von je 1 000 Partien zu dritt und zu zweit ohne Verstoß |
+| M2 Server | Migration für Partien, Plätze, Fragen und Antworten; Ablaufsteuerung mit Timern und Wiederanlauf nach Neustart; Endpunkte für Anlegen mit Einladungscode, Beitritt, Start mit zwei oder drei Spielern, Wahl, Antwort und Zustand; Testpartie mit Bots (nicht in Produktion) | Integrationstest einer ganzen Partie mit kurzen Zeiten; Neustart mitten in einer Frage |
 | M3 Echtzeit | WebSocket mit Sitzungsprüfung, ein Kanal je Partie, vollständiger Zustand beim Wiederverbinden, Herzschlag | drei Testclients sehen jede Frage gleichzeitig; Wiederverbinden mitten in einer Frage |
-| M4 Browser | Startseite „Partie spielen“, Aufstellung, Karte, Frage mit Countdown, Wahl, Duell zuschauen, Ergebnis | E2E: ganze Partie mit zwei und mit drei Browsern; Spieltest beim Product Owner (zu zweit, oder allein mit zwei Browserfenstern) |
+| M4 Browser | Startseite „Partie spielen“, Aufstellung, Karte, Frage mit Countdown, Wahl, Duell zuschauen, Ergebnis | E2E: ganze Testpartie gegen zwei Bots, normale Partie mit zwei Browsern; Spieltest beim Product Owner (allein gegen Bots oder mit Mitspielern) |
 | M5 Fragen | mehr Fragen nach Entscheidung E2, keine Wiederholung über mehrere Partien je Spieler | Inhaltsprüfung grün; in den ersten 5 Partien eines Spielers wiederholt sich keine Frage |
 
 Danach geht es mit der Eternal-Welt weiter (Phase 2 Paket 3 und 4, dann Phase 3).

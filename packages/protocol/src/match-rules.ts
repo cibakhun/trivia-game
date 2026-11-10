@@ -23,8 +23,8 @@ export const matchRulesSchema = z
     schemaVersion: z.literal(1),
     map: matchMapIdSchema,
     /**
-     * Spieler je Partie, nur Menschen (keine Bots, PO 2026-11-10, ADR-048). Die Wendelmark trägt
-     * zwei oder drei Reiche.
+     * Plätze je Partie; die Wendelmark trägt zwei oder drei Reiche. Normale Partien spielen nur
+     * Menschen, in Testpartien füllen Bots freie Plätze (PO 2026-11-10, ADR-048).
      */
     seats: z.union([z.literal(2), z.literal(3)]),
     capital: z
