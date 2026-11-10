@@ -2,6 +2,8 @@
 
 Kennzeichnung: **[V]** verbindlich · **[A]** Annahme aus dem Brief (konfigurierbar) · **[E]** Empfehlung (Standard, änderbar) · **[O-xx]** offene PO-Entscheidung. Details zu den Teilsystemen stehen in den verlinkten Dokumenten; dieses Dokument ist die zusammenfassende Referenz.
 
+Dieses Regelwerk beschreibt die Eternal-, Daily- und Weekly-Welten. Die rundenbasierte Partie, seit 2026-11-10 das Hauptspiel (ADR-046), hat ihr eigenes Regelwerk in [MATCH_RULES.md](MATCH_RULES.md); sie übernimmt von hier die Nachbarschaft (§2), die Duellauswertung (§5.2) und die Hauptstadtleben (§3).
+
 ---
 
 ## 1. Grundbegriffe

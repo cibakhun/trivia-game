@@ -11,6 +11,7 @@ Anforderungsbasis: [`brief/PRD-0.1.md`](brief/PRD-0.1.md) (Original-Briefing des
 | 2 | [PRODUCT_VISION.md](PRODUCT_VISION.md) | Vision, Prinzipien, Nicht-Ziele, Erfolgskriterien |
 | 3 | [MVP.md](MVP.md) | **Definition des ersten spielbaren MVP** und der Zwischenmeilensteine |
 | 4 | [GAME_RULES.md](GAME_RULES.md) | Regelwerk mit Kennzeichnung (verbindlich / Annahme / Empfehlung / offen) und Parametertabelle |
+| 4a | [MATCH_RULES.md](MATCH_RULES.md) | **Regelwerk der rundenbasierten Partie** (Hauptspiel seit 2026-11-10, ADR-046) mit Parametertabelle und Simulationswerten |
 | 5 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architekturübersicht, Stack, Diagramme, Modulgrenzen, Zeit- und Zufallsmodell |
 | 6 | [DATA_MODEL.md](DATA_MODEL.md) | Konsistentes Datenmodell, Constraints, Indizes, Migrationsstrategie |
 | 7 | [API.md](API.md) | HTTP-API- und Echtzeit-Entwurf |

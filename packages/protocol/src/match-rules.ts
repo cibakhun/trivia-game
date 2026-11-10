@@ -1,0 +1,130 @@
+import { z } from 'zod';
+import { SECOND_MS } from './rules-config.ts';
+
+/**
+ * Regeln einer rundenbasierten Partie (docs/MATCH_RULES.md, ADR-047). Alle Werte sind
+ * Standardannahmen [E]; sie liegen hier, damit sie sich ohne Umbau ändern lassen. Dauern sind
+ * ganzzahlige Millisekunden.
+ */
+
+/** Feste Karten der Partie; heute gibt es eine. */
+export const MATCH_MAP_IDS = ['WENDELMARK'] as const;
+export const matchMapIdSchema = z.enum(MATCH_MAP_IDS);
+export type MatchMapId = z.infer<typeof matchMapIdSchema>;
+
+const timerMs = z
+  .number()
+  .int()
+  .min(SECOND_MS)
+  .max(10 * 60 * SECOND_MS);
+
+export const matchRulesSchema = z
+  .object({
+    schemaVersion: z.literal(1),
+    map: matchMapIdSchema,
+    /** Reiche je Partie; freie Plätze füllen Bots. Die Karte ist auf drei ausgelegt. */
+    seats: z.literal(3),
+    capital: z
+      .object({
+        /** Leben der Hauptstadt; der Sieg, der das letzte nimmt, übernimmt das Reich (ADR-037). */
+        lives: z.number().int().min(1).max(10),
+        /** Mindestabstand zwischen zwei Hauptstädten in Feldern (2 = ein Feld dazwischen). */
+        minDistance: z.number().int().min(1).max(5),
+      })
+      .strict(),
+    landGrab: z
+      .object({
+        /**
+         * Regionen, die der Erste, Zweite, Dritte einer Landnahmerunde wählt. Länge = Plätze,
+         * nicht steigend, mindestens einer wählt.
+         */
+        picksByPlace: z.array(z.number().int().min(0).max(5)).min(1).max(10),
+      })
+      .strict(),
+    campaign: z
+      .object({
+        /** Feldzugrunden; in jeder greift jedes lebende Reich einmal an. */
+        rounds: z.number().int().min(1).max(10),
+      })
+      .strict(),
+    values: z
+      .object({
+        region: z.number().int().min(1).max(10_000),
+        capital: z.number().int().min(1).max(10_000),
+        /** Wertzuwachs einer Region je erfolgreicher Verteidigung. */
+        defenseBonus: z.number().int().min(0).max(10_000),
+      })
+      .strict(),
+    timers: z
+      .object({
+        triviaMs: timerMs,
+        estimateMs: timerMs,
+        /** Wahl von Hauptstadt, Region oder Angriffsziel; danach wählt der Server. */
+        pickMs: timerMs,
+        /** Anzeige der Auflösung nach jeder Frage. */
+        revealMs: timerMs,
+        /** `cap` aus QUIZ_ENGINE §6.2. */
+        latencyAllowanceCapMs: z
+          .number()
+          .int()
+          .min(0)
+          .max(10 * SECOND_MS),
+      })
+      .strict(),
+  })
+  .strict()
+  .superRefine((rules, ctx) => {
+    const picks = rules.landGrab.picksByPlace;
+    if (picks.length !== rules.seats) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['landGrab', 'picksByPlace'],
+        message: 'Je Platz genau ein Wert',
+      });
+    }
+    if (picks.some((value, i) => i > 0 && value > (picks[i - 1] ?? 0))) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['landGrab', 'picksByPlace'],
+        message: 'Ein besserer Platz wählt nie weniger Regionen',
+      });
+    }
+    if ((picks[0] ?? 0) < 1) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['landGrab', 'picksByPlace'],
+        message: 'Der Erste muss mindestens eine Region wählen',
+      });
+    }
+  });
+export type MatchRules = z.infer<typeof matchRulesSchema>;
+
+/** Standardwerte aus dem Plan vom 2026-11-10 (ADR-047), nach dem ersten Spieltest nachjustieren. */
+export const DEFAULT_MATCH_RULES: MatchRules = Object.freeze({
+  schemaVersion: 1,
+  map: 'WENDELMARK',
+  seats: 3,
+  capital: { lives: 3, minDistance: 2 },
+  landGrab: { picksByPlace: [2, 1, 0] },
+  campaign: { rounds: 4 },
+  values: { region: 100, capital: 300, defenseBonus: 50 },
+  timers: {
+    triviaMs: 15 * SECOND_MS,
+    estimateMs: 20 * SECOND_MS,
+    pickMs: 10 * SECOND_MS,
+    revealMs: 5 * SECOND_MS,
+    latencyAllowanceCapMs: 500,
+  },
+});
+
+/** Verkürzte Zeiten für Tests und schnelle Spieltests; Regeln sonst gleich. */
+export const PLAYTEST_MATCH_RULES: MatchRules = Object.freeze({
+  ...DEFAULT_MATCH_RULES,
+  timers: {
+    triviaMs: 8 * SECOND_MS,
+    estimateMs: 10 * SECOND_MS,
+    pickMs: 5 * SECOND_MS,
+    revealMs: 2 * SECOND_MS,
+    latencyAllowanceCapMs: 500,
+  },
+});

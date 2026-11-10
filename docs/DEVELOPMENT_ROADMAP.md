@@ -2,6 +2,8 @@
 
 Bezug: Brief §16 (Phasen), §20 (Arbeitsweise). Die Phasen des Briefs bleiben erhalten; ergänzt werden ein Grundlagenschritt vor Phase 1 und ein **Closed-Beta-Schritt nach Phase 4**, damit echte Spieler den Kern-Loop testen, bevor NPC-Simulation und Saisonmodi gebaut werden.
 
+**Kurswechsel 2026-11-10 (ADR-046):** Nach Phase 2 Paket 2 kommt zuerst die rundenbasierte **Partie** (Pakete M1–M5, [MATCH_RULES.md](MATCH_RULES.md)); die Eternal-Welt ruht mit Phase 2 Paket 3 und 4, bis die Partie fertig ist.
+
 ## 1. Überblick
 
 ```mermaid
@@ -9,7 +11,8 @@ flowchart LR
   P0[Phase 0<br/>Analyse & Architektur] --> F[1.0 Grundlagen]
   F --> P1[Phase 1<br/>Singleplayer-Prototyp]
   P1 --> P2[Phase 2<br/>Multiplayer + PvP]
-  P2 --> P3[Phase 3<br/>Eternal-Belagerungen]
+  P2 --> PM[Partie M1–M5<br/>rundenbasiertes Hauptspiel]
+  PM --> P3[Phase 3<br/>Eternal-Belagerungen]
   P3 --> P4[Phase 4<br/>Items]
   P4 --> CB[4.5 Closed-Beta-Reife<br/>= erstes spielbares MVP]
   CB --> P5[Phase 5<br/>NPC-Simulation + Weltwachstum]
@@ -80,8 +83,22 @@ Umsetzung in vier Pull Requests, je Paket einer, in der Reihenfolge PvP, Konto, 
 
 1. PvP: Eröffnung nach dem Angreifer, Verteidigung mit Frage im Verteidigungsbeginn, Auflösung (Verteidigung, Fristablauf, Abbruch), Verteidigungspunkte mit Paarsperre, PvP-Grenzen und Hauptstadtsperre, Belagerungsübersicht, Neugründung nach dem Fall, Spieltest-Regeln (`pnpm world:create --rules=playtest`, 10 min Frist); E2E-02 und -03 – umgesetzt am 2026-11-10 (ADR-038 bis ADR-042; ohne Echtzeit, Push und Verlängerung)
 2. Konto nach [O-03] und [O-10]: Gast sichern mit privatem Benutzernamen, Passwort (Argon2id) und Spielernamen aus Vorschlägen, Anmelden mit Sitzungsrotation und Anmeldebremse, Spielername und Passwort ändern, Reichsname aus Vorschlägen bei Beitritt und Neugründung, Kontoseite und Weltwahl im Client, Passwort-Reset per Befehl, Löschung inaktiver Gäste nach 90 Tagen mit Anonymisierung – umgesetzt am 2026-11-10 (ADR-043 bis ADR-045; E-Mail-Feld aufgeschoben bis zum Mailversand)
-3. Echtzeit (WebSocket)
-4. Nebenläufigkeit (Harness, N1–N4, N8, N12, E2E-09) und E2E-04
+3. Echtzeit (WebSocket) – ruht (ADR-046); der WebSocket entsteht zuerst als Partie-Paket M3 und wird mit der Eternal-Fortsetzung für die Karte erweitert
+4. Nebenläufigkeit (Harness, N1–N4, N8, N12, E2E-09) und E2E-04 – ruht bis zur Eternal-Fortsetzung (ADR-046)
+
+### Partie – rundenbasiertes Hauptspiel (ADR-046)
+
+Drei Reiche auf der festen Karte Wendelmark, gleichzeitige Fragen mit Timern, höchstens etwa 18 Minuten je Partie; Regeln in [MATCH_RULES.md](MATCH_RULES.md). Fünf Pull Requests in dieser Reihenfolge, jeder erst nach dem „merge“ des Product Owners im Hauptzweig; spielbar wird die Partie mit M4.
+
+| Paket | Inhalt | Abnahme |
+|---|---|---|
+| M1 Regeln | Zustandsmaschine in `game-core` (Karte, Hauptstadtwahl, Landnahme, Duell, Hauptstadtleben, Wertung), Bots, Regelkonfiguration, Doku – umgesetzt am 2026-11-10 (ADR-047) | Unit-Tests je Regel; Simulation von 1 000 Bot-Partien ohne Verstoß |
+| M2 Server | Migration für Partien, Plätze, Fragen und Antworten; Ablaufsteuerung mit Timern und Wiederanlauf nach Neustart; Endpunkte für Partie gegen Bots, Einladungscode, Beitritt, Start, Wahl, Antwort und Zustand; Bots | Integrationstest einer ganzen Partie mit kurzen Zeiten; Neustart mitten in einer Frage |
+| M3 Echtzeit | WebSocket mit Sitzungsprüfung, ein Kanal je Partie, vollständiger Zustand beim Wiederverbinden, Herzschlag | drei Testclients sehen jede Frage gleichzeitig; Wiederverbinden mitten in einer Frage |
+| M4 Browser | Startseite „Partie spielen“, Aufstellung, Karte, Frage mit Countdown, Wahl, Duell zuschauen, Ergebnis | E2E: ganze Partie gegen zwei Bots, zwei Browser plus Bot; Spieltest beim Product Owner |
+| M5 Fragen | mehr Fragen nach Entscheidung E2, keine Wiederholung über mehrere Partien je Spieler | Inhaltsprüfung grün; in den ersten 5 Partien eines Spielers wiederholt sich keine Frage |
+
+Danach geht es mit der Eternal-Welt weiter (Phase 2 Paket 3 und 4, dann Phase 3).
 
 ### Phase 3 – Eternal-Belagerungen
 
@@ -129,6 +146,7 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 | Schritt 1.0 | keine ([O-01] ist entschieden) |
 | Phase 1 | ~~[O-02] Fragenbeschaffung~~ vertagt (PO 2026-11-09): Phase 1 mit den 40 Testfragen, Klärung vor der Beta |
 | Phase 2 | ~~[O-03] Kontomodell~~ und ~~[O-10] Namen~~ entschieden, [O-11] Staging-Hosting vertagt (Test lokal oder im Heimnetz), ~~[O-19] Schätzfrage als Tiebreaker im PvP~~ und ~~[O-20] Übernahme von Spielerreichen~~ entschieden (alle PO 2026-11-10); [O-18] Verteidigungspunkte mit der Empfehlung als Standardannahme umgesetzt, Werte und Nutzen offen |
+| Partie | E2 Fragenquelle (vor M5), E3 Standardwerte (nach dem ersten Spieltest nachjustieren), siehe [MATCH_RULES.md §10](MATCH_RULES.md#10-offen) |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |
 | Closed Beta | [O-11] Hosting, [O-12] Name |
