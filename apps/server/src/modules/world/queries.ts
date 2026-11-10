@@ -78,7 +78,10 @@ export async function listWorlds(db: Db, userId: string): Promise<WorldsResponse
   return [...worlds.values()];
 }
 
-/** Instanzen, an denen der Spieler teilnimmt, mit aktuellem Reich und Tutorial-Ziel. */
+/**
+ * Instanzen, an denen der Spieler teilnimmt, mit aktuellem Reich, Tutorial-Ziel und laufender
+ * Herausforderung. Fällige Kämpfe löst der Aufrufer vorher auf.
+ */
 export async function listMyInstances(db: Db, userId: string): Promise<MyInstance[]> {
   const rows = await db
     .selectFrom('world_participants as p')
@@ -114,6 +117,15 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
       kingdom?.status === 'ACTIVE' && kingdom.regionCount === 1 && row.q !== null && row.r !== null
         ? await tutorialTargetNear(db, row.instance_id, { q: row.q, r: row.r })
         : null;
+    const open = row.current_kingdom_id
+      ? await db
+          .selectFrom('sieges as s')
+          .innerJoin('quiz_challenges as c', 'c.siege_id', 's.id')
+          .select('c.id')
+          .where('s.attacker_kingdom_id', '=', row.current_kingdom_id)
+          .where('s.status', '=', 'PREPARING')
+          .executeTakeFirst()
+      : undefined;
     result.push({
       instanceId: row.instance_id,
       worldId: row.world_id,
@@ -122,6 +134,7 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
       status: row.status as InstanceStatus,
       kingdom,
       tutorialTargetRegionId: tutorial,
+      openChallengeId: open?.id ?? null,
     });
   }
   return result;

@@ -74,3 +74,8 @@ jobs:
       # Drift-Prüfung (DATA_MODEL §6.2): eingecheckte Kysely-Typen gegen das migrierte Schema
       - name: Schema-Typen aktuell
         run: pnpm db:types --check
+      # E2E-01 im Browser (TEST_PLAN §5): eigene Testdatenbank, api und gebauter Client
+      - name: Chromium für Playwright
+        run: pnpm --filter @rdw/web exec playwright install --with-deps chromium
+      - name: E2E-Tests (Browser)
+        run: pnpm e2e

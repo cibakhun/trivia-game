@@ -419,6 +419,9 @@ describe('Gebietseroberung PvE', () => {
       'NPC_ANSWERS_SEALED',
     ]);
     expect((await siegeRow(started.siegeId)).attack_presented_at).toBeNull();
+    // Nach einem Reload findet der Client die laufende Herausforderung über das Profil
+    const during = meResponseSchema.parse((await player.client.get('/me')).json());
+    expect(during.instances[0]?.openChallengeId).toBe(started.challengeId);
 
     // 2. Trivia: nur Token und Texte, kein Hinweis auf die richtige Option
     const presentedResponse = await present(player.client, started.challengeId, 0);
@@ -575,6 +578,7 @@ describe('Gebietseroberung PvE', () => {
     const me = meResponseSchema.parse((await player.client.get('/me')).json());
     expect(me.instances[0]?.kingdom?.regionCount).toBe(2);
     expect(me.instances[0]?.tutorialTargetRegionId).toBeNull();
+    expect(me.instances[0]?.openChallengeId).toBeNull();
   });
 
   it('scheitert am verdeckten Gate bei falscher Trivia-Antwort', async () => {
@@ -1024,6 +1028,13 @@ describe('Fragen und Antworten', () => {
     const started = await startAttack(player, target);
     expect(await expireStaleChallenges(server.db)).toBe(0);
     await advanceGameClock(server.database.pool, 121_000);
+    // Auch das Profil löst fällige Kämpfe auf und meldet keine offene Herausforderung mehr
+    const other = await newPlayer();
+    const pending = await startAttack(other, tutorialTarget(other));
+    await advanceGameClock(server.database.pool, 121_000);
+    const me = meResponseSchema.parse((await other.client.get('/me')).json());
+    expect(me.instances[0]?.openChallengeId).toBeNull();
+    expect((await siegeRow(pending.siegeId)).outcome_reason).toBe('NEVER_STARTED');
     expect(await expireStaleChallenges(server.db)).toBeGreaterThanOrEqual(1);
     expect(await siegeRow(started.siegeId)).toMatchObject({
       status: 'ATTACK_FAILED',

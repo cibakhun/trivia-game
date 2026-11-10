@@ -10,6 +10,7 @@ import type { AppContext } from '../../context.ts';
 import { readGameNow } from '../../infra/clock.ts';
 import { isToken, randomToken } from '../../infra/crypto.ts';
 import { ApiError } from '../../infra/errors.ts';
+import { settleOpenSiegesOfUser } from '../combat/sweeper.ts';
 import { listMyInstances } from '../world/queries.ts';
 import { requireAuth } from './auth-hook.ts';
 import {
@@ -75,6 +76,8 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
       .select(['u.id', 'u.is_guest', 'u.created_at', 's.locale'])
       .where('u.id', '=', auth.userId)
       .executeTakeFirstOrThrow();
+    // Fällige eigene Kämpfe zuerst auflösen, sonst meldet das Profil sie noch als offen.
+    await settleOpenSiegesOfUser(ctx.db, auth.userId);
     const instances = await listMyInstances(ctx.db, auth.userId);
     const now = await readGameNow(ctx.db);
     return {

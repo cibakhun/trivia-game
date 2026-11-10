@@ -347,6 +347,7 @@ describe('Beitritt (POST /worlds/:worldId/join)', () => {
         status: 'RUNNING',
         kingdom: joined.kingdom,
         tutorialTargetRegionId: joined.tutorialTargetRegionId,
+        openChallengeId: null,
       },
     ]);
     const after = worldsResponseSchema.parse((await client.get('/worlds')).json());

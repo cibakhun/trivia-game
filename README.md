@@ -4,7 +4,7 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 ## Status
 
-**Phase 1 (Singleplayer-Prototyp) in Arbeit.** Regelkern, Protokoll, Datenbank, Fragenimport, Kartengenerator mit Testwelt und der Server mit Gastkonto, Beitritt, Kartenabfragen und PvE-Kampf (Angriff, Fragen, Antworten, Auflösung) stehen mit Tests; der Client folgt. Planung in [`docs/`](docs/README.md):
+**Phase 1 (Singleplayer-Prototyp) in Arbeit.** Regelkern, Protokoll, Datenbank, Fragenimport, Kartengenerator mit Testwelt und der Server mit Gastkonto, Beitritt, Kartenabfragen und PvE-Kampf (Angriff, Fragen, Antworten, Auflösung) stehen mit Tests, ebenso der Browser-Client (Karte, Regionsdetails, Vollbild-Quiz, Reichsanzeige) mit dem E2E-Test „Erste Eroberung“. Planung in [`docs/`](docs/README.md):
 
 - Anforderungen: [`docs/brief/PRD-0.1.md`](docs/brief/PRD-0.1.md)
 - MVP-Definition: [`docs/MVP.md`](docs/MVP.md)
@@ -16,7 +16,8 @@ Browserbasiertes Multiplayer-Trivia-Strategiespiel: Spieler erobern mit Quizduel
 
 | Pfad | Inhalt |
 |---|---|
-| `apps/server` | Server (Rolle `api`, Fastify): Sitzungen, Gastkonto, Welten und Beitritt, Kartenabfragen; Werkzeug `world:create` |
+| `apps/server` | Server (Rolle `api`, Fastify): Sitzungen, Gastkonto, Welten und Beitritt, Kartenabfragen, PvE-Kampf; Werkzeug `world:create` |
+| `apps/web` | Browser-Client (React, Vite, PixiJS): Start als Gast, Karte, Regionsdetails, Vollbild-Quiz mit Auflösung, Reichsanzeige; deutsche Texte über Schlüssel; E2E-Tests mit Playwright |
 | `packages/protocol` | zod-Schemas: REST-Schnittstelle (Fehlercodes, Antworten), Regelkonfiguration mit Standardwerten je Modus, Zahlparser (Deutsch), Fragen-Enums |
 | `packages/game-core` | reine Spielregeln: Hex-Karte und Chunks, Kartengenerator, Startregion, Reichsnamen, Ränge, Duellauswertung mit verdecktem Gate, Verteidigungspunkte, effektive Antwortzeit, Fristen, Zufall (HMAC + sfc32), Drops, NPC-Antwortmodell |
 | `packages/db` | SQL-Migrationen, Migrationsläufer, typisierter Zugriff (Kysely), `game_now()`, Testhelfer |
@@ -41,7 +42,11 @@ pnpm db:types                 # Kysely-Typen aus dem migrierten Schema erzeugen 
 pnpm content:import --fixtures  # Fragen importieren, lokal mit den 40 Testfragen (--dry-run: Probelauf)
 pnpm world:create             # Testwelt anlegen (150 Regionen, sechs NPC-Fraktionen)
 pnpm api:start                # Server starten (braucht PUBLIC_ORIGIN, RNG_SECRET, RNG_KEY_ID)
+pnpm web:dev                  # Client auf http://127.0.0.1:5173, /api geht an 127.0.0.1:3000 (API_ORIGIN)
+pnpm e2e                      # E2E-Tests im Browser (eigene Testdatenbank über TEST_DATABASE_URL)
 ```
+
+Der Client läuft unter `http://127.0.0.1:5173` (wie `PUBLIC_ORIGIN` in `.env.example`; `localhost` wäre eine andere Herkunft und wird abgelehnt). Vor dem ersten `pnpm e2e` einmal `pnpm --filter @rdw/web exec playwright install chromium`.
 
 `pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie. `pnpm content:import` verlangt in Produktion ebenfalls `--production-approved`, außer beim Probelauf mit `--dry-run`, der nichts übernimmt; Testfragen (`--fixtures`) lehnt der Import außerhalb von `local` und `test` immer ab. `pnpm world:create` legt in Produktion nur mit `--production-approved` eine Welt an.
 

@@ -219,6 +219,8 @@ export const myInstanceSchema = z
      * und ein freier neutraler Nachbar existiert.
      */
     tutorialTargetRegionId: regionIdSchema.nullable(),
+    /** Laufende eigene Herausforderung (Wiederaufnahme nach Reload), sonst `null`. */
+    openChallengeId: entityIdSchema.nullable(),
   })
   .strict();
 export type MyInstance = z.infer<typeof myInstanceSchema>;
