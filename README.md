@@ -32,7 +32,7 @@ Voraussetzungen: Node.js ≥ 22.12, pnpm 10 (`corepack enable`), Docker für die
 
 ```sh
 pnpm install
-cp .env.example .env          # POSTGRES_PASSWORD, DATABASE_URL und TEST_DATABASE_URL setzen
+cp .env.example .env          # POSTGRES_PASSWORD, DATABASE_URL, TEST_DATABASE_URL und RNG_SECRET setzen
 docker compose up -d db       # PostgreSQL 16, nur auf 127.0.0.1
 
 pnpm check                    # Lint, Formatierung, Typen, Unit-Tests, Fragenprüfung
@@ -46,7 +46,7 @@ pnpm web:dev                  # Client auf http://127.0.0.1:5173, /api geht an 1
 pnpm e2e                      # E2E-Tests im Browser (eigene Testdatenbank über TEST_DATABASE_URL)
 ```
 
-Der Client läuft unter `http://127.0.0.1:5173` (wie `PUBLIC_ORIGIN` in `.env.example`; `localhost` wäre eine andere Herkunft und wird abgelehnt). Vor dem ersten `pnpm e2e` einmal `pnpm --filter @rdw/web exec playwright install chromium`.
+Die Befehle lesen `.env` im Hauptordner selbst (`--env-file-if-exists`); gesetzte Umgebungsvariablen haben Vorrang. Der Client läuft unter `http://127.0.0.1:5173` (wie `PUBLIC_ORIGIN` in `.env.example`; `localhost` wäre eine andere Herkunft und wird abgelehnt). Vor dem ersten `pnpm e2e` einmal `pnpm --filter @rdw/web exec playwright install chromium`.
 
 `pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie. `pnpm content:import` verlangt in Produktion ebenfalls `--production-approved`, außer beim Probelauf mit `--dry-run`, der nichts übernimmt; Testfragen (`--fixtures`) lehnt der Import außerhalb von `local` und `test` immer ab. `pnpm world:create` legt in Produktion nur mit `--production-approved` eine Welt an.
 

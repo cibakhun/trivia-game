@@ -8,8 +8,8 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "start": "tsx src/main-api.ts",
-    "world:create": "tsx src/cli/world-create.ts"
+    "start": "tsx --env-file-if-exists=../../.env src/main-api.ts",
+    "world:create": "tsx --env-file-if-exists=../../.env src/cli/world-create.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.3",
