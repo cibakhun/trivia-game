@@ -68,7 +68,7 @@ Ein Angriffs**versuch** zählt ab dem Moment, in dem die erste Frage angezeigt w
 Jeder Teilnehmer beantwortet in dieser Reihenfolge, ohne Zwischenergebnis:
 
 1. eine Multiple-Choice-Frage (Trivia) mit Zeitlimit 20 s [E],
-2. unmittelbar danach eine Schätzfrage mit Zeitlimit 30 s [E] – **nur als Tiebreaker, wenn beide Seiten die Trivia-Frage richtig beantwortet haben** [V] (PO-Entscheidung 2026-11-10; ersetzt „auch wenn sie am Ende nicht gebraucht wird“, Brief §5.5).
+2. unmittelbar danach eine Schätzfrage mit Zeitlimit 30 s [E] – **nur als Tiebreaker, wenn beide Seiten die Trivia-Frage richtig beantwortet haben** [V] (PO-Entscheidung 2026-11-10; ersetzt „auch wenn sie am Ende nicht gebraucht wird“, Brief §5.5). Im PvE wird sie nur dann gestellt. Im PvP wird sie immer gestellt, entscheidet aber ebenfalls nur bei Gleichstand (unten, [O-19]).
 
 | Angreifer | Verteidiger | Ergebnis |
 |---|---|---|
@@ -112,7 +112,7 @@ Gespielt wird nur auf Deutsch [V, PO 2026-11-09, ADR-023; der Brief sah de/hu/en
 
 - **Grundsatz [V, PO 2026-11-09]:** Wer sich gegen eine Belagerung rechtzeitig verteidigt, erhält Verteidigungspunkte dafür, dass er das Quiz gemacht hat (Teilnahme). Hat er die Trivia-Frage richtig beantwortet, erhält er mehr (Bonus). Ohne eigene Verteidigung gibt es keine Punkte, auch wenn der Angriff am Gate scheitert.
 - **Unabhängig vom Ausgang [V, PO 2026-11-09]:** Die Punkte belohnen, dass sich der Verteidiger dem Angriff im Quiz entgegengestellt hat. Auch wer das Gebiet trotz Verteidigung verliert, erhält die Teilnahmepunkte und bei richtiger Antwort den Bonus. Deshalb verraten die Punkte nichts darüber, ob der Angreifer richtig lag.
-- **Was als Verteidigung zählt [E]:** Jede Frage, die dem Verteidiger gestellt wurde, ist innerhalb ihres Zeitlimits beantwortet: die Trivia-Frage und, nur wenn sie als Tiebreaker kommt (§5.1), die Schätzfrage. Wer die Trivia-Frage falsch beantwortet und deshalb keine Schätzfrage bekommt, hat sich vollständig verteidigt. Wer die Verteidigung nur öffnet und nicht antwortet, erhält nichts. Im PvP wird dem Verteidiger die Schätzfrage immer gestellt ([O-19]); dort gehören also beide Fragen zur Verteidigung.
+- **Was als Verteidigung zählt [E]:** Jede Frage, die dem Verteidiger gestellt wurde, ist innerhalb ihres Zeitlimits beantwortet: die Trivia-Frage und die Schätzfrage, sofern sie gestellt wurde (im PvE nur als Tiebreaker, im PvP immer, §5.1 und [O-19]). Wer im PvE die Trivia-Frage falsch beantwortet und deshalb keine Schätzfrage bekommt, hat sich vollständig verteidigt; im PvP gehören immer beide Fragen zur Verteidigung. Wer die Verteidigung nur öffnet und nicht antwortet, erhält nichts.
 - **Wirkung [E]:** Bis zur Entscheidung über [O-18] verschaffen Punkte keinen spielmechanischen Vorteil (nur Ansehen und Rangliste). Richtung laut PO: später für Kosmetik oder Emojis an andere Spieler. Ausgeben senkt nie den Ranglisten- oder Saisonwert; dafür gäbe es ein eigenes Guthaben mit Buchungsprotokoll und atomarer Abbuchung, das zusammen mit dem Nutzen in [O-18] spezifiziert wird [E].
 - **Schutz gegen Absprachen [E]:** höchstens 2 punktbringende Verteidigungen je Paar aus Angreifer- und Verteidigerreich pro 24 h (Teilnahme und Bonus zusammen); keine Punkte, wenn die Konten als verdächtig verknüpft markiert sind ([SECURITY.md §4](SECURITY.md#4-missbrauch-multiaccounts-und-bots)); auffällig viele Gate-Fehlschläge desselben Angreifers gegen dasselbe Ziel erzeugen ein Missbrauchssignal.
 
@@ -210,7 +210,7 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | `capital.lives` (§3.3) | 3 | 3 | 3 | V (PO 2026-11-10) |
 | `capital.lifeRegen` (ein Leben zurück ohne neuen Treffer) | 24 h | 24 h | 4 h | V (PO 2026-11-10) |
 | `capital.protectionAfterHit` | 1 h | 1 h | 10 min | V (PO 2026-11-10) |
-| `capital.hitCooldownPerAttacker` (nur Spielerhauptstädte, ab PvP, [O-20]) | 12 h | 12 h | 2 h | V (PO 2026-11-10) |
+| `capital.hitCooldownPerAttacker` (nur Spielerhauptstädte, [O-20]; noch nicht in Schema und Standardwerten, kommt mit PvP in Phase 2) | 12 h | 12 h | 2 h | V (PO 2026-11-10) |
 | `items.enabled` | ja | nein | nein | E |
 | `items.inventoryCap` | 10 | – | – | A |
 | `items.dropEligibleConquestsPerDay` | 6 | – | – | E (Begründung: ITEM_SYSTEM §4.4) |

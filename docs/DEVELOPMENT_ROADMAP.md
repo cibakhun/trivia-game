@@ -69,7 +69,7 @@ Umsetzung in vier aufeinander folgenden Pull Requests:
 | Paket | Inhalt |
 |---|---|
 | Konto | Registrierung/Anmeldung nach [O-03], generierte öffentliche Namen ([O-10]) |
-| PvP | Belagerungen mit verdecktem Gate, Verteidigung, Verteidigungspunkte ([O-18]), Fristen (in Tests kurz konfiguriert), Auflösungstransaktion, Lazy Resolution |
+| PvP | Belagerungen mit verdecktem Gate, Verteidigung, Verteidigungspunkte ([O-18]), Schätzfrage immer gestellt, zählt nur bei Gleichstand ([O-19]), Hauptstadt-Leben für Spielerreiche mit voller Frist und Sperre je Angreifer (`capital.hitCooldownPerAttacker`, [O-20]), Fristen (in Tests kurz konfiguriert), Auflösungstransaktion, Lazy Resolution |
 | Echtzeit | WebSocket-Gateway, Outbox, Chunk-Abos, `resume`/Snapshot |
 | Nebenläufigkeit | Harness und Tests N1–N4, N8, N12 |
 | Staging | erste erreichbare Testumgebung, falls [O-11] freigegeben; sonst Test im lokalen Netz |
