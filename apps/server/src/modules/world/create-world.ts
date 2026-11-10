@@ -13,7 +13,7 @@ import {
   type FactionArchetype,
   type MapPreset,
 } from '@rdw/game-core';
-import { DEFAULT_RULES, type WorldMode } from '@rdw/protocol';
+import { DEFAULT_RULES, parseRulesConfig, type RulesConfig, type WorldMode } from '@rdw/protocol';
 import { sql } from 'kysely';
 import { canonicalJson, sha256Hex } from '../../infra/crypto.ts';
 import { gameNow } from '../../infra/clock.ts';
@@ -45,6 +45,11 @@ export interface CreateWorldOptions {
   readonly seed: bigint;
   readonly preset: MapPreset;
   readonly capacity: number;
+  /**
+   * Abweichende Regeln, z. B. `PLAYTEST_RULES` für lokale Spieltests (kurze Fristen und
+   * Schutzzeiten); ohne Angabe `DEFAULT_RULES[mode]`. `label` landet in `world_rules.notes`.
+   */
+  readonly rules?: { readonly config: RulesConfig; readonly label: string };
 }
 
 export interface CreatedWorld {
@@ -69,6 +74,15 @@ export async function createWorld(db: Db, options: CreateWorldOptions): Promise<
       `Kapazität muss zwischen 1 und ${MAX_CAPACITY} liegen: ${options.capacity}`,
     );
   }
+  if (options.rules) {
+    // gleiche Prüfung wie beim Lesen der Regeln; der Modus muss zur Welt passen
+    parseRulesConfig(options.rules.config);
+    if (options.rules.config.mode !== options.mode) {
+      throw new RangeError(
+        `Regeln für ${options.rules.config.mode} passen nicht zum Modus ${options.mode}`,
+      );
+    }
+  }
   if (options.mode !== 'ETERNAL') {
     // Daily/Weekly brauchen Saisons (world_seasons) und kommen mit Phase 6.
     throw new RangeError(`Modus ${options.mode} wird noch nicht unterstützt`);
@@ -88,7 +102,10 @@ async function insertWorld(
   const worldId = newId();
   const rulesId = newId();
   const instanceId = newId();
-  const config = DEFAULT_RULES[options.mode];
+  const config = options.rules?.config ?? DEFAULT_RULES[options.mode];
+  const notes = options.rules
+    ? `Abweichende Regeln: ${options.rules.label}`
+    : `Standardregeln DEFAULT_RULES.${options.mode}`;
 
   await tx
     .insertInto('worlds')
@@ -103,7 +120,7 @@ async function insertWorld(
       config: JSON.stringify(config),
       config_hash: sha256Hex(canonicalJson(config)),
       created_at: gameNow,
-      notes: `Standardregeln DEFAULT_RULES.${options.mode}`,
+      notes,
     })
     .execute();
   await tx

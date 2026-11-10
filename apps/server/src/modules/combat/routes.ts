@@ -4,7 +4,9 @@ import {
   entityIdSchema,
   type AnswerResponse,
   type ChallengeView,
+  type DefenseResponse,
   type PresentResponse,
+  type SiegesResponse,
 } from '@rdw/protocol';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -14,16 +16,19 @@ import { parseInput } from '../../infra/validation.ts';
 import { requireAuth } from '../identity/auth-hook.ts';
 import { answerStep, challengeView, presentStep } from '../quiz/challenge.ts';
 import { createAttack } from './create-attack.ts';
+import { listSieges, startDefense } from './defense.ts';
 import { settleOpenSiegesOfUser } from './sweeper.ts';
 
 /**
- * Angriff und Herausforderung (API.md §2.3): Angriff anlegen, Stand lesen, Frage zeigen,
- * antworten. `present` braucht keinen Idempotency-Key: Eine Wiederholung liefert dieselbe Frage
- * mit der ursprünglichen Frist (ADR-033).
+ * Angriff, Verteidigung und Herausforderung (API.md §2.3): Angriff anlegen, Belagerungen
+ * auflisten, Verteidigung beginnen, Stand lesen, Frage zeigen, antworten. `present` und
+ * `defense` brauchen keinen Idempotency-Key: Eine Wiederholung liefert dieselbe Frage mit der
+ * ursprünglichen Frist (ADR-033).
  */
 
 const instanceParams = z.object({ instanceId: entityIdSchema });
 const challengeParams = z.object({ challengeId: entityIdSchema });
+const siegeParams = z.object({ siegeId: entityIdSchema });
 const stepParams = challengeParams.extend({
   step: z.enum(['0', '1']).transform(Number),
 });
@@ -61,6 +66,19 @@ export function combatRoutes(app: FastifyInstance, ctx: AppContext): void {
     );
     if (outcome.replayed) reply.header('idempotency-replayed', 'true');
     return reply.status(outcome.status).send(outcome.body);
+  });
+
+  app.get('/instances/:instanceId/sieges', async (request): Promise<SiegesResponse> => {
+    const auth = requireAuth(request);
+    const { instanceId } = parseInput(instanceParams, request.params);
+    await settleOpenSiegesOfUser(ctx.db, auth.userId, request.log);
+    return listSieges(ctx.db, { userId: auth.userId, instanceId });
+  });
+
+  app.post('/sieges/:siegeId/defense', async (request): Promise<DefenseResponse> => {
+    const auth = requireAuth(request);
+    const { siegeId } = parseInput(siegeParams, request.params);
+    return startDefense(ctx.db, { userId: auth.userId, siegeId });
   });
 
   app.get('/challenges/:challengeId', async (request): Promise<ChallengeView> => {

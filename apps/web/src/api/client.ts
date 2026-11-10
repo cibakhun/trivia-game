@@ -5,6 +5,7 @@ import {
   attackResponseSchema,
   authStatusSchema,
   challengeViewSchema,
+  defenseResponseSchema,
   errorBodySchema,
   guestResponseSchema,
   joinResponseSchema,
@@ -13,6 +14,7 @@ import {
   meResponseSchema,
   presentResponseSchema,
   regionDetailResponseSchema,
+  siegesResponseSchema,
   worldsResponseSchema,
   type AnswerRequest,
   type ChunkRef,
@@ -147,4 +149,10 @@ export const api = {
       body,
       idempotencyKey,
     }),
+  sieges: (instanceId: string) =>
+    request('GET', `/instances/${instanceId}/sieges`, siegesResponseSchema),
+  // Wie `present` ohne Schlüssel: Eine Wiederholung liefert dieselbe Frage (ADR-033)
+  defend: (siegeId: string) => request('POST', `/sieges/${siegeId}/defense`, defenseResponseSchema),
+  respawn: (instanceId: string, idempotencyKey: string) =>
+    request('POST', `/instances/${instanceId}/respawn`, joinResponseSchema, { idempotencyKey }),
 };

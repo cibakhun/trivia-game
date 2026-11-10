@@ -79,8 +79,9 @@ export async function listWorlds(db: Db, userId: string): Promise<WorldsResponse
 }
 
 /**
- * Instanzen, an denen der Spieler teilnimmt, mit aktuellem Reich, Tutorial-Ziel und laufender
- * Herausforderung. Fällige Kämpfe löst der Aufrufer vorher auf.
+ * Instanzen, an denen der Spieler teilnimmt, mit aktuellem Reich, Tutorial-Ziel, laufender
+ * Herausforderung und Zahl der offenen Belagerungen gegen sein Reich. Fällige Kämpfe löst der
+ * Aufrufer vorher auf.
  */
 export async function listMyInstances(db: Db, userId: string): Promise<MyInstance[]> {
   const rows = await db
@@ -117,14 +118,35 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
       kingdom?.status === 'ACTIVE' && kingdom.regionCount === 1 && row.q !== null && row.r !== null
         ? await tutorialTargetNear(db, row.instance_id, { q: row.q, r: row.r })
         : null;
-    const open = row.current_kingdom_id
+    const kingdomId = row.current_kingdom_id;
+    // Laufende Herausforderung: eigener Angriff in Vorbereitung oder begonnene Verteidigung
+    const open = kingdomId
       ? await db
           .selectFrom('sieges as s')
           .innerJoin('quiz_challenges as c', 'c.siege_id', 's.id')
           .select('c.id')
-          .where('s.attacker_kingdom_id', '=', row.current_kingdom_id)
-          .where('s.status', '=', 'PREPARING')
+          .where((eb) =>
+            eb.or([
+              eb.and([
+                eb('s.attacker_kingdom_id', '=', kingdomId),
+                eb('s.status', '=', 'PREPARING'),
+              ]),
+              eb.and([
+                eb('s.defender_kingdom_id', '=', kingdomId),
+                eb('s.status', '=', 'DEFENDING'),
+              ]),
+            ]),
+          )
+          .orderBy('s.created_at')
           .executeTakeFirst()
+      : undefined;
+    const incoming = kingdomId
+      ? await db
+          .selectFrom('sieges')
+          .select((eb) => eb.fn.countAll<string>().as('n'))
+          .where('defender_kingdom_id', '=', kingdomId)
+          .where('status', 'in', ['AWAITING_DEFENSE', 'DEFENDING'])
+          .executeTakeFirstOrThrow()
       : undefined;
     result.push({
       instanceId: row.instance_id,
@@ -135,6 +157,7 @@ export async function listMyInstances(db: Db, userId: string): Promise<MyInstanc
       kingdom,
       tutorialTargetRegionId: tutorial,
       openChallengeId: open?.id ?? null,
+      incomingSieges: Number(incoming?.n ?? 0),
     });
   }
   return result;

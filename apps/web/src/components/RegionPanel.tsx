@@ -116,14 +116,26 @@ export function RegionPanel({
             </p>
           ) : null}
           {detail.attack.allowed ? (
-            <button
-              type="button"
-              className="button button-primary button-wide"
-              disabled={busy}
-              onClick={() => void attack()}
-            >
-              {busy ? t('region.attacking') : t('region.attack')}
-            </button>
+            <>
+              {detail.attack.mode === 'PVP' ? <p className="muted">{t('region.pvpHint')}</p> : null}
+              {detail.attack.endsOwnProtection ? (
+                <p className="note" data-testid="ends-protection">
+                  {t('region.endsOwnProtection')}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                className="button button-primary button-wide"
+                disabled={busy}
+                onClick={() => void attack()}
+              >
+                {busy
+                  ? t('region.attacking')
+                  : detail.attack.mode === 'PVP'
+                    ? t('region.attackPlayer')
+                    : t('region.attack')}
+              </button>
+            </>
           ) : detail.attack.reason ? (
             <p className="muted" data-testid="attack-reason">
               {errorMessage(

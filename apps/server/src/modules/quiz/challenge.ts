@@ -14,6 +14,7 @@ import {
   type BattleSide,
   type CapitalEffect,
   type ChallengeView,
+  type ParticipantRole,
   type Locale,
   type PresentResponse,
   type PresentedQuestion,
@@ -39,13 +40,18 @@ import { loadQuestionContent, recordExposure, type QuestionContent } from './que
  * verrät keine Antwort Lösung, Richtigkeit oder Gegnerleistung (§7.2).
  */
 
-interface ChallengeHead {
+export interface ChallengeHead {
   readonly challengeId: string;
   readonly siegeId: string;
   readonly instanceId: string;
   readonly mode: 'PVE' | 'PVP';
   readonly status: SiegeStatus;
   readonly targetRegionId: string;
+  readonly attackerKingdomId: string;
+  readonly defenderKingdomId: string | null;
+  readonly deadlineAt: Date | null;
+  /** Rolle des Anfragenden; Verteidiger gibt es nur im PvP (Spieler gegen Spieler). */
+  readonly role: ParticipantRole;
   readonly participantId: string;
   readonly userId: string;
   readonly locale: Locale;
@@ -91,14 +97,21 @@ const ANSWER_COLUMNS = [
   'idempotency_key',
 ] as const;
 
-/** Herausforderung des Spielers; fremde Herausforderungen sind „nicht gefunden“. */
-async function loadHead(db: Db, challengeId: string, userId: string): Promise<ChallengeHead> {
+/**
+ * Herausforderung des Spielers als Angreifer oder (PvP) als Verteidiger; fremde
+ * Herausforderungen sind „nicht gefunden“. Der Verteidiger sieht eine PvP-Belagerung erst ab ihrer
+ * Eröffnung: Ein Angriff, der vorher scheitert oder abbricht, bleibt für ihn unsichtbar
+ * (verdecktes Gate, QUIZ_ENGINE §7.2).
+ */
+export async function loadHead(
+  db: Db,
+  challengeId: string,
+  userId: string,
+): Promise<ChallengeHead> {
   const row = await db
     .selectFrom('quiz_challenges as c')
     .innerJoin('sieges as s', 's.id', 'c.siege_id')
-    .innerJoin('siege_participants as p', (join) =>
-      join.onRef('p.siege_id', '=', 's.id').on('p.role', '=', 'ATTACKER'),
-    )
+    .innerJoin('siege_participants as p', 'p.siege_id', 's.id')
     .select([
       'c.id',
       'c.siege_id',
@@ -106,15 +119,23 @@ async function loadHead(db: Db, challengeId: string, userId: string): Promise<Ch
       's.mode',
       's.status',
       's.target_region_id',
+      's.attacker_kingdom_id',
+      's.defender_kingdom_id',
+      's.opened_at',
+      's.deadline_at',
       's.rules_snapshot',
       'p.id as participant_id',
+      'p.role',
       'p.user_id',
       'p.locale',
     ])
     .where('c.id', '=', challengeId)
     .where('p.user_id', '=', userId)
     .executeTakeFirst();
-  if (!row?.user_id) throw new ApiError(404, 'NOT_FOUND', 'Herausforderung nicht gefunden');
+  const role = row?.role === 'DEFENDER' ? 'DEFENDER' : 'ATTACKER';
+  if (!row?.user_id || (role === 'DEFENDER' && (row.mode !== 'PVP' || row.opened_at === null))) {
+    throw new ApiError(404, 'NOT_FOUND', 'Herausforderung nicht gefunden');
+  }
   return {
     challengeId: row.id,
     siegeId: row.siege_id,
@@ -122,6 +143,10 @@ async function loadHead(db: Db, challengeId: string, userId: string): Promise<Ch
     mode: row.mode === 'PVP' ? 'PVP' : 'PVE',
     status: row.status as SiegeStatus,
     targetRegionId: row.target_region_id,
+    attackerKingdomId: row.attacker_kingdom_id,
+    defenderKingdomId: row.defender_kingdom_id,
+    deadlineAt: row.deadline_at,
+    role,
     participantId: row.participant_id,
     userId: row.user_id,
     locale: 'de',
@@ -129,11 +154,37 @@ async function loadHead(db: Db, challengeId: string, userId: string): Promise<Ch
   };
 }
 
+/** Belagerungsstatus, in dem diese Rolle Fragen beantwortet. */
+function answeringStatus(role: ParticipantRole): SiegeStatus {
+  return role === 'ATTACKER' ? 'PREPARING' : 'DEFENDING';
+}
+
+/** Kann der Anfragende gerade Fragen beantworten? */
+function isAnswering(head: Pick<ChallengeHead, 'role' | 'status'>): boolean {
+  return head.status === answeringStatus(head.role);
+}
+
+/** Noch nicht beendete Belagerung: Lesen und Antworten werten fällige Kämpfe zuerst aus. */
+function isUnsettled(status: SiegeStatus): boolean {
+  return status === 'PREPARING' || status === 'AWAITING_DEFENSE' || status === 'DEFENDING';
+}
+
+function closedError(head: Pick<ChallengeHead, 'role' | 'status'>): ApiError {
+  if (head.role === 'DEFENDER' && head.status === 'AWAITING_DEFENSE') {
+    return new ApiError(409, 'STEP_NOT_AVAILABLE', 'Verteidigung noch nicht begonnen', {
+      status: head.status,
+    });
+  }
+  return new ApiError(409, 'CHALLENGE_CLOSED', 'Herausforderung ist beendet', {
+    status: head.status,
+  });
+}
+
 /**
  * Wird nach der Trivia-Frage die Schätzfrage gestellt? Im PvE steht die Antwort der Verteidigung
- * (NPC oder Garnison) vorab fest; die Schätzfrage entscheidet nur, wenn beide richtig lagen.
- * PvP ist noch nicht gebaut; dort wird die Schätzfrage immer gestellt und zählt nur bei
- * Gleichstand ([O-19] Option A).
+ * (NPC oder Garnison) vorab fest; die Schätzfrage entscheidet nur, wenn beide richtig lagen. Im
+ * PvP beantworten beide Seiten immer beide Fragen; die Schätzung zählt nur bei Gleichstand
+ * ([O-19] Option A), ohne dass jemand vorher erfährt, ob sie zählt.
  */
 async function estimateNeeded(
   tx: Tx,
@@ -276,15 +327,11 @@ export async function presentStep(
   params: { readonly userId: string; readonly challengeId: string; readonly step: number },
 ): Promise<PresentResponse> {
   let head = await loadHead(db, params.challengeId, params.userId);
-  if (head.status === 'PREPARING') {
+  if (isAnswering(head)) {
     await settleSiege(db, head.siegeId); // abgelaufene Schritte zuerst abschließen
     head = await loadHead(db, params.challengeId, params.userId);
   }
-  if (head.status !== 'PREPARING') {
-    throw new ApiError(409, 'CHALLENGE_CLOSED', 'Herausforderung ist beendet', {
-      status: head.status,
-    });
-  }
+  if (!isAnswering(head)) throw closedError(head);
   const steps = await loadSteps(db, head.challengeId);
   const step = stepOf(steps, params.step);
   const content = await loadQuestionContent(db, step.version_id);
@@ -297,10 +344,8 @@ export async function presentStep(
       .where('id', '=', head.siegeId)
       .forUpdate()
       .executeTakeFirstOrThrow();
-    if (siege.status !== 'PREPARING') {
-      throw new ApiError(409, 'CHALLENGE_CLOSED', 'Herausforderung ist beendet', {
-        status: siege.status,
-      });
+    if (!isAnswering({ role: head.role, status: siege.status as SiegeStatus })) {
+      throw closedError({ role: head.role, status: siege.status as SiegeStatus });
     }
     const now = await readGameNow(tx);
     const answers = await loadAnswers(tx, head.participantId);
@@ -312,9 +357,7 @@ export async function presentStep(
         });
       }
       // Reload: dieselbe Frage mit dem ursprünglichen P; der Client-Timer gilt nicht mehr (§6.2).
-      await appendBattleEvents(tx, head.siegeId, [
-        { type: 'STEP_RELOADED', payload: { step: step.step_index } },
-      ]);
+      await recordReload(tx, head, step.step_index);
       return {
         question: toQuestion(head, step, existing, content, now),
         serverTime: now.toISOString(),
@@ -325,7 +368,7 @@ export async function presentStep(
       throw new ApiError(409, 'STEP_NOT_AVAILABLE', 'Erst die vorige Frage beantworten');
     }
     await insertPresented(tx, head, step, content, now);
-    if (siege.attack_presented_at === null) {
+    if (head.role === 'ATTACKER' && siege.attack_presented_at === null) {
       // Ab jetzt zählt der Angriffsversuch (GAME_RULES §4).
       await tx
         .updateTable('sieges')
@@ -338,6 +381,47 @@ export async function presentStep(
     if (!row) throw new Error('Präsentation fehlt');
     return { question: toQuestion(head, step, row, content, now), serverTime: now.toISOString() };
   });
+}
+
+/**
+ * Reload eines gestellten Schritts im Protokoll (QUIZ_ENGINE §6.2), je Rolle: Im PvP darf der
+ * Reload einer Seite die Zeitwertung der anderen nicht berühren. Einträge aus Phase 1 tragen keine
+ * Rolle und gehören zum Angreifer.
+ */
+async function recordReload(tx: Tx, head: ChallengeHead, stepIndex: number): Promise<void> {
+  await appendBattleEvents(tx, head.siegeId, [
+    { type: 'STEP_RELOADED', payload: { step: stepIndex, role: head.role } },
+  ]);
+}
+
+/**
+ * Verteidigungsbeginn (SIEGE_SYSTEM §6.2): stellt dem Verteidiger in der Transaktion des Beginns
+ * die Wissensfrage. Der Aufrufer hält die Sperre auf die Belagerung und hat sie auf `DEFENDING`
+ * gesetzt. Ist die Frage schon gestellt (wiederholte Anfrage), gilt das als Reload.
+ */
+export async function presentDefenseQuestion(
+  tx: Tx,
+  head: ChallengeHead,
+  now: Date,
+): Promise<PresentedQuestion> {
+  if (head.role !== 'DEFENDER') throw new Error('Nur der Verteidiger beginnt eine Verteidigung');
+  const steps = await loadSteps(tx, head.challengeId);
+  const answers = await loadAnswers(tx, head.participantId);
+  const presented = answers.find((a) => a.status === 'PRESENTED');
+  if (presented) {
+    const step = stepOf(steps, presented.step_index);
+    await recordReload(tx, head, step.step_index);
+    return toQuestion(head, step, presented, await loadQuestionContent(tx, step.version_id), now);
+  }
+  if (answers.length > 0) {
+    throw new ApiError(409, 'STEP_NOT_AVAILABLE', 'Verteidigung ist schon beantwortet');
+  }
+  const step = stepOf(steps, 0);
+  const content = await loadQuestionContent(tx, step.version_id);
+  await insertPresented(tx, head, step, content, now);
+  const row = (await loadAnswers(tx, head.participantId)).find((a) => a.step_index === 0);
+  if (!row) throw new Error('Präsentation fehlt');
+  return toQuestion(head, step, row, content, now);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -403,11 +487,8 @@ export async function answerStep(
       .select('status')
       .where('id', '=', head.siegeId)
       .executeTakeFirstOrThrow();
-    if (siege.status !== 'PREPARING') {
-      throw new ApiError(409, 'CHALLENGE_CLOSED', 'Herausforderung ist beendet', {
-        status: siege.status,
-      });
-    }
+    const current = { role: head.role, status: siege.status as SiegeStatus };
+    if (!isAnswering(current)) throw closedError(current);
     if (receivedAt.getTime() >= row.answer_deadline_at.getTime()) {
       throw new ApiError(409, 'STEP_EXPIRED', 'Zeitlimit abgelaufen', {
         deadline: row.answer_deadline_at.toISOString(),
@@ -467,6 +548,7 @@ export async function answerStep(
       .where('siege_id', '=', head.siegeId)
       .where('type', '=', 'STEP_RELOADED')
       .where(sql<boolean>`(payload ->> 'step')::int = ${step.step_index}`)
+      .where(sql<boolean>`coalesce(payload ->> 'role', 'ATTACKER') = ${head.role}`)
       .executeTakeFirst();
     const serverMs = Math.max(0, receivedAt.getTime() - row.presented_at.getTime());
     const clientMs = params.body.clientElapsedMs;
@@ -562,20 +644,22 @@ export async function challengeView(
   params: { readonly userId: string; readonly challengeId: string },
 ): Promise<ChallengeView> {
   let head = await loadHead(db, params.challengeId, params.userId);
-  if (head.status === 'PREPARING') {
-    await settleSiege(db, head.siegeId); // Auflösung beim Lesen
+  if (isUnsettled(head.status)) {
+    await settleSiege(db, head.siegeId); // Auflösung beim Lesen, auch Fristablauf im PvP
     head = await loadHead(db, params.challengeId, params.userId);
   }
   const steps = await loadSteps(db, head.challengeId);
   const answers = await loadAnswers(db, head.participantId);
   const now = await readGameNow(db);
-  const open = head.status === 'PREPARING';
-  // Ein nie gestellter Schritt einer beendeten Herausforderung wurde übersprungen (z. B. die
-  // Schätzfrage ohne Gleichstand nach der Trivia-Frage).
+  const open = isAnswering(head);
+  // Offen sind die Schritte auch, solange die Verteidigung noch nicht begonnen hat. Ein nie
+  // gestellter Schritt einer beendeten Herausforderung wurde übersprungen (z. B. die Schätzfrage
+  // ohne Gleichstand nach der Trivia-Frage) oder nie verteidigt.
+  const pending = open || (head.role === 'DEFENDER' && head.status === 'AWAITING_DEFENSE');
   const statusOf = (index: number) => {
     const status = answers.find((a) => a.step_index === index)?.status;
     if (status === 'PRESENTED' || status === 'ANSWERED' || status === 'TIMED_OUT') return status;
-    return open ? 'PENDING' : 'SKIPPED';
+    return pending ? 'PENDING' : 'SKIPPED';
   };
   const current = open
     ? (steps.find(
@@ -594,13 +678,20 @@ export async function challengeView(
         now,
       );
   }
+  const opponentId = head.role === 'ATTACKER' ? head.defenderKingdomId : head.attackerKingdomId;
+  const opponent = opponentId
+    ? ((await loadKingdoms(db, head.instanceId, [opponentId])).get(opponentId) ?? null)
+    : null;
   return {
     challengeId: head.challengeId,
     siegeId: head.siegeId,
     instanceId: head.instanceId,
     mode: head.mode,
+    role: head.role,
     targetRegionId: head.targetRegionId,
+    opponent,
     status: head.status,
+    deadlineAt: head.deadlineAt?.toISOString() ?? null,
     steps: steps.map((s) => ({
       index: s.step_index,
       kind: s.kind === 'ESTIMATE' ? 'ESTIMATE' : 'TRIVIA',
@@ -609,7 +700,7 @@ export async function challengeView(
     })),
     currentStep: current?.step_index ?? null,
     question,
-    resolution: open ? null : await loadResolution(db, head.siegeId),
+    resolution: isUnsettled(head.status) ? null : await loadResolution(db, head.siegeId),
     serverTime: now.toISOString(),
   };
 }
@@ -671,7 +762,9 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
       's.attacker_kingdom_id',
       's.defender_kingdom_id',
       's.defender_kind',
+      's.mode',
       's.rules_snapshot',
+      'b.defense_points',
       'b.capital_lives_left',
       'b.regions_taken',
       'b.capital_protected_until',
@@ -741,6 +834,7 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
   const conquered = won && (livesLeft === null || livesLeft === 0);
   return {
     siegeId: row.id,
+    mode: row.mode === 'PVP' ? 'PVP' : 'PVE',
     status: row.status as SiegeStatus,
     winner: row.outcome as Resolution['winner'],
     reason: row.outcome_reason as Resolution['reason'],
@@ -778,6 +872,7 @@ export async function loadResolution(db: Db, siegeId: string): Promise<Resolutio
       row.defender_kind === 'NPC' ? 'NPC' : row.defender_kind === 'PLAYER' ? 'PLAYER' : 'NEUTRAL',
       row.defender_kingdom_id,
     ),
+    defensePoints: row.defense_points,
     resolvedAt: row.resolved_at.toISOString(),
   };
 }

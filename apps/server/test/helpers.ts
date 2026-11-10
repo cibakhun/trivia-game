@@ -2,7 +2,7 @@ import { importQuestions, validateContentDir } from '@rdw/content-tools';
 import { createDb, type Db } from '@rdw/db';
 import { createTestDatabase, type TestDatabase } from '@rdw/db/testing';
 import { TEST_WORLD_SEED, testWorldPreset } from '@rdw/game-core';
-import { API_PREFIX } from '@rdw/protocol';
+import { API_PREFIX, type RulesConfig } from '@rdw/protocol';
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -72,7 +72,7 @@ let worldCounter = 0;
 
 export async function createTestWorld(
   db: Db,
-  options: { capacity?: number; seed?: bigint } = {},
+  options: { capacity?: number; seed?: bigint; rules?: RulesConfig } = {},
 ): Promise<CreatedWorld> {
   worldCounter += 1;
   return createWorld(db, {
@@ -82,6 +82,7 @@ export async function createTestWorld(
     seed: options.seed ?? TEST_WORLD_SEED,
     preset: testWorldPreset(),
     capacity: options.capacity ?? 50,
+    ...(options.rules ? { rules: { config: options.rules, label: 'Test' } } : {}),
   });
 }
 

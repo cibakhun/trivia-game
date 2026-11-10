@@ -13,6 +13,7 @@ import { z } from 'zod';
  */
 
 const duration = z.number().int().min(0);
+const count = z.number().int().min(0);
 
 export const siegeRulesSnapshotSchema = z.object({
   rulesId: z.string(),
@@ -23,6 +24,20 @@ export const siegeRulesSnapshotSchema = z.object({
     latencyAllowanceCapMs: duration,
   }),
   defense: z.object({ settleGrace: duration }),
+  /**
+   * PvP-Werte (seit Phase 2): Fristen und Verteidigungspunkte. Belagerungen von vorher waren nur
+   * PvE und tragen den Abschnitt nicht (`pvpOf`).
+   */
+  pvp: z
+    .object({
+      baseDeadline: duration,
+      maxDeadline: duration,
+      startBuffer: duration,
+      pointsForDefending: count,
+      pointsBonusCorrect: count,
+      pointsPairLimitPerDay: count,
+    })
+    .optional(),
   protection: z.object({
     afterConquest: duration,
     newPlayerUntilRegions: z.number().int().min(1).nullable(),
@@ -42,6 +57,14 @@ export function makeSnapshot(
     configHash,
     quiz: { ...rules.quiz },
     defense: { settleGrace: rules.defense.settleGrace },
+    pvp: {
+      baseDeadline: rules.defense.baseDeadline,
+      maxDeadline: rules.defense.maxDeadline,
+      startBuffer: rules.defense.startBuffer,
+      pointsForDefending: rules.defense.pointsForDefending,
+      pointsBonusCorrect: rules.defense.pointsBonusCorrect,
+      pointsPairLimitPerDay: rules.defense.pointsPairLimitPerDay,
+    },
     protection: {
       afterConquest: rules.protection.afterConquest,
       newPlayerUntilRegions: rules.protection.newPlayer.untilRegions,
@@ -56,6 +79,14 @@ export function makeSnapshot(
  */
 export function capitalOf(snapshot: SiegeRulesSnapshot): CapitalRulesConfig {
   return snapshot.capital ?? { ...DEFAULT_CAPITAL_RULES.ETERNAL };
+}
+
+export type PvpSnapshot = NonNullable<SiegeRulesSnapshot['pvp']>;
+
+/** PvP-Werte einer Belagerung; jede PvP-Belagerung trägt sie seit ihrer Anlage. */
+export function pvpOf(snapshot: SiegeRulesSnapshot): PvpSnapshot {
+  if (!snapshot.pvp) throw new Error('Regelkopie ohne PvP-Werte');
+  return snapshot.pvp;
 }
 
 export function parseSnapshot(value: unknown): SiegeRulesSnapshot {

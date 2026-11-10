@@ -6,12 +6,13 @@ import { readGameNow } from '../../infra/clock.ts';
 import { idempotencyKey, runIdempotent } from '../../infra/idempotency.ts';
 import { parseInput } from '../../infra/validation.ts';
 import { requireAuth } from '../identity/auth-hook.ts';
-import { joinWorld } from './join.ts';
+import { joinWorld, respawnKingdom } from './join.ts';
 import { listWorlds } from './queries.ts';
 
 const worldParams = z.object({ worldId: entityIdSchema });
+const instanceParams = z.object({ instanceId: entityIdSchema });
 
-/** Welten (API.md §2.2): Übersicht und Beitritt. */
+/** Welten (API.md §2.2): Übersicht, Beitritt und Neustart nach Totalverlust. */
 export function worldRoutes(app: FastifyInstance, ctx: AppContext): void {
   app.get('/worlds', async (request): Promise<WorldsResponse> => {
     const auth = requireAuth(request);
@@ -36,6 +37,31 @@ export function worldRoutes(app: FastifyInstance, ctx: AppContext): void {
         body: await joinWorld(tx, {
           userId: auth.userId,
           worldId,
+          rngSecret: ctx.config.rngSecret,
+          rngKeyId: ctx.config.rngKeyId,
+        }),
+      }),
+    );
+    if (outcome.replayed) reply.header('idempotency-replayed', 'true');
+    return reply.status(outcome.status).send(outcome.body);
+  });
+
+  app.post('/instances/:instanceId/respawn', async (request, reply) => {
+    const auth = requireAuth(request);
+    const { instanceId } = parseInput(instanceParams, request.params);
+    const outcome = await runIdempotent(
+      ctx.db,
+      {
+        userId: auth.userId,
+        key: idempotencyKey(request),
+        endpoint: 'POST /instances/:instanceId/respawn',
+        input: { instanceId },
+      },
+      async (tx) => ({
+        status: 201,
+        body: await respawnKingdom(tx, {
+          userId: auth.userId,
+          instanceId,
           rngSecret: ctx.config.rngSecret,
           rngKeyId: ctx.config.rngKeyId,
         }),

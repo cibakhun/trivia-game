@@ -7,7 +7,7 @@ Bezug: Brief §5.1, §6.5, §7, §8.8, §12.4, §13.4, §15.2–15.4. Kennzeichn
 | Art | Angreifer | Verteidiger | Auswertung | Phase |
 |---|---|---|---|---|
 | PvE | Spieler | neutrale Garnison oder NPC-Reich | sofort, NPC-Antwort vorab versiegelt | 1 |
-| PvP | Spieler | Spieler | Belagerung mit Frist | 2–3 |
+| PvP | Spieler | Spieler | Belagerung mit Frist | 2–3 (Ablauf seit Phase 2 Paket 1) |
 | NPC → Spieler | NPC | Spieler | Belagerung mit Frist (Eternal 24 h) | 5 |
 | NPC → NPC / neutral | NPC | NPC / neutral | sofort im Worker | 5 |
 
@@ -95,6 +95,15 @@ sequenceDiagram
   S-->>A: Ergebnis (Push + In-App)
   S-->>B: Ergebnis (Push + In-App)
 ```
+
+Stand Phase 2 Paket 1 (ADR-038 bis ADR-042): umgesetzt ohne Worker, Push und Verlängerung.
+
+- **Eröffnung:** Die letzte Antwort des Angreifers eröffnet in der Auswertungstransaktion (Sperren wie §5.1). Fristen kommen aus dem PvP-Abschnitt der Regelkopie (`snapshot.pvp`). `ATTACK_SUBMITTED` trägt ein SHA-256-Commitment über die Angreiferantworten, `siege.opened` geht persönlich an beide Seiten. Läuft schon die erste Frage des Angreifers ab, endet der Angriff `ATTACK_FAILED` und wird nie eröffnet.
+- **Sichtbarkeit:** Vor `opened_at` existiert die Belagerung für den Verteidiger nicht (Herausforderung und Verteidigung 404, nicht in der Übersicht). Auch danach erfährt er bis zur Auflösung nichts über die Angreiferleistung.
+- **Verteidigung:** `POST /sieges/:id/defense` (§6.2) stellt die Wissensfrage in derselben Transaktion; die Schätzfrage kommt im PvP immer und zählt nur bei Gleichstand ([O-19] A).
+- **Fristablauf:** Statt des Jobs `siege.resolveTimeout` löst der minütliche Aufräumlauf im `api`-Prozess fällige Belagerungen auf (ADR-034), zusätzlich jede Leseanfrage des Spielers (Übersicht, Herausforderung, Regionsdetails, neuer Angriff). Abgelaufene Einzelfragen des Verteidigers werden `TIMED_OUT` und zählen als falsch.
+- **Mitteilungen:** nur in der App über die Belagerungsübersicht (§9), die der Client alle 30 s und bei geänderter Zahl eingehender Belagerungen (`/me.incomingSieges`) neu lädt. Echtzeit über WebSocket folgt in Phase 2 Paket 3, Web Push mit [O-04] in Phase 3, Verlängerung durch Items in Phase 4.
+- **Besitzwechsel:** Regionshistorie `CONQUEST_PVP`, bei Sieg durch Zeitablauf `TIMEOUT`. Verteidigungspunkte nach §7 und [GAME_RULES.md §5.5](GAME_RULES.md#55-verteidigungspunkte-v-grundsatz-e-werte-o-18).
 
 ## 5. Nebenläufigkeit und Sperrreihenfolge
 
@@ -219,6 +228,8 @@ max_deadline_at  = opened_at + defense.maxDeadline             // 48 h [A]
 
 **Verteidigung beginnen** ist nur erlaubt, wenn `deadline_at − game_now() ≥ Σ(Zeitlimits + cap) + startBuffer` (≈ 61 s) [E]. Sonst erhält der Spieler `DEADLINE_TOO_CLOSE` und – falls vorhanden – den Hinweis, dass ein Item die Frist noch verlängern kann.
 
+Umsetzung (ADR-038): Zuerst wird eine fällige Belagerung aufgelöst (Fristablauf, N10), dann gesperrt: Reiche → Region → Belagerung. Nach der Frist folgt `DEADLINE_PASSED`, während einer eigenen offenen Herausforderung `CHALLENGE_IN_PROGRESS` (höchstens eine je Spieler, GAME_RULES §7). Der Beginn setzt `DEFENDING` und `defense_started_at`, stellt die Wissensfrage in derselben Transaktion und gibt sie in der Antwort zurück (`DEFENSE_STARTED`, `siege.updated` an den Angreifer). Eine Wiederholung liefert dieselbe Frage mit derselben Präsentationszeit und zählt als Reload (`STEP_RELOADED` mit `role: DEFENDER`); kein `Idempotency-Key` nötig.
+
 ### 6.3 Verlängerung
 
 **Verlängerung** (`POST /sieges/:id/extend`), alles in einer Transaktion [V-nah, Brief §8.8]:
@@ -233,12 +244,13 @@ max_deadline_at  = opened_at + defense.maxDeadline             // 48 h [A]
 
 | Limit | Zählweise |
 |---|---|
-| PvP-Belagerungen pro Angreifer | Belagerungen mit `mode = PVP`, `attacker_kingdom_id` des Spielers, `opened_at > game_now() − 24 h` (gleitend); jeder abgeschlossene Angriff eröffnet eine Belagerung, auch bei falscher Antwort |
+| PvP-Belagerungen pro Angreifer | Belagerungen mit `mode = PVP`, `attacker_kingdom_id` eines Reichs des Spielers in dieser Instanz (auch eines früheren, damit eine Neugründung nichts zurücksetzt), `opened_at > game_now() − 24 h` (gleitend); jeder abgeschlossene Angriff eröffnet eine Belagerung, auch bei falscher Antwort |
 | PvP-Versuche pro Angreifer | wie oben, aber `attack_presented_at` statt `opened_at` (auch gescheiterte) |
 | Offene Belagerungen gegen ein Reich | Status `PREPARING`, `AWAITING_DEFENSE`, `DEFENDING` mit `defender_kingdom_id` des Reichs – **über alle Angreifer** einschließlich NPCs (Brief §7.4 letzter Punkt; NPC-Kontingent zusätzlich nach [O-13]) |
 | Schutz nach Eroberung | `region_state.protected_until`; gilt gegen alle, auch den Vorbesitzer |
 | Anfänger-/Wiederaufbauschutz | `kingdoms.protected_until`; endet vorzeitig, sobald das Reich selbst einen Spieler angreift (UI warnt vorher) |
 | Rangabstand | geprüft beim Angriffsstart mit `region_count` beider Reiche |
+| Sperre je Angreifer auf eine Spielerhauptstadt | letzter `battle_results`-Eintrag mit `capital_lives_left` für dieselbe Hauptstadt und dasselbe angreifende Reich; neuer Angriff erst nach `capital.hitCooldownPerAttacker` (12 h, Daily 2 h, [O-20] B), sonst `CAPITAL_HIT_COOLDOWN` mit `until` |
 | Punktbringende Verteidigungen je Paar | `battle_results` mit `defense_points > 0` für dasselbe Paar aus Angreifer- und Verteidigerreich in den letzten 24 h (gleitend), Grenze `defense.pointsPairLimitPerDay` |
 
 Alle Zählungen erfolgen unter Sperre des betroffenen Reichs; parallele Anfragen können Limits nicht umgehen (Brief §13.4).
@@ -248,8 +260,9 @@ Alle Zählungen erfolgen unter Sperre des betroffenen Reichs; parallele Anfragen
 Regeln: [GAME_RULES.md §3](GAME_RULES.md#3-königreich-hauptstadt-ränge-totalverlust) Punkt 3 und 4, Umsetzung `settle.ts` mit `hitCapital` aus game-core (ADR-037).
 
 - **Treffer:** Gewinnt der Angreifer gegen eine Hauptstadt, die danach noch Leben hat, bleibt sie beim Verteidiger. Gespeichert werden die nicht erholten Treffer (`kingdoms.capital_hits`) und der Zeitpunkt (`capital_hit_at`), die Region bekommt den Schutz `CAPITAL_HIT` (`capital.protectionAfterHit`), `kingdom_history` den Eintrag `CAPITAL_HIT`. Die Belagerung endet trotzdem als `ATTACKER_WON`; `battle_results.capital_lives_left` hält die verbleibenden Leben, die Auflösung meldet `conquered: false` und `capital`.
-- **Übernahme:** Nimmt der Sieg das letzte Leben, wird die Hauptstadt erobert wie jede Region (`CONQUEST_PVE`), und alle übrigen Regionen des Reichs gehen in derselben Transaktion an den Angreifer (`region_history.cause = TAKEOVER`, Eroberungsschutz). Offene Belagerungen Dritter auf diese Regionen werden mit `CANCELLED` beendet (Ergebnis, Kampfprotokoll, `siege.resolved` an den Angreifer). Das Reich fällt (`kingdom_history` `FALLEN` mit `cause: TAKEOVER`), der Angreifer erhält `TAKEOVER`; `battle_results.capital_lives_left = 0`, `regions_taken` = Zahl der Regionen. Gesperrt sind beide Reiche; wer Regionen eines Reichs ändert, sperrt zuerst das Reich (§5.1), deshalb brauchen die übernommenen Regionen keine eigene Sperre.
+- **Übernahme:** Nimmt der Sieg das letzte Leben, wird die Hauptstadt erobert wie jede Region (`CONQUEST_PVE` bzw. `CONQUEST_PVP`), und alle übrigen Regionen des Reichs gehen in derselben Transaktion an den Angreifer (`region_history.cause = TAKEOVER`, Eroberungsschutz). Offene Belagerungen Dritter auf diese Regionen werden mit `CANCELLED` beendet (Ergebnis, Kampfprotokoll, `siege.resolved` an den Angreifer). Das Reich fällt (`kingdom_history` `FALLEN` mit `cause: TAKEOVER`), der Angreifer erhält `TAKEOVER`; `battle_results.capital_lives_left = 0`, `regions_taken` = Zahl der Regionen. Gesperrt sind beide Reiche; wer Regionen eines Reichs ändert, sperrt zuerst das Reich (§5.1), deshalb brauchen die übernommenen Regionen keine eigene Sperre.
 - Sinkt `region_count` ohne Übernahme auf 0 (nur bei Daten ohne Hauptstadt): Reich `FALLEN`, offene ausgehende Belagerungen des Reichs werden bei ihrer Auflösung `CANCELLED`, Spieler erhält eine Niederlagenmeldung mit Rückblick (größte Ausdehnung, gewonnene Kämpfe) und den Button „Neues Reich gründen“ (Brief §15.4).
+- **Spielerreiche (seit Phase 2 Paket 1):** Ein Leben einer Spielerhauptstadt kostet nur ein Sieg in einer eröffneten PvP-Belagerung, also mit voller Verteidigungsfrist; dasselbe angreifende Reich darf erst nach der Sperre aus §7 erneut angreifen. Fällt ein Spielerreich, bricht die Auflösung seine offenen eigenen Angriffe ab (N10, `CANCELLED` mit `siege.resolved` an beide Seiten, sobald die Belagerung eröffnet war). Der Spieler sieht auf der Karte „Neues Reich gründen“; `POST /instances/:id/respawn` gründet ein Reich der nächsten Generation mit Wiederaufbauschutz (`RESPAWN`, ADR-042). Rückblick in der Niederlagenmeldung folgt.
 
 ## 9. Belagerungs-Dashboard
 
@@ -257,6 +270,8 @@ Regeln: [GAME_RULES.md §3](GAME_RULES.md#3-königreich-hauptstadt-ränge-totalv
 - Je Eintrag: Region, angreifendes Reich, Restzeit (Server-basiert), Status, Buttons „Verteidigen“ und „Item verwenden“ mit Vorschau der neuen Frist.
 - Darunter: kürzlich abgeschlossene Konflikte mit Ergebnis und Link zur Auflösung.
 - Mobil: eigener Tab in der unteren Navigationsleiste mit Zähler-Badge.
+
+Stand Phase 2 Paket 1 (ADR-041): Die Übersicht steht als Karte in der Seitenleiste der Kartenansicht (`GET /instances/:id/sieges`): eingehende Belagerungen ab Eröffnung mit Frist und „Verteidigen“ (oder dem Grund, warum es nicht mehr geht), eigene offene Angriffe und die in den letzten 24 h entschiedenen Kämpfe (höchstens 10) mit Link zur Auflösung. Noch ohne Restzeit-Countdown, Hervorhebung der Hauptstadt über den Namen hinaus, „Item verwenden“ (Phase 4) und mobilen Tab.
 
 ## 10. Benachrichtigungen
 

@@ -11,9 +11,18 @@ import { sql } from 'kysely';
 
 export interface CandidateQuery {
   readonly kind: QuestionKind;
-  readonly userId: string;
+  /**
+   * Menschliche Beteiligte: Gesehen ist eine Frage, wenn einer von ihnen sie gesehen hat (QUIZ_ENGINE
+   * §5 Punkt 3). Im PvP sind das Angreifer und Verteidiger.
+   */
+  readonly userIds: readonly string[];
   readonly allowFixtures: boolean;
+  /** Spielzeit der Auswahl. */
+  readonly now: Date;
 }
+
+/** Belagerungen, deren Fragen noch nicht alle Beteiligten gesehen haben. */
+const OPEN_SIEGE_STATUSES = ['PREPARING', 'AWAITING_DEFENSE', 'DEFENDING'] as const;
 
 export async function loadCandidates(db: Db, query: CandidateQuery): Promise<QuestionCandidate[]> {
   const rows = await db
@@ -22,16 +31,7 @@ export async function loadCandidates(db: Db, query: CandidateQuery): Promise<Que
     .innerJoin('question_translations as t', (join) =>
       join.onRef('t.version_id', '=', 'v.id').on('t.locale', '=', DEFAULT_LOCALE),
     )
-    .leftJoin('player_question_exposure as e', (join) =>
-      join.onRef('e.question_id', '=', 'q.id').on('e.user_id', '=', query.userId),
-    )
-    .select([
-      'v.id as version_id',
-      'q.id as question_id',
-      'q.category',
-      'v.difficulty',
-      'e.last_seen_at',
-    ])
+    .select(['v.id as version_id', 'q.id as question_id', 'q.category', 'v.difficulty'])
     .where('q.kind', '=', query.kind)
     .where((eb) =>
       eb.or([
@@ -42,12 +42,37 @@ export async function loadCandidates(db: Db, query: CandidateQuery): Promise<Que
       ]),
     )
     .execute();
+  if (query.userIds.length === 0) throw new Error('Fragenauswahl ohne Beteiligte');
+  const lastSeen = new Map<string, number>();
+  const seen = await db
+    .selectFrom('player_question_exposure')
+    .select((eb) => ['question_id', eb.fn.max('last_seen_at').as('last_seen_at')])
+    .where('user_id', 'in', query.userIds)
+    .groupBy('question_id')
+    .execute();
+  for (const row of seen) lastSeen.set(row.question_id, new Date(row.last_seen_at).getTime());
+  // Fragen offener Belagerungen eines Beteiligten gelten als gerade gesehen: Sonst könnte ein
+  // Verteidiger die Frage seiner Belagerung vor der Verteidigung in einem eigenen Kampf samt
+  // Lösung sehen (die Gesehen-Liste füllt sich erst beim Stellen).
+  const pending = await db
+    .selectFrom('quiz_challenge_steps as st')
+    .innerJoin('quiz_challenges as c', 'c.id', 'st.challenge_id')
+    .innerJoin('sieges as s', 's.id', 'c.siege_id')
+    .innerJoin('siege_participants as p', 'p.siege_id', 's.id')
+    .innerJoin('question_versions as v', 'v.id', 'st.version_id')
+    .select('v.question_id')
+    .distinct()
+    .where('s.status', 'in', [...OPEN_SIEGE_STATUSES])
+    .where('p.user_id', 'in', query.userIds)
+    .where('st.kind', '=', query.kind)
+    .execute();
+  for (const row of pending) lastSeen.set(row.question_id, query.now.getTime());
   return rows.map((row) => ({
     versionId: row.version_id,
     questionId: row.question_id,
     category: row.category,
     difficulty: row.difficulty,
-    lastSeenAt: row.last_seen_at?.getTime() ?? null,
+    lastSeenAt: lastSeen.get(row.question_id) ?? null,
   }));
 }
 

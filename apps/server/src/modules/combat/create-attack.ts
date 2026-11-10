@@ -35,10 +35,11 @@ import { loadAttackSituation, refusalError, type DefenderKingdom } from './situa
 import { makeSnapshot } from './snapshot.ts';
 
 /**
- * Angriff starten (SIEGE_SYSTEM §2 Schritt 1, ARCHITECTURE §7): Berechtigung unter Sperren
- * prüfen, Belagerung `PREPARING` anlegen und die Region reservieren, Fragen wählen und die
+ * Angriff starten (SIEGE_SYSTEM §2 Schritt 1 und §4, ARCHITECTURE §7): Berechtigung unter Sperren
+ * prüfen, Belagerung `PREPARING` anlegen und die Region reservieren, Fragen wählen und im PvE die
  * NPC-Antworten erzeugen und versiegeln – alles in einer Transaktion, bevor der Spieler die
- * erste Frage sieht. Läuft in der Transaktion des Idempotenzspeichers.
+ * erste Frage sieht. Im PvP antwortet der Verteidiger später selbst; die Fragen hat dann keiner
+ * der beiden Spieler kürzlich gesehen. Läuft in der Transaktion des Idempotenzspeichers.
  */
 
 export interface CreateAttackContext {
@@ -151,7 +152,9 @@ export async function createAttack(tx: Tx, ctx: CreateAttackContext): Promise<At
   if (refusal) throw refusal;
   const { attacker, target, defender, rules } = situation;
   if (!attacker || !situation.eligibility.ok) throw new Error('Berechtigung ohne Angreifer');
-  const defenderKind = situation.eligibility.defenderKind;
+  const { defenderKind, mode, endsOwnProtection } = situation.eligibility;
+  const defenderUserId = mode === 'PVP' ? defender?.ownerUserId : null;
+  if (mode === 'PVP' && !defenderUserId) throw new Error('PvP-Ziel ohne Besitzer');
 
   // Derselbe Schlüssel wurde schon einmal für einen Angriff dieses Reichs benutzt (Antwortspeicher
   // abgelaufen): unique(attacker_kingdom_id, idempotency_key) würde abweisen.
@@ -173,7 +176,7 @@ export async function createAttack(tx: Tx, ctx: CreateAttackContext): Promise<At
     .values({
       id: siegeId,
       instance_id: ctx.instanceId,
-      mode: 'PVE',
+      mode,
       target_region_id: target.id,
       attacker_kingdom_id: attacker.id,
       defender_kingdom_id: defender?.id ?? null,
@@ -201,7 +204,17 @@ export async function createAttack(tx: Tx, ctx: CreateAttackContext): Promise<At
     throw new ApiError(409, 'REGION_UNDER_SIEGE', 'Die Region wird bereits angegriffen');
   }
 
-  const profile = await loadDefenderProfile(tx, defender, target.tier);
+  // Ein Angriff auf einen Spieler beendet den eigenen Anfänger- oder Wiederaufbauschutz
+  // (GAME_RULES §7); die Regionsdetails haben vorher darauf hingewiesen.
+  if (endsOwnProtection) {
+    await tx
+      .updateTable('kingdoms')
+      .set({ protected_until: null, protection_reason: null, version: sql<string>`version + 1` })
+      .where('id', '=', attacker.id)
+      .execute();
+  }
+
+  const profile = mode === 'PVE' ? await loadDefenderProfile(tx, defender, target.tier) : null;
   const attackerParticipantId = newId();
   const defenderParticipantId = newId();
   await tx
@@ -215,27 +228,39 @@ export async function createAttack(tx: Tx, ctx: CreateAttackContext): Promise<At
         npc_profile_id: null,
         locale: DEFAULT_LOCALE,
       },
-      {
-        id: defenderParticipantId,
-        siege_id: siegeId,
-        role: 'DEFENDER',
-        user_id: null,
-        npc_profile_id: profile.id,
-        locale: null,
-      },
+      profile
+        ? {
+            id: defenderParticipantId,
+            siege_id: siegeId,
+            role: 'DEFENDER',
+            user_id: null,
+            npc_profile_id: profile.id,
+            locale: null,
+          }
+        : {
+            id: defenderParticipantId,
+            siege_id: siegeId,
+            role: 'DEFENDER',
+            user_id: defenderUserId ?? null,
+            npc_profile_id: null,
+            locale: DEFAULT_LOCALE,
+          },
     ])
     .execute();
 
-  // Fragenauswahl (QUIZ_ENGINE §5) aus dem Strom „question-pick“ der Belagerung
-  const weights = difficultyWeights(target.tier, attacker.regionCount === 1);
+  // Fragenauswahl (QUIZ_ENGINE §5) aus dem Strom „question-pick“ der Belagerung; im PvP darf
+  // keiner der beiden Spieler die Frage kürzlich gesehen haben (§5 Punkt 3).
+  const weights = difficultyWeights(target.tier, mode === 'PVE' && attacker.regionCount === 1);
   const recentCategories = await loadRecentCategories(tx, ctx.userId);
   const pickRng = createRng(await deriveSeed(ctx.rngSecret, 'question-pick', siegeId));
+  const userIds = defenderUserId ? [ctx.userId, defenderUserId] : [ctx.userId];
   const picks: QuestionPick[] = [];
   for (const kind of STEP_KINDS) {
     const candidates = await loadCandidates(tx, {
       kind,
-      userId: ctx.userId,
+      userIds,
       allowFixtures: ctx.allowFixtures,
+      now: situation.now,
     });
     const pick = pickQuestion(
       candidates,
@@ -272,88 +297,93 @@ export async function createAttack(tx: Tx, ctx: CreateAttackContext): Promise<At
     )
     .execute();
 
-  // NPC-Antworten erzeugen und speichern, bevor der Spieler eine Frage sieht (NPC_SYSTEM §3.4)
-  const trivia = await loadQuestionContent(tx, triviaPick.candidate.versionId);
-  const estimate = await loadQuestionContent(tx, estimatePick.candidate.versionId);
-  const npc = await generateSealedAnswer(
-    ctx,
-    challengeId,
-    profile,
-    trivia,
-    estimate,
-    snapshot.quiz,
-  );
-  await tx
-    .insertInto('quiz_answers')
-    .values([
-      {
-        id: newId(),
-        challenge_id: challengeId,
-        siege_id: siegeId,
-        participant_id: defenderParticipantId,
-        step_index: 0,
-        status: 'GENERATED',
-        answer_option_key: npc.optionKey,
-        is_correct: npc.answer.triviaCorrect,
-        audit: JSON.stringify(npc.audit),
-        created_at: gameNow,
+  const created = {
+    type: 'ATTACK_CREATED',
+    payload: {
+      mode,
+      targetRegionId: target.id,
+      defenderKind,
+      defenderKingdomId: defender?.id ?? null,
+      challengeId,
+      questions: picks.map((pick, index) => ({
+        step: index,
+        versionId: pick.candidate.versionId,
+        fallback: pick.fallback,
+        poolSize: pick.poolSize,
+      })),
+      weights,
+      rng: {
+        purpose: 'question-pick',
+        entityId: siegeId,
+        keyId: ctx.rngKeyId,
+        version: RNG_VERSION,
       },
+      ...(endsOwnProtection ? { endedOwnProtection: attacker.protectionReason } : {}),
+    },
+  };
+  if (!profile) {
+    await appendBattleEvents(tx, siegeId, [created]);
+  } else {
+    // NPC-Antworten erzeugen und speichern, bevor der Spieler eine Frage sieht (NPC_SYSTEM §3.4)
+    const trivia = await loadQuestionContent(tx, triviaPick.candidate.versionId);
+    const estimate = await loadQuestionContent(tx, estimatePick.candidate.versionId);
+    const npc = await generateSealedAnswer(
+      ctx,
+      challengeId,
+      profile,
+      trivia,
+      estimate,
+      snapshot.quiz,
+    );
+    await tx
+      .insertInto('quiz_answers')
+      .values([
+        {
+          id: newId(),
+          challenge_id: challengeId,
+          siege_id: siegeId,
+          participant_id: defenderParticipantId,
+          step_index: 0,
+          status: 'GENERATED',
+          answer_option_key: npc.optionKey,
+          is_correct: npc.answer.triviaCorrect,
+          audit: JSON.stringify(npc.audit),
+          created_at: gameNow,
+        },
+        {
+          id: newId(),
+          challenge_id: challengeId,
+          siege_id: siegeId,
+          participant_id: defenderParticipantId,
+          step_index: 1,
+          status: 'GENERATED',
+          answer_value: npc.estimate,
+          distance: npc.distance,
+          effective_ms: npc.answer.estimateMs,
+          is_correct: npc.distance === '0',
+          audit: JSON.stringify(npc.audit),
+          created_at: gameNow,
+        },
+      ])
+      .execute();
+    await appendBattleEvents(tx, siegeId, [
+      created,
       {
-        id: newId(),
-        challenge_id: challengeId,
-        siege_id: siegeId,
-        participant_id: defenderParticipantId,
-        step_index: 1,
-        status: 'GENERATED',
-        answer_value: npc.estimate,
-        distance: npc.distance,
-        effective_ms: npc.answer.estimateMs,
-        is_correct: npc.distance === '0',
-        audit: JSON.stringify(npc.audit),
-        created_at: gameNow,
-      },
-    ])
-    .execute();
-
-  await appendBattleEvents(tx, siegeId, [
-    {
-      type: 'ATTACK_CREATED',
-      payload: {
-        mode: 'PVE',
-        targetRegionId: target.id,
-        defenderKind,
-        defenderKingdomId: defender?.id ?? null,
-        challengeId,
-        questions: picks.map((pick, index) => ({
-          step: index,
-          versionId: pick.candidate.versionId,
-          fallback: pick.fallback,
-          poolSize: pick.poolSize,
-        })),
-        weights,
-        rng: {
-          purpose: 'question-pick',
-          entityId: siegeId,
-          keyId: ctx.rngKeyId,
-          version: RNG_VERSION,
+        // Beleg, dass die NPC-Leistung vor jeder Spielerantwort feststand (SIEGE_SYSTEM §2)
+        type: 'NPC_ANSWERS_SEALED',
+        payload: {
+          profile: { id: profile.id, code: profile.code, version: profile.version },
+          commitment: npc.commitment,
+          rng: {
+            purpose: 'npc-answer',
+            entityId: challengeId,
+            keyId: ctx.rngKeyId,
+            version: RNG_VERSION,
+          },
         },
       },
-    },
-    {
-      // Beleg, dass die NPC-Leistung vor jeder Spielerantwort feststand (SIEGE_SYSTEM §2)
-      type: 'NPC_ANSWERS_SEALED',
-      payload: {
-        profile: { id: profile.id, code: profile.code, version: profile.version },
-        commitment: npc.commitment,
-        rng: {
-          purpose: 'npc-answer',
-          entityId: challengeId,
-          keyId: ctx.rngKeyId,
-          version: RNG_VERSION,
-        },
-      },
-    },
-  ]);
+    ]);
+  }
   await insertWorldEvents(tx, ctx.instanceId, [
     {
       type: 'region.changed',
@@ -376,7 +406,7 @@ export async function createAttack(tx: Tx, ctx: CreateAttackContext): Promise<At
     instanceId: ctx.instanceId,
     siegeId,
     challengeId,
-    mode: 'PVE',
+    mode,
     targetRegionId: target.id,
     defender: { kind: defenderKind, kingdom: defenderSummary },
     steps: STEP_KINDS.map((kind, index) => ({

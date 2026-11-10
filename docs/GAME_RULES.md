@@ -29,10 +29,10 @@ Kennzeichnung: **[V]** verbindlich · **[A]** Annahme aus dem Brief (konfigurier
 
 1. Ein Spieler hat pro Weltinstanz höchstens ein aktives Königreich [A, Brief §4.4].
 2. Die erste beanspruchte Region ist die Hauptstadt [A].
-3. **Hauptstadt-Leben** [V, PO 2026-11-10, ADR-037]: Eine Hauptstadt hat drei Leben (`capital.lives`). Jeder Sieg eines Angreifers über die Hauptstadt kostet ein Leben; die Hauptstadt bleibt dann beim Reich und ist für `capital.protectionAfterHit` geschützt (Schutzgrund `CAPITAL_HIT`). Ohne neuen Treffer kehrt nach je `capital.lifeRegen` ein Leben zurück, höchstens bis zum vollen Stand; jeder Treffer startet diesen Takt neu. Die Zeiten hängen vom Modus ab (§10): Eternal und Weekly 1 h Schutz und 24 h je Leben, Daily 10 min und 4 h. Ein Sieg des Verteidigers kostet nichts. Die Regel gilt für Spieler- und NPC-Reiche gleich. Für Hauptstädte von Spielerreichen gilt ab PvP (Phase 2) zusätzlich [V, [O-20] Option B]: Ein Leben kostet nur ein Sieg in einer PvP-Belagerung, in der der Verteidiger seine volle Verteidigungsfrist hatte, und jedes angreifende Reich trifft dieselbe Hauptstadt höchstens einmal je `capital.hitCooldownPerAttacker`. Die Sperre ist halb so lang wie die Erholung (`capital.lifeRegen`): Ein einzelner Angreifer kann eine Spielerhauptstadt allein einnehmen, braucht dafür aber drei Siege über mindestens die Erholungszeit (Eternal und Weekly 24 h, Daily 4 h). Mit gleich langer Sperre und Erholung ginge es allein nie, weil sich die Hauptstadt vor dem nächsten Treffer erholt.
+3. **Hauptstadt-Leben** [V, PO 2026-11-10, ADR-037]: Eine Hauptstadt hat drei Leben (`capital.lives`). Jeder Sieg eines Angreifers über die Hauptstadt kostet ein Leben; die Hauptstadt bleibt dann beim Reich und ist für `capital.protectionAfterHit` geschützt (Schutzgrund `CAPITAL_HIT`). Ohne neuen Treffer kehrt nach je `capital.lifeRegen` ein Leben zurück, höchstens bis zum vollen Stand; jeder Treffer startet diesen Takt neu. Die Zeiten hängen vom Modus ab (§10): Eternal und Weekly 1 h Schutz und 24 h je Leben, Daily 10 min und 4 h. Ein Sieg des Verteidigers kostet nichts. Die Regel gilt für Spieler- und NPC-Reiche gleich. Für Hauptstädte von Spielerreichen gilt seit PvP (Phase 2 Paket 1, umgesetzt) zusätzlich [V, [O-20] Option B]: Ein Leben kostet nur ein Sieg in einer PvP-Belagerung, in der der Verteidiger seine volle Verteidigungsfrist hatte, und jedes angreifende Reich trifft dieselbe Hauptstadt höchstens einmal je `capital.hitCooldownPerAttacker`. Die Sperre ist halb so lang wie die Erholung (`capital.lifeRegen`): Ein einzelner Angreifer kann eine Spielerhauptstadt allein einnehmen, braucht dafür aber drei Siege über mindestens die Erholungszeit (Eternal und Weekly 24 h, Daily 4 h). Mit gleich langer Sperre und Erholung ginge es allein nie, weil sich die Hauptstadt vor dem nächsten Treffer erholt.
 4. **Übernahme:** Der Sieg, der das letzte Leben nimmt, übernimmt das ganze Reich: Alle Regionen gehen an den Angreifer (die Hauptstadt als Eroberung, die übrigen als Übernahme, alle mit Eroberungsschutz), das Reich fällt (Punkt 6). Laufende Angriffe Dritter auf Regionen dieses Reichs werden abgebrochen (`CANCELLED`). Die frühere Hauptstadt wird eine gewöhnliche Region des Angreifers; eine Hauptstadt wechselt nie mehr automatisch, weil sie nur mit dem ganzen Reich verloren gehen kann (ersetzt den Hauptstadtwechsel der Fassung vom 2026-11-09).
 5. Hauptstädte sind angreifbar, außer unter Anfänger- oder Wiederaufbauschutz [A, Brief §4.5] und im Schutz nach einem Treffer.
-6. **Totalverlust:** Das Königreich erhält den Status `FALLEN`, bleibt mit Statistik und Historie erhalten [V-nah, Brief §4.5/§15.4]. Der Spieler kann sofort ein neues Königreich in einer geeigneten Startregion gründen [A] und erhält 24 h Wiederaufbauschutz [E]. Inventar gehört zum Spieler in der Instanz, nicht zum Königreich, und bleibt erhalten [E].
+6. **Totalverlust:** Das Königreich erhält den Status `FALLEN`, bleibt mit Statistik und Historie erhalten [V-nah, Brief §4.5/§15.4]. Der Spieler kann sofort ein neues Königreich in einer geeigneten Startregion gründen [A] und erhält 24 h Wiederaufbauschutz [E] (umgesetzt in Phase 2 Paket 1: „Neues Reich gründen“ auf der Karte, ADR-042). Inventar gehört zum Spieler in der Instanz, nicht zum Königreich, und bleibt erhalten [E].
 7. Ränge sind rein kosmetisch und beeinflussen keine Spielwerte [A, Brief §4.4]:
 
 | Regionen | Rang |
@@ -55,7 +55,7 @@ Der Server prüft beim Start eines Angriffs in dieser Reihenfolge (alle Prüfung
 3. Zielregion gehört zur selben Instanz und nicht dem Angreifer.
 4. **Nachbarschaft:** Die Zielregion grenzt an mindestens eine Region des Angreifers [A, Brief §4.3 Grundregel].
 5. Keine aktive Belagerung auf der Zielregion [A, Brief §7.4].
-6. Zielregion ist nicht geschützt (`protected_until`), Zielkönigreich ist nicht unter Anfänger-/Wiederaufbauschutz, und die Rangabstandsregel ist erfüllt ([§7](#7-limits-und-schutzzeiten)).
+6. Zielregion ist nicht geschützt (`protected_until`), Zielkönigreich ist nicht unter Anfänger-/Wiederaufbauschutz, und die Rangabstandsregel ist erfüllt ([§7](#7-limits-und-schutzzeiten)). Ist das Ziel die Hauptstadt eines Spielerreichs, darf dasselbe angreifende Reich sie nicht innerhalb von `capital.hitCooldownPerAttacker` getroffen haben (`CAPITAL_HIT_COOLDOWN`, §3 Punkt 3). Der eigene Anfänger- oder Wiederaufbauschutz verhindert keinen Angriff; ein PvP-Angriff beendet ihn, und die Regionsdetails weisen vorher darauf hin (§7) [E].
 7. Der Angreifer hat keine andere Herausforderung in Bearbeitung (max. eine gleichzeitig) [E].
 8. Budgets gemäß Regelkonfiguration der Instanz ([§10](#10-parametertabelle)): PvP – `attack.maxNewPvpSiegesPerAttacker` und `attack.maxPvpAttemptsPerAttacker` (Eternal 3/6 je 24 h, Weekly 6/12 je 24 h, Daily 4/8 je 1 h); Verteidiger hat weniger als `attack.maxOpenSiegesPerDefender` offene oder in Vorbereitung befindliche Belagerungen (Eternal/Weekly/Daily 4/3/2); PvE – `attack.maxPveAttemptsPerPlayer` nicht erschöpft (Eternal/Weekly/Daily 50/60/unbegrenzt, [O-08]). Kennzeichnung der Werte siehe §10.
 
@@ -77,7 +77,7 @@ Jeder Teilnehmer beantwortet in dieser Reihenfolge, ohne Zwischenergebnis:
 | falsch | richtig | Angriff fehlgeschlagen, keine Schätzfrage (Stufe 0) [E: vom PO nicht ausdrücklich genannt, folgt aus dem Gate] |
 | richtig | richtig | Schätzfrage entscheidet (Stufen 3–5) |
 
-Im PvE stehen die Antworten der Verteidigung (NPC oder Garnison) vor der ersten Frage versiegelt fest; der Server stellt die Schätzfrage deshalb nur bei Gleichstand und löst sonst direkt nach der Trivia-Frage auf. Im PvP antwortet der Verteidiger erst nach dem Angreifer; das Erscheinen der Schätzfrage würde ihm verraten, dass der Angreifer richtig lag. Deshalb beantworten im PvP beide Seiten immer beide Fragen, und die Schätzung zählt nur bei Gleichstand; die Oberfläche sagt dazu „Zählt nur, wenn ihr beide richtig liegt“ [V, [O-19] Option A, PO 2026-11-10; Umsetzung mit PvP in Phase 2].
+Im PvE stehen die Antworten der Verteidigung (NPC oder Garnison) vor der ersten Frage versiegelt fest; der Server stellt die Schätzfrage deshalb nur bei Gleichstand und löst sonst direkt nach der Trivia-Frage auf. Im PvP antwortet der Verteidiger erst nach dem Angreifer; das Erscheinen der Schätzfrage würde ihm verraten, dass der Angreifer richtig lag. Deshalb beantworten im PvP beide Seiten immer beide Fragen, und die Schätzung zählt nur bei Gleichstand; die Oberfläche sagt dazu „Zählt nur, wenn ihr beide richtig liegt“ [V, [O-19] Option A, PO 2026-11-10; umgesetzt in Phase 2 Paket 1].
 
 Die Oberfläche sagt „Deine Antworten sind gespeichert“ und behauptet nie, beide hätten richtig geantwortet [V-nah, Brief §5.5].
 
@@ -124,6 +124,8 @@ Gespielt wird nur auf Deutsch [V, PO 2026-11-09, ADR-023; der Brief sah de/hu/en
 | Daily/Weekly | 2 Saisonpunkte | +3 | 5 (wie eine Eroberung) |
 
 Eternal-Punkte erscheinen im Reichsprofil, im globalen Spielerprofil und in der Rangliste „Verteidiger“. Saisonpunkte zählen zur Wertung der Daily-/Weekly-Instanz ([WORLD_SYSTEM.md §6.3](WORLD_SYSTEM.md#63-wertung-vorschlag-transparent-e)).
+
+Stand Phase 2 Paket 1: Punkte und Paarsperre sind umgesetzt und werden in der Reichs- und Spielerstatistik gezählt; die Auflösung zeigt dem Verteidiger seine Punkte (oder dass die Paarsperre griff). Profil, Rangliste, Saisonwertung und die Prüfung verknüpfter Konten folgen.
 
 ## 6. Eternal-Verteidigung
 
@@ -210,7 +212,7 @@ Alle Werte liegen in der versionierten Regelkonfiguration (`world_rules.config`,
 | `capital.lives` (§3.3) | 3 | 3 | 3 | V (PO 2026-11-10) |
 | `capital.lifeRegen` (ein Leben zurück ohne neuen Treffer) | 24 h | 24 h | 4 h | V (PO 2026-11-10) |
 | `capital.protectionAfterHit` | 1 h | 1 h | 10 min | V (PO 2026-11-10) |
-| `capital.hitCooldownPerAttacker` (nur Spielerhauptstädte, [O-20]; noch nicht in Schema und Standardwerten, kommt mit PvP in Phase 2) | 12 h | 12 h | 2 h | V (PO 2026-11-10) |
+| `capital.hitCooldownPerAttacker` (nur Spielerhauptstädte, [O-20]; optional, ältere Welten bekommen den Standardwert des Modus) | 12 h | 12 h | 2 h | V (PO 2026-11-10) |
 | `items.enabled` | ja | nein | nein | E |
 | `items.inventoryCap` | 10 | – | – | A |
 | `items.dropEligibleConquestsPerDay` | 6 | – | – | E (Begründung: ITEM_SYSTEM §4.4) |

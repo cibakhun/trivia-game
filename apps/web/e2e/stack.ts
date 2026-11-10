@@ -2,6 +2,7 @@ import { importQuestions, validateContentDir } from '@rdw/content-tools';
 import { createDb } from '@rdw/db';
 import { createTestDatabase } from '@rdw/db/testing';
 import { TEST_WORLD_SEED, testWorldPreset } from '@rdw/game-core';
+import { PLAYTEST_RULES } from '@rdw/protocol';
 import { buildApp, createWorld, startChallengeSweeper } from '@rdw/server';
 import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -10,9 +11,9 @@ import { E2E_API_ORIGIN, E2E_API_PORT, E2E_WEB_ORIGIN, E2E_WEB_PORT } from './en
 
 /**
  * Startet die E2E-Umgebung (TEST_PLAN §2): eigene, frisch migrierte Testdatenbank mit den
- * 40 Testfragen und einer Testwelt, den api-Prozess im selben Node-Prozess und den gebauten
- * Client über `vite preview` mit Proxy auf `/api`. Braucht `TEST_DATABASE_URL`; nie gegen
- * Staging oder Produktion.
+ * 40 Testfragen und zwei Testwelten (`e2e` mit Standardregeln, `spieltest` mit kurzen Fristen für
+ * PvP), den api-Prozess im selben Node-Prozess und den gebauten Client über `vite preview` mit
+ * Proxy auf `/api`. Braucht `TEST_DATABASE_URL`; nie gegen Staging oder Produktion.
  */
 
 const WEB_ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -52,6 +53,15 @@ export async function startStack(): Promise<E2eStack> {
       seed: TEST_WORLD_SEED,
       preset: testWorldPreset(),
       capacity: 50,
+    });
+    await createWorld(db, {
+      slug: 'spieltest',
+      nameKey: 'world.test',
+      mode: 'ETERNAL',
+      seed: TEST_WORLD_SEED,
+      preset: testWorldPreset(),
+      capacity: 50,
+      rules: { config: PLAYTEST_RULES, label: 'PLAYTEST_RULES (E2E)' },
     });
 
     const app = await buildApp({

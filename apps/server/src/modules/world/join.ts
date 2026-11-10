@@ -11,15 +11,16 @@ import {
   spawnCandidates,
   tutorialTarget,
 } from '@rdw/game-core';
-import { parseRulesConfig, type JoinResponse } from '@rdw/protocol';
+import { parseRulesConfig, type JoinResponse, type RulesConfig } from '@rdw/protocol';
 import { sql } from 'kysely';
 import { gameNow, intervalMs } from '../../infra/clock.ts';
 import { ApiError } from '../../infra/errors.ts';
 import { loadSpawnSnapshot } from './spawn-snapshot.ts';
 
 /**
- * Beitritt zu einer Welt (API.md §2.2, WORLD_SYSTEM §4.2, GAME_RULES §3): Startregion wählen,
- * Reich gründen, Hauptstadt setzen. Läuft in der Transaktion des Idempotenzspeichers.
+ * Beitritt zu einer Welt und Neustart nach Totalverlust (API.md §2.2, WORLD_SYSTEM §4.2,
+ * GAME_RULES §3 Punkt 6): Startregion wählen, Reich gründen, Hauptstadt setzen. Läuft in der
+ * Transaktion des Idempotenzspeichers.
  *
  * Sperren: zuerst die Instanzzeile (`for update`), damit gleichzeitige Beitritte nacheinander
  * wählen und sich nicht dieselbe Region oder zu nahe Hauptstädte zuteilen. Die Zielregion wird
@@ -76,8 +77,95 @@ export async function joinWorld(tx: Tx, ctx: JoinContext): Promise<JoinResponse>
     throw new ApiError(409, 'INSTANCE_FULL', 'Instanz ist voll', { instanceId });
   }
   const rules = parseRulesConfig(instance.config);
+  const founded = await foundKingdom(tx, {
+    userId: ctx.userId,
+    instanceId,
+    rules,
+    rngSecret: ctx.rngSecret,
+    rngKeyId: ctx.rngKeyId,
+    source: 'JOIN',
+  });
+  await tx
+    .insertInto('world_participants')
+    .values({
+      instance_id: instanceId,
+      user_id: ctx.userId,
+      joined_at: gameNow,
+      current_kingdom_id: founded.kingdom.id,
+      last_active_at: gameNow,
+    })
+    .execute();
+  return founded;
+}
 
-  // n-tes Reich des Spielers in dieser Instanz (Neustart nach Totalverlust kommt später)
+export interface RespawnContext {
+  readonly userId: string;
+  readonly instanceId: string;
+  readonly rngSecret: Uint8Array;
+  readonly rngKeyId: string;
+}
+
+/**
+ * Neustart nach Totalverlust (GAME_RULES §3 Punkt 6): Ist das aktuelle Reich des Spielers
+ * gefallen, gründet er sofort ein neues in einer geeigneten Startregion, mit Wiederaufbauschutz
+ * (`protection.respawn`). Das gefallene Reich bleibt mit Statistik und Historie erhalten.
+ */
+export async function respawnKingdom(tx: Tx, ctx: RespawnContext): Promise<JoinResponse> {
+  const instance = await tx
+    .selectFrom('world_instances as i')
+    .innerJoin('world_rules as wr', 'wr.id', 'i.rules_id')
+    .select(['i.id', 'i.status', 'wr.config'])
+    .where('i.id', '=', ctx.instanceId)
+    .forUpdate('i')
+    .executeTakeFirst();
+  if (!instance) throw new ApiError(404, 'NOT_FOUND', 'Instanz nicht gefunden');
+  if (instance.status !== 'RUNNING') {
+    throw new ApiError(409, 'INSTANCE_NOT_ACTIVE', 'Instanz läuft nicht');
+  }
+  const participation = await tx
+    .selectFrom('world_participants as p')
+    .leftJoin('kingdoms as k', 'k.id', 'p.current_kingdom_id')
+    .select(['p.status', 'k.status as kingdom_status'])
+    .where('p.instance_id', '=', ctx.instanceId)
+    .where('p.user_id', '=', ctx.userId)
+    .executeTakeFirst();
+  if (participation?.status !== 'ACTIVE') {
+    throw new ApiError(404, 'NOT_FOUND', 'Nicht beigetreten');
+  }
+  if (participation.kingdom_status === 'ACTIVE') {
+    throw new ApiError(409, 'KINGDOM_ACTIVE', 'Dein Reich besteht noch');
+  }
+  const founded = await foundKingdom(tx, {
+    userId: ctx.userId,
+    instanceId: ctx.instanceId,
+    rules: parseRulesConfig(instance.config),
+    rngSecret: ctx.rngSecret,
+    rngKeyId: ctx.rngKeyId,
+    source: 'RESPAWN',
+  });
+  await tx
+    .updateTable('world_participants')
+    .set({ current_kingdom_id: founded.kingdom.id, last_active_at: gameNow })
+    .where('instance_id', '=', ctx.instanceId)
+    .where('user_id', '=', ctx.userId)
+    .execute();
+  return founded;
+}
+
+interface FoundParams {
+  readonly userId: string;
+  readonly instanceId: string;
+  readonly rules: RulesConfig;
+  readonly rngSecret: Uint8Array;
+  readonly rngKeyId: string;
+  /** Erster Beitritt (Anfängerschutz) oder Neustart (Wiederaufbauschutz). */
+  readonly source: 'JOIN' | 'RESPAWN';
+}
+
+/** Gründet das nächste Reich des Spielers; die Teilnahme schreibt der Aufrufer. */
+async function foundKingdom(tx: Tx, ctx: FoundParams): Promise<JoinResponse> {
+  const { instanceId, rules } = ctx;
+  // n-tes Reich des Spielers in dieser Instanz
   const { previous } = await tx
     .selectFrom('kingdoms')
     .select((eb) => eb.fn.coalesce(eb.fn.max('generation'), eb.lit(0)).as('previous'))
@@ -100,7 +188,9 @@ export async function joinWorld(tx: Tx, ctx: JoinContext): Promise<JoinResponse>
   const color = pickKingdomColor(rng, snapshot.colorUsage);
 
   const kingdomId = newId();
-  const protection = rules.protection.newPlayer.duration;
+  const respawn = ctx.source === 'RESPAWN';
+  const protection = respawn ? rules.protection.respawn : rules.protection.newPlayer.duration;
+  const protectionReason = respawn ? 'RESPAWN' : 'NEWBIE';
   const kingdom = await tx
     .insertInto('kingdoms')
     .values({
@@ -112,22 +202,12 @@ export async function joinWorld(tx: Tx, ctx: JoinContext): Promise<JoinResponse>
       color,
       region_count: 1,
       protected_until: protection > 0 ? sql<Date>`game_now() + ${intervalMs(protection)}` : null,
-      protection_reason: protection > 0 ? 'NEWBIE' : null,
+      protection_reason: protection > 0 ? protectionReason : null,
       generation,
       founded_at: gameNow,
     })
     .returning(['protected_until'])
     .executeTakeFirstOrThrow();
-  await tx
-    .insertInto('world_participants')
-    .values({
-      instance_id: instanceId,
-      user_id: ctx.userId,
-      joined_at: gameNow,
-      current_kingdom_id: kingdomId,
-      last_active_at: gameNow,
-    })
-    .execute();
   const claimed = await tx
     .updateTable('region_state')
     .set({
@@ -161,7 +241,7 @@ export async function joinWorld(tx: Tx, ctx: JoinContext): Promise<JoinResponse>
       kingdom_id: kingdomId,
       kind: 'FOUNDED',
       payload: JSON.stringify({
-        source: 'JOIN',
+        source: ctx.source,
         generation,
         capitalRegionId: start.id,
         spawn: {
@@ -236,7 +316,7 @@ export async function joinWorld(tx: Tx, ctx: JoinContext): Promise<JoinResponse>
       archetype: null,
       capitalRegionId: start.id,
       protectedUntil: kingdom.protected_until?.toISOString() ?? null,
-      protectionReason: kingdom.protected_until ? 'NEWBIE' : null,
+      protectionReason: kingdom.protected_until ? protectionReason : null,
     },
     capitalRegionId: start.id,
     // Nachbarn aus dem Schnappschuss: Die Startregion selbst ist kein Nachbar.

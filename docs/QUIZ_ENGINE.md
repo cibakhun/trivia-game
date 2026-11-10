@@ -81,6 +81,8 @@ Die Auswahl wird mit der Herausforderung gespeichert (`quiz_challenge_steps`); s
 
 Stand Phase 1 Paket 3 (ADR-035, `packages/game-core/src/question-pick.ts`): Punkte 1, 2, 3 und 6 sind umgesetzt; Punkt 4 ruht (nur Deutsch, ADR-023), Punkt 5 folgt mit den Fragenstatistiken. Die erste Eroberung eines Reichs (Tutorial) bekommt leichte Fragen, solange es im Bestand welche gibt; die Ausschlussfenster gelten dann innerhalb der leichten Fragen, und nur ohne jede leichte Frage wird eine mittlere oder schwere gestellt. Die Schwierigkeit wird zweistufig gezogen: erst die Klasse nach ihrem Gewicht, dann die Frage innerhalb der Klasse (so entspricht die Mischung der gespeicherten Zielschwierigkeit). Die Exposition (`player_question_exposure`) wird beim Stellen gespeichert, nicht bei der Anlage.
 
+Stand Phase 2 Paket 1 (ADR-039): Punkt 3 gilt im PvP für Angreifer und Verteidiger. Zusätzlich zählt eine Frage, die in einer noch offenen Belagerung eines der beiden steht, als eben gesehen; so sieht niemand eine Frage samt Lösung, die ihm in einem offenen Kampf noch bevorsteht. Die Tutorial-Regel (nur leichte Fragen) gilt nur im PvE. Bei der Auflösung einer eröffneten PvP-Belagerung werden die Fragen, die der Verteidiger nie gestellt bekommen hat, für ihn als gesehen gespeichert, weil die Auflösung sie ihm zeigt.
+
 ## 6. Zeitmessung und Latenzausgleich
 
 ### 6.1 Messgrößen
@@ -142,13 +144,15 @@ stateDiagram-v2
 
 Stand Phase 1 Paket 3 (ADR-033): umgesetzt für PvE. `present` ist ohne `Idempotency-Key` wiederholbar; ein Reload protokolliert `STEP_RELOADED`, danach gilt für diesen Schritt nur die Serverzeit (§6.2). `answer` speichert in einer kurzen Transaktion und wertet danach in einer zweiten aus. Läuft Schritt 0 ab, endet die Herausforderung ohne Schätzfrage (der Angreifer liegt damit am Gate falsch). Seit 2026-11-10 entfällt die Schätzfrage im PvE auch, wenn nur eine Seite die Trivia-Frage richtig hat (`estimateDecides` in `game-core`; der Aufräumlauf wertet solche Kämpfe ebenfalls aus). Wer nach dem Angriff 120 s lang keine Frage öffnet, verliert den Angriff ohne Versuch (`NEVER_STARTED`).
 
+Stand Phase 2 Paket 1 (ADR-038): auch für PvP. Eine Herausforderung gehört zur Belagerung, ihre Schritte gibt es je Teilnehmer; welche Rolle der Spieler hat, ergibt sich aus seiner Teilnehmerzeile. Der Angreifer geht wie im PvE vor; läuft seine erste Frage ab, wird die Belagerung nicht eröffnet (`ATTACK_FAILED`), sonst eröffnet seine letzte Antwort (Ablauf in [SIEGE_SYSTEM.md §4](SIEGE_SYSTEM.md#4-ablauf-pvp-belagerung)). Für den Verteidiger stellt `POST /sieges/:id/defense` die Wissensfrage; vorher lehnt `present` mit `STEP_NOT_AVAILABLE` ab, danach liefert es dieselbe Frage als Reload. `STEP_RELOADED` trägt die Rolle, damit ein Reload nur die Antwort dieser Seite betrifft (ältere Einträge ohne Rolle gelten für den Angreifer).
+
 ### 7.2 Was der Client wann erfährt [E]
 
 | Zeitpunkt | Angreifer erfährt | Verteidiger erfährt |
 |---|---|---|
 | Während der Herausforderung | nur die aktuelle Frage, keine Richtigkeit | nur die aktuelle Frage |
 | PvP, Angreifer fertig | „Belagerung eröffnet – Frist bis …“; **keine** Rückmeldung zur Richtigkeit, auch nicht zur eigenen Trivia-Antwort (verdecktes Gate, [O-01]) | „Region X wird belagert – Frist bis …“; **keine** Frage, Kategorie oder Angreiferleistung, auch nicht, ob der Angreifer richtig lag |
-| PvP, Angreifer bricht vor Abschluss ab | „Angriff abgebrochen“ (zählt als Versuch) | nichts (keine Belagerung) |
+| PvP, Angreifer bricht vor Abschluss ab | „Angriff abgebrochen“ (zählt als Versuch; umgesetzt: läuft die Wissensfrage ab, endet der Angriff `ATTACK_FAILED`) | nichts (keine Belagerung) |
 | Nach Auflösung | vollständige Auflösung beider Seiten: Antworten, Lösung, Abstände, effektive Zeiten, Entscheidungsstufe | dasselbe |
 | PvE | sofort nach dem letzten gestellten Schritt die vollständige Auflösung (ohne Gleichstand schon nach Schritt 0) | – |
 

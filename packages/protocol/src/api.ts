@@ -39,10 +39,17 @@ export const ERROR_CODES = [
   'REGION_PROTECTED',
   'KINGDOM_PROTECTED',
   'RANK_GAP',
+  'CAPITAL_HIT_COOLDOWN',
   'CHALLENGE_IN_PROGRESS',
+  'ATTACKER_SIEGE_LIMIT',
   'ATTACKER_ATTEMPT_LIMIT',
-  'PVP_NOT_AVAILABLE',
+  'DEFENDER_SIEGE_LIMIT',
   'NO_QUESTION_AVAILABLE',
+  // Verteidigung (SIEGE_SYSTEM §6.2)
+  'DEADLINE_PASSED',
+  'DEADLINE_TOO_CLOSE',
+  // Neues Reich nach Totalverlust (GAME_RULES §3 Punkt 6)
+  'KINGDOM_ACTIVE',
   // Herausforderung (QUIZ_ENGINE §7)
   'CHALLENGE_CLOSED',
   'STEP_NOT_AVAILABLE',
@@ -219,8 +226,13 @@ export const myInstanceSchema = z
      * und ein freier neutraler Nachbar existiert.
      */
     tutorialTargetRegionId: regionIdSchema.nullable(),
-    /** Laufende eigene Herausforderung (Wiederaufnahme nach Reload), sonst `null`. */
+    /**
+     * Laufende eigene Herausforderung (Wiederaufnahme nach Reload): ein Angriff in Vorbereitung
+     * oder eine begonnene Verteidigung, sonst `null`.
+     */
     openChallengeId: entityIdSchema.nullable(),
+    /** Offene Belagerungen gegen das eigene Reich, die noch auf die Verteidigung warten. */
+    incomingSieges: z.number().int().min(0),
   })
   .strict();
 export type MyInstance = z.infer<typeof myInstanceSchema>;
@@ -348,8 +360,7 @@ export type MapStateResponse = z.infer<typeof mapStateResponseSchema>;
 
 /**
  * Gründe, aus denen ein Angriff nicht möglich ist, in der Prüfreihenfolge aus GAME_RULES §4.
- * Gleiche Liste wie `ATTACK_REFUSALS` in game-core plus `PVP_NOT_AVAILABLE` (PvP kommt mit
- * Phase 2); ein Test hält beide gleich.
+ * Gleiche Liste wie `ATTACK_REFUSALS` in game-core; ein Test hält beide gleich.
  */
 export const ATTACK_REFUSAL_CODES = [
   'INSTANCE_NOT_ACTIVE',
@@ -360,13 +371,16 @@ export const ATTACK_REFUSAL_CODES = [
   'REGION_PROTECTED',
   'KINGDOM_PROTECTED',
   'RANK_GAP',
+  'CAPITAL_HIT_COOLDOWN',
   'CHALLENGE_IN_PROGRESS',
+  'ATTACKER_SIEGE_LIMIT',
   'ATTACKER_ATTEMPT_LIMIT',
-  'PVP_NOT_AVAILABLE',
+  'DEFENDER_SIEGE_LIMIT',
 ] as const satisfies readonly ErrorCode[];
 export type AttackRefusalCode = (typeof ATTACK_REFUSAL_CODES)[number];
 
 export const attackModeSchema = z.enum(['PVE', 'PVP']);
+export type AttackMode = z.infer<typeof attackModeSchema>;
 export const defenderKindSchema = z.enum(['NEUTRAL', 'NPC', 'PLAYER']);
 
 /** Berechnete Angriffsberechtigung des Anfragenden für eine Region (API.md §2.2). */
@@ -376,8 +390,17 @@ export const attackEligibilitySchema = z
     mode: attackModeSchema.nullable(),
     defenderKind: defenderKindSchema.nullable(),
     reason: z.enum(ATTACK_REFUSAL_CODES).nullable(),
-    /** Schutz bis (`REGION_PROTECTED`, `KINGDOM_PROTECTED`) bzw. nächster freier Versuch (`ATTACKER_ATTEMPT_LIMIT`). */
+    /**
+     * Schutz bis (`REGION_PROTECTED`, `KINGDOM_PROTECTED`), Ende der Sperre
+     * (`CAPITAL_HIT_COOLDOWN`) bzw. nächster freier Versuch (`ATTACKER_SIEGE_LIMIT`,
+     * `ATTACKER_ATTEMPT_LIMIT`).
+     */
     until: timestampSchema.nullable(),
+    /**
+     * Ein Angriff auf ein Spielerreich beendet den eigenen Anfänger- oder Wiederaufbauschutz
+     * (GAME_RULES §7); die Oberfläche warnt vorher.
+     */
+    endsOwnProtection: z.boolean(),
   })
   .strict();
 export type AttackEligibilityDto = z.infer<typeof attackEligibilitySchema>;

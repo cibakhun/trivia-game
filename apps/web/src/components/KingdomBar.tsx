@@ -2,7 +2,10 @@ import type { KingdomSummary } from '@rdw/protocol';
 import { formatTime, t, tp } from '../i18n/i18n.ts';
 import { cssColor, kingdomColor } from '../map/palette.ts';
 
-/** Reichsanzeige: Farbe, Rang und Name (GAME_RULES §3.7–3.8), Regionenzahl, Anfängerschutz (§7). */
+/**
+ * Reichsanzeige: Farbe, Rang und Name (GAME_RULES §3.7–3.8), Regionenzahl, Anfänger- bzw.
+ * Wiederaufbauschutz (§7, §3 Punkt 6).
+ */
 export function KingdomBar({ kingdom }: { readonly kingdom: KingdomSummary }) {
   return (
     <header className="kingdom-bar" aria-label={t('kingdom.yours')}>
@@ -23,6 +26,11 @@ export function KingdomBar({ kingdom }: { readonly kingdom: KingdomSummary }) {
       {kingdom.protectedUntil && kingdom.protectionReason === 'NEWBIE' ? (
         <div className="muted">
           {t('kingdom.newbieProtection', { time: formatTime(kingdom.protectedUntil) })}
+        </div>
+      ) : null}
+      {kingdom.protectedUntil && kingdom.protectionReason === 'RESPAWN' ? (
+        <div className="muted">
+          {t('kingdom.respawnProtection', { time: formatTime(kingdom.protectedUntil) })}
         </div>
       ) : null}
     </header>

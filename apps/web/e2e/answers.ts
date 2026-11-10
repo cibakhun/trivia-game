@@ -7,7 +7,7 @@ import { createDb, createPool, type Db } from '@rdw/db';
 
 let db: Db | null = null;
 
-function testDb(): Db {
+export function testDb(): Db {
   const url = process.env.E2E_DATABASE_URL;
   if (!url) throw new Error('E2E_DATABASE_URL fehlt (globalSetup nicht gelaufen?)');
   db ??= createDb(createPool({ connectionString: url, max: 2, applicationName: 'rdw-e2e' }));
@@ -49,6 +49,21 @@ export async function exactEstimateInput(challengeId: string): Promise<string> {
     .executeTakeFirstOrThrow();
   if (row.answer_value === null) throw new Error('Schätzwert fehlt');
   return row.answer_value.replace('.', ',');
+}
+
+/** Schätzung um eine Einheit neben dem Schätzwert (im erlaubten Bereich), deutsch geschrieben. */
+export async function offEstimateInput(challengeId: string): Promise<string> {
+  const row = await testDb()
+    .selectFrom('quiz_challenge_steps as s')
+    .innerJoin('question_versions as v', 'v.id', 's.version_id')
+    .select(['v.answer_value', 'v.input_max'])
+    .where('s.challenge_id', '=', challengeId)
+    .where('s.step_index', '=', 1)
+    .executeTakeFirstOrThrow();
+  if (row.answer_value === null) throw new Error('Schätzwert fehlt');
+  const value = Number(row.answer_value);
+  const max = row.input_max === null ? Number.POSITIVE_INFINITY : Number(row.input_max);
+  return String(value + 1 <= max ? value + 1 : value - 1).replace('.', ',');
 }
 
 /**

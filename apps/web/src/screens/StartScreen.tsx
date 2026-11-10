@@ -100,7 +100,7 @@ export function StartScreen() {
               // Der Server tritt der neuesten laufenden Instanz bei (Liste aufsteigend nach Start)
               const instance = world.instances.at(-1);
               return (
-                <li key={world.id} className="world">
+                <li key={world.id} className="world" data-testid={`world-${world.slug}`}>
                   <div>
                     <strong>{t(`start.worldMode.${world.mode}`)}</strong>
                     <span className="muted"> · {world.slug}</span>

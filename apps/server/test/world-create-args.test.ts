@@ -7,6 +7,7 @@ describe('Argumente von world:create', () => {
       '--slug=test-2',
       '--seed=-17',
       '--capacity=30',
+      '--rules=playtest',
       '--production-approved',
     ]);
     expect(args).toEqual(
@@ -14,6 +15,7 @@ describe('Argumente von world:create', () => {
         ['--slug', 'test-2'],
         ['--seed', '-17'],
         ['--capacity', '30'],
+        ['--rules', 'playtest'],
         ['--production-approved', 'true'],
       ]),
     );

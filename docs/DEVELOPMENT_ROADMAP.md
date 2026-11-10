@@ -76,6 +76,13 @@ Umsetzung in vier aufeinander folgenden Pull Requests:
 
 Abnahme (Brief): Zwei echte Spieler kämpfen auf derselben Karte ohne inkonsistente Besitzverhältnisse. Tests: E2E-02, -03, -04, -09 (E2E-10 ruht bis zu einer zweiten Sprache, ADR-023).
 
+Umsetzung in vier Pull Requests, je Paket einer, in der Reihenfolge PvP, Konto, Echtzeit, Nebenläufigkeit:
+
+1. PvP: Eröffnung nach dem Angreifer, Verteidigung mit Frage im Verteidigungsbeginn, Auflösung (Verteidigung, Fristablauf, Abbruch), Verteidigungspunkte mit Paarsperre, PvP-Grenzen und Hauptstadtsperre, Belagerungsübersicht, Neugründung nach dem Fall, Spieltest-Regeln (`pnpm world:create --rules=playtest`, 10 min Frist); E2E-02 und -03 – umgesetzt am 2026-11-10 (ADR-038 bis ADR-042; ohne Echtzeit, Push und Verlängerung)
+2. Konto nach [O-03] und [O-10]
+3. Echtzeit (WebSocket)
+4. Nebenläufigkeit (Harness, N1–N4, N8, N12, E2E-09) und E2E-04
+
 ### Phase 3 – Eternal-Belagerungen
 
 | Paket | Inhalt |
@@ -121,7 +128,7 @@ Lasttests gegen die Hypothesen in [WORLD_SYSTEM.md §4.3](WORLD_SYSTEM.md#43-kap
 |---|---|
 | Schritt 1.0 | keine ([O-01] ist entschieden) |
 | Phase 1 | ~~[O-02] Fragenbeschaffung~~ vertagt (PO 2026-11-09): Phase 1 mit den 40 Testfragen, Klärung vor der Beta |
-| Phase 2 | [O-03] Kontomodell, [O-10] Namen, [O-11] Staging-Hosting (für Tests mit echten Spielern), [O-18] Verteidigungspunkte, ~~[O-19] Schätzfrage als Tiebreaker im PvP~~ und ~~[O-20] Übernahme von Spielerreichen~~ entschieden (PO 2026-11-10) |
+| Phase 2 | ~~[O-03] Kontomodell~~ und ~~[O-10] Namen~~ entschieden, [O-11] Staging-Hosting vertagt (Test lokal oder im Heimnetz), ~~[O-19] Schätzfrage als Tiebreaker im PvP~~ und ~~[O-20] Übernahme von Spielerreichen~~ entschieden (alle PO 2026-11-10); [O-18] Verteidigungspunkte mit der Empfehlung als Standardannahme umgesetzt, Werte und Nutzen offen |
 | Phase 3 | [O-04] Benachrichtigungen, [O-05] Belagerungskapazität, [O-07] Schutzregeln, [O-08] PvE-Tempo |
 | Phase 4 | [O-09] Drops bei Timeout-Siegen |
 | Closed Beta | [O-11] Hosting, [O-12] Name |
