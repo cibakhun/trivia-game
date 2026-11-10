@@ -36,9 +36,11 @@ docker compose up -d db       # PostgreSQL 16, nur auf 127.0.0.1
 pnpm check                    # Lint, Formatierung, Typen, Unit-Tests, Fragenprüfung
 pnpm test:integration         # Integrationstests (je Testdatei eine eigene Datenbank)
 pnpm db:migrate               # Migrationen auf DATABASE_URL anwenden (--status zeigt nur den Plan)
+pnpm db:types                 # Kysely-Typen aus dem migrierten Schema erzeugen (--check: nur vergleichen)
+pnpm content:import --fixtures  # Fragen importieren, lokal mit den 40 Testfragen (--dry-run: Probelauf)
 ```
 
-`pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie.
+`pnpm db:migrate` bricht mit `APP_ENV=production` ohne `--production-approved` ab: Produktionsmigrationen brauchen eine ausdrückliche Freigabe, ein Backup und einen Probelauf gegen eine Kopie. `pnpm content:import` verlangt in Produktion ebenfalls `--production-approved`, außer beim Probelauf mit `--dry-run`, der nichts übernimmt; Testfragen (`--fixtures`) lehnt der Import außerhalb von `local` und `test` immer ab.
 
 ## Stack
 

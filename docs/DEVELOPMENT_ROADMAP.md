@@ -42,7 +42,7 @@ Lieferung: dieses Dokumentationspaket. Keine produktiven Änderungen.
 
 Abnahme: CI grün; Unit-Tests nach [TEST_PLAN.md §3](TEST_PLAN.md#3-unit-tests-brief-171) für alle Kernfunktionen.
 
-Umgesetzt am 2026-11-09 (Stand der Tests: [TEST_PLAN.md §7](TEST_PLAN.md#7-aktueller-stand)). Verschoben nach Phase 1, weil erst dort Abfragen entstehen: Kysely mit generierten Tabellentypen und die Drift-Prüfung „Schema gegen eingecheckten Typ-Stand“ aus [DATA_MODEL.md §6](DATA_MODEL.md#6-migrationsstrategie); die Basis-NPC-Profile als Referenzdaten kommen mit dem PvE-Ablauf, der sie nutzt.
+Umgesetzt am 2026-11-09 (Stand der Tests: [TEST_PLAN.md §7](TEST_PLAN.md#7-aktueller-stand)). Verschoben nach Phase 1, weil erst dort Abfragen entstehen: Kysely mit generierten Tabellentypen und die Drift-Prüfung „Schema gegen eingecheckten Typ-Stand“ aus [DATA_MODEL.md §6](DATA_MODEL.md#6-migrationsstrategie); ebenso die Basis-NPC-Profile als Referenzdaten (umgesetzt mit Phase 1, Paket 1, Migration 0007; genutzt ab dem PvE-Ablauf in Paket 3).
 
 ### Phase 1 – Singleplayer-Gameplay-Prototyp
 
@@ -56,6 +56,13 @@ Umgesetzt am 2026-11-09 (Stand der Tests: [TEST_PLAN.md §7](TEST_PLAN.md#7-aktu
 | Inhalte | 100 Trivia + 50 Schätzfragen, geprüft, auf Deutsch; bis zur Entscheidung über [O-02] mit den 40 Testfragen (PO 2026-11-09) |
 
 Abnahme (Brief): Ein Spieler erobert wiederholt NPC-Gebiete, erweitert sein Reich und sieht nach erneutem Login den korrekten Weltzustand. Tests: E2E-01, Integration „Gebietseroberung PvE“.
+
+Umsetzung in vier aufeinander folgenden Pull Requests:
+
+1. Tabellen für Fragen und Kämpfe, Betrieb und NPC-Profile (Migrationen 0005–0007), typisierter Datenbankzugriff mit Drift-Prüfung, Fragenimport – umgesetzt am 2026-11-10
+2. Kartengenerator, Testwelt, Server-Grundgerüst, Gastkonto mit Sitzung, Beitritt mit Startregion und Hauptstadt, Kartenabfragen
+3. PvE-Kampf: Berechtigung, Herausforderung (present/answer), versiegelte NPC-Antworten, Auflösung, Besitzwechsel, Schutzzeit, Historie, Outbox; Integration „Gebietseroberung PvE“
+4. Client (PixiJS-Karte, Regionsdetails, Quiz, Reichsanzeige) und E2E-01
 
 ### Phase 2 – Echter Multiplayer
 

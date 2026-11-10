@@ -71,3 +71,6 @@ jobs:
         run: pnpm test:integration
       - name: Migrationen auf leere Datenbank
         run: pnpm db:migrate
+      # Drift-Prüfung (DATA_MODEL §6.2): eingecheckte Kysely-Typen gegen das migrierte Schema
+      - name: Schema-Typen aktuell
+        run: pnpm db:types --check

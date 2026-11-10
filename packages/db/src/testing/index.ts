@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import pg from 'pg';
+import { createPool } from '../client.ts';
 import { migrate } from '../migrate.ts';
 
 /**
@@ -68,7 +69,8 @@ export async function createTestDatabase(
     }
   });
   const url = withDatabase(testServerUrl(), name);
-  const pool = new pg.Pool({ connectionString: url, max: 5 });
+  // dieselben Typparser wie im Server, damit Tests dieselben Werte lesen
+  const pool = createPool({ connectionString: url, max: 5, applicationName: 'rdw-test' });
   let poolEnded = false;
   const drop = async (): Promise<void> => {
     // wiederholbar: ein zweiter Aufruf nach fehlgeschlagenem DROP beendet den Pool nicht erneut

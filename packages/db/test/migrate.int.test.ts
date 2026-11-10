@@ -1,21 +1,21 @@
 import { mkdtemp, readFile, writeFile, cp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { loadMigrations, migrate, migrationStatus, MIGRATIONS_DIR } from '../src/index.ts';
 import { createTestDatabase, type TestDatabase } from '../src/testing/index.ts';
 
 let db: TestDatabase;
 let workDir: string;
 
+// Aufräumen nur, wenn das Anlegen gelang: sonst überdeckt ein Folgefehler die Ursache.
 beforeAll(async () => {
   db = await createTestDatabase({ migrate: false });
   workDir = await mkdtemp(path.join(tmpdir(), 'rdw-migrations-'));
-});
-
-afterAll(async () => {
-  await db.drop();
-  await rm(workDir, { recursive: true, force: true });
+  return async () => {
+    await db.drop();
+    await rm(workDir, { recursive: true, force: true });
+  };
 });
 
 async function copyMigrations(name: string): Promise<string> {
@@ -43,7 +43,8 @@ describe('Migrationsdateien', () => {
     await expect(loadMigrations(badName)).rejects.toThrow(/Dateiname/);
 
     const tx = await copyMigrations('tx');
-    await writeFile(path.join(tx, '0005_mit_transaktion.sql'), 'begin;\nselect 1;\ncommit;\n');
+    const next = String((await loadMigrations()).length + 1).padStart(4, '0');
+    await writeFile(path.join(tx, `${next}_mit_transaktion.sql`), 'begin;\nselect 1;\ncommit;\n');
     await expect(loadMigrations(tx)).rejects.toThrow(/Transaktionssteuerung/);
   });
 });
@@ -76,7 +77,9 @@ describe('migrate', () => {
 
   it('erkennt angewandte Migrationen ohne Datei', async () => {
     const dir = await copyMigrations('missing');
-    await rm(path.join(dir, '0004_karte_reiche.sql'));
+    const last = (await loadMigrations()).at(-1);
+    if (!last) throw new Error('keine Migrationen gefunden');
+    await rm(path.join(dir, last.file));
     const client = await db.pool.connect();
     try {
       await expect(migrate(client, { dir })).rejects.toThrow(/Datei fehlt/);

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import {
   advanceGameClock,
   createTestDatabase,
@@ -13,9 +13,7 @@ describe('game_now() in Test/Staging (Versatz erlaubt)', () => {
   let db: TestDatabase;
   beforeAll(async () => {
     db = await createTestDatabase();
-  });
-  afterAll(async () => {
-    await db.drop();
+    return () => db.drop(); // nur nach erfolgreichem Anlegen
   });
 
   it('folgt ohne Versatz der Datenbankuhr', async () => {
@@ -60,9 +58,7 @@ describe('game_clock in Produktion (Versatz gesperrt)', () => {
   let db: TestDatabase;
   beforeAll(async () => {
     db = await createTestDatabase({ allowClockOffset: false });
-  });
-  afterAll(async () => {
-    await db.drop();
+    return () => db.drop(); // nur nach erfolgreichem Anlegen
   });
 
   it('lehnt jeden Versatz ab', async () => {

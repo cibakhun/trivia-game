@@ -9,15 +9,18 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "migrate": "tsx src/cli/migrate.ts"
+    "migrate": "tsx src/cli/migrate.ts",
+    "types": "tsx src/cli/types.ts"
   },
   "dependencies": {
+    "kysely": "0.29.7",
     "pg": "8.23.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@rdw/game-core": "workspace:*",
     "@rdw/protocol": "workspace:*",
-    "@types/pg": "8.23.1"
+    "@types/pg": "8.23.1",
+    "prettier": "3.9.10"
   }
 }

@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { loadMigrations } from '../src/index.ts';
 import { createTestDatabase, type TestDatabase } from '../src/testing/index.ts';
 
@@ -14,11 +14,10 @@ interface CliResult {
 
 let db: TestDatabase;
 
+// Aufräumen nur, wenn das Anlegen gelang: sonst überdeckt ein Folgefehler die Ursache.
 beforeAll(async () => {
   db = await createTestDatabase({ migrate: false });
-});
-afterAll(async () => {
-  await db.drop();
+  return () => db.drop();
 });
 
 /** Startet `pnpm db:migrate` als eigenen Prozess, wie er auf einem Server liefe. */

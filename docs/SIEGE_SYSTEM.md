@@ -171,9 +171,9 @@ UPDATE kingdom_statistics SET defense_points = defense_points + :points WHERE ki
 UPDATE player_statistics  SET defense_points = defense_points + :points WHERE user_id = :defender_user;
 -- immer:
 INSERT INTO notifications (...);
--- zuletzt: alle Ereignisse der Transaktion mit Sequenzvergabe in einer Anweisung (ARCHITECTURE.md §10)
-WITH c AS (UPDATE world_instances SET event_seq = event_seq + :n WHERE id = :inst RETURNING event_seq)
-INSERT INTO world_events (instance_id, seq, ...) SELECT :inst, c.event_seq - :n + e.ord, ... FROM c, unnest(...) WITH ORDINALITY AS e(event, ord);
+-- zuletzt: alle Ereignisse der Transaktion in einer Anweisung; seq vergibt der Trigger
+-- world_events_seq aus world_instances.event_seq (ARCHITECTURE.md §10, ADR-027)
+INSERT INTO world_events (instance_id, chunk_x, chunk_y, user_id, type, payload) VALUES (...), (...);
 COMMIT;
 ```
 
