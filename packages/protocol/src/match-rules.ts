@@ -28,6 +28,60 @@ const pauseMs = z
   .min(0)
   .max(30 * SECOND_MS);
 
+const amount = z.number().int().min(0).max(100);
+
+/** Preis in Brot und Baustoff. */
+const costSchema = z.object({ bread: amount, material: amount }).strict();
+
+/**
+ * Ausbau der Partie mit Burgen, Dörfern, Armeen, Brot und Baustoff (docs/MATCH_RULES.md §11,
+ * ADR-057, Konzept vom 2026-11-11, O-25 bis O-35). Nur Regeln mit diesem Abschnitt spielen den
+ * Ausbau (`createRealm` in game-core); ohne ihn läuft die Partie wie bisher (`createMatch`).
+ * Burgleben und Abstand der Burgen stehen in `capital`, Punktwerte in `values`.
+ */
+export const matchEconomySchema = z
+  .object({
+    /** Lieblingskategorien je Spieler; über sie wirken die Lose im Glücksrad. */
+    favorites: z.number().int().min(1).max(11),
+    /** Armeen jeder Startburg. */
+    startArmies: z.number().int().min(0).max(20),
+    /** Mindestabstand des Startdorfs zu fremden Gebäuden in Feldern. */
+    villageMinDistance: z.number().int().min(1).max(5),
+    /** Ertrag je Feldzugrunde: Feld ohne Gebäude, mit Dorf, mit Stadt (in seinem Rohstoff); Burg in beiden. */
+    yields: z
+      .object({
+        plain: amount,
+        village: amount,
+        town: amount,
+        castleBread: amount,
+        castleMaterial: amount,
+      })
+      .strict(),
+    /** So viel eines Rohstoffs kostet 1 vom anderen. */
+    tradeRate: z.number().int().min(1).max(10),
+    costs: z
+      .object({ village: costSchema, town: costSchema, castle: costSchema, army: costSchema })
+      .strict(),
+    /** Burgen je Reich, die Startburg mitgezählt. */
+    maxCastles: z.number().int().min(1).max(5),
+    /** Armeen je Feld. */
+    armyCap: z.number().int().min(1).max(50),
+    /** Lose im Glücksrad: für den Verteidiger je Gebäude auf dem Feld, frei für alle Kategorien. */
+    lots: z.object({ village: amount, town: amount, castle: amount, free: amount }).strict(),
+    timers: z
+      .object({
+        /** Rüstzeit: alle gleichzeitig und verdeckt; vorbei, sobald alle fertig sind. */
+        prepareMs: timerMs,
+        /** Aufdecken der Rüstzeit. */
+        ordersRevealMs: pauseMs,
+        /** Drehen des Glücksrads in der Ansage eines Duells. */
+        wheelMs: pauseMs,
+      })
+      .strict(),
+  })
+  .strict();
+export type MatchEconomy = z.infer<typeof matchEconomySchema>;
+
 export const matchRulesSchema = z
   .object({
     schemaVersion: z.literal(1),
@@ -94,6 +148,8 @@ export const matchRulesSchema = z
           .max(10 * SECOND_MS),
       })
       .strict(),
+    /** Ausbau mit Burgen, Dörfern und Armeen (ADR-057); fehlt in der bisherigen Partie. */
+    economy: matchEconomySchema.optional(),
   })
   .strict()
   .superRefine((rules, ctx) => {
@@ -117,6 +173,13 @@ export const matchRulesSchema = z
         code: 'custom',
         path: ['landGrab', 'picksByPlace'],
         message: 'Der Erste muss mindestens eine Region wählen',
+      });
+    }
+    if (rules.economy && rules.economy.startArmies > rules.economy.armyCap) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['economy', 'startArmies'],
+        message: 'Die Startburg darf nicht mehr Armeen haben, als auf ein Feld passen',
       });
     }
   });
@@ -165,7 +228,7 @@ export const MATCH_MAP_BY_SEATS: Readonly<Record<MatchSeatCount, MatchMapId>> = 
 });
 
 /** Regeln für eine Partie mit `seats` Spielern: Spielerzahl, Karte und Landnahme-Wahlen ersetzt. */
-export function matchRulesForSeats(rules: MatchRules, seats: MatchSeatCount): MatchRules {
+export function matchRulesForSeats<R extends MatchRules>(rules: R, seats: MatchSeatCount): R {
   return {
     ...rules,
     seats,
@@ -185,5 +248,54 @@ export const PLAYTEST_MATCH_RULES: MatchRules = Object.freeze({
     announceMs: 600,
     pickShowMs: 300,
     latencyAllowanceCapMs: 500,
+  },
+});
+
+/** Regeln mit Ausbau: `economy` ist gesetzt. */
+export type RealmRules = MatchRules & { readonly economy: MatchEconomy };
+
+export function isRealmRules(rules: MatchRules): rules is RealmRules {
+  return rules.economy !== undefined;
+}
+
+/**
+ * Standardwerte des Ausbaus aus dem Konzept vom 2026-11-11, vom Product Owner mit allen
+ * Empfehlungen freigegeben (O-25 bis O-35). Zahlen [E] bis zum Spieltest.
+ */
+export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
+  favorites: 4,
+  startArmies: 3,
+  villageMinDistance: 2,
+  yields: { plain: 1, village: 2, town: 3, castleBread: 2, castleMaterial: 2 },
+  tradeRate: 3,
+  costs: {
+    village: { bread: 1, material: 3 },
+    town: { bread: 2, material: 6 },
+    castle: { bread: 8, material: 16 },
+    army: { bread: 2, material: 0 },
+  },
+  maxCastles: 2,
+  armyCap: 6,
+  lots: { village: 2, town: 3, castle: 4, free: 2 },
+  timers: { prepareMs: 40 * SECOND_MS, ordersRevealMs: 2 * SECOND_MS, wheelMs: 3 * SECOND_MS },
+});
+
+/**
+ * Partie mit Ausbau zu dritt (O-31: fünf Feldzugrunden); zu zweit über `matchRulesForSeats`, das
+ * den Ausbau übernimmt.
+ */
+export const DEFAULT_REALM_RULES: RealmRules = Object.freeze({
+  ...DEFAULT_MATCH_RULES,
+  campaign: { rounds: 5 },
+  economy: DEFAULT_MATCH_ECONOMY,
+});
+
+/** Ausbau mit verkürzten Zeiten für Tests und schnelle Spieltests. */
+export const PLAYTEST_REALM_RULES: RealmRules = Object.freeze({
+  ...PLAYTEST_MATCH_RULES,
+  campaign: { rounds: 5 },
+  economy: {
+    ...DEFAULT_MATCH_ECONOMY,
+    timers: { prepareMs: 15 * SECOND_MS, ordersRevealMs: 500, wheelMs: 1000 },
   },
 });
