@@ -1,0 +1,14 @@
+# Bekannte Gemälde mit Maler.
+SELECT ?item ?label ?sitelinks ?answer ?answerLabel ?answerBirth WHERE {
+  ?item wdt:P31 wd:Q3305213;
+        wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 40)
+  ?item wdt:P170 ?answer.
+  OPTIONAL { ?answer wdt:P569 ?answerBirth }
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+  ?answer rdfs:label ?answerLabel.
+  FILTER(LANG(?answerLabel) = "de")
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 200

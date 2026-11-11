@@ -1,0 +1,306 @@
+{
+ "name": "gemaelde",
+ "fetchedAt": "2026-11-11T20:54:15.562Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte Gemälde mit Maler.\nSELECT ?item ?label ?sitelinks ?answer ?answerLabel ?answerBirth WHERE {\n  ?item wdt:P31 wd:Q3305213;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 40)\n  ?item wdt:P170 ?answer.\n  OPTIONAL { ?answer wdt:P569 ?answerBirth }\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n  ?answer rdfs:label ?answerLabel.\n  FILTER(LANG(?answerLabel) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 200\n",
+ "rowCount": 37,
+ "rows": [
+  {
+   "item": "Q12418",
+   "answer": "Q762",
+   "sitelinks": "146",
+   "label": "Mona Lisa",
+   "answerLabel": "Leonardo da Vinci",
+   "answerBirth": "1452-04-24T00:00:00Z"
+  },
+  {
+   "item": "Q45585",
+   "answer": "Q5582",
+   "sitelinks": "77",
+   "label": "Sternennacht",
+   "answerLabel": "Vincent van Gogh",
+   "answerBirth": "1853-03-30T00:00:00Z"
+  },
+  {
+   "item": "Q185372",
+   "answer": "Q41264",
+   "sitelinks": "72",
+   "label": "Das Mädchen mit dem Perlenohrgehänge",
+   "answerLabel": "Jan Vermeer",
+   "answerBirth": "1632-10-01T00:00:00Z"
+  },
+  {
+   "item": "Q29530",
+   "answer": "Q33477",
+   "sitelinks": "67",
+   "label": "Die Freiheit führt das Volk",
+   "answerLabel": "Eugène Delacroix",
+   "answerBirth": "1798-04-26T00:00:00Z"
+  },
+  {
+   "item": "Q219831",
+   "answer": "Q5598",
+   "sitelinks": "59",
+   "label": "Die Nachtwache",
+   "answerLabel": "Rembrandt van Rijn",
+   "answerBirth": "1606-07-15T00:00:00Z"
+  },
+  {
+   "item": "Q208758",
+   "answer": "Q297",
+   "sitelinks": "57",
+   "label": "Las Meninas",
+   "answerLabel": "Diego Velázquez",
+   "answerBirth": "1599-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q151047",
+   "answer": "Q5669",
+   "sitelinks": "57",
+   "label": "Die Geburt der Venus",
+   "answerLabel": "Sandro Botticelli",
+   "answerBirth": "1445-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q154469",
+   "answer": "Q5582",
+   "sitelinks": "53",
+   "label": "Die Kartoffelesser",
+   "answerLabel": "Vincent van Gogh",
+   "answerBirth": "1853-03-30T00:00:00Z"
+  },
+  {
+   "item": "Q328523",
+   "answer": "Q296",
+   "sitelinks": "52",
+   "label": "Impression, Sonnenaufgang",
+   "answerLabel": "Claude Monet",
+   "answerBirth": "1840-11-14T00:00:00Z"
+  },
+  {
+   "item": "Q1752990",
+   "answer": "Q83155",
+   "sitelinks": "52",
+   "label": "Der Tod des Sokrates",
+   "answerLabel": "Jacques-Louis David",
+   "answerBirth": "1748-08-30T00:00:00Z"
+  },
+  {
+   "item": "Q698487",
+   "answer": "Q34661",
+   "sitelinks": "51",
+   "label": "Der Kuss",
+   "answerLabel": "Gustav Klimt",
+   "answerBirth": "1862-07-14T00:00:00Z"
+  },
+  {
+   "item": "Q334138",
+   "answer": "Q34618",
+   "sitelinks": "51",
+   "label": "Der Ursprung der Welt",
+   "answerLabel": "Gustave Courbet",
+   "answerBirth": "1819-06-10T00:00:00Z"
+  },
+  {
+   "item": "Q474338",
+   "answer": "Q762",
+   "sitelinks": "50",
+   "label": "Dame mit dem Hermelin",
+   "answerLabel": "Leonardo da Vinci",
+   "answerBirth": "1452-04-24T00:00:00Z"
+  },
+  {
+   "item": "Q1892745",
+   "answer": "Q762",
+   "sitelinks": "50",
+   "label": "Salvator Mundi",
+   "answerLabel": "Leonardo da Vinci",
+   "answerBirth": "1452-04-24T00:00:00Z"
+  },
+  {
+   "item": "Q321303",
+   "answer": "Q130531",
+   "sitelinks": "49",
+   "label": "Der Garten der Lüste",
+   "answerLabel": "Hieronymus Bosch",
+   "answerBirth": "1450-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q25729",
+   "answer": "Q5577",
+   "sitelinks": "48",
+   "label": "Die Beständigkeit der Erinnerung",
+   "answerLabel": "Salvador Dalí",
+   "answerBirth": "1904-05-11T00:00:00Z"
+  },
+  {
+   "item": "Q311243",
+   "answer": "Q104884",
+   "sitelinks": "48",
+   "label": "Wanderer über dem Nebelmeer",
+   "answerLabel": "Caspar David Friedrich",
+   "answerBirth": "1774-09-05T00:00:00Z"
+  },
+  {
+   "item": "Q212616",
+   "answer": "Q184212",
+   "sitelinks": "47",
+   "label": "Das Floß der Medusa",
+   "answerLabel": "Théodore Géricault",
+   "answerBirth": "1791-09-26T00:00:00Z"
+  },
+  {
+   "item": "Q478271",
+   "answer": "Q172911",
+   "sitelinks": "46",
+   "label": "Die Saporoger Kosaken schreiben dem türkischen Sultan einen Brief",
+   "answerLabel": "Ilja Jefimowitsch Repin",
+   "answerBirth": "1844-08-05T00:00:00Z"
+  },
+  {
+   "item": "Q152509",
+   "answer": "Q40599",
+   "sitelinks": "45",
+   "label": "Das Frühstück im Grünen",
+   "answerLabel": "Édouard Manet",
+   "answerBirth": "1832-01-23T00:00:00Z"
+  },
+  {
+   "item": "Q152867",
+   "answer": "Q5432",
+   "sitelinks": "45",
+   "label": "Die nackte Maja",
+   "answerLabel": "Francisco de Goya",
+   "answerBirth": "1746-03-30T00:00:00Z"
+  },
+  {
+   "item": "Q464782",
+   "answer": "Q217434",
+   "sitelinks": "45",
+   "label": "American Gothic",
+   "answerLabel": "Grant Wood",
+   "answerBirth": "1891-02-13T00:00:00Z"
+  },
+  {
+   "item": "Q661378",
+   "answer": "Q5598",
+   "sitelinks": "45",
+   "label": "Die Anatomie des Dr. Tulp",
+   "answerLabel": "Rembrandt van Rijn",
+   "answerBirth": "1606-07-15T00:00:00Z"
+  },
+  {
+   "item": "Q1091086",
+   "answer": "Q5432",
+   "sitelinks": "45",
+   "label": "Die Erschießung der Aufständischen",
+   "answerLabel": "Francisco de Goya",
+   "answerBirth": "1746-03-30T00:00:00Z"
+  },
+  {
+   "item": "Q683274",
+   "answer": "Q39931",
+   "sitelinks": "44",
+   "label": "Bal du moulin de la Galette",
+   "answerLabel": "Pierre-Auguste Renoir",
+   "answerBirth": "1841-02-25T00:00:00Z"
+  },
+  {
+   "item": "Q167605",
+   "answer": "Q41264",
+   "sitelinks": "44",
+   "label": "Dienstmagd mit Milchkrug",
+   "answerLabel": "Jan Vermeer",
+   "answerBirth": "1632-10-01T00:00:00Z"
+  },
+  {
+   "item": "Q737062",
+   "answer": "Q40599",
+   "sitelinks": "43",
+   "label": "Olympia",
+   "answerLabel": "Édouard Manet",
+   "answerBirth": "1832-01-23T00:00:00Z"
+  },
+  {
+   "item": "Q634122",
+   "answer": "Q5582",
+   "sitelinks": "43",
+   "label": "Krähen über Weizenfeld",
+   "answerLabel": "Vincent van Gogh",
+   "answerBirth": "1853-03-30T00:00:00Z"
+  },
+  {
+   "item": "Q220859",
+   "answer": "Q102272",
+   "sitelinks": "43",
+   "label": "Arnolfini-Porträt",
+   "answerLabel": "Jan van Eyck",
+   "answerBirth": "1390-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q2282256",
+   "answer": "Q5582",
+   "sitelinks": "43",
+   "label": "Schwertlilien",
+   "answerLabel": "Vincent van Gogh",
+   "answerBirth": "1853-03-30T00:00:00Z"
+  },
+  {
+   "item": "Q549847",
+   "answer": "Q5669",
+   "sitelinks": "42",
+   "label": "Primavera",
+   "answerLabel": "Sandro Botticelli",
+   "answerBirth": "1445-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q476458",
+   "answer": "Q83155",
+   "sitelinks": "42",
+   "label": "Der Schwur der Horatier",
+   "answerLabel": "Jacques-Louis David",
+   "answerBirth": "1748-08-30T00:00:00Z"
+  },
+  {
+   "item": "Q636537",
+   "answer": "Q83155",
+   "sitelinks": "40",
+   "label": "Der Tod des Marat",
+   "answerLabel": "Jacques-Louis David",
+   "answerBirth": "1748-08-30T00:00:00Z"
+  },
+  {
+   "item": "Q727875",
+   "answer": "Q47551",
+   "sitelinks": "40",
+   "label": "Venus von Urbino",
+   "answerLabel": "Tizian",
+   "answerBirth": "1490-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q523974",
+   "answer": "Q41264",
+   "sitelinks": "40",
+   "label": "Ansicht von Delft",
+   "answerLabel": "Jan Vermeer",
+   "answerBirth": "1632-10-01T00:00:00Z"
+  },
+  {
+   "item": "Q1025704",
+   "answer": "Q5582",
+   "sitelinks": "40",
+   "label": "Caféterrasse am Abend",
+   "answerLabel": "Vincent van Gogh",
+   "answerBirth": "1853-03-30T00:00:00Z"
+  },
+  {
+   "item": "Q1267893",
+   "answer": "Q762",
+   "sitelinks": "40",
+   "label": "Bildnis der Ginevra de’ Benci",
+   "answerLabel": "Leonardo da Vinci",
+   "answerBirth": "1452-04-24T00:00:00Z"
+  }
+ ]
+}

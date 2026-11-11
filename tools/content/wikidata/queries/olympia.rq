@@ -1,0 +1,13 @@
+# Olympische Sommer- und Winterspiele mit Austragungsort und Datum. Die einzelnen Spiele sind inzwischen
+# Instanzen von „Austragung der Olympischen Sommerspiele“ (Q135976384) bzw. „… Winterspiele“ (Q137592217).
+SELECT ?item ?label ?type ?answer ?answerLabel ?date ?start WHERE {
+  VALUES ?type { wd:Q135976384 wd:Q137592217 }
+  ?item wdt:P31 ?type;
+        wdt:P276 ?answer.
+  OPTIONAL { ?item wdt:P585 ?date }
+  OPTIONAL { ?item wdt:P580 ?start }
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+  ?answer rdfs:label ?answerLabel.
+  FILTER(LANG(?answerLabel) = "de")
+}

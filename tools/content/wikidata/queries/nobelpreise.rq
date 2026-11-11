@@ -1,0 +1,12 @@
+# Nobelpreisträger (Literatur, Physik, Chemie, Medizin) mit Jahr der Auszeichnung.
+SELECT ?item ?label ?sitelinks ?prize ?date WHERE {
+  VALUES ?prize { wd:Q37922 wd:Q38104 wd:Q44585 wd:Q80061 }
+  ?item p:P166 ?statement.
+  ?statement ps:P166 ?prize;
+             pq:P585 ?date.
+  ?item wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 80)
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY DESC(?sitelinks)

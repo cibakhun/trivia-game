@@ -1,0 +1,2277 @@
+{
+ "name": "literatur-werke",
+ "fetchedAt": "2026-11-11T20:54:56.429Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte literarische Werke mit Autor (und dessen Geburtsdatum für plausible falsche Antworten).\nSELECT ?item ?label ?sitelinks ?answer ?answerLabel ?answerBirth WHERE {\n  VALUES ?class { wd:Q7725634 wd:Q8261 wd:Q47461344 }\n  ?item wdt:P31 ?class;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 50)\n  ?item wdt:P50 ?answer.\n  OPTIONAL { ?answer wdt:P569 ?answerBirth }\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n  ?answer rdfs:label ?answerLabel.\n  FILTER(LANG(?answerLabel) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 300\n",
+ "rowCount": 286,
+ "rows": [
+  {
+   "item": "Q18813",
+   "answer": "Q2818964",
+   "sitelinks": "200",
+   "label": "Neues Testament",
+   "answerLabel": "verschiedene Autoren"
+  },
+  {
+   "item": "Q8275",
+   "answer": "Q6691",
+   "sitelinks": "182",
+   "label": "Ilias",
+   "answerLabel": "Homer",
+   "answerBirth": "-0900-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q19786",
+   "answer": "Q2818964",
+   "sitelinks": "179",
+   "label": "Altes Testament",
+   "answerLabel": "verschiedene Autoren"
+  },
+  {
+   "item": "Q9184",
+   "answer": "Q9077",
+   "sitelinks": "178",
+   "label": "1. Mose",
+   "answerLabel": "Mose",
+   "answerBirth": "-2000-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q392302",
+   "answer": "Q43600",
+   "sitelinks": "176",
+   "label": "Matthäus",
+   "answerLabel": "Matthäus",
+   "answerBirth": "0010-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q8276",
+   "answer": "Q330521",
+   "sitelinks": "169",
+   "label": "Mahabharata",
+   "answerLabel": "Vyasa",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/608a8c34c601c47e1efbecc5d5b0617f"
+  },
+  {
+   "item": "Q8258",
+   "answer": "Q2818964",
+   "sitelinks": "161",
+   "label": "Tausendundeine Nacht",
+   "answerLabel": "verschiedene Autoren"
+  },
+  {
+   "item": "Q35160",
+   "answer": "Q6691",
+   "sitelinks": "159",
+   "label": "Odyssee",
+   "answerLabel": "Homer",
+   "answerBirth": "-0900-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q36766",
+   "answer": "Q328804",
+   "sitelinks": "158",
+   "label": "Johannes",
+   "answerLabel": "Johannes der Evangelist",
+   "answerBirth": "0010-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q107388",
+   "answer": "Q31966",
+   "sitelinks": "155",
+   "label": "Markusevangelium",
+   "answerLabel": "Markus",
+   "answerBirth": "0012-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q107388",
+   "answer": "Q31966",
+   "sitelinks": "155",
+   "label": "Markusevangelium",
+   "answerLabel": "Markus",
+   "answerBirth": "0020-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q25338",
+   "answer": "Q2908",
+   "sitelinks": "151",
+   "label": "Der kleine Prinz",
+   "answerLabel": "Antoine de Saint-Exupéry",
+   "answerBirth": "1900-06-29T00:00:00Z"
+  },
+  {
+   "item": "Q39939",
+   "answer": "Q128538",
+   "sitelinks": "149",
+   "label": "Lukas",
+   "answerLabel": "Lukas der Evangelist",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/6c935f03bec88edde5cad6e096284a51"
+  },
+  {
+   "item": "Q15228",
+   "answer": "Q892",
+   "sitelinks": "149",
+   "label": "Der Herr der Ringe",
+   "answerLabel": "J. R. R. Tolkien",
+   "answerBirth": "1892-01-03T00:00:00Z"
+  },
+  {
+   "item": "Q480",
+   "answer": "Q5682",
+   "sitelinks": "147",
+   "label": "Don Quijote",
+   "answerLabel": "Miguel de Cervantes",
+   "answerBirth": "1547-10-09T00:00:00Z"
+  },
+  {
+   "item": "Q40591",
+   "answer": "Q9061",
+   "sitelinks": "143",
+   "label": "Manifest der Kommunistischen Partei",
+   "answerLabel": "Karl Marx",
+   "answerBirth": "1818-05-05T00:00:00Z"
+  },
+  {
+   "item": "Q40591",
+   "answer": "Q34787",
+   "sitelinks": "143",
+   "label": "Manifest der Kommunistischen Partei",
+   "answerLabel": "Friedrich Engels",
+   "answerBirth": "1820-11-28T00:00:00Z"
+  },
+  {
+   "item": "Q42040",
+   "answer": "Q2733634",
+   "sitelinks": "142",
+   "label": "Offenbarung",
+   "answerLabel": "Johannes von Patmos",
+   "answerBirth": "0050-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q34990",
+   "answer": "Q9077",
+   "sitelinks": "142",
+   "label": "Tora",
+   "answerLabel": "Mose",
+   "answerBirth": "-2000-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q37293",
+   "answer": "Q715607",
+   "sitelinks": "138",
+   "label": "Ramayana",
+   "answerLabel": "Walmiki",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/05cefd7ecaab0e421c71bfb7b0903268"
+  },
+  {
+   "item": "Q208460",
+   "answer": "Q3335",
+   "sitelinks": "138",
+   "label": "1984",
+   "answerLabel": "George Orwell",
+   "answerBirth": "1903-06-25T00:00:00Z"
+  },
+  {
+   "item": "Q40309",
+   "answer": "Q128538",
+   "sitelinks": "137",
+   "label": "Apostelgeschichte",
+   "answerLabel": "Lukas der Evangelist",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/6c935f03bec88edde5cad6e096284a51"
+  },
+  {
+   "item": "Q46802",
+   "answer": "Q330521",
+   "sitelinks": "134",
+   "label": "Bhagavad Gita",
+   "answerLabel": "Vyasa",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/608a8c34c601c47e1efbecc5d5b0617f"
+  },
+  {
+   "item": "Q40185",
+   "answer": "Q1067",
+   "sitelinks": "131",
+   "label": "Göttliche Komödie",
+   "answerLabel": "Dante Alighieri",
+   "answerBirth": "1265-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q8279",
+   "answer": "Q43459",
+   "sitelinks": "130",
+   "label": "Schāhnāme",
+   "answerLabel": "Firdausi",
+   "answerBirth": "0940-01-08T00:00:00Z"
+  },
+  {
+   "item": "Q8279",
+   "answer": "Q538902",
+   "sitelinks": "130",
+   "label": "Schāhnāme",
+   "answerLabel": "Daqīqī",
+   "answerBirth": "1000-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q8251",
+   "answer": "Q37151",
+   "sitelinks": "128",
+   "label": "Die Kunst des Krieges",
+   "answerLabel": "Sunzi",
+   "answerBirth": "-0543-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q11698",
+   "answer": "Q405475",
+   "sitelinks": "127",
+   "label": "Verfassung der Vereinigten Staaten",
+   "answerLabel": "Verfassungskonvent der Vereinigten Staaten"
+  },
+  {
+   "item": "Q459842",
+   "answer": "Q47102",
+   "sitelinks": "126",
+   "label": "Buch Mormon",
+   "answerLabel": "Joseph Smith",
+   "answerBirth": "1805-12-23T00:00:00Z"
+  },
+  {
+   "item": "Q459842",
+   "answer": "Q2701214",
+   "sitelinks": "126",
+   "label": "Buch Mormon",
+   "answerLabel": "Prophet Mormon",
+   "answerBirth": "0311-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q92640",
+   "answer": "Q38082",
+   "sitelinks": "124",
+   "label": "Alice im Wunderland",
+   "answerLabel": "Lewis Carroll",
+   "answerBirth": "1832-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q1396889",
+   "answer": "Q3335",
+   "sitelinks": "123",
+   "label": "Farm der Tiere",
+   "answerLabel": "George Orwell",
+   "answerBirth": "1903-06-25T00:00:00Z"
+  },
+  {
+   "item": "Q48203",
+   "answer": "Q9200",
+   "sitelinks": "120",
+   "label": "Römer",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q80355",
+   "answer": "Q9200",
+   "sitelinks": "119",
+   "label": "1. Korinther",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q8265",
+   "answer": "Q182874",
+   "sitelinks": "117",
+   "label": "Der Traum der Roten Kammer",
+   "answerLabel": "Cao Xueqin",
+   "answerBirth": "1724-07-12T00:00:00Z"
+  },
+  {
+   "item": "Q74287",
+   "answer": "Q892",
+   "sitelinks": "117",
+   "label": "Der Hobbit",
+   "answerLabel": "J. R. R. Tolkien",
+   "answerBirth": "1892-01-03T00:00:00Z"
+  },
+  {
+   "item": "Q8269",
+   "answer": "Q81731",
+   "sitelinks": "116",
+   "label": "Genji Monogatari",
+   "answerLabel": "Murasaki Shikibu",
+   "answerBirth": "0970-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q128620",
+   "answer": "Q9200",
+   "sitelinks": "116",
+   "label": "Galater",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q60220",
+   "answer": "Q1398",
+   "sitelinks": "116",
+   "label": "Aeneis",
+   "answerLabel": "Vergil",
+   "answerBirth": "-0069-10-13T00:00:00Z"
+  },
+  {
+   "item": "Q4579",
+   "answer": "Q37085",
+   "sitelinks": "114",
+   "label": "Sprüche",
+   "answerLabel": "Salomo",
+   "answerBirth": "-0989-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q123808",
+   "answer": "Q9200",
+   "sitelinks": "113",
+   "label": "2. Korinther",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q51613",
+   "answer": "Q9200",
+   "sitelinks": "113",
+   "label": "Brief des Paulus an die Philipper",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q131104",
+   "answer": "Q9200",
+   "sitelinks": "112",
+   "label": "Philemon",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q171328",
+   "answer": "Q1504861",
+   "sitelinks": "112",
+   "label": "Charta der Vereinten Nationen",
+   "answerLabel": "Konferenz von San Francisco"
+  },
+  {
+   "item": "Q147787",
+   "answer": "Q7243",
+   "sitelinks": "109",
+   "label": "Anna Karenina",
+   "answerLabel": "Lew Nikolajewitsch Tolstoi",
+   "answerBirth": "1828-09-09T00:00:00Z"
+  },
+  {
+   "item": "Q165318",
+   "answer": "Q991",
+   "sitelinks": "109",
+   "label": "Schuld und Sühne",
+   "answerLabel": "Fjodor Michailowitsch Dostojewski",
+   "answerBirth": "1821-11-11T00:00:00Z"
+  },
+  {
+   "item": "Q727413",
+   "answer": "Q2818964",
+   "sitelinks": "109",
+   "label": "Rigveda",
+   "answerLabel": "verschiedene Autoren"
+  },
+  {
+   "item": "Q11859",
+   "answer": "Q5673",
+   "sitelinks": "107",
+   "label": "Die kleine Meerjungfrau",
+   "answerLabel": "Hans Christian Andersen",
+   "answerBirth": "1805-04-02T00:00:00Z"
+  },
+  {
+   "item": "Q131107",
+   "answer": "Q9200",
+   "sitelinks": "105",
+   "label": "2. Thessalonicher",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q131115",
+   "answer": "Q9200",
+   "sitelinks": "105",
+   "label": "1. Thessalonicher",
+   "answerLabel": "Paulus von Tarsus",
+   "answerBirth": "0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q43361",
+   "answer": "Q34660",
+   "sitelinks": "104",
+   "label": "Harry Potter und der Stein der Weisen",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q48244",
+   "answer": "Q346521",
+   "sitelinks": "104",
+   "label": "Mein Kampf",
+   "answerLabel": "Hitler"
+  },
+  {
+   "item": "Q123397",
+   "answer": "Q859",
+   "sitelinks": "103",
+   "label": "Politeia",
+   "answerLabel": "Platon",
+   "answerBirth": "-0428-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q178869",
+   "answer": "Q5878",
+   "sitelinks": "103",
+   "label": "Hundert Jahre Einsamkeit",
+   "answerLabel": "Gabriel García Márquez",
+   "answerBirth": "1927-03-06T00:00:00Z"
+  },
+  {
+   "item": "Q131719",
+   "answer": "Q1399",
+   "sitelinks": "101",
+   "label": "Der Fürst",
+   "answerLabel": "Niccolò Machiavelli",
+   "answerBirth": "1469-05-12T00:00:00Z"
+  },
+  {
+   "item": "Q47228",
+   "answer": "Q380234",
+   "sitelinks": "101",
+   "label": "Kamasutra",
+   "answerLabel": "Vatsyayana Mallanaga",
+   "answerBirth": "0500-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q170583",
+   "answer": "Q36322",
+   "sitelinks": "100",
+   "label": "Stolz und Vorurteil",
+   "answerLabel": "Jane Austen",
+   "answerBirth": "1775-12-16T00:00:00Z"
+  },
+  {
+   "item": "Q130924",
+   "answer": "Q153159",
+   "sitelinks": "99",
+   "label": "Kalevala",
+   "answerLabel": "Elias Lönnrot",
+   "answerBirth": "1802-04-09T00:00:00Z"
+  },
+  {
+   "item": "Q483034",
+   "answer": "Q40946",
+   "sitelinks": "99",
+   "label": "Robinson Crusoe",
+   "answerLabel": "Daniel Defoe",
+   "answerBirth": "1660-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q180736",
+   "answer": "Q535",
+   "sitelinks": "98",
+   "label": "Die Elenden",
+   "answerLabel": "Victor Hugo",
+   "answerBirth": "1802-02-26T00:00:00Z"
+  },
+  {
+   "item": "Q11831",
+   "answer": "Q2793",
+   "sitelinks": "97",
+   "label": "Schneewittchen",
+   "answerLabel": "Brüder Grimm"
+  },
+  {
+   "item": "Q47209",
+   "answer": "Q34660",
+   "sitelinks": "97",
+   "label": "Harry Potter und die Kammer des Schreckens",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q161531",
+   "answer": "Q7243",
+   "sitelinks": "97",
+   "label": "Krieg und Frieden",
+   "answerLabel": "Lew Nikolajewitsch Tolstoi",
+   "answerBirth": "1828-09-09T00:00:00Z"
+  },
+  {
+   "item": "Q134425",
+   "answer": "Q9333",
+   "sitelinks": "95",
+   "label": "Daodejing",
+   "answerLabel": "Laozi",
+   "answerBirth": "-0579-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q134425",
+   "answer": "Q9333",
+   "sitelinks": "95",
+   "label": "Daodejing",
+   "answerLabel": "Laozi",
+   "answerBirth": "-0579-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q172891",
+   "answer": "Q8747",
+   "sitelinks": "94",
+   "label": "Euklids Elemente",
+   "answerLabel": "Euklid",
+   "answerBirth": "-0333-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q80817",
+   "answer": "Q34660",
+   "sitelinks": "92",
+   "label": "Harry Potter und der Orden des Phönix",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q179021",
+   "answer": "Q12881",
+   "sitelinks": "92",
+   "label": "Der Alchimist",
+   "answerLabel": "Paulo Coelho",
+   "answerBirth": "1947-08-24T00:00:00Z"
+  },
+  {
+   "item": "Q47598",
+   "answer": "Q34660",
+   "sitelinks": "92",
+   "label": "Harry Potter und der Gefangene von Askaban",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q26505",
+   "answer": "Q23434",
+   "sitelinks": "91",
+   "label": "Der alte Mann und das Meer",
+   "answerLabel": "Ernest Hemingway",
+   "answerBirth": "1899-07-21T00:00:00Z"
+  },
+  {
+   "item": "Q183157",
+   "answer": "Q991",
+   "sitelinks": "91",
+   "label": "Die Brüder Karamasow",
+   "answerLabel": "Fjodor Michailowitsch Dostojewski",
+   "answerBirth": "1821-11-11T00:00:00Z"
+  },
+  {
+   "item": "Q46751",
+   "answer": "Q34660",
+   "sitelinks": "90",
+   "label": "Harry Potter und der Feuerkelch",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q46887",
+   "answer": "Q34660",
+   "sitelinks": "90",
+   "label": "Harry Potter und der Halbblutprinz",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q174596",
+   "answer": "Q4985",
+   "sitelinks": "90",
+   "label": "Moby-Dick",
+   "answerLabel": "Herman Melville",
+   "answerBirth": "1819-08-01T00:00:00Z"
+  },
+  {
+   "item": "Q46758",
+   "answer": "Q34660",
+   "sitelinks": "89",
+   "label": "Harry Potter und die Heiligtümer des Todes",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q58784",
+   "answer": "Q9061",
+   "sitelinks": "89",
+   "label": "Das Kapital",
+   "answerLabel": "Karl Marx",
+   "answerBirth": "1818-05-05T00:00:00Z"
+  },
+  {
+   "item": "Q140527",
+   "answer": "Q38337",
+   "sitelinks": "88",
+   "label": "Die drei Musketiere",
+   "answerLabel": "Alexandre Dumas der Ältere",
+   "answerBirth": "1802-07-24T00:00:00Z"
+  },
+  {
+   "item": "Q150827",
+   "answer": "Q47152",
+   "sitelinks": "88",
+   "label": "Frankenstein",
+   "answerLabel": "Mary Shelley",
+   "answerBirth": "1797-08-30T00:00:00Z"
+  },
+  {
+   "item": "Q1975029",
+   "answer": "Q319116",
+   "sitelinks": "87",
+   "label": "1. Samuel",
+   "answerLabel": "Natan",
+   "answerBirth": "-1000-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q1975029",
+   "answer": "Q2559051",
+   "sitelinks": "87",
+   "label": "1. Samuel",
+   "answerLabel": "Gad"
+  },
+  {
+   "item": "Q1975029",
+   "answer": "Q6577515",
+   "sitelinks": "87",
+   "label": "1. Samuel",
+   "answerLabel": "Samuel",
+   "answerBirth": "-1101-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q155980",
+   "answer": "Q3092598",
+   "sitelinks": "86",
+   "label": "Jesus Sirach",
+   "answerLabel": "Ben Sira",
+   "answerBirth": "-0300-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q163297",
+   "answer": "Q34670",
+   "sitelinks": "86",
+   "label": "L'Étranger",
+   "answerLabel": "Albert Camus",
+   "answerBirth": "1913-11-07T00:00:00Z"
+  },
+  {
+   "item": "Q183883",
+   "answer": "Q79904",
+   "sitelinks": "86",
+   "label": "Der Fänger im Roggen",
+   "answerLabel": "J. D. Salinger",
+   "answerBirth": "1919-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q134990",
+   "answer": "Q5264",
+   "sitelinks": "86",
+   "label": "Eid des Hippokrates",
+   "answerLabel": "Hippokrates von Kos",
+   "answerBirth": "-0459-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q81689",
+   "answer": "Q7345",
+   "sitelinks": "85",
+   "label": "Sakrileg",
+   "answerLabel": "Dan Brown",
+   "answerBirth": "1964-06-22T00:00:00Z"
+  },
+  {
+   "item": "Q29478",
+   "answer": "Q5879",
+   "sitelinks": "85",
+   "label": "Faust",
+   "answerLabel": "Johann Wolfgang von Goethe",
+   "answerBirth": "1749-08-28T00:00:00Z"
+  },
+  {
+   "item": "Q181488",
+   "answer": "Q41166",
+   "sitelinks": "85",
+   "label": "Gullivers Reisen",
+   "answerLabel": "Jonathan Swift",
+   "answerBirth": "1667-11-30T00:00:00Z"
+  },
+  {
+   "item": "Q185118",
+   "answer": "Q1512",
+   "sitelinks": "85",
+   "label": "Die Schatzinsel",
+   "answerLabel": "Robert Louis Stevenson",
+   "answerBirth": "1850-11-13T00:00:00Z"
+  },
+  {
+   "item": "Q6511",
+   "answer": "Q6882",
+   "sitelinks": "84",
+   "label": "Ulysses",
+   "answerLabel": "James Joyce",
+   "answerBirth": "1882-02-02T00:00:00Z"
+  },
+  {
+   "item": "Q184222",
+   "answer": "Q905",
+   "sitelinks": "84",
+   "label": "Die Verwandlung",
+   "answerLabel": "Franz Kafka",
+   "answerBirth": "1883-07-03T00:00:00Z"
+  },
+  {
+   "item": "Q214371",
+   "answer": "Q93354",
+   "sitelinks": "84",
+   "label": "Der große Gatsby",
+   "answerLabel": "F. Scott Fitzgerald",
+   "answerBirth": "1896-09-24T00:00:00Z"
+  },
+  {
+   "item": "Q8065468",
+   "answer": "Q199588",
+   "sitelinks": "84",
+   "label": "Die Abenteuer des Pinocchio",
+   "answerLabel": "Carlo Collodi",
+   "answerBirth": "1826-11-24T00:00:00Z"
+  },
+  {
+   "item": "Q45735",
+   "answer": "Q361617",
+   "sitelinks": "83",
+   "label": "Wilbur und Charlotte",
+   "answerLabel": "Elwyn Brooks White",
+   "answerBirth": "1899-07-11T00:00:00Z"
+  },
+  {
+   "item": "Q164974",
+   "answer": "Q5686",
+   "sitelinks": "83",
+   "label": "Oliver Twist",
+   "answerLabel": "Charles Dickens",
+   "answerBirth": "1812-02-07T00:00:00Z"
+  },
+  {
+   "item": "Q82464",
+   "answer": "Q30875",
+   "sitelinks": "82",
+   "label": "Das Bildnis des Dorian Gray",
+   "answerLabel": "Oscar Wilde",
+   "answerBirth": "1854-10-16T00:00:00Z"
+  },
+  {
+   "item": "Q6911",
+   "answer": "Q4583",
+   "sitelinks": "80",
+   "label": "Das Tagebuch der Anne Frank",
+   "answerLabel": "Anne Frank",
+   "answerBirth": "1929-06-12T00:00:00Z"
+  },
+  {
+   "item": "Q209719",
+   "answer": "Q319116",
+   "sitelinks": "80",
+   "label": "2. Samuel",
+   "answerLabel": "Natan",
+   "answerBirth": "-1000-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q209719",
+   "answer": "Q2559051",
+   "sitelinks": "80",
+   "label": "2. Samuel",
+   "answerLabel": "Gad"
+  },
+  {
+   "item": "Q202975",
+   "answer": "Q80137",
+   "sitelinks": "80",
+   "label": "Sturmhöhe",
+   "answerLabel": "Emily Brontë",
+   "answerBirth": "1818-07-30T00:00:00Z"
+  },
+  {
+   "item": "Q205921",
+   "answer": "Q935",
+   "sitelinks": "80",
+   "label": "Philosophiae Naturalis Principia Mathematica",
+   "answerLabel": "Isaac Newton",
+   "answerBirth": "1643-01-04T00:00:00Z"
+  },
+  {
+   "item": "Q19871",
+   "answer": "Q37327",
+   "sitelinks": "79",
+   "label": "Warten auf Godot",
+   "answerLabel": "Samuel Beckett",
+   "answerBirth": "1906-04-13T00:00:00Z"
+  },
+  {
+   "item": "Q1219561",
+   "answer": "Q33977",
+   "sitelinks": "79",
+   "label": "Reise um die Erde in 80 Tagen",
+   "answerLabel": "Jules Verne",
+   "answerBirth": "1828-02-08T00:00:00Z"
+  },
+  {
+   "item": "Q70784",
+   "answer": "Q228889",
+   "sitelinks": "79",
+   "label": "Die Reise nach Westen",
+   "answerLabel": "Wu Cheng’en",
+   "answerBirth": "1500-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q70784",
+   "answer": "Q228889",
+   "sitelinks": "79",
+   "label": "Die Reise nach Westen",
+   "answerLabel": "Wu Cheng’en",
+   "answerBirth": "1504-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q188538",
+   "answer": "Q835",
+   "sitelinks": "79",
+   "label": "Der Meister und Margarita",
+   "answerLabel": "Michail Bulgakow",
+   "answerBirth": "1891-05-15T00:00:00Z"
+  },
+  {
+   "item": "Q191838",
+   "answer": "Q38337",
+   "sitelinks": "79",
+   "label": "Der Graf von Monte Christo",
+   "answerLabel": "Alexandre Dumas der Ältere",
+   "answerBirth": "1802-07-24T00:00:00Z"
+  },
+  {
+   "item": "Q181937",
+   "answer": "Q236972",
+   "sitelinks": "78",
+   "label": "I Ging",
+   "answerLabel": "Fu Xi"
+  },
+  {
+   "item": "Q184742",
+   "answer": "Q7198",
+   "sitelinks": "78",
+   "label": "Metamorphosen",
+   "answerLabel": "Ovid",
+   "answerBirth": "-0042-03-18T00:00:00Z"
+  },
+  {
+   "item": "Q127149",
+   "answer": "Q36591",
+   "sitelinks": "77",
+   "label": "Lolita",
+   "answerLabel": "Vladimir Nabokov",
+   "answerBirth": "1899-04-22T00:00:00Z"
+  },
+  {
+   "item": "Q326914",
+   "answer": "Q7245",
+   "sitelinks": "77",
+   "label": "Die Abenteuer des Tom Sawyer",
+   "answerLabel": "Mark Twain",
+   "answerBirth": "1835-11-30T00:00:00Z"
+  },
+  {
+   "item": "Q183565",
+   "answer": "Q33977",
+   "sitelinks": "77",
+   "label": "20.000 Meilen unter dem Meer",
+   "answerLabel": "Jules Verne",
+   "answerBirth": "1828-02-08T00:00:00Z"
+  },
+  {
+   "item": "Q191380",
+   "answer": "Q535",
+   "sitelinks": "77",
+   "label": "Der Glöckner von Notre-Dame",
+   "answerLabel": "Victor Hugo",
+   "answerBirth": "1802-02-26T00:00:00Z"
+  },
+  {
+   "item": "Q190192",
+   "answer": "Q7934",
+   "sitelinks": "77",
+   "label": "Der Wüstenplanet",
+   "answerLabel": "Frank Herbert",
+   "answerBirth": "1920-10-08T00:00:00Z"
+  },
+  {
+   "item": "Q41542",
+   "answer": "Q36184",
+   "sitelinks": "76",
+   "label": "Dracula",
+   "answerLabel": "Bram Stoker",
+   "answerBirth": "1847-11-08T00:00:00Z"
+  },
+  {
+   "item": "Q16438",
+   "answer": "Q1402",
+   "sitelinks": "76",
+   "label": "Decamerone",
+   "answerLabel": "Giovanni Boccaccio",
+   "answerBirth": "1313-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q62879",
+   "answer": "Q5686",
+   "sitelinks": "75",
+   "label": "Weihnachtslied. Eine Gespenstergeschichte.",
+   "answerLabel": "Charles Dickens",
+   "answerBirth": "1812-02-07T00:00:00Z"
+  },
+  {
+   "item": "Q11829",
+   "answer": "Q2793",
+   "sitelinks": "74",
+   "label": "Hänsel und Gretel",
+   "answerLabel": "Brüder Grimm"
+  },
+  {
+   "item": "Q11829",
+   "answer": "Q6701",
+   "sitelinks": "74",
+   "label": "Hänsel und Gretel",
+   "answerLabel": "Jacob Grimm",
+   "answerBirth": "1785-01-04T00:00:00Z"
+  },
+  {
+   "item": "Q11829",
+   "answer": "Q6714",
+   "sitelinks": "74",
+   "label": "Hänsel und Gretel",
+   "answerLabel": "Wilhelm Grimm",
+   "answerBirth": "1786-02-24T00:00:00Z"
+  },
+  {
+   "item": "Q28754",
+   "answer": "Q79759",
+   "sitelinks": "74",
+   "label": "Paradise Lost",
+   "answerLabel": "John Milton",
+   "answerBirth": "1608-12-09T00:00:00Z"
+  },
+  {
+   "item": "Q156498",
+   "answer": "Q44233",
+   "sitelinks": "74",
+   "label": "Theogonie",
+   "answerLabel": "Hesiod",
+   "answerBirth": "-0775-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q185427",
+   "answer": "Q2704099",
+   "sitelinks": "74",
+   "label": "Rolandslied",
+   "answerLabel": "Turold",
+   "answerBirth": "1050-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q193417",
+   "answer": "Q43444",
+   "sitelinks": "74",
+   "label": "Madame Bovary",
+   "answerLabel": "Gustave Flaubert",
+   "answerBirth": "1821-12-12T00:00:00Z"
+  },
+  {
+   "item": "Q191949",
+   "answer": "Q81447",
+   "sitelinks": "74",
+   "label": "Schöne neue Welt",
+   "answerLabel": "Aldous Huxley",
+   "answerBirth": "1894-07-26T00:00:00Z"
+  },
+  {
+   "item": "Q22726",
+   "answer": "Q16867",
+   "sitelinks": "73",
+   "label": "Der Rabe",
+   "answerLabel": "Edgar Allan Poe",
+   "answerBirth": "1809-01-19T00:00:00Z"
+  },
+  {
+   "item": "Q36097",
+   "answer": "Q905",
+   "sitelinks": "73",
+   "label": "Der Process",
+   "answerLabel": "Franz Kafka",
+   "answerBirth": "1883-07-03T00:00:00Z"
+  },
+  {
+   "item": "Q70806",
+   "answer": "Q264517",
+   "sitelinks": "73",
+   "label": "Die Geschichte der Drei Reiche",
+   "answerLabel": "Luo Guanzhong",
+   "answerBirth": "1330-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q70806",
+   "answer": "Q264517",
+   "sitelinks": "73",
+   "label": "Die Geschichte der Drei Reiche",
+   "answerLabel": "Luo Guanzhong",
+   "answerBirth": "1334-04-07T00:00:00Z"
+  },
+  {
+   "item": "Q215410",
+   "answer": "Q7245",
+   "sitelinks": "73",
+   "label": "Die Abenteuer des Huckleberry Finn",
+   "answerLabel": "Mark Twain",
+   "answerBirth": "1835-11-30T00:00:00Z"
+  },
+  {
+   "item": "Q865902",
+   "answer": "Q43423",
+   "sitelinks": "72",
+   "label": "Äsops Fabeln",
+   "answerLabel": "Äsop",
+   "answerBirth": "-0619-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q2222",
+   "answer": "Q102513",
+   "sitelinks": "71",
+   "label": "Onkel Toms Hütte",
+   "answerLabel": "Harriet Beecher Stowe",
+   "answerBirth": "1811-06-14T00:00:00Z"
+  },
+  {
+   "item": "Q191663",
+   "answer": "Q5683",
+   "sitelinks": "71",
+   "label": "Canterbury-Erzählungen",
+   "answerLabel": "Geoffrey Chaucer",
+   "answerBirth": "1343-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q50948",
+   "answer": "Q7200",
+   "sitelinks": "70",
+   "label": "Eugen Onegin",
+   "answerLabel": "Alexander Sergejewitsch Puschkin",
+   "answerBirth": "1799-06-06T00:00:00Z"
+  },
+  {
+   "item": "Q182961",
+   "answer": "Q127332",
+   "sitelinks": "70",
+   "label": "Jane Eyre",
+   "answerLabel": "Charlotte Brontë",
+   "answerBirth": "1816-04-21T00:00:00Z"
+  },
+  {
+   "item": "Q210784",
+   "answer": "Q991",
+   "sitelinks": "70",
+   "label": "Der Idiot",
+   "answerLabel": "Fjodor Michailowitsch Dostojewski",
+   "answerBirth": "1821-11-11T00:00:00Z"
+  },
+  {
+   "item": "Q26193",
+   "answer": "Q924927",
+   "sitelinks": "70",
+   "label": "Protokolle der Weisen von Zion",
+   "answerLabel": "Matwei Wassiljewitsch Golowinski",
+   "answerBirth": "1865-03-06T00:00:00Z"
+  },
+  {
+   "item": "Q219552",
+   "answer": "Q5686",
+   "sitelinks": "69",
+   "label": "Große Erwartungen",
+   "answerLabel": "Charles Dickens",
+   "answerBirth": "1812-02-07T00:00:00Z"
+  },
+  {
+   "item": "Q477108",
+   "answer": "Q695252",
+   "sitelinks": "69",
+   "label": "Verfassung Indiens",
+   "answerLabel": "Indisches Parlament"
+  },
+  {
+   "item": "Q457862",
+   "answer": "Q47423",
+   "sitelinks": "69",
+   "label": "Internationaler Pakt über wirtschaftliche, soziale und kulturelle Rechte",
+   "answerLabel": "Generalversammlung der Vereinten Nationen"
+  },
+  {
+   "item": "Q277072",
+   "answer": "Q47423",
+   "sitelinks": "69",
+   "label": "Übereinkommen zur Beseitigung jeder Form von Diskriminierung der Frau",
+   "answerLabel": "Generalversammlung der Vereinten Nationen"
+  },
+  {
+   "item": "Q189811",
+   "answer": "Q5686",
+   "sitelinks": "68",
+   "label": "David Copperfield",
+   "answerLabel": "Charles Dickens",
+   "answerBirth": "1812-02-07T00:00:00Z"
+  },
+  {
+   "item": "Q212340",
+   "answer": "Q182658",
+   "sitelinks": "68",
+   "label": "Wer die Nachtigall stört",
+   "answerLabel": "Harper Lee",
+   "answerBirth": "1926-04-28T00:00:00Z"
+  },
+  {
+   "item": "Q130295",
+   "answer": "Q207544",
+   "sitelinks": "67",
+   "label": "Der Zauberer von Oz",
+   "answerLabel": "Lyman Frank Baum",
+   "answerBirth": "1856-05-15T00:00:00Z"
+  },
+  {
+   "item": "Q202009",
+   "answer": "Q40640",
+   "sitelinks": "67",
+   "label": "Fahrenheit 451",
+   "answerLabel": "Ray Bradbury",
+   "answerBirth": "1920-08-22T00:00:00Z"
+  },
+  {
+   "item": "Q207332",
+   "answer": "Q47293",
+   "sitelinks": "67",
+   "label": "Im Westen nichts Neues",
+   "answerLabel": "Erich Maria Remarque",
+   "answerBirth": "1898-06-22T00:00:00Z"
+  },
+  {
+   "item": "Q233780",
+   "answer": "Q2743748",
+   "sitelinks": "67",
+   "label": "Panchatantra",
+   "answerLabel": "Vishnu Sharma",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/8a15b0175d346330a371eacd1fff53c9"
+  },
+  {
+   "item": "Q1023470",
+   "answer": "Q241026",
+   "sitelinks": "67",
+   "label": "Sahīh al-Buchārī",
+   "answerLabel": "Al-Buchārī",
+   "answerBirth": "0810-07-24T00:00:00Z"
+  },
+  {
+   "item": "Q79762",
+   "answer": "Q892",
+   "sitelinks": "66",
+   "label": "Das Silmarillion",
+   "answerLabel": "J. R. R. Tolkien",
+   "answerBirth": "1892-01-03T00:00:00Z"
+  },
+  {
+   "item": "Q276015",
+   "answer": "Q4233718",
+   "sitelinks": "66",
+   "label": "Gespräche des Konfuzius",
+   "answerLabel": "Anonymus"
+  },
+  {
+   "item": "Q200920",
+   "answer": "Q23434",
+   "sitelinks": "66",
+   "label": "Wem die Stunde schlägt",
+   "answerLabel": "Ernest Hemingway",
+   "answerBirth": "1899-07-21T00:00:00Z"
+  },
+  {
+   "item": "Q813031",
+   "answer": "Q164522",
+   "sitelinks": "66",
+   "label": "Kojiki",
+   "answerLabel": "Hieda no Are",
+   "answerBirth": "0700-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q813031",
+   "answer": "Q384705",
+   "sitelinks": "66",
+   "label": "Kojiki",
+   "answerLabel": "Ō no Yasumaro",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/1764bd19d4d730a6c833449c97e52ee6"
+  },
+  {
+   "item": "Q813031",
+   "answer": "Q164522",
+   "sitelinks": "66",
+   "label": "Kojiki",
+   "answerLabel": "Hieda no Are",
+   "answerBirth": "0700-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q813031",
+   "answer": "Q384705",
+   "sitelinks": "66",
+   "label": "Kojiki",
+   "answerLabel": "Ō no Yasumaro",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/1764bd19d4d730a6c833449c97e52ee6"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q448",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Denis Diderot",
+   "answerBirth": "1713-10-05T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q153232",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Jean-Baptiste Le Rond d’Alembert",
+   "answerBirth": "1717-11-16T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q7104",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Paul Henri Thiry d’Holbach",
+   "answerBirth": "1723-12-08T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q221303",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Anne Robert Jacques Turgot",
+   "answerBirth": "1727-05-10T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q18222353",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Jean Jodin",
+   "answerBirth": "1713-06-12T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q229264",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Georges-Louis Leclerc de Buffon",
+   "answerBirth": "1707-09-07T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q272119",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Étienne Bonnot de Condillac",
+   "answerBirth": "1714-09-30T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q551115",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Gabriel-François Venel",
+   "answerBirth": "1723-08-23T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q584990",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Louis de Jaucourt",
+   "answerBirth": "1704-09-16T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q591657",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Paul Joseph Barthez",
+   "answerBirth": "1734-12-11T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q860178",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Charles Bossut",
+   "answerBirth": "1730-08-11T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q542728",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Théophile de Bordeu",
+   "answerBirth": "1722-02-22T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q546443",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Louis Jean-Marie Daubenton",
+   "answerBirth": "1716-05-29T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q1605827",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Henri Fouquet",
+   "answerBirth": "1727-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q1684939",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Jean-Joseph Menuret",
+   "answerBirth": "1733-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q447",
+   "answer": "Q1684939",
+   "sitelinks": "66",
+   "label": "Encyclopédie ou Dictionnaire raisonné des sciences, des arts et des métiers",
+   "answerLabel": "Jean-Joseph Menuret",
+   "answerBirth": "1739-01-23T00:00:00Z"
+  },
+  {
+   "item": "Q308918",
+   "answer": "Q5686",
+   "sitelinks": "65",
+   "label": "Eine Geschichte aus zwei Städten",
+   "answerLabel": "Charles Dickens",
+   "answerBirth": "1812-02-07T00:00:00Z"
+  },
+  {
+   "item": "Q172850",
+   "answer": "Q12807",
+   "sitelinks": "65",
+   "label": "Der Name der Rose",
+   "answerLabel": "Umberto Eco",
+   "answerBirth": "1932-01-05T00:00:00Z"
+  },
+  {
+   "item": "Q215983",
+   "answer": "Q39212",
+   "sitelinks": "65",
+   "label": "Früchte des Zorns",
+   "answerLabel": "John Steinbeck",
+   "answerBirth": "1902-02-27T00:00:00Z"
+  },
+  {
+   "item": "Q213019",
+   "answer": "Q42511",
+   "sitelinks": "65",
+   "label": "Der Krieg der Welten",
+   "answerLabel": "H. G. Wells",
+   "answerBirth": "1866-09-21T00:00:00Z"
+  },
+  {
+   "item": "Q2870",
+   "answer": "Q173540",
+   "sitelinks": "64",
+   "label": "Vom Winde verweht",
+   "answerLabel": "Margaret Mitchell",
+   "answerBirth": "1900-11-08T00:00:00Z"
+  },
+  {
+   "item": "Q151883",
+   "answer": "Q5879",
+   "sitelinks": "64",
+   "label": "Die Leiden des jungen Werthers",
+   "answerLabel": "Johann Wolfgang von Goethe",
+   "answerBirth": "1749-08-28T00:00:00Z"
+  },
+  {
+   "item": "Q106199",
+   "answer": "Q1048",
+   "sitelinks": "64",
+   "label": "De bello Gallico",
+   "answerLabel": "Gaius Iulius Caesar",
+   "answerBirth": "-0099-07-01T00:00:00Z"
+  },
+  {
+   "item": "Q22738",
+   "answer": "Q859",
+   "sitelinks": "64",
+   "label": "Höhlengleichnis",
+   "answerLabel": "Platon",
+   "answerBirth": "-0428-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q191288",
+   "answer": "Q44306",
+   "sitelinks": "64",
+   "label": "Die satanischen Verse",
+   "answerLabel": "Salman Rushdie",
+   "answerBirth": "1947-06-19T00:00:00Z"
+  },
+  {
+   "item": "Q219457",
+   "answer": "Q33977",
+   "sitelinks": "64",
+   "label": "Die Reise zum Mittelpunkt der Erde",
+   "answerLabel": "Jules Verne",
+   "answerBirth": "1828-02-08T00:00:00Z"
+  },
+  {
+   "item": "Q155952",
+   "answer": "Q34943",
+   "sitelinks": "63",
+   "label": "Almagest",
+   "answerLabel": "Claudius Ptolemäus",
+   "answerBirth": "0100-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q182502",
+   "answer": "Q7345",
+   "sitelinks": "63",
+   "label": "Illuminati",
+   "answerLabel": "Dan Brown",
+   "answerBirth": "1964-06-22T00:00:00Z"
+  },
+  {
+   "item": "Q192551",
+   "answer": "Q320935",
+   "sitelinks": "63",
+   "label": "Nestorchronik",
+   "answerLabel": "Nestor von Kiew",
+   "answerBirth": "1056-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q208002",
+   "answer": "Q892",
+   "sitelinks": "63",
+   "label": "Die Gefährten",
+   "answerLabel": "J. R. R. Tolkien",
+   "answerBirth": "1892-01-03T00:00:00Z"
+  },
+  {
+   "item": "Q320372",
+   "answer": "Q34670",
+   "sitelinks": "62",
+   "label": "Die Pest",
+   "answerLabel": "Albert Camus",
+   "answerBirth": "1913-11-07T00:00:00Z"
+  },
+  {
+   "item": "Q271764",
+   "answer": "Q44183",
+   "sitelinks": "62",
+   "label": "Herr der Fliegen",
+   "answerLabel": "William Golding",
+   "answerBirth": "1911-09-19T00:00:00Z"
+  },
+  {
+   "item": "Q1751870",
+   "answer": "Q181677",
+   "sitelinks": "62",
+   "label": "A Game of Thrones",
+   "answerLabel": "George R. R. Martin",
+   "answerBirth": "1948-09-20T00:00:00Z"
+  },
+  {
+   "item": "Q273668",
+   "answer": "Q859",
+   "sitelinks": "62",
+   "label": "Apologie",
+   "answerLabel": "Platon",
+   "answerBirth": "-0428-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q11880",
+   "answer": "Q5673",
+   "sitelinks": "61",
+   "label": "Die Schneekönigin",
+   "answerLabel": "Hans Christian Andersen",
+   "answerBirth": "1805-04-02T00:00:00Z"
+  },
+  {
+   "item": "Q70827",
+   "answer": "Q1777502",
+   "sitelinks": "61",
+   "label": "Die Räuber vom Liang-Schan-Moor",
+   "answerLabel": "Shi Nai'an",
+   "answerBirth": "1290-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q70827",
+   "answer": "Q1777502",
+   "sitelinks": "61",
+   "label": "Die Räuber vom Liang-Schan-Moor",
+   "answerLabel": "Shi Nai'an",
+   "answerBirth": "1296-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q647379",
+   "answer": "Q43718",
+   "sitelinks": "61",
+   "label": "Die toten Seelen",
+   "answerLabel": "Nikolai Wassiljewitsch Gogol",
+   "answerBirth": "1809-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q647379",
+   "answer": "Q43718",
+   "sitelinks": "61",
+   "label": "Die toten Seelen",
+   "answerLabel": "Nikolai Wassiljewitsch Gogol",
+   "answerBirth": "1809-03-20T00:00:00Z"
+  },
+  {
+   "item": "Q647379",
+   "answer": "Q43718",
+   "sitelinks": "61",
+   "label": "Die toten Seelen",
+   "answerLabel": "Nikolai Wassiljewitsch Gogol",
+   "answerBirth": "1809-03-31T00:00:00Z"
+  },
+  {
+   "item": "Q647379",
+   "answer": "Q43718",
+   "sitelinks": "61",
+   "label": "Die toten Seelen",
+   "answerLabel": "Nikolai Wassiljewitsch Gogol",
+   "answerBirth": "1809-04-01T00:00:00Z"
+  },
+  {
+   "item": "Q637839",
+   "answer": "Q193116",
+   "sitelinks": "61",
+   "label": "Drachenläufer",
+   "answerLabel": "Khaled Hosseini",
+   "answerBirth": "1965-03-04T00:00:00Z"
+  },
+  {
+   "item": "Q189378",
+   "answer": "Q160219",
+   "sitelinks": "61",
+   "label": "Bis(s) zum Morgengrauen",
+   "answerLabel": "Stephenie Meyer",
+   "answerBirth": "1973-12-24T00:00:00Z"
+  },
+  {
+   "item": "Q220331",
+   "answer": "Q38082",
+   "sitelinks": "61",
+   "label": "Alice hinter den Spiegeln",
+   "answerLabel": "Lewis Carroll",
+   "answerBirth": "1832-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q240617",
+   "answer": "Q9711",
+   "sitelinks": "61",
+   "label": "Vater Goriot",
+   "answerLabel": "Honoré de Balzac",
+   "answerBirth": "1799-05-20T00:00:00Z"
+  },
+  {
+   "item": "Q11866",
+   "answer": "Q5673",
+   "sitelinks": "60",
+   "label": "Des Kaisers neue Kleider",
+   "answerLabel": "Hans Christian Andersen",
+   "answerBirth": "1805-04-02T00:00:00Z"
+  },
+  {
+   "item": "Q457289",
+   "answer": "Q25973",
+   "sitelinks": "60",
+   "label": "Siddhartha",
+   "answerLabel": "Hermann Hesse",
+   "answerBirth": "1877-07-02T00:00:00Z"
+  },
+  {
+   "item": "Q217352",
+   "answer": "Q1512",
+   "sitelinks": "60",
+   "label": "Der seltsame Fall des Dr. Jekyll und Mr. Hyde",
+   "answerLabel": "Robert Louis Stevenson",
+   "answerBirth": "1850-11-13T00:00:00Z"
+  },
+  {
+   "item": "Q272530",
+   "answer": "Q9372",
+   "sitelinks": "60",
+   "label": "Shiji",
+   "answerLabel": "Sima Qian",
+   "answerBirth": "-0144-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q471726",
+   "answer": "Q17714",
+   "sitelinks": "59",
+   "label": "Eine kurze Geschichte der Zeit",
+   "answerLabel": "Stephen Hawking",
+   "answerBirth": "1942-01-08T00:00:00Z"
+  },
+  {
+   "item": "Q464928",
+   "answer": "Q7199",
+   "sitelinks": "59",
+   "label": "Auf der Suche nach der verlorenen Zeit",
+   "answerLabel": "Marcel Proust",
+   "answerBirth": "1871-07-10T00:00:00Z"
+  },
+  {
+   "item": "Q51643",
+   "answer": "Q302",
+   "sitelinks": "59",
+   "label": "Seligpreisung",
+   "answerLabel": "Jesus Christus",
+   "answerBirth": "-0005-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q457977",
+   "answer": "Q39212",
+   "sitelinks": "59",
+   "label": "Von Mäusen und Menschen",
+   "answerLabel": "John Steinbeck",
+   "answerBirth": "1902-02-27T00:00:00Z"
+  },
+  {
+   "item": "Q205882",
+   "answer": "Q102323",
+   "sitelinks": "59",
+   "label": "Snorra-Edda",
+   "answerLabel": "Snorri Sturluson",
+   "answerBirth": "1179-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q193034",
+   "answer": "Q37621",
+   "sitelinks": "59",
+   "label": "Leviathan",
+   "answerLabel": "Thomas Hobbes",
+   "answerBirth": "1588-04-05T00:00:00Z"
+  },
+  {
+   "item": "Q129778",
+   "answer": "Q82925",
+   "sitelinks": "58",
+   "label": "Herz der Finsternis",
+   "answerLabel": "Joseph Conrad",
+   "answerBirth": "1857-12-03T00:00:00Z"
+  },
+  {
+   "item": "Q112015",
+   "answer": "Q6714",
+   "sitelinks": "58",
+   "label": "Die Bremer Stadtmusikanten",
+   "answerLabel": "Wilhelm Grimm",
+   "answerBirth": "1786-02-24T00:00:00Z"
+  },
+  {
+   "item": "Q112015",
+   "answer": "Q6701",
+   "sitelinks": "58",
+   "label": "Die Bremer Stadtmusikanten",
+   "answerLabel": "Jacob Grimm",
+   "answerBirth": "1785-01-04T00:00:00Z"
+  },
+  {
+   "item": "Q112015",
+   "answer": "Q2793",
+   "sitelinks": "58",
+   "label": "Die Bremer Stadtmusikanten",
+   "answerLabel": "Brüder Grimm"
+  },
+  {
+   "item": "Q138174",
+   "answer": "Q170800",
+   "sitelinks": "58",
+   "label": "Das Leben ist ein Traum",
+   "answerLabel": "Pedro Calderón de la Barca",
+   "answerBirth": "1600-01-17T00:00:00Z"
+  },
+  {
+   "item": "Q332388",
+   "answer": "Q892",
+   "sitelinks": "58",
+   "label": "Die Zwei Türme",
+   "answerLabel": "J. R. R. Tolkien",
+   "answerBirth": "1892-01-03T00:00:00Z"
+  },
+  {
+   "item": "Q369944",
+   "answer": "Q34474",
+   "sitelinks": "58",
+   "label": "Der Archipel Gulag",
+   "answerLabel": "Alexander Issajewitsch Solschenizyn",
+   "answerBirth": "1918-12-11T00:00:00Z"
+  },
+  {
+   "item": "Q668439",
+   "answer": "Q2818964",
+   "sitelinks": "58",
+   "label": "Jataka",
+   "answerLabel": "verschiedene Autoren"
+  },
+  {
+   "item": "Q217073",
+   "answer": "Q25973",
+   "sitelinks": "58",
+   "label": "Der Steppenwolf",
+   "answerLabel": "Hermann Hesse",
+   "answerBirth": "1877-07-02T00:00:00Z"
+  },
+  {
+   "item": "Q264714",
+   "answer": "Q868",
+   "sitelinks": "58",
+   "label": "Poetik",
+   "answerLabel": "Aristoteles",
+   "answerBirth": "-0383-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q746583",
+   "answer": "Q26825",
+   "sitelinks": "58",
+   "label": "Historien des Herodot",
+   "answerLabel": "Herodot",
+   "answerBirth": "-0483-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q627333",
+   "answer": "Q42511",
+   "sitelinks": "57",
+   "label": "Die Zeitmaschine",
+   "answerLabel": "H. G. Wells",
+   "answerBirth": "1866-09-21T00:00:00Z"
+  },
+  {
+   "item": "Q485093",
+   "answer": "Q9204",
+   "sitelinks": "57",
+   "label": "Der König von Narnia",
+   "answerLabel": "C. S. Lewis",
+   "answerBirth": "1898-11-29T00:00:00Z"
+  },
+  {
+   "item": "Q235795",
+   "answer": "Q23434",
+   "sitelinks": "57",
+   "label": "In einem andern Land",
+   "answerLabel": "Ernest Hemingway",
+   "answerBirth": "1899-07-21T00:00:00Z"
+  },
+  {
+   "item": "Q442",
+   "answer": "Q82778",
+   "sitelinks": "57",
+   "label": "Naturalis historia",
+   "answerLabel": "Plinius der Ältere",
+   "answerBirth": "0020-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q622868",
+   "answer": "Q9441",
+   "sitelinks": "57",
+   "label": "Herz-Sutra",
+   "answerLabel": "Siddhartha Gautama",
+   "answerBirth": "-0500-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q682958",
+   "answer": "Q330521",
+   "sitelinks": "56",
+   "label": "Bhagavatapurana",
+   "answerLabel": "Vyasa",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/608a8c34c601c47e1efbecc5d5b0617f"
+  },
+  {
+   "item": "Q274744",
+   "answer": "Q36322",
+   "sitelinks": "56",
+   "label": "Verstand und Gefühl",
+   "answerLabel": "Jane Austen",
+   "answerBirth": "1775-12-16T00:00:00Z"
+  },
+  {
+   "item": "Q917055",
+   "answer": "Q93166",
+   "sitelinks": "56",
+   "label": "Die unerträgliche Leichtigkeit des Seins",
+   "answerLabel": "Milan Kundera",
+   "answerBirth": "1929-04-01T00:00:00Z"
+  },
+  {
+   "item": "Q200306",
+   "answer": "Q40319",
+   "sitelinks": "56",
+   "label": "Gray’s Anatomy",
+   "answerLabel": "Henry Gray",
+   "answerBirth": "1827-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q235193",
+   "answer": "Q19074",
+   "sitelinks": "56",
+   "label": "Kampf der Kulturen",
+   "answerLabel": "Samuel Phillips Huntington",
+   "answerBirth": "1927-04-18T00:00:00Z"
+  },
+  {
+   "item": "Q11678",
+   "answer": "Q228624",
+   "sitelinks": "55",
+   "label": "Die Tribute von Panem – Tödliche Spiele",
+   "answerLabel": "Suzanne Collins",
+   "answerBirth": "1962-08-10T00:00:00Z"
+  },
+  {
+   "item": "Q474537",
+   "answer": "Q868",
+   "sitelinks": "55",
+   "label": "Nikomachische Ethik",
+   "answerLabel": "Aristoteles",
+   "answerBirth": "-0383-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q651532",
+   "answer": "Q321691",
+   "sitelinks": "55",
+   "label": "Die drei kleinen Schweinchen",
+   "answerLabel": "James Orchard Halliwell-Phillipps",
+   "answerBirth": "1820-06-21T00:00:00Z"
+  },
+  {
+   "item": "Q194424",
+   "answer": "Q34660",
+   "sitelinks": "55",
+   "label": "Phantastische Tierwesen & wo sie zu finden sind",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q208622",
+   "answer": "Q2754",
+   "sitelinks": "55",
+   "label": "Die Abenteuer des braven Soldaten Schwejk",
+   "answerLabel": "Jaroslav Hašek",
+   "answerBirth": "1883-04-30T00:00:00Z"
+  },
+  {
+   "item": "Q206870",
+   "answer": "Q41223",
+   "sitelinks": "55",
+   "label": "Doktor Schiwago",
+   "answerLabel": "Boris Leonidowitsch Pasternak",
+   "answerBirth": "1890-02-10T00:00:00Z"
+  },
+  {
+   "item": "Q56045",
+   "answer": "Q2594",
+   "sitelinks": "55",
+   "label": "Grundgesetz für die Bundesrepublik Deutschland",
+   "answerLabel": "Theodor Heuss",
+   "answerBirth": "1884-01-31T00:00:00Z"
+  },
+  {
+   "item": "Q56045",
+   "answer": "Q67511",
+   "sitelinks": "55",
+   "label": "Grundgesetz für die Bundesrepublik Deutschland",
+   "answerLabel": "Carlo Schmid",
+   "answerBirth": "1896-12-03T00:00:00Z"
+  },
+  {
+   "item": "Q56045",
+   "answer": "Q364351",
+   "sitelinks": "55",
+   "label": "Grundgesetz für die Bundesrepublik Deutschland",
+   "answerLabel": "Adolf Süsterhenn",
+   "answerBirth": "1905-05-31T00:00:00Z"
+  },
+  {
+   "item": "Q11876",
+   "answer": "Q5673",
+   "sitelinks": "54",
+   "label": "Das kleine Mädchen mit den Schwefelhölzern",
+   "answerLabel": "Hans Christian Andersen",
+   "answerBirth": "1805-04-02T00:00:00Z"
+  },
+  {
+   "item": "Q128444",
+   "answer": "Q205739",
+   "sitelinks": "54",
+   "label": "Watchmen",
+   "answerLabel": "Alan Moore",
+   "answerBirth": "1953-11-18T00:00:00Z"
+  },
+  {
+   "item": "Q128444",
+   "answer": "Q445765",
+   "sitelinks": "54",
+   "label": "Watchmen",
+   "answerLabel": "Dave Gibbons",
+   "answerBirth": "1949-04-14T00:00:00Z"
+  },
+  {
+   "item": "Q499396",
+   "answer": "Q5878",
+   "sitelinks": "54",
+   "label": "Die Liebe in den Zeiten der Cholera",
+   "answerLabel": "Gabriel García Márquez",
+   "answerBirth": "1927-03-06T00:00:00Z"
+  },
+  {
+   "item": "Q465108",
+   "answer": "Q2818964",
+   "sitelinks": "54",
+   "label": "Buch der Lieder",
+   "answerLabel": "verschiedene Autoren"
+  },
+  {
+   "item": "Q165068",
+   "answer": "Q34660",
+   "sitelinks": "54",
+   "label": "Die Märchen von Beedle dem Barden",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q476871",
+   "answer": "Q45765",
+   "sitelinks": "54",
+   "label": "Ruf der Wildnis",
+   "answerLabel": "Jack London",
+   "answerBirth": "1876-01-12T00:00:00Z"
+  },
+  {
+   "item": "Q886659",
+   "answer": "Q140124",
+   "sitelinks": "54",
+   "label": "Sahīh Muslim",
+   "answerLabel": "Muslim ibn al-Haddschādsch",
+   "answerBirth": "0821-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q471005",
+   "answer": "Q33977",
+   "sitelinks": "53",
+   "label": "Die geheimnisvolle Insel",
+   "answerLabel": "Jules Verne",
+   "answerBirth": "1828-02-08T00:00:00Z"
+  },
+  {
+   "item": "Q261281",
+   "answer": "Q6530",
+   "sitelinks": "53",
+   "label": "Solaris",
+   "answerLabel": "Stanisław Lem",
+   "answerBirth": "1921-09-12T00:00:00Z"
+  },
+  {
+   "item": "Q323133",
+   "answer": "Q9045",
+   "sitelinks": "53",
+   "label": "Arthashastra",
+   "answerLabel": "Chanakya",
+   "answerBirth": "-0374-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q61324",
+   "answer": "Q185548",
+   "sitelinks": "53",
+   "label": "Sofies Welt",
+   "answerLabel": "Jostein Gaarder",
+   "answerBirth": "1952-08-08T00:00:00Z"
+  },
+  {
+   "item": "Q329989",
+   "answer": "Q991",
+   "sitelinks": "53",
+   "label": "Die Dämonen",
+   "answerLabel": "Fjodor Michailowitsch Dostojewski",
+   "answerBirth": "1821-11-11T00:00:00Z"
+  },
+  {
+   "item": "Q278208",
+   "answer": "Q208101",
+   "sitelinks": "53",
+   "label": "Catch-22",
+   "answerLabel": "Joseph Heller",
+   "answerBirth": "1923-05-01T00:00:00Z"
+  },
+  {
+   "item": "Q569869",
+   "answer": "Q43499",
+   "sitelinks": "53",
+   "label": "Lob der Torheit",
+   "answerLabel": "Erasmus von Rotterdam",
+   "answerBirth": "1466-11-06T00:00:00Z"
+  },
+  {
+   "item": "Q404158",
+   "answer": "Q42544",
+   "sitelinks": "53",
+   "label": "Utopia",
+   "answerLabel": "Thomas Morus",
+   "answerBirth": "1478-02-16T00:00:00Z"
+  },
+  {
+   "item": "Q157082",
+   "answer": "Q661001",
+   "sitelinks": "53",
+   "label": "Straßburger Eide",
+   "answerLabel": "Nithard",
+   "answerBirth": "0790-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q157082",
+   "answer": "Q661001",
+   "sitelinks": "53",
+   "label": "Straßburger Eide",
+   "answerLabel": "Nithard",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/0a98e25e90bdb899b709cf3f330ded09"
+  },
+  {
+   "item": "Q271697",
+   "answer": "Q123053",
+   "sitelinks": "52",
+   "label": "Heidi",
+   "answerLabel": "Johanna Spyri",
+   "answerBirth": "1827-06-12T00:00:00Z"
+  },
+  {
+   "item": "Q332581",
+   "answer": "Q892",
+   "sitelinks": "52",
+   "label": "Die Rückkehr des Königs",
+   "answerLabel": "J. R. R. Tolkien",
+   "answerBirth": "1892-01-03T00:00:00Z"
+  },
+  {
+   "item": "Q523076",
+   "answer": "Q185696",
+   "sitelinks": "52",
+   "label": "Little Women",
+   "answerLabel": "Louisa May Alcott",
+   "answerBirth": "1832-11-29T00:00:00Z"
+  },
+  {
+   "item": "Q692557",
+   "answer": "Q217619",
+   "sitelinks": "52",
+   "label": "Uhrwerk Orange",
+   "answerLabel": "Anthony Burgess",
+   "answerBirth": "1917-02-25T00:00:00Z"
+  },
+  {
+   "item": "Q192649",
+   "answer": "Q502",
+   "sitelinks": "52",
+   "label": "Rot und Schwarz",
+   "answerLabel": "Stendhal",
+   "answerBirth": "1783-01-23T00:00:00Z"
+  },
+  {
+   "item": "Q216578",
+   "answer": "Q501",
+   "sitelinks": "52",
+   "label": "Les Fleurs du Mal",
+   "answerLabel": "Charles Baudelaire",
+   "answerBirth": "1821-04-09T00:00:00Z"
+  },
+  {
+   "item": "Q185449",
+   "answer": "Q93620",
+   "sitelinks": "52",
+   "label": "Eragon - Das Vermächtnis der Drachenreiter",
+   "answerLabel": "Christopher Paolini",
+   "answerBirth": "1983-11-17T00:00:00Z"
+  },
+  {
+   "item": "Q493574",
+   "answer": "Q167856",
+   "sitelinks": "52",
+   "label": "Der letzte Mohikaner",
+   "answerLabel": "James Fenimore Cooper",
+   "answerBirth": "1789-09-15T00:00:00Z"
+  },
+  {
+   "item": "Q243556",
+   "answer": "Q182870",
+   "sitelinks": "52",
+   "label": "Der Pate",
+   "answerLabel": "Mario Puzo",
+   "answerBirth": "1920-10-15T00:00:00Z"
+  },
+  {
+   "item": "Q245265",
+   "answer": "Q44461",
+   "sitelinks": "52",
+   "label": "Der Gotteswahn",
+   "answerLabel": "Richard Dawkins",
+   "answerBirth": "1941-03-26T00:00:00Z"
+  },
+  {
+   "item": "Q36393",
+   "answer": "Q5816",
+   "sitelinks": "51",
+   "label": "Worte des Vorsitzenden Mao Tsetung",
+   "answerLabel": "Mao Zedong",
+   "answerBirth": "1893-12-26T00:00:00Z"
+  },
+  {
+   "item": "Q501351",
+   "answer": "Q23434",
+   "sitelinks": "51",
+   "label": "Fiesta",
+   "answerLabel": "Ernest Hemingway",
+   "answerBirth": "1899-07-21T00:00:00Z"
+  },
+  {
+   "item": "Q267634",
+   "answer": "Q859",
+   "sitelinks": "51",
+   "label": "Kriton",
+   "answerLabel": "Platon",
+   "answerBirth": "-0428-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q840974",
+   "answer": "Q79025",
+   "sitelinks": "51",
+   "label": "Ivanhoe",
+   "answerLabel": "Walter Scott",
+   "answerBirth": "1771-08-15T00:00:00Z"
+  },
+  {
+   "item": "Q191540",
+   "answer": "Q160219",
+   "sitelinks": "51",
+   "label": "Bis(s) zur Mittagsstunde",
+   "answerLabel": "Stephenie Meyer",
+   "answerBirth": "1973-12-24T00:00:00Z"
+  },
+  {
+   "item": "Q667285",
+   "answer": "Q44233",
+   "sitelinks": "51",
+   "label": "Werke und Tage",
+   "answerLabel": "Hesiod",
+   "answerBirth": "-0775-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q1152283",
+   "answer": "Q1430",
+   "sitelinks": "51",
+   "label": "Selbstbetrachtungen",
+   "answerLabel": "Mark Aurel",
+   "answerBirth": "0121-04-25T00:00:00Z"
+  },
+  {
+   "item": "Q565911",
+   "answer": "Q273034",
+   "sitelinks": "51",
+   "label": "Anne auf Green Gables",
+   "answerLabel": "Lucy Maud Montgomery",
+   "answerBirth": "1874-11-30T00:00:00Z"
+  },
+  {
+   "item": "Q212180",
+   "answer": "Q39193",
+   "sitelinks": "51",
+   "label": "Codex Gigas",
+   "answerLabel": "Böhmen"
+  },
+  {
+   "item": "Q161138",
+   "answer": "Q128460",
+   "sitelinks": "50",
+   "label": "Blaubart",
+   "answerLabel": "Charles Perrault",
+   "answerBirth": "1628-01-12T00:00:00Z"
+  },
+  {
+   "item": "Q658375",
+   "answer": "Q630446",
+   "sitelinks": "50",
+   "label": "Das Schicksal ist ein mieser Verräter",
+   "answerLabel": "John Green",
+   "answerBirth": "1977-08-24T00:00:00Z"
+  },
+  {
+   "item": "Q695116",
+   "answer": "Q991",
+   "sitelinks": "50",
+   "label": "Aufzeichnungen aus dem Kellerloch",
+   "answerLabel": "Fjodor Michailowitsch Dostojewski",
+   "answerBirth": "1821-11-11T00:00:00Z"
+  },
+  {
+   "item": "Q1068646",
+   "answer": "Q231680",
+   "sitelinks": "50",
+   "label": "Yogasutra",
+   "answerLabel": "Patanjali",
+   "answerBirth": "http://www.wikidata.org/.well-known/genid/7ae92505b9f1db752c64b93037307f14"
+  },
+  {
+   "item": "Q192258",
+   "answer": "Q34660",
+   "sitelinks": "50",
+   "label": "Quidditch im Wandel der Zeiten",
+   "answerLabel": "Joanne K. Rowling",
+   "answerBirth": "1965-07-31T00:00:00Z"
+  },
+  {
+   "item": "Q204208",
+   "answer": "Q132984",
+   "sitelinks": "50",
+   "label": "Der Recke im Tigerfell",
+   "answerLabel": "Schota Rustaweli",
+   "answerBirth": "1172-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q216299",
+   "answer": "Q2818964",
+   "sitelinks": "50",
+   "label": "Suda",
+   "answerLabel": "verschiedene Autoren"
+  },
+  {
+   "item": "Q661655",
+   "answer": "Q868",
+   "sitelinks": "50",
+   "label": "Metaphysik",
+   "answerLabel": "Aristoteles",
+   "answerBirth": "-0383-01-01T00:00:00Z"
+  },
+  {
+   "item": "Q486727",
+   "answer": "Q859",
+   "sitelinks": "50",
+   "label": "Symposion",
+   "answerLabel": "Platon",
+   "answerBirth": "-0428-01-01T00:00:00Z"
+  }
+ ]
+}

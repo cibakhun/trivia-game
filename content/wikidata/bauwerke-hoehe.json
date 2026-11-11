@@ -1,0 +1,490 @@
+{
+ "name": "bauwerke-hoehe",
+ "fetchedAt": "2026-11-11T20:53:10.006Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte Türme, Hochhäuser und Kathedralen mit Bauhöhe (normalisiert in Metern).\nSELECT ?item ?label ?sitelinks ?value WHERE {\n  VALUES ?class { wd:Q11303 wd:Q12518 wd:Q11166728 wd:Q1440300 wd:Q2977 }\n  ?item wdt:P31 ?class;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 40)\n  ?item p:P2048 ?statement.\n  ?statement a wikibase:BestRank;\n             psn:P2048/wikibase:quantityAmount ?value.\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 80\n",
+ "rowCount": 80,
+ "rows": [
+  {
+   "item": "Q243",
+   "value": "330",
+   "sitelinks": "191",
+   "label": "Eiffelturm"
+  },
+  {
+   "item": "Q9202",
+   "value": "46",
+   "sitelinks": "159",
+   "label": "Freiheitsstatue"
+  },
+  {
+   "item": "Q9202",
+   "value": "47",
+   "sitelinks": "159",
+   "label": "Freiheitsstatue"
+  },
+  {
+   "item": "Q12495",
+   "value": "828",
+   "sitelinks": "140",
+   "label": "Burj Khalifa"
+  },
+  {
+   "item": "Q9188",
+   "value": "457.2009",
+   "sitelinks": "125",
+   "label": "Empire State Building"
+  },
+  {
+   "item": "Q9188",
+   "value": "453",
+   "sitelinks": "125",
+   "label": "Empire State Building"
+  },
+  {
+   "item": "Q29294",
+   "value": "442.1",
+   "sitelinks": "97",
+   "label": "Sears-Tower"
+  },
+  {
+   "item": "Q83063",
+   "value": "452.0192898",
+   "sitelinks": "90",
+   "label": "Petronas Towers"
+  },
+  {
+   "item": "Q83101",
+   "value": "508",
+   "sitelinks": "85",
+   "label": "Taipei 101"
+  },
+  {
+   "item": "Q83101",
+   "value": "2",
+   "sitelinks": "85",
+   "label": "Taipei 101"
+  },
+  {
+   "item": "Q1030463",
+   "value": "204",
+   "sitelinks": "83",
+   "label": "Mode Gakuen Cocoon Tower"
+  },
+  {
+   "item": "Q134883",
+   "value": "447",
+   "sitelinks": "80",
+   "label": "CN Tower"
+  },
+  {
+   "item": "Q134883",
+   "value": "553.3",
+   "sitelinks": "80",
+   "label": "CN Tower"
+  },
+  {
+   "item": "Q134883",
+   "value": "447",
+   "sitelinks": "80",
+   "label": "CN Tower"
+  },
+  {
+   "item": "Q134883",
+   "value": "553.3",
+   "sitelinks": "80",
+   "label": "CN Tower"
+  },
+  {
+   "item": "Q11274",
+   "value": "252.3",
+   "sitelinks": "75",
+   "label": "Chrysler Building"
+  },
+  {
+   "item": "Q11274",
+   "value": "282",
+   "sitelinks": "75",
+   "label": "Chrysler Building"
+  },
+  {
+   "item": "Q11274",
+   "value": "318.9",
+   "sitelinks": "75",
+   "label": "Chrysler Building"
+  },
+  {
+   "item": "Q11245",
+   "value": "541.3",
+   "sitelinks": "74",
+   "label": "One World Trade Center"
+  },
+  {
+   "item": "Q57965",
+   "value": "634",
+   "sitelinks": "72",
+   "label": "Tokyo Skytree"
+  },
+  {
+   "item": "Q57965",
+   "value": "634",
+   "sitelinks": "72",
+   "label": "Tokyo Skytree"
+  },
+  {
+   "item": "Q191739",
+   "value": "114.5",
+   "sitelinks": "71",
+   "label": "Kathedrale von Florenz"
+  },
+  {
+   "item": "Q42258",
+   "value": "170",
+   "sitelinks": "71",
+   "label": "Mirante do Vale"
+  },
+  {
+   "item": "Q183536",
+   "value": "332.6",
+   "sitelinks": "69",
+   "label": "Tokio-Turm"
+  },
+  {
+   "item": "Q16318627",
+   "value": "300",
+   "sitelinks": "67",
+   "label": "Abeno Harukas"
+  },
+  {
+   "item": "Q80852",
+   "value": "492",
+   "sitelinks": "61",
+   "label": "Shanghai World Financial Center"
+  },
+  {
+   "item": "Q181324",
+   "value": "540.1",
+   "sitelinks": "61",
+   "label": "Fernsehturm Ostankino"
+  },
+  {
+   "item": "Q181324",
+   "value": "540.1",
+   "sitelinks": "61",
+   "label": "Fernsehturm Ostankino"
+  },
+  {
+   "item": "Q18536",
+   "value": "306",
+   "sitelinks": "60",
+   "label": "The Shard"
+  },
+  {
+   "item": "Q189476",
+   "value": "607",
+   "sitelinks": "60",
+   "label": "Abradsch al-Bait"
+  },
+  {
+   "item": "Q18547",
+   "value": "632",
+   "sitelinks": "58",
+   "label": "Shanghai Tower"
+  },
+  {
+   "item": "Q29272",
+   "value": "323",
+   "sitelinks": "58",
+   "label": "Ryugyŏng Hot'el"
+  },
+  {
+   "item": "Q29272",
+   "value": "335",
+   "sitelinks": "58",
+   "label": "Ryugyŏng Hot'el"
+  },
+  {
+   "item": "Q91274",
+   "value": "62.59",
+   "sitelinks": "58",
+   "label": "Galataturm"
+  },
+  {
+   "item": "Q151356",
+   "value": "368",
+   "sitelinks": "58",
+   "label": "Berliner Fernsehturm"
+  },
+  {
+   "item": "Q151356",
+   "value": "368",
+   "sitelinks": "58",
+   "label": "Berliner Fernsehturm"
+  },
+  {
+   "item": "Q737945",
+   "value": "1008",
+   "sitelinks": "54",
+   "label": "Jeddah Tower"
+  },
+  {
+   "item": "Q168400",
+   "value": "600",
+   "sitelinks": "53",
+   "label": "Canton Tower"
+  },
+  {
+   "item": "Q168400",
+   "value": "600",
+   "sitelinks": "53",
+   "label": "Canton Tower"
+  },
+  {
+   "item": "Q43282",
+   "value": "53",
+   "sitelinks": "52",
+   "label": "Alexander-Newski-Kathedrale"
+  },
+  {
+   "item": "Q80813",
+   "value": "420.5",
+   "sitelinks": "52",
+   "label": "Jin Mao Tower"
+  },
+  {
+   "item": "Q80813",
+   "value": "421",
+   "sitelinks": "52",
+   "label": "Jin Mao Tower"
+  },
+  {
+   "item": "Q223207",
+   "value": "468",
+   "sitelinks": "52",
+   "label": "Oriental Pearl Tower"
+  },
+  {
+   "item": "Q223207",
+   "value": "468",
+   "sitelinks": "52",
+   "label": "Oriental Pearl Tower"
+  },
+  {
+   "item": "Q223207",
+   "value": "468",
+   "sitelinks": "52",
+   "label": "Oriental Pearl Tower"
+  },
+  {
+   "item": "Q167566",
+   "value": "230",
+   "sitelinks": "51",
+   "label": "Kulturpalast"
+  },
+  {
+   "item": "Q216357",
+   "value": "110.9",
+   "sitelinks": "51",
+   "label": "Grande Arche"
+  },
+  {
+   "item": "Q622796",
+   "value": "435",
+   "sitelinks": "51",
+   "label": "Bordsch-e Milad"
+  },
+  {
+   "item": "Q169420",
+   "value": "161.22",
+   "sitelinks": "50",
+   "label": "Edifício do Banespa"
+  },
+  {
+   "item": "Q1294648",
+   "value": "27",
+   "sitelinks": "49",
+   "label": "Kathedrale von Etschmiadsin"
+  },
+  {
+   "item": "Q391229",
+   "value": "83",
+   "sitelinks": "49",
+   "label": "Kathedrale von Tournai"
+  },
+  {
+   "item": "Q191161",
+   "value": "180",
+   "sitelinks": "49",
+   "label": "30 St Mary Axe"
+  },
+  {
+   "item": "Q323767",
+   "value": "209",
+   "sitelinks": "48",
+   "label": "Tour Montparnasse"
+  },
+  {
+   "item": "Q170610",
+   "value": "165",
+   "sitelinks": "48",
+   "label": "Edifício Itália"
+  },
+  {
+   "item": "Q842822",
+   "value": "29.5",
+   "sitelinks": "48",
+   "label": "Qız Qalası"
+  },
+  {
+   "item": "Q868772",
+   "value": "202.3875984",
+   "sitelinks": "47",
+   "label": "Trump Tower"
+  },
+  {
+   "item": "Q317034",
+   "value": "484",
+   "sitelinks": "47",
+   "label": "International Commerce Centre"
+  },
+  {
+   "item": "Q1140026",
+   "value": "45",
+   "sitelinks": "47",
+   "label": "Freiheitsturm"
+  },
+  {
+   "item": "Q270066",
+   "value": "225",
+   "sitelinks": "46",
+   "label": "7 World Trade Center"
+  },
+  {
+   "item": "Q192680",
+   "value": "318.8",
+   "sitelinks": "45",
+   "label": "New York Times Tower"
+  },
+  {
+   "item": "Q214855",
+   "value": "367.4",
+   "sitelinks": "45",
+   "label": "Bank of China Tower"
+  },
+  {
+   "item": "Q217652",
+   "value": "241",
+   "sitelinks": "45",
+   "label": "Woolworth Building"
+  },
+  {
+   "item": "Q5317",
+   "value": "184",
+   "sitelinks": "45",
+   "label": "Space Needle"
+  },
+  {
+   "item": "Q206435",
+   "value": "190",
+   "sitelinks": "44",
+   "label": "Turning Torso"
+  },
+  {
+   "item": "Q1133059",
+   "value": "90",
+   "sitelinks": "43",
+   "label": "Dom zu Riga"
+  },
+  {
+   "item": "Q745016",
+   "value": "421",
+   "sitelinks": "43",
+   "label": "Menara Kuala Lumpur"
+  },
+  {
+   "item": "Q151765",
+   "value": "300.1",
+   "sitelinks": "43",
+   "label": "Commerzbank Tower"
+  },
+  {
+   "item": "Q151765",
+   "value": "259",
+   "sitelinks": "43",
+   "label": "Commerzbank Tower"
+  },
+  {
+   "item": "Q4255374",
+   "value": "462",
+   "sitelinks": "43",
+   "label": "Lakhta Center"
+  },
+  {
+   "item": "Q656743",
+   "value": "302",
+   "sitelinks": "42",
+   "label": "Kingdom Centre"
+  },
+  {
+   "item": "Q328505",
+   "value": "365.8",
+   "sitelinks": "42",
+   "label": "Bank of America Tower"
+  },
+  {
+   "item": "Q125846",
+   "value": "322",
+   "sitelinks": "42",
+   "label": "Q1 Tower"
+  },
+  {
+   "item": "Q245246",
+   "value": "390.2",
+   "sitelinks": "42",
+   "label": "CITIC Plaza"
+  },
+  {
+   "item": "Q18640924",
+   "value": "461.5",
+   "sitelinks": "42",
+   "label": "Landmark 81"
+  },
+  {
+   "item": "Q382121",
+   "value": "316",
+   "sitelinks": "41",
+   "label": "Zifeng Tower"
+  },
+  {
+   "item": "Q382121",
+   "value": "450",
+   "sitelinks": "41",
+   "label": "Zifeng Tower"
+  },
+  {
+   "item": "Q59483",
+   "value": "338.8",
+   "sitelinks": "41",
+   "label": "Mercury City Tower"
+  },
+  {
+   "item": "Q236201",
+   "value": "384",
+   "sitelinks": "41",
+   "label": "Shun Hing Square"
+  },
+  {
+   "item": "Q57900",
+   "value": "310.3",
+   "sitelinks": "40",
+   "label": "U.S. Bank Tower"
+  },
+  {
+   "item": "Q838780",
+   "value": "363",
+   "sitelinks": "40",
+   "label": "Almas Tower"
+  }
+ ]
+}

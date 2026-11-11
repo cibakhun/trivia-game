@@ -1,0 +1,13 @@
+# Heutige Staaten mit Währung und Kontinent.
+SELECT ?item ?label ?sitelinks ?answer ?answerLabel ?continent WHERE {
+  ?item wdt:P31 wd:Q6256;
+        wikibase:sitelinks ?sitelinks;
+        wdt:P38 ?answer.
+  FILTER NOT EXISTS { ?item wdt:P576 ?dissolved }
+  OPTIONAL { ?item wdt:P30 ?continent }
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+  ?answer rdfs:label ?answerLabel.
+  FILTER(LANG(?answerLabel) = "de")
+}
+ORDER BY DESC(?sitelinks)

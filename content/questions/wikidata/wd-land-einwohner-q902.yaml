@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-land-einwohner-q902
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:land-einwohner
+sources:
+  - title: "Wikidata: Bangladesch (Q902)"
+    url: https://www.wikidata.org/wiki/Q902
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "175686899"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1000"
+  input_max: "2000000000"
+  scale_type: LOG
+  scale: 0.4
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie viele Menschen lebten im Jahr 2025 in Bangladesch?
+    unit_label: Einwohner

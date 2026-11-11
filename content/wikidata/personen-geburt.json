@@ -1,0 +1,1305 @@
+{
+ "name": "personen-geburt",
+ "fetchedAt": "2026-11-11T20:55:22.525Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte Komponisten und Maler mit Geburtsdatum.\nSELECT ?item ?label ?sitelinks ?occupation ?birth WHERE {\n  VALUES ?occupation { wd:Q36834 wd:Q1028181 }\n  ?item wdt:P106 ?occupation;\n        wdt:P31 wd:Q5;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 100)\n  ?item wdt:P569 ?birth.\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 300\n",
+ "rowCount": 185,
+ "rows": [
+  {
+   "occupation": "Q36834",
+   "item": "Q762",
+   "birth": "1452-04-24T00:00:00Z",
+   "sitelinks": "307",
+   "label": "Leonardo da Vinci"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q762",
+   "birth": "1452-04-24T00:00:00Z",
+   "sitelinks": "307",
+   "label": "Leonardo da Vinci"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q207",
+   "birth": "1946-07-06T00:00:00Z",
+   "sitelinks": "282",
+   "label": "George W. Bush"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q5879",
+   "birth": "1749-08-28T00:00:00Z",
+   "sitelinks": "280",
+   "label": "Johann Wolfgang von Goethe"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5879",
+   "birth": "1749-08-28T00:00:00Z",
+   "sitelinks": "280",
+   "label": "Johann Wolfgang von Goethe"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q255",
+   "birth": "1770-12-16T00:00:00Z",
+   "sitelinks": "274",
+   "label": "Ludwig van Beethoven"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q254",
+   "birth": "1756-01-27T00:00:00Z",
+   "sitelinks": "274",
+   "label": "Wolfgang Amadeus Mozart"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5582",
+   "birth": "1853-03-30T00:00:00Z",
+   "sitelinks": "268",
+   "label": "Vincent van Gogh"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q882",
+   "birth": "1889-04-16T00:00:00Z",
+   "sitelinks": "264",
+   "label": "Charlie Chaplin"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q9554",
+   "birth": "1483-11-19T00:00:00Z",
+   "sitelinks": "260",
+   "label": "Martin Luther"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1339",
+   "birth": "1685-03-31T00:00:00Z",
+   "sitelinks": "259",
+   "label": "Johann Sebastian Bach"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5592",
+   "birth": "1475-03-15T00:00:00Z",
+   "sitelinks": "259",
+   "label": "Michelangelo"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7241",
+   "birth": "1861-05-07T00:00:00Z",
+   "sitelinks": "248",
+   "label": "Rabindranath Tagore"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q7241",
+   "birth": "1861-05-07T00:00:00Z",
+   "sitelinks": "248",
+   "label": "Rabindranath Tagore"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5577",
+   "birth": "1904-05-11T00:00:00Z",
+   "sitelinks": "248",
+   "label": "Salvador Dalí"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q383541",
+   "birth": "1984-12-22T00:00:00Z",
+   "sitelinks": "221",
+   "label": "Basshunter"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q8704",
+   "birth": "1901-12-05T00:00:00Z",
+   "sitelinks": "218",
+   "label": "Walt Disney"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q619",
+   "birth": "1473-02-28T00:00:00Z",
+   "sitelinks": "214",
+   "label": "Nikolaus Kopernikus"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5598",
+   "birth": "1606-07-15T00:00:00Z",
+   "sitelinks": "207",
+   "label": "Rembrandt van Rijn"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1511",
+   "birth": "1813-05-22T00:00:00Z",
+   "sitelinks": "206",
+   "label": "Richard Wagner"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5676",
+   "birth": "1644-01-01T00:00:00Z",
+   "sitelinks": "203",
+   "label": "Matsuo Bashō"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1268",
+   "birth": "1810-03-01T00:00:00Z",
+   "sitelinks": "200",
+   "label": "Frédéric Chopin"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q4724",
+   "birth": "1887-10-06T00:00:00Z",
+   "sitelinks": "200",
+   "label": "Le Corbusier"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5588",
+   "birth": "1907-07-06T00:00:00Z",
+   "sitelinks": "200",
+   "label": "Frida Kahlo"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q4605",
+   "birth": "1844-10-23T00:00:00Z",
+   "sitelinks": "195",
+   "label": "Sarah Bernhardt"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5597",
+   "birth": "1483-04-06T00:00:00Z",
+   "sitelinks": "195",
+   "label": "Raffael"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5597",
+   "birth": "1483-04-15T00:00:00Z",
+   "sitelinks": "195",
+   "label": "Raffael"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7315",
+   "birth": "1840-05-07T00:00:00Z",
+   "sitelinks": "192",
+   "label": "Pjotr Iljitsch Tschaikowski"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5432",
+   "birth": "1746-03-30T00:00:00Z",
+   "sitelinks": "188",
+   "label": "Francisco de Goya"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1203",
+   "birth": "1940-10-09T00:00:00Z",
+   "sitelinks": "186",
+   "label": "John Lennon"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q12897",
+   "birth": "1940-10-23T00:00:00Z",
+   "sitelinks": "185",
+   "label": "Pelé"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5589",
+   "birth": "1869-12-31T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Henri Matisse"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q26876",
+   "birth": "1989-12-13T00:00:00Z",
+   "sitelinks": "180",
+   "label": "Taylor Swift"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7317",
+   "birth": "1813-10-10T00:00:00Z",
+   "sitelinks": "179",
+   "label": "Giuseppe Verdi"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5603",
+   "birth": "1928-08-06T00:00:00Z",
+   "sitelinks": "179",
+   "label": "Andy Warhol"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q8006",
+   "birth": "1910-03-23T00:00:00Z",
+   "sitelinks": "177",
+   "label": "Akira Kurosawa"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5586",
+   "birth": "1760-10-31T00:00:00Z",
+   "sitelinks": "177",
+   "label": "Katsushika Hokusai"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q15869",
+   "birth": "1946-09-05T00:00:00Z",
+   "sitelinks": "176",
+   "label": "Freddie Mercury"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q15869",
+   "birth": "1946-09-05T00:00:00Z",
+   "sitelinks": "176",
+   "label": "Freddie Mercury"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5599",
+   "birth": "1577-07-08T00:00:00Z",
+   "sitelinks": "175",
+   "label": "Peter Paul Rubens"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7312",
+   "birth": "1797-01-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Franz Schubert"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1340",
+   "birth": "1678-03-04T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Antonio Vivaldi"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q44403",
+   "birth": "1797-12-13T00:00:00Z",
+   "sitelinks": "168",
+   "label": "Heinrich Heine"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7314",
+   "birth": "1882-06-17T00:00:00Z",
+   "sitelinks": "167",
+   "label": "Igor Strawinsky"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q297",
+   "birth": "1599-01-01T00:00:00Z",
+   "sitelinks": "167",
+   "label": "Diego Velázquez"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q409",
+   "birth": "1945-02-06T00:00:00Z",
+   "sitelinks": "165",
+   "label": "Bob Marley"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q25973",
+   "birth": "1877-07-02T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Hermann Hesse"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7294",
+   "birth": "1833-05-07T00:00:00Z",
+   "sitelinks": "162",
+   "label": "Johannes Brahms"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q5105",
+   "birth": "1968-03-30T00:00:00Z",
+   "sitelinks": "162",
+   "label": "Céline Dion"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q41513",
+   "birth": "1757-11-28T00:00:00Z",
+   "sitelinks": "162",
+   "label": "William Blake"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7302",
+   "birth": "1685-03-05T00:00:00Z",
+   "sitelinks": "161",
+   "label": "Georg Friedrich Händel"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q296",
+   "birth": "1840-11-14T00:00:00Z",
+   "sitelinks": "159",
+   "label": "Claude Monet"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q25089",
+   "birth": "1935-11-30T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Woody Allen"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7349",
+   "birth": "1732-03-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Joseph Haydn"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q47737",
+   "birth": "1883-01-06T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Khalil Gibran"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7304",
+   "birth": "1860-07-07T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Gustav Mahler"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q41532",
+   "birth": "1875-07-26T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Carl Gustav Jung"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7298",
+   "birth": "1841-09-08T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Antonín Dvořák"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q44301",
+   "birth": "1943-12-08T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Jim Morrison"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q17892",
+   "birth": "-0650-01-01T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Sappho"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q2599",
+   "birth": "1942-06-18T00:00:00Z",
+   "sitelinks": "149",
+   "label": "Paul McCartney"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q2599",
+   "birth": "1942-06-18T00:00:00Z",
+   "sitelinks": "149",
+   "label": "Paul McCartney"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q231690",
+   "birth": "1891-04-14T00:00:00Z",
+   "sitelinks": "149",
+   "label": "Bhimrao Ramji Ambedkar"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7311",
+   "birth": "1858-12-22T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Giacomo Puccini"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q11975",
+   "birth": "1981-12-02T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Britney Spears"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q8873",
+   "birth": "1921-05-02T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Satyajit Ray"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q8873",
+   "birth": "1921-05-02T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Satyajit Ray"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q41408",
+   "birth": "1898-06-05T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Federico García Lorca"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q855252",
+   "birth": "1927-12-05T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Bhumibol Adulyadej"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q35548",
+   "birth": "1839-01-19T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Paul Cézanne"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q855252",
+   "birth": "1927-12-05T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Bhumibol Adulyadej"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q41223",
+   "birth": "1890-02-10T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Boris Leonidowitsch Pasternak"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q30449",
+   "birth": "1984-09-27T00:00:00Z",
+   "sitelinks": "138",
+   "label": "Avril Lavigne"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q42493",
+   "birth": "1984-10-25T00:00:00Z",
+   "sitelinks": "138",
+   "label": "Katy Perry"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q134958",
+   "birth": "1814-03-09T00:00:00Z",
+   "sitelinks": "138",
+   "label": "Taras Schewtschenko"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q40096",
+   "birth": "1968-09-25T00:00:00Z",
+   "sitelinks": "137",
+   "label": "Will Smith"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q23215",
+   "birth": "1988-05-05T00:00:00Z",
+   "sitelinks": "137",
+   "label": "Adele"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q2263",
+   "birth": "1956-07-09T00:00:00Z",
+   "sitelinks": "137",
+   "label": "Tom Hanks"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q6538",
+   "birth": "1927-10-16T00:00:00Z",
+   "sitelinks": "137",
+   "label": "Günter Grass"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q6107",
+   "birth": "1971-06-16T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Tupac Shakur"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q43203",
+   "birth": "1930-05-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Clint Eastwood"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q5383",
+   "birth": "1947-01-08T00:00:00Z",
+   "sitelinks": "136",
+   "label": "David Bowie"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q5928",
+   "birth": "1942-11-27T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Jimi Hendrix"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5383",
+   "birth": "1947-01-08T00:00:00Z",
+   "sitelinks": "136",
+   "label": "David Bowie"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1151",
+   "birth": "1803-12-11T00:00:00Z",
+   "sitelinks": "135",
+   "label": "Hector Berlioz"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q41173",
+   "birth": "1992-08-20T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Demi Lovato"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q12881",
+   "birth": "1947-08-24T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Paulo Coelho"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q37693",
+   "birth": "1848-06-07T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Paul Gauguin"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q23380",
+   "birth": "1780-08-29T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Jean-Auguste-Dominique Ingres"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q4700",
+   "birth": "1862-08-22T00:00:00Z",
+   "sitelinks": "132",
+   "label": "Claude Debussy"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q9397",
+   "birth": "1130-10-25T00:00:00Z",
+   "sitelinks": "131",
+   "label": "Zhu Xi"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7351",
+   "birth": "1810-06-08T00:00:00Z",
+   "sitelinks": "131",
+   "label": "Robert Schumann"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q15897",
+   "birth": "1983-09-14T00:00:00Z",
+   "sitelinks": "131",
+   "label": "Amy Winehouse"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q30755",
+   "birth": "1840-11-12T00:00:00Z",
+   "sitelinks": "131",
+   "label": "Auguste Rodin"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q2677",
+   "birth": "1859-01-27T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Wilhelm II."
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q8446",
+   "birth": "1967-02-20T00:00:00Z",
+   "sitelinks": "129",
+   "label": "Kurt Cobain"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q32927",
+   "birth": "1949-03-19T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Waleri Jakowlewitsch Leontjew"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q46599",
+   "birth": "1814-10-15T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Michail Jurjewitsch Lermontow"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q41309",
+   "birth": "1811-10-22T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Franz Liszt"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q40504",
+   "birth": "1962-01-17T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Jim Carrey"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q129817",
+   "birth": "1964-04-07T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Russell Crowe"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q29564107",
+   "birth": "2001-12-18T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Billie Eilish"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q2643",
+   "birth": "1943-02-25T00:00:00Z",
+   "sitelinks": "125",
+   "label": "George Harrison"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q33550",
+   "birth": "1712-01-24T00:00:00Z",
+   "sitelinks": "124",
+   "label": "Friedrich II. von Preußen"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q46096",
+   "birth": "1809-02-03T00:00:00Z",
+   "sitelinks": "124",
+   "label": "Felix Mendelssohn Bartholdy"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q132964",
+   "birth": "1893-07-19T00:00:00Z",
+   "sitelinks": "124",
+   "label": "Wladimir Wladimirowitsch Majakowski"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q46096",
+   "birth": "1809-02-03T00:00:00Z",
+   "sitelinks": "124",
+   "label": "Felix Mendelssohn Bartholdy"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q72984",
+   "birth": "1903-05-03T00:00:00Z",
+   "sitelinks": "123",
+   "label": "Bing Crosby"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q11998",
+   "birth": "1968-05-28T00:00:00Z",
+   "sitelinks": "123",
+   "label": "Kylie Minogue"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q33477",
+   "birth": "1798-04-26T00:00:00Z",
+   "sitelinks": "123",
+   "label": "Eugène Delacroix"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q49325",
+   "birth": "1875-01-14T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Albert Schweitzer"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q65932",
+   "birth": "1937-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Anthony Hopkins"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q83158",
+   "birth": "1889-07-05T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Jean Cocteau"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q83158",
+   "birth": "1889-07-05T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Jean Cocteau"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q65932",
+   "birth": "1937-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Anthony Hopkins"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q38370",
+   "birth": "1491-07-07T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Heinrich VIII."
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q12003",
+   "birth": "1946-05-20T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Cher"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q41406",
+   "birth": "1863-12-12T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Edvard Munch"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q42775",
+   "birth": "1932-02-26T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Johnny Cash"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q46373",
+   "birth": "1834-07-19T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Edgar Degas"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q2808",
+   "birth": "1947-03-25T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Elton John"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q7724",
+   "birth": "1849-01-22T00:00:00Z",
+   "sitelinks": "118",
+   "label": "August Strindberg"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q37571",
+   "birth": "1912-01-28T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Jackson Pollock"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q179126",
+   "birth": "1819-02-08T00:00:00Z",
+   "sitelinks": "117",
+   "label": "John Ruskin"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q40599",
+   "birth": "1832-01-23T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Édouard Manet"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q179277",
+   "birth": "1525-01-01T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Giovanni Pierluigi da Palestrina"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q125121",
+   "birth": "1942-03-25T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Aretha Franklin"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q42207",
+   "birth": "1571-10-09T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Michelangelo Merisi da Caravaggio"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q41264",
+   "birth": "1632-10-01T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Jan Vermeer"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q301",
+   "birth": "1541-10-01T00:00:00Z",
+   "sitelinks": "115",
+   "label": "El Greco"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q39931",
+   "birth": "1841-02-25T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Pierre-Auguste Renoir"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q5669",
+   "birth": "1445-01-01T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Sandro Botticelli"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q38257",
+   "birth": "1961-05-17T00:00:00Z",
+   "sitelinks": "114",
+   "label": "Enya"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q70991",
+   "birth": "1098-01-01T00:00:00Z",
+   "sitelinks": "114",
+   "label": "Hildegard von Bingen"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q14277",
+   "birth": "1738-11-15T00:00:00Z",
+   "sitelinks": "114",
+   "label": "Wilhelm Herschel"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q7542",
+   "birth": "1958-06-07T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Prince"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q80621",
+   "birth": "1843-06-15T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Edvard Grieg"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q102139",
+   "birth": "1940-04-16T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Margrethe II."
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q163366",
+   "birth": "1885-10-30T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Ezra Pound"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q42455",
+   "birth": "1965-11-21T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Björk"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q127330",
+   "birth": "1940-12-21T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Frank Zappa"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q4636",
+   "birth": "1942-04-24T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Barbra Streisand"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q155855",
+   "birth": "1890-01-09T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Karel Čapek"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q58720",
+   "birth": "1711-11-19T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Michail Wassiljewitsch Lomonossow"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q765",
+   "birth": "1926-03-24T00:00:00Z",
+   "sitelinks": "109",
+   "label": "Dario Fo"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q80510",
+   "birth": "1949-04-15T00:00:00Z",
+   "sitelinks": "109",
+   "label": "Alla Borissowna Pugatschowa"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q47551",
+   "birth": "1490-01-01T00:00:00Z",
+   "sitelinks": "109",
+   "label": "Tizian"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q765",
+   "birth": "1926-03-24T00:00:00Z",
+   "sitelinks": "109",
+   "label": "Dario Fo"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q49001",
+   "birth": "1955-11-13T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Whoopi Goldberg"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q9726",
+   "birth": "1792-02-29T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Gioachino Rossini"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q34970",
+   "birth": "1885-09-11T00:00:00Z",
+   "sitelinks": "108",
+   "label": "D. H. Lawrence"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q37562",
+   "birth": "1386-01-01T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Donatello"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1225",
+   "birth": "1949-09-23T00:00:00Z",
+   "sitelinks": "107",
+   "label": "Bruce Springsteen"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q544387",
+   "birth": "1930-09-23T00:00:00Z",
+   "sitelinks": "107",
+   "label": "Ray Charles"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q34661",
+   "birth": "1862-07-14T00:00:00Z",
+   "sitelinks": "107",
+   "label": "Gustav Klimt"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1178",
+   "birth": "1875-03-07T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Maurice Ravel"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q2071",
+   "birth": "1946-01-20T00:00:00Z",
+   "sitelinks": "106",
+   "label": "David Lynch"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q80135",
+   "birth": "1906-09-25T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Dmitri Dmitrijewitsch Schostakowitsch"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q2071",
+   "birth": "1946-01-20T00:00:00Z",
+   "sitelinks": "106",
+   "label": "David Lynch"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q45682",
+   "birth": "1865-12-08T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Jean Sibelius"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q56158",
+   "birth": "1838-10-25T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Georges Bizet"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q41555",
+   "birth": "1819-06-20T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Jacques Offenbach"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q131324",
+   "birth": "1966-05-16T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Janet Jackson"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q66075",
+   "birth": "1782-10-27T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Niccolò Paganini"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q130311",
+   "birth": "1963-06-25T00:00:00Z",
+   "sitelinks": "105",
+   "label": "George Michael"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q150651",
+   "birth": "1937-05-12T00:00:00Z",
+   "sitelinks": "105",
+   "label": "George Carlin"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q83326",
+   "birth": "1881-03-25T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Béla Bartók"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q80823",
+   "birth": "1501-01-01T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Anne Boleyn"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q152384",
+   "birth": "1893-04-20T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Joan Miró"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q18143",
+   "birth": "1940-01-04T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Gao Xingjian"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q152388",
+   "birth": "1903-09-11T00:00:00Z",
+   "sitelinks": "104",
+   "label": "Theodor W. Adorno"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q131725",
+   "birth": "1941-01-09T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Joan Baez"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q4295",
+   "birth": "1079-01-01T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Petrus Abaelardus"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q12162960",
+   "birth": "1898-04-25T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Stefanija Turkewytsch"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q93284",
+   "birth": "1887-07-06T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Marc Chagall"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q61064",
+   "birth": "1866-12-04T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Wassily Kandinsky"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q56094",
+   "birth": "1939-04-07T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Francis Ford Coppola"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q178698",
+   "birth": "1907-02-21T00:00:00Z",
+   "sitelinks": "101",
+   "label": "W. H. Auden"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q1768",
+   "birth": "1917-04-25T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Ella Fitzgerald"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q12237722",
+   "birth": "1982-05-15T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Layāl Abboud"
+  },
+  {
+   "occupation": "Q1028181",
+   "item": "Q47842",
+   "birth": "1835-11-29T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Cixi"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q714",
+   "birth": "1950-05-13T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Stevie Wonder"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q48187",
+   "birth": "1945-03-30T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Eric Clapton"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q123034",
+   "birth": "1484-01-10T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Huldrych Zwingli"
+  },
+  {
+   "occupation": "Q36834",
+   "item": "Q5950",
+   "birth": "1933-05-03T00:00:00Z",
+   "sitelinks": "100",
+   "label": "James Brown"
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-land-einwohner-q668
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:land-einwohner
+sources:
+  - title: "Wikidata: Indien (Q668)"
+    url: https://www.wikidata.org/wiki/Q668
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "1326093247"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1000"
+  input_max: "2000000000"
+  scale_type: LOG
+  scale: 0.4
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie viele Menschen lebten im Jahr 2020 in Indien?
+    unit_label: Einwohner

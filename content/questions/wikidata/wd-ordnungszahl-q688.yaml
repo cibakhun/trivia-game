@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-ordnungszahl-q688
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:ordnungszahl
+sources:
+  - title: "Wikidata: Chlor (Q688)"
+    url: https://www.wikidata.org/wiki/Q688
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "17"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1"
+  input_max: "118"
+  scale_type: LINEAR
+  scale: 8
+translations:
+  de:
+    status: DRAFT
+    prompt: Welche Ordnungszahl hat Chlor im Periodensystem der Elemente?
+    unit_label: Ordnungszahl

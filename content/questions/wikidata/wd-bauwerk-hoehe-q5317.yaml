@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-bauwerk-hoehe-q5317
+kind: ESTIMATE
+category: TECHNOLOGY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:bauwerk-hoehe
+sources:
+  - title: "Wikidata: Space Needle (Q5317)"
+    url: https://www.wikidata.org/wiki/Q5317
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "184"
+  answer_precision: 0
+  answer_unit: m
+  input_min: "1"
+  input_max: "1000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie hoch ist die Space Needle (in Metern)?
+    unit_label: Meter
