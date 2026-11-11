@@ -31,6 +31,8 @@ html.match-playing body {
 .stage {
   --safe-l: max(env(safe-area-inset-left, 0px), calc(8 * var(--u)));
   --safe-r: max(env(safe-area-inset-right, 0px), calc(8 * var(--u)));
+  /* Unten liegt am iPhone der Balken des Systems: Nichts zum Tippen oder Lesen reicht hinein */
+  --safe-b: env(safe-area-inset-bottom, 0px);
   --rail-l: calc(140 * var(--u));
   --rail-r: calc(192 * var(--u));
   --edge: calc(6 * var(--u));
@@ -98,7 +100,7 @@ html.match-playing body {
   position: absolute;
   z-index: 2;
   top: var(--edge);
-  bottom: var(--edge);
+  bottom: max(var(--safe-b), var(--edge));
 }
 
 /* ---------- Links auf dem Meer: Abschnitt, Spielstand, Zugfolge ---------- */
@@ -734,7 +736,7 @@ html.match-playing body {
 .stage[data-state='announce']:has(.map-art[data-duel-high]) .stage-banner,
 .stage[data-beat='outcome']:has(.map-art[data-duel-high]) .stage-banner {
   top: auto;
-  bottom: calc(10 * var(--u));
+  bottom: max(var(--safe-b), calc(10 * var(--u)));
 }
 
 .turn-banner {
@@ -840,7 +842,7 @@ html.match-playing body {
   left: calc(var(--safe-l) + var(--rail-l) + (8 * var(--u)));
   right: calc(var(--safe-r) + var(--rail-r) + (8 * var(--u)));
   top: calc(8 * var(--u));
-  bottom: calc(8 * var(--u));
+  bottom: max(var(--safe-b), calc(8 * var(--u)));
   display: grid;
   place-items: center;
   pointer-events: none;

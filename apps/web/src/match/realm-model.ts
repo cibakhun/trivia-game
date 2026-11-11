@@ -19,7 +19,12 @@ import type {
   RealmBuildingCode,
   RealmOrderDto,
 } from '@rdw/protocol';
-import { screenStateOf, type LocalQuestion, type MatchScreenState } from './match-model.ts';
+import {
+  rulesOf,
+  screenStateOf,
+  type LocalQuestion,
+  type MatchScreenState,
+} from './match-model.ts';
 import { mapOfView } from './match-text.ts';
 
 /**
@@ -38,13 +43,20 @@ export interface RealmPlay {
   readonly realm: MatchRealmView;
   readonly board: RealmBoard;
   readonly map: MatchMap;
+  /** Leben einer neuen Burg (MATCH_RULES §11.2). */
+  readonly castleLives: number;
 }
 
 /** Brett der Partie mit Ausbau; `null` ohne Ausbau und vor dem Start. */
 export function realmPlayOf(view: MatchView | null): RealmPlay | null {
   const board = view?.realm?.board;
   if (!view || !view.realm || !board) return null;
-  return { realm: view.realm, board, map: mapOfView(view) };
+  return {
+    realm: view.realm,
+    board,
+    map: mapOfView(view),
+    castleLives: rulesOf(view.match.rulesPreset).capital.lives,
+  };
 }
 
 export function realmSeat(play: RealmPlay, seat: number): RealmSeatView | null {
@@ -68,7 +80,7 @@ export function planOrders(
 ): OrdersPlan {
   const stock = realmSeat(play, seat);
   if (!stock || stock.eliminated) return { ok: false, error: 'INVALID', index: 0 };
-  return planRealmOrders(
+  const plan = planRealmOrders(
     {
       map: play.map,
       economy: play.realm.economy,
@@ -79,6 +91,16 @@ export function planOrders(
     seat,
     orders,
   );
+  if (!plan.ok) return plan;
+  // Die Regeln kennen nur das Gebäude; eine neue Burg steht in der Ansicht mit vollen Leben
+  const regions = new Map(plan.regions);
+  for (const { region, building } of plan.summary.built) {
+    const planned = regions.get(region);
+    if (building === 'CASTLE' && planned) {
+      regions.set(region, { ...planned, castleLivesLeft: play.castleLives });
+    }
+  }
+  return { ...plan, regions };
 }
 
 /** Feld, wie es nach dem Entwurf aussähe. */
