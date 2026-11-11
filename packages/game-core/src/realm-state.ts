@@ -128,7 +128,13 @@ export type RealmStep =
       readonly wheel: RealmWheel;
       readonly category: QuestionCategory;
     } & RealmDuelSetup)
-  | { readonly kind: 'FINISHED'; readonly reason: MatchFinishReason; readonly round: number };
+  | {
+      readonly kind: 'FINISHED';
+      readonly reason: MatchFinishReason;
+      readonly round: number;
+      /** Angreifer der letzten Runde in ihrer Reihenfolge, für die Anzeige nach dem letzten Duell. */
+      readonly attackers: readonly number[];
+    };
 
 export type RealmPhase = 'SETUP' | 'LAND_GRAB' | 'CAMPAIGN' | 'FINISHED';
 

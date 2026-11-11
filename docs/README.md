@@ -11,7 +11,7 @@ Anforderungsbasis: [`brief/PRD-0.1.md`](brief/PRD-0.1.md) (Original-Briefing des
 | 2 | [PRODUCT_VISION.md](PRODUCT_VISION.md) | Vision, Prinzipien, Nicht-Ziele, Erfolgskriterien |
 | 3 | [MVP.md](MVP.md) | **Definition des ersten spielbaren MVP** und der Zwischenmeilensteine |
 | 4 | [GAME_RULES.md](GAME_RULES.md) | Regelwerk mit Kennzeichnung (verbindlich / Annahme / Empfehlung / offen) und Parametertabelle |
-| 4a | [MATCH_RULES.md](MATCH_RULES.md) | **Regelwerk der rundenbasierten Partie** (Hauptspiel seit 2026-11-10, ADR-046) mit Parametertabelle und Simulationswerten; Ausbau mit Burgen, Dörfern und Armeen in §11 (ADR-057) |
+| 4a | [MATCH_RULES.md](MATCH_RULES.md) | **Regelwerk der rundenbasierten Partie** (Hauptspiel seit 2026-11-10, ADR-046) mit Parametertabelle und Simulationswerten; Ausbau mit Burgen, Dörfern und Armeen in §11 (ADR-057, Server ADR-058) |
 | 5 | [ARCHITECTURE.md](ARCHITECTURE.md) | Architekturübersicht, Stack, Diagramme, Modulgrenzen, Zeit- und Zufallsmodell |
 | 5a | [ART_DIRECTION.md](ART_DIRECTION.md) | **Gestaltung „Alte Landkarte“**: Farben, Schriften, Karte, Bewegung (ADR-051); Herkunft und Lizenzen aller Assets in [ASSETS.md](ASSETS.md) |
 | 6 | [DATA_MODEL.md](DATA_MODEL.md) | Konsistentes Datenmodell, Constraints, Indizes, Migrationsstrategie |

@@ -1,32 +1,51 @@
 import type { Db } from '@rdw/db';
 import {
   capitalLivesLeft,
+  castleLivesLeft,
+  castlesOf,
   currentChooser,
+  isRealmSeatAlive,
   legalRegions,
   matchPoints,
+  realmCurrentChooser,
+  realmIncome,
+  realmLegalRegions,
+  realmPoints,
+  realmRegionsOf,
+  realmTurnOrder,
   regionsOf,
   roundOrder,
   turnOrder,
   type MatchState,
+  type RealmState,
+  type RealmWheel,
 } from '@rdw/game-core';
-import type {
-  MatchBoard,
-  MatchListResponse,
-  MatchQuestionInfo,
-  MatchStepView,
-  MatchTurn,
-  MatchView,
+import {
+  isRealmRules,
+  type MatchBoard,
+  type MatchListResponse,
+  type MatchQuestionInfo,
+  type MatchRealmView,
+  type MatchStepView,
+  type MatchTurn,
+  type MatchView,
+  type RealmBoard,
+  type RealmOrderDto,
+  type RealmStepView,
+  type RealmWheelDto,
 } from '@rdw/protocol';
 import { readGameNow } from '../../infra/clock.ts';
 import { ApiError } from '../../infra/errors.ts';
 import type { MatchContext } from './context.ts';
 import { advanceMatch, isMatchDue } from './driver.ts';
 import { botName } from './engine.ts';
-import { rulesOfPreset } from './lobby.ts';
+import { loadWheelCategories, realmRulesOf, rulesOf, validFavorites } from './lobby.ts';
 import {
+  classicStateOf,
   lastEventSeq,
   loadMatch,
   loadPlayers,
+  realmStateOf,
   type MatchPlayerRow,
   type MatchRow,
 } from './store.ts';
@@ -113,6 +132,116 @@ export function boardView(state: MatchState, closing = false): MatchBoard {
   };
 }
 
+function wheelView(wheel: RealmWheel): RealmWheelDto {
+  return { ...wheel, segments: wheel.segments.map((segment) => ({ ...segment })) };
+}
+
+function realmStepView(state: RealmState): RealmStepView {
+  const { step } = state;
+  const base: RealmStepView = {
+    kind: step.kind,
+    round: null,
+    chooser: realmCurrentChooser(state),
+    attacker: null,
+    defender: null,
+    region: null,
+    category: null,
+    wheel: null,
+    finishReason: null,
+  };
+  switch (step.kind) {
+    case 'START_ESTIMATE':
+    case 'CASTLE_PICK':
+    case 'VILLAGE_PICK':
+      return base;
+    case 'LAND_ESTIMATE':
+    case 'LAND_PICK':
+    case 'PREPARE':
+      // Die Befehle der Rüstzeit (`step.orders`) bleiben bis zum Aufdecken beim Server
+      return { ...base, round: step.round };
+    case 'CAMPAIGN_TARGET':
+      return { ...base, round: step.round, attacker: step.attacker };
+    case 'DUEL_WHEEL':
+      return {
+        ...base,
+        round: step.round,
+        attacker: step.attacker,
+        defender: step.defender,
+        region: step.region,
+        wheel: wheelView(step.wheel),
+      };
+    case 'DUEL_TRIVIA':
+    case 'DUEL_ESTIMATE':
+      return {
+        ...base,
+        round: step.round,
+        attacker: step.attacker,
+        defender: step.defender,
+        region: step.region,
+        category: step.category,
+        wheel: wheelView(step.wheel),
+      };
+    case 'FINISHED':
+      return { ...base, round: step.round, finishReason: step.reason };
+  }
+}
+
+/** Eigene Befehle der laufenden Rüstzeit, sobald sie abgegeben sind; sonst `null`. */
+function myOrdersOf(state: RealmState, mySeat: number | null): RealmOrderDto[] | null {
+  const { step } = state;
+  if (step.kind !== 'PREPARE' || mySeat === null || !isRealmSeatAlive(state, mySeat)) return null;
+  const orders = step.orders[mySeat];
+  return orders ? [...orders] : null;
+}
+
+/** Wie `turnsView`: Nach dem letzten Duell bleibt die Zeile der letzten Runde stehen (ADR-055). */
+function realmTurnsView(state: RealmState, closing: boolean): MatchTurn[] {
+  const { step } = state;
+  if (closing && step.kind === 'FINISHED') {
+    return step.attackers
+      .filter((seat) => isRealmSeatAlive(state, seat))
+      .map((seat) => ({ seat, status: 'DONE' }));
+  }
+  return realmTurnOrder(state);
+}
+
+/** Karte der Partie mit Ausbau; `closing` wie bei `boardView`. */
+export function realmBoardView(state: RealmState, closing = false): RealmBoard {
+  return {
+    map: state.rules.map,
+    regions: state.regions.map((r, id) => ({
+      owner: r.owner,
+      value: r.value,
+      fortifications: r.fortifications,
+      building: r.building,
+      castleLivesLeft: castleLivesLeft(state, id),
+      startCastleOf: r.startCastleOf,
+      armies: r.armies,
+    })),
+    seats: state.seats.map((s, seat) => {
+      const castles = castlesOf(state, seat);
+      return {
+        seat,
+        favorites: [...s.favorites],
+        bread: s.bread,
+        material: s.material,
+        income: realmIncome(state, seat),
+        startCastle: s.startCastle,
+        castles: castles.length,
+        castleLivesLeft: castles.reduce((sum, id) => sum + castleLivesLeft(state, id), 0),
+        eliminated: s.eliminatedInDuel !== null,
+        points: realmPoints(state, seat),
+        regions: realmRegionsOf(state, seat).length,
+      };
+    }),
+    order: [...state.order],
+    step: realmStepView(state),
+    turns: realmTurnsView(state, closing),
+    questions: state.questions,
+    duels: state.duels,
+  };
+}
+
 /**
  * Namen der Bots: „Bot (mittel)“; spielen zwei gleich starke mit, bekommen sie Nummern, damit man
  * sie in Zugfolge und Verlauf unterscheiden kann.
@@ -162,7 +291,9 @@ async function questionInfo(
     seq: question.seq,
     kind: question.kind === 'ESTIMATE' ? 'ESTIMATE' : 'TRIVIA',
     purpose:
-      question.purpose === 'DUEL_TRIVIA' || question.purpose === 'DUEL_ESTIMATE'
+      question.purpose === 'DUEL_TRIVIA' ||
+      question.purpose === 'DUEL_ESTIMATE' ||
+      question.purpose === 'START'
         ? question.purpose
         : 'LAND',
     seats: question.seats,
@@ -201,21 +332,45 @@ export async function matchView(
     .limit(MATCH_EVENTS_PAGE)
     .execute();
   const now = await readGameNow(db);
-  const state = match.state;
   const mySeat = me.seat;
-  const rules = match.rules ?? rulesOfPreset(match.rulesPreset);
+  const rules = match.rules ?? rulesOf(match.mode, match.rulesPreset);
   const { timers } = rules;
-  const choosing =
-    match.status === 'RUNNING' &&
-    match.phase === 'PICK' &&
-    state !== null &&
-    mySeat !== null &&
-    currentChooser(state) === mySeat;
+  const running = match.status === 'RUNNING';
+  const picking = running && match.phase === 'PICK' && mySeat !== null;
+  let board: MatchBoard | null = null;
+  let realm: MatchRealmView | null = null;
+  let legal: number[] = [];
+  /** In der Aufstellung mit Ausbau: Kategorien, die gerade wählbar sind. */
+  let lobbyWheel: { categories: MatchRealmView['categories']; count: number } | null = null;
+  if (match.mode === 'REALM') {
+    const state = realmStateOf(match);
+    const economy = isRealmRules(rules) ? rules.economy : realmRulesOf(match.rulesPreset).economy;
+    // Vor dem Start die Kategorien, die gerade genug Fragen haben; danach die der Partie
+    const categories = state
+      ? [...state.categories]
+      : await loadWheelCategories(db, ctx, { userIds, now });
+    if (!state) lobbyWheel = { categories, count: economy.favorites };
+    realm = {
+      categories,
+      favoritesCount: economy.favorites,
+      campaignRounds: rules.campaign.rounds,
+      economy,
+      board: state ? realmBoardView(state, running) : null,
+      // Nur die eigenen Befehle; wer sonst fertig ist, zeigt `board.turns`
+      myOrders: state && running ? myOrdersOf(state, mySeat) : null,
+    };
+    if (state && picking && realmCurrentChooser(state) === mySeat) legal = realmLegalRegions(state);
+  } else {
+    const state = classicStateOf(match);
+    board = state ? boardView(state, running) : null;
+    if (state && picking && currentChooser(state) === mySeat) legal = legalRegions(state);
+  }
 
   return {
     match: {
       id: match.id,
       kind: match.kind,
+      mode: match.mode,
       status: match.status,
       inviteCode: match.status === 'LOBBY' ? match.inviteCode : null,
       rulesPreset: match.rulesPreset,
@@ -243,10 +398,17 @@ export async function matchView(
       botStrength: p.botStrength,
       isHost: p.userId === match.hostUserId,
       isMe: p.userId === params.userId,
+      // In der Aufstellung nur eine Wahl, die gerade gilt; ab dem Start die der Partie
+      favorites: lobbyWheel
+        ? validFavorites(p.favorites, lobbyWheel.categories, lobbyWheel.count)
+        : match.mode === 'REALM' && p.favorites
+          ? [...p.favorites]
+          : null,
     })),
     mySeat,
     isHost: match.hostUserId === params.userId,
-    board: state ? boardView(state, match.status === 'RUNNING') : null,
+    board,
+    realm,
     phase:
       match.phase !== null && match.phaseDeadlineAt !== null
         ? {
@@ -255,7 +417,7 @@ export async function matchView(
             remainingMs: Math.max(0, match.phaseDeadlineAt.getTime() - now.getTime()),
           }
         : null,
-    legalRegions: choosing ? legalRegions(state) : [],
+    legalRegions: legal,
     question: await questionInfo(db, match, mySeat),
     events: events.map((e) => ({
       seq: e.seq,
@@ -281,6 +443,7 @@ export async function listMatches(
     .select((eb) => [
       'm.id',
       'm.kind',
+      'm.mode',
       'm.status',
       'm.invite_code',
       'm.host_user_id',
@@ -298,6 +461,7 @@ export async function listMatches(
     matches: rows.map((row) => ({
       id: row.id,
       kind: row.kind === 'TEST' ? 'TEST' : 'STANDARD',
+      mode: row.mode === 'REALM' ? 'REALM' : 'CLASSIC',
       status: row.status as MatchView['match']['status'],
       inviteCode: row.status === 'LOBBY' ? row.invite_code : null,
       players: Math.min(3, Math.max(1, Number(row.players ?? 1))),
@@ -305,5 +469,6 @@ export async function listMatches(
       createdAt: row.created_at.toISOString(),
     })),
     testMatchesEnabled: ctx.testMatchesEnabled,
+    realmMatchesEnabled: ctx.realmMatchesEnabled,
   };
 }

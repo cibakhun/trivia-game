@@ -123,6 +123,7 @@ export interface MatchPlayersTable {
   bot_strength: string | null;
   seat: number | null;
   joined_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  favorites: string[] | null;
 }
 
 export interface MatchQuestionsTable {
@@ -159,6 +160,7 @@ export interface MatchesTable {
   created_at: ColumnType<Date, Date | string | undefined, Date | string>;
   started_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   finished_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+  mode: ColumnType<string, string | undefined, string>;
 }
 
 export interface NpcFactionsTable {
@@ -208,6 +210,7 @@ export interface PlayerSettingsTable {
   auto_extend_enabled: ColumnType<boolean, boolean | undefined, boolean>;
   auto_extend_priorities: ColumnType<JsonValue, string | undefined, string>;
   notification_prefs: ColumnType<JsonValue, string | undefined, string>;
+  match_favorites: string[] | null;
 }
 
 export interface PlayerStatisticsTable {

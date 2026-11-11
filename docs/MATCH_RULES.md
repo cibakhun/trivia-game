@@ -2,7 +2,7 @@
 
 Bezug: PO-Entscheidungen vom 2026-11-10 („das Spiel soll rundenbasiert sein … erst das rundenbasierte Spiel, dann Eternal“; „wenn es runden basiert ist brauchen wir an sich keine bots“; „wir brauchen aber bot spieler um zu testen“), Plan „Rundenbasierte Partie“ vom selben Tag, ADR-046 bis ADR-048; Wunsch des Product Owners vom 2026-11-11 nach der ersten Partie am Handy (freie Plätze mit Bots füllen, Karte je nach Spielerzahl, Anzeige, wer wann dran ist), ADR-052. Kennzeichnung wie in [README.md](README.md#kennzeichnung-von-regeln).
 
-Die Partie ist das rundenbasierte Hauptspiel: zwei oder drei Spieler auf einer kleinen eigenen Karte, deren Größe sich nach der Spielerzahl richtet (§2), alle beantworten dieselbe Frage gleichzeitig, eine Partie dauert höchstens etwa 18 Minuten (zu zweit 13). Freie Plätze kann der Gastgeber mit Bots besetzen **[V, PO 2026-11-11, ADR-052]**; die Testpartie bleibt als Werkzeug **[V, PO 2026-11-10, ADR-048]**. Vorbild ist nur der Ablauf des Genres (gleichzeitige Fragen, Landnahme, Feldzug) **[V, PO 2026-11-10]**; Name, Karte, Grafik, Abschnittsnamen, Punktwerte und Fragen sind eigene. Als Nächstes bekommt die Partie einen Ausbau mit Rohstoffen, Burgen, Dörfern, Armeen und einem Glücksrad für die Kategorie des Duells; die Regeln stehen in §11, gespielt wird er erst mit dem nächsten Schritt **[V, PO 2026-11-11, ADR-057]**. Die Eternal-Welt ([GAME_RULES.md](GAME_RULES.md)) bleibt im Code und spielbar, wird aber erst weiter ausgebaut, wenn die Partie fertig ist **[V, PO 2026-11-10]**.
+Die Partie ist das rundenbasierte Hauptspiel: zwei oder drei Spieler auf einer kleinen eigenen Karte, deren Größe sich nach der Spielerzahl richtet (§2), alle beantworten dieselbe Frage gleichzeitig, eine Partie dauert höchstens etwa 18 Minuten (zu zweit 13). Freie Plätze kann der Gastgeber mit Bots besetzen **[V, PO 2026-11-11, ADR-052]**; die Testpartie bleibt als Werkzeug **[V, PO 2026-11-10, ADR-048]**. Vorbild ist nur der Ablauf des Genres (gleichzeitige Fragen, Landnahme, Feldzug) **[V, PO 2026-11-10]**; Name, Karte, Grafik, Abschnittsnamen, Punktwerte und Fragen sind eigene. Als Nächstes bekommt die Partie einen Ausbau mit Rohstoffen, Burgen, Dörfern, Armeen und einem Glücksrad für die Kategorie des Duells; die Regeln stehen in §11, der Server spielt ihn als eigene Spielart (ADR-058), im Browser folgt er mit dem nächsten Schritt **[V, PO 2026-11-11, ADR-057]**. Die Eternal-Welt ([GAME_RULES.md](GAME_RULES.md)) bleibt im Code und spielbar, wird aber erst weiter ausgebaut, wenn die Partie fertig ist **[V, PO 2026-11-10]**.
 
 Code: Regeln als reine Funktionen in `packages/game-core/src/match.ts` (Zustandsmaschine), `match-map.ts` (Karten) und `match-bots.ts` (Bots); Regelwerte in `packages/protocol/src/match-rules.ts` (`matchRulesSchema`, `DEFAULT_MATCH_RULES`, `PLAYTEST_MATCH_RULES`, `matchRulesForSeats`, `MATCH_MAP_BY_SEATS`). Alle Zahlen dieses Dokuments sind Standardwerte **[E]** aus dem Plan und lassen sich ohne Umbau ändern.
 
@@ -161,13 +161,13 @@ Kartengröße zu zweit (je 4 000 Partien gleich starker Bots, 2026-11-11): Der V
 
 Bezug: Wunsch des Product Owners vom 2026-11-11, die Partie mit einem Aufbau-Minispiel zu verbinden (Rohstoffe aus dem Gebiet, Gebäude mit mehr Leben, Armeen, die die Kategorien im Duell verschieben, 10 bis 15 Minuten je Partie), seine zwei handschriftlichen Zettel vom selben Tag und das daraus erarbeitete Spielkonzept, das er am 2026-11-11 mit allen Empfehlungen freigegeben hat ([O-25] bis [O-35], ADR-057). Vorbild sind nur allgemeine Mechaniken; Namen, Begriffe und Bilder sind eigene **[V, PO 2026-11-11]**.
 
-**Stand:** Regeln, Bots und Simulation stehen im Spielkern; Server und Browser folgen in eigenen Schritten. Gespielt wird bis dahin die Partie aus §1 bis §10. Eine Partie spielt den Ausbau genau dann, wenn ihre Regeln den Abschnitt `economy` haben (`DEFAULT_REALM_RULES`); ohne ihn gilt alles wie bisher.
+**Stand:** Regeln, Bots und Simulation stehen im Spielkern, und der Server spielt ganze Partien mit Ausbau (ADR-058, §11.11); der Browser folgt in einem eigenen Schritt und zeigt bis dahin nur die Partie aus §1 bis §10. Eine Partie spielt den Ausbau, wenn sie in der Spielart `REALM` angelegt wurde; ihre Regeln haben dann den Abschnitt `economy` (`DEFAULT_REALM_RULES`). Ohne ihn gilt alles wie bisher. In Produktion ist die Spielart gesperrt, bis der Browser sie zeigen kann und der Spieltest sie freigibt **[E]**.
 
 Code: `packages/game-core/src/realm.ts` (Zustandsmaschine `createRealm`, `applyRealmInput`), `realm-state.ts` (Zustand und Abfragen), `realm-orders.ts` (Rüstzeit), `realm-wheel.ts` (Glücksrad), `realm-resources.ts` (Rohstoff je Region), `realm-bots.ts` (Bots); Regelwerte in `packages/protocol/src/match-rules.ts` (`matchEconomySchema`, `DEFAULT_MATCH_ECONOMY`, `DEFAULT_REALM_RULES`, `PLAYTEST_REALM_RULES`). Die bisherige Zustandsmaschine `match.ts` bleibt unverändert. Wie dort liegen Zeit und Zufall beim Aufrufer: Die Zustandsmaschine würfelt nie, auch das Glücksrad dreht der Aufrufer (`spinRealmWheel`, Strom `match`) und meldet die Kategorie als Eingabe.
 
 ### 11.1 Ablauf
 
-1. **Aufstellung:** Jeder hat vier Lieblingskategorien (`economy.favorites`) **[V, Zettel]**. Bots wählen zufällig (`chooseRealmFavoritesForBot`); dass das Spiel sie sich je Konto merkt und wer nicht wählt vier zufällige bekommt, regelt der Server **[E]**.
+1. **Aufstellung:** Jeder hat vier Lieblingskategorien (`economy.favorites`) **[V, Zettel]**. Bots wählen zufällig (`chooseRealmFavoritesForBot`). Menschen wählen in der Aufstellung; das Konto merkt sich die Wahl für die nächste Partie, und wer beim Start keine gültige Wahl hat, bekommt vier zufällige (§11.11) **[E]**.
 2. **Startfrage** (`START_ESTIMATE`): eine Schätzfrage an alle; ihre Rangfolge ist die Reihenfolge der Partie (`order`): Abstand, dann effektive Antwortzeit, bei völligem Gleichstand die geloste Sitznummer **[V, Zettel; Gleichstand E]**. Sie ersetzt die geloste Reihenfolge der Sitze für Burgen, Dörfer und Runden.
 3. **Burgen setzen** (`CASTLE_PICK`): in der Reihenfolge der Startfrage je eine Burg auf ein freies Feld, mindestens `capital.minDistance` = 2 Felder von jeder anderen Burg. Die Startburg ist 300 wert wie die Hauptstadt und beginnt mit `economy.startArmies` = 3 Armeen **[V, [O-26]]**.
 4. **Dörfer setzen** (`VILLAGE_PICK`): in umgekehrter Reihenfolge je ein Dorf auf ein weiteres freies Feld, mindestens `economy.villageMinDistance` = 2 Felder von fremden Gebäuden **[V, Zettel]**. Wer bei der Burg zuletzt wählen durfte, setzt das Dorf zuerst. Gibt es für Burg oder Dorf keinen Platz mit Abstand, ist jedes freie Feld wählbar.
@@ -235,7 +235,9 @@ Die Lose einer Seite verteilen sich gleich auf ihre Lieblingskategorien, die fre
 
 ### 11.6 Kategorien und Fragen
 
-Auf dem Rad stehen nur Kategorien mit genug Wissensfragen (`categories` beim Anlegen); nur sie lassen sich als Lieblingskategorien wählen. Bedarf **[E]**: mindestens 20 Fragen je Kategorie, für den ersten Spieltest 10. Heute hat jede Kategorie 1 bis 3. Hat die vom Rad gewählte Kategorie keine ungestellte Frage mehr, kommt die Frage aus einer anderen Kategorie des Rads, und das Rad zeigt das (Server, nächster Schritt). Neue Fragen hängen an der Fragenbeschaffung (E2, Paket M5).
+Auf dem Rad stehen nur Kategorien mit genug Wissensfragen (`categories` beim Anlegen); nur sie lassen sich als Lieblingskategorien wählen. Bedarf **[E]**: mindestens 20 Fragen je Kategorie, für den ersten Spieltest 10 (`REALM_MIN_CATEGORY_QUESTIONS`; lokal und im Test 1, weil die Testfragen nur wenige sind). Heute hat jede Kategorie 1 bis 3. Stehen weniger als vier Kategorien auf dem Rad, startet die Partie nicht.
+
+Keine Wissensfrage kommt in einer Partie zweimal, solange es ungestellte gibt. Deshalb zieht das Rad nur aus Kategorien, die noch eine ungestellte Frage haben: Die Teile der übrigen fallen aus der Ziehung, und das Ereignis nennt sie (`WHEEL_SPUN.exhausted`), damit der Browser sie ausgegraut zeigen kann. Hat keine Kategorie des Rads mehr eine ungestellte Frage, gilt das ganze Rad, und die Frage kommt aus dem übrigen Bestand; erst wenn es gar keine ungestellte mehr gibt, wiederholt sich eine **[E]**. Mit 20 Fragen je Kategorie kommt das nicht vor (höchstens 15 Duelle je Partie). Neue Fragen hängen an der Fragenbeschaffung (E2, Paket M5).
 
 ### 11.7 Duell, Folgen und Wertung
 
@@ -304,9 +306,20 @@ Gegenproben mit 4 und 6 Runden (je 2 000 Partien): Die zweite Burg bauen dann zu
 
 Dazu `campaign.rounds` = 5 statt 4 **[V, [O-31]]**; alles Übrige wie §8. `PLAYTEST_REALM_RULES` verkürzt die Zeiten wie `PLAYTEST_MATCH_RULES`, die Rüstzeit auf 15 s, das Aufdecken auf 0,5 s und das Rad auf 1 s. Zu zweit über `matchRulesForSeats`, das den Ausbau übernimmt.
 
-### 11.11 Offen
+### 11.11 Ablauf am Server
 
-- Server (nächster Schritt): neue Abschnitte Startfrage, Burgen, Dörfer, Rüstzeit und Aufdecken, Lieblingskategorien in der Aufstellung, Ausweichen bei leeren Kategorien, eine Migration; laufende Partien der bisherigen Art spielen zu Ende.
-- Browser erst nach Bildentwürfen zur Freigabe und nach dem Strang „Partie am Handy ruhiger machen“.
+Seit ADR-058 spielt der Server die Partie mit Ausbau als eigene Spielart (`matches.mode = 'REALM'`, [API.md §2.6](API.md#26-partie)); Partien der bisherigen Art laufen unverändert weiter und zu Ende. Code: `apps/server/src/modules/match/realm-run.ts` (Ablauf), `engine.ts` (gemeinsamer Teil: Fristen, Fragen, Antworten, Speicherung), `classic-run.ts` (bisherige Partie). Was die Regeln oben offenlassen, legt der Server so fest **[E]**:
+
+- **Lieblingskategorien:** wählbar in der Aufstellung, genau vier verschiedene vom Rad. Das Konto merkt sich die letzte Wahl und bringt sie in die nächste Aufstellung mit. Beim Start gilt eine Wahl nur, wenn sie dann noch auf dem Rad steht; sonst und für Bots lost der Server vier (Strom `match`).
+- **Zeiten:** Jede Wahl (Burg, Startdorf, Landnahme) bleibt wie §5 `pickShowMs` stehen, außer derselbe Sitz wählt gleich noch einmal (letzte Burg und erstes Startdorf). Ein Angriffsziel führt sofort zum Glücksrad: Ziel, Rad und Kategorie stehen `wheelMs` lang, dann kommt die Wissensfrage. Das Aufgedeckte steht `ordersRevealMs` lang.
+- **Rüstzeit:** Bots geben zu Beginn ab, Menschen bis `prepareMs` plus Latenzpuffer. Wer fertig ist, wartet auf die anderen; sobald alle abgegeben haben, wird aufgedeckt, eine Partie allein gegen Bots also mit der eigenen Abgabe. Bis dahin sieht jeder nur die eigenen Befehle und wer fertig ist.
+- **Glücksrad:** dreht der Server, Kategorien ohne ungestellte Frage ausgenommen (§11.6). Das Rad und die gezogene Kategorie stehen im Protokoll, mit Zufallsnachweis wie jede Ziehung.
+- **Bots** antworten in der Wissensfrage eines Duells aus ihren Lieblingskategorien besser (§11.8); maßgeblich ist die Kategorie vom Rad.
+- **Letzte Auflösung** und Wiederanlauf wie §5: Auch hier bleibt die letzte Auflösung stehen, bevor abgerechnet wird, und nach einem Neustart macht der Server in jedem Abschnitt weiter, auch mitten in der Rüstzeit.
+- **Statistik:** Partien mit Ausbau zählen wie die bisherigen, also nur normale Partien ohne Bots.
+
+### 11.12 Offen
+
+- Browser erst nach Bildentwürfen zur Freigabe und nach dem Strang „Partie am Handy ruhiger machen“. Bis dahin lässt sich die Partie mit Ausbau nur über die Schnittstelle spielen.
 - Fragen: Das Rad lässt sich erst sinnvoll spielen, wenn jede wählbare Kategorie genug Fragen hat (§11.6).
 - Alle Zahlen sind Standardannahmen **[E]** bis zum ersten Spieltest; besonders Burgpreis, Rundenzahl und Länge der Rüstzeit.

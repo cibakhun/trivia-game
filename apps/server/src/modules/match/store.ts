@@ -1,23 +1,27 @@
 import type { Db, Tx } from '@rdw/db';
-import type { MatchState } from '@rdw/game-core';
+import type { MatchState, RealmState } from '@rdw/game-core';
 import type {
   MatchBotStrengthCode,
   MatchKind,
+  MatchMode,
   MatchPhaseKind,
   MatchRules,
   MatchRulesPreset,
   MatchStatus,
+  QuestionCategory,
 } from '@rdw/protocol';
 import { sql } from 'kysely';
 
 /**
- * Lesen und Schreiben der Partie-Tabellen (Migration 0012). Eine Partie wird nur unter der
- * Zeilensperre auf `matches` geändert; Ereignisse bekommen ihre Nummer unter dieser Sperre.
+ * Lesen und Schreiben der Partie-Tabellen (Migrationen 0012 bis 0014). Eine Partie wird nur unter
+ * der Zeilensperre auf `matches` geändert; Ereignisse bekommen ihre Nummer unter dieser Sperre.
  */
 
 export interface MatchRow {
   readonly id: string;
   readonly kind: MatchKind;
+  /** Spielart: wie bisher oder mit Ausbau (ADR-058); steht ab dem Anlegen fest. */
+  readonly mode: MatchMode;
   status: MatchStatus;
   readonly hostUserId: string;
   readonly inviteCode: string;
@@ -25,7 +29,8 @@ export interface MatchRow {
   readonly testSeats: 2 | 3 | null;
   readonly testBotStrengths: readonly MatchBotStrengthCode[] | null;
   rules: MatchRules | null;
-  state: MatchState | null;
+  /** Zustand der Zustandsmaschine der Spielart; lesen über `classicStateOf` und `realmStateOf`. */
+  state: MatchState | RealmState | null;
   phase: MatchPhaseKind | null;
   phaseDeadlineAt: Date | null;
   questionSeq: number | null;
@@ -42,12 +47,27 @@ export interface MatchPlayerRow {
   readonly userId: string | null;
   readonly botStrength: MatchBotStrengthCode | null;
   seat: number | null;
+  /** Lieblingskategorien (nur mit Ausbau): in der Aufstellung gewählt oder beim Start zugeteilt. */
+  readonly favorites: readonly QuestionCategory[] | null;
   readonly joinedAt: Date;
+}
+
+/** Zustand einer Partie ohne Ausbau; `null` vor dem Start. Mit Ausbau ein Programmfehler. */
+export function classicStateOf(match: MatchRow): MatchState | null {
+  if (match.mode !== 'CLASSIC') throw new Error(`Partie ${match.id} spielt mit Ausbau`);
+  return match.state as MatchState | null;
+}
+
+/** Zustand einer Partie mit Ausbau; `null` vor dem Start. Ohne Ausbau ein Programmfehler. */
+export function realmStateOf(match: MatchRow): RealmState | null {
+  if (match.mode !== 'REALM') throw new Error(`Partie ${match.id} spielt ohne Ausbau`);
+  return match.state as RealmState | null;
 }
 
 const MATCH_COLUMNS = [
   'id',
   'kind',
+  'mode',
   'status',
   'host_user_id',
   'invite_code',
@@ -70,6 +90,7 @@ const MATCH_COLUMNS = [
 type RawMatch = {
   readonly id: string;
   readonly kind: string;
+  readonly mode: string;
   readonly status: string;
   readonly host_user_id: string;
   readonly invite_code: string;
@@ -93,6 +114,7 @@ function toMatchRow(raw: RawMatch): MatchRow {
   return {
     id: raw.id,
     kind: raw.kind as MatchKind,
+    mode: raw.mode === 'REALM' ? 'REALM' : 'CLASSIC',
     status: raw.status as MatchStatus,
     hostUserId: raw.host_user_id,
     inviteCode: raw.invite_code,
@@ -101,7 +123,7 @@ function toMatchRow(raw: RawMatch): MatchRow {
     testBotStrengths: raw.test_bot_strengths as MatchBotStrengthCode[] | null,
     // Eigene Schreibvorgänge: Regeln und Zustand stammen aus `matchRulesSchema` bzw. game-core
     rules: raw.rules as MatchRules | null,
-    state: raw.state as MatchState | null,
+    state: raw.state as MatchState | RealmState | null,
     phase: raw.phase as MatchPhaseKind | null,
     phaseDeadlineAt: raw.phase_deadline_at,
     questionSeq: raw.question_seq,
@@ -152,7 +174,7 @@ export async function saveMatch(tx: Tx, match: MatchRow): Promise<void> {
 export async function loadPlayers(db: Db | Tx, matchId: string): Promise<MatchPlayerRow[]> {
   const rows = await db
     .selectFrom('match_players')
-    .select(['join_order', 'user_id', 'bot_strength', 'seat', 'joined_at'])
+    .select(['join_order', 'user_id', 'bot_strength', 'seat', 'favorites', 'joined_at'])
     .where('match_id', '=', matchId)
     .orderBy('join_order')
     .execute();
@@ -161,6 +183,8 @@ export async function loadPlayers(db: Db | Tx, matchId: string): Promise<MatchPl
     userId: row.user_id,
     botStrength: row.bot_strength as MatchBotStrengthCode | null,
     seat: row.seat,
+    // Eigene Schreibvorgänge und die Prüfung der Spalte: nur Kategorien aus `QUESTION_CATEGORIES`
+    favorites: row.favorites as QuestionCategory[] | null,
     joinedAt: row.joined_at,
   }));
 }

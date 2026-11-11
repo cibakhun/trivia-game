@@ -80,6 +80,7 @@ export async function startStack(): Promise<E2eStack> {
       rngSecret: new Uint8Array(randomBytes(32)),
       rngKeyId: 'e2e',
       logLevel: 'silent',
+      realmMinCategoryQuestions: null,
     } as const;
     const app = await buildApp({ db, logger: false, config });
     stops.push(() => app.close());

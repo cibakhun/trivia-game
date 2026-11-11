@@ -8,13 +8,26 @@ import {
   matchRulesPresetSchema,
   type MatchEventDto,
 } from './match-api.ts';
-import { questionKindSchema } from './question.ts';
+import {
+  matchModeSchema,
+  REALM_DUEL_EFFECTS,
+  realmBuildingSchema,
+  realmOrderSchema,
+  realmOrdersSummarySchema,
+  realmStandingSchema,
+  realmWheelSchema,
+} from './match-realm.ts';
+import { questionCategorySchema, questionKindSchema } from './question.ts';
 
 /**
  * Inhalt der Ereignisse einer Partie (`GET /matches/:matchId`, Feld `events`; API.md §2.6). Der
  * Server schreibt sie unter der Sperre der Partie, der Client liest sie mit `parseMatchEvent`.
  * Unbekannte Typen und unpassende Inhalte ergeben `null`: Ein älterer Client überspringt sie,
  * statt die Partie abzubrechen. Zusätzliche Felder (etwa der Zufallsnachweis `rng`) fallen weg.
+ *
+ * Die Partie mit Ausbau (MATCH_RULES §11, ADR-058) schreibt dieselben Ereignisse, wo der Inhalt
+ * passt (mit zusätzlichen, hier optionalen Feldern), und eigene, wo er abweicht: Duell und
+ * Abrechnung heißen dort `REALM_DUEL_RESOLVED` und `REALM_MATCH_FINISHED`.
  */
 
 const seat = z.number().int().min(0).max(2);
@@ -68,13 +81,26 @@ export const matchEventPayloadSchemas = {
     kind: matchKindSchema,
     rulesPreset: matchRulesPresetSchema,
     seats: z.number().int().min(2).max(3).nullable(),
+    /** Fehlt in Partien von vor ADR-058; sie laufen ohne Ausbau. */
+    mode: matchModeSchema.optional(),
   }),
   /** `bot` nennt die Stärke, wenn der Gastgeber einen Bot auf den Platz setzt oder entfernt. */
   PLAYER_JOINED: z.object({ joinOrder, bot: matchBotStrengthSchema.nullable().optional() }),
   PLAYER_LEFT: z.object({ joinOrder, bot: matchBotStrengthSchema.nullable().optional() }),
   MATCH_STARTED: z.object({
     seats: z.number().int().min(2).max(3),
-    players: z.array(z.object({ seat, joinOrder, bot: matchBotStrengthSchema.nullable() })),
+    players: z.array(
+      z.object({
+        seat,
+        joinOrder,
+        bot: matchBotStrengthSchema.nullable(),
+        /** Mit Ausbau: Lieblingskategorien dieses Sitzes. */
+        favorites: z.array(questionCategorySchema).optional(),
+      }),
+    ),
+    mode: matchModeSchema.optional(),
+    /** Mit Ausbau: Kategorien des Glücksrads. */
+    categories: z.array(questionCategorySchema).optional(),
   }),
   MATCH_ABANDONED: z.object({ reason: z.string().min(1) }),
   QUESTION_OPENED: z.object({
@@ -84,6 +110,8 @@ export const matchEventPayloadSchemas = {
     seats: z.array(seat),
     timeLimitMs: count,
     closesAt: timestampSchema,
+    /** Mit Ausbau bei der Wissensfrage eines Duells: Kategorie vom Glücksrad. */
+    category: questionCategorySchema.optional(),
   }),
   /** Lösung und Antworten aller Sitze, erst nach der Frage (QUIZ_ENGINE §7.2). */
   QUESTION_RESOLVED: z.object({
@@ -114,7 +142,14 @@ export const matchEventPayloadSchemas = {
     ),
   }),
   REGION_CLAIMED: z.object({ round, seat, region }),
-  TARGET_CHOSEN: z.object({ round, attacker: seat, defender: seat, region }),
+  /** Mit Ausbau samt Glücksrad dieses Angriffs. */
+  TARGET_CHOSEN: z.object({
+    round,
+    attacker: seat,
+    defender: seat,
+    region,
+    wheel: realmWheelSchema.optional(),
+  }),
   DUEL_RESOLVED: z.object({
     round,
     duel: z.number().int().min(1),
@@ -127,10 +162,83 @@ export const matchEventPayloadSchemas = {
     capitalLivesLeft: count.nullable(),
     regionValue: count,
   }),
-  KINGDOM_ELIMINATED: z.object({ round, seat, by: seat, regions: count }),
+  /** Mit Ausbau samt Vorräten, die an den Sieger gingen. */
+  KINGDOM_ELIMINATED: z.object({
+    round,
+    seat,
+    by: seat,
+    regions: count,
+    bread: count.optional(),
+    material: count.optional(),
+  }),
   MATCH_FINISHED: z.object({
     reason: z.enum(MATCH_FINISH_REASONS),
     standings: z.array(matchStandingSchema),
+  }),
+
+  // Partie mit Ausbau (MATCH_RULES §11)
+  /** Rangfolge der Startfrage: Reihenfolge für Burgen, Startdörfer (rückwärts) und Runden. */
+  START_RANKED: z.object({
+    ranking: z.array(
+      z.object({
+        seat,
+        place: z.number().int().min(1).max(3),
+        distance: decimal.nullable(),
+        effectiveMs: z.number().int().min(0).nullable(),
+      }),
+    ),
+  }),
+  CASTLE_CHOSEN: z.object({ seat, region, armies: count }),
+  VILLAGE_CHOSEN: z.object({ seat, region }),
+  /** Einkommen zu Beginn einer Feldzugrunde; danach beginnt die Rüstzeit. */
+  INCOME: z.object({
+    round,
+    income: z.array(z.object({ seat, bread: count, material: count })),
+  }),
+  /** Ein Sitz hat seine Befehle abgegeben; was er befohlen hat, steht erst in `ORDERS_REVEALED`. */
+  ORDERS_SUBMITTED: z.object({ round, seat }),
+  /** Die Rüstzeit lief ab; `missing` hat nichts abgegeben und tut in dieser Runde nichts. */
+  PREPARE_CLOSED: z.object({ round, missing: z.array(seat) }),
+  /** Aufdecken: Befehle eines Reichs, ihre Wirkung und seine Vorräte danach. */
+  ORDERS_REVEALED: z.object({
+    round,
+    seat,
+    orders: z.array(realmOrderSchema),
+    summary: realmOrdersSummarySchema,
+    bread: count,
+    material: count,
+  }),
+  /**
+   * Das Glücksrad blieb stehen. `exhausted` nennt Kategorien des Rads, die keine ungestellte Frage
+   * mehr hatten und deshalb nicht gezogen werden konnten (MATCH_RULES §11.6).
+   */
+  WHEEL_SPUN: z.object({
+    round,
+    region,
+    category: questionCategorySchema,
+    exhausted: z.array(questionCategorySchema).default([]),
+  }),
+  REALM_DUEL_RESOLVED: z.object({
+    round,
+    duel: z.number().int().min(1),
+    attacker: seat,
+    defender: seat,
+    region,
+    category: questionCategorySchema,
+    winner: z.enum(['ATTACKER', 'DEFENDER']),
+    reason: z.enum(MATCH_DUEL_REASONS),
+    effect: z.enum(REALM_DUEL_EFFECTS),
+    /** Gebäude auf dem Feld danach. */
+    building: realmBuildingSchema,
+    /** Leben der Burg danach; nur wenn eine Burg getroffen wurde. */
+    castleLivesLeft: count.nullable(),
+    regionValue: count,
+    /** Armee, die der Verlierer verlor; `null` = er hatte keine in Reichweite. */
+    armyLost: z.object({ seat, region }).nullable(),
+  }),
+  REALM_MATCH_FINISHED: z.object({
+    reason: z.enum(MATCH_FINISH_REASONS),
+    standings: z.array(realmStandingSchema),
   }),
 } as const;
 

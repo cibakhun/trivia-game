@@ -77,6 +77,11 @@ export const ERROR_CODES = [
   'TEST_MATCHES_DISABLED',
   'NOT_YOUR_TURN',
   'INVALID_REGION',
+  // Partie mit Ausbau (MATCH_RULES §11, ADR-058)
+  'REALM_MATCHES_DISABLED',
+  'NOT_ENOUGH_CATEGORIES',
+  'INVALID_FAVORITES',
+  'INVALID_ORDERS',
 ] as const;
 export const errorCodeSchema = z.enum(ERROR_CODES);
 export type ErrorCode = z.infer<typeof errorCodeSchema>;

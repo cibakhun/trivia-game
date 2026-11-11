@@ -1,17 +1,32 @@
 import type { Db, Tx } from '@rdw/db';
-import { createMatch, createRng, deriveSeed, drawSeatOrder, RNG_VERSION } from '@rdw/game-core';
+import {
+  chooseRealmFavoritesForBot,
+  createMatch,
+  createRealm,
+  createRng,
+  deriveSeed,
+  drawSeatOrder,
+  RNG_VERSION,
+} from '@rdw/game-core';
 import {
   DEFAULT_MATCH_RULES,
+  DEFAULT_REALM_RULES,
   HOUR_MS,
   INVITE_CODE_ALPHABET,
+  isRealmRules,
   matchRulesForSeats,
   matchRulesSchema,
   PLAYTEST_MATCH_RULES,
+  PLAYTEST_REALM_RULES,
+  QUESTION_CATEGORIES,
   QUESTION_KINDS,
   type MatchBotStrengthCode,
   type MatchCreateRequest,
+  type MatchMode,
   type MatchRules,
   type MatchRulesPreset,
+  type QuestionCategory,
+  type RealmRules,
 } from '@rdw/protocol';
 import { randomInt } from 'node:crypto';
 import { sql } from 'kysely';
@@ -19,7 +34,8 @@ import { intervalMs, readGameNow } from '../../infra/clock.ts';
 import { ApiError } from '../../infra/errors.ts';
 import { loadCandidates } from '../quiz/questions.ts';
 import type { MatchContext } from './context.ts';
-import { MatchRun, newMatchId } from './engine.ts';
+import { newMatchId } from './engine.ts';
+import { openRun } from './runs.ts';
 import {
   appendMatchEvents,
   loadMatch,
@@ -31,9 +47,10 @@ import {
 } from './store.ts';
 
 /**
- * Aufstellung einer Partie (MATCH_RULES §3.1, API.md §2.6): anlegen, mit dem Einladungscode
- * beitreten, freie Plätze mit Bots besetzen, verlassen, starten. Jedes Konto ist höchstens in
- * einer offenen Partie; Aufstellungen verfallen nach `LOBBY_TTL_MS`.
+ * Aufstellung einer Partie (MATCH_RULES §3.1 und §11.1, API.md §2.6): anlegen, mit dem
+ * Einladungscode beitreten, freie Plätze mit Bots besetzen, Lieblingskategorien wählen (mit
+ * Ausbau), verlassen, starten. Jedes Konto ist höchstens in einer offenen Partie; Aufstellungen
+ * verfallen nach `LOBBY_TTL_MS`.
  */
 
 /** Eine Aufstellung, die so lange nicht gestartet wurde, verfällt [E]. */
@@ -50,8 +67,61 @@ function freeJoinOrders(players: readonly MatchPlayerRow[], capacity: number): n
 const INVITE_CODE_LENGTH = 6;
 const INVITE_CODE_ATTEMPTS = 10;
 
-export function rulesOfPreset(preset: MatchRulesPreset): MatchRules {
+/** Regeln einer Spielart mit Standard- oder Spieltestzeiten, für drei Spieler. */
+export function rulesOf(mode: MatchMode, preset: MatchRulesPreset): MatchRules {
+  return mode === 'REALM' ? realmRulesOf(preset) : classicRulesOf(preset);
+}
+
+function classicRulesOf(preset: MatchRulesPreset): MatchRules {
   return preset === 'PLAYTEST' ? PLAYTEST_MATCH_RULES : DEFAULT_MATCH_RULES;
+}
+
+export function realmRulesOf(preset: MatchRulesPreset): RealmRules {
+  return preset === 'PLAYTEST' ? PLAYTEST_REALM_RULES : DEFAULT_REALM_RULES;
+}
+
+/**
+ * Kategorien des Glücksrads (MATCH_RULES §11.6): die mit mindestens
+ * `realmMinCategoryQuestions` Wissensfragen, die sich diesen Spielern stellen lassen, in der
+ * Reihenfolge von `QUESTION_CATEGORIES`. Nur sie sind als Lieblingskategorien wählbar.
+ */
+export async function loadWheelCategories(
+  db: Db | Tx,
+  ctx: MatchContext,
+  params: { readonly userIds: readonly string[]; readonly now: Date },
+): Promise<QuestionCategory[]> {
+  const candidates = await loadCandidates(db, {
+    kind: 'TRIVIA',
+    userIds: params.userIds,
+    allowFixtures: ctx.allowFixtures,
+    now: params.now,
+  });
+  const counts = new Map<string, number>();
+  for (const c of candidates) counts.set(c.category, (counts.get(c.category) ?? 0) + 1);
+  return QUESTION_CATEGORIES.filter((c) => (counts.get(c) ?? 0) >= ctx.realmMinCategoryQuestions);
+}
+
+/**
+ * Die gespeicherte Wahl eines Platzes, wenn sie gilt: genau `count` verschiedene Kategorien des
+ * Glücksrads. Sonst `null`; dieser Platz bekommt beim Start zufällige.
+ */
+export function validFavorites(
+  stored: readonly QuestionCategory[] | null,
+  categories: readonly QuestionCategory[],
+  count: number,
+): QuestionCategory[] | null {
+  if (stored === null || stored.length !== count || new Set(stored).size !== count) return null;
+  return stored.every((c) => categories.includes(c)) ? [...stored] : null;
+}
+
+/** Lieblingskategorien, die sich das Konto aus der letzten Partie gemerkt hat. */
+async function rememberedFavorites(tx: Tx, userId: string): Promise<string[] | null> {
+  const row = await tx
+    .selectFrom('player_settings')
+    .select('match_favorites')
+    .where('user_id', '=', userId)
+    .executeTakeFirst();
+  return row?.match_favorites ?? null;
 }
 
 function newInviteCode(): string {
@@ -87,6 +157,10 @@ export async function createLobby(
   if (request.kind === 'TEST' && !ctx.testMatchesEnabled) {
     throw new ApiError(403, 'TEST_MATCHES_DISABLED', 'Testpartien gibt es hier nicht');
   }
+  const mode = request.mode ?? 'CLASSIC';
+  if (mode === 'REALM' && !ctx.realmMatchesEnabled) {
+    throw new ApiError(403, 'REALM_MATCHES_DISABLED', 'Partien mit Ausbau gibt es hier noch nicht');
+  }
   await lockAccount(tx, userId);
   await ensureNoOpenMatch(tx, userId);
   const matchId = newMatchId();
@@ -97,6 +171,7 @@ export async function createLobby(
       .values({
         id: matchId,
         kind: request.kind,
+        mode,
         status: 'LOBBY',
         host_user_id: userId,
         invite_code: newInviteCode(),
@@ -112,7 +187,12 @@ export async function createLobby(
     if (inserted) {
       await tx
         .insertInto('match_players')
-        .values({ match_id: matchId, join_order: 0, user_id: userId })
+        .values({
+          match_id: matchId,
+          join_order: 0,
+          user_id: userId,
+          favorites: mode === 'REALM' ? await rememberedFavorites(tx, userId) : null,
+        })
         .execute();
       await appendMatchEvents(tx, matchId, [
         {
@@ -121,6 +201,7 @@ export async function createLobby(
             kind: request.kind,
             rulesPreset: request.rules ?? 'DEFAULT',
             seats: test?.seats ?? null,
+            mode,
           },
         },
         { type: 'PLAYER_JOINED', payload: { joinOrder: 0 } },
@@ -172,7 +253,12 @@ export async function joinLobby(
   }
   await tx
     .insertInto('match_players')
-    .values({ match_id: match.id, join_order: joinOrder, user_id: userId })
+    .values({
+      match_id: match.id,
+      join_order: joinOrder,
+      user_id: userId,
+      favorites: match.mode === 'REALM' ? await rememberedFavorites(tx, userId) : null,
+    })
     .execute();
   events.push({ type: 'PLAYER_JOINED', payload: { joinOrder } });
   await appendMatchEvents(tx, match.id, events);
@@ -240,6 +326,60 @@ export async function setSeatBot(
   return { matchId: match.id };
 }
 
+/**
+ * Eigene Lieblingskategorien in der Aufstellung einer Partie mit Ausbau (MATCH_RULES §11.1): genau
+ * `economy.favorites` verschiedene Kategorien des Glücksrads. Das Konto merkt sie sich für die
+ * nächste Aufstellung.
+ */
+export async function setFavorites(
+  tx: Tx,
+  ctx: MatchContext,
+  params: {
+    readonly userId: string;
+    readonly matchId: string;
+    readonly categories: readonly QuestionCategory[];
+  },
+): Promise<{ matchId: string }> {
+  const match = await loadMatch(tx, params.matchId, { lock: 'UPDATE' });
+  const players = match ? await loadPlayers(tx, params.matchId) : [];
+  const me = players.find((p) => p.userId === params.userId);
+  if (!match || !me) throw new ApiError(404, 'NOT_FOUND', 'Partie nicht gefunden');
+  if (match.status !== 'LOBBY') {
+    throw new ApiError(409, 'MATCH_NOT_IN_LOBBY', 'Die Partie hat schon begonnen', {
+      status: match.status,
+    });
+  }
+  if (match.mode !== 'REALM') {
+    throw new ApiError(409, 'STEP_NOT_AVAILABLE', 'Diese Partie hat keine Lieblingskategorien');
+  }
+  const count = realmRulesOf(match.rulesPreset).economy.favorites;
+  const categories = await loadWheelCategories(tx, ctx, {
+    userIds: players.flatMap((p) => (p.userId === null ? [] : [p.userId])),
+    now: await readGameNow(tx),
+  });
+  const favorites = validFavorites(params.categories, categories, count);
+  if (favorites === null) {
+    throw new ApiError(
+      422,
+      'INVALID_FAVORITES',
+      `Wähle genau ${count} verschiedene Kategorien des Glücksrads`,
+      { count, categories },
+    );
+  }
+  await tx
+    .updateTable('match_players')
+    .set({ favorites })
+    .where('match_id', '=', match.id)
+    .where('join_order', '=', me.joinOrder)
+    .execute();
+  await tx
+    .updateTable('player_settings')
+    .set({ match_favorites: favorites })
+    .where('user_id', '=', params.userId)
+    .execute();
+  return { matchId: match.id };
+}
+
 /** Verlassen der Aufstellung; verlässt der Gastgeber sie, fällt die Partie aus. */
 export async function leaveLobby(
   tx: Tx,
@@ -286,6 +426,11 @@ async function closeLobby(tx: Tx, match: MatchRow, now: Date, reason: string): P
  * Bots mit, die der Gastgeber gesetzt hat (ADR-052). Die Spielerzahl bestimmt Karte und
  * Landnahme (`matchRulesForSeats`), die Zugreihenfolge wird gelost (Strom `match`,
  * `{match_id}.seats`), dann beginnt die Wahl der ersten Hauptstadt.
+ *
+ * Mit Ausbau (MATCH_RULES §11.1) legt der Start außerdem das Glücksrad fest (Kategorien mit genug
+ * Wissensfragen) und die Lieblingskategorien je Sitz: die in der Aufstellung gewählten, sonst
+ * zufällige (Bots und wer nicht gewählt hat; Strom `match`, `{match_id}.favorites.j{Platz}`). Dann
+ * beginnt die Startfrage.
  */
 export async function startLobby(
   tx: Tx,
@@ -376,20 +521,77 @@ export async function startLobby(
       .where('join_order', '=', participant.joinOrder)
       .execute();
   }
-  const rules = matchRulesSchema.parse(matchRulesForSeats(rulesOfPreset(match.rulesPreset), seats));
+  const rules = matchRulesSchema.parse(
+    matchRulesForSeats(rulesOf(match.mode, match.rulesPreset), seats),
+  );
+  let realm: { categories: QuestionCategory[]; favorites: Map<number, QuestionCategory[]> } | null =
+    null;
+  if (match.mode === 'REALM') {
+    if (!ctx.realmMatchesEnabled) {
+      throw new ApiError(
+        403,
+        'REALM_MATCHES_DISABLED',
+        'Partien mit Ausbau gibt es hier noch nicht',
+      );
+    }
+    if (!isRealmRules(rules)) throw new Error('Partie mit Ausbau ohne Regeln des Ausbaus');
+    const count = rules.economy.favorites;
+    const categories = await loadWheelCategories(tx, ctx, { userIds, now });
+    if (categories.length < count) {
+      throw new ApiError(
+        409,
+        'NOT_ENOUGH_CATEGORIES',
+        'Für das Glücksrad gibt es noch zu wenige Kategorien mit genug Fragen',
+        {
+          categories: categories.length,
+          needed: count,
+          minQuestions: ctx.realmMinCategoryQuestions,
+        },
+      );
+    }
+    const favorites = new Map<number, QuestionCategory[]>();
+    for (const p of await loadPlayers(tx, match.id)) {
+      if (p.seat === null) throw new Error('Teilnehmer ohne Sitz');
+      let chosen = validFavorites(p.favorites, categories, count);
+      if (chosen === null) {
+        const entityId = `${match.id}.favorites.j${p.joinOrder}`;
+        chosen = chooseRealmFavoritesForBot(
+          categories,
+          count,
+          createRng(await deriveSeed(ctx.rngSecret, 'match', entityId)),
+        );
+      }
+      await tx
+        .updateTable('match_players')
+        .set({ favorites: chosen })
+        .where('match_id', '=', match.id)
+        .where('join_order', '=', p.joinOrder)
+        .execute();
+      favorites.set(p.seat, chosen);
+    }
+    realm = { categories, favorites };
+    match.state = createRealm(rules, {
+      categories,
+      favorites: Array.from({ length: seats }, (_, seat) => favorites.get(seat) ?? []),
+    });
+  } else {
+    match.state = createMatch(rules);
+  }
   match.status = 'RUNNING';
   match.rules = rules;
-  match.state = createMatch(rules);
   match.startedAt = now;
   const seated = await loadPlayers(tx, match.id);
-  const run = new MatchRun(tx, ctx, match, seated, now);
+  const run = openRun(tx, ctx, match, seated, now);
   run.emit('MATCH_STARTED', {
     seats,
     players: seated.map((p) => ({
       seat: p.seat,
       joinOrder: p.joinOrder,
       bot: p.botStrength,
+      ...(realm && p.seat !== null ? { favorites: realm.favorites.get(p.seat) ?? [] } : {}),
     })),
+    mode: match.mode,
+    ...(realm ? { categories: realm.categories } : {}),
     rng: { purpose: 'match', entityId: seatEntity, keyId: ctx.rngKeyId, version: RNG_VERSION },
   });
   await run.enterStep();
