@@ -205,13 +205,13 @@ describe('Auswahlfragen', () => {
 
   it('Olympia: abgesagte und künftige Spiele fallen weg, Schwierigkeit nach Alter', () => {
     const games = [
-      ['Q8438', '1972', 'München', 'Q159821'],
-      ['Q8577', '2012', 'London', 'Q159821'],
-      ['Q8470', '1936', 'Berlin', 'Q159821'],
-      ['Q1', '1940', 'Tokio', 'Q159821'],
-      ['Q2', '2032', 'Brisbane', 'Q159821'],
-      ['Q8567', '1964', 'Tokio', 'Q159821'],
-      ['Q8613', '2000', 'Sydney', 'Q159821'],
+      ['Q8438', '1972', 'München', 'Q135976384'],
+      ['Q8577', '2012', 'London', 'Q135976384'],
+      ['Q8470', '1936', 'Berlin', 'Q135976384'],
+      ['Q1', '1940', 'Tokio', 'Q135976384'],
+      ['Q2', '2032', 'Brisbane', 'Q135976384'],
+      ['Q8567', '1964', 'Tokio', 'Q135976384'],
+      ['Q8613', '2000', 'Sydney', 'Q135976384'],
     ].map(([item, year, city, type]) => ({
       item: item ?? '',
       label: `Olympische Sommerspiele ${year}`,

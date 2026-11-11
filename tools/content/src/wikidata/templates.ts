@@ -408,7 +408,8 @@ const elementSymbol: ChoiceTemplate = {
   },
 };
 
-const SUMMER = 'Q159821';
+/** „Austragung der Olympischen Sommerspiele“ (frühere Klasse Q159821 hat keine Instanzen mehr). */
+const SUMMER = 'Q135976384';
 const CANCELLED_GAMES = new Set([1916, 1940, 1944]);
 
 const olympia: ChoiceTemplate = {

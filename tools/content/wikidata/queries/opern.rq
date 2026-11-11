@@ -1,6 +1,6 @@
-# Bekannte Opern mit Komponist.
+# Bekannte Opern mit Komponist. Opern stehen als Form des Werks (P7937) = Oper, nicht als Instanz.
 SELECT ?item ?label ?sitelinks ?answer ?answerLabel ?answerBirth WHERE {
-  ?item wdt:P31 wd:Q1344;
+  ?item wdt:P7937 wd:Q1344;
         wikibase:sitelinks ?sitelinks.
   FILTER(?sitelinks >= 30)
   ?item wdt:P86 ?answer.
