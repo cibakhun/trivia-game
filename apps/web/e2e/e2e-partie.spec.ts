@@ -82,7 +82,7 @@ async function answerRight(page: Page, matchId: string, seq: number): Promise<bo
   );
 }
 
-/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054). */
+/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054, ADR-055). */
 interface Shown {
   /** `outcome`: erster Takt der Auflösung eines Duells, die Karte zeigt den Ausgang. */
   readonly state: 'announce' | 'outcome' | 'reveal';
@@ -101,6 +101,10 @@ interface Shown {
   readonly turnBanner: boolean;
   /** Auflösung einer Wissensfrage mit markierter richtiger Antwort. */
   readonly correctOption: boolean;
+  /** Abschnitt im Band der Kopfzeile. */
+  readonly step: string;
+  /** Die Zugfolge steht, und alle waren schon dran: so nur nach dem letzten Duell der Partie. */
+  readonly allDone: boolean;
 }
 
 /**
@@ -137,6 +141,11 @@ async function recordShown(page: Page): Promise<void> {
         chips: card.querySelectorAll('.seat-chip').length,
         turnBanner: document.querySelector('.turn-banner.moment-gold') !== null,
         correctOption: card.querySelector('.reveal-option.correct') !== null,
+        step: document.querySelector('[data-testid="match-step"]')?.textContent ?? '',
+        allDone:
+          document.querySelector('[data-testid="match-turns"] li') !== null &&
+          document.querySelector('[data-testid="match-turns"] li:not([data-status="DONE"])') ===
+            null,
       };
       const last = seen.at(-1);
       if (last?.state === entry.state && last.text === entry.text) seen[seen.length - 1] = entry;
@@ -275,6 +284,14 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
     expect(outcome.text).toMatch(/(erober|verlierst|triff|getroffen|nimm|fällt|scheitert|hält)/);
     expect(shown[shown.indexOf(outcome) + 1]).toMatchObject({ state: 'reveal', scene: 'settled' });
   }
+  // Letztes Duell (ADR-055): Auch seine Auflösung steht, erst der Ausgang, dann die Antworten.
+  // Band und Zugfolge der letzten Runde bleiben so lange stehen; die Abrechnung kommt danach.
+  const [lastOutcome, lastReveal] = shown.slice(-2);
+  expect(lastOutcome).toMatchObject({ state: 'outcome', scene: 'outcome', allDone: true });
+  expect(lastReveal).toMatchObject({ state: 'reveal', scene: 'settled', allDone: true });
+  expect(lastOutcome?.step).toMatch(/^Feldzug · Runde \d von 4$/);
+  expect(lastReveal?.step).toBe(lastOutcome?.step);
+  expect(shown.findIndex((s) => s.allDone)).toBe(shown.length - 2);
   // Auflösungen: Jeder Sitz der Frage steht mit seinem Wappen an seiner Antwort
   const reveals = shown.filter((s) => s.state === 'reveal');
   expect(reveals.length).toBeGreaterThan(5);

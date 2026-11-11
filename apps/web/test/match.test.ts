@@ -25,7 +25,7 @@ import {
   seatNames,
   stepLabel,
 } from '../src/match/match-text.ts';
-import { AT, ID, event, viewOf } from './match-fixtures.ts';
+import { AT, ID, event, viewOf, type Step } from './match-fixtures.ts';
 
 /** Partie im Browser (M4): Kartengeometrie, Zustand des Bildschirms, Auflösung und Texte. */
 
@@ -220,6 +220,27 @@ describe('Zustand des Bildschirms', () => {
       scene: 'outcome',
     });
     expect(duelStage(viewOf(), 'pick', null, false)).toBeNull();
+
+    // Letztes Duell der Partie (ADR-055): Der Schritt ist schon „beendet“, die Auflösung steht
+    // noch. Die Karte zeigt den Ausgang wie bei jedem anderen Duell.
+    const closing = viewOf(
+      {
+        phase: { kind: 'REVEAL', deadline: AT, remainingMs: 2000 },
+        legalRegions: [],
+        question: { ...questionInfo('ANSWERED', 5), resolved: true } as MatchView['question'],
+      },
+      { kind: 'FINISHED', round: 4, chooser: null, finishReason: 'ROUNDS_COMPLETE' },
+    );
+    expect(screenStateOf(closing, null)).toBe('reveal');
+    expect(pollDelay(closing)).toBe(750);
+    expect(duelStage(closing, 'reveal', revealFor(events, 5), true)).toEqual({
+      ...won,
+      scene: 'outcome',
+    });
+    expect(duelStage(closing, 'reveal', revealFor(events, 5), false)).toEqual({
+      ...won,
+      scene: 'settled',
+    });
   });
 
   it('erster Takt der Auflösung: ein Viertel der Zeit, höchstens anderthalb Sekunden', () => {
@@ -366,6 +387,16 @@ describe('Texte der Partie', () => {
     expect(
       stepLabel(viewOf({}, { kind: 'CAMPAIGN_TARGET', round: 2, chooser: 1, attacker: 1 })),
     ).toBe('Feldzug · Runde 2 von 4');
+    // Solange die letzte Auflösung steht, bleibt die Runde im Band; danach die Abrechnung
+    const ended = { kind: 'FINISHED', round: 4, chooser: null, finishReason: 'ROUNDS_COMPLETE' };
+    expect(stepLabel(viewOf({}, ended as Partial<Step>))).toBe('Feldzug · Runde 4 von 4');
+    const finished = viewOf(
+      { match: { ...view.match, status: 'FINISHED' } },
+      ended as Partial<Step>,
+    );
+    expect(stepLabel(finished)).toBe('Abrechnung');
+    // Partien von vor ADR-055 kennen die letzte Runde nicht
+    expect(stepLabel(viewOf({}, { ...ended, round: null } as Partial<Step>))).toBe('Abrechnung');
   });
 
   it('fordert zur Wahl auf oder nennt, wer wählt', () => {

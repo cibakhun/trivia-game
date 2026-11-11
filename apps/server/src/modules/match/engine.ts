@@ -454,7 +454,9 @@ export class MatchRun {
 
   /**
    * Löst die laufende Frage auf: fehlende Antworten zählen als verpasst, das Ergebnis geht in die
-   * Zustandsmaschine; danach steht die Auflösung `revealMs` lang, oder die Partie endet.
+   * Zustandsmaschine; danach steht die Auflösung `revealMs` lang. Das gilt auch für die letzte
+   * Frage (ADR-055): Die Partie läuft weiter, bis alle den entscheidenden Ausgang und die Antworten
+   * gesehen haben; erst `enterStep` nach der Auflösung rechnet ab.
    */
   async resolveQuestion(): Promise<void> {
     const seq = this.match.questionSeq;
@@ -579,10 +581,6 @@ export class MatchRun {
       case 'CAMPAIGN_TARGET':
       case 'FINISHED':
         throw new Error(`Frage ${seq} passt nicht zum Schritt ${state.step.kind}`);
-    }
-    if (this.state.step.kind === 'FINISHED') {
-      await this.finish();
-      return;
     }
     this.match.phase = 'REVEAL';
     this.match.phaseDeadlineAt = new Date(this.now.getTime() + this.rules.timers.revealMs);

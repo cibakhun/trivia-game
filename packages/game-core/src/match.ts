@@ -63,7 +63,12 @@ export type MatchStep =
       readonly queue: readonly number[];
     }
   | ({ readonly kind: 'DUEL_TRIVIA' | 'DUEL_ESTIMATE' } & DuelSetup)
-  | { readonly kind: 'FINISHED'; readonly reason: MatchFinishReason };
+  | {
+      readonly kind: 'FINISHED';
+      readonly reason: MatchFinishReason;
+      /** Feldzugrunde, in der die Partie endete; fehlt in Partien von vor ADR-055. */
+      readonly round?: number;
+    };
 
 interface DuelSetup {
   readonly round: number;
@@ -760,11 +765,13 @@ function nextAttack(
   queue: readonly number[],
   events: MatchEvent[],
 ): MatchResult {
-  if (aliveSeats(state).length <= 1) return finish(state, 'LAST_KINGDOM', events);
+  if (aliveSeats(state).length <= 1) return finish(state, 'LAST_KINGDOM', round, events);
   const remaining = queue.filter((seat) => isAlive(state, seat));
   const [attacker, ...rest] = remaining;
   if (attacker === undefined) {
-    if (round >= state.rules.campaign.rounds) return finish(state, 'ROUNDS_COMPLETE', events);
+    if (round >= state.rules.campaign.rounds) {
+      return finish(state, 'ROUNDS_COMPLETE', round, events);
+    }
     return nextAttack(state, round + 1, roundOrder(state, round + 1), events);
   }
   return {
@@ -855,8 +862,13 @@ function finishDuel(
   return nextAttack(withDraft(state, draft, state.step), round, setup.queue, events);
 }
 
-function finish(state: MatchState, reason: MatchFinishReason, events: MatchEvent[]): MatchResult {
-  const done: MatchState = { ...state, step: { kind: 'FINISHED', reason } };
+function finish(
+  state: MatchState,
+  reason: MatchFinishReason,
+  round: number,
+  events: MatchEvent[],
+): MatchResult {
+  const done: MatchState = { ...state, step: { kind: 'FINISHED', reason, round } };
   return {
     ok: true,
     state: done,

@@ -33,7 +33,7 @@ Beide Karten sind eigene Karten und symmetrisch zur Mitte. Die Kernmark ist die 
 2. **Hauptstadtwahl:** Die Sitze wählen nacheinander eine freie Region mit mindestens `capital.minDistance` = 2 Feldern Abstand zu jeder gewählten Hauptstadt (ein Feld dazwischen). Die Hauptstadt ist 300 wert **[E]**.
 3. **Landnahme:** Jede Runde stellt allen dieselbe Schätzfrage. Rangfolge nach Abstand, bei gleichem Abstand nach effektiver Antwortzeit, bei völligem Gleichstand nach der Reihenfolge der Runde **[E]**. Nicht beantwortet zählt als unendlicher Abstand und unendliche Zeit. Zu dritt wählt der Erste zwei freie Regionen, der Zweite eine, der Dritte keine (`landGrab.picksByPlace` = 2, 1, 0); zu zweit der Erste zwei, der Zweite eine (2, 1) **[E]**; gewählt wird nacheinander, erst beide Regionen des Ersten. Wählbar ist eine freie Region am eigenen Gebiet, gibt es keine, jede freie. Die Runden laufen, bis alle Regionen vergeben sind (zu dritt auf der Wendelmark sieben, zu zweit auf der Kernmark fünf).
 4. **Feldzug:** `campaign.rounds` = 4 Runden; in jeder greift jedes lebende Reich einmal an, in der Reihenfolge der Runde **[E]**. Der Angreifer wählt eine gegnerische Region an seinem Gebiet (gibt es keine, jede gegnerische); dann folgt das Duell (§4).
-5. **Abrechnung:** Schluss nach der vierten Feldzugrunde oder sobald nur ein Reich übrig ist; Wertung nach §6.
+5. **Abrechnung:** Schluss nach der vierten Feldzugrunde oder sobald nur ein Reich übrig ist; Wertung nach §6. Auch die Auflösung des letzten Duells steht wie jede andere; die Abrechnung kommt erst danach ([§5](#letzte-auflösung)).
 
 ### Zugfolge
 
@@ -46,7 +46,7 @@ Mit dem Spielstand schickt der Server die Zugfolge des laufenden Abschnitts (`bo
 | Wahl der Landnahme | ein Eintrag je Wahl in der Rangfolge der Schätzfrage; wer zweimal wählt, steht zweimal da |
 | Feldzug | die Angreifer der Runde in ihrer Reihenfolge, auch während des Duells; ausgeschiedene Reiche entfallen |
 
-Nach der Abrechnung ist die Liste leer.
+Steht nach dem letzten Duell noch die Auflösung (§5), bleibt die Zeile der letzten Runde stehen, alle Einträge `DONE`, damit die Karte im entscheidenden Moment nicht springt. Nach der Abrechnung ist die Liste leer.
 
 ## 4. Duell
 
@@ -73,7 +73,7 @@ Nicht beantwortet zählt als falsch bzw. als unendlicher Abstand. Die Schätzfra
 | Wahl (Hauptstadt, Region, Angriffsziel) | 10 s | der Server wählt zufällig eine wählbare Region (`autoPickRegion`), bewusst ohne Strategie, damit Abwarten keinen Vorteil bringt |
 | Wissensfrage | 15 s | nicht beantwortet = falsch |
 | Schätzfrage | 20 s | nicht beantwortet = unendlicher Abstand |
-| Auflösung nach jeder Frage | 6 s | – |
+| Auflösung nach jeder Frage, auch nach der letzten | 6 s | – |
 | Gezeigte Wahl (Ansage) | 1,2 s | – |
 | Ansage eines Duells | 2,5 s | – |
 
@@ -87,6 +87,12 @@ Damit jeder mitbekommt, was geschieht, hält die Partie nach jeder Wahl und vor 
 - **Ansage eines Duells:** Hat der Angreifer sein Ziel gewählt, steht `timers.announceMs` lang fest, wer wen in welcher Region angreift. Erst danach wird die Wissensfrage geöffnet; ihre Zeit läuft nicht während der Ansage. Das Stechen folgt ohne weitere Ansage auf die Auflösung der Wissensfrage.
 
 Die Ansage ist eine Phase des Servers (`ANNOUNCE`), kein Schritt der Regeln: Die Zustandsmaschine in game-core, die Simulationen und die Wiederholbarkeit aus den Eingaben bleiben unberührt. Alle Mitspieler sehen denselben Stand zur selben Zeit, auch nach einem Neuladen. Partien, die vor ADR-053 gestartet wurden, kennen die beiden Zeiten nicht und laufen ohne Ansage zu Ende.
+
+### Letzte Auflösung
+
+Das Duell, das die Partie entscheidet, ist ihr Höhepunkt. Seine Auflösung steht deshalb `timers.revealMs` lang wie jede andere, mit dem Ausgang auf der Karte und den Antworten; erst danach erscheint die Abrechnung **[V, PO 2026-11-11; Dauer E, ADR-055, [O-24]]**. Bis ADR-055 endete die Partie im selben Augenblick, in dem die letzte Frage aufgelöst war: Niemand sah, wie das letzte Duell ausging und wer was geantwortet hatte.
+
+In dieser Zeit ist die Partie entschieden, aber noch nicht abgerechnet: Die Zustandsmaschine steht schon im Schritt `FINISHED` (er merkt sich die Feldzugrunde, in der Schluss war), `MATCH_FINISHED` mit dem Endstand ist das jüngste Ereignis, der Status der Partie bleibt `RUNNING`. Zu wählen oder zu beantworten gibt es nichts mehr. Mit dem Ende der Auflösung wechselt der Status auf `FINISHED`, und die Partie zählt in der Statistik (§7). Eine Partie dauert dadurch 6 s länger.
 
 ## 6. Wertung
 

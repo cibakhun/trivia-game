@@ -120,6 +120,7 @@ Elf kurze Klänge, im Browser erzeugt (Web Audio, keine Dateien, `apps/web/src/a
 - Schalter „Ton“ in der Kopfzeile der Partie; die Wahl bleibt im Browser gespeichert, Standard ist an.
 - Ton erst nach der ersten Berührung oder Taste (Regel der Browser), nichts beim ersten Aufbau einer Seite.
 - Während einer laufenden Frage nur der Klick der eigenen Antwort; Ergebnis und Folgen klingen in der Auflösung, die eigene Antwort zuerst, die Folge des Duells kurz danach.
+- Sieg oder Niederlage klingen erst, wenn die Abrechnung erscheint, nicht schon in der Auflösung des letzten Duells (ADR-055): Dort gehört der Klang dem Ausgang auf der Karte.
 
 ## 6. Bausteine im Code
 

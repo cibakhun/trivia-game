@@ -1,6 +1,7 @@
 import { parseMatchEvent, type ParsedMatchEvent } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import { setSoundEnabled, soundEnabled } from '../src/audio/sound.ts';
+import type { MatchScreenState } from '../src/match/match-model.ts';
 import { cuesFor } from '../src/match/sound-cues.ts';
 
 /** Klänge der Partie: welche Ereignisse welchen Klang auslösen (Gestaltung, ADR-051). */
@@ -47,10 +48,7 @@ const duel = (seq: number, effect: string) =>
     regionValue: 100,
   });
 
-const at = (state: 'reveal' | 'pick' | 'question' | 'waiting-pick', lastSeq: number) => ({
-  state,
-  lastSeq,
-});
+const at = (state: MatchScreenState, lastSeq: number) => ({ state, lastSeq });
 
 describe('Klänge der Partie', () => {
   it('nichts beim ersten Aufbau und nichts während einer Frage', () => {
@@ -97,20 +95,40 @@ describe('Klänge der Partie', () => {
     ]);
   });
 
-  it('Sieg oder Niederlage am Ende', () => {
-    const finished = event(9, 'MATCH_FINISHED', {
-      reason: 'ROUNDS_COMPLETE',
-      standings: [
-        { seat: 0, place: 1, points: 900, regions: 9, capitalLives: 3, eliminated: false },
-        { seat: 1, place: 2, points: 400, regions: 4, capitalLives: 1, eliminated: false },
-      ],
-    });
-    expect(cuesFor(at('reveal', 8), at('finished' as 'reveal', 9), [finished], 0)[0]?.cue).toBe(
-      'victory',
-    );
-    expect(cuesFor(at('reveal', 8), at('finished' as 'reveal', 9), [finished], 1)[0]?.cue).toBe(
-      'defeat',
-    );
+  it('Sieg oder Niederlage erst mit der Abrechnung, nicht schon in der letzten Auflösung', () => {
+    const standings = [
+      { seat: 0, place: 1, points: 900, regions: 9, capitalLives: 3, eliminated: false },
+      { seat: 1, place: 2, points: 400, regions: 4, capitalLives: 1, eliminated: false },
+    ];
+    const finished = event(9, 'MATCH_FINISHED', { reason: 'ROUNDS_COMPLETE', standings });
+    const last = [resolved(7, true), duel(8, 'CONQUERED'), finished];
+    // Letzte Auflösung (ADR-055): Die Partie läuft noch, `MATCH_FINISHED` steht schon im Verlauf
+    expect(
+      cuesFor(at('answered', 6), at('reveal', 9), last, 0, standings).map((c) => c.cue),
+    ).toEqual(['correct', 'conquer']);
+    // Die Abrechnung erscheint: jetzt klingt das Ende, je nach Platz
+    expect(cuesFor(at('reveal', 9), at('finished', 9), [], 0, standings)).toEqual([
+      { cue: 'victory', delayMs: 400 },
+    ]);
+    expect(cuesFor(at('reveal', 9), at('finished', 9), [], 1, standings)[0]?.cue).toBe('defeat');
+    // Wer zuschaut, hört nichts; wer die fertige Partie nur ansieht, auch nicht
+    expect(cuesFor(at('reveal', 9), at('finished', 9), [], null, standings)).toEqual([]);
+    expect(cuesFor(at('finished', 9), at('finished', 9), [], 0, standings)).toEqual([]);
+    expect(cuesFor(null, at('finished', 9), [], 0, standings)).toEqual([]);
+  });
+
+  it('kommt die Abrechnung in einem Abruf mit dem letzten Duell, klingt das Ende zuletzt', () => {
+    const standings = [
+      { seat: 0, place: 1, points: 900, regions: 9, capitalLives: 3, eliminated: false },
+      { seat: 1, place: 2, points: 400, regions: 4, capitalLives: 1, eliminated: false },
+    ];
+    const finished = event(9, 'MATCH_FINISHED', { reason: 'ROUNDS_COMPLETE', standings });
+    const last = [resolved(7, true), duel(8, 'CONQUERED'), finished];
+    expect(cuesFor(at('answered', 6), at('finished', 9), last, 1, standings)).toEqual([
+      { cue: 'wrong', delayMs: 0 },
+      { cue: 'conquer', delayMs: 550 },
+      { cue: 'defeat', delayMs: 1500 },
+    ]);
   });
 
   it('der Schalter bleibt gespeichert', () => {
