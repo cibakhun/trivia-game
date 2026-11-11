@@ -30,6 +30,7 @@ import {
   type KingdomNamePartsDto,
   type LoginRequest,
   type MatchAnswerRequest,
+  type MatchBotStrengthCode,
   type MatchCreateRequest,
   type PasswordChangeRequest,
   type PlayerNamePartsDto,
@@ -211,6 +212,17 @@ export const api = {
     request('POST', `/matches/${matchId}/leave`, matchActionResponseSchema, { idempotencyKey }),
   startMatch: (matchId: string, idempotencyKey: string) =>
     request('POST', `/matches/${matchId}/start`, matchActionResponseSchema, { idempotencyKey }),
+  /** Bot auf einen Platz der Aufstellung setzen oder ihn mit `null` wieder freigeben (ADR-052). */
+  setSeatBot: (
+    matchId: string,
+    joinOrder: number,
+    strength: MatchBotStrengthCode | null,
+    idempotencyKey: string,
+  ) =>
+    request('POST', `/matches/${matchId}/seats/${joinOrder}/bot`, matchActionResponseSchema, {
+      body: { strength },
+      idempotencyKey,
+    }),
   match: (matchId: string, after: number) =>
     request('GET', `/matches/${matchId}?after=${after}`, matchViewSchema),
   pickRegion: (matchId: string, region: number, idempotencyKey: string) =>

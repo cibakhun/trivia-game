@@ -57,6 +57,8 @@ export function MatchBoard({
   name,
   legal,
   contested,
+  attacker,
+  spot,
   busy,
   onPick,
 }: {
@@ -65,8 +67,11 @@ export function MatchBoard({
   readonly name: SeatName;
   /** Wählbare Regionen, nur wenn dieser Spieler dran ist. */
   readonly legal: readonly number[];
-  /** Umkämpfte Region eines Duells. */
+  /** Umkämpfte Region eines Duells und der Sitz, der sie angreift. */
   readonly contested: number | null;
+  readonly attacker: number | null;
+  /** Eben gewählte Region, die eine Ansage zeigt. */
+  readonly spot: number | null;
   readonly busy: boolean;
   readonly onPick: (region: number) => void;
 }) {
@@ -90,7 +95,6 @@ export function MatchBoard({
   }
 
   const contestedArt = contested === null ? null : art.regions[contested];
-  const attacker = board.step.attacker;
   const arrow = useMemo(() => {
     if (contested === null || attacker === null) return null;
     const capital = board.regions.findIndex((r) => r.capitalOf === attacker);
@@ -113,185 +117,201 @@ export function MatchBoard({
     return attackArrow(art, from, contested, marks, arrowScale(narrow));
   }, [art, map, board.regions, attacker, contested, narrow]);
   const hotArt = hot !== null && choosable.has(hot) ? art.regions[hot] : undefined;
+  const spotArt = spot === null ? undefined : art.regions[spot];
+  const spotOwner = spot === null ? null : (board.regions[spot]?.owner ?? null);
 
+  // Der Rahmen ist das Rasterfeld, die Karte füllt ihn: Als Rasterfeld mit `height: 100%` wird das
+  // SVG in WebKit (iPhone) so hoch wie das ganze Raster und rutscht unter das Blatt.
   return (
-    <svg
-      className={`board map-art${narrow ? ' narrow' : ''}`}
-      viewBox={narrow ? art.tightViewBox : art.viewBox}
-      role="group"
-      aria-label={t('match.board.label')}
-      data-testid="match-board"
-    >
-      <ArtDefs prefix={prefix} />
-      <defs>
-        {art.regions.map((region) => (
-          <clipPath key={region.id} id={`${prefix}-clip-${region.id}`}>
-            <path d={region.d} />
-          </clipPath>
-        ))}
-      </defs>
+    <div className="board-frame">
+      <svg
+        className={`board map-art${narrow ? ' narrow' : ''}`}
+        viewBox={narrow ? art.tightViewBox : art.viewBox}
+        role="group"
+        aria-label={t('match.board.label', { name: map.name })}
+        data-testid="match-board"
+      >
+        <ArtDefs prefix={prefix} />
+        <defs>
+          {art.regions.map((region) => (
+            <clipPath key={region.id} id={`${prefix}-clip-${region.id}`}>
+              <path d={region.d} />
+            </clipPath>
+          ))}
+        </defs>
 
-      <rect className="sea" width={art.width} height={art.height} />
-      <g className="sea-marks" aria-hidden="true">
-        {art.waves.map((w, i) => (
-          <use
-            key={i}
-            href={symbolRef(prefix, 'sea')}
-            x={w.x - w.size / 2}
-            y={w.y - w.size / 2}
-            width={w.size}
-            height={w.size}
-          />
-        ))}
-      </g>
-      <g className="coast-ripples" aria-hidden="true">
-        <path d={art.coast} className="ripple ripple-3" />
-        <path d={art.coast} className="ripple ripple-2" />
-        <path d={art.coast} className="ripple ripple-1" />
-      </g>
-
-      <g className="regions">
-        {art.regions.map((region) => {
-          const state = board.regions[region.id];
-          if (!state) return null;
-          const owner = state.owner;
-          const canPick = choosable.has(region.id);
-          const label = t('match.board.region', {
-            name: region.name,
-            owner: owner === null ? t('match.board.free') : name(owner),
-            value: state.value,
-          });
-          const capitalOf = state.capitalOf;
-          const lives = capitalOf === null ? 0 : (board.seats[capitalOf]?.capitalLivesLeft ?? 0);
-          const classes = [
-            'board-region',
-            owner === null ? 'free' : `seat-${owner}`,
-            canPick ? 'legal' : '',
-            contested === region.id ? 'contested' : '',
-            capitalOf !== null ? 'capital' : '',
-          ]
-            .filter(Boolean)
-            .join(' ');
-          return (
-            <g
-              key={region.id}
-              className={classes}
-              data-region={region.id}
-              {...(canPick
-                ? {
-                    role: 'button',
-                    tabIndex: 0,
-                    'aria-label': region.name,
-                    onClick: () => onPick(region.id),
-                    onKeyDown: (event: KeyboardEvent) => onKey(event, region.id),
-                    onPointerEnter: () => setHot(region.id),
-                    onPointerLeave: () => setHot((h) => (h === region.id ? null : h)),
-                    onFocus: () => setHot(region.id),
-                    onBlur: () => setHot((h) => (h === region.id ? null : h)),
-                  }
-                : { role: 'img', 'aria-label': label })}
-            >
-              <title>
-                {capitalOf !== null
-                  ? `${label} · ${t('match.board.capital')} · ${tp('match.board.lives', lives)}`
-                  : label}
-              </title>
-              <path d={region.d} className="land" />
-              {owner !== null ? (
-                <g key={`wash-${owner}`} className={`wash${settled ? ' ink-in' : ''}`}>
-                  <path d={region.d} className="wash-fill" />
-                  <path
-                    d={region.d}
-                    className="wash-pattern"
-                    fill={`url(#${prefix}-pattern-${owner})`}
-                  />
-                  <path
-                    d={region.d}
-                    className="wash-edge"
-                    clipPath={`url(#${prefix}-clip-${region.id})`}
-                  />
-                </g>
-              ) : null}
-              {canPick ? <path d={region.d} className="legal-glow" /> : null}
-            </g>
-          );
-        })}
-      </g>
-
-      <g className="region-borders" aria-hidden="true">
-        {art.regions.map((region) => (
-          <path key={region.id} d={region.d} />
-        ))}
-      </g>
-      {art.river ? (
-        <g className="river" aria-hidden="true">
-          <path d={art.river} className="river-bank" />
-          <path d={art.river} className="river-water" />
+        <rect className="sea" width={art.width} height={art.height} />
+        <g className="sea-marks" aria-hidden="true">
+          {art.waves.map((w, i) => (
+            <use
+              key={i}
+              href={symbolRef(prefix, 'sea')}
+              x={w.x - w.size / 2}
+              y={w.y - w.size / 2}
+              width={w.size}
+              height={w.size}
+            />
+          ))}
         </g>
-      ) : null}
-      <path d={art.coast} className="coastline" aria-hidden="true" />
+        <g className="coast-ripples" aria-hidden="true">
+          <path d={art.coast} className="ripple ripple-3" />
+          <path d={art.coast} className="ripple ripple-2" />
+          <path d={art.coast} className="ripple ripple-1" />
+        </g>
 
-      <g className="region-decor" aria-hidden="true">
-        {art.regions.map((region) => (
-          <RegionDecor
-            key={region.id}
-            prefix={prefix}
-            region={region}
-            capital={(board.regions[region.id]?.capitalOf ?? null) !== null}
-            contested={contested === region.id}
-          />
-        ))}
-      </g>
+        <g className="regions">
+          {art.regions.map((region) => {
+            const state = board.regions[region.id];
+            if (!state) return null;
+            const owner = state.owner;
+            const canPick = choosable.has(region.id);
+            const label = t('match.board.region', {
+              name: region.name,
+              owner: owner === null ? t('match.board.free') : name(owner),
+              value: state.value,
+            });
+            const capitalOf = state.capitalOf;
+            const lives = capitalOf === null ? 0 : (board.seats[capitalOf]?.capitalLivesLeft ?? 0);
+            const classes = [
+              'board-region',
+              owner === null ? 'free' : `seat-${owner}`,
+              canPick ? 'legal' : '',
+              contested === region.id ? 'contested' : '',
+              capitalOf !== null ? 'capital' : '',
+            ]
+              .filter(Boolean)
+              .join(' ');
+            return (
+              <g
+                key={region.id}
+                className={classes}
+                data-region={region.id}
+                {...(canPick
+                  ? {
+                      role: 'button',
+                      tabIndex: 0,
+                      'aria-label': region.name,
+                      onClick: () => onPick(region.id),
+                      onKeyDown: (event: KeyboardEvent) => onKey(event, region.id),
+                      onPointerEnter: () => setHot(region.id),
+                      onPointerLeave: () => setHot((h) => (h === region.id ? null : h)),
+                      onFocus: () => setHot(region.id),
+                      onBlur: () => setHot((h) => (h === region.id ? null : h)),
+                    }
+                  : { role: 'img', 'aria-label': label })}
+              >
+                <title>
+                  {capitalOf !== null
+                    ? `${label} · ${t('match.board.capital')} · ${tp('match.board.lives', lives)}`
+                    : label}
+                </title>
+                <path d={region.d} className="land" />
+                {owner !== null ? (
+                  <g key={`wash-${owner}`} className={`wash${settled ? ' ink-in' : ''}`}>
+                    <path d={region.d} className="wash-fill" />
+                    <path
+                      d={region.d}
+                      className="wash-pattern"
+                      fill={`url(#${prefix}-pattern-${owner})`}
+                    />
+                    <path
+                      d={region.d}
+                      className="wash-edge"
+                      clipPath={`url(#${prefix}-clip-${region.id})`}
+                    />
+                  </g>
+                ) : null}
+                {canPick ? <path d={region.d} className="legal-glow" /> : null}
+              </g>
+            );
+          })}
+        </g>
 
-      {/* Rand, Pfeil und Siegel über den Motiven, aber unter Namen und Münzen: Wo es eng wird,
-          bleibt der Name lesbar */}
-      {contestedArt ? (
-        <Contested
-          prefix={prefix}
-          region={contestedArt}
-          arrow={arrow}
-          attacker={attacker}
-          settled={settled}
-          size={s}
-          scale={arrowScale(narrow)}
-        />
-      ) : null}
+        <g className="region-borders" aria-hidden="true">
+          {art.regions.map((region) => (
+            <path key={region.id} d={region.d} />
+          ))}
+        </g>
+        {art.river ? (
+          <g className="river" aria-hidden="true">
+            <path d={art.river} className="river-bank" />
+            <path d={art.river} className="river-water" />
+          </g>
+        ) : null}
+        <path d={art.coast} className="coastline" aria-hidden="true" />
 
-      <g className="region-art" aria-hidden="true">
-        {art.regions.map((region) => {
-          const state = board.regions[region.id];
-          if (!state) return null;
-          return (
-            <RegionArt
+        <g className="region-decor" aria-hidden="true">
+          {art.regions.map((region) => (
+            <RegionDecor
               key={region.id}
               prefix={prefix}
               region={region}
-              owner={state.owner}
-              value={state.value}
-              capitalOf={state.capitalOf}
-              lives={
-                state.capitalOf === null ? 0 : (board.seats[state.capitalOf]?.capitalLivesLeft ?? 0)
-              }
-              maxLives={maxLives}
-              settled={settled}
-              size={s}
+              capital={(board.regions[region.id]?.capitalOf ?? null) !== null}
+              contested={contested === region.id}
             />
-          );
-        })}
-      </g>
-
-      <g className="board-overlay" aria-hidden="true">
-        {art.regions
-          .filter((region) => choosable.has(region.id))
-          .map((region) => (
-            <path key={region.id} d={region.d} className="legal-ring" />
           ))}
-        {hotArt ? <path d={hotArt.d} className="hot-ring" /> : null}
-      </g>
+        </g>
 
-      <Compass art={art} />
-      <Cartouche art={art} title={map.name} />
-    </svg>
+        {/* Rand, Pfeil und Siegel über den Motiven, aber unter Namen und Münzen: Wo es eng wird,
+            bleibt der Name lesbar */}
+        {contestedArt ? (
+          <Contested
+            prefix={prefix}
+            region={contestedArt}
+            arrow={arrow}
+            attacker={attacker}
+            settled={settled}
+            size={s}
+            scale={arrowScale(narrow)}
+          />
+        ) : null}
+
+        <g className="region-art" aria-hidden="true">
+          {art.regions.map((region) => {
+            const state = board.regions[region.id];
+            if (!state) return null;
+            return (
+              <RegionArt
+                key={region.id}
+                prefix={prefix}
+                region={region}
+                owner={state.owner}
+                value={state.value}
+                capitalOf={state.capitalOf}
+                lives={
+                  state.capitalOf === null
+                    ? 0
+                    : (board.seats[state.capitalOf]?.capitalLivesLeft ?? 0)
+                }
+                maxLives={maxLives}
+                settled={settled}
+                size={s}
+              />
+            );
+          })}
+        </g>
+
+        <g className="board-overlay" aria-hidden="true">
+          {art.regions
+            .filter((region) => choosable.has(region.id))
+            .map((region) => (
+              <path key={region.id} d={region.d} className="legal-ring" />
+            ))}
+          {hotArt ? <path d={hotArt.d} className="hot-ring" /> : null}
+          {spotArt ? (
+            <path
+              key={spotArt.id}
+              d={spotArt.d}
+              className={`spot-ring${settled ? ' draw' : ''}`}
+              style={{ ['--spot' as string]: `var(--seat-${spotOwner ?? 0})` }}
+            />
+          ) : null}
+        </g>
+
+        <Compass art={art} />
+        <Cartouche art={art} title={map.name} />
+      </svg>
+    </div>
   );
 }
 

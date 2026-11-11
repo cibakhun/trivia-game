@@ -69,8 +69,9 @@ export const matchEventPayloadSchemas = {
     rulesPreset: matchRulesPresetSchema,
     seats: z.number().int().min(2).max(3).nullable(),
   }),
-  PLAYER_JOINED: z.object({ joinOrder }),
-  PLAYER_LEFT: z.object({ joinOrder }),
+  /** `bot` nennt die Stärke, wenn der Gastgeber einen Bot auf den Platz setzt oder entfernt. */
+  PLAYER_JOINED: z.object({ joinOrder, bot: matchBotStrengthSchema.nullable().optional() }),
+  PLAYER_LEFT: z.object({ joinOrder, bot: matchBotStrengthSchema.nullable().optional() }),
   MATCH_STARTED: z.object({
     seats: z.number().int().min(2).max(3),
     players: z.array(z.object({ seat, joinOrder, bot: matchBotStrengthSchema.nullable() })),

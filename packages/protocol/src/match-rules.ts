@@ -7,8 +7,11 @@ import { SECOND_MS } from './rules-config.ts';
  * ganzzahlige Millisekunden.
  */
 
-/** Feste Karten der Partie; heute gibt es eine. */
-export const MATCH_MAP_IDS = ['WENDELMARK'] as const;
+/**
+ * Feste Karten der Partie. Welche gespielt wird, richtet sich nach der Spielerzahl
+ * (`MATCH_MAP_BY_SEATS`, ADR-052).
+ */
+export const MATCH_MAP_IDS = ['WENDELMARK', 'KERNMARK'] as const;
 export const matchMapIdSchema = z.enum(MATCH_MAP_IDS);
 export type MatchMapId = z.infer<typeof matchMapIdSchema>;
 
@@ -18,13 +21,20 @@ const timerMs = z
   .min(SECOND_MS)
   .max(10 * 60 * SECOND_MS);
 
+/** Kurze Pause der Ansage; 0 schaltet sie ab. */
+const pauseMs = z
+  .number()
+  .int()
+  .min(0)
+  .max(30 * SECOND_MS);
+
 export const matchRulesSchema = z
   .object({
     schemaVersion: z.literal(1),
     map: matchMapIdSchema,
     /**
-     * Plätze je Partie; die Wendelmark trägt zwei oder drei Reiche. Normale Partien spielen nur
-     * Menschen, in Testpartien füllen Bots freie Plätze (PO 2026-11-10, ADR-048).
+     * Plätze je Partie: zwei (Kernmark) oder drei (Wendelmark). Freie Plätze kann der Gastgeber
+     * mit Bots füllen (ADR-052).
      */
     seats: z.union([z.literal(2), z.literal(3)]),
     capital: z
@@ -66,6 +76,16 @@ export const matchRulesSchema = z
         pickMs: timerMs,
         /** Anzeige der Auflösung nach jeder Frage. */
         revealMs: timerMs,
+        /**
+         * Ansage eines Duells (ADR-053): So lange zeigt die Karte, wer wen wo angreift, bevor die
+         * Frage kommt. Fehlt in Partien, die vor ADR-053 gestartet wurden; dann gibt es keine.
+         */
+        announceMs: pauseMs.optional(),
+        /**
+         * So lange bleibt eine Wahl stehen, bevor ein anderer Sitz wählt oder die Schätzfrage der
+         * Landnahme kommt (ADR-053). Wählt derselbe Mensch gleich noch einmal, entfällt die Pause.
+         */
+        pickShowMs: pauseMs.optional(),
         /** `cap` aus QUIZ_ENGINE §6.2. */
         latencyAllowanceCapMs: z
           .number()
@@ -118,7 +138,9 @@ export const DEFAULT_MATCH_RULES: MatchRules = Object.freeze({
     triviaMs: 15 * SECOND_MS,
     estimateMs: 20 * SECOND_MS,
     pickMs: 10 * SECOND_MS,
-    revealMs: 5 * SECOND_MS,
+    revealMs: 6 * SECOND_MS,
+    announceMs: 2500,
+    pickShowMs: 1200,
     latencyAllowanceCapMs: 500,
   },
 });
@@ -127,15 +149,29 @@ export const MATCH_SEAT_COUNTS = [2, 3] as const;
 export type MatchSeatCount = (typeof MATCH_SEAT_COUNTS)[number];
 
 /**
- * Landnahme-Wahlen je Spielerzahl [E]: zu dritt 2, 1, 0; zu zweit 2, 1 (auf der Wendelmark sieben
- * volle Runden und eine achte mit der letzten Region).
+ * Landnahme-Wahlen je Spielerzahl [E]: zu dritt 2, 1, 0 (Wendelmark: sieben Runden); zu zweit 2, 1
+ * (Kernmark: vier volle Runden und eine fünfte mit den letzten beiden Regionen).
  */
 export const LAND_GRAB_PICKS_BY_SEATS: Readonly<Record<MatchSeatCount, readonly number[]>> =
   Object.freeze({ 2: [2, 1], 3: [2, 1, 0] });
 
-/** Regeln für eine Partie mit `seats` Spielern: Spielerzahl und Landnahme-Wahlen ersetzt. */
+/**
+ * Karte je Spielerzahl [E] (ADR-052): acht Regionen je Reich. Zu dritt die ganze Wendelmark
+ * (24 Regionen), zu zweit ihr Kernland (16 Regionen).
+ */
+export const MATCH_MAP_BY_SEATS: Readonly<Record<MatchSeatCount, MatchMapId>> = Object.freeze({
+  2: 'KERNMARK',
+  3: 'WENDELMARK',
+});
+
+/** Regeln für eine Partie mit `seats` Spielern: Spielerzahl, Karte und Landnahme-Wahlen ersetzt. */
 export function matchRulesForSeats(rules: MatchRules, seats: MatchSeatCount): MatchRules {
-  return { ...rules, seats, landGrab: { picksByPlace: [...LAND_GRAB_PICKS_BY_SEATS[seats]] } };
+  return {
+    ...rules,
+    seats,
+    map: MATCH_MAP_BY_SEATS[seats],
+    landGrab: { picksByPlace: [...LAND_GRAB_PICKS_BY_SEATS[seats]] },
+  };
 }
 
 /** Verkürzte Zeiten für Tests und schnelle Spieltests; Regeln sonst gleich. */
@@ -146,6 +182,8 @@ export const PLAYTEST_MATCH_RULES: MatchRules = Object.freeze({
     estimateMs: 10 * SECOND_MS,
     pickMs: 5 * SECOND_MS,
     revealMs: 2 * SECOND_MS,
+    announceMs: 600,
+    pickShowMs: 300,
     latencyAllowanceCapMs: 500,
   },
 });

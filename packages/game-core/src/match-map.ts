@@ -4,7 +4,8 @@ import { areNeighbors, hexDistance, type Axial } from './hex.ts';
 /**
  * Feste Karten der rundenbasierten Partie (docs/MATCH_RULES.md §2). Jede Region ist ein Hexfeld
  * (axial, pointy-top wie in hex.ts); benachbart sind Regionen, deren Felder sich berühren. Namen
- * und Form sind eigene Erfindungen.
+ * und Form sind eigene Erfindungen. Welche Karte gespielt wird, bestimmt die Spielerzahl
+ * (`MATCH_MAP_BY_SEATS` im Protokoll).
  */
 
 export interface MatchMapRegion {
@@ -61,15 +62,26 @@ function buildMap(
   });
 }
 
-export const WENDELMARK: MatchMap = buildMap(
-  'WENDELMARK',
-  'Wendelmark',
-  WENDELMARK_ROWS.flatMap(({ r, qFrom, names }) =>
-    names.map((regionName, i) => ({ name: regionName, cell: { q: qFrom + i, r } })),
-  ),
+const WENDELMARK_CELLS = WENDELMARK_ROWS.flatMap(({ r, qFrom, names }) =>
+  names.map((regionName, i) => ({ name: regionName, cell: { q: qFrom + i, r } })),
 );
 
-const MAPS: Readonly<Record<MatchMapId, MatchMap>> = Object.freeze({ WENDELMARK });
+export const WENDELMARK: MatchMap = buildMap('WENDELMARK', 'Wendelmark', WENDELMARK_CELLS);
+
+/**
+ * Kernmark: das Herzland der Wendelmark für Partien zu zweit (ADR-052), ihre drei mittleren Reihen
+ * (5, 6, 5) mit denselben Namen, also 16 Felder und wie zu dritt acht je Reich. Die Form sind zwei
+ * Ringe aus je sieben Feldern nebeneinander (um Hagelstein und Lindenhof) mit zwei Feldern
+ * dazwischen: Beide Reiche finden eine gleich gute Hauptstadt. Zwei Hauptstädte plus 14 Regionen
+ * ergeben bei 2 + 1 Wahlen vier volle Landnahmerunden und eine fünfte mit den letzten beiden.
+ */
+export const KERNMARK: MatchMap = buildMap(
+  'KERNMARK',
+  'Kernmark',
+  WENDELMARK_CELLS.filter(({ cell }) => Math.abs(cell.r) <= 1),
+);
+
+const MAPS: Readonly<Record<MatchMapId, MatchMap>> = Object.freeze({ WENDELMARK, KERNMARK });
 
 export function matchMap(id: MatchMapId): MatchMap {
   return MAPS[id];

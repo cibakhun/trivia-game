@@ -14,6 +14,7 @@ import {
   currentChooser,
   drawSeatOrder,
   freeRegions,
+  KERNMARK,
   MATCH_BOT_PROFILES,
   MATCH_BOT_STRENGTHS,
   legalRegions,
@@ -25,6 +26,7 @@ import {
   regionDistance,
   regionNeighbors,
   stepTimeLimitMs,
+  turnOrder,
   WENDELMARK,
   type MatchEstimateAnswer,
   type MatchEvent,
@@ -45,6 +47,12 @@ const OTTERBRUCH = 16;
 const SALZWEIDE = 19;
 const TANNENRUH = 20; // unten links, Hauptstadt von Sitz 2
 const UFERLAND = 21;
+
+// Kernmark-IDs für die Partie zu zweit (Reihen 5, 6, 5: die drei mittleren der Wendelmark)
+const K_HAGELSTEIN = 6; // Mitte des linken Rings, Hauptstadt von Sitz 0
+const K_LINDENHOF = 9; // Mitte des rechten Rings, Hauptstadt von Sitz 1
+const K_MUEHLBACH = 10;
+const K_SALZWEIDE = 15;
 
 function seededRng(i: number) {
   const seed = new Uint8Array(16);
@@ -261,7 +269,7 @@ describe('Landnahme', () => {
         ],
       },
     ]);
-    expect(state.step).toEqual({ kind: 'LAND_PICK', round: 1, queue: [2, 2, 1] });
+    expect(state.step).toEqual({ kind: 'LAND_PICK', round: 1, queue: [2, 2, 1], picked: [] });
     expect(state.questions).toBe(1);
     expect(currentChooser(state)).toBe(2);
     expect(stepTimeLimitMs(state)).toBe(10_000);
@@ -280,7 +288,12 @@ describe('Landnahme', () => {
     expect(claimed.events).toEqual([
       { kind: 'REGION_CLAIMED', round: 1, seat: 2, region: UFERLAND },
     ]);
-    expect(claimed.state.step).toEqual({ kind: 'LAND_PICK', round: 1, queue: [2, 1] });
+    expect(claimed.state.step).toEqual({
+      kind: 'LAND_PICK',
+      round: 1,
+      queue: [2, 1],
+      picked: [2],
+    });
   });
 
   it('verpasste Antworten zählen als unendlich, völliger Gleichstand folgt der Rundenreihenfolge', () => {
@@ -642,19 +655,21 @@ describe('Partie zu zweit', () => {
   const TWO = matchRulesForSeats(DEFAULT_MATCH_RULES, 2);
 
   function withTwoCapitals(): MatchState {
-    const state = play(createMatch(TWO), { kind: 'PICK_CAPITAL', seat: 0, region: ESCHENHAIN });
-    return play(state.state, { kind: 'PICK_CAPITAL', seat: 1, region: MUEHLBACH }).state;
+    const state = play(createMatch(TWO), { kind: 'PICK_CAPITAL', seat: 0, region: K_HAGELSTEIN });
+    return play(state.state, { kind: 'PICK_CAPITAL', seat: 1, region: K_LINDENHOF }).state;
   }
 
-  it('beginnt nach der zweiten Hauptstadt die Landnahme mit 22 freien Regionen', () => {
+  it('spielt auf der Kernmark: 16 Regionen, nach den Hauptstädten sind 14 frei', () => {
+    expect(TWO.map).toBe('KERNMARK');
+    expect(createMatch(TWO).regions).toHaveLength(16);
     const state = withTwoCapitals();
     expect(state.seats).toHaveLength(2);
     expect(state.step).toEqual({ kind: 'LAND_ESTIMATE', round: 1 });
     expect(pendingQuestion(state)).toEqual({ type: 'ESTIMATE', seats: [0, 1] });
-    expect(freeRegions(state)).toHaveLength(22);
+    expect(freeRegions(state)).toHaveLength(14);
   });
 
-  it('der Erste wählt zwei Regionen, der Zweite eine; die achte Runde vergibt die letzte', () => {
+  it('der Erste wählt zwei Regionen, der Zweite eine; die fünfte Runde vergibt die letzten beiden', () => {
     const first = play(withTwoCapitals(), {
       kind: 'LAND_ESTIMATES',
       answers: [
@@ -672,17 +687,23 @@ describe('Partie zu zweit', () => {
         ],
       },
     ]);
-    expect(first.state.step).toEqual({ kind: 'LAND_PICK', round: 1, queue: [1, 1, 0] });
+    expect(first.state.step).toEqual({
+      kind: 'LAND_PICK',
+      round: 1,
+      queue: [1, 1, 0],
+      picked: [],
+    });
 
     const { state, events } = finishLandGrab(withTwoCapitals());
-    expect(events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(8);
-    expect(events.filter((e) => e.kind === 'REGION_CLAIMED')).toHaveLength(22);
-    // Runde 8 beginnt bei Sitz 1; er liegt vorn und bekommt die letzte Region
-    expect(events.filter((e) => e.kind === 'REGION_CLAIMED' && e.round === 8)).toEqual([
-      { kind: 'REGION_CLAIMED', round: 8, seat: 1, region: expect.any(Number) as number },
+    expect(events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(5);
+    expect(events.filter((e) => e.kind === 'REGION_CLAIMED')).toHaveLength(14);
+    // Runde 5 beginnt bei Sitz 0; er liegt vorn und bekommt die letzten beiden Regionen
+    expect(events.filter((e) => e.kind === 'REGION_CLAIMED' && e.round === 5)).toEqual([
+      { kind: 'REGION_CLAIMED', round: 5, seat: 0, region: expect.any(Number) as number },
+      { kind: 'REGION_CLAIMED', round: 5, seat: 0, region: expect.any(Number) as number },
     ]);
     expect(freeRegions(state)).toEqual([]);
-    expect(state.questions).toBe(8);
+    expect(state.questions).toBe(5);
     expect(state.step).toEqual({ kind: 'CAMPAIGN_TARGET', round: 1, attacker: 0, queue: [1] });
   });
 
@@ -696,28 +717,28 @@ describe('Partie zu zweit', () => {
     expect(attackers).toEqual([0, 1, 1, 0, 0, 1, 1, 0]);
     expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' });
     expect(state.duels).toBe(8);
-    expect(state.questions).toBe(16);
+    expect(state.questions).toBe(13);
     expect(matchStandings(state).map((s) => s.place)).toHaveLength(2);
   });
 
   it('nimmt der Angreifer das letzte Leben, endet die Partie sofort', () => {
     const base = createMatch(TWO);
-    const seatOne = new Set([MUEHLBACH, FUCHSMOOR, SALZWEIDE]);
+    const seatOne = new Set([K_LINDENHOF, K_MUEHLBACH, K_SALZWEIDE]);
     const start: MatchState = {
       ...base,
       regions: base.regions.map((r, id) => ({
         ...r,
         owner: seatOne.has(id) ? 1 : 0,
-        capitalOf: id === ESCHENHAIN ? 0 : id === MUEHLBACH ? 1 : null,
-        value: id === ESCHENHAIN || id === MUEHLBACH ? 300 : 100,
+        capitalOf: id === K_HAGELSTEIN ? 0 : id === K_LINDENHOF ? 1 : null,
+        value: id === K_HAGELSTEIN || id === K_LINDENHOF ? 300 : 100,
       })),
       seats: [
-        { ...(base.seats[0] as MatchState['seats'][number]), capital: ESCHENHAIN },
-        { ...(base.seats[1] as MatchState['seats'][number]), capital: MUEHLBACH, capitalHits: 2 },
+        { ...(base.seats[0] as MatchState['seats'][number]), capital: K_HAGELSTEIN },
+        { ...(base.seats[1] as MatchState['seats'][number]), capital: K_LINDENHOF, capitalHits: 2 },
       ],
       step: { kind: 'CAMPAIGN_TARGET', round: 2, attacker: 0, queue: [] },
     };
-    const { state, events } = duel(start, MUEHLBACH, true, false);
+    const { state, events } = duel(start, K_LINDENHOF, true, false);
     expect(events.map((e) => e.kind)).toEqual([
       'DUEL_RESOLVED',
       'KINGDOM_ELIMINATED',
@@ -725,9 +746,165 @@ describe('Partie zu zweit', () => {
     ]);
     expect(state.step).toEqual({ kind: 'FINISHED', reason: 'LAST_KINGDOM' });
     expect(matchStandings(state)).toMatchObject([
-      // Eschenhain und die eroberte Mühlbach je 300, dazu 22 gewöhnliche Regionen
-      { seat: 0, place: 1, points: 2 * 300 + 22 * 100, eliminated: false },
+      // Hagelstein und die eroberte Lindenhof je 300, dazu 14 gewöhnliche Regionen
+      { seat: 0, place: 1, points: 2 * 300 + 14 * 100, eliminated: false },
       { seat: 1, place: 2, points: 0, eliminated: true },
     ]);
+  });
+});
+
+describe('Kernmark', () => {
+  it('ist das Herzland der Wendelmark: 16 Felder in drei Reihen mit denselben Namen', () => {
+    expect(KERNMARK.id).toBe('KERNMARK');
+    expect(KERNMARK.regions).toHaveLength(16);
+    expect(KERNMARK.regions.map((r) => r.id)).toEqual(Array.from({ length: 16 }, (_, i) => i));
+    const rows = [-1, 0, 1].map((r) => KERNMARK.regions.filter((x) => x.cell.r === r).length);
+    expect(rows).toEqual([5, 6, 5]);
+    const big = new Map(WENDELMARK.regions.map((r) => [r.name, r.cell]));
+    for (const region of KERNMARK.regions) expect(big.get(region.name)).toEqual(region.cell);
+    expect(KERNMARK.regions[K_HAGELSTEIN]?.name).toBe('Hagelstein');
+    expect(KERNMARK.regions[K_LINDENHOF]?.name).toBe('Lindenhof');
+  });
+
+  it('ist zusammenhängend und punktsymmetrisch, mit zwei gleich guten Hauptstadtplätzen', () => {
+    const seen = new Set([0]);
+    const queue = [0];
+    while (queue.length > 0) {
+      for (const n of regionNeighbors(KERNMARK, queue.shift() as number)) {
+        if (!seen.has(n)) {
+          seen.add(n);
+          queue.push(n);
+        }
+      }
+    }
+    expect(seen.size).toBe(16);
+    // Spiegelung an der Kartenmitte bildet jede Region auf eine Region ab: (q, r) → (−1 − q, −r)
+    const cells = new Set(KERNMARK.regions.map((r) => `${r.cell.q},${r.cell.r}`));
+    for (const { cell } of KERNMARK.regions) {
+      expect(cells.has(`${-1 - cell.q},${-cell.r}`)).toBe(true);
+    }
+    // Hagelstein und Lindenhof: je sechs Nachbarn, drei Felder auseinander, Spiegelbilder
+    expect(regionNeighbors(KERNMARK, K_HAGELSTEIN)).toHaveLength(6);
+    expect(regionNeighbors(KERNMARK, K_LINDENHOF)).toHaveLength(6);
+    expect(regionDistance(KERNMARK, K_HAGELSTEIN, K_LINDENHOF)).toBe(3);
+    const a = KERNMARK.regions[K_HAGELSTEIN]?.cell;
+    const b = KERNMARK.regions[K_LINDENHOF]?.cell;
+    expect((a?.q ?? 0) + (b?.q ?? 0)).toBe(-1);
+    expect((a?.r ?? 0) + (b?.r ?? 0)).toBe(0);
+  });
+});
+
+describe('Zugfolge', () => {
+  it('Hauptstädte: alle Sitze in Zugreihenfolge', () => {
+    let state = createMatch(DEFAULT_MATCH_RULES);
+    expect(turnOrder(state)).toEqual([
+      { seat: 0, status: 'NOW' },
+      { seat: 1, status: 'NEXT' },
+      { seat: 2, status: 'NEXT' },
+    ]);
+    state = play(state, { kind: 'PICK_CAPITAL', seat: 0, region: ESCHENHAIN }).state;
+    expect(turnOrder(state)).toEqual([
+      { seat: 0, status: 'DONE' },
+      { seat: 1, status: 'NOW' },
+      { seat: 2, status: 'NEXT' },
+    ]);
+  });
+
+  it('Landnahme: erst schätzen alle zugleich, dann je Wahl ein Eintrag in Reihenfolge der Rangfolge', () => {
+    // Runde 2 beginnt bei Sitz 1
+    let state = finishRound(withCapitals());
+    expect(turnOrder(state)).toEqual([
+      { seat: 1, status: 'NOW' },
+      { seat: 2, status: 'NOW' },
+      { seat: 0, status: 'NOW' },
+    ]);
+    state = play(state, {
+      kind: 'LAND_ESTIMATES',
+      answers: [
+        { seat: 0, ...est('1', 1000) },
+        { seat: 1, ...est('9', 1000) },
+        { seat: 2, ...est('4', 1000) },
+      ],
+    }).state;
+    expect(turnOrder(state)).toEqual([
+      { seat: 0, status: 'NOW' },
+      { seat: 0, status: 'NEXT' },
+      { seat: 2, status: 'NEXT' },
+    ]);
+    state = play(state, {
+      kind: 'PICK_REGION',
+      seat: 0,
+      region: legalRegions(state)[0] as number,
+    }).state;
+    expect(turnOrder(state)).toEqual([
+      { seat: 0, status: 'DONE' },
+      { seat: 0, status: 'NOW' },
+      { seat: 2, status: 'NEXT' },
+    ]);
+    state = play(state, {
+      kind: 'PICK_REGION',
+      seat: 0,
+      region: legalRegions(state)[0] as number,
+    }).state;
+    expect(turnOrder(state)).toEqual([
+      { seat: 0, status: 'DONE' },
+      { seat: 0, status: 'DONE' },
+      { seat: 2, status: 'NOW' },
+    ]);
+  });
+
+  it('kommt mit Zuständen ohne gespeicherte Wahlen zurecht (vor ADR-052 gespeichert)', () => {
+    const state: MatchState = {
+      ...withCapitals(),
+      step: { kind: 'LAND_PICK', round: 1, queue: [2, 1] },
+    };
+    expect(turnOrder(state)).toEqual([
+      { seat: 2, status: 'NOW' },
+      { seat: 1, status: 'NEXT' },
+    ]);
+    const next = play(state, {
+      kind: 'PICK_REGION',
+      seat: 2,
+      region: legalRegions(state)[0] as number,
+    }).state;
+    expect(turnOrder(next)).toEqual([
+      { seat: 2, status: 'DONE' },
+      { seat: 1, status: 'NOW' },
+    ]);
+  });
+
+  it('Feldzug: die Angreifer der Runde, auch während des Duells; Ausgeschiedene entfallen', () => {
+    // Runde 2 beginnt bei Sitz 1; Sitz 1 hat schon angegriffen, Sitz 2 ist dran
+    const state = campaignState({
+      step: { kind: 'CAMPAIGN_TARGET', round: 2, attacker: 2, queue: [0] },
+    });
+    expect(turnOrder(state)).toEqual([
+      { seat: 1, status: 'DONE' },
+      { seat: 2, status: 'NOW' },
+      { seat: 0, status: 'NEXT' },
+    ]);
+    const target = play(state, {
+      kind: 'PICK_TARGET',
+      seat: 2,
+      region: legalRegions(state)[0] as number,
+    }).state;
+    expect(target.step.kind).toBe('DUEL_TRIVIA');
+    expect(turnOrder(target)).toEqual(turnOrder(state));
+
+    const seats = state.seats.map((s, seat) =>
+      seat === 1 ? { ...s, eliminatedInDuel: 1, eliminatedBy: 0 } : s,
+    );
+    expect(turnOrder({ ...state, seats })).toEqual([
+      { seat: 2, status: 'NOW' },
+      { seat: 0, status: 'NEXT' },
+    ]);
+  });
+
+  it('ist nach dem Ende leer', () => {
+    const state: MatchState = {
+      ...campaignState(),
+      step: { kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' },
+    };
+    expect(turnOrder(state)).toEqual([]);
   });
 });

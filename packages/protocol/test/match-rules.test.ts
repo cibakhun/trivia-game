@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_MATCH_RULES,
+  MATCH_MAP_BY_SEATS,
   matchRulesForSeats,
   matchRulesSchema,
   PLAYTEST_MATCH_RULES,
@@ -29,8 +30,28 @@ describe('Regeln der Partie', () => {
       triviaMs: 15 * SECOND_MS,
       estimateMs: 20 * SECOND_MS,
       pickMs: 10 * SECOND_MS,
-      revealMs: 5 * SECOND_MS,
+      revealMs: 6 * SECOND_MS,
+      announceMs: 2500,
+      pickShowMs: 1200,
     });
+  });
+
+  it('Ansage und gezeigte Wahl sind in alten Regeln nicht vorhanden und bleiben gültig', () => {
+    const { announceMs, pickShowMs, ...oldTimers } = DEFAULT_MATCH_RULES.timers;
+    expect(announceMs).toBeGreaterThan(0);
+    expect(pickShowMs).toBeGreaterThan(0);
+    const old = matchRulesSchema.parse({ ...DEFAULT_MATCH_RULES, timers: oldTimers });
+    expect(old.timers.announceMs).toBeUndefined();
+    expect(old.timers.pickShowMs).toBeUndefined();
+    // Auch der Spieltest zeigt Wahl und Ansage, nur kürzer
+    expect(PLAYTEST_MATCH_RULES.timers.announceMs).toBeLessThan(announceMs ?? 0);
+    expect(PLAYTEST_MATCH_RULES.timers.pickShowMs).toBeLessThan(pickShowMs ?? 0);
+    expect(
+      matchRulesSchema.safeParse({
+        ...DEFAULT_MATCH_RULES,
+        timers: { ...DEFAULT_MATCH_RULES.timers, announceMs: 60 * SECOND_MS },
+      }).success,
+    ).toBe(false);
   });
 
   it('Spieltest ändert nur die Zeiten', () => {
@@ -39,13 +60,21 @@ describe('Regeln der Partie', () => {
     );
   });
 
-  it('passt Spielerzahl und Landnahme für zwei Spieler an', () => {
+  it('passt Spielerzahl, Karte und Landnahme für zwei Spieler an', () => {
     const two = matchRulesForSeats(DEFAULT_MATCH_RULES, 2);
     expect(matchRulesSchema.parse(two)).toEqual(two);
     expect(two.seats).toBe(2);
+    expect(two.map).toBe('KERNMARK');
     expect(two.landGrab.picksByPlace).toEqual([2, 1]);
-    expect({ ...two, seats: 3, landGrab: DEFAULT_MATCH_RULES.landGrab }).toEqual(
-      DEFAULT_MATCH_RULES,
+    expect({
+      ...two,
+      seats: 3,
+      map: 'WENDELMARK',
+      landGrab: DEFAULT_MATCH_RULES.landGrab,
+    }).toEqual(DEFAULT_MATCH_RULES);
+    expect(MATCH_MAP_BY_SEATS).toEqual({ 2: 'KERNMARK', 3: 'WENDELMARK' });
+    expect(matchRulesSchema.safeParse({ ...DEFAULT_MATCH_RULES, map: 'ANDERSWO' }).success).toBe(
+      false,
     );
     expect(matchRulesForSeats(two, 3)).toEqual(DEFAULT_MATCH_RULES);
     expect(matchRulesSchema.safeParse({ ...DEFAULT_MATCH_RULES, seats: 4 }).success).toBe(false);

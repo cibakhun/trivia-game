@@ -3,7 +3,12 @@ import { parseMatchEvent, type ParsedMatchEvent } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import { arrowScale, attackArrow, attackSource, regionMarks } from '../src/art/attack.ts';
 import { mapArt } from '../src/art/map-art.ts';
-import { momentsBetween, type MomentSnapshot } from '../src/match/moments.ts';
+import {
+  enqueueMoments,
+  momentsBetween,
+  pruneMoments,
+  type MomentSnapshot,
+} from '../src/match/moments.ts';
 
 /** Große Momente als Band und Angriffspfeil im Duell (Gestaltung, ADR-051). */
 
@@ -96,6 +101,48 @@ describe('Große Momente', () => {
         4,
       ).map((m) => m.title),
     ).toEqual(['Du bist dran!']);
+  });
+});
+
+describe('Warteschlange der Bänder', () => {
+  const turn = (lastSeq: number) =>
+    momentsBetween(null, snap({ state: 'pick', lastSeq }), [], name, 4)[0]!;
+  const campaign = momentsBetween(
+    snap({ kind: 'LAND_PICK', round: 7 }),
+    snap({ state: 'announce', kind: 'CAMPAIGN_TARGET', round: 1 }),
+    [],
+    name,
+    4,
+  )[0]!;
+  const fallen = momentsBetween(
+    snap({ lastSeq: 8 }),
+    snap({ lastSeq: 10 }),
+    [eliminated(9, 1, 0)],
+    name,
+    4,
+  )[0]!;
+
+  it('„Du bist dran“ verfällt, sobald die eigene Wahl vorbei ist', () => {
+    const queue = [turn(30), campaign];
+    expect(pruneMoments(queue, 'pick')).toBe(queue);
+    // Die Ansage zeigt schon die Wahl eines anderen: Das Band wäre dort falsch
+    expect(pruneMoments(queue, 'announce')).toEqual([campaign]);
+    expect(pruneMoments(queue, 'waiting-pick')).toEqual([campaign]);
+    expect(pruneMoments(queue, 'reveal')).toEqual([campaign]);
+    // Verfällt nichts, bleibt es dieselbe Liste: Das laufende Band startet nicht neu
+    const calm = [campaign];
+    expect(pruneMoments(calm, 'announce')).toBe(calm);
+  });
+
+  it('während einer Frage bleibt nur ein gefallenes Reich', () => {
+    expect(pruneMoments([turn(30), campaign, fallen], 'question')).toEqual([fallen]);
+  });
+
+  it('ein zweites „Du bist dran“ stellt sich nicht hinter das erste', () => {
+    const first = [turn(30)];
+    expect(enqueueMoments(first, [turn(31)])).toBe(first);
+    expect(enqueueMoments(first, [campaign])).toEqual([turn(30), campaign]);
+    expect(enqueueMoments([], [turn(31)])).toEqual([turn(31)]);
   });
 });
 

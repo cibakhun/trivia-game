@@ -1,4 +1,4 @@
-import { areNeighbors, WENDELMARK } from '@rdw/game-core';
+import { areNeighbors, KERNMARK, WENDELMARK } from '@rdw/game-core';
 import { describe, expect, it } from 'vitest';
 import { mapArt, pointInPolygon } from '../src/art/map-art.ts';
 import { TERRAINS, terrainOf } from '../src/art/terrain.ts';
@@ -72,6 +72,30 @@ describe('Karte der Partie (Landkarte)', () => {
 
   it('ist deterministisch: gleiche Karte, gleiches Bild', () => {
     expect(mapArt(WENDELMARK)).toEqual(art);
+  });
+
+  it('zeichnet auch die Kernmark für zwei Spieler: gleiche Regeln, flachere Insel', () => {
+    const small = mapArt(KERNMARK);
+    const shapes = small.regions.map((r) => pointsOf(r.d));
+    expect(small.regions.map((r) => r.name)).toEqual(KERNMARK.regions.map((r) => r.name));
+    for (const a of KERNMARK.regions) {
+      for (const b of KERNMARK.regions) {
+        if (a.id >= b.id) continue;
+        const pa = new Set((shapes[a.id] ?? []).map(key));
+        const shared = (shapes[b.id] ?? []).filter((p) => pa.has(key(p))).length;
+        if (areNeighbors(a.cell, b.cell)) expect(shared).toBeGreaterThanOrEqual(5);
+        else expect(shared).toBe(0);
+      }
+    }
+    small.regions.forEach((region, i) => {
+      expect(pointInPolygon({ x: region.cx, y: region.cy }, shapes[i] ?? [])).toBe(true);
+    });
+    // Drei statt fünf Reihen: gleich breit, deutlich niedriger
+    expect(Math.abs(small.width - art.width)).toBeLessThan(art.size);
+    expect(small.height).toBeLessThan(art.height * 0.75);
+    // Dieselbe Region sieht auf beiden Karten gleich aus (gleiche Landschaft)
+    const big = new Map(art.regions.map((r) => [r.name, r.terrain]));
+    for (const region of small.regions) expect(big.get(region.name)).toBe(region.terrain);
   });
 
   it('kennt für jede Region eine Landschaft, auch für neue Namen', () => {

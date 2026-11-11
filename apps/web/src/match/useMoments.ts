@@ -2,7 +2,14 @@ import type { MatchView, ParsedMatchEvent } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
 import { rulesOf, type MatchScreenState } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
-import { isCalm, momentsBetween, type Moment, type MomentSnapshot } from './moments.ts';
+import {
+  enqueueMoments,
+  isCalm,
+  momentsBetween,
+  pruneMoments,
+  type Moment,
+  type MomentSnapshot,
+} from './moments.ts';
 
 /** Wie lange ein Band steht; die CSS-Animation `banner` ist genauso lang. */
 export const MOMENT_MS = 1500;
@@ -10,6 +17,7 @@ export const MOMENT_MS = 1500;
 /**
  * Warteschlange der großen Momente: Jeder Moment steht `MOMENT_MS` lang, danach der nächste.
  * Während einer Frage wird nichts gezeigt (ARCHITECTURE §15); Ankündigungen verfallen dann.
+ * „Du bist dran“ verfällt, sobald die eigene Wahl vorbei ist.
  */
 export function useMoments(
   view: MatchView | null,
@@ -43,7 +51,7 @@ export function useMoments(
     );
     if (moments.length === 0) return;
     for (const m of moments) shown.current.add(m.key);
-    setQueue((q) => [...q, ...moments]);
+    setQueue((q) => enqueueMoments(q, moments));
     // Nur bei neuem Stand vergleichen; Namen und Ereignisliste ändern sich mit ihm
   }, [lastSeq, state, step?.kind, step?.round, view?.board !== undefined]);
 
@@ -53,9 +61,9 @@ export function useMoments(
     return () => clearTimeout(timer);
   }, [queue, state]);
 
-  // Eine Frage beginnt: Ankündigungen sind dann überholt, ein gefallenes Reich wird nachgeholt
+  // Eine Frage beginnt oder die eigene Wahl ist vorbei: Überholte Bänder verfallen
   useEffect(() => {
-    if (state === 'question') setQueue((q) => q.filter((m) => m.tone === 'seat'));
+    setQueue((q) => pruneMoments(q, state));
   }, [state]);
 
   return state === 'question' ? null : (queue[0] ?? null);

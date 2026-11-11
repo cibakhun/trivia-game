@@ -54,6 +54,8 @@ export type MatchScreenState =
   | 'lobby'
   | 'pick'
   | 'waiting-pick'
+  /** Ansage (ADR-053): Die Karte zeigt die Wahl eines Bots oder den Angriff vor der Frage. */
+  | 'announce'
   | 'presenting'
   | 'question'
   | 'answered'
@@ -96,6 +98,8 @@ export function screenStateOf(
       return view.legalRegions.length > 0 ? 'pick' : 'waiting-pick';
     case 'REVEAL':
       return 'reveal';
+    case 'ANNOUNCE':
+      return 'announce';
     case 'QUESTION': {
       const question = view.question;
       if (!question) return 'presenting';
@@ -120,6 +124,35 @@ export function lastOf<T extends ParsedMatchEvent['type']>(
     if (event?.type === type) return event as Extract<ParsedMatchEvent, { type: T }>;
   }
   return null;
+}
+
+/** Wahl, die eine Ansage gerade zeigt: das jüngste Ereignis, sofern es eine Wahl war. */
+export type ShownPick = MatchEventOf<'CAPITAL_CHOSEN'> | MatchEventOf<'REGION_CLAIMED'>;
+
+export function shownPick(events: readonly ParsedMatchEvent[]): ShownPick | null {
+  const last = events.at(-1);
+  return last?.type === 'CAPITAL_CHOSEN' || last?.type === 'REGION_CLAIMED' ? last : null;
+}
+
+/** Duell, das die Karte hervorhebt: Angreifer und umkämpfte Region. */
+export interface DuelFocus {
+  readonly attacker: number;
+  readonly region: number;
+}
+
+/**
+ * Das laufende Duell aus dem Schritt; in der Auflösung das eben entschiedene, damit der Pfeil
+ * stehen bleibt, bis es weitergeht.
+ */
+export function duelFocus(view: MatchView, reveal: Reveal | null): DuelFocus | null {
+  const step = view.board?.step;
+  if (step && step.attacker !== null && step.region !== null) {
+    return { attacker: step.attacker, region: step.region };
+  }
+  const resolved = reveal?.outcome.find(
+    (o): o is MatchEventOf<'DUEL_RESOLVED'> => o.type === 'DUEL_RESOLVED',
+  );
+  return resolved ? { attacker: resolved.payload.attacker, region: resolved.payload.region } : null;
 }
 
 /** Ereignisse, die auf die Auflösung einer Frage folgen, bis zur nächsten Frage. */

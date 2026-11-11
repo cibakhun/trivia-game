@@ -5,6 +5,7 @@ import {
   legalRegions,
   matchPoints,
   regionsOf,
+  turnOrder,
   type MatchState,
 } from '@rdw/game-core';
 import type {
@@ -20,7 +21,13 @@ import type { MatchContext } from './context.ts';
 import { advanceMatch, isMatchDue } from './driver.ts';
 import { botName } from './engine.ts';
 import { rulesOfPreset } from './lobby.ts';
-import { lastEventSeq, loadMatch, loadPlayers, type MatchRow } from './store.ts';
+import {
+  lastEventSeq,
+  loadMatch,
+  loadPlayers,
+  type MatchPlayerRow,
+  type MatchRow,
+} from './store.ts';
 
 /**
  * Ansicht einer Partie für einen Teilnehmer (API.md §2.6). Vor der Auflösung einer Frage steht
@@ -83,9 +90,28 @@ export function boardView(state: MatchState): MatchBoard {
       regions: regionsOf(state, seat).length,
     })),
     step: stepView(state),
+    turns: turnOrder(state),
     questions: state.questions,
     duels: state.duels,
   };
+}
+
+/**
+ * Namen der Bots: „Bot (mittel)“; spielen zwei gleich starke mit, bekommen sie Nummern, damit man
+ * sie in Zugfolge und Verlauf unterscheiden kann.
+ */
+function botNames(players: readonly MatchPlayerRow[]): Map<number, string> {
+  const names = new Map<number, string>();
+  const bots = players.filter((p) => p.botStrength !== null);
+  for (const bot of bots) {
+    if (bot.botStrength === null) continue;
+    const same = bots.filter((other) => other.botStrength === bot.botStrength);
+    names.set(
+      bot.joinOrder,
+      botName(bot.botStrength, same.length > 1 ? same.indexOf(bot) + 1 : undefined),
+    );
+  }
+  return names;
 }
 
 async function questionInfo(
@@ -148,6 +174,7 @@ export async function matchView(
     .where('user_id', 'in', userIds)
     .execute();
   const names = new Map(profiles.map((p) => [p.user_id, p.display_name]));
+  const bots = botNames(players);
   const events = await db
     .selectFrom('match_events')
     .select(['seq', 'type', 'payload', 'at'])
@@ -181,6 +208,8 @@ export async function matchView(
         estimateMs: timers.estimateMs,
         pickMs: timers.pickMs,
         revealMs: timers.revealMs,
+        announceMs: timers.announceMs ?? 0,
+        pickShowMs: timers.pickShowMs ?? 0,
       },
       createdAt: match.createdAt.toISOString(),
       startedAt: match.startedAt?.toISOString() ?? null,
@@ -190,9 +219,9 @@ export async function matchView(
       joinOrder: p.joinOrder,
       seat: p.seat,
       name:
-        p.botStrength !== null
-          ? botName(p.botStrength)
-          : ((p.userId !== null ? names.get(p.userId) : undefined) ?? `Spieler ${p.joinOrder + 1}`),
+        bots.get(p.joinOrder) ??
+        (p.userId !== null ? names.get(p.userId) : undefined) ??
+        `Spieler ${p.joinOrder + 1}`,
       isBot: p.botStrength !== null,
       botStrength: p.botStrength,
       isHost: p.userId === match.hostUserId,

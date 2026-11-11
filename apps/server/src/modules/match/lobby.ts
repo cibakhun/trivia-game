@@ -26,19 +26,27 @@ import {
   loadPlayers,
   openMatchOf,
   saveMatch,
+  type MatchPlayerRow,
   type MatchRow,
 } from './store.ts';
 
 /**
  * Aufstellung einer Partie (MATCH_RULES §3.1, API.md §2.6): anlegen, mit dem Einladungscode
- * beitreten, verlassen, starten. Jedes Konto ist höchstens in einer offenen Partie; Aufstellungen
- * verfallen nach `LOBBY_TTL_MS`.
+ * beitreten, freie Plätze mit Bots besetzen, verlassen, starten. Jedes Konto ist höchstens in
+ * einer offenen Partie; Aufstellungen verfallen nach `LOBBY_TTL_MS`.
  */
 
 /** Eine Aufstellung, die so lange nicht gestartet wurde, verfällt [E]. */
 export const LOBBY_TTL_MS = 2 * HOUR_MS;
 /** Plätze einer normalen Partie höchstens (MATCH_RULES §8). */
 const MAX_SEATS = 3;
+const JOIN_ORDERS = [0, 1, 2] as const;
+
+/** Freie Plätze der Aufstellung, aufsteigend. */
+function freeJoinOrders(players: readonly MatchPlayerRow[], capacity: number): number[] {
+  const used = new Set(players.map((p) => p.joinOrder));
+  return JOIN_ORDERS.filter((n) => n < capacity && !used.has(n));
+}
 const INVITE_CODE_LENGTH = 6;
 const INVITE_CODE_ATTEMPTS = 10;
 
@@ -145,16 +153,90 @@ export async function joinLobby(
   const players = await loadPlayers(tx, match.id);
   if (players.some((p) => p.userId === userId)) return { matchId: match.id }; // schon dabei
   const capacity = match.kind === 'TEST' ? (match.testSeats ?? MAX_SEATS) : MAX_SEATS;
-  const used = new Set(players.map((p) => p.joinOrder));
-  const joinOrder = [0, 1, 2].find((n) => n < capacity && !used.has(n));
+  const events: { type: string; payload: Record<string, unknown> }[] = [];
+  let joinOrder = freeJoinOrders(players, capacity)[0];
   if (joinOrder === undefined) {
-    throw new ApiError(409, 'MATCH_FULL', 'Die Partie ist voll', { seats: capacity });
+    // Menschen gehen vor: Ist kein Platz frei, weicht der Bot auf dem hintersten Platz (ADR-052)
+    const bot = players.findLast((p) => p.botStrength !== null);
+    if (!bot) throw new ApiError(409, 'MATCH_FULL', 'Die Partie ist voll', { seats: capacity });
+    await tx
+      .deleteFrom('match_players')
+      .where('match_id', '=', match.id)
+      .where('join_order', '=', bot.joinOrder)
+      .execute();
+    events.push({
+      type: 'PLAYER_LEFT',
+      payload: { joinOrder: bot.joinOrder, bot: bot.botStrength },
+    });
+    joinOrder = bot.joinOrder;
   }
   await tx
     .insertInto('match_players')
     .values({ match_id: match.id, join_order: joinOrder, user_id: userId })
     .execute();
-  await appendMatchEvents(tx, match.id, [{ type: 'PLAYER_JOINED', payload: { joinOrder } }]);
+  events.push({ type: 'PLAYER_JOINED', payload: { joinOrder } });
+  await appendMatchEvents(tx, match.id, events);
+  return { matchId: match.id };
+}
+
+/**
+ * Der Gastgeber setzt in der Aufstellung einer normalen Partie einen Bot auf einen freien Platz,
+ * ändert dessen Stärke oder macht den Platz mit `strength: null` wieder frei (ADR-052). Plätze
+ * von Menschen bleiben unberührt; in Testpartien füllen Bots die Plätze beim Start von selbst.
+ */
+export async function setSeatBot(
+  tx: Tx,
+  params: {
+    readonly userId: string;
+    readonly matchId: string;
+    readonly joinOrder: number;
+    readonly strength: MatchBotStrengthCode | null;
+  },
+): Promise<{ matchId: string }> {
+  const { joinOrder, strength } = params;
+  const match = await loadMatch(tx, params.matchId, { lock: 'UPDATE' });
+  const players = match ? await loadPlayers(tx, params.matchId) : [];
+  if (!match || !players.some((p) => p.userId === params.userId)) {
+    throw new ApiError(404, 'NOT_FOUND', 'Partie nicht gefunden');
+  }
+  if (match.hostUserId !== params.userId) {
+    throw new ApiError(403, 'NOT_HOST', 'Nur der Gastgeber besetzt Plätze mit Bots');
+  }
+  if (match.status !== 'LOBBY') {
+    throw new ApiError(409, 'MATCH_NOT_IN_LOBBY', 'Die Partie hat schon begonnen', {
+      status: match.status,
+    });
+  }
+  const current = players.find((p) => p.joinOrder === joinOrder);
+  if (match.kind !== 'STANDARD' || joinOrder >= MAX_SEATS || (current && current.userId !== null)) {
+    throw new ApiError(
+      409,
+      'SEAT_NOT_AVAILABLE',
+      'Dieser Platz lässt sich nicht mit einem Bot besetzen',
+      {
+        joinOrder,
+      },
+    );
+  }
+  if ((current?.botStrength ?? null) === strength) return { matchId: match.id }; // schon so
+  if (current) {
+    await tx
+      .deleteFrom('match_players')
+      .where('match_id', '=', match.id)
+      .where('join_order', '=', joinOrder)
+      .execute();
+  }
+  if (strength !== null) {
+    await tx
+      .insertInto('match_players')
+      .values({ match_id: match.id, join_order: joinOrder, bot_strength: strength })
+      .execute();
+  }
+  await appendMatchEvents(tx, match.id, [
+    strength !== null
+      ? { type: 'PLAYER_JOINED', payload: { joinOrder, bot: strength } }
+      : { type: 'PLAYER_LEFT', payload: { joinOrder, bot: current?.botStrength ?? null } },
+  ]);
   return { matchId: match.id };
 }
 
@@ -200,8 +282,10 @@ async function closeLobby(tx: Tx, match: MatchRow, now: Date, reason: string): P
 }
 
 /**
- * Start durch den Gastgeber: Bots füllen in Testpartien die freien Plätze, die Zugreihenfolge
- * wird gelost (Strom `match`, `{match_id}.seats`), dann beginnt die Wahl der ersten Hauptstadt.
+ * Start durch den Gastgeber: In Testpartien füllen Bots die freien Plätze, in normalen spielen die
+ * Bots mit, die der Gastgeber gesetzt hat (ADR-052). Die Spielerzahl bestimmt Karte und
+ * Landnahme (`matchRulesForSeats`), die Zugreihenfolge wird gelost (Strom `match`,
+ * `{match_id}.seats`), dann beginnt die Wahl der ersten Hauptstadt.
  */
 export async function startLobby(
   tx: Tx,
@@ -209,7 +293,8 @@ export async function startLobby(
   params: { readonly userId: string; readonly matchId: string },
 ): Promise<{ matchId: string }> {
   const match = await loadMatch(tx, params.matchId, { lock: 'UPDATE' });
-  const humans = match ? await loadPlayers(tx, params.matchId) : [];
+  const joined = match ? await loadPlayers(tx, params.matchId) : [];
+  const humans = joined.filter((p) => p.userId !== null);
   if (!match || !humans.some((p) => p.userId === params.userId)) {
     throw new ApiError(404, 'NOT_FOUND', 'Partie nicht gefunden');
   }
@@ -222,7 +307,8 @@ export async function startLobby(
     });
   }
   let seats: 2 | 3;
-  let bots: MatchBotStrengthCode[] = [];
+  // Bots, die erst der Start auf freie Plätze setzt (Testpartie)
+  let bots: { joinOrder: number; strength: MatchBotStrengthCode }[] = [];
   if (match.kind === 'TEST') {
     if (!ctx.testMatchesEnabled) {
       throw new ApiError(403, 'TEST_MATCHES_DISABLED', 'Testpartien gibt es hier nicht');
@@ -231,14 +317,19 @@ export async function startLobby(
       throw new Error('Testpartie ohne Plätze');
     }
     seats = match.testSeats;
-    bots = match.testBotStrengths.slice(0, seats - humans.length);
+    const free = freeJoinOrders(joined, MAX_SEATS);
+    bots = match.testBotStrengths.slice(0, seats - joined.length).flatMap((strength, i) => {
+      const joinOrder = free[i];
+      return joinOrder === undefined ? [] : [{ joinOrder, strength }];
+    });
   } else {
-    if (humans.length < 2) {
+    // Mitspieler sind Menschen und die Bots, die der Gastgeber gesetzt hat
+    if (joined.length < 2) {
       throw new ApiError(409, 'NOT_ENOUGH_PLAYERS', 'Eine Partie braucht zwei oder drei Spieler', {
-        players: humans.length,
+        players: joined.length,
       });
     }
-    seats = humans.length === 2 ? 2 : 3;
+    seats = joined.length === 2 ? 2 : 3;
   }
   const now = await readGameNow(tx);
   // Ohne Wissens- und Schätzfragen kann die Partie nicht laufen: lieber gar nicht starten
@@ -260,9 +351,9 @@ export async function startLobby(
     await tx
       .insertInto('match_players')
       .values(
-        bots.map((strength, i) => ({
+        bots.map(({ joinOrder, strength }) => ({
           match_id: match.id,
-          join_order: humans.length + i,
+          join_order: joinOrder,
           bot_strength: strength,
           joined_at: now,
         })),

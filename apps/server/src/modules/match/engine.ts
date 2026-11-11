@@ -47,7 +47,10 @@ import {
  * Zustandsmaschine aus game-core; hier kommen Zeit, Fragen, Bots und Speicherung dazu:
  *
  * - **PICK:** ein Mensch wählt bis zur Frist, sonst wählt der Server zufällig (`autoPickRegion`).
- *   Bots wählen sofort.
+ *   Bots wählen sofort; ihre Wahl bleibt danach kurz stehen (ANNOUNCE).
+ * - **ANNOUNCE:** Ansage ohne Eingabe (ADR-053): Die Karte zeigt, was zuletzt gewählt wurde oder
+ *   wer wen wo angreift; nach der Frist geht es weiter. Vor jedem Duell und nach jeder Wahl, außer
+ *   derselbe Mensch wählt gleich noch einmal.
  * - **QUESTION:** eine Frage an die Sitze des Schritts; aufgelöst wird, sobald alle Menschen
  *   geantwortet haben oder die Frage schließt. Bot-Antworten stehen beim Öffnen fest.
  * - **REVEAL:** die Auflösung bleibt `revealMs` stehen, dann folgt der nächste Schritt.
@@ -80,8 +83,9 @@ const MAX_STEPS_PER_RUN = 200;
 
 const BOT_NAMES = { EASY: 'leicht', MEDIUM: 'mittel', HARD: 'schwer' } as const;
 
-export function botName(strength: keyof typeof BOT_NAMES): string {
-  return `Bot (${BOT_NAMES[strength]})`;
+/** Anzeigename eines Bots; `number` unterscheidet gleich starke Bots einer Partie. */
+export function botName(strength: keyof typeof BOT_NAMES, number?: number): string {
+  return `Bot${number === undefined ? '' : ` ${number}`} (${BOT_NAMES[strength]})`;
 }
 
 export type QuestionPurpose = 'LAND' | 'DUEL_TRIVIA' | 'DUEL_ESTIMATE';
@@ -207,10 +211,31 @@ export class MatchRun {
   }
 
   /**
-   * Beginnt den aktuellen Schritt: Bots wählen sofort, Menschen bekommen eine Frist, Fragen werden
-   * geöffnet. Läuft weiter, solange nichts auf einen Menschen wartet.
+   * Hält die Partie für eine Ansage an (ADR-053); `false`, wenn die Regeln keine vorsehen (Partien
+   * von vor ADR-053 oder Dauer 0).
    */
-  async enterStep(): Promise<void> {
+  private announce(durationMs: number | undefined): boolean {
+    if (durationMs === undefined || durationMs <= 0) return false;
+    this.match.phase = 'ANNOUNCE';
+    this.match.phaseDeadlineAt = new Date(this.now.getTime() + durationMs);
+    return true;
+  }
+
+  /** Dauer der Ansage vor dem aktuellen Schritt: ein Duell wird länger angesagt als eine Wahl. */
+  private announceMsFor(state: MatchState): number | undefined {
+    const { timers } = this.rules;
+    return state.step.kind === 'DUEL_TRIVIA' ? timers.announceMs : timers.pickShowMs;
+  }
+
+  /**
+   * Beginnt den aktuellen Schritt: Bots wählen sofort, Menschen bekommen eine Frist, Fragen werden
+   * geöffnet. Läuft weiter, solange nichts auf einen Menschen oder eine Ansage wartet.
+   *
+   * `picker` ist der Sitz eines Menschen, dessen Wahl (auch die des Servers nach Zeitablauf)
+   * diesem Aufruf unmittelbar vorausging: Sie bleibt als Ansage stehen, bevor ein anderer Sitz
+   * wählt oder eine Frage kommt. Nach einer Ansage oder Auflösung ist `picker` `null`.
+   */
+  async enterStep(picker: number | null = null): Promise<void> {
     for (;;) {
       this.guard();
       const state = this.state;
@@ -224,10 +249,16 @@ export class MatchRun {
         case 'CAMPAIGN_TARGET': {
           const seat = currentChooser(state);
           if (seat === null) throw new Error('Wahl ohne Wählenden');
+          // Wählt derselbe Sitz gleich noch einmal (Landnahme), geht es ohne Pause weiter
+          if (picker !== null && picker !== seat && this.announce(this.rules.timers.pickShowMs)) {
+            return;
+          }
           const player = this.playerAt(seat);
           if (player.botStrength !== null) {
             const { rng } = await this.drawRng('bot');
             this.apply(pickInput(state, seat, chooseRegionForBot(state, rng)));
+            // Die Wahl bleibt stehen, damit alle sie sehen; ein Angriff wird angesagt
+            if (this.announce(this.announceMsFor(this.state))) return;
             continue;
           }
           this.match.phase = 'PICK';
@@ -239,6 +270,8 @@ export class MatchRun {
         case 'LAND_ESTIMATE':
         case 'DUEL_TRIVIA':
         case 'DUEL_ESTIMATE': {
+          // Nach der Wahl eines Menschen kommt die Frage nicht sofort: erst die Ansage
+          if (picker !== null && this.announce(this.announceMsFor(state))) return;
           const opened = await this.openQuestion();
           if (opened === 'WAITING') return;
           if (opened === 'ABANDONED') return;
@@ -580,13 +613,14 @@ export class MatchRun {
             rng: { purpose: 'match', entityId, keyId: this.ctx.rngKeyId, version: RNG_VERSION },
           });
           this.apply(pickInput(this.state, seat, region));
-          await this.enterStep();
+          await this.enterStep(seat);
           break;
         }
         case 'QUESTION':
           await this.resolveQuestion();
           break;
         case 'REVEAL':
+        case 'ANNOUNCE':
           await this.enterStep();
           break;
         case null:
@@ -611,7 +645,7 @@ export class MatchRun {
       throw new ApiError(409, 'NOT_YOUR_TURN', 'Ein anderer Sitz ist dran');
     }
     this.apply(pickInput(this.state, seat, region));
-    await this.enterStep();
+    await this.enterStep(seat);
   }
 
   /** Alle Menschen der laufenden Frage haben geantwortet: sofort auflösen. */
@@ -641,7 +675,8 @@ export class MatchRun {
     this.match.phase = null;
     this.match.phaseDeadlineAt = null;
     this.match.finishedAt = this.now;
-    if (this.match.kind !== 'STANDARD') return; // Testpartien zählen nicht (ADR-048)
+    // Testpartien zählen nicht (ADR-048), Partien mit Bots auch nicht (ADR-052) [E]
+    if (this.match.kind !== 'STANDARD' || this.players.some((p) => p.userId === null)) return;
     const finished = this.state.step;
     if (finished.kind !== 'FINISHED') throw new Error('Partie ist nicht beendet');
     const winners = new Set(

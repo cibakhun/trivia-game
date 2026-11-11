@@ -1,18 +1,14 @@
-import { WENDELMARK } from '@rdw/game-core';
-import {
-  matchViewSchema,
-  parseMatchEvent,
-  type MatchPresentedQuestion,
-  type MatchView,
-  type ParsedMatchEvent,
-} from '@rdw/protocol';
+import { KERNMARK, WENDELMARK } from '@rdw/game-core';
+import type { MatchPresentedQuestion, MatchView } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
+  duelFocus,
   lastOf,
   needsPresent,
   pollDelay,
   revealFor,
   screenStateOf,
+  shownPick,
   type LocalQuestion,
 } from '../src/match/match-model.ts';
 import {
@@ -25,102 +21,9 @@ import {
   seatNames,
   stepLabel,
 } from '../src/match/match-text.ts';
+import { AT, ID, event, viewOf } from './match-fixtures.ts';
 
 /** Partie im Browser (M4): Kartengeometrie, Zustand des Bildschirms, Auflösung und Texte. */
-
-const ID = '0190c2a0-0000-7000-8000-000000000001';
-const AT = '2026-11-10T20:00:00.000Z';
-
-type Step = MatchView['board'] extends infer B ? (B extends { step: infer S } ? S : never) : never;
-
-function step(partial: Partial<Step>): Step {
-  return {
-    kind: 'CAPITAL_PICK',
-    round: null,
-    chooser: null,
-    attacker: null,
-    defender: null,
-    region: null,
-    finishReason: null,
-    ...partial,
-  };
-}
-
-/** Ansicht einer laufenden Testpartie zu dritt; geprüft gegen das Schema des Protokolls. */
-function viewOf(overrides: Partial<MatchView> = {}, boardStep: Partial<Step> = {}): MatchView {
-  return matchViewSchema.parse({
-    match: {
-      id: ID,
-      kind: 'TEST',
-      status: 'RUNNING',
-      inviteCode: null,
-      rulesPreset: 'PLAYTEST',
-      seats: 3,
-      timers: { triviaMs: 8000, estimateMs: 10000, pickMs: 5000, revealMs: 2000 },
-      createdAt: AT,
-      startedAt: AT,
-      finishedAt: null,
-    },
-    players: [
-      {
-        joinOrder: 0,
-        seat: 1,
-        name: 'Anna',
-        isBot: false,
-        botStrength: null,
-        isHost: true,
-        isMe: true,
-      },
-      {
-        joinOrder: 1,
-        seat: 0,
-        name: 'Bot (leicht)',
-        isBot: true,
-        botStrength: 'EASY',
-        isHost: false,
-        isMe: false,
-      },
-      {
-        joinOrder: 2,
-        seat: 2,
-        name: 'Bot (schwer)',
-        isBot: true,
-        botStrength: 'HARD',
-        isHost: false,
-        isMe: false,
-      },
-    ],
-    mySeat: 1,
-    isHost: true,
-    board: {
-      map: 'WENDELMARK',
-      regions: WENDELMARK.regions.map(() => ({
-        owner: null,
-        value: 100,
-        capitalOf: null,
-        fortifications: 0,
-      })),
-      seats: [0, 1, 2].map((seat) => ({
-        seat,
-        capital: null,
-        capitalLivesLeft: 3,
-        eliminated: false,
-        points: 0,
-        regions: 0,
-      })),
-      step: step({ chooser: 1, ...boardStep }),
-      questions: 0,
-      duels: 0,
-    },
-    phase: { kind: 'PICK', deadline: AT, remainingMs: 5000 },
-    legalRegions: [0, 5],
-    question: null,
-    events: [],
-    lastEventSeq: 3,
-    serverTime: AT,
-    ...overrides,
-  });
-}
 
 function questionInfo(
   myStatus: NonNullable<MatchView['question']>['myStatus'],
@@ -151,12 +54,6 @@ const presented: MatchPresentedQuestion = {
 
 function local(status: LocalQuestion['status'], seq = 4): LocalQuestion {
   return { seq, question: presented, shownAt: 0, deadline: 10500, reloaded: false, status };
-}
-
-function event(seq: number, type: string, payload: Record<string, unknown>): ParsedMatchEvent {
-  const parsed = parseMatchEvent({ seq, type, payload, at: AT });
-  if (!parsed) throw new Error(`Ereignis ${type} passt nicht zum Schema`);
-  return parsed;
 }
 
 describe('Zustand des Bildschirms', () => {
@@ -200,6 +97,79 @@ describe('Zustand des Bildschirms', () => {
     });
     expect(needsPresent(watching, null)).toBe(false);
     expect(screenStateOf(watching, null)).toBe('spectating');
+  });
+
+  it('Ansage: nichts zu tun, gezeigt wird die letzte Wahl', () => {
+    const phase = { kind: 'ANNOUNCE' as const, deadline: AT, remainingMs: 1200 };
+    const shown = viewOf({ phase, legalRegions: [] });
+    expect(screenStateOf(shown, null)).toBe('announce');
+    expect(needsPresent(shown, null)).toBe(false);
+    expect(pollDelay(shown)).toBe(750);
+    // Eine alte Frage bleibt in der Ansicht stehen und ändert daran nichts
+    const after = viewOf({
+      phase,
+      legalRegions: [],
+      question: { ...questionInfo('ANSWERED'), resolved: true } as MatchView['question'],
+    });
+    expect(screenStateOf(after, local('ANSWERED'))).toBe('announce');
+
+    const capital = event(4, 'CAPITAL_CHOSEN', { seat: 0, region: 7 });
+    const claimed = event(13, 'REGION_CLAIMED', { round: 1, seat: 2, region: 3 });
+    const target = event(14, 'TARGET_CHOSEN', { round: 1, attacker: 2, defender: 1, region: 9 });
+    expect(shownPick([capital, claimed])).toBe(claimed);
+    expect(shownPick([claimed, capital])?.payload).toMatchObject({ seat: 0, region: 7 });
+    // Ein Angriffsziel ist keine gezeigte Wahl: Dafür gibt es die Ansage des Duells
+    expect(shownPick([claimed, target])).toBeNull();
+    expect(shownPick([])).toBeNull();
+  });
+
+  it('Duell im Blick der Karte: aus dem Schritt, in der Auflösung aus dem Ausgang', () => {
+    const duel = viewOf(
+      { legalRegions: [] },
+      { kind: 'DUEL_TRIVIA', round: 1, chooser: null, attacker: 2, defender: 1, region: 9 },
+    );
+    expect(duelFocus(duel, null)).toEqual({ attacker: 2, region: 9 });
+    expect(duelFocus(viewOf(), null)).toBeNull();
+    // Nach dem Duell steht der Schritt schon beim nächsten Angreifer ohne Ziel: Bis es weitergeht,
+    // bleibt das eben entschiedene Duell auf der Karte
+    const events = [
+      event(20, 'QUESTION_OPENED', {
+        seq: 5,
+        kind: 'TRIVIA',
+        purpose: 'DUEL_TRIVIA',
+        seats: [2, 1],
+        timeLimitMs: 8000,
+        closesAt: AT,
+      }),
+      event(21, 'QUESTION_RESOLVED', {
+        seq: 5,
+        kind: 'TRIVIA',
+        prompt: 'Welche Farbe hat der Himmel?',
+        options: [{ token: 'a', text: 'Blau' }],
+        solution: { optionToken: 'a', text: 'Blau' },
+        explanation: null,
+        answers: [],
+      }),
+      event(22, 'DUEL_RESOLVED', {
+        round: 1,
+        duel: 1,
+        attacker: 2,
+        defender: 1,
+        region: 9,
+        winner: 'ATTACKER',
+        reason: 'TRIVIA',
+        effect: 'CONQUERED',
+        capitalLivesLeft: null,
+        regionValue: 100,
+      }),
+    ];
+    const next = viewOf(
+      { legalRegions: [] },
+      { kind: 'CAMPAIGN_TARGET', round: 1, chooser: 0, attacker: 0 },
+    );
+    expect(duelFocus(next, revealFor(events, 5))).toEqual({ attacker: 2, region: 9 });
+    // Ohne Ausgang (beide richtig, das Stechen folgt) zeigt der Schritt weiter auf das Duell
+    expect(duelFocus(viewOf(), revealFor(events.slice(0, 2), 5))).toBeNull();
   });
 
   it('Auflösung, Ende, Aufstellung und Abbruch', () => {
@@ -317,6 +287,16 @@ describe('Texte der Partie', () => {
   const view = viewOf();
   const name = seatNames(view);
   const region = regionNames(mapOfView(view));
+
+  it('liest die Karte aus der Ansicht: zu zweit die Kernmark, Unbekanntes als Wendelmark', () => {
+    expect(mapOfView(view)).toBe(WENDELMARK);
+    const board = view.board;
+    if (!board) throw new Error('Brett fehlt');
+    const small = { ...board, map: 'KERNMARK', regions: board.regions.slice(0, 16) };
+    expect(mapOfView({ ...view, board: small })).toBe(KERNMARK);
+    expect(regionNames(mapOfView({ ...view, board: small }))(0)).toBe('Ackerbrunn');
+    expect(mapOfView({ ...view, board: { ...board, map: 'ANDERSWO' } })).toBe(WENDELMARK);
+  });
 
   it('nennt Sitze, Regionen und Abschnitte', () => {
     expect(name(1)).toBe('Anna (du)');
