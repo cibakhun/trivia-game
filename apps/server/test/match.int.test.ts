@@ -78,6 +78,13 @@ function joinMatch(human: Human, inviteCode: string) {
   return human.client.post('/matches/join', { headers: key(), payload: { inviteCode } });
 }
 
+function setBot(human: Human, matchId: string, joinOrder: number, strength: string | null) {
+  return human.client.post(`/matches/${matchId}/seats/${joinOrder}/bot`, {
+    headers: key(),
+    payload: { strength },
+  });
+}
+
 function startMatch(human: Human, matchId: string) {
   return human.client.post(`/matches/${matchId}/start`, { headers: key() });
 }
@@ -454,7 +461,15 @@ describe('Partie zu zweit', () => {
     expect((await joinMatch(idle, code)).statusCode).toBe(200);
     const started = await startMatch(active, matchId);
     expect(started.statusCode, started.body).toBe(200);
-    expect((await view(active, matchId)).match.seats).toBe(2);
+    const begun = await view(active, matchId);
+    expect(begun.match.seats).toBe(2);
+    // Zu zweit wird auf der Kernmark gespielt (ADR-052)
+    expect(begun.board?.map).toBe('KERNMARK');
+    expect(begun.board?.regions).toHaveLength(16);
+    expect(begun.board?.turns).toEqual([
+      { seat: 0, status: 'NOW' },
+      { seat: 1, status: 'NEXT' },
+    ]);
 
     // Nicht dran: keine Wahl möglich
     const first = await view(idle, matchId);
@@ -487,6 +502,238 @@ describe('Partie zu zweit', () => {
     expect(winner).toBe(final.mySeat);
     expect(await statistics(active.userId)).toEqual({ matches_played: 1, matches_won: 1 });
     expect(await statistics(idle.userId)).toEqual({ matches_played: 1, matches_won: 0 });
+  });
+});
+
+describe('Bots in der normalen Partie (ADR-052)', () => {
+  it('der Gastgeber setzt, ändert und entfernt Bots; nur auf freie Plätze, nur er, nur vor dem Start', async () => {
+    const host = await newHuman();
+    const matchId = await createMatch(host, { kind: 'STANDARD', rules: 'PLAYTEST' });
+    const code = (await view(host, matchId)).match.inviteCode ?? '';
+
+    const added = await setBot(host, matchId, 1, 'EASY');
+    expect(added.statusCode, added.body).toBe(200);
+    let lobby = await view(host, matchId);
+    expect(lobby.players).toEqual([
+      expect.objectContaining({ joinOrder: 0, isBot: false, isHost: true }),
+      expect.objectContaining({
+        joinOrder: 1,
+        seat: null,
+        isBot: true,
+        botStrength: 'EASY',
+        name: 'Bot (leicht)',
+        isHost: false,
+        isMe: false,
+      }),
+    ]);
+    expect(lobby.events.at(-1)).toMatchObject({
+      type: 'PLAYER_JOINED',
+      payload: { joinOrder: 1, bot: 'EASY' },
+    });
+
+    // Stärke ändern; dieselbe Stärke noch einmal bleibt ohne Wirkung
+    expect((await setBot(host, matchId, 1, 'HARD')).statusCode).toBe(200);
+    const before = (await view(host, matchId)).lastEventSeq;
+    expect((await setBot(host, matchId, 1, 'HARD')).statusCode).toBe(200);
+    lobby = await view(host, matchId);
+    expect(lobby.lastEventSeq).toBe(before);
+    expect(lobby.players[1]).toMatchObject({ botStrength: 'HARD', name: 'Bot (schwer)' });
+
+    // Zwei gleich starke Bots bekommen Nummern
+    expect((await setBot(host, matchId, 2, 'HARD')).statusCode).toBe(200);
+    lobby = await view(host, matchId);
+    expect(lobby.players.map((p) => p.name).slice(1)).toEqual(['Bot 1 (schwer)', 'Bot 2 (schwer)']);
+    const list = matchListResponseSchema.parse((await host.client.get('/matches')).json());
+    expect(list.matches[0]).toMatchObject({ id: matchId, players: 3 });
+
+    // Den eigenen Platz, unbekannte Plätze und unbekannte Stärken gibt es nicht
+    expect(errorOf(await setBot(host, matchId, 0, 'EASY'))).toMatchObject({
+      status: 409,
+      code: 'SEAT_NOT_AVAILABLE',
+    });
+    expect(errorOf(await setBot(host, matchId, 3, 'EASY'))).toMatchObject({
+      status: 400,
+      code: 'VALIDATION_FAILED',
+    });
+    expect(errorOf(await setBot(host, matchId, 1, 'GOTT'))).toMatchObject({
+      status: 400,
+      code: 'VALIDATION_FAILED',
+    });
+
+    // Menschen gehen vor: Ist kein Platz frei, macht der zuletzt gesetzte Bot Platz
+    const friend = await newHuman();
+    expect((await joinMatch(friend, code)).statusCode).toBe(200);
+    lobby = await view(host, matchId);
+    expect(lobby.players.map((p) => [p.joinOrder, p.isBot])).toEqual([
+      [0, false],
+      [1, true],
+      [2, false],
+    ]);
+    expect(lobby.events.slice(-2).map((e) => [e.type, e.payload])).toEqual([
+      ['PLAYER_LEFT', { joinOrder: 2, bot: 'HARD' }],
+      ['PLAYER_JOINED', { joinOrder: 2 }],
+    ]);
+    // Mitspieler setzen keine Bots, und der Platz eines Menschen bleibt seiner
+    expect(errorOf(await setBot(friend, matchId, 1, null))).toMatchObject({
+      status: 403,
+      code: 'NOT_HOST',
+    });
+    expect(errorOf(await setBot(host, matchId, 2, 'EASY'))).toMatchObject({
+      status: 409,
+      code: 'SEAT_NOT_AVAILABLE',
+    });
+    // Fremde sehen die Partie nicht
+    const stranger = await newHuman();
+    expect(errorOf(await setBot(stranger, matchId, 1, null))).toMatchObject({
+      status: 404,
+      code: 'NOT_FOUND',
+    });
+
+    // Entfernen macht den Platz frei; ein freier Platz bleibt frei
+    expect((await setBot(host, matchId, 1, null)).statusCode).toBe(200);
+    expect((await setBot(host, matchId, 1, null)).statusCode).toBe(200);
+    lobby = await view(host, matchId);
+    expect(lobby.players.map((p) => p.joinOrder)).toEqual([0, 2]);
+    expect(lobby.events.at(-1)).toMatchObject({
+      type: 'PLAYER_LEFT',
+      payload: { joinOrder: 1, bot: 'HARD' },
+    });
+    expect(await unreadableEvents(matchId)).toEqual([]);
+
+    // Nach dem Start ist die Aufstellung zu
+    expect((await startMatch(host, matchId)).statusCode).toBe(200);
+    expect(errorOf(await setBot(host, matchId, 1, 'EASY'))).toMatchObject({
+      status: 409,
+      code: 'MATCH_NOT_IN_LOBBY',
+    });
+  });
+
+  it('in einer Testpartie füllen Bots die Plätze von selbst, auch nach einem Abgang in der Mitte', async () => {
+    const host = await newHuman();
+    const matchId = await createMatch(host, {
+      kind: 'TEST',
+      rules: 'PLAYTEST',
+      seats: 3,
+      botStrengths: ['EASY', 'HARD'],
+    });
+    expect(errorOf(await setBot(host, matchId, 1, 'MEDIUM'))).toMatchObject({
+      status: 409,
+      code: 'SEAT_NOT_AVAILABLE',
+    });
+    // Zwei treten bei, der mittlere geht wieder: Platz 1 ist frei, Platz 2 belegt
+    const code = (await view(host, matchId)).match.inviteCode ?? '';
+    const middle = await newHuman();
+    const last = await newHuman();
+    expect((await joinMatch(middle, code)).statusCode).toBe(200);
+    expect((await joinMatch(last, code)).statusCode).toBe(200);
+    const left = await middle.client.post(`/matches/${matchId}/leave`, { headers: key() });
+    expect(left.statusCode, left.body).toBe(200);
+    const started = await startMatch(host, matchId);
+    expect(started.statusCode, started.body).toBe(200);
+    const running = await view(host, matchId);
+    expect(running.players.map((p) => [p.joinOrder, p.botStrength])).toEqual([
+      [0, null],
+      [1, 'EASY'],
+      [2, null],
+    ]);
+  });
+
+  it('allein mit einem Bot: Partie zu zweit auf der Kernmark, zählt nicht in der Statistik', async () => {
+    const human = await newHuman();
+    const matchId = await createMatch(human, { kind: 'STANDARD', rules: 'PLAYTEST' });
+    expect(errorOf(await startMatch(human, matchId))).toMatchObject({
+      status: 409,
+      code: 'NOT_ENOUGH_PLAYERS',
+    });
+    expect((await setBot(human, matchId, 2, 'MEDIUM')).statusCode).toBe(200);
+    const started = await startMatch(human, matchId);
+    expect(started.statusCode, started.body).toBe(200);
+
+    const running = await view(human, matchId);
+    expect(running.match).toMatchObject({ kind: 'STANDARD', status: 'RUNNING', seats: 2 });
+    expect(running.players.map((p) => p.seat).sort()).toEqual([0, 1]);
+    expect(running.board?.map).toBe('KERNMARK');
+    expect(running.board?.regions).toHaveLength(16);
+    expect(running.board?.seats).toHaveLength(2);
+
+    // Die Zugfolge nennt jeden Schritt der Runde; wer wählt, ist als Einziger dran
+    let current = running;
+    for (let i = 0; i < 40 && current.match.status === 'RUNNING'; i++) {
+      const turns = current.board?.turns ?? [];
+      expect(turns.length).toBeGreaterThan(0);
+      if (current.phase?.kind === 'PICK') {
+        expect(turns.filter((turn) => turn.status === 'NOW').map((turn) => turn.seat)).toEqual([
+          current.board?.step.chooser,
+        ]);
+      }
+      if (current.board?.step.kind === 'LAND_ESTIMATE') {
+        expect(turns.map((turn) => turn.status)).toEqual(['NOW', 'NOW']);
+      }
+      if (current.board?.step.kind !== 'CAPITAL_PICK' && current.phase?.kind === 'PICK') break;
+      if (current.phase?.kind === 'PICK' && current.legalRegions.length > 0) {
+        expect((await pick(human, matchId, current.legalRegions[0] ?? -1)).statusCode).toBe(200);
+      } else if (
+        current.phase?.kind === 'QUESTION' &&
+        current.question?.myStatus === 'NOT_PRESENTED'
+      ) {
+        const { seq } = current.question;
+        expect((await present(human, matchId, seq)).statusCode).toBe(200);
+        const sent = await answer(human, matchId, seq, await answerPayload(matchId, seq));
+        expect(sent.statusCode, sent.body).toBe(200);
+      } else {
+        await advanceGameClock(server.database.pool, (current.phase?.remainingMs ?? 0) + 1);
+        await runMatchDriverOnce(server.db, driverContext());
+      }
+      current = await view(human, matchId);
+    }
+    // Erste Wahl der Landnahme: Der Bessere wählt zweimal, dann der andere einmal. Liegt der Bot
+    // vorn, hat er schon gewählt, bevor der Mensch die Karte wieder sieht.
+    expect(current.board?.step).toMatchObject({ kind: 'LAND_PICK', round: 1 });
+    const me = current.mySeat ?? -1;
+    if (current.board?.turns[0]?.seat === me) {
+      expect(current.board.turns).toEqual([
+        { seat: me, status: 'NOW' },
+        { seat: me, status: 'NEXT' },
+        { seat: 1 - me, status: 'NEXT' },
+      ]);
+      expect((await pick(human, matchId, current.legalRegions[0] ?? -1)).statusCode).toBe(200);
+      current = await view(human, matchId);
+      expect(current.board?.turns).toEqual([
+        { seat: me, status: 'DONE' },
+        { seat: me, status: 'NOW' },
+        { seat: 1 - me, status: 'NEXT' },
+      ]);
+    } else {
+      expect(current.board?.turns).toEqual([
+        { seat: 1 - me, status: 'DONE' },
+        { seat: 1 - me, status: 'DONE' },
+        { seat: me, status: 'NOW' },
+      ]);
+    }
+
+    const final = await playToEnd(matchId, [{ human, mode: 'ACTIVE' }]);
+    expect(final.match.status).toBe('FINISHED');
+    expect(final.board?.turns).toEqual([]);
+    const types = await eventTypes(matchId);
+    // 14 freie Regionen: vier volle Landnahmerunden und eine fünfte mit den letzten beiden
+    expect(types.filter((t) => t === 'LAND_RANKED')).toHaveLength(5);
+    expect(types.filter((t) => t === 'REGION_CLAIMED')).toHaveLength(14);
+    expect(await unreadableEvents(matchId)).toEqual([]);
+    // Mit Bots zählt die Partie nicht [E]
+    expect(await statistics(human.userId)).toEqual({ matches_played: 0, matches_won: 0 });
+  });
+
+  it('zu dritt mit einem Menschen und zwei Bots: die ganze Wendelmark', async () => {
+    const human = await newHuman();
+    const matchId = await createMatch(human, { kind: 'STANDARD', rules: 'PLAYTEST' });
+    expect((await setBot(human, matchId, 1, 'EASY')).statusCode).toBe(200);
+    expect((await setBot(human, matchId, 2, 'HARD')).statusCode).toBe(200);
+    expect((await startMatch(human, matchId)).statusCode).toBe(200);
+    const running = await view(human, matchId);
+    expect(running.match.seats).toBe(3);
+    expect(running.board?.map).toBe('WENDELMARK');
+    expect(running.board?.regions).toHaveLength(24);
+    expect(running.board?.turns).toHaveLength(3);
   });
 });
 

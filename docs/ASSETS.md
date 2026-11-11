@@ -24,7 +24,7 @@ Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext;
 
 | Asset | Datei | Herkunft |
 |---|---|---|
-| Landkarte der Wendelmark (Grenzen, Küste, Fluss, Meer, Kompass, Titelschild) | `apps/web/src/art/map-art.ts`, `match/MatchBoard.tsx` | eigenes Verfahren, aus den Feldern der Regeln erzeugt |
+| Landkarten der Wendelmark und der Kernmark (Grenzen, Küste, Fluss, Meer, Kompass, Titelschild) | `apps/web/src/art/map-art.ts`, `match/MatchBoard.tsx` | eigenes Verfahren, aus den Feldern der Regeln erzeugt |
 | Motive Baum, Tanne, Berg, Hügel, Feld, Gras, Schilf, See, Haus, Turm, Wellen, Burg, Schild, Schwerter | `apps/web/src/art/ArtDefs.tsx` | eigene Zeichnungen |
 | Wappenbilder ◆ ● ▲ und Wappenmuster | `apps/web/src/art/ArtDefs.tsx`, `art/SeatCrest.tsx` | eigene Zeichnungen, Grundformen |
 | Spielwappen (Schild, Buch, Krone) | `apps/web/src/art/Emblem.tsx` | eigene Zeichnung |

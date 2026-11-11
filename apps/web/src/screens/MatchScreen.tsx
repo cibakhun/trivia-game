@@ -1,4 +1,4 @@
-import type { MatchAnswerRequest, MatchView } from '@rdw/protocol';
+import type { MatchAnswerRequest, MatchBotStrengthCode, MatchView } from '@rdw/protocol';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActionKey, ApiRequestError, NetworkError, api, newActionKey } from '../api/client.ts';
 import { playSound } from '../audio/sound.ts';
@@ -28,6 +28,7 @@ import {
 import { ResultPanel } from '../match/ResultPanel.tsx';
 import { RevealPanel } from '../match/RevealPanel.tsx';
 import { SeatList } from '../match/SeatList.tsx';
+import { TurnOrder } from '../match/TurnOrder.tsx';
 import type { Moment } from '../match/moments.ts';
 import { useMatchFeed } from '../match/useMatchFeed.ts';
 import { useMatchSounds } from '../match/useMatchSounds.ts';
@@ -159,6 +160,21 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     });
   }
 
+  function setBot(joinOrder: number, strength: MatchBotStrengthCode | null) {
+    void runAction(async () => {
+      const key = lobbyKey.current;
+      try {
+        await api.setSeatBot(matchId, joinOrder, strength, key.for({ joinOrder, strength }));
+        key.settle();
+      } catch (e) {
+        key.settle(e);
+        throw e;
+      } finally {
+        refresh();
+      }
+    });
+  }
+
   function leaveMatch() {
     void runAction(async () => {
       const key = lobbyKey.current;
@@ -246,7 +262,14 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
       {state === 'loading' ? <p>{t('app.loading')}</p> : null}
 
       {view && state === 'lobby' ? (
-        <LobbyPanel view={view} busy={busy} onStart={startMatch} onLeave={leaveMatch} />
+        <LobbyPanel
+          view={view}
+          busy={busy}
+          error={actionError}
+          onStart={startMatch}
+          onLeave={leaveMatch}
+          onSetBot={setBot}
+        />
       ) : null}
 
       {view && state === 'abandoned' ? <AbandonedPanel view={view} events={events} /> : null}
@@ -277,6 +300,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
           </div>
           <div className="match-side">
             <SeatList view={view} name={name} />
+            <TurnOrder view={view} name={name} />
             <MatchBoard
               map={map}
               board={view.board}

@@ -88,7 +88,7 @@ Umsetzung in vier Pull Requests, je Paket einer, in der Reihenfolge PvP, Konto, 
 
 ### Partie – rundenbasiertes Hauptspiel (ADR-046)
 
-Zwei oder drei Menschen auf der festen Karte Wendelmark, Bots nur in Testpartien (ADR-048), gleichzeitige Fragen mit Timern, höchstens etwa 18 Minuten je Partie; Regeln in [MATCH_RULES.md](MATCH_RULES.md). Fünf Pull Requests in dieser Reihenfolge, jeder erst nach dem „merge“ des Product Owners im Hauptzweig; spielbar wird die Partie mit M4.
+Zwei oder drei Spieler auf einer festen Karte je Spielerzahl (Wendelmark zu dritt, Kernmark zu zweit), freie Plätze auf Wunsch mit Bots (seit 2026-11-11, ADR-052; davor Bots nur in Testpartien, ADR-048), gleichzeitige Fragen mit Timern, höchstens etwa 18 Minuten je Partie; Regeln in [MATCH_RULES.md](MATCH_RULES.md). Fünf Pull Requests in dieser Reihenfolge, jeder erst nach dem „merge“ des Product Owners im Hauptzweig; spielbar wird die Partie mit M4.
 
 | Paket | Inhalt | Abnahme |
 |---|---|---|

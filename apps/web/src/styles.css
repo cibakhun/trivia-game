@@ -75,6 +75,12 @@ select:focus-visible {
   width: 100%;
 }
 
+.button-small {
+  min-height: 36px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.9rem;
+}
+
 .link {
   font: inherit;
   background: none;
@@ -1071,6 +1077,8 @@ select:focus-visible {
   margin: 0 auto;
   padding: 1rem 1rem 3rem;
   display: grid;
+  /* Ohne feste Spalte drückt breiter Inhalt (Einladungscode) die Seite über den Bildschirmrand */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
@@ -1111,9 +1119,10 @@ select:focus-visible {
   grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr);
   grid-template-areas:
     'seats seats'
+    'turns turns'
     'board panel'
     'board log';
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
   gap: 1rem 1.25rem;
   align-items: start;
 }
@@ -1124,6 +1133,10 @@ select:focus-visible {
 
 .match-body .seat-list {
   grid-area: seats;
+}
+
+.match-body .turn-order {
+  grid-area: turns;
 }
 
 .match-body .map-art {
@@ -1141,9 +1154,14 @@ select:focus-visible {
   grid-area: log;
 }
 
-/* Abrechnung: Ergebnistabelle bekommt mehr Platz neben der Karte */
+/* Abrechnung: Ergebnistabelle bekommt mehr Platz neben der Karte; die Zugfolge entfällt */
 .match-page[data-state='finished'] .match-body {
   grid-template-columns: minmax(0, 1.25fr) minmax(340px, 1fr);
+  grid-template-areas:
+    'seats seats'
+    'board panel'
+    'board log';
+  grid-template-rows: auto auto 1fr;
 }
 
 /*
@@ -1159,7 +1177,17 @@ select:focus-visible {
 }
 
 @media (max-width: 900px) and (min-height: 500px), (max-width: 560px) {
-  .match-body,
+  .match-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'seats'
+      'turns'
+      'panel'
+      'board'
+      'log';
+    grid-template-rows: none;
+  }
+
   .match-page[data-state='finished'] .match-body {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
@@ -1242,9 +1270,10 @@ select:focus-visible {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'seats'
+      'turns'
       'board'
       'sheet';
-    grid-template-rows: auto minmax(0, 1fr) var(--sheet-min);
+    grid-template-rows: auto auto minmax(0, 1fr) var(--sheet-min);
     gap: 0.5rem;
     align-items: stretch;
   }
@@ -1256,7 +1285,7 @@ select:focus-visible {
 
   /* Das Blatt liegt im Feld von Karte und Leiste, unten bündig; den Spielstand verdeckt es nie */
   .match-page.playing .match-panel {
-    grid-area: 2 / 1 / 4 / 2;
+    grid-area: 3 / 1 / 5 / 2;
     align-self: end;
     position: relative;
     z-index: 4;
@@ -1491,7 +1520,7 @@ select:focus-visible {
   }
 
   .match-page.playing[data-state='question'] .match-panel {
-    grid-row: 1 / 4;
+    grid-row: 1 / 5;
   }
 }
 
@@ -1666,7 +1695,8 @@ select:focus-visible {
 
 .invite-code {
   /* Plättchen bleiben Inline-Blöcke: So bleibt der Text des Codes ohne Umbrüche kopierbar */
-  font-size: 2rem;
+  /* Sechs Plättchen müssen auch auf 320 px in den Kasten passen */
+  font-size: clamp(1.2rem, 7vw, 2rem);
   line-height: 1;
   font-family: var(--font-display);
   font-weight: 800;
@@ -1697,34 +1727,33 @@ select:focus-visible {
   margin-bottom: 0;
 }
 
-/* Plätze als Schilde: belegt mit Anfangsbuchstaben, frei gestrichelt */
+/* Plätze als Zeilen mit Schild: belegt mit Anfangsbuchstaben, frei gestrichelt. Rechts stehen die
+   Knöpfe des Gastgebers (Bot dazu, Stärke, entfernen). */
 .lobby-seats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 0.45rem;
 }
 
-.lobby-seats > ul {
-  display: contents;
-}
-
-.lobby-players li,
-.lobby-free li {
+.lobby-seat {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  padding: 0.5rem 0.65rem;
+  gap: 0.3rem 0.5rem;
+  min-height: 3.25rem;
+  padding: 0.4rem 0.65rem;
   border-radius: var(--radius);
   background: var(--surface-2);
   border: 1px solid var(--border);
 }
 
-.lobby-players li {
+.lobby-seat.taken {
   animation: row-in 0.35s ease-out both;
 }
 
-.lobby-free li {
+.lobby-seat.free {
   background: transparent;
   border-style: dashed;
   color: var(--muted);
@@ -1733,6 +1762,24 @@ select:focus-visible {
 .lobby-name {
   font-weight: 700;
   overflow-wrap: anywhere;
+}
+
+.lobby-add-bot,
+.lobby-bot-controls {
+  margin-left: auto;
+}
+
+.lobby-bot-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.lobby-bot-controls select {
+  min-height: 36px;
+  padding: 0.2rem 0.4rem;
+  font: inherit;
+  font-size: 0.9rem;
 }
 
 .player-shield path {
@@ -1752,6 +1799,154 @@ select:focus-visible {
   fill: none;
   stroke: var(--border-strong);
   stroke-dasharray: 10 8;
+}
+
+/* Zugfolge: eine Zeile fester Höhe mit den Wappen in Reihenfolge; ohne Bewegung */
+.turn-order {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.1rem;
+  min-width: 0;
+}
+
+.turn-order-label {
+  flex: none;
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.turn-order ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.turn-step {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  height: 2.1rem;
+  padding: 0 0.6rem 0 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.turn-step .crest {
+  flex: none;
+}
+
+/* Das kurze „Du“ bleibt ganz lesbar; lange Namen daneben werden gekürzt */
+.turn-step.me {
+  flex-shrink: 0;
+}
+
+/* Pfeil zwischen den Zügen; bei „alle zugleich“ entfällt er */
+.turn-order ol:not(.together) .turn-step + .turn-step {
+  margin-left: 1.1rem;
+  position: relative;
+}
+
+.turn-order ol:not(.together) .turn-step + .turn-step::before {
+  content: '›';
+  position: absolute;
+  left: -0.95rem;
+  top: 50%;
+  transform: translateY(-55%);
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.turn-index {
+  flex: none;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  border: 1px solid var(--border-strong);
+}
+
+.turn-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.turn-step.turn-done {
+  color: var(--muted);
+  background: transparent;
+  border-style: dashed;
+}
+
+.turn-step.turn-done .crest {
+  opacity: 0.55;
+}
+
+.turn-step.turn-done .turn-index {
+  border-color: transparent;
+  font-size: 0.9rem;
+}
+
+.turn-step.turn-now {
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  border-color: var(--primary-edge);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.turn-step.turn-now .turn-index {
+  color: var(--primary-text);
+  border-color: var(--primary-edge);
+  background: rgb(255 255 255 / 0.35);
+}
+
+/* Handy: Die Überschrift entfällt (steht im Band darüber), die Namen brauchen den Platz */
+@media (max-width: 560px) {
+  .turn-order-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .turn-order ol {
+    flex: 1 1 auto;
+  }
+
+  .turn-step {
+    padding: 0 0.5rem 0 0.3rem;
+    font-size: 0.85rem;
+  }
+
+  .turn-order ol:not(.together) .turn-step + .turn-step {
+    margin-left: 0.85rem;
+  }
+
+  .turn-order ol:not(.together) .turn-step + .turn-step::before {
+    left: -0.8rem;
+  }
 }
 
 /* Spielstand: Wappenbanner je Sitz */

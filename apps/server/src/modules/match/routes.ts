@@ -4,6 +4,7 @@ import {
   matchCreateRequestSchema,
   matchJoinRequestSchema,
   matchPickRequestSchema,
+  matchSeatBotRequestSchema,
   type MatchActionResponse,
   type MatchAnswerResponse,
   type MatchListResponse,
@@ -21,12 +22,19 @@ import { requireAuth } from '../identity/auth-hook.ts';
 import { answerMatchQuestion, presentMatchQuestion } from './answers.ts';
 import { matchContextFrom } from './context.ts';
 import { lockMatchFor } from './engine.ts';
-import { createLobby, expireLobbies, joinLobby, leaveLobby, startLobby } from './lobby.ts';
+import {
+  createLobby,
+  expireLobbies,
+  joinLobby,
+  leaveLobby,
+  setSeatBot,
+  startLobby,
+} from './lobby.ts';
 import { listMatches, matchView } from './view.ts';
 
 /**
- * Partie (API.md §2.6): anlegen, beitreten, verlassen, starten, lesen, wählen, Frage abholen,
- * antworten. Zustandsändernde Anfragen außer `present` brauchen einen Idempotency-Key; `present`
+ * Partie (API.md §2.6): anlegen, beitreten, Plätze mit Bots besetzen, verlassen, starten, lesen,
+ * wählen, Frage abholen, antworten. Zustandsändernde Anfragen außer `present` brauchen einen Idempotency-Key; `present`
  * liefert bei Wiederholung dieselbe Frage mit derselben Frist.
  */
 
@@ -34,6 +42,7 @@ const matchParams = z.object({ matchId: entityIdSchema });
 const questionParams = matchParams.extend({
   seq: z.coerce.number().int().min(1).max(10_000),
 });
+const seatParams = matchParams.extend({ joinOrder: z.coerce.number().int().min(0).max(2) });
 const viewQuery = z.object({ after: z.coerce.number().int().min(0).default(0) }).strict();
 
 function send(reply: FastifyReply, outcome: IdempotentOutcome) {
@@ -97,6 +106,32 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
       { userId: auth.userId, key, endpoint: 'POST /matches/:matchId/leave', input: { matchId } },
       async (tx) => {
         await leaveLobby(tx, { userId: auth.userId, matchId });
+        return { status: 200, body: await action(tx, matchId) };
+      },
+    );
+    return send(reply, outcome);
+  });
+
+  app.post('/matches/:matchId/seats/:joinOrder/bot', async (request, reply) => {
+    const auth = requireAuth(request);
+    const { matchId, joinOrder } = parseInput(seatParams, request.params);
+    const body = parseInput(matchSeatBotRequestSchema, request.body);
+    const key = idempotencyKey(request);
+    const outcome = await runIdempotent(
+      ctx.db,
+      {
+        userId: auth.userId,
+        key,
+        endpoint: 'POST /matches/:matchId/seats/:joinOrder/bot',
+        input: { matchId, joinOrder, ...body },
+      },
+      async (tx) => {
+        await setSeatBot(tx, {
+          userId: auth.userId,
+          matchId,
+          joinOrder,
+          strength: body.strength,
+        });
         return { status: 200, body: await action(tx, matchId) };
       },
     );

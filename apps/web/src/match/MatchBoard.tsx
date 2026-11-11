@@ -119,7 +119,7 @@ export function MatchBoard({
       className={`board map-art${narrow ? ' narrow' : ''}`}
       viewBox={narrow ? art.tightViewBox : art.viewBox}
       role="group"
-      aria-label={t('match.board.label')}
+      aria-label={t('match.board.label', { name: map.name })}
       data-testid="match-board"
     >
       <ArtDefs prefix={prefix} />

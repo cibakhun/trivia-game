@@ -19,12 +19,12 @@ import {
   generateNpcEstimate,
   MATCH_BOT_PROFILES,
   MATCH_BOT_STRENGTHS,
+  matchMap,
   matchPhase,
   matchStandings,
   pendingQuestion,
   regionsOf,
   scoreEstimate,
-  WENDELMARK,
   type MatchBotStrength,
   type MatchEstimateAnswer,
   type MatchEvent,
@@ -35,8 +35,8 @@ import {
 } from '../src/index.ts';
 
 /**
- * Simulation von je 1 000 Partien zu dritt und zu zweit mit Bots (Abnahme M1,
- * docs/MATCH_RULES.md §9): Nach jedem Schritt gelten die Invarianten, jede Partie endet, die
+ * Simulation von je 1 000 Partien zu dritt (Wendelmark) und zu zweit (Kernmark) mit Bots (Abnahme
+ * M1, docs/MATCH_RULES.md §9): Nach jedem Schritt gelten die Invarianten, jede Partie endet, die
  * Punkte stimmen, und keine Partie braucht mehr Fragen oder Zeit als geplant. Sitz 0 verpasst
  * Fragen und Wahlen wie ein Mensch, der nicht rechtzeitig antwortet.
  */
@@ -56,12 +56,12 @@ interface Plan {
 const PLANS: readonly Plan[] = [
   // 21 freie Regionen bei 2 + 1 Wahlen: 7 Runden; 4 · 3 = 12 Duelle; unter 18 Minuten
   { rules: DEFAULT_MATCH_RULES, landRounds: 7, maxQuestions: 31, maxDurationMs: 18 * 60_000 },
-  // 22 freie Regionen bei 2 + 1 Wahlen: 7 volle Runden und eine achte; 4 · 2 = 8 Duelle
+  // Kernmark, 14 freie Regionen bei 2 + 1 Wahlen: 4 volle Runden und eine fünfte; 4 · 2 = 8 Duelle
   {
     rules: matchRulesForSeats(DEFAULT_MATCH_RULES, 2),
-    landRounds: 8,
-    maxQuestions: 24,
-    maxDurationMs: 15 * 60_000,
+    landRounds: 5,
+    maxQuestions: 21,
+    maxDurationMs: 13 * 60_000,
   },
 ];
 
@@ -277,7 +277,7 @@ function simulate(plan: Plan, index: number): Simulated {
 
 for (const plan of PLANS) {
   const { seats } = plan.rules;
-  const claimed = WENDELMARK.regions.length - seats;
+  const claimed = matchMap(plan.rules.map).regions.length - seats;
 
   describe(`Simulation von ${MATCHES} Partien mit ${seats} Spielern`, () => {
     const runs = Array.from({ length: MATCHES }, (_, i) => simulate(plan, i));

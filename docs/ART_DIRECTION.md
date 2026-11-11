@@ -33,18 +33,18 @@ Beide Schriften werden mit dem Spiel ausgeliefert (npm-Pakete `@fontsource/*`), 
 
 ## 4. Karte der Partie
 
-Die Regeln kennen die Wendelmark als 24 Sechseckfelder (`packages/game-core/src/match-map.ts`). Die Grafik (`apps/web/src/art/map-art.ts`) macht daraus eine Landkarte, **ohne die Nachbarschaft zu ändern**:
+Die Regeln kennen zwei Karten aus Sechseckfeldern (`packages/game-core/src/match-map.ts`): die Wendelmark mit 24 Feldern für drei Spieler und die Kernmark mit 16 Feldern für zwei, die Mitte der Wendelmark (ADR-052). Die Grafik (`apps/web/src/art/map-art.ts`) macht aus jeder eine Landkarte, **ohne die Nachbarschaft zu ändern**:
 
 1. Jede Ecke des Rasters wird leicht verschoben (innen bis 16 % der Feldgröße); Ecken an der Küste wandern zusätzlich nach außen, entlang einer weichen Wölbung mit Buchten und Landzungen. Eingebuchtete Küstenecken wandern weiter hinaus, das glättet den Sägezahn des Rasters.
 2. Jede Kante wird per Mittelpunktverschiebung zur unregelmäßigen Linie (innen 3 Stufen, an der Küste 4 Stufen und rauer). Zwei Nachbarn lesen **dieselbe** Linie, deshalb passen die Grenzen lückenlos aneinander.
 3. Der Fluss folgt inneren Grenzen von der Nordküste zur Südküste, nahe der Mittelachse; er trennt nichts, was die Regeln nicht trennen.
 4. Alles ist deterministisch (eigener Zufall aus `art/noise.ts`, nie für Spielregeln): gleiche Karte, gleiches Bild auf jedem Gerät.
 
-Unit-Tests (`apps/web/test/map-art.test.ts`) sichern: genau die Nachbarn der Regeln teilen eine Grenze, andere Regionen berühren sich nicht; jede Region umschließt ihren Mittelpunkt; alles liegt im Bild; der Fluss läuft von Küste zu Küste entlang von Grenzen.
+Unit-Tests (`apps/web/test/map-art.test.ts`) sichern für beide Karten: genau die Nachbarn der Regeln teilen eine Grenze, andere Regionen berühren sich nicht; jede Region umschließt ihren Mittelpunkt; alles liegt im Bild; der Fluss läuft von Küste zu Küste entlang von Grenzen.
 
 **Ebenen** (von unten): Meer mit Wellenzeichen, Küstenringe, Land, Aquarellfarbe des Besitzers mit Wappenmuster und dunklerem Rand, gestrichelte Grenzen, Fluss, Küstenlinie, Motive, Namen und Münzen, Hervorhebungen (wählbar, Duell), Kompass und Titelschild.
 
-**Landschaft je Region** (`art/terrain.ts`, nur Darstellung): Wald, Nadelwald, Gebirge, Hügel, Felder, Wiese, Moor, See, Fluss, Dorf, für die Wendelmark fest zugeordnet, für neue Karten nach Wortteilen des Namens. Daraus folgen die kleinen Motive über dem Namen und an den unteren Ecken.
+**Landschaft je Region** (`art/terrain.ts`, nur Darstellung): Wald, Nadelwald, Gebirge, Hügel, Felder, Wiese, Moor, See, Fluss, Dorf, für die Wendelmark fest zugeordnet (dieselbe Region sieht auf der Kernmark gleich aus), für neue Karten nach Wortteilen des Namens. Daraus folgen die kleinen Motive über dem Namen und an den unteren Ecken.
 
 **Besitz** ist nie nur Farbe: Jeder Sitz hat Farbe, **Wappenbild** (◆ Raute, ● Kugel, ▲ Spitze) und **Muster** (Schrägstreifen, Punkte, Gitter). Die Münze zeigt den Punktwert, das Schildchen daneben den Besitzer.
 
@@ -52,7 +52,7 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern: genau die Nachbarn der Reg
 
 **Handy hochkant** (bis 560 px): enger Ausschnitt nur um die Insel, ohne Titelschild und Kompass, größere Namen und Münzen.
 
-**Laufende Partie auf Handy und Tablet hochkant** (bis 900 px breit, ab 500 px hoch): eine feste Bildschirmseite, auf der nichts scrollt und nichts springt. Oben Phase und Spielstand, in der Mitte die Karte, immer an derselben Stelle und in derselben Größe, unten ein Blatt.
+**Laufende Partie auf Handy und Tablet hochkant** (bis 900 px breit, ab 500 px hoch): eine feste Bildschirmseite, auf der nichts scrollt und nichts springt. Oben Phase, Spielstand und Zugfolge, in der Mitte die Karte, immer an derselben Stelle und in derselben Größe, unten ein Blatt.
 
 | Zustand | Blatt |
 |---|---|
@@ -62,6 +62,10 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern: genau die Nachbarn der Reg
 | Auflösung | Blatt bis höchstens 78 % der Fläche, oben bleibt die Karte sichtbar; die Restzeit klebt unten, von den Antwortmöglichkeiten steht nur die richtige da |
 
 Der Spielstand hat feste Höhe (Punkte und Schilde in zwei Zeilen, auch bevor es Schilde gibt), der Verlauf entfällt. Regeln dazu: Was über den Regionen liegt (Ränder, Ringe, Motive, Pfeil), nimmt keine Tipps an; das Blatt bekommt seinen Platz über das Raster, nie über den Seitenlauf. Ein Handy im Querformat ist dafür zu niedrig und behält Karte und Blatt nebeneinander.
+
+**Zugfolge** (`match/TurnOrder.tsx`, [MATCH_RULES.md §3](MATCH_RULES.md#zugfolge)): eine Zeile zwischen Spielstand und Karte, auf jedem Gerät. Je Zug ein Plättchen mit Nummer, Wappen und Name; der eigene Sitz heißt „Du“. Wer dran ist, ist golden hervorgehoben; wer dran war, trägt einen Haken und einen gestrichelten Rand; wer noch kommt, bleibt schlicht. Bei der Schätzfrage der Landnahme sind alle zugleich dran und stehen ohne Nummer nebeneinander. Der Zustand steht nie nur in der Farbe (Haken, Nummer, für Vorleseprogramme „war dran“, „ist dran“, „kommt noch“). Die Zeile hat feste Höhe und bewegt sich nicht: Lange Namen werden gekürzt, am Handy entfällt die Überschrift, nach der Abrechnung die ganze Zeile.
+
+**Aufstellung** (`match/LobbyPanel.tsx`): Der Einladungscode steht in einer Zeile, die Plättchen schrumpfen mit der Breite; keine Seite der Partie ist breiter als der Bildschirm (geprüft von 320 bis 430 px). Die Plätze stehen untereinander: Wappen und Name, beim Gastgeber auf freien Plätzen „Bot dazu“, bei Bots die Stärke und „Entfernen“. Darunter Hinweise zu Bots, zur Karte je Spielerzahl und zu den Zeiten.
 
 ## 5. Bewegung
 
@@ -104,12 +108,13 @@ Elf kurze Klänge, im Browser erzeugt (Web Audio, keine Dateien, `apps/web/src/a
 | `apps/web/src/art/SeatCrest.tsx`, `LifeShields.tsx`, `Emblem.tsx`, `HeroMap.tsx`, `CountUp.tsx` | Wappen je Sitz, Hauptstadtleben als Schilde (Spielstand und Abrechnung), Spielwappen, Kartenbild der Startseite, zählende Zahlen |
 | `apps/web/src/match/MatchBoard.tsx`, `art/attack.ts` | Karte der Partie mit Bedienung, Angriffspfeil |
 | `apps/web/src/match/moments.ts`, `useMoments.ts`, `DuelHeader.tsx` | Große Momente als Band, Fragekopf im Duell |
+| `apps/web/src/match/TurnOrder.tsx` | Zugfolge über der Karte |
 | `apps/web/src/audio/sound.ts`, `match/sound-cues.ts`, `components/SoundToggle.tsx` | Klänge, ihre Anlässe, Ton-Schalter |
-| `apps/web/src/art/Icons.tsx`, `match/LobbyPanel.tsx` | Tuschezeichen der Partie-Seite, Aufstellung mit Code-Plättchen und Platzschilden |
+| `apps/web/src/art/Icons.tsx`, `match/LobbyPanel.tsx` | Tuschezeichen der Partie-Seite, Aufstellung mit Code-Plättchen und Platzzeilen, Bots setzen |
 
 Neue Grafik entsteht als SVG im Code oder als Datei mit Eintrag in [ASSETS.md](ASSETS.md). Farben nur über Tokens, Bewegungen mit Abschaltung bei „Bewegung reduzieren“.
 
 ## 7. Nächste Schritte
 
 - Eternal-Karte (PixiJS) im selben Stil, sobald Eternal weitergeht (ruht seit 2026-11-10).
-- Weitere Partiekarten: brauchen nur neue Felder und Namen, die Grafik entsteht automatisch.
+- Weitere Partiekarten: brauchen nur neue Felder und Namen, die Grafik entsteht automatisch (so entstand die Kernmark).

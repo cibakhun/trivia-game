@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_MATCH_RULES,
+  MATCH_MAP_BY_SEATS,
   matchRulesForSeats,
   matchRulesSchema,
   PLAYTEST_MATCH_RULES,
@@ -39,13 +40,21 @@ describe('Regeln der Partie', () => {
     );
   });
 
-  it('passt Spielerzahl und Landnahme für zwei Spieler an', () => {
+  it('passt Spielerzahl, Karte und Landnahme für zwei Spieler an', () => {
     const two = matchRulesForSeats(DEFAULT_MATCH_RULES, 2);
     expect(matchRulesSchema.parse(two)).toEqual(two);
     expect(two.seats).toBe(2);
+    expect(two.map).toBe('KERNMARK');
     expect(two.landGrab.picksByPlace).toEqual([2, 1]);
-    expect({ ...two, seats: 3, landGrab: DEFAULT_MATCH_RULES.landGrab }).toEqual(
-      DEFAULT_MATCH_RULES,
+    expect({
+      ...two,
+      seats: 3,
+      map: 'WENDELMARK',
+      landGrab: DEFAULT_MATCH_RULES.landGrab,
+    }).toEqual(DEFAULT_MATCH_RULES);
+    expect(MATCH_MAP_BY_SEATS).toEqual({ 2: 'KERNMARK', 3: 'WENDELMARK' });
+    expect(matchRulesSchema.safeParse({ ...DEFAULT_MATCH_RULES, map: 'ANDERSWO' }).success).toBe(
+      false,
     );
     expect(matchRulesForSeats(two, 3)).toEqual(DEFAULT_MATCH_RULES);
     expect(matchRulesSchema.safeParse({ ...DEFAULT_MATCH_RULES, seats: 4 }).success).toBe(false);

@@ -100,7 +100,11 @@ export function ResultPanel({
           </tbody>
         </table>
       </div>
-      {view.match.kind === 'TEST' ? <p className="muted">{t('match.result.test')}</p> : null}
+      {view.match.kind === 'TEST' ? (
+        <p className="muted">{t('match.result.test')}</p>
+      ) : view.players.some((p) => p.isBot) ? (
+        <p className="muted">{t('match.result.bots')}</p>
+      ) : null}
       <div className="actions">
         <button
           type="button"

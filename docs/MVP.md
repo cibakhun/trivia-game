@@ -73,7 +73,7 @@ Siehe Indikatoren in [PRODUCT_VISION.md §5](PRODUCT_VISION.md#5-erfolgskriterie
 
 ## 5. Partie – erstes fertiges Spiel (ADR-046)
 
-**Enthalten:** Partie mit Freunden per Einladungscode, zwei oder drei Menschen; Testpartie mit Bots zum Testen, nicht in Produktion (ADR-048); Wendelmark als feste Karte; Hauptstadtwahl, Landnahme mit Schätzfragen, vier Feldzugrunden mit Duellen, Abrechnung nach Regionswerten ([MATCH_RULES.md](MATCH_RULES.md)); Timer, die der Server führt, auch über einen Neustart hinweg; gleichzeitige Fragen per WebSocket; Gast und gesichertes Konto mit Spielernamen (ADR-043, ADR-044); Ergebnis in der Spielerstatistik; genug Fragen, damit sich in den ersten fünf Partien eines Spielers keine wiederholt (nach E2 nur lokal, KI-Entwürfe nie ungeprüft veröffentlicht).
+**Enthalten:** Partie mit Freunden per Einladungscode, zwei oder drei Spieler, freie Plätze auf Wunsch mit Bots (ADR-052); Testpartie als Werkzeug zum Testen, nicht in Produktion (ADR-048); Karte nach Spielerzahl (Wendelmark zu dritt, Kernmark zu zweit); Anzeige der Zugfolge; Hauptstadtwahl, Landnahme mit Schätzfragen, vier Feldzugrunden mit Duellen, Abrechnung nach Regionswerten ([MATCH_RULES.md](MATCH_RULES.md)); Timer, die der Server führt, auch über einen Neustart hinweg; gleichzeitige Fragen per WebSocket; Gast und gesichertes Konto mit Spielernamen (ADR-043, ADR-044); Ergebnis in der Spielerstatistik; genug Fragen, damit sich in den ersten fünf Partien eines Spielers keine wiederholt (nach E2 nur lokal, KI-Entwürfe nie ungeprüft veröffentlicht).
 
 **Nicht enthalten:** Warteschlange mit Fremden und Rangliste mit Wertungszahl (brauchen einen erreichbaren Server, [O-11]), Items, Chat, freie Namen, Monetarisierung.
 

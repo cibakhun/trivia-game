@@ -8,10 +8,11 @@ import {
 import { closeAnswerDb, matchSolution, testDb } from './answers.ts';
 
 /**
- * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots
- * und eine normale Partie zu zweit in zwei Browser-Kontexten, beide mit Spieltestzeiten. Jeder
- * Spieler wählt die erste markierte Region und antwortet richtig; die Lösung liest nur der Test
- * aus der Datenbank. Die Ablaufsteuerung läuft im Testserver wie im api-Prozess.
+ * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots,
+ * eine normale Partie am Handy allein mit Bots aus der Aufstellung (ADR-052) und eine normale
+ * Partie zu zweit in zwei Browser-Kontexten, alle mit Spieltestzeiten. Jeder Spieler wählt die
+ * erste markierte Region und antwortet richtig; die Lösung liest nur der Test aus der Datenbank.
+ * Die Ablaufsteuerung läuft im Testserver wie im api-Prozess.
  */
 
 test.afterAll(async () => {
@@ -162,6 +163,12 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   await expect(seats).toContainText('Bot (leicht)');
   await expect(seats).toContainText('Bot (schwer)');
   await expect(page.getByTestId('match-step')).toHaveText('Hauptstadtwahl');
+  // Zu dritt auf der ganzen Wendelmark; die Zugfolge nennt alle drei
+  await expect(page.getByTestId('match-board')).toHaveAttribute('aria-label', 'Karte: Wendelmark');
+  await expect(page.getByTestId('match-board').locator('.board-region')).toHaveCount(24);
+  const turns = page.getByTestId('match-turns');
+  await expect(turns).toContainText('Hauptstadt wählen');
+  await expect(turns.getByRole('listitem')).toHaveCount(3);
 
   const played = await playToEnd(page, { reloadOnce: true });
   expect(played.picks).toBeGreaterThan(0);
@@ -184,46 +191,97 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   await expect(page.getByRole('region', { name: 'Letzte Partien' })).toContainText('beendet');
 });
 
-test('Partie am Handy: Die Karte steht still, ein Tipp wählt die Region', async ({ browser }) => {
+test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die Region', async ({
+  browser,
+}) => {
   test.setTimeout(120_000);
+  const WIDTH = 390;
   const page = await newPlayer(browser, {
-    viewport: { width: 390, height: 664 },
+    viewport: { width: WIDTH, height: 664 },
     hasTouch: true,
     isMobile: true,
   });
-  const setup = page.getByTestId('test-match');
-  await setup.getByLabel('Zu dritt').check();
-  await setup.getByLabel(/^Kurze Zeiten/).check();
-  await setup.getByRole('button', { name: 'Testpartie eröffnen' }).click();
+  /** Breite des Inhalts: Ragt etwas seitlich hinaus, ist die Seite breiter als der Bildschirm. */
+  const contentWidth = () => page.evaluate(() => document.documentElement.scrollWidth);
+  expect(await contentWidth()).toBeLessThanOrEqual(WIDTH);
+
+  // Normale Partie eröffnen: allein lässt sie sich nicht starten
+  const create = page.getByRole('region', { name: 'Neue Partie' });
+  await create.getByLabel(/^Kurze Zeiten/).check();
+  await create.getByRole('button', { name: 'Partie eröffnen' }).tap();
   await expect(page).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
-  await page.getByTestId('match-lobby').getByRole('button', { name: 'Partie starten' }).click();
+  const lobby = page.getByTestId('match-lobby');
+  await expect(page.getByTestId('invite-code')).toHaveText(/^[A-HJ-NP-Z2-9]{6}$/);
+  // Die Aufstellung mit dem Einladungscode passt auf den Bildschirm
+  expect(await contentWidth()).toBeLessThanOrEqual(WIDTH);
+  const start = lobby.getByRole('button', { name: 'Partie starten' });
+  await expect(start).toBeDisabled();
+  await expect(lobby).toContainText('mindestens einen Mitspieler oder einen Bot');
+
+  // Freie Plätze mit Bots füllen, Stärke ändern, entfernen und wieder hinzufügen
+  const bots = lobby.locator('[data-testid="lobby-seat"].bot');
+  await lobby.getByRole('button', { name: 'Bot dazu' }).first().tap();
+  await expect(bots).toHaveCount(1);
+  await expect(start).toBeEnabled();
+  await lobby.getByRole('button', { name: 'Bot dazu' }).tap();
+  await expect(bots).toHaveCount(2);
+  await expect(lobby.getByRole('button', { name: 'Bot dazu' })).toHaveCount(0);
+  await lobby.getByLabel('Stärke von Bot 2 (mittel)').selectOption('HARD');
+  await expect(lobby).toContainText('Bot (schwer)');
+  await lobby.getByRole('button', { name: 'Bot (schwer) entfernen' }).tap();
+  await expect(bots).toHaveCount(1);
+  await lobby.getByRole('button', { name: 'Bot dazu' }).tap();
+  await expect(bots).toHaveCount(2);
+  await expect(lobby).toContainText('Partien mit Bots zählen nicht in der Statistik.');
+  expect(await contentWidth()).toBeLessThanOrEqual(WIDTH);
+  await start.tap();
   await expect(page.getByTestId('match-board')).toBeVisible();
+  await expect(page.getByTestId('match-seats').getByRole('listitem')).toHaveCount(3);
+  await expect(page.getByTestId('match-turns').getByRole('listitem')).toHaveCount(3);
 
   const matchId = matchIdOf(page);
-  const screen = page.getByTestId('match-screen');
-  /** Lage der Karte je Zustand: Sie darf sich zwischen Wahl, Frage und Auflösung nicht bewegen. */
+  /** Lage von Karte und Zugfolge je Zustand: Zwischen Wahl, Frage und Auflösung bewegt sich nichts. */
   const boards = new Map<string, string>();
   const answered = new Set<number>();
   let picks = 0;
+  let myTurns = 0;
   const until = Date.now() + 100_000;
   while (picks < 3 || !boards.has('question') || !boards.has('reveal')) {
     if (Date.now() > until) throw new Error('Wahl, Frage und Auflösung kamen nicht rechtzeitig');
-    const state = (await screen.getAttribute('data-state')) ?? '';
-    const seq = Number((await screen.getAttribute('data-seq')) ?? 0);
-    if (state === 'finished' || state === 'abandoned') break;
-    const layout = await page.evaluate(() => {
-      const box = document.querySelector('[data-testid="match-board"]')?.getBoundingClientRect();
+    // Zustand, Lage und Zugfolge in einem Zug lesen, damit sie zusammenpassen
+    const now = await page.evaluate(() => {
+      const main = document.querySelector('[data-testid="match-screen"]');
+      const box = (selector: string) => {
+        const rect = document.querySelector(selector)?.getBoundingClientRect();
+        return rect ? [rect.x, rect.y, rect.width, rect.height].map(Math.round).join(' ') : '';
+      };
       return {
+        state: main?.getAttribute('data-state') ?? '',
+        seq: Number(main?.getAttribute('data-seq') ?? 0),
         scrollY: Math.round(window.scrollY),
         overflow: document.documentElement.scrollHeight - window.innerHeight,
-        board: box ? [box.x, box.y, box.width, box.height].map(Math.round).join(' ') : '',
+        width: document.documentElement.scrollWidth,
+        board: box('[data-testid="match-board"]'),
+        turnsBox: box('[data-testid="match-turns"]'),
+        turns: [...document.querySelectorAll('[data-testid="match-turns"] li')].map((li) => ({
+          status: li.getAttribute('data-status'),
+          me: li.classList.contains('me'),
+        })),
       };
     });
+    const { state, seq } = now;
+    if (state === 'finished' || state === 'abandoned') break;
     // Eine feste Bildschirmseite: nichts zu scrollen, also kann auch nichts springen
-    expect(layout.scrollY).toBe(0);
-    expect(layout.overflow).toBeLessThanOrEqual(0);
-    if (layout.board) boards.set(state, layout.board);
+    expect(now.scrollY).toBe(0);
+    expect(now.overflow).toBeLessThanOrEqual(0);
+    expect(now.width).toBeLessThanOrEqual(WIDTH);
+    if (now.board) boards.set(state, `${now.board} | ${now.turnsBox}`);
     if (state === 'pick') {
+      // Wer wählen darf, steht in der Zugfolge als Einziger auf „dran“
+      expect(now.turns.filter((turn) => turn.status === 'NOW')).toEqual([
+        { status: 'NOW', me: true },
+      ]);
+      myTurns += 1;
       if (await pickFirst(page, matchId, 'tap')) picks += 1;
     } else if (state === 'question' && !answered.has(seq)) {
       if (await answerRight(page, matchId, seq)) answered.add(seq);
@@ -231,6 +289,7 @@ test('Partie am Handy: Die Karte steht still, ein Tipp wählt die Region', async
     await page.waitForTimeout(100);
   }
   expect(picks).toBeGreaterThanOrEqual(3);
+  expect(myTurns).toBeGreaterThanOrEqual(3);
   expect([...boards.keys()]).toEqual(expect.arrayContaining(['pick', 'question', 'reveal']));
   expect(new Set(boards.values()).size).toBe(1);
   await page.context().close();
@@ -245,6 +304,8 @@ test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => 
   await create.getByLabel(/^Kurze Zeiten/).check();
   await create.getByRole('button', { name: 'Partie eröffnen' }).click();
   await expect(host).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
+  // Ohne Bots in der Aufstellung bleibt es eine Partie unter Menschen
+  await expect(host.getByTestId('match-lobby')).not.toContainText('zählen nicht in der Statistik');
   const code = (await host.getByTestId('invite-code').innerText()).trim();
   const start = host.getByRole('button', { name: 'Partie starten' });
   await expect(start).toBeDisabled();
@@ -254,8 +315,17 @@ test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => 
   await guest.getByRole('button', { name: 'Beitreten' }).click();
   await expect(guest).toHaveURL(host.url());
   await expect(guest.getByTestId('match-lobby')).toContainText('Warte, bis');
-  await expect(host.getByTestId('match-lobby').locator('.lobby-players li')).toHaveCount(2);
+  await expect(
+    host.getByTestId('match-lobby').locator('[data-testid="lobby-seat"].taken'),
+  ).toHaveCount(2);
   await start.click();
+  // Zu zweit wird auf der Kernmark gespielt: 16 Regionen statt 24
+  for (const page of [host, guest]) {
+    const board = page.getByTestId('match-board');
+    await expect(board).toHaveAttribute('aria-label', 'Karte: Kernmark');
+    await expect(board.locator('.board-region')).toHaveCount(16);
+    await expect(page.getByTestId('match-turns').getByRole('listitem')).toHaveCount(2);
+  }
 
   const [hostPlayed, guestPlayed] = await Promise.all([playToEnd(host), playToEnd(guest)]);
   expect(hostPlayed.answers).toBeGreaterThan(0);
@@ -265,6 +335,7 @@ test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => 
     const result = page.getByTestId('match-result');
     await expect(result.locator('tbody tr')).toHaveCount(2);
     await expect(result).not.toContainText('Testpartie');
+    await expect(result).not.toContainText('Partie mit Bots');
   }
   // Eine normale Partie zählt für beide, genau einer oder beide (geteilt) auf Platz 1
   const stats = await statistics(host);

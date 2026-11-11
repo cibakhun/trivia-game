@@ -7,8 +7,11 @@ import { SECOND_MS } from './rules-config.ts';
  * ganzzahlige Millisekunden.
  */
 
-/** Feste Karten der Partie; heute gibt es eine. */
-export const MATCH_MAP_IDS = ['WENDELMARK'] as const;
+/**
+ * Feste Karten der Partie. Welche gespielt wird, richtet sich nach der Spielerzahl
+ * (`MATCH_MAP_BY_SEATS`, ADR-052).
+ */
+export const MATCH_MAP_IDS = ['WENDELMARK', 'KERNMARK'] as const;
 export const matchMapIdSchema = z.enum(MATCH_MAP_IDS);
 export type MatchMapId = z.infer<typeof matchMapIdSchema>;
 
@@ -23,8 +26,8 @@ export const matchRulesSchema = z
     schemaVersion: z.literal(1),
     map: matchMapIdSchema,
     /**
-     * Plätze je Partie; die Wendelmark trägt zwei oder drei Reiche. Normale Partien spielen nur
-     * Menschen, in Testpartien füllen Bots freie Plätze (PO 2026-11-10, ADR-048).
+     * Plätze je Partie: zwei (Kernmark) oder drei (Wendelmark). Freie Plätze kann der Gastgeber
+     * mit Bots füllen (ADR-052).
      */
     seats: z.union([z.literal(2), z.literal(3)]),
     capital: z
@@ -127,15 +130,29 @@ export const MATCH_SEAT_COUNTS = [2, 3] as const;
 export type MatchSeatCount = (typeof MATCH_SEAT_COUNTS)[number];
 
 /**
- * Landnahme-Wahlen je Spielerzahl [E]: zu dritt 2, 1, 0; zu zweit 2, 1 (auf der Wendelmark sieben
- * volle Runden und eine achte mit der letzten Region).
+ * Landnahme-Wahlen je Spielerzahl [E]: zu dritt 2, 1, 0 (Wendelmark: sieben Runden); zu zweit 2, 1
+ * (Kernmark: vier volle Runden und eine fünfte mit den letzten beiden Regionen).
  */
 export const LAND_GRAB_PICKS_BY_SEATS: Readonly<Record<MatchSeatCount, readonly number[]>> =
   Object.freeze({ 2: [2, 1], 3: [2, 1, 0] });
 
-/** Regeln für eine Partie mit `seats` Spielern: Spielerzahl und Landnahme-Wahlen ersetzt. */
+/**
+ * Karte je Spielerzahl [E] (ADR-052): acht Regionen je Reich. Zu dritt die ganze Wendelmark
+ * (24 Regionen), zu zweit ihr Kernland (16 Regionen).
+ */
+export const MATCH_MAP_BY_SEATS: Readonly<Record<MatchSeatCount, MatchMapId>> = Object.freeze({
+  2: 'KERNMARK',
+  3: 'WENDELMARK',
+});
+
+/** Regeln für eine Partie mit `seats` Spielern: Spielerzahl, Karte und Landnahme-Wahlen ersetzt. */
 export function matchRulesForSeats(rules: MatchRules, seats: MatchSeatCount): MatchRules {
-  return { ...rules, seats, landGrab: { picksByPlace: [...LAND_GRAB_PICKS_BY_SEATS[seats]] } };
+  return {
+    ...rules,
+    seats,
+    map: MATCH_MAP_BY_SEATS[seats],
+    landGrab: { picksByPlace: [...LAND_GRAB_PICKS_BY_SEATS[seats]] },
+  };
 }
 
 /** Verkürzte Zeiten für Tests und schnelle Spieltests; Regeln sonst gleich. */

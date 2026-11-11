@@ -54,7 +54,7 @@ export const inviteCodeSchema = z
 
 const seatSchema = z.number().int().min(0).max(2);
 const durationSchema = z.number().int().min(0);
-/** Index einer Region der Karte (Wendelmark: 0–23). */
+/** Index einer Region der Karte (Wendelmark: 0–23, Kernmark: 0–15). */
 export const matchRegionIndexSchema = z.number().int().min(0).max(63);
 
 // ---------------------------------------------------------------------------------------------
@@ -62,10 +62,10 @@ export const matchRegionIndexSchema = z.number().int().min(0).max(63);
 // ---------------------------------------------------------------------------------------------
 
 /**
- * `POST /matches`: normale Partie (Mitspieler über den Einladungscode) oder Testpartie, in der
- * Bots die freien Plätze füllen (nicht in Produktion, ADR-048). `botStrengths` nennt die Stärke
- * je freiem Platz, wenn niemand beitritt (Länge = Plätze − 1); treten Menschen bei, entfallen
- * Bots von hinten.
+ * `POST /matches`: normale Partie (Mitspieler über den Einladungscode, freie Plätze auf Wunsch
+ * mit Bots, ADR-052) oder Testpartie, in der Bots die freien Plätze von selbst füllen (nicht in
+ * Produktion, ADR-048). `botStrengths` nennt die Stärke je freiem Platz, wenn niemand beitritt
+ * (Länge = Plätze − 1); treten Menschen bei, entfallen Bots von hinten.
  */
 export const matchCreateRequestSchema = z
   .discriminatedUnion('kind', [
@@ -95,6 +95,16 @@ export type MatchCreateRequest = z.input<typeof matchCreateRequestSchema>;
 /** `POST /matches/join`. */
 export const matchJoinRequestSchema = z.object({ inviteCode: inviteCodeSchema }).strict();
 export type MatchJoinRequest = z.input<typeof matchJoinRequestSchema>;
+
+/**
+ * `POST /matches/:matchId/seats/:joinOrder/bot`: Der Gastgeber setzt in der Aufstellung einer
+ * normalen Partie einen Bot dieser Stärke auf den Platz (auch um die Stärke zu ändern) oder macht
+ * den Platz mit `null` wieder frei (ADR-052).
+ */
+export const matchSeatBotRequestSchema = z
+  .object({ strength: matchBotStrengthSchema.nullable() })
+  .strict();
+export type MatchSeatBotRequest = z.infer<typeof matchSeatBotRequestSchema>;
 
 /** `POST /matches/:matchId/pick`: Hauptstadt, Region der Landnahme oder Angriffsziel. */
 export const matchPickRequestSchema = z.object({ region: matchRegionIndexSchema }).strict();
@@ -158,12 +168,24 @@ export const matchStepSchema = z
   .strict();
 export type MatchStepView = z.infer<typeof matchStepSchema>;
 
+/**
+ * Zugfolge des laufenden Abschnitts (MATCH_RULES §3, Zugfolge): wer schon dran war, wer dran ist, wer
+ * noch kommt. Bei einer Schätzfrage der Landnahme sind alle zugleich dran; in der Wahl der
+ * Landnahme steht ein Sitz je Wahl in der Liste, also auch zweimal.
+ */
+export const MATCH_TURN_STATUSES = ['DONE', 'NOW', 'NEXT'] as const;
+export const matchTurnSchema = z
+  .object({ seat: seatSchema, status: z.enum(MATCH_TURN_STATUSES) })
+  .strict();
+export type MatchTurn = z.infer<typeof matchTurnSchema>;
+
 export const matchBoardSchema = z
   .object({
     map: z.string().min(1),
     regions: z.array(matchRegionStateSchema),
     seats: z.array(matchSeatStateSchema),
     step: matchStepSchema,
+    turns: z.array(matchTurnSchema),
     questions: z.number().int().min(0),
     duels: z.number().int().min(0),
   })

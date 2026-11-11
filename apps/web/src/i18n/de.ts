@@ -356,7 +356,7 @@ export const de = {
       open: 'Öffnen',
       newTitle: 'Neue Partie',
       newText:
-        'Du bekommst einen Einladungscode für ein oder zwei Mitspieler. Gespielt wird zu zweit oder zu dritt.',
+        'Du bekommst einen Einladungscode für ein oder zwei Mitspieler. Freie Plätze kannst du mit Bots füllen und so auch allein spielen. Gespielt wird zu zweit oder zu dritt.',
       create: 'Partie eröffnen',
       shortTimers:
         'Kurze Zeiten für Spieltests (8 s je Wissensfrage, 10 s je Schätzfrage, 5 s je Wahl)',
@@ -382,9 +382,15 @@ export const de = {
         'Gib den Code deinen Mitspielern. Sie treten unter „Partie spielen“ mit dem Code bei.',
       players: 'Spieler',
       host: 'eröffnet',
-      freeSeats: 'Freie Plätze',
       freeSeat: 'frei',
       botSeat: 'Bot',
+      addBot: 'Bot dazu',
+      removeBot: 'Entfernen',
+      removeBotOf: '{name} entfernen',
+      botStrength: 'Stärke von {name}',
+      botsNote:
+        'Partien mit Bots zählen nicht in der Statistik. Tritt ein Mitspieler bei und ist kein Platz frei, macht ein Bot Platz.',
+      maps: 'Karte: zu zweit die {duo} mit {duoRegions} Regionen, zu dritt die {trio} mit {trioRegions} Regionen.',
       copy: 'Code kopieren',
       copied: 'Kopiert',
       bots: {
@@ -393,7 +399,7 @@ export const de = {
       },
       start: 'Partie starten',
       waitingHost: 'Warte, bis {name} die Partie startet.',
-      needPlayers: 'Zum Start braucht es mindestens einen Mitspieler.',
+      needPlayers: 'Zum Start braucht es mindestens einen Mitspieler oder einen Bot.',
       leave: 'Aufstellung verlassen',
       cancel: 'Partie absagen',
       confirmCancel: 'Wirklich absagen? Alle Mitspieler verlieren ihren Platz.',
@@ -407,6 +413,14 @@ export const de = {
       LAND: 'Landnahme · Runde {round}',
       CAMPAIGN: 'Feldzug · Runde {round} von {rounds}',
       FINISHED: 'Abrechnung',
+    },
+    turns: {
+      CAPITAL_PICK: 'Hauptstadt wählen',
+      LAND_ESTIMATE: 'Alle schätzen',
+      LAND_PICK: 'Region wählen',
+      CAMPAIGN: 'Angriffe',
+      you: 'Du',
+      status: { DONE: 'war dran', NOW: 'ist dran', NEXT: 'kommt noch' },
     },
     pick: {
       capital: 'Du bist dran: Wähle deine Hauptstadt.',
@@ -487,7 +501,7 @@ export const de = {
       MATCH_FINISHED: 'Die Partie ist beendet.',
     },
     board: {
-      label: 'Karte der Wendelmark',
+      label: 'Karte: {name}',
       free: 'frei',
       capital: 'Hauptstadt',
       region: '{name}: {owner}, {value} Punkte',
@@ -515,6 +529,7 @@ export const de = {
       livesColumn: 'Hauptstadt',
       eliminated: 'ausgeschieden',
       test: 'Testpartie: Sie zählt nicht in der Statistik.',
+      bots: 'Partie mit Bots: Sie zählt nicht in der Statistik.',
       again: 'Neue Partie',
     },
     abandoned: {
@@ -568,6 +583,7 @@ export const de = {
     ALREADY_IN_MATCH: 'Du bist schon in einer offenen Partie.',
     NOT_HOST: 'Nur wer die Partie eröffnet hat, kann sie starten.',
     NOT_ENOUGH_PLAYERS: 'Eine Partie braucht zwei oder drei Spieler.',
+    SEAT_NOT_AVAILABLE: 'Dieser Platz lässt sich gerade nicht mit einem Bot besetzen.',
     TEST_MATCHES_DISABLED: 'Testpartien mit Bots gibt es hier nicht.',
     NOT_YOUR_TURN: 'Gerade ist jemand anderes am Zug.',
     INVALID_REGION: 'Diese Region kannst du gerade nicht wählen.',

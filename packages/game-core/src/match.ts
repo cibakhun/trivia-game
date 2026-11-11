@@ -49,6 +49,11 @@ export type MatchStep =
       readonly round: number;
       /** Wer noch wählt, in dieser Reihenfolge; `queue[0]` ist dran. */
       readonly queue: readonly number[];
+      /**
+       * Wer in dieser Runde schon gewählt hat, in Reihenfolge der Wahlen (nur für die Anzeige der
+       * Zugfolge). Fehlt in Zuständen, die vor diesem Feld gespeichert wurden.
+       */
+      readonly picked?: readonly number[];
     }
   | {
       readonly kind: 'CAMPAIGN_TARGET';
@@ -330,6 +335,50 @@ export function currentChooser(state: MatchState): number | null {
   }
 }
 
+export type MatchTurnStatus = 'DONE' | 'NOW' | 'NEXT';
+
+export interface MatchTurn {
+  readonly seat: number;
+  readonly status: MatchTurnStatus;
+}
+
+/**
+ * Zugfolge des laufenden Abschnitts für die Anzeige „wer ist wann dran“ (MATCH_RULES §3.5):
+ * - Hauptstädte: alle Sitze in Zugreihenfolge;
+ * - Schätzfrage der Landnahme: alle lebenden Sitze der Runde, alle zugleich dran;
+ * - Wahl der Landnahme: ein Eintrag je Wahl in Reihenfolge der Rangfolge (ein Sitz mit zwei Wahlen
+ *   steht zweimal da);
+ * - Feldzug: die Angreifer der Runde in ihrer Reihenfolge, auch während des Duells. Wer in der
+ *   Runde ausscheidet, entfällt.
+ * Nach dem Ende ist die Liste leer.
+ */
+export function turnOrder(state: MatchState): MatchTurn[] {
+  const { step } = state;
+  switch (step.kind) {
+    case 'CAPITAL_PICK':
+      return state.seats.map((_, seat) => ({
+        seat,
+        status: seat < step.seat ? 'DONE' : seat === step.seat ? 'NOW' : 'NEXT',
+      }));
+    case 'LAND_ESTIMATE':
+      return roundOrder(state, step.round).map((seat) => ({ seat, status: 'NOW' }));
+    case 'LAND_PICK':
+      return [
+        ...(step.picked ?? []).map((seat): MatchTurn => ({ seat, status: 'DONE' })),
+        ...step.queue.map((seat, i): MatchTurn => ({ seat, status: i === 0 ? 'NOW' : 'NEXT' })),
+      ];
+    case 'CAMPAIGN_TARGET':
+    case 'DUEL_TRIVIA':
+    case 'DUEL_ESTIMATE':
+      return roundOrder(state, step.round).map((seat) => ({
+        seat,
+        status: seat === step.attacker ? 'NOW' : step.queue.includes(seat) ? 'NEXT' : 'DONE',
+      }));
+    case 'FINISHED':
+      return [];
+  }
+}
+
 /** Frage, die jetzt gestellt wird, und wer sie beantwortet; sonst `null`. */
 export function pendingQuestion(
   state: MatchState,
@@ -596,7 +645,7 @@ export function applyMatchInput(state: MatchState, input: MatchInput): MatchResu
       }
       return {
         ok: true,
-        state: withDraft(state, draft, { kind: 'LAND_PICK', round: step.round, queue }),
+        state: withDraft(state, draft, { kind: 'LAND_PICK', round: step.round, queue, picked: [] }),
         events,
       };
     }
@@ -613,7 +662,8 @@ export function applyMatchInput(state: MatchState, input: MatchInput): MatchResu
         { kind: 'REGION_CLAIMED', round: step.round, seat: input.seat, region: input.region },
       ];
       const queue = step.queue.slice(1);
-      const after = withDraft(state, draft, { ...step, queue });
+      const picked = [...(step.picked ?? []), input.seat];
+      const after = withDraft(state, draft, { ...step, queue, picked });
       if (queue.length > 0 && freeRegions(after).length > 0) {
         return { ok: true, state: after, events };
       }

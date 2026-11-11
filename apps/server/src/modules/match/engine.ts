@@ -80,8 +80,9 @@ const MAX_STEPS_PER_RUN = 200;
 
 const BOT_NAMES = { EASY: 'leicht', MEDIUM: 'mittel', HARD: 'schwer' } as const;
 
-export function botName(strength: keyof typeof BOT_NAMES): string {
-  return `Bot (${BOT_NAMES[strength]})`;
+/** Anzeigename eines Bots; `number` unterscheidet gleich starke Bots einer Partie. */
+export function botName(strength: keyof typeof BOT_NAMES, number?: number): string {
+  return `Bot${number === undefined ? '' : ` ${number}`} (${BOT_NAMES[strength]})`;
 }
 
 export type QuestionPurpose = 'LAND' | 'DUEL_TRIVIA' | 'DUEL_ESTIMATE';
@@ -641,7 +642,8 @@ export class MatchRun {
     this.match.phase = null;
     this.match.phaseDeadlineAt = null;
     this.match.finishedAt = this.now;
-    if (this.match.kind !== 'STANDARD') return; // Testpartien zählen nicht (ADR-048)
+    // Testpartien zählen nicht (ADR-048), Partien mit Bots auch nicht (ADR-052) [E]
+    if (this.match.kind !== 'STANDARD' || this.players.some((p) => p.userId === null)) return;
     const finished = this.state.step;
     if (finished.kind !== 'FINISHED') throw new Error('Partie ist nicht beendet');
     const winners = new Set(

@@ -1,4 +1,4 @@
-import { WENDELMARK } from '@rdw/game-core';
+import { KERNMARK, WENDELMARK } from '@rdw/game-core';
 import {
   matchViewSchema,
   parseMatchEvent,
@@ -109,6 +109,11 @@ function viewOf(overrides: Partial<MatchView> = {}, boardStep: Partial<Step> = {
         regions: 0,
       })),
       step: step({ chooser: 1, ...boardStep }),
+      turns: [
+        { seat: 0, status: 'DONE' },
+        { seat: 1, status: 'NOW' },
+        { seat: 2, status: 'NEXT' },
+      ],
       questions: 0,
       duels: 0,
     },
@@ -317,6 +322,16 @@ describe('Texte der Partie', () => {
   const view = viewOf();
   const name = seatNames(view);
   const region = regionNames(mapOfView(view));
+
+  it('liest die Karte aus der Ansicht: zu zweit die Kernmark, Unbekanntes als Wendelmark', () => {
+    expect(mapOfView(view)).toBe(WENDELMARK);
+    const board = view.board;
+    if (!board) throw new Error('Brett fehlt');
+    const small = { ...board, map: 'KERNMARK', regions: board.regions.slice(0, 16) };
+    expect(mapOfView({ ...view, board: small })).toBe(KERNMARK);
+    expect(regionNames(mapOfView({ ...view, board: small }))(0)).toBe('Ackerbrunn');
+    expect(mapOfView({ ...view, board: { ...board, map: 'ANDERSWO' } })).toBe(WENDELMARK);
+  });
 
   it('nennt Sitze, Regionen und Abschnitte', () => {
     expect(name(1)).toBe('Anna (du)');
