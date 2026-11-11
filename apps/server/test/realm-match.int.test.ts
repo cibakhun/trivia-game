@@ -506,8 +506,6 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
         expect(categoryOf.get(question.seq)).toBe(spin.category);
       }
     }
-    // Die 25 Wissensfragen der Testdaten reichen nicht für jede Kategorie: Das Rad weicht aus
-    expect(spins.some((e) => e.payload.exhausted.length > 0)).toBe(true);
     // Keine Wissensfrage kommt zweimal, solange es ungestellte gibt
     const triviaIds = asked.filter((row) => row.purpose === 'DUEL_TRIVIA').map((row) => row.id);
     if (triviaIds.length <= 25) expect(new Set(triviaIds).size).toBe(triviaIds.length);
@@ -586,6 +584,83 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(turns.length).toBeGreaterThan(0);
     expect(turns.every((turn) => turn.status === 'DONE')).toBe(true);
     expect(last?.question).toMatchObject({ resolved: true });
+  });
+});
+
+describe('Glücksrad und Fragenbestand', () => {
+  it('zieht nur Kategorien mit ungestellter Frage; sind alle leer, gilt das ganze Rad', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['MEDIUM']);
+    await play(matchId, [{ human }], inPrepare(1));
+
+    // Bestand festlegen, bevor das erste Rad dreht: In dieser Partie gilt jede Wissensfrage als
+    // gestellt, bis auf eine einzige. Welche Kategorie leer wird, hängt so nicht am Zufall.
+    const KEPT: QuestionCategory = 'SPORTS';
+    const versions = await server.db
+      .selectFrom('question_versions as v')
+      .innerJoin('questions as q', 'q.id', 'v.question_id')
+      .select(['v.id', 'v.question_id', 'q.category'])
+      .where('v.kind', '=', 'TRIVIA')
+      .where('v.status', '<>', 'RETIRED')
+      .orderBy('v.id')
+      .execute();
+    const questions = [...new Map(versions.map((row) => [row.question_id, row])).values()];
+    const kept = questions.find((row) => row.category === KEPT);
+    if (!kept) throw new Error(`Testfragen ohne Wissensfrage in ${KEPT}`);
+    const openedAt = new Date();
+    const SPENT_SEQ = 1000;
+    await server.db
+      .insertInto('match_questions')
+      .values(
+        questions
+          .filter((row) => row !== kept)
+          .map((row, i) => ({
+            match_id: matchId,
+            seq: SPENT_SEQ + i,
+            kind: 'TRIVIA',
+            purpose: 'DUEL_TRIVIA',
+            version_id: row.id,
+            seats: [0, 1],
+            presentation: '{}',
+            time_limit_ms: 1000,
+            opened_at: openedAt,
+            closes_at: new Date(openedAt.getTime() + 1000),
+            resolved_at: openedAt,
+          })),
+      )
+      .execute();
+
+    const final = await play(matchId, [{ human }]);
+    expect(final.match.status).toBe('FINISHED');
+    expect(await unreadableEvents(matchId)).toEqual([]);
+    const spins = eventsOf(await events(matchId), 'WHEEL_SPUN').map((e) => e.payload);
+    const asked = await server.db
+      .selectFrom('match_questions as mq')
+      .innerJoin('question_versions as v', 'v.id', 'mq.version_id')
+      .innerJoin('questions as q', 'q.id', 'v.question_id')
+      .select(['mq.seq', 'q.category', 'q.id'])
+      .where('mq.match_id', '=', matchId)
+      .where('mq.purpose', '=', 'DUEL_TRIVIA')
+      .where('mq.seq', '<', SPENT_SEQ)
+      .orderBy('mq.seq')
+      .execute();
+    // Zu zweit greift in der ersten Runde jeder einmal an: mindestens zwei Duelle
+    expect(spins.length).toBeGreaterThanOrEqual(2);
+    expect(asked.length).toBe(spins.length);
+
+    // Erstes Rad: Nur eine Kategorie hat noch eine ungestellte Frage, alle anderen fallen weg
+    expect(spins[0]?.round).toBe(1);
+    expect(spins[0]?.category).toBe(KEPT);
+    expect(spins[0]?.exhausted).toEqual(WHEEL.filter((c) => c !== KEPT));
+    expect(asked[0]).toMatchObject({ id: kept.question_id, category: KEPT });
+    // Danach ist jede Kategorie leer: Das ganze Rad gilt, die Frage wiederholt sich in der
+    // Kategorie, die das Rad zeigt
+    for (const [i, spin] of spins.entries()) {
+      if (i === 0) continue;
+      expect(spin.exhausted, `Rad ${i + 1}`).toEqual(WHEEL);
+      expect(WHEEL).toContain(spin.category);
+      expect(asked[i]?.category, `Rad ${i + 1}`).toBe(spin.category);
+    }
   });
 });
 
@@ -718,8 +793,8 @@ describe('Rüstzeit', () => {
     await runMatchDriverOnce(server.db, driverContext());
     expect((await view(human, matchId)).phase?.kind).toBe('PREPARE');
     await advanceGameClock(server.database.pool, 201);
-    const { advanced } = await runMatchDriverOnce(server.db, driverContext());
-    expect(advanced).toBe(1);
+    // Der Lauf arbeitet jede fällige Partie der Datenbank ab; geprüft wird nur diese
+    await runMatchDriverOnce(server.db, driverContext());
     const closed = await view(human, matchId);
     expect(closed.phase?.kind).toBe('ANNOUNCE');
     expect(boardOf(closed).seats[mySeat]).toMatchObject({
