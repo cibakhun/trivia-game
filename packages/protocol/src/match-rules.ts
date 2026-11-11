@@ -175,6 +175,13 @@ export const matchRulesSchema = z
         message: 'Der Erste muss mindestens eine Region wählen',
       });
     }
+    if (rules.economy && rules.economy.startArmies > rules.economy.armyCap) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['economy', 'startArmies'],
+        message: 'Die Startburg darf nicht mehr Armeen haben, als auf ein Feld passen',
+      });
+    }
   });
 export type MatchRules = z.infer<typeof matchRulesSchema>;
 

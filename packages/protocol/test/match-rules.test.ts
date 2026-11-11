@@ -160,7 +160,7 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
     expect(two.map).toBe('KERNMARK');
   });
 
-  it('lehnt Sekunden statt Millisekunden, negative Preise und unbekannte Felder ab', () => {
+  it('lehnt Sekunden statt Millisekunden, negative Preise, zu viele Startarmeen und unbekannte Felder ab', () => {
     const parse = (economy: unknown) =>
       matchRulesSchema.safeParse({ ...DEFAULT_REALM_RULES, economy }).success;
     expect(
@@ -178,5 +178,8 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
     expect(parse({ ...DEFAULT_MATCH_ECONOMY, gold: 1 })).toBe(false);
     expect(parse({ ...DEFAULT_MATCH_ECONOMY, favorites: 0 })).toBe(false);
     expect(parse({ ...DEFAULT_MATCH_ECONOMY, armyCap: 0 })).toBe(false);
+    // Die Startburg kann nicht über der Grenze je Feld beginnen
+    expect(parse({ ...DEFAULT_MATCH_ECONOMY, startArmies: 6, armyCap: 6 })).toBe(true);
+    expect(parse({ ...DEFAULT_MATCH_ECONOMY, startArmies: 7, armyCap: 6 })).toBe(false);
   });
 });

@@ -9,7 +9,7 @@ import {
   createRng,
   DIFFICULTY_CLASS_B,
   formatDecimal,
-  generateNpcAnswer,
+  generateRealmBotAnswer,
   generateNpcEstimate,
   MATCH_BOT_STRENGTHS,
   realmBotProfile,
@@ -36,7 +36,10 @@ import {
 export interface RealmSimOptions {
   /** Feste Stärke für alle Sitze; sonst je Sitz zufällig. */
   readonly strength?: MatchBotStrength;
-  /** Anteil verpasster Fragen, Wahlen und Rüstzeiten von Sitz 0 (wie ein Mensch). */
+  /**
+   * Anteil verpasster Fragen, Wahlen und Rüstzeiten von Sitz 0 (wie ein Mensch); im Duell verpasst
+   * er beide Fragen zusammen.
+   */
   readonly seat0Misses?: number;
   /** Nach jedem Schritt aufgerufen, zum Prüfen von Invarianten. */
   readonly onStep?: (state: RealmState) => void;
@@ -221,13 +224,11 @@ export function simulateRealm(
         const triviaB = levels[questions.nextUint32() % levels.length] as number;
         const spec = randomEstimateSpec(questions);
         const answer = (seat: number) => {
-          const a = generateNpcAnswer(
+          const a = generateRealmBotAnswer(
             answers,
-            realmBotProfile(
-              strengths[seat] as MatchBotStrength,
-              favorites[seat] ?? [],
-              step.category,
-            ),
+            strengths[seat] as MatchBotStrength,
+            favorites[seat] ?? [],
+            step.category,
             {
               triviaB,
               wrongOptionCount: 3,
@@ -235,6 +236,7 @@ export function simulateRealm(
               estimateTimeLimitMs: timers.estimateMs,
             },
           );
+          // Wer ein Duell verpasst, verpasst beide Fragen (wie match-simulation.test.ts)
           const miss = missed(seat);
           return {
             correct: a.triviaCorrect && !miss,

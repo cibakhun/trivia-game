@@ -219,7 +219,7 @@ Vorräte bleiben für spätere Runden. In der Rüstzeit gibt es für `economy.tr
 | `MOVE` von, nach, Anzahl | Armeen ein Feld weit auf ein benachbartes eigenes Feld | `NOT_OWN_REGION`, `NOT_NEIGHBORS`, `NOT_ENOUGH_ARMIES` |
 | `TRADE` Rohstoff, Anzahl | gibt das Dreifache des einen, bekommt die Anzahl des anderen | `TOO_EXPENSIVE` |
 
-Ziehen dürfen nur Armeen, die zu Beginn der Runde auf dem Feld standen; jede höchstens ein Feld weit, neu gekaufte erst in der nächsten Runde. Die Grenze von 6 Armeen je Feld gilt nach allen Befehlen. Ungültige Befehle lehnt die Zustandsmaschine mit `INVALID_ORDERS`, dem Fehler und der Stelle in der Liste ab; dann bleibt die vorige Abgabe stehen. Weil jeder Befehl nur eigene Felder und eigene Vorräte betrifft, gelten alle gegen den Stand vom Beginn der Rüstzeit und hängen nicht voneinander ab.
+Ziehen dürfen nur Armeen, die zu Beginn der Runde auf dem Feld standen; jede höchstens ein Feld weit, neu gekaufte erst in der nächsten Runde. Die Grenze von 6 Armeen je Feld gilt nach allen Befehlen. Ungültige Befehle lehnt die Zustandsmaschine mit `INVALID_ORDERS`, dem Fehler und der Stelle in der Liste ab; dann bleibt die vorige Abgabe stehen. Innerhalb der Liste eines Sitzes wirkt jeder Befehl auf die folgenden: Wer erst Brot tauscht, kann danach mit dem Baustoff bauen, und eine neue Stufe zählt im selben Zug schon als gebaut. Zwischen den Sitzen gibt es keine Abhängigkeit: Jede Liste wird gegen den Stand vom Beginn der Rüstzeit geprüft und betrifft nur eigene Felder und eigene Vorräte, deshalb ist gleich, in welcher Reihenfolge die Reiche aufgedeckt werden.
 
 **Aufdecken:** Alle Befehle werden in der Reihenfolge der Runde ausgeführt und je Reich als Ereignis `ORDERS_REVEALED` mit Befehlen, Zusammenfassung (gebaut, gekauft, gezogen, getauscht) und neuem Vorrat gemeldet. Erst dann sehen die anderen, was sich geändert hat.
 
@@ -253,7 +253,7 @@ Dazu verliert der Verlierer eine Armee (§11.4). **Wertung** wie §6, nur aus La
 
 ### 11.8 Bots
 
-Wie §7 antworten Bots über das NPC-Modell ihrer Stärke; in ihren Lieblingskategorien eine Stufe besser (`REALM_FAVORITE_THETA_BONUS` = 0,7, ein mittlerer Bot trifft eine mittelschwere Frage dort zu rund 75 % statt 60 %) **[E]**. Ihre Regeln (`realm-bots.ts`) **[E]**:
+Wie §7 antworten Bots über das NPC-Modell ihrer Stärke; bei einer Wissensfrage aus ihren Lieblingskategorien eine Stufe besser (`REALM_FAVORITE_THETA_BONUS` = 0,7, ein mittlerer Bot trifft eine mittelschwere Frage dort zu rund 75 % statt 60 %) **[E]**. Die Schätzfrage im Stechen hat keine Kategorie vom Rad und bekommt den Zuschlag nicht; beide Antworten eines Duells stehen wie im PvE vorab fest (`generateRealmBotAnswer`, Ziehungsfolge wie `generateNpcAnswer`). Ihre Regeln (`realm-bots.ts`) **[E]**:
 
 - **Wahlen:** Burg möglichst weit weg von den anderen Burgen (bis 3 Felder zählt), dann viele Nachbarn; Dorf etwa zwei Felder von der eigenen Burg, dann viele freie Nachbarn; Landnahme wie §7; Angriffsziel mit dem größten erwarteten Gewinn: Siegchance aus dem Glücksrad mal Punkte je nötigem Sieg (eine Burg mit letztem Leben bringt als letzte das ganze Reich).
 - **Rüstzeit:** erst Armeen hinter der Grenze ein Feld Richtung Grenze; dann ein Ausbau je Runde, die höchste erreichbare Stufe (Burg vor Stadt vor Dorf) auf dem Feld mit den wenigsten gegnerischen Nachbarn, wenn nötig nach einem Tausch; mit dem übrigen Brot Armeen in der Burg mit den wenigsten.
@@ -262,29 +262,29 @@ Gleichstände entscheidet der Strom `match`. Die Stärke wirkt nur auf die Antwo
 
 ### 11.9 Simulation und Messwerte
 
-Unit-Tests je Regel (`packages/game-core/test/realm.test.ts`, `packages/protocol/test/match-rules.test.ts`) und eine Simulation von je 1 000 Partien zu dritt (Wendelmark) und zu zweit (Kernmark) mit Bots gemischter Stärke, Sitz 0 verpasst 15 % der Fragen, Wahlen und Rüstzeiten (`realm-simulation.test.ts`, Partien aus `realm-sim.ts`). Nach jedem Schritt gilt: Besitzer gültig, im Feldzug hat jedes Feld einen; Armeen zwischen 0 und 6 und nur auf besetzten Feldern; Vorräte nie negativ; höchstens zwei Burgen je Reich, jedes lebende Reich hat ab der Landnahme mindestens eine; gefallene Reiche besitzen nichts und haben keine Vorräte; jeder Regionswert ist Grundwert plus Befestigungen. Jede Partie endet, die Punkte ergeben die Summe aller Regionswerte, die Wiederholung mit denselben Strömen ist bitgleich, stärkere Bots gewinnen öfter. Bänder für die Spielbalance aus je 400 Partien gleich starker Bots: zweite Burg bei 30 bis 80 % der Spieler, ein Reich fällt in weniger als 5 % der Partien, der Angreifer gewinnt 35 bis 55 % der Duelle, typische Dauer im Mittel höchstens 15,5 Minuten (zu zweit 11,5), zu zweit gewinnt der Erste der Startfrage seltener als 60 %.
+Unit-Tests je Regel (`packages/game-core/test/realm.test.ts`, `packages/protocol/test/match-rules.test.ts`) und eine Simulation von je 1 000 Partien zu dritt (Wendelmark) und zu zweit (Kernmark) mit Bots gemischter Stärke, Sitz 0 verpasst 15 % der Schätzfragen, Wahlen, Rüstzeiten und Duelle, ein verpasstes Duell mit beiden Fragen wie in `match-simulation.test.ts` (`realm-simulation.test.ts`, Partien aus `realm-sim.ts`). Nach jedem Schritt gilt: Besitzer gültig, im Feldzug hat jedes Feld einen; Armeen zwischen 0 und 6 und nur auf besetzten Feldern; Vorräte nie negativ; höchstens zwei Burgen je Reich, jedes lebende Reich hat ab der Landnahme mindestens eine; gefallene Reiche besitzen nichts und haben keine Vorräte; jeder Regionswert ist Grundwert plus Befestigungen. Jede Partie endet, die Punkte ergeben die Summe aller Regionswerte, die Wiederholung mit denselben Strömen ist bitgleich, stärkere Bots gewinnen öfter. Bänder für die Spielbalance aus je 400 Partien gleich starker Bots: zweite Burg bei 30 bis 80 % der Spieler, ein Reich fällt in weniger als 5 % der Partien, der Angreifer gewinnt 35 bis 55 % der Duelle, typische Dauer im Mittel höchstens 15,5 Minuten (zu zweit 11,5), zu zweit gewinnt der Erste der Startfrage seltener als 60 %.
 
 Rechnerische Obergrenze, wenn jede Zeit ganz ausläuft und jedes Duell bis zur Schätzfrage geht: zu dritt 26,0 Minuten und 37 Fragen, zu zweit 18,7 Minuten und 25 Fragen (der Test prüft sie). Messwerte über je 2 000 Partien gleich starker mittlerer Bots ohne verpasste Fragen (2026-11-11, `corepack pnpm exec tsx packages/game-core/test/realm-measure.ts`; „typisch“ mit den Annahmen Wahl 5 s, Wissensfrage 8 s, Schätzfrage 11 s, Rüstzeit 25 s, die Pausen voll):
 
 | Messwert | zu dritt (Wendelmark) | zu zweit (Kernmark) |
 |---|---|---|
 | Fragen je Partie | 29,7 | 20,1 |
-| Duelle, davon Eroberungen | 15,0, davon 6,5 | 10,0, davon 4,1 |
+| Duelle, davon Eroberungen | 15,0, davon 6,4 | 10,0, davon 4,2 |
 | Angreifer gewinnt ein Duell | 44 % | 44 % |
 | Duelle, die die Schätzfrage entscheidet | 51 % | 51 % |
 | Frage aus Lieblingskategorien Angreifer / Verteidiger / frei | 39 / 28 / 33 % | 34 / 40 / 26 % |
 | Einkommen je Runde und Reich, Brot / Baustoff | 6,7 / 7,3 | 7,5 / 6,5 |
 | je Spieler gebaut: Dörfer / Städte | 2,0 / 2,4 | 2,0 / 2,6 |
-| Spieler, die eine zweite Burg bauen | 61 % | 40 % |
-| Armeen gekauft je Spieler | 8,9 | 10,8 |
+| Spieler, die eine zweite Burg bauen | 60 % | 40 % |
+| Armeen gekauft je Spieler | 8,9 | 10,7 |
 | Rüstzeiten mit Tausch | 12 % | 15 % |
-| Partien, in denen ein Reich fällt | 0,9 % (gemischte Bots 6,3 %) | 1,2 % (gemischte Bots 3,3 %) |
+| Partien, in denen ein Reich fällt | 1,3 % (gemischte Bots 6,7 %) | 1,4 % (gemischte Bots 3,8 %) |
 | Dauer typisch, Mittel (90 % der Partien kürzer als) | 14,4 min (15,0) | 10,4 min (11,0) |
 | Dauer, wenn jeder jede Zeit ausreizt: Mittel, höchstens | 22,8 min, 25,6 min | 16,5 min, 18,7 min |
-| Sieg nach Platz der Startfrage | 34 / 35 / 31 % | 56 / 44 % |
+| Sieg nach Platz der Startfrage | 34 / 36 / 30 % | 57 / 43 % |
 | Siegquote nach Stärke (gemischt) | leicht 5 %, mittel 27 %, schwer 69 % | leicht 21 %, mittel 48 %, schwer 82 % |
 
-Gegenproben mit 4 und 6 Runden (je 2 000 Partien): Die zweite Burg bauen dann zu dritt 27 und 74 %, zu zweit 9 und 60 % der Spieler; typisch dauert die Partie zu dritt 12,4 und 16,4 Minuten, zu zweit 9,0 und 11,9. Fünf Runden treffen das Ziel des Konzepts („etwa jeder Zweite schafft die zweite Burg“) zu dritt knapp darüber, zu zweit knapp darunter. Das Startdorf in umgekehrter Reihenfolge senkt den Vorteil des Ersten zu zweit von rund 60 zu 39 (§9) auf 56 zu 44.
+Gegenproben mit 4 und 6 Runden (je 2 000 Partien): Die zweite Burg bauen dann zu dritt 26 und 74 %, zu zweit 9 und 61 % der Spieler; typisch dauert die Partie zu dritt 12,4 und 16,4 Minuten, zu zweit 9,0 und 11,9. Fünf Runden treffen das Ziel des Konzepts („etwa jeder Zweite schafft die zweite Burg“) zu dritt knapp darüber, zu zweit knapp darunter. Das Startdorf in umgekehrter Reihenfolge senkt den Vorteil des Ersten zu zweit von rund 60 zu 39 (§9) auf 57 zu 43.
 
 ### 11.10 Parametertabelle
 

@@ -222,6 +222,7 @@ function assertRealmSetup(rules: RealmRules, setup: RealmSetup): void {
   const { seats, landGrab, campaign, capital } = rules;
   if (
     rules.economy === undefined ||
+    rules.economy.startArmies > rules.economy.armyCap ||
     !positive(seats) ||
     landGrab.picksByPlace.length !== seats ||
     !landGrab.picksByPlace.every((n) => Number.isInteger(n) && n >= 0) ||

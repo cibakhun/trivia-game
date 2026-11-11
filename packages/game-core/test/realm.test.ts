@@ -14,9 +14,13 @@ import {
   chooseRegionForRealmBot,
   createRealm,
   createRng,
+  generateNpcAnswer,
+  generateRealmBotAnswer,
   KERNMARK,
+  MATCH_BOT_PROFILES,
   matchMap,
   parseDecimal,
+  REALM_FAVORITE_THETA_BONUS,
   realmAttackOrder,
   realmFreeRegions,
   realmIncome,
@@ -152,6 +156,8 @@ describe('Partie mit Ausbau: Aufbau', () => {
     expect(() =>
       createRealm(TWO, { categories: ['HISTORY', 'SPORTS'], favorites: FAV.slice(0, 2) }),
     ).toThrow(RangeError);
+    const crowded = { ...TWO, economy: { ...TWO.economy, startArmies: 7 } };
+    expect(() => createRealm(crowded, setupFor(2))).toThrow(RangeError);
     const state = createRealm(TWO, setupFor(2));
     expect(state.step).toEqual({ kind: 'START_ESTIMATE' });
     expect(state.regions).toHaveLength(16);
@@ -773,5 +779,39 @@ describe('Reihenfolge und Ende', () => {
     );
     expect(JSON.parse(JSON.stringify(r.state))).toEqual(r.state);
     expect(JSON.parse(JSON.stringify(r.events))).toEqual(r.events);
+  });
+});
+
+describe('Bots im Duell', () => {
+  const question = {
+    triviaB: 0,
+    wrongOptionCount: 3,
+    estimate: {
+      answerValue: '1000',
+      answerPrecision: 0,
+      inputMin: '0',
+      inputMax: '100000',
+      scaleType: 'LINEAR' as const,
+      scale: 150,
+    },
+    estimateTimeLimitMs: 20_000,
+  };
+
+  it('Lieblingskategorie hilft bei der Wissensfrage, nicht im Stechen', () => {
+    for (let seed = 0; seed < 20; seed++) {
+      const rng = () => createRng(new Uint8Array(16).fill(seed));
+      const fav = generateRealmBotAnswer(rng(), 'MEDIUM', ['HISTORY'], 'HISTORY', question);
+      const other = generateRealmBotAnswer(rng(), 'MEDIUM', ['HISTORY'], 'SPORTS', question);
+      expect(fav.audit.theta).toBeCloseTo(
+        MATCH_BOT_PROFILES.MEDIUM.theta + REALM_FAVORITE_THETA_BONUS,
+      );
+      expect(fav.audit.pCorrect).toBeGreaterThan(other.audit.pCorrect);
+      // Gleiche Ziehungen: die Schätzung hängt nicht an der Kategorie des Rads
+      expect(fav.estimate).toEqual(other.estimate);
+      expect(fav.estimateMs).toBe(other.estimateMs);
+      expect(fav.audit.draws).toEqual(other.audit.draws);
+      // Außerhalb der Lieblingskategorien genau wie das NPC-Modell der Partie
+      expect(other).toEqual(generateNpcAnswer(rng(), MATCH_BOT_PROFILES.MEDIUM, question));
+    }
   });
 });

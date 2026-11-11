@@ -1,7 +1,15 @@
 import type { QuestionCategory } from '@rdw/protocol';
 import { regionDistance, regionNeighbors } from './match-map.ts';
 import { MATCH_BOT_PROFILES, type MatchBotStrength } from './match-bots.ts';
-import type { NpcProfile } from './npc.ts';
+import {
+  DEFAULT_ESTIMATE_SPREAD,
+  generateNpcEstimate,
+  generateNpcTrivia,
+  type EstimateSpreadParams,
+  type NpcAnswer,
+  type NpcProfile,
+  type NpcQuestionSpec,
+} from './npc.ts';
 import {
   buildingLevel,
   castleLivesLeft,
@@ -40,6 +48,45 @@ export function realmBotProfile(
   return category !== null && favorites.includes(category)
     ? { ...base, theta: base.theta + REALM_FAVORITE_THETA_BONUS }
     : base;
+}
+
+/**
+ * Versiegelte Antworten eines Bots auf beide Fragen eines Duells, in derselben Ziehungsfolge wie
+ * `generateNpcAnswer` (Strom `npc-answer`): die Wissensfrage aus der Kategorie des Glücksrads mit
+ * dem Zuschlag für Lieblingskategorien, die Schätzfrage im Stechen ohne ihn, denn sie hat keine
+ * Kategorie vom Rad (MATCH_RULES §11.5).
+ */
+export function generateRealmBotAnswer(
+  rng: Rng,
+  strength: MatchBotStrength,
+  favorites: readonly QuestionCategory[],
+  category: QuestionCategory,
+  question: NpcQuestionSpec,
+  spreadParams: EstimateSpreadParams = DEFAULT_ESTIMATE_SPREAD,
+): NpcAnswer {
+  if (!(question.estimate.scale > 0)) throw new RangeError('estimate_scale muss positiv sein');
+  const triviaProfile = realmBotProfile(strength, favorites, category);
+  const trivia = generateNpcTrivia(rng, triviaProfile, question.triviaB, question.wrongOptionCount);
+  const estimate = generateNpcEstimate(
+    rng,
+    realmBotProfile(strength, favorites, null),
+    question.estimate,
+    question.estimateTimeLimitMs,
+    spreadParams,
+  );
+  return {
+    triviaCorrect: trivia.correct,
+    wrongOptionIndex: trivia.wrongOptionIndex,
+    estimate: estimate.estimate,
+    estimateMs: estimate.estimateMs,
+    audit: {
+      theta: triviaProfile.theta,
+      b: question.triviaB,
+      pCorrect: trivia.pCorrect,
+      spread: estimate.spread,
+      draws: { trivia: trivia.draw, estimate: estimate.draws.estimate, time: estimate.draws.time },
+    },
+  };
 }
 
 /** Zufällige Lieblingskategorien eines Bots (Strom `match`). */

@@ -334,7 +334,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 **Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
 
 **Priorität:** P1 (Ausbau) · **Wirkung:** wie oft ein Reich fällt, Ziel für den Ausbau · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.3](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
-**Stand:** Ziel: Etwa jeder Zweite schafft die zweite Burg. Gemessen mit den echten Regeln bei fünf Runden: zu dritt 61 %, zu zweit 40 % der Spieler.
+**Stand:** Ziel: Etwa jeder Zweite schafft die zweite Burg. Gemessen mit den echten Regeln bei fünf Runden: zu dritt 60 %, zu zweit 40 % der Spieler.
 - **A (gewählt):** 8 Brot + 16 Baustoff, höchstens zwei Burgen je Reich.
 - **B:** 6 + 12 (in der Grobsimulation 87 %, ein Reich fällt fast nie).
 - **C:** keine Grenze für Burgen.
@@ -355,7 +355,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 **Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
 
 **Priorität:** P1 (Ausbau) · **Wirkung:** Dauer, zweite Burg erreichbar · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.9](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
-**Stand:** Gemessen mit den echten Regeln und gleich starken Bots: fünf Runden typisch 14,4 Minuten zu dritt und 10,4 zu zweit; vier Runden 12,4 und 9,0 (zweite Burg 27 und 9 %); sechs Runden 16,4 und 11,9.
+**Stand:** Gemessen mit den echten Regeln und gleich starken Bots: fünf Runden typisch 14,4 Minuten zu dritt und 10,4 zu zweit; vier Runden 12,4 und 9,0 (zweite Burg 26 und 9 %); sechs Runden 16,4 und 11,9.
 - **A (gewählt):** 5 Runden.
 - **B:** 4 Runden, kürzer, aber die zweite Burg kaum erreichbar.
 - **C:** 6 Runden, länger.
@@ -400,7 +400,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 **Stand:** Bei wechselnder Reihenfolge hatte zu dritt der Sitz, der in Runde 5 zuerst angreift, einen Nachteil (Grobsimulation 30 %), weil die anderen danach noch angreifen.
 - **A (gewählt):** Wer nach Punkten vorn liegt, greift zuerst an, wer hinten liegt, zuletzt; bei gleichen Punkten die Reihenfolge der Runde (`realmAttackOrder`).
 - **B:** weiter wechselnd wie in den übrigen Runden.
-**Empfehlung (gewählt):** A. Gemessen gewinnen danach die Plätze der Startfrage zu dritt 34, 35 und 31 %.
+**Empfehlung (gewählt):** A. Gemessen gewinnen danach die Plätze der Startfrage zu dritt 34, 36 und 30 %.
 
 ## Änderungsprotokoll
 

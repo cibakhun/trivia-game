@@ -47,6 +47,8 @@ function measure(rules: RealmRules): void {
     full.push(run.durationMs.full / 60_000);
     typical.push(run.durationMs.typical / 60_000);
     questions += state.questions;
+    // Partien, in denen mindestens ein Reich fällt (zu dritt können es zwei sein)
+    if (events.some((e) => e.kind === 'KINGDOM_ELIMINATED')) falls += 1;
     for (const e of events) {
       if (e.kind === 'DUEL_RESOLVED') {
         duels += 1;
@@ -55,7 +57,6 @@ function measure(rules: RealmRules): void {
         if (e.reason === 'ESTIMATE' || e.reason === 'SPEED' || e.reason === 'FULL_TIE')
           estimates += 1;
       }
-      if (e.kind === 'KINGDOM_ELIMINATED') falls += 1;
       if (e.kind === 'TARGET_CHOSEN') {
         const { segments, total } = e.wheel;
         wheelA += segments.reduce((s, x) => s + x.attacker, 0) / total;
