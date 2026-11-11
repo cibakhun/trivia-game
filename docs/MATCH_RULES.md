@@ -18,7 +18,7 @@ Code: Regeln als reine Funktionen in `packages/game-core/src/match.ts` (Zustands
 
 ## 2. Karte
 
-Die Karte richtet sich nach der Spielerzahl beim Start (`MATCH_MAP_BY_SEATS`) **[V, PO 2026-11-11; Größen E, ADR-052]**. Auf jedes Reich kommen acht Regionen, zu zweit wie zu dritt:
+Die Karte richtet sich nach der Spielerzahl beim Start (`MATCH_MAP_BY_SEATS`) **[V, PO 2026-11-11; Größen E, ADR-052]**. Auf jedes Reich kommen im Schnitt acht Regionen, zu zweit wie zu dritt; wie viele ein Reich wirklich bekommt, entscheidet die Landnahme (§3):
 
 | Spieler | Karte | Regionen | Reihen | Landnahme bei 2 + 1 Wahlen |
 |---|---|---|---|---|
