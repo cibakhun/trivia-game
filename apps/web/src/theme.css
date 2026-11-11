@@ -149,6 +149,9 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
+  /* Sichtbare Höhe: `100vh` ist auf dem Handy höher als der Bildschirm, solange die Leisten des
+     Browsers zu sehen sind, und macht jede Seite um diesen Rest scrollbar */
+  min-height: 100dvh;
 }
 
 h1,

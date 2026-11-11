@@ -9,11 +9,14 @@ export function Countdown({
   deadline,
   totalMs,
   onExpire,
+  quiet = false,
 }: {
   /** Ende als `performance.now()`-Wert. */
   readonly deadline: number;
   readonly totalMs: number;
   readonly onExpire: () => void;
+  /** Nur ein schmaler Balken ohne Text und ohne Warnfarbe: für Pausen, in denen nichts zu tun ist. */
+  readonly quiet?: boolean;
 }) {
   const [remaining, setRemaining] = useState(() => Math.max(0, deadline - performance.now()));
   const expired = useRef(false);
@@ -40,11 +43,14 @@ export function Countdown({
   const seconds = Math.ceil(shown / 1000);
   const share = totalMs > 0 ? shown / totalMs : 0;
   return (
-    <div className="countdown" role="timer" aria-live="off">
+    <div className={`countdown${quiet ? ' quiet' : ''}`} role="timer" aria-live="off">
       <div className="countdown-bar" aria-hidden="true">
-        <span style={{ width: `${share * 100}%` }} className={seconds <= 5 ? 'urgent' : ''} />
+        <span
+          style={{ width: `${share * 100}%` }}
+          className={!quiet && seconds <= 5 ? 'urgent' : ''}
+        />
       </div>
-      <span className="countdown-text">
+      <span className={quiet ? 'visually-hidden' : 'countdown-text'}>
         {seconds > 0 ? tp('quiz.remaining', seconds) : t('quiz.timeUp')}
       </span>
     </div>

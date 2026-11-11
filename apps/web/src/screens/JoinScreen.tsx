@@ -20,9 +20,11 @@ export function JoinScreen({ code }: { readonly code: string }) {
   const [error, setError] = useState<unknown>(null);
   const [guestBusy, setGuestBusy] = useState(false);
   const key = useRef(new ActionKey());
-  const tried = useRef(false);
+  /** Konto, für das der Beitritt schon von selbst versucht wurde. */
+  const tried = useRef<string | null>(null);
   const valid = INVITE_CODE_PATTERN.test(code);
   const ready = state.status === 'ready';
+  const userId = state.status === 'ready' ? state.me.user.id : null;
 
   const join = useCallback(async () => {
     setError(null);
@@ -38,12 +40,14 @@ export function JoinScreen({ code }: { readonly code: string }) {
     }
   }, [code]);
 
-  // Mit Sitzung sofort beitreten, genau einmal; ein Fehler bleibt stehen, bis jemand neu versucht
+  // Mit Sitzung sofort beitreten, je Konto genau einmal; ein Fehler bleibt stehen, bis jemand neu
+  // versucht. Wechselt das Konto auf dieser Seite (abgemeldet, dann als Gast oder angemeldet),
+  // gilt der Versuch des alten Kontos nicht für das neue.
   useEffect(() => {
-    if (!ready || !valid || tried.current) return;
-    tried.current = true;
+    if (userId === null || !valid || tried.current === userId) return;
+    tried.current = userId;
     void join();
-  }, [ready, valid, join]);
+  }, [userId, valid, join]);
 
   async function guest() {
     setGuestBusy(true);

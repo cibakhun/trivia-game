@@ -10,9 +10,10 @@ import { closeAnswerDb, matchSolution, testDb } from './answers.ts';
 /**
  * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots,
  * eine normale Partie am Handy allein mit Bots aus der Aufstellung (ADR-052), der Einladungslink
- * und eine normale Partie zu zweit in zwei Browser-Kontexten, die Partien mit Spieltestzeiten. Jeder Spieler wählt die
- * erste markierte Region und antwortet richtig; die Lösung liest nur der Test aus der Datenbank.
- * Die Ablaufsteuerung läuft im Testserver wie im api-Prozess.
+ * und eine normale Partie zu zweit in zwei Browser-Kontexten, die Partien mit Spieltestzeiten.
+ * Jeder Spieler wählt die erste markierte Region und antwortet richtig; die Lösung liest nur der
+ * Test aus der Datenbank. Ansagen und Auflösungen (ADR-053) stehen nur kurz: Die Seite schreibt
+ * selbst mit, was sie gezeigt hat. Die Ablaufsteuerung läuft im Testserver wie im api-Prozess.
  */
 
 test.afterAll(async () => {
@@ -81,6 +82,64 @@ async function answerRight(page: Page, matchId: string, seq: number): Promise<bo
   );
 }
 
+/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053). */
+interface Shown {
+  readonly state: 'announce' | 'reveal';
+  readonly text: string;
+  /** Ansage eines Duells (sonst: eine gezeigte Wahl). */
+  readonly duel: boolean;
+  /** Hervorhebung auf der Karte: Ring um die gewählte Region oder Angriffspfeil. */
+  readonly ring: boolean;
+  readonly arrow: boolean;
+  /** Plättchen mit Wappen: an den Antworten der Auflösung oder in der Ansage. */
+  readonly chips: number;
+  /** Auflösung einer Wissensfrage mit markierter richtiger Antwort. */
+  readonly correctOption: boolean;
+}
+
+/**
+ * Lässt die Seite jede Ansage und jede Auflösung mitschreiben, sobald sie erscheint. Mit
+ * Spieltestzeiten stehen sie nur Bruchteile einer Sekunde, zu kurz für eine Abfrage von außen.
+ */
+async function recordShown(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const seen: Shown[] = [];
+    (window as unknown as { shown: Shown[] }).shown = seen;
+    const note = () => {
+      const state = document
+        .querySelector('[data-testid="match-screen"]')
+        ?.getAttribute('data-state');
+      if (state !== 'announce' && state !== 'reveal') return;
+      const card = document.querySelector(
+        state === 'announce' ? '[data-testid="match-announce"]' : '[data-testid="match-reveal"]',
+      );
+      if (!card) return;
+      const entry: Shown = {
+        state,
+        text: card.textContent ?? '',
+        duel: card.classList.contains('announce-duel'),
+        ring: document.querySelector('.spot-ring') !== null,
+        arrow: document.querySelector('.attack-arrow') !== null,
+        chips: card.querySelectorAll('.seat-chip').length,
+        correctOption: card.querySelector('.reveal-option.correct') !== null,
+      };
+      const last = seen.at(-1);
+      if (last?.state === entry.state && last.text === entry.text) seen[seen.length - 1] = entry;
+      else seen.push(entry);
+    };
+    new MutationObserver(note).observe(document, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['data-state'],
+    });
+  });
+}
+
+function shownBy(page: Page): Promise<Shown[]> {
+  return page.evaluate(() => (window as unknown as { shown?: Shown[] }).shown ?? []);
+}
+
 interface Played {
   readonly picks: number;
   readonly answers: number;
@@ -144,6 +203,7 @@ async function statistics(page: Page) {
 test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) => {
   test.setTimeout(240_000);
   const page = await newPlayer(browser);
+  await recordShown(page);
   const setup = page.getByTestId('test-match');
   await setup.getByLabel('Zu dritt').check();
   await setup.getByLabel('Bot 1').selectOption('EASY');
@@ -174,6 +234,27 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   expect(played.picks).toBeGreaterThan(0);
   expect(played.answers).toBeGreaterThan(0);
   expect(played.reveals).toBeGreaterThan(0);
+
+  // Ansagen (ADR-053): Die Wahl eines Bots bleibt mit einem Ring auf der Karte stehen; vor jedem
+  // Duell steht, wer wen wo angreift, und der Pfeil zeigt es auf der Karte
+  const shown = await shownBy(page);
+  const picksShown = shown.filter((s) => s.state === 'announce' && !s.duel);
+  expect(picksShown.length).toBeGreaterThan(3);
+  expect(picksShown.every((s) => s.ring && !s.arrow)).toBe(true);
+  expect(picksShown.some((s) => /^Bot \((leicht|schwer)\) (nimmt|wählt) /.test(s.text))).toBe(true);
+  const duels = shown.filter((s) => s.state === 'announce' && s.duel);
+  expect(duels.length).toBeGreaterThan(3);
+  for (const duel of duels) {
+    expect(duel.text).toMatch(/(angegriffen!|Angriff auf )/);
+    expect(duel.text).toMatch(/ greift .+ an\./);
+    expect(duel).toMatchObject({ arrow: true, ring: false, chips: 2 });
+  }
+  // Auflösungen: Jeder Sitz der Frage steht mit seinem Wappen an seiner Antwort
+  const reveals = shown.filter((s) => s.state === 'reveal');
+  expect(reveals.length).toBeGreaterThan(5);
+  expect(reveals.every((s) => s.chips >= 2 && s.chips <= 3)).toBe(true);
+  expect(reveals.some((s) => s.correctOption)).toBe(true);
+  expect(reveals.some((s) => s.text.includes('Richtige Antwort:'))).toBe(true);
 
   const result = page.getByTestId('match-result');
   await expect(result.locator('tbody tr')).toHaveCount(3);
@@ -263,6 +344,15 @@ test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die R
         width: document.documentElement.scrollWidth,
         board: box('[data-testid="match-board"]'),
         turnsBox: box('[data-testid="match-turns"]'),
+        // Unterkante des Landes und Oberkante der Leiste darunter
+        land: Math.max(
+          0,
+          ...[...document.querySelectorAll('.board-region')].map(
+            (region) => region.getBoundingClientRect().bottom,
+          ),
+        ),
+        panel: document.querySelector('.match-panel')?.getBoundingClientRect().top ?? 0,
+        locked: document.documentElement.classList.contains('match-playing'),
         turns: [...document.querySelectorAll('[data-testid="match-turns"] li')].map((li) => ({
           status: li.getAttribute('data-status'),
           me: li.classList.contains('me'),
@@ -276,6 +366,13 @@ test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die R
     expect(now.overflow).toBeLessThanOrEqual(0);
     expect(now.width).toBeLessThanOrEqual(WIDTH);
     if (now.board) boards.set(state, `${now.board} | ${now.turnsBox}`);
+    // Die Seite steht fest (auch am iPhone lässt sich nichts verschieben), und solange gewählt
+    // oder angesagt wird, liegt das ganze Land über der Leiste
+    expect(now.locked).toBe(true);
+    if (state === 'pick' || state === 'waiting-pick' || state === 'announce') {
+      expect(now.land).toBeGreaterThan(0);
+      expect(now.land).toBeLessThanOrEqual(now.panel + 1);
+    }
     if (state === 'pick') {
       // Wer wählen darf, steht in der Zugfolge als Einziger auf „dran“
       expect(now.turns.filter((turn) => turn.status === 'NOW')).toEqual([

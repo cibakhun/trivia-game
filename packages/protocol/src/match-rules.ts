@@ -21,6 +21,13 @@ const timerMs = z
   .min(SECOND_MS)
   .max(10 * 60 * SECOND_MS);
 
+/** Kurze Pause der Ansage; 0 schaltet sie ab. */
+const pauseMs = z
+  .number()
+  .int()
+  .min(0)
+  .max(30 * SECOND_MS);
+
 export const matchRulesSchema = z
   .object({
     schemaVersion: z.literal(1),
@@ -69,6 +76,16 @@ export const matchRulesSchema = z
         pickMs: timerMs,
         /** Anzeige der Auflösung nach jeder Frage. */
         revealMs: timerMs,
+        /**
+         * Ansage eines Duells (ADR-053): So lange zeigt die Karte, wer wen wo angreift, bevor die
+         * Frage kommt. Fehlt in Partien, die vor ADR-053 gestartet wurden; dann gibt es keine.
+         */
+        announceMs: pauseMs.optional(),
+        /**
+         * So lange bleibt eine Wahl stehen, bevor ein anderer Sitz wählt oder die Schätzfrage der
+         * Landnahme kommt (ADR-053). Wählt derselbe Mensch gleich noch einmal, entfällt die Pause.
+         */
+        pickShowMs: pauseMs.optional(),
         /** `cap` aus QUIZ_ENGINE §6.2. */
         latencyAllowanceCapMs: z
           .number()
@@ -121,7 +138,9 @@ export const DEFAULT_MATCH_RULES: MatchRules = Object.freeze({
     triviaMs: 15 * SECOND_MS,
     estimateMs: 20 * SECOND_MS,
     pickMs: 10 * SECOND_MS,
-    revealMs: 5 * SECOND_MS,
+    revealMs: 6 * SECOND_MS,
+    announceMs: 2500,
+    pickShowMs: 1200,
     latencyAllowanceCapMs: 500,
   },
 });
@@ -163,6 +182,8 @@ export const PLAYTEST_MATCH_RULES: MatchRules = Object.freeze({
     estimateMs: 10 * SECOND_MS,
     pickMs: 5 * SECOND_MS,
     revealMs: 2 * SECOND_MS,
+    announceMs: 600,
+    pickShowMs: 300,
     latencyAllowanceCapMs: 500,
   },
 });

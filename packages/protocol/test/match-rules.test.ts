@@ -30,8 +30,28 @@ describe('Regeln der Partie', () => {
       triviaMs: 15 * SECOND_MS,
       estimateMs: 20 * SECOND_MS,
       pickMs: 10 * SECOND_MS,
-      revealMs: 5 * SECOND_MS,
+      revealMs: 6 * SECOND_MS,
+      announceMs: 2500,
+      pickShowMs: 1200,
     });
+  });
+
+  it('Ansage und gezeigte Wahl sind in alten Regeln nicht vorhanden und bleiben gültig', () => {
+    const { announceMs, pickShowMs, ...oldTimers } = DEFAULT_MATCH_RULES.timers;
+    expect(announceMs).toBeGreaterThan(0);
+    expect(pickShowMs).toBeGreaterThan(0);
+    const old = matchRulesSchema.parse({ ...DEFAULT_MATCH_RULES, timers: oldTimers });
+    expect(old.timers.announceMs).toBeUndefined();
+    expect(old.timers.pickShowMs).toBeUndefined();
+    // Auch der Spieltest zeigt Wahl und Ansage, nur kürzer
+    expect(PLAYTEST_MATCH_RULES.timers.announceMs).toBeLessThan(announceMs ?? 0);
+    expect(PLAYTEST_MATCH_RULES.timers.pickShowMs).toBeLessThan(pickShowMs ?? 0);
+    expect(
+      matchRulesSchema.safeParse({
+        ...DEFAULT_MATCH_RULES,
+        timers: { ...DEFAULT_MATCH_RULES.timers, announceMs: 60 * SECOND_MS },
+      }).success,
+    ).toBe(false);
   });
 
   it('Spieltest ändert nur die Zeiten', () => {

@@ -5,17 +5,21 @@ import { playSound } from '../audio/sound.ts';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { SoundToggle } from '../components/SoundToggle.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
+import { AnnouncePanel } from '../match/AnnouncePanel.tsx';
 import { DuelHeader } from '../match/DuelHeader.tsx';
 import { t } from '../i18n/i18n.ts';
 import { LobbyPanel } from '../match/LobbyPanel.tsx';
 import { MatchBoard } from '../match/MatchBoard.tsx';
 import {
+  duelFocus,
   lastOf,
   needsPresent,
   revealFor,
   screenStateOf,
+  shownPick,
   type LocalQuestion,
   type MatchScreenState,
+  type Reveal,
 } from '../match/match-model.ts';
 import {
   logText,
@@ -116,6 +120,14 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
   const region = useMemo(() => (map ? regionNames(map) : () => ''), [map]);
   const moment = useMoments(view, state, events, name);
   useMatchSounds(view, state, events);
+  const reveal = useMemo(
+    () => (state === 'reveal' && view?.question ? revealFor(events, view.question.seq) : null),
+    [state, view?.question, events],
+  );
+  // Der Angriffspfeil steht von der Ansage bis zum Ende der Auflösung
+  const focus = view ? duelFocus(view, reveal) : null;
+  // Was ein Bot eben gewählt hat, trägt während der Ansage einen Ring
+  const spot = state === 'announce' ? (shownPick(events)?.payload.region ?? null) : null;
 
   async function runAction(action: () => Promise<void>) {
     setBusy(true);
@@ -234,6 +246,12 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
   // Laufende Partie: auf dem Handy eine feste Bildschirmseite ohne Scrollen (Karte, Leiste, Blatt)
   const playing = Boolean(view?.board && map) && state !== 'finished' && state !== 'abandoned';
 
+  // Solange die feste Seite steht, scrollt auch das Dokument nicht (iPhone, siehe styles.css)
+  useEffect(() => {
+    document.documentElement.classList.toggle('match-playing', playing);
+    return () => document.documentElement.classList.remove('match-playing');
+  }, [playing]);
+
   return (
     <main
       className={`match-page${playing ? ' playing' : ''}`}
@@ -288,6 +306,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
               estimate={estimate}
               busy={busy}
               events={events}
+              reveal={reveal}
               name={name}
               region={region}
               onEstimate={setEstimate}
@@ -306,7 +325,9 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
               board={view.board}
               name={name}
               legal={state === 'pick' ? view.legalRegions : []}
-              contested={view.board.step.region}
+              contested={focus?.region ?? null}
+              attacker={focus?.attacker ?? null}
+              spot={spot}
               busy={busy}
               onPick={pick}
             />
@@ -326,6 +347,7 @@ function StatePanel({
   estimate,
   busy,
   events,
+  reveal,
   name,
   region,
   onEstimate,
@@ -339,6 +361,7 @@ function StatePanel({
   readonly estimate: string;
   readonly busy: boolean;
   readonly events: Parameters<typeof revealFor>[0];
+  readonly reveal: Reveal | null;
   readonly name: (seat: number) => string;
   readonly region: (region: number) => string;
   readonly onEstimate: (value: string) => void;
@@ -347,9 +370,9 @@ function StatePanel({
 }) {
   const { timers } = view.match;
   const questionMs = view.question?.kind === 'TRIVIA' ? timers.triviaMs : timers.estimateMs;
-  const phaseTimer = (totalMs: number) =>
+  const phaseTimer = (totalMs: number, quiet = false) =>
     phaseDeadline === null ? null : (
-      <Countdown deadline={phaseDeadline} totalMs={totalMs} onExpire={noop} />
+      <Countdown deadline={phaseDeadline} totalMs={totalMs} onExpire={noop} quiet={quiet} />
     );
   const contextNote = <DuelHeader view={view} name={name} region={region} />;
 
@@ -377,6 +400,17 @@ function StatePanel({
         </section>
       );
     }
+    case 'announce':
+      return (
+        <AnnouncePanel
+          view={view}
+          events={events}
+          name={name}
+          region={region}
+          fallback={latestLine(events, name, region)}
+          timer={phaseTimer(timers.announceMs, true)}
+        />
+      );
     case 'question':
       if (!local?.question) return null;
       return (
@@ -415,19 +449,17 @@ function StatePanel({
         </section>
       );
     }
-    case 'reveal': {
-      const reveal = view.question ? revealFor(events, view.question.seq) : null;
-      return (
-        <>
-          {reveal ? (
-            <RevealPanel reveal={reveal} name={name} region={region} />
-          ) : (
-            <p>{t('app.loading')}</p>
-          )}
-          {phaseTimer(timers.revealMs)}
-        </>
+    case 'reveal':
+      return reveal ? (
+        <RevealPanel
+          reveal={reveal}
+          name={name}
+          region={region}
+          timer={phaseTimer(timers.revealMs, true)}
+        />
+      ) : (
+        <p>{t('app.loading')}</p>
       );
-    }
     case 'finished':
       return <ResultPanel view={view} finished={lastOf(events, 'MATCH_FINISHED')} name={name} />;
     case 'loading':

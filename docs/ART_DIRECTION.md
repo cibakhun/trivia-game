@@ -56,12 +56,19 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern für beide Karten: genau di
 
 | Zustand | Blatt |
 |---|---|
-| Wahl (eigene und fremde) | schmale Leiste unter der Karte: Auftrag, Restzeit, beim Warten das letzte Ereignis. Die Karte ist ganz frei |
+| Wahl (eigene und fremde) | Leiste unter der Karte: Auftrag, Restzeit, beim Warten das letzte Ereignis. Die Karte ist ganz frei |
+| Ansage (ADR-053) | dieselbe Leiste, ganz gefüllt und mittig gesetzt: nach einer Wahl ein Satz mit dem Wappen dessen, der gewählt hat; vor einem Duell als Titel, wo angegriffen wird, darunter als Plättchen, wer wen angreift. Die Karte ist ganz frei |
 | Frage | festes Blatt über der Karte, von oben gefüllt. Ein Hinweis unter dem Knopf verschiebt nichts |
 | Gespeichert, verpasst, zuschauen | niedriges Blatt, die Karte bleibt darüber sichtbar |
-| Auflösung | Blatt bis höchstens 78 % der Fläche, oben bleibt die Karte sichtbar; die Restzeit klebt unten, von den Antwortmöglichkeiten steht nur die richtige da |
+| Auflösung | Blatt bis höchstens 78 % der Fläche, so hoch wie sein Inhalt und ohne Scrollen; oben bleibt die Karte sichtbar. Auf dem Handy stehen von den Antwortmöglichkeiten nur die richtige und die gewählten da, die Erklärung entfällt |
 
 Der Spielstand hat feste Höhe (Punkte und Schilde in zwei Zeilen, auch bevor es Schilde gibt), der Verlauf entfällt. Regeln dazu: Was über den Regionen liegt (Ränder, Ringe, Motive, Pfeil), nimmt keine Tipps an; das Blatt bekommt seinen Platz über das Raster, nie über den Seitenlauf. Ein Handy im Querformat ist dafür zu niedrig und behält Karte und Blatt nebeneinander.
+
+Damit die Seite auch am iPhone fest steht (Rückmeldung vom 2026-11-11: die Karte saß zu tief und unter der Leiste, die Seite ließ sich verschieben): Die Karte liegt in einem eigenen Rahmen (`.board-frame`), der sein Rasterfeld füllt, und füllt diesen Rahmen; ein SVG mit `height: 100%` direkt im Raster wird in WebKit so hoch wie das ganze Raster. Solange die Partie läuft, scrollt auch das Dokument nicht (`html.match-playing`), und die Mindesthöhe der Seite rechnet mit dem sichtbaren Bereich (`100dvh`), nicht mit dem Bildschirm hinter der Adressleiste.
+
+**Ansage** (`match/AnnouncePanel.tsx`, [MATCH_RULES.md §5](MATCH_RULES.md#ansage)): Die Partie hält nach jeder Wahl und vor jedem Duell kurz an, damit man sieht, was geschieht, bevor das Nächste kommt. Die Karte zeigt es, die Leiste sagt es in einem Satz. Nach einer Wahl zieht sich ein Ring in der Farbe des Sitzes um die gewählte Region. Vor einem Duell steht der Pfeil des Angreifers auf der umkämpften Region; der Titel ist aus der eigenen Sicht geschrieben („Du wirst in Fuchsmoor angegriffen!“ in Rot, „Dein Angriff auf …“, sonst „Angriff auf …“) und nennt die Hauptstadt, wenn sie das Ziel ist. Darunter steht mit Wappen, wer wen angreift. Es gibt nichts zu tun: Die Zeit läuft nur als schmaler Strich ohne Zahl.
+
+**Auflösung** (`match/RevealPanel.tsx`): oben in einem Satz, was daraus folgt, mit dem Wappen des Siegers und einem Rand in seiner Farbe, klein darunter der Grund. Darunter die Frage und **wer was geantwortet hat**: Bei einer Wissensfrage steht jeder Sitz als Plättchen (Wappen und Name, `match/SeatChip.tsx`) an der Antwort, die er gewählt hat; die richtige Antwort ist grün mit Haken, eine gewählte falsche rot mit Kreuz, wer nicht geantwortet hat, steht darunter. Bei einer Schätzfrage stehen die Sitze in der Rangfolge untereinander, mit Schätzung, Abstand und Zeit, in der Landnahme daneben, wie viele Regionen der Platz wählt. Der Angriffspfeil bleibt auf der Karte, bis es weitergeht. Richtig und falsch stehen nie nur in der Farbe (Haken, Kreuz, für Vorleseprogramme „richtig“).
 
 **Zugfolge** (`match/TurnOrder.tsx`, [MATCH_RULES.md §3](MATCH_RULES.md#zugfolge)): eine Zeile zwischen Spielstand und Karte, auf jedem Gerät. Je Zug ein Plättchen mit Nummer, Wappen und Name; der eigene Sitz heißt „Du“. Wer dran ist, ist golden hervorgehoben; wer dran war, trägt einen Haken und einen gestrichelten Rand; wer noch kommt, bleibt schlicht. Bei der Schätzfrage der Landnahme sind alle zugleich dran und stehen ohne Nummer nebeneinander. Der Zustand steht nie nur in der Farbe (Haken, Nummer, für Vorleseprogramme „war dran“, „ist dran“, „kommt noch“). Die Zeile hat feste Höhe und bewegt sich nicht: Lange Namen werden gekürzt, am Handy entfällt die Überschrift, nach der Abrechnung die ganze Zeile.
 
@@ -79,6 +86,7 @@ Der Spielstand hat feste Höhe (Punkte und Schilde in zwei Zeilen, auch bevor es
 | Duell | Rot pulsierender Rand um die umkämpfte Region; ein Pfeil in der Farbe des Angreifers zeichnet sich aus seiner angrenzenden Region (nahe seiner Hauptstadt) hinein, das Siegel mit gekreuzten Schwertern sitzt auf der Grenze. Pfeil und Siegel suchen sich eine Lage, die keine Namen, Münzen und Burgen verdeckt, und liegen über den Landschaftsmotiven, aber unter Namen und Münzen, damit ein Name auch im engsten Fall lesbar bleibt. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
 | Große Momente | Band über der Karte (1,5 s): „Die Landnahme beginnt“, „Der Feldzug beginnt“, „Runde 2 von 4“ (letzte Runde mit Hinweis), Tintenband; „Ein Reich fällt!“ in der Farbe und mit dem Wappen des Siegers. Ankündigungen erst, wenn gewählt wird; mehrere nacheinander. Während gewählt wird und in der Handy-Ansicht steht das Band schmal am oberen Kartenrand, damit die Regionen frei bleiben; Tipps gehen durch das Band hindurch |
 | Punkte ändern sich | Die Zahl zählt hoch (0,7 s) |
+| Gezeigte Wahl (Ansage) | Ein Ring in der Farbe des Sitzes zieht sich um die gewählte Region (0,5 s) und bleibt stehen, bis es weitergeht |
 | Auflösung | Die Karte rollt sich auf, die richtige Antwort leuchtet grün, Zeilen erscheinen nacheinander |
 | Sieg | Lorbeerkranz mit Krone und kreisendem Strahlenkranz |
 
@@ -108,6 +116,7 @@ Elf kurze Klänge, im Browser erzeugt (Web Audio, keine Dateien, `apps/web/src/a
 | `apps/web/src/art/SeatCrest.tsx`, `LifeShields.tsx`, `Emblem.tsx`, `HeroMap.tsx`, `CountUp.tsx` | Wappen je Sitz, Hauptstadtleben als Schilde (Spielstand und Abrechnung), Spielwappen, Kartenbild der Startseite, zählende Zahlen |
 | `apps/web/src/match/MatchBoard.tsx`, `art/attack.ts` | Karte der Partie mit Bedienung, Angriffspfeil |
 | `apps/web/src/match/moments.ts`, `useMoments.ts`, `DuelHeader.tsx` | Große Momente als Band, Fragekopf im Duell |
+| `apps/web/src/match/AnnouncePanel.tsx`, `RevealPanel.tsx`, `SeatChip.tsx` | Ansage (gezeigte Wahl, Duell), Auflösung mit den Antworten aller Sitze, Sitz als Plättchen |
 | `apps/web/src/match/TurnOrder.tsx` | Zugfolge über der Karte |
 | `apps/web/src/audio/sound.ts`, `match/sound-cues.ts`, `components/SoundToggle.tsx` | Klänge, ihre Anlässe, Ton-Schalter |
 | `apps/web/src/art/Icons.tsx`, `match/LobbyPanel.tsx` | Tuschezeichen der Partie-Seite, Aufstellung mit Code-Plättchen und Platzzeilen, Bots setzen |

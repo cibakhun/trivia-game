@@ -54,14 +54,16 @@ interface Plan {
 }
 
 const PLANS: readonly Plan[] = [
-  // 21 freie Regionen bei 2 + 1 Wahlen: 7 Runden; 4 · 3 = 12 Duelle; unter 18 Minuten
-  { rules: DEFAULT_MATCH_RULES, landRounds: 7, maxQuestions: 31, maxDurationMs: 18 * 60_000 },
-  // Kernmark, 14 freie Regionen bei 2 + 1 Wahlen: 4 volle Runden und eine fünfte; 4 · 2 = 8 Duelle
+  // 21 freie Regionen bei 2 + 1 Wahlen: 7 Runden; 4 · 3 = 12 Duelle; mit Ansagen und 6 s
+  // Auflösung (ADR-053) höchstens 19,4 Minuten
+  { rules: DEFAULT_MATCH_RULES, landRounds: 7, maxQuestions: 31, maxDurationMs: 19.5 * 60_000 },
+  // Kernmark, 14 freie Regionen bei 2 + 1 Wahlen: 4 volle Runden und eine fünfte; 4 · 2 = 8 Duelle;
+  // höchstens 13,1 Minuten
   {
     rules: matchRulesForSeats(DEFAULT_MATCH_RULES, 2),
     landRounds: 5,
     maxQuestions: 21,
-    maxDurationMs: 13 * 60_000,
+    maxDurationMs: 13.25 * 60_000,
   },
 ];
 
@@ -199,7 +201,9 @@ function simulate(plan: Plan, index: number): Simulated {
               : 'PICK_TARGET';
         if (kind === 'PICK_CAPITAL') capitals.add(region);
         input = { kind, seat, region };
-        durationMs += timers.pickMs;
+        // Nach der Wahl die Ansage (ADR-053): ein Duell wird länger angesagt, als eine Wahl steht
+        durationMs +=
+          timers.pickMs + ((kind === 'PICK_TARGET' ? timers.announceMs : timers.pickShowMs) ?? 0);
         break;
       }
       case 'LAND_ESTIMATE': {

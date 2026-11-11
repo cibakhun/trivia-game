@@ -36,9 +36,9 @@ const CAMPAIGN: readonly (MatchStepKind | null)[] = [
 ];
 const LAND: readonly (MatchStepKind | null)[] = ['LAND_ESTIMATE', 'LAND_PICK'];
 
-/** Ruhige Zustände, in denen eine Phase oder Runde angekündigt wird: es wird gewählt. */
+/** Ruhige Zustände, in denen eine Phase oder Runde angekündigt wird: Wahl oder Ansage. */
 export function isCalm(state: MatchScreenState): boolean {
-  return state === 'pick' || state === 'waiting-pick';
+  return state === 'pick' || state === 'waiting-pick' || state === 'announce';
 }
 
 /**

@@ -1,125 +1,226 @@
+import type { MatchEventOf } from '@rdw/protocol';
+import type { ReactNode } from 'react';
 import { SeatCrest } from '../art/SeatCrest.tsx';
-import { formatDecimal, formatNumber, t } from '../i18n/i18n.ts';
+import { formatDecimal, formatNumber, t, tp } from '../i18n/i18n.ts';
 import type { Reveal } from './match-model.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
+import { SeatChip } from './SeatChip.tsx';
 
 /**
- * Auflösung einer Frage für alle Sitze, auch für Zuschauer: Frage, richtige Antwort, Antwort
- * jedes Sitzes und die Folge (Rangfolge der Landnahme oder Ausgang des Duells).
+ * Auflösung einer Frage für alle Sitze, auch für Zuschauer (docs/ART_DIRECTION.md §4): oben in
+ * einem Satz, was daraus folgt, darunter die Frage und wer was geantwortet hat. Bei einer
+ * Wissensfrage stehen die Wappen an der Antwort, die ihr Sitz gewählt hat; bei einer Schätzfrage
+ * stehen die Sitze in der Reihenfolge ihrer Schätzung, die beste zuerst. Das Blatt passt ohne
+ * Scrollen auf ein Handy; unten läuft als schmaler Strich die Zeit, bis es weitergeht.
  */
+
+type Answer = MatchEventOf<'QUESTION_RESOLVED'>['payload']['answers'][number];
+
+/** Zahl aus der Auflösung als Vergleichswert; `null` zählt als schlechtester Wert. */
+function magnitude(value: string | null): number {
+  return value === null ? Number.POSITIVE_INFINITY : Math.abs(Number(value));
+}
+
+/** Schätzungen in Rangfolge: kleinster Abstand zuerst, bei Gleichstand die schnellere Antwort. */
+function byEstimate(a: Answer, b: Answer): number {
+  if (a.answered !== b.answered) return a.answered ? -1 : 1;
+  const distance = magnitude(a.distance) - magnitude(b.distance);
+  if (distance !== 0 && !Number.isNaN(distance)) return distance;
+  return (a.effectiveMs ?? Number.POSITIVE_INFINITY) - (b.effectiveMs ?? Number.POSITIVE_INFINITY);
+}
+
 export function RevealPanel({
   reveal,
   name,
   region,
+  timer = null,
 }: {
   readonly reveal: Reveal;
   readonly name: SeatName;
   readonly region: RegionName;
+  /** Ablaufende Zeit der Auflösung; steht unten im Blatt. */
+  readonly timer?: ReactNode;
 }) {
   const { resolved, opened, outcome } = reveal;
   const q = resolved.payload;
   const solution = q.solution;
   const unit = 'unit' in solution && solution.unit ? ` ${solution.unit}` : '';
-  const lines = outcome.flatMap((o) => outcomeTexts(o, name, region));
-  // Wissensfrage im Duell ohne Ausgang: beide richtig, die Schätzfrage folgt
-  if (lines.length === 0 && opened?.payload.purpose === 'DUEL_TRIVIA') {
-    lines.push(t('match.reveal.bothCorrect'));
-  }
+
+  const duel = outcome.find((o) => o.type === 'DUEL_RESOLVED');
+  const ranked = outcome.find((o) => o.type === 'LAND_RANKED');
+  const fallen = outcome.filter((o) => o.type === 'KINGDOM_ELIMINATED');
+  // Duell: Wirkung groß, Grund klein. Landnahme: Die Rangfolge steht in den Zeilen darunter.
+  const duelLines = duel ? outcomeTexts(duel, name, region) : [];
+  const headline =
+    duelLines.at(-1) ??
+    (ranked
+      ? t('match.reveal.landTitle', { round: ranked.payload.round })
+      : opened?.payload.purpose === 'DUEL_TRIVIA'
+        ? t('match.reveal.bothCorrect')
+        : null);
+  const winner = duel
+    ? duel.payload.winner === 'ATTACKER'
+      ? duel.payload.attacker
+      : duel.payload.defender
+    : null;
 
   return (
-    <section className="resolution" aria-labelledby="reveal-title" data-testid="match-reveal">
-      <h2 id="reveal-title">{t('match.reveal.title')}</h2>
-      <div className="result-question">
-        <p className="muted">{q.kind === 'TRIVIA' ? t('quiz.trivia') : t('quiz.estimate')}</p>
-        <p>
-          <strong>{q.prompt}</strong>
-        </p>
-        {'optionToken' in solution ? (
-          <ul className="result-options">
-            {q.options.map((o) => (
-              <li key={o.token} className={o.token === solution.optionToken ? 'correct' : ''}>
-                {o.token === solution.optionToken ? (
-                  <span className="tick" aria-hidden="true">
-                    ✓
-                  </span>
-                ) : null}
-                {o.text}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p data-testid="reveal-solution">
+    <section
+      className="resolution reveal"
+      aria-labelledby="reveal-title"
+      data-testid="match-reveal"
+    >
+      <h2 id="reveal-title" className="visually-hidden">
+        {t('match.reveal.title')}
+      </h2>
+      {headline ? (
+        <div
+          className={`reveal-verdict${winner === null ? '' : ` seat-${winner}`}${duel || !ranked ? '' : ' land'}`}
+          data-testid="reveal-outcome"
+        >
+          {winner === null ? null : <SeatCrest seat={winner} size={30} />}
+          <div>
+            <p className="reveal-headline">{headline}</p>
+            {duelLines.length > 1 ? <p className="reveal-reason">{duelLines[0]}</p> : null}
+            {fallen.flatMap((o) =>
+              outcomeTexts(o, name, region).map((line) => (
+                <p key={`${o.seq}-${line}`} className="reveal-reason">
+                  {line}
+                </p>
+              )),
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      <p className="reveal-prompt">{q.prompt}</p>
+
+      {'optionToken' in solution ? (
+        <TriviaAnswers reveal={reveal} name={name} />
+      ) : (
+        <>
+          <p className="reveal-solution" data-testid="reveal-solution">
             {t('match.reveal.solution', {
               answer: solution.value === null ? '?' : `${formatDecimal(solution.value)}${unit}`,
             })}
           </p>
-        )}
-      </div>
-      <div className="table-wrap">
-        <table className="sides">
-          <thead>
-            <tr>
-              <th scope="col">{t('match.reveal.player')}</th>
-              <th scope="col">{t('match.reveal.answer')}</th>
-              <th scope="col">{t('match.reveal.result')}</th>
-              {q.kind === 'ESTIMATE' ? <th scope="col">{t('match.reveal.time')}</th> : null}
-            </tr>
-          </thead>
-          <tbody>
-            {q.answers.map((a) => (
-              <tr
-                key={a.seat}
-                data-seat={a.seat}
-                className={q.kind === 'TRIVIA' && a.answered ? (a.correct ? 'right' : 'wrong') : ''}
-              >
-                <th scope="row">
-                  <span className="who">
-                    <SeatCrest seat={a.seat} size={22} />
-                    {name(a.seat)}
-                  </span>
-                </th>
-                <td>
-                  {!a.answered
-                    ? t('match.reveal.noAnswer')
-                    : q.kind === 'TRIVIA'
-                      ? (a.optionText ?? '?')
-                      : `${a.value === null ? '?' : formatDecimal(a.value)}${unit}`}
-                </td>
-                <td className="verdict">
-                  {q.kind === 'TRIVIA'
-                    ? a.correct
-                      ? t('result.correct')
-                      : t('result.wrong')
-                    : a.distance === null
-                      ? '–'
-                      : t('match.reveal.distance', { value: formatDecimal(a.distance) })}
-                </td>
-                {q.kind === 'ESTIMATE' ? (
-                  <td>
-                    {a.effectiveMs === null
-                      ? '–'
-                      : t('result.seconds', {
-                          value: formatNumber(Math.round(a.effectiveMs / 100) / 10),
-                        })}
-                  </td>
-                ) : null}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {lines.length > 0 ? (
-        <ul className="outcome" data-testid="reveal-outcome">
-          {lines.map((line, i) => (
-            <li key={i}>{line}</li>
-          ))}
-        </ul>
-      ) : null}
+          <EstimateAnswers reveal={reveal} name={name} unit={unit} />
+        </>
+      )}
+
       {q.explanation ? (
-        <p className="muted">
+        <p className="muted reveal-explanation">
           {t('result.explanation')}: {q.explanation}
         </p>
       ) : null}
+      {timer}
     </section>
+  );
+}
+
+/** Antworten einer Wissensfrage: jede Option eine Zeile, daran die Wappen derer, die sie wählten. */
+function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly name: SeatName }) {
+  const q = reveal.resolved.payload;
+  const correctToken = 'optionToken' in q.solution ? q.solution.optionToken : null;
+  const silent = q.answers.filter((a) => !a.answered);
+  return (
+    <>
+      <ul className="reveal-options">
+        {q.options.map((option) => {
+          const correct = option.token === correctToken;
+          const chosenBy = q.answers.filter((a) => a.answered && a.optionText === option.text);
+          return (
+            <li
+              key={option.token}
+              className={`reveal-option${correct ? ' correct' : chosenBy.length > 0 ? ' wrong' : ''}`}
+            >
+              <span className="reveal-mark" aria-hidden="true">
+                {correct ? '✓' : chosenBy.length > 0 ? '✗' : ''}
+              </span>
+              <span className="reveal-option-text">
+                {option.text}
+                {correct ? (
+                  <span className="visually-hidden"> ({t('match.reveal.correctOption')})</span>
+                ) : null}
+              </span>
+              <span className="reveal-chips">
+                {chosenBy.map((a) => (
+                  <SeatChip key={a.seat} seat={a.seat} name={name} />
+                ))}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      {silent.length > 0 ? (
+        <p className="reveal-silent">
+          <span>{t('match.reveal.noAnswerBy')}</span>
+          {silent.map((a) => (
+            <SeatChip key={a.seat} seat={a.seat} name={name} />
+          ))}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+/** Schätzungen in Rangfolge; in der Landnahme steht rechts, wie viele Regionen der Platz wählt. */
+function EstimateAnswers({
+  reveal,
+  name,
+  unit,
+}: {
+  readonly reveal: Reveal;
+  readonly name: SeatName;
+  readonly unit: string;
+}) {
+  const q = reveal.resolved.payload;
+  const ranked = reveal.outcome.find((o) => o.type === 'LAND_RANKED');
+  const place = (seat: number) => ranked?.payload.ranking.find((r) => r.seat === seat) ?? null;
+  const rows = [...q.answers].sort((a, b) => {
+    const [pa, pb] = [place(a.seat), place(b.seat)];
+    return pa && pb ? pa.place - pb.place : byEstimate(a, b);
+  });
+  return (
+    <ol className="reveal-ranks">
+      {rows.map((a, i) => {
+        const rank = place(a.seat);
+        const best = i === 0 && a.answered;
+        return (
+          <li
+            key={a.seat}
+            className={`reveal-rank${best ? ' best' : ''}${a.answered ? '' : ' silent'}`}
+            data-seat={a.seat}
+          >
+            <span className="reveal-place" aria-hidden="true">
+              {rank ? rank.place : i + 1}
+            </span>
+            <SeatChip seat={a.seat} name={name} />
+            <span className="reveal-value">
+              {a.answered
+                ? `${a.value === null ? '?' : formatDecimal(a.value)}${unit}`
+                : t('match.reveal.noAnswer')}
+            </span>
+            <span className="reveal-detail">
+              {a.answered && a.distance !== null
+                ? Number(a.distance) === 0
+                  ? t('match.reveal.exact')
+                  : t('match.reveal.off', { value: formatDecimal(a.distance) })
+                : ''}
+              {a.answered && a.effectiveMs !== null
+                ? ` · ${t('result.seconds', {
+                    value: formatNumber(Math.round(a.effectiveMs / 100) / 10),
+                  })}`
+                : ''}
+            </span>
+            {rank ? (
+              <span className={`reveal-picks${rank.picks > 0 ? '' : ' none'}`}>
+                {rank.picks > 0 ? tp('match.reveal.picks', rank.picks) : t('match.reveal.noPicks')}
+              </span>
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
   );
 }

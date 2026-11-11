@@ -73,9 +73,20 @@ Nicht beantwortet zählt als falsch bzw. als unendlicher Abstand. Die Schätzfra
 | Wahl (Hauptstadt, Region, Angriffsziel) | 10 s | der Server wählt zufällig eine wählbare Region (`autoPickRegion`), bewusst ohne Strategie, damit Abwarten keinen Vorteil bringt |
 | Wissensfrage | 15 s | nicht beantwortet = falsch |
 | Schätzfrage | 20 s | nicht beantwortet = unendlicher Abstand |
-| Auflösung nach jeder Frage | 5 s | – |
+| Auflösung nach jeder Frage | 6 s | – |
+| Gezeigte Wahl (Ansage) | 1,2 s | – |
+| Ansage eines Duells | 2,5 s | – |
 
-Zeitmessung und Latenzausgleich wie [QUIZ_ENGINE.md §6.2](QUIZ_ENGINE.md) (`cap` = 500 ms). Jeder Sitz holt die Frage selbst ab; seine Zeit läuft ab dem Abholen (Zeitlimit + `cap`), höchstens bis die Frage schließt: Zeitlimit + `cap` + 2 s zum Abholen ab dem Öffnen **[E]**. Haben alle Menschen geantwortet, wird sofort aufgelöst, sonst 1 s nach dem Schließen, damit eine rechtzeitig eingegangene Antwort nicht an einer Sperre verloren geht **[E]** (ADR-049). Wer die Verbindung verliert, bleibt in der Partie; verpasste Fragen und Wahlen behandelt der Server wie oben. Der Browser holt eine Frage ohne Klick ab, sobald sie an den eigenen Sitz geht, und zeigt die Restzeit aus `remainingMs` (ADR-050). `PLAYTEST_MATCH_RULES` verkürzt die Zeiten auf 8 s, 10 s, 5 s und 2 s, sonst gleiche Regeln.
+Zeitmessung und Latenzausgleich wie [QUIZ_ENGINE.md §6.2](QUIZ_ENGINE.md) (`cap` = 500 ms). Jeder Sitz holt die Frage selbst ab; seine Zeit läuft ab dem Abholen (Zeitlimit + `cap`), höchstens bis die Frage schließt: Zeitlimit + `cap` + 2 s zum Abholen ab dem Öffnen **[E]**. Haben alle Menschen geantwortet, wird sofort aufgelöst, sonst 1 s nach dem Schließen, damit eine rechtzeitig eingegangene Antwort nicht an einer Sperre verloren geht **[E]** (ADR-049). Wer die Verbindung verliert, bleibt in der Partie; verpasste Fragen und Wahlen behandelt der Server wie oben. Der Browser holt eine Frage ohne Klick ab, sobald sie an den eigenen Sitz geht, und zeigt die Restzeit aus `remainingMs` (ADR-050). `PLAYTEST_MATCH_RULES` verkürzt die Zeiten auf 8 s, 10 s, 5 s und 2 s, die Ansagen auf 0,3 s und 0,6 s, sonst gleiche Regeln.
+
+### Ansage
+
+Damit jeder mitbekommt, was geschieht, hält die Partie nach jeder Wahl und vor jedem Duell kurz an **[V, PO 2026-11-11: die Partie war „zu hektisch“; Dauer und Einzelheiten E, ADR-053, [O-24]]**. In dieser Zeit gibt es nichts zu tun und keine Eingabe:
+
+- **Gezeigte Wahl:** Eine gewählte Hauptstadt oder Region bleibt `timers.pickShowMs` lang stehen, bevor ein anderer Sitz wählt oder die nächste Schätzfrage kommt. Das gilt für Bots wie für Menschen und für eine Wahl des Servers nach Zeitablauf. Wählt derselbe Mensch gleich noch einmal (der Erste der Landnahme), geht es ohne Pause weiter. Ein Bot wählt weiterhin ohne Bedenkzeit, aber seine Wahlen erscheinen einzeln nacheinander.
+- **Ansage eines Duells:** Hat der Angreifer sein Ziel gewählt, steht `timers.announceMs` lang fest, wer wen in welcher Region angreift. Erst danach wird die Wissensfrage geöffnet; ihre Zeit läuft nicht während der Ansage. Das Stechen folgt ohne weitere Ansage auf die Auflösung der Wissensfrage.
+
+Die Ansage ist eine Phase des Servers (`ANNOUNCE`), kein Schritt der Regeln: Die Zustandsmaschine in game-core, die Simulationen und die Wiederholbarkeit aus den Eingaben bleiben unberührt. Alle Mitspieler sehen denselben Stand zur selben Zeit, auch nach einem Neuladen. Partien, die vor ADR-053 gestartet wurden, kennen die beiden Zeiten nicht und laufen ohne Ansage zu Ende.
 
 ## 6. Wertung
 
@@ -100,7 +111,8 @@ Punkte = Summe der Werte der eigenen Regionen (Region 100, Hauptstadt 300, je Be
 | `landGrab.picksByPlace` | 2, 1, 0 (zu zweit 2, 1) | Wahlen je Platz in der Landnahme; Länge = Spielerzahl |
 | `campaign.rounds` | 4 | Feldzugrunden |
 | `values.region` / `capital` / `defenseBonus` | 100 / 300 / 50 | Punktwerte |
-| `timers.triviaMs` / `estimateMs` / `pickMs` / `revealMs` | 15 000 / 20 000 / 10 000 / 5 000 | Zeiten in ms |
+| `timers.triviaMs` / `estimateMs` / `pickMs` / `revealMs` | 15 000 / 20 000 / 10 000 / 6 000 | Zeiten in ms |
+| `timers.pickShowMs` / `announceMs` | 1 200 / 2 500 | gezeigte Wahl und Ansage eines Duells in ms (§5, ADR-053); 0 oder nicht gesetzt schaltet sie ab |
 | `timers.latencyAllowanceCapMs` | 500 | Latenzausgleich |
 
 Nachjustieren nach dem ersten Spieltest (Entscheidung E3 im Plan).
@@ -121,6 +133,8 @@ Auswertung über je 5 000 simulierte Partien, Sitzvorteil über je 10 000 Partie
 | Siegquote nach Stärke (gemischt) | leicht 8 %, mittel 27 %, schwer 65 % | leicht 24 %, mittel 50 %, schwer 78 % |
 | Siegquote nach Sitz bei gleich Starken | Sitz 0: 35,0 %, Sitz 1: 32,9 %, Sitz 2: 32,1 % | Sitz 0: 59,8 %, Sitz 1: 38,7 %, geteilter erster Platz 1,4 % |
 
+Die Dauern der Tabelle stammen aus der Zeit vor ADR-053. Seit die Auflösung 6 s steht und Wahlen und Duelle angesagt werden (§5), kommt je Frage 1 s, je Wahl 1,2 s und je Duell 2,5 s dazu: Die rechnerische Obergrenze steigt zu dritt von 17,9 auf 19,4 Minuten und zu zweit von 12,1 auf 13,1 Minuten (`match-simulation.test.ts` prüft sie); die Spannen und Mittelwerte sind nicht neu gemessen.
+
 Der Sitzvorteil kommt aus der ersten Hauptstadtwahl: Wer zuerst wählt, nimmt die Mitte der Karte. Gegenproben vom 2026-11-10, zu zweit damals noch auf der Wendelmark (dort Sitz 0: 57,3 %): Wählt Sitz 1 bzw. 2 zuerst, gewinnt er zu dritt 39 % und zu zweit 56 %; eine andere Angriffsreihenfolge ändert zu zweit fast nichts (56 %). Nach der Landnahme liegen zu zweit beide gleich oft vorn, der Vorsprung entsteht im Feldzug. Mit festen, spiegelbildlichen Hauptstädten (zum Beispiel links und rechts in der Mitte) gewinnt zu zweit jeder Sitz rund 50 %. Weil die Sitze gelost werden, ist das über viele Partien fair, in einer einzelnen aber spürbar, zu zweit deutlich; die Bots wählen nach festen Regeln, Menschen womöglich anders. Nach den ersten Spieltests entscheiden (§10).
 
 Kartengröße zu zweit (je 4 000 Partien gleich starker Bots, 2026-11-11): Der Vorteil des zuerst Wählenden hängt kaum an der Größe. Gemessen wurden Ausschnitte der Wendelmark mit 24, 20, 19, 17, 16, 14 und 13 Regionen: 57 zu 41, 63 zu 36, 64 zu 36, 66 zu 34, 60 zu 39, 62 zu 35 und 66 zu 34, bei 8, 6, 6, 5, 5, 4 und 4 Landnahmerunden. Mit zufällig gesetzten Hauptstädten gewinnt auf jeder Größe jeder Sitz etwa gleich oft (rund 50 zu 48). Die Kernmark mit 16 Regionen ist unter den kleineren Karten die ausgeglichenste, verkürzt die Landnahme von acht auf fünf Runden und lässt wie zu dritt acht Regionen je Reich.
@@ -128,6 +142,7 @@ Kartengröße zu zweit (je 4 000 Partien gleich starker Bots, 2026-11-11): Der V
 ## 10. Offen
 
 - Standardwerte bestätigen oder nachjustieren (E3, nach dem ersten Spieltest).
+- Tempo: Die Pausen (gezeigte Wahl 1,2 s, Ansage eines Duells 2,5 s, Auflösung 6 s) sind Standardannahmen **[E]**; ob sie zu kurz oder zu lang sind, entscheidet der Product Owner nach dem nächsten Spiel ([O-24]).
 - Vorteil der ersten Hauptstadtwahl (§9), zu zweit auf der Kernmark rund 60 zu 39: im Spieltest beobachten. Mögliche Ausgleiche: zu zweit feste, spiegelbildliche Hauptstädte (gemessen 50 zu 50, aber ohne eigene Wahl); Hauptstadtwahl nach einer Schätzfrage statt nach Sitz; ein Ausgleich für den später Wählenden.
 - Kartengröße zu zweit: 16 Regionen **[E]** (§2, §9). Alternativen: 14 Regionen (vier Landnahmerunden, noch kürzer) oder weiter die ganze Wendelmark (acht Runden).
 - Partien mit Bots: Sie zählen nicht in der Statistik und es gibt sie überall **[E]** (§7). Der Product Owner entscheidet, ob das so bleibt, zum Beispiel ob Siege gegen schwere Bots zählen sollen.

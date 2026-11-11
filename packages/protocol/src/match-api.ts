@@ -18,7 +18,7 @@ export const matchStatusSchema = z.enum(MATCH_STATUSES);
 export type MatchStatus = z.infer<typeof matchStatusSchema>;
 
 /** Worauf eine laufende Partie wartet: eine Wahl, Antworten auf eine Frage, das Ende der Auflösung. */
-export const MATCH_PHASES = ['PICK', 'QUESTION', 'REVEAL'] as const;
+export const MATCH_PHASES = ['PICK', 'QUESTION', 'REVEAL', 'ANNOUNCE'] as const;
 export const matchPhaseSchema = z.enum(MATCH_PHASES);
 export type MatchPhaseKind = z.infer<typeof matchPhaseSchema>;
 
@@ -231,6 +231,9 @@ export const matchTimersSchema = z
     estimateMs: durationSchema,
     pickMs: durationSchema,
     revealMs: durationSchema,
+    /** Ansage eines Duells und Standzeit einer Bot-Wahl (ADR-053); 0 = keine. */
+    announceMs: durationSchema,
+    pickShowMs: durationSchema,
   })
   .strict();
 

@@ -208,6 +208,8 @@ export async function matchView(
         estimateMs: timers.estimateMs,
         pickMs: timers.pickMs,
         revealMs: timers.revealMs,
+        announceMs: timers.announceMs ?? 0,
+        pickShowMs: timers.pickShowMs ?? 0,
       },
       createdAt: match.createdAt.toISOString(),
       startedAt: match.startedAt?.toISOString() ?? null,
