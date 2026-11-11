@@ -6,7 +6,7 @@ import {
   type MatchPlayer,
   type MatchView,
 } from '@rdw/protocol';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { inviteLink } from '../router.ts';
@@ -24,10 +24,13 @@ export function LobbyPanel({
   onStart,
   onLeave,
   onSetBot,
+  headAction = null,
 }: {
   readonly view: MatchView;
   readonly busy: boolean;
   readonly error: unknown;
+  /** Knopf neben der Überschrift (Partie mit Ausbau: zurück zu den Lieblingskategorien). */
+  readonly headAction?: ReactNode;
   readonly onStart: () => void;
   readonly onLeave: () => void;
   readonly onSetBot: (joinOrder: number, strength: MatchBotStrengthCode | null) => void;
@@ -59,7 +62,10 @@ export function LobbyPanel({
   return (
     <section className="sheet lobby" aria-labelledby="lobby-title" data-testid="match-lobby">
       <div className="lobby-main">
-        <h2 id="lobby-title">{t('match.lobby.title')}</h2>
+        <div className="lobby-head">
+          <h2 id="lobby-title">{t('match.lobby.title')}</h2>
+          {headAction}
+        </div>
         <h3 className="visually-hidden">{t('match.lobby.players')}</h3>
         <ul className="lobby-seats">
           {taken.map(({ joinOrder, player }) =>
@@ -267,7 +273,7 @@ function InviteCode({ code }: { readonly code: string }) {
 }
 
 /** Schild für einen Platz: mit Anfangsbuchstaben, leer und gestrichelt, solange er frei ist. */
-function PlayerShield({ name }: { readonly name: string | null }) {
+export function PlayerShield({ name }: { readonly name: string | null }) {
   const initial = name?.trim().charAt(0).toUpperCase() ?? '';
   return (
     <svg

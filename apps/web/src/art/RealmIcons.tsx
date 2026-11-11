@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 /**
  * Tuschezeichen der Partie mit Ausbau (eigene Zeichnungen, docs/ASSETS.md): je Kategorie des
- * Glücksrads eines, dazu Brot, Baustoff, Armee, Gebäude und Tausch. Jedes liegt im Kasten
+ * Glücksrads eines, dazu Brot, Baustoff, Armee, Gebäude, Tausch und Zug. Jedes liegt im Kasten
  * 100 × 100 um den Mittelpunkt; Farben kommen aus `realm.css` (`.glyph`, `.g-*`).
  */
 
@@ -125,7 +125,15 @@ export function CategoryIcon({
   );
 }
 
-export type Mark = 'bread' | 'material' | 'army' | 'village' | 'town' | 'castle' | 'trade';
+export type Mark =
+  | 'bread'
+  | 'material'
+  | 'army'
+  | 'village'
+  | 'town'
+  | 'castle'
+  | 'trade'
+  | 'move';
 
 const MARKS: Readonly<Record<Mark, ReactNode>> = {
   bread: (
@@ -186,6 +194,12 @@ const MARKS: Readonly<Record<Mark, ReactNode>> = {
     <>
       <path d="M-34-14H30M16-30L32-14L16 2" strokeWidth="7" />
       <path d="M34 16H-30M-16 0L-32 16L-16 32" strokeWidth="7" />
+    </>
+  ),
+  move: (
+    <>
+      <path d="M-38 22C-30-14 2-22 30-12" strokeWidth="8" />
+      <path d="M12-32L34-11L8 6" strokeWidth="8" />
     </>
   ),
 };

@@ -173,6 +173,7 @@ describe('Blatt der Phase rechts auf dem Meer', () => {
         kind: 'TRIVIA',
         purpose: 'DUEL_TRIVIA',
         seats: [1, 2],
+        answered: [],
         closesAt: AT,
         resolved: false,
         myStatus: 'PRESENTED',

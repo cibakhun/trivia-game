@@ -1,6 +1,6 @@
-import type { MatchView, ParsedMatchEvent } from '@rdw/protocol';
+import type { ParsedMatchEvent } from '@rdw/protocol';
 import { t } from '../i18n/i18n.ts';
-import type { MatchScreenState } from './match-model.ts';
+import type { AnyStep, MatchScreenState } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 
 /**
@@ -27,7 +27,7 @@ export interface MomentSnapshot {
   readonly lastSeq: number;
 }
 
-type MatchStepKind = NonNullable<MatchView['board']>['step']['kind'];
+type MatchStepKind = AnyStep['kind'];
 
 const CAMPAIGN: readonly (MatchStepKind | null)[] = [
   'CAMPAIGN_TARGET',
@@ -36,9 +36,20 @@ const CAMPAIGN: readonly (MatchStepKind | null)[] = [
 ];
 const LAND: readonly (MatchStepKind | null)[] = ['LAND_ESTIMATE', 'LAND_PICK'];
 
-/** Ruhige Zustände, in denen eine Phase oder Runde angekündigt wird: Wahl oder Ansage. */
+/**
+ * Ruhige Zustände, in denen eine Phase oder Runde angekündigt wird: Wahl oder Ansage, mit Ausbau
+ * auch Rüstzeit und Aufdecken.
+ */
 export function isCalm(state: MatchScreenState): boolean {
-  return state === 'pick' || state === 'waiting-pick' || state === 'announce';
+  return (
+    state === 'pick' ||
+    state === 'waiting-pick' ||
+    state === 'announce' ||
+    state === 'prepare' ||
+    state === 'prepared' ||
+    state === 'watching-prepare' ||
+    state === 'orders'
+  );
 }
 
 /** „Du bist dran“ gilt nur, solange die eigene Wahl offen ist. */
@@ -81,6 +92,8 @@ export function momentsBetween(
   fresh: readonly ParsedMatchEvent[],
   name: SeatName,
   campaignRounds: number,
+  /** Partie mit Ausbau: Jede Runde beginnt mit der Rüstzeit, sie kündigt die Runde an. */
+  realm = false,
 ): Moment[] {
   const moments: Moment[] = [];
   if (before) {
@@ -107,6 +120,8 @@ export function momentsBetween(
         tone: 'ink',
         seat: null,
       });
+    } else if (calm && realm) {
+      moments.push(...realmMoments(before, next, campaignRounds));
     } else if (calm && CAMPAIGN.includes(next.kind)) {
       const round = next.round ?? 1;
       if (!CAMPAIGN.includes(before.kind)) {
@@ -141,4 +156,42 @@ export function momentsBetween(
     });
   }
   return moments;
+}
+
+/** Ankündigungen der Partie mit Ausbau: Burgen, Startdörfer, Rüstzeit jeder Runde, Aufdecken. */
+function realmMoments(
+  before: MomentSnapshot,
+  next: MomentSnapshot,
+  campaignRounds: number,
+): Moment[] {
+  const ink = (key: string, title: string, detail: string | null = null): Moment => ({
+    key,
+    title,
+    detail,
+    tone: 'ink',
+    seat: null,
+  });
+  const round = next.round ?? 1;
+  if (next.state === 'orders') {
+    return before.state === 'orders' ? [] : [ink(`orders-${round}`, t('realm.moment.orders'))];
+  }
+  if (next.kind === before.kind && next.round === before.round) return [];
+  switch (next.kind) {
+    case 'CASTLE_PICK':
+      return [ink('castles', t('realm.moment.castles'))];
+    case 'VILLAGE_PICK':
+      return [ink('villages', t('realm.moment.villages'))];
+    case 'PREPARE':
+      return [
+        ink(
+          `prepare-${round}`,
+          t('realm.moment.prepare'),
+          round === campaignRounds
+            ? t('match.moment.lastRound')
+            : t('realm.step.ROUND', { round, rounds: campaignRounds }),
+        ),
+      ];
+    default:
+      return [];
+  }
 }

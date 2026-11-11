@@ -290,6 +290,12 @@ export function StageBlatt({
     case 'loading':
     case 'lobby':
     case 'abandoned':
+    // Partie mit Ausbau: Dort zeichnet `RealmBlatt`
+    case 'prepare':
+    case 'prepared':
+    case 'watching-prepare':
+    case 'orders':
+    case 'wheel':
       return null;
   }
 }

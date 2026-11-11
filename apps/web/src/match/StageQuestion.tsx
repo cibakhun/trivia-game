@@ -1,4 +1,5 @@
-import type { MatchPresentedQuestion } from '@rdw/protocol';
+import type { MatchPresentedQuestion, QuestionCategory } from '@rdw/protocol';
+import { CategoryIcon } from '../art/RealmIcons.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { showEstimate } from './estimate-input.ts';
@@ -6,7 +7,8 @@ import { showEstimate } from './estimate-input.ts';
 /**
  * Fragekarte mitten auf der Karte (ADR-059): Art der Frage, Restzeit als Zahl und Lunte, die Frage
  * und bei einer Wissensfrage die Antworten in zwei Spalten. Bei einer Schätzfrage steht hier die
- * Zahl, die das Ziffernfeld im Blatt schreibt. Nach der eigenen Antwort bleibt die Karte stehen,
+ * Zahl, die das Ziffernfeld im Blatt schreibt. In der Partie mit Ausbau nennt das Band die
+ * Kategorie, die das Glücksrad gezogen hat. Nach der eigenen Antwort bleibt die Karte stehen,
  * die gewählte Antwort ist markiert: So springt nichts, bis die Auflösung kommt. Ohne Bewegung,
  * weil die Fragezeit läuft (ARCHITECTURE §15).
  */
@@ -33,6 +35,7 @@ export function StageQuestion({
   open,
   estimate,
   sent,
+  category = null,
   onExpire,
   onAnswerTrivia,
 }: {
@@ -47,6 +50,8 @@ export function StageQuestion({
   readonly estimate: string;
   /** Eigene Antwort, sobald sie abgeschickt ist: gewählte Option oder geschriebene Zahl. */
   readonly sent: { readonly optionToken?: string; readonly rawInput?: string } | null;
+  /** Kategorie aus dem Glücksrad (Partie mit Ausbau); steht dann statt der Art der Frage im Band. */
+  readonly category?: QuestionCategory | null;
   readonly onExpire: () => void;
   readonly onAnswerTrivia: (token: string) => void;
 }) {
@@ -59,8 +64,17 @@ export function StageQuestion({
       data-kind={question.kind}
     >
       <header className="sheet-head">
-        <p className="sheet-kind">
-          {question.kind === 'TRIVIA' ? t('quiz.trivia') : t('quiz.estimate')}
+        <p className="sheet-kind" data-category={category ?? undefined}>
+          {category ? (
+            <>
+              <CategoryIcon category={category} size={18} />
+              {t(`realm.category.${category}`)}
+            </>
+          ) : question.kind === 'TRIVIA' ? (
+            t('quiz.trivia')
+          ) : (
+            t('quiz.estimate')
+          )}
         </p>
       </header>
       <Countdown

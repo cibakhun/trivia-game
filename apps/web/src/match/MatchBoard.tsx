@@ -306,11 +306,25 @@ export function MatchBoard({
             const owner = state.owner;
             const canPick = choosable.has(region.id);
             const canTap = canPick || tappable.has(region.id);
-            const label = t('match.board.region', {
-              name: region.name,
-              owner: owner === null ? t('match.board.free') : name(owner),
-              value: state.value,
-            });
+            const ownerName = owner === null ? t('match.board.free') : name(owner);
+            const built = realm?.regions[region.id];
+            // Mit Ausbau nennt das Feld auch Gebäude und Armeen
+            const label = built
+              ? t('realm.board.region', {
+                  name: region.name,
+                  owner: ownerName,
+                  building:
+                    built.building === 'NONE'
+                      ? t('realm.board.plain')
+                      : t(`realm.building.${built.building}`),
+                  armies: tp('realm.armies', built.armies),
+                  value: state.value,
+                })
+              : t('match.board.region', {
+                  name: region.name,
+                  owner: ownerName,
+                  value: state.value,
+                });
             const capitalOf = state.capitalOf;
             const lives = livesAt(region.id, capitalOf);
             // Eben verloren: Die Farbe des alten Besitzers weicht erst unter der neuen
@@ -349,9 +363,11 @@ export function MatchBoard({
                   : { role: 'img', 'aria-label': label })}
               >
                 <title>
-                  {capitalOf !== null
-                    ? `${label} · ${t('match.board.capital')} · ${tp('match.board.lives', lives)}`
-                    : label}
+                  {capitalOf === null
+                    ? label
+                    : realm
+                      ? `${label} · ${tp('match.board.lives', lives)}`
+                      : `${label} · ${t('match.board.capital')} · ${tp('match.board.lives', lives)}`}
                 </title>
                 <path d={region.d} className="land" />
                 {lost !== null ? (
