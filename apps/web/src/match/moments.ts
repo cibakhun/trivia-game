@@ -41,6 +41,36 @@ export function isCalm(state: MatchScreenState): boolean {
   return state === 'pick' || state === 'waiting-pick' || state === 'announce';
 }
 
+/** „Du bist dran“ gilt nur, solange die eigene Wahl offen ist. */
+function isTurn(moment: Moment): boolean {
+  return moment.key.startsWith('turn-');
+}
+
+/**
+ * Warteschlange nach einem Zustandswechsel: Während einer Frage bleibt nur ein gefallenes Reich,
+ * es wird danach nachgeholt. „Du bist dran“ verfällt, sobald die eigene Wahl vorbei ist, sonst
+ * stünde es über der Ansage dessen, der als Nächster wählt. Verfällt nichts, bleibt es dieselbe
+ * Liste, damit das laufende Band nicht neu startet.
+ */
+export function pruneMoments(queue: readonly Moment[], state: MatchScreenState): readonly Moment[] {
+  const keep = (moment: Moment) =>
+    state === 'question' ? moment.tone === 'seat' : state === 'pick' || !isTurn(moment);
+  return queue.every(keep) ? queue : queue.filter(keep);
+}
+
+/**
+ * Hängt neue Momente an. Wählt derselbe Sitz gleich noch einmal, während „Du bist dran“ noch
+ * steht oder wartet, kommt kein zweites dahinter.
+ */
+export function enqueueMoments(
+  queue: readonly Moment[],
+  moments: readonly Moment[],
+): readonly Moment[] {
+  const waiting = queue.some(isTurn);
+  const added = moments.filter((moment) => !(waiting && isTurn(moment)));
+  return added.length === 0 ? queue : [...queue, ...added];
+}
+
 /**
  * Momente zwischen zwei Ständen, in der Reihenfolge, in der sie gezeigt werden. `before = null`
  * ist der erste Aufbau der Seite: Dann zählt nur „Du bist dran“, Vergangenes wird nicht gefeiert.

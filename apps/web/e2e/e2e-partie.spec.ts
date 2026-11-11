@@ -93,6 +93,8 @@ interface Shown {
   readonly arrow: boolean;
   /** Plättchen mit Wappen: an den Antworten der Auflösung oder in der Ansage. */
   readonly chips: number;
+  /** Das Band „Du bist dran!“ steht noch über der Karte. */
+  readonly turnBanner: boolean;
   /** Auflösung einer Wissensfrage mit markierter richtiger Antwort. */
   readonly correctOption: boolean;
 }
@@ -121,6 +123,7 @@ async function recordShown(page: Page): Promise<void> {
         ring: document.querySelector('.spot-ring') !== null,
         arrow: document.querySelector('.attack-arrow') !== null,
         chips: card.querySelectorAll('.seat-chip').length,
+        turnBanner: document.querySelector('.turn-banner.moment-gold') !== null,
         correctOption: card.querySelector('.reveal-option.correct') !== null,
       };
       const last = seen.at(-1);
@@ -242,6 +245,8 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   expect(picksShown.length).toBeGreaterThan(3);
   expect(picksShown.every((s) => s.ring && !s.arrow)).toBe(true);
   expect(picksShown.some((s) => /^Bot \((leicht|schwer)\) (nimmt|wählt) /.test(s.text))).toBe(true);
+  // „Du bist dran!“ gilt nur der eigenen Wahl: In keiner Ansage steht es noch über der Karte
+  expect(shown.filter((s) => s.state === 'announce' && s.turnBanner)).toEqual([]);
   const duels = shown.filter((s) => s.state === 'announce' && s.duel);
   expect(duels.length).toBeGreaterThan(3);
   for (const duel of duels) {

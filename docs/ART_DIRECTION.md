@@ -81,7 +81,7 @@ Damit die Seite auch am iPhone fest steht (Rückmeldung vom 2026-11-11: die Kart
 | Region erobert | Die neue Farbe breitet sich von der Mitte aus wie Tinte (0,9 s) |
 | Region befestigt (Wert steigt) | Die Münze springt kurz |
 | Hauptstadt getroffen | Die Burg wackelt, ein Schild kippt weg |
-| Du bist dran | Goldenes Band „Du bist dran!“ über der Karte (1,5 s), die Karte der Anweisung leuchtet |
+| Du bist dran | Goldenes Band „Du bist dran!“ über der Karte (1,5 s, höchstens bis die eigene Wahl getroffen ist; es steht nie über der Ansage eines anderen), die Karte der Anweisung leuchtet |
 | Wählbare Regionen | Goldener, laufender Strichrand und sanftes Leuchten |
 | Duell | Rot pulsierender Rand um die umkämpfte Region; ein Pfeil in der Farbe des Angreifers zeichnet sich aus seiner angrenzenden Region (nahe seiner Hauptstadt) hinein, das Siegel mit gekreuzten Schwertern sitzt auf der Grenze. Pfeil und Siegel suchen sich eine Lage, die keine Namen, Münzen und Burgen verdeckt, und liegen über den Landschaftsmotiven, aber unter Namen und Münzen, damit ein Name auch im engsten Fall lesbar bleibt. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
 | Große Momente | Band über der Karte (1,5 s): „Die Landnahme beginnt“, „Der Feldzug beginnt“, „Runde 2 von 4“ (letzte Runde mit Hinweis), Tintenband; „Ein Reich fällt!“ in der Farbe und mit dem Wappen des Siegers. Ankündigungen erst, wenn gewählt wird; mehrere nacheinander. Während gewählt wird und in der Handy-Ansicht steht das Band schmal am oberen Kartenrand, damit die Regionen frei bleiben; Tipps gehen durch das Band hindurch |
