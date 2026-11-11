@@ -185,9 +185,12 @@
 }
 
 /* Beschriftung, Motive, Münzen, Burgen */
+/* Alles über den Regionen nimmt keine Tipps an: sonst landet das Loslassen auf dem Ring, der beim
+   Drücken erscheint, und die Wahl kommt nie an (der Server wählt dann nach Ablauf zufällig) */
 .map-art .region-art,
 .map-art .region-decor,
-.map-art .contested-mark {
+.map-art .contested-mark,
+.map-art .board-overlay {
   pointer-events: none;
 }
 

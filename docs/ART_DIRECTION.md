@@ -50,7 +50,18 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern: genau die Nachbarn der Reg
 
 **Hauptstadt:** Burg mit Fahne in Sitzfarbe, darunter ein Schild je Leben; verlorene Leben bleiben als gestrichelter Umriss stehen.
 
-**Handy hochkant** (bis 560 px): enger Ausschnitt nur um die Insel, ohne Titelschild und Kompass, größere Namen und Münzen. Beim Wählen steht die Karte vor der Anweisung, beim Fragen die Frage zuerst.
+**Handy hochkant** (bis 560 px): enger Ausschnitt nur um die Insel, ohne Titelschild und Kompass, größere Namen und Münzen.
+
+**Laufende Partie auf Handy und Tablet hochkant** (bis 900 px breit, ab 500 px hoch): eine feste Bildschirmseite, auf der nichts scrollt und nichts springt. Oben Phase und Spielstand, in der Mitte die Karte, immer an derselben Stelle und in derselben Größe, unten ein Blatt.
+
+| Zustand | Blatt |
+|---|---|
+| Wahl (eigene und fremde) | schmale Leiste unter der Karte: Auftrag, Restzeit, beim Warten das letzte Ereignis. Die Karte ist ganz frei |
+| Frage | festes Blatt über der Karte, von oben gefüllt. Ein Hinweis unter dem Knopf verschiebt nichts |
+| Gespeichert, verpasst, zuschauen | niedriges Blatt, die Karte bleibt darüber sichtbar |
+| Auflösung | Blatt bis höchstens 78 % der Fläche, oben bleibt die Karte sichtbar; die Restzeit klebt unten, von den Antwortmöglichkeiten steht nur die richtige da |
+
+Der Spielstand hat feste Höhe (Punkte und Schilde in zwei Zeilen, auch bevor es Schilde gibt), der Verlauf entfällt. Regeln dazu: Was über den Regionen liegt (Ränder, Ringe, Motive, Pfeil), nimmt keine Tipps an; das Blatt bekommt seinen Platz über das Raster, nie über den Seitenlauf. Ein Handy im Querformat ist dafür zu niedrig und behält Karte und Blatt nebeneinander.
 
 ## 5. Bewegung
 
@@ -59,10 +70,10 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern: genau die Nachbarn der Reg
 | Region erobert | Die neue Farbe breitet sich von der Mitte aus wie Tinte (0,9 s) |
 | Region befestigt (Wert steigt) | Die Münze springt kurz |
 | Hauptstadt getroffen | Die Burg wackelt, ein Schild kippt weg |
-| Du bist dran | Goldenes Band „Du bist dran!“ über der Karte (1,8 s), die Karte der Anweisung leuchtet |
+| Du bist dran | Goldenes Band „Du bist dran!“ über der Karte (1,5 s), die Karte der Anweisung leuchtet |
 | Wählbare Regionen | Goldener, laufender Strichrand und sanftes Leuchten |
 | Duell | Rot pulsierender Rand um die umkämpfte Region; ein Pfeil in der Farbe des Angreifers zeichnet sich aus seiner angrenzenden Region (nahe seiner Hauptstadt) hinein, das Siegel mit gekreuzten Schwertern sitzt auf der Grenze. Pfeil und Siegel suchen sich eine Lage, die keine Namen, Münzen und Burgen verdeckt, und liegen über den Landschaftsmotiven, aber unter Namen und Münzen, damit ein Name auch im engsten Fall lesbar bleibt. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
-| Große Momente | Band über der Karte (1,8 s): „Die Landnahme beginnt“, „Der Feldzug beginnt“, „Runde 2 von 4“ (letzte Runde mit Hinweis), Tintenband; „Ein Reich fällt!“ in der Farbe und mit dem Wappen des Siegers. Ankündigungen erst, wenn gewählt wird; mehrere nacheinander; auf schmalen Bildschirmen mitten im Bild |
+| Große Momente | Band über der Karte (1,5 s): „Die Landnahme beginnt“, „Der Feldzug beginnt“, „Runde 2 von 4“ (letzte Runde mit Hinweis), Tintenband; „Ein Reich fällt!“ in der Farbe und mit dem Wappen des Siegers. Ankündigungen erst, wenn gewählt wird; mehrere nacheinander. Während gewählt wird und in der Handy-Ansicht steht das Band schmal am oberen Kartenrand, damit die Regionen frei bleiben; Tipps gehen durch das Band hindurch |
 | Punkte ändern sich | Die Zahl zählt hoch (0,7 s) |
 | Auflösung | Die Karte rollt sich auf, die richtige Antwort leuchtet grün, Zeilen erscheinen nacheinander |
 | Sieg | Lorbeerkranz mit Krone und kreisendem Strahlenkranz |

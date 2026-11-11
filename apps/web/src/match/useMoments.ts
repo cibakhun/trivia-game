@@ -5,7 +5,7 @@ import type { SeatName } from './match-text.ts';
 import { isCalm, momentsBetween, type Moment, type MomentSnapshot } from './moments.ts';
 
 /** Wie lange ein Band steht; die CSS-Animation `banner` ist genauso lang. */
-export const MOMENT_MS = 1800;
+export const MOMENT_MS = 1500;
 
 /**
  * Warteschlange der großen Momente: Jeder Moment steht `MOMENT_MS` lang, danach der nächste.
