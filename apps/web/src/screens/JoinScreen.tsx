@@ -11,7 +11,7 @@ import { useSession } from '../session.tsx';
 /**
  * Einladungslink `/partie/beitreten/<Code>` (ADR-052): Wer ihn öffnet und in diesem Browser schon
  * ein Konto hat, tritt der Aufstellung ohne weiteren Schritt bei und landet dort. Ohne Konto
- * genügt ein Tipp auf „Als Gast beitreten“. Von selbst entsteht kein Konto [E]: Chat-Programme
+ * genügt ein Tipp auf „Als Gast beitreten“. Von selbst entsteht kein Konto (O-23): Chat-Programme
  * öffnen Links für ihre Vorschau, und so ein Aufruf soll weder ein Gastkonto anlegen noch einen
  * Platz belegen.
  */
