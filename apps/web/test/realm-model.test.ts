@@ -124,6 +124,23 @@ describe('Entwurf der Befehle', () => {
     });
   });
 
+  it('plant eine neue Burg mit vollen Leben', () => {
+    // Dornfeld (6) ist eine Stadt; die Vorräte reichen für die Burg (8 Brot, 16 Baustoff)
+    const play = playOf({ stock: { [ME]: { bread: 9, material: 16 } } });
+    expect(play.board.regions[6]).toMatchObject({ building: 'TOWN', castleLivesLeft: 0 });
+    const plan = planOrders(play, ME, [
+      { kind: 'BUILD', region: 6 },
+      { kind: 'MOVE', from: 2, to: 6, count: 1 },
+    ]);
+    expect(plannedRegion(play, plan, 6)).toMatchObject({
+      building: 'CASTLE',
+      castleLivesLeft: 3,
+      armies: 3,
+    });
+    // Die Burg, die schon steht, behält ihre Leben
+    expect(plannedRegion(play, plan, 2).castleLivesLeft).toBe(3);
+  });
+
   it('meldet den ersten Befehl, der nicht geht', () => {
     const play = playOf();
     expect(planOrders(play, ME, [{ kind: 'BUILD', region: 4 }])).toEqual({

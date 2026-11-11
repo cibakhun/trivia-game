@@ -3,6 +3,7 @@ import type { MatchPresentedQuestion, MatchView } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   OUTCOME_BEAT_MS,
+  countedAnswer,
   duelFocus,
   duelResolved,
   duelStage,
@@ -268,6 +269,19 @@ describe('Zustand des Bildschirms', () => {
     expect(screenStateOf(viewOf({ match: { ...base.match, status: 'ABANDONED' } }), null)).toBe(
       'abandoned',
     );
+  });
+
+  it('zeigt nach einer verlorenen Bestätigung die Antwort, die zählt', () => {
+    const first = { optionToken: 'a' };
+    const second = { optionToken: 'b' };
+    // Die erste Antwort kam an, ihre Bestätigung nicht; der Server lehnt die zweite ab
+    expect(countedAnswer([first], second)).toEqual(first);
+    expect(countedAnswer([first, first], second)).toEqual(first);
+    expect(countedAnswer([{ rawInput: '12' }], { rawInput: '15' })).toEqual({ rawInput: '12' });
+    // Unklar, welche zählt: lieber keine zeigen als die falsche
+    expect(countedAnswer([first, { optionToken: 'c' }], second)).toBeUndefined();
+    expect(countedAnswer([], second)).toBeUndefined();
+    expect(countedAnswer([second], second)).toBeUndefined();
   });
 });
 

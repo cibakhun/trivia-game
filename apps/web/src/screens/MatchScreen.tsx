@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActionKey, ApiRequestError, NetworkError, api, newActionKey } from '../api/client.ts';
 import { playSound } from '../audio/sound.ts';
 import {
+  countedAnswer,
   needsPresent,
   screenStateOf,
   type LocalAnswer,
@@ -28,6 +29,8 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
   const presenting = useRef<number | null>(null);
   /** Ein Schlüssel je Frage, auch wenn nach einem Netzfehler erneut gesendet wird. */
   const answerKeys = useRef(new Map<number, string>());
+  /** Je Frage: Antworten, deren Bestätigung ausblieb; eine davon kann schon zählen. */
+  const lostAnswers = useRef(new Map<number, LocalAnswer[]>());
   const pickKey = useRef(new ActionKey());
   const lobbyKey = useRef(new ActionKey());
 
@@ -180,8 +183,9 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
           markAs('MISSED');
           refresh();
         } else if (e instanceof ApiRequestError && e.code === 'IDEMPOTENCY_KEY_REUSED') {
-          // Die erste Antwort kam an, nur ihre Bestätigung ging verloren
-          markAs('ANSWERED');
+          // Eine frühere Antwort kam an, nur ihre Bestätigung ging verloren: Sie zählt, nicht diese
+          const counted = countedAnswer(lostAnswers.current.get(current.seq) ?? [], given);
+          update((l) => ({ ...l, status: 'ANSWERED', sent: counted }));
           refresh();
         } else if (
           e instanceof ApiRequestError &&
@@ -189,7 +193,14 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
         ) {
           refresh();
         } else {
-          // Eingabefehler oder Netz: Die Frage bleibt offen, erneut senden geht
+          // Eingabefehler oder Netz: Die Frage bleibt offen, erneut senden geht. Ohne klare Absage
+          // des Servers kann die Antwort trotzdem angekommen sein.
+          if (!(e instanceof ApiRequestError) || e.status >= 500) {
+            lostAnswers.current.set(current.seq, [
+              ...(lostAnswers.current.get(current.seq) ?? []),
+              given,
+            ]);
+          }
           update((l) => ({ ...l, sent: undefined }));
           throw e;
         }

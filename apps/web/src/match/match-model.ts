@@ -57,6 +57,24 @@ export interface LocalAnswer {
   readonly rawInput?: string;
 }
 
+function sameAnswer(a: LocalAnswer, b: LocalAnswer): boolean {
+  return a.optionToken === b.optionToken && a.rawInput === b.rawInput;
+}
+
+/**
+ * Lehnt der Server eine Antwort ab, weil unter ihrem Schlüssel schon eine andere zählt, dann zählt
+ * eine der früheren, deren Bestätigung verloren ging (`lost`). Kommen mehrere in Frage, bleibt es
+ * bei `undefined`: Die Fragekarte zeigt dann lieber keine Antwort als eine, die nicht zählt.
+ */
+export function countedAnswer(
+  lost: readonly LocalAnswer[],
+  refused: LocalAnswer,
+): LocalAnswer | undefined {
+  const others = lost.filter((answer) => !sameAnswer(answer, refused));
+  const first = others[0];
+  return first && others.every((answer) => sameAnswer(answer, first)) ? first : undefined;
+}
+
 export type MatchScreenState =
   | 'loading'
   | 'lobby'

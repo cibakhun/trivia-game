@@ -68,6 +68,24 @@ async function pickFirst(page: Page, matchId: string, how: 'click' | 'tap'): Pro
 }
 
 /**
+ * Ob der Server die Antwort auf Frage `seq` annimmt. Vor dem Tipp aufrufen: Ein gelungener Tipp
+ * allein heißt nicht, dass die Antwort zählt.
+ */
+function answerAccepted(page: Page, matchId: string, seq: number): Promise<boolean> {
+  return page
+    .waitForResponse(
+      (r) =>
+        r.request().method() === 'POST' &&
+        r.url().endsWith(`/matches/${matchId}/questions/${seq}/answer`),
+      { timeout: 10_000 },
+    )
+    .then(
+      (r) => r.ok(),
+      () => false,
+    );
+}
+
+/**
  * Beantwortet die Frage `seq` richtig. `false` heißt: Die Frage war inzwischen vorbei. Eine
  * Schätzung steht in der Fragekarte auf der Karte; getippt wird am Handy auf dem Ziffernfeld im
  * Blatt, am Rechner mit der Tastatur (ADR-059).
@@ -82,13 +100,15 @@ async function answerRight(
   const press = (button: Locator) =>
     how === 'tap' ? button.tap({ timeout: 5_000 }) : button.click({ timeout: 5_000 });
   if (solution.kind === 'TRIVIA') {
-    return succeeds(
+    const accepted = answerAccepted(page, matchId, seq);
+    const chosen = await succeeds(
       press(
         page
           .getByTestId('match-question')
           .getByRole('button', { name: solution.optionText, exact: true }),
       ),
     );
+    return chosen && (await accepted);
   }
   const pad = page.getByTestId('match-answering');
   const value = page.getByTestId('estimate-value');
@@ -112,7 +132,8 @@ async function answerRight(
   if (text !== null && text !== showEstimate(solution.input)) {
     throw new Error(`Die Fragekarte zeigt „${text}“ statt „${showEstimate(solution.input)}“`);
   }
-  return succeeds(key('Antwort abgeben'));
+  const accepted = answerAccepted(page, matchId, seq);
+  return (await succeeds(key('Antwort abgeben'))) && (await accepted);
 }
 
 /** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054, ADR-055). */
