@@ -110,13 +110,16 @@ describe('Testfragen aus content/fixtures', () => {
     expect(issues.filter((i) => i.severity === 'error')).toEqual([]);
     const fixtures = questions.filter((q) => q.fixture);
     expect(fixtures.length).toBeGreaterThanOrEqual(40);
+    // Bestandsfragen (z. B. die Wikidata-Entwürfe) kommen auch ohne includeFixtures hinein
+    const regular = questions.filter((q) => !q.fixture).map((q) => q.question.key);
 
     const skipped = await importQuestions(db, questions, { includeFixtures: false });
     expect(skipped.skippedFixtures).toBe(fixtures.length);
-    expect(skipped.created).toEqual([]);
+    expect([...skipped.created].sort()).toEqual([...regular].sort());
 
     const first = await importQuestions(db, questions, { includeFixtures: true });
-    expect(first.created).toHaveLength(questions.length);
+    expect(first.created).toHaveLength(fixtures.length);
+    expect(first.unchanged).toHaveLength(regular.length);
 
     const rows = await db
       .selectFrom('questions')

@@ -68,7 +68,9 @@ export async function importFixtureQuestions(db: Db): Promise<number> {
   const { questions, issues } = await validateContentDir(CONTENT_DIR);
   const errors = issues.filter((issue) => issue.severity === 'error');
   if (errors.length > 0) throw new Error(`Fragen ungültig: ${JSON.stringify(errors)}`);
-  const summary = await importQuestions(db, questions, { includeFixtures: true });
+  // nur die Testfragen: Bestandsfragen (z. B. die Wikidata-Entwürfe, ADR-056) gehören nicht in die Testwelt
+  const fixtures = questions.filter((q) => q.fixture);
+  const summary = await importQuestions(db, fixtures, { includeFixtures: true });
   return summary.created.length;
 }
 
