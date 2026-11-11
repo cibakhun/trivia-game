@@ -1,0 +1,15 @@
+# Bekannte literarische Werke mit Autor (und dessen Geburtsdatum für plausible falsche Antworten).
+SELECT ?item ?label ?sitelinks ?answer ?answerLabel ?answerBirth WHERE {
+  VALUES ?class { wd:Q7725634 wd:Q8261 wd:Q47461344 }
+  ?item wdt:P31 ?class;
+        wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 50)
+  ?item wdt:P50 ?answer.
+  OPTIONAL { ?answer wdt:P569 ?answerBirth }
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+  ?answer rdfs:label ?answerLabel.
+  FILTER(LANG(?answerLabel) = "de")
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 300

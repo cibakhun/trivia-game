@@ -2,7 +2,9 @@
 
 | Verzeichnis | Inhalt |
 |---|---|
-| `questions/` | Fragenbestand für den Spielbetrieb (noch leer; Beschaffung siehe [O-02](../docs/DECISIONS.md#offene-entscheidungen)) |
+| `questions/` | Fragenbestand für den Spielbetrieb; bisher nur Entwürfe (Beschaffung siehe [O-02](../docs/DECISIONS.md#offene-entscheidungen)) |
+| `questions/wikidata/` | Entwürfe aus Wikidata-Fakten (ADR-056), `DRAFT` bis zur Fakten- und Sprachprüfung |
+| `wikidata/` | Datenstände der Wikidata-Abfragen (JSON, CC0), aus denen der Generator die Entwürfe erzeugt |
 | `fixtures/questions/` | 40 Testfragen (25 Trivia, 15 Schätzung) für Tests und Prototyp – **nie für den Spielbetrieb** |
 
 Prüfen: `pnpm content:validate` (läuft auch in der CI).
@@ -25,3 +27,11 @@ das Schema steht in `tools/content/src/schema.ts`.
 KI-gestützte Fragen (`origin: AI_ASSISTED`) dürfen nicht ungeprüft veröffentlicht werden. Das Prüfwerkzeug lässt `status: APPROVED` nur zu, wenn eine Faktenprüfung und je Sprache eine Sprachprüfung dokumentiert sind und alle Übersetzungen freigegeben sind. Testfragen unter `fixtures/` tragen den Tag `fixture` und können nie freigegeben werden.
 
 Die 40 Testfragen sind von Claude entworfen (`AI_ASSISTED`, `DRAFT`). Fakten und Texte sind noch nicht von Menschen geprüft; die Quellen sind Vorschläge, `accessed` ist dort das Entwurfsdatum. Bis zur Entscheidung über O-02 (vertagt, PO 2026-11-09) laufen Phase 1 und ihre Tests mit diesen Fragen.
+
+## Fragen aus Wikidata (ADR-056)
+
+1. `pnpm content:wikidata:fetch` holt die Abfragen aus `tools/content/wikidata/queries/` und speichert je Abfrage `content/wikidata/<name>.json` (braucht Zugang zu `query.wikidata.org`; das Skript läuft auch allein mit `node tools/content/src/wikidata/fetch.ts`).
+2. `pnpm content:wikidata` erzeugt daraus die Entwürfe unter `questions/wikidata/`. Vorhandene Dateien bleiben unverändert (`--force` erzeugt sie neu), `--dry-run` prüft nur, `--report=DATEI` schreibt eine Übersicht zum Gegenlesen.
+3. Gegenlesen, Text glätten, dann Fakten- und Sprachprüfung in `reviews` eintragen und freigeben wie jede andere Frage.
+
+Nicht spielbare Gegenstände schließen die Vorlagen in `tools/content/src/wikidata/templates.ts` aus; Namen mit Artikel („die Zugspitze“) stehen in `de.ts`.

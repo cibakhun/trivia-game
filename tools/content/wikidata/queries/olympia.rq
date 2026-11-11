@@ -1,0 +1,12 @@
+# Olympische Sommer- und Winterspiele mit Austragungsort und Datum.
+SELECT ?item ?label ?type ?answer ?answerLabel ?date ?start WHERE {
+  VALUES ?type { wd:Q159821 wd:Q82414 }
+  ?item wdt:P31 ?type;
+        wdt:P276 ?answer.
+  OPTIONAL { ?item wdt:P585 ?date }
+  OPTIONAL { ?item wdt:P580 ?start }
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+  ?answer rdfs:label ?answerLabel.
+  FILTER(LANG(?answerLabel) = "de")
+}

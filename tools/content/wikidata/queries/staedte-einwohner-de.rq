@@ -1,0 +1,15 @@
+# Großstädte in Deutschland mit Einwohnerzahlen seit 2015 und Stichtag.
+SELECT ?item ?label ?sitelinks ?value ?date WHERE {
+  ?item wdt:P31 wd:Q1549591;
+        wdt:P17 wd:Q183;
+        wikibase:sitelinks ?sitelinks.
+  ?item p:P1082 ?statement.
+  ?statement ps:P1082 ?value;
+             pq:P585 ?date;
+             wikibase:rank ?rank.
+  FILTER(?rank != wikibase:DeprecatedRank)
+  FILTER(YEAR(?date) >= 2015)
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY DESC(?sitelinks)

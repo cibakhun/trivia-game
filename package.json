@@ -16,6 +16,8 @@
     "test:integration": "vitest run --project integration",
     "content:validate": "pnpm --filter @rdw/content-tools validate",
     "content:import": "pnpm --filter @rdw/content-tools run import",
+    "content:wikidata:fetch": "pnpm --filter @rdw/content-tools wikidata:fetch",
+    "content:wikidata": "pnpm --filter @rdw/content-tools wikidata:generate",
     "db:migrate": "pnpm --filter @rdw/db migrate",
     "db:types": "pnpm --filter @rdw/db types",
     "world:create": "pnpm --filter @rdw/server world:create",

@@ -1,0 +1,14 @@
+# Bekannte Türme, Hochhäuser und Kathedralen mit Bauhöhe (normalisiert in Metern).
+SELECT ?item ?label ?sitelinks ?value WHERE {
+  VALUES ?class { wd:Q11303 wd:Q12518 wd:Q11166728 wd:Q1440300 wd:Q2977 }
+  ?item wdt:P31 ?class;
+        wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 40)
+  ?item p:P2048 ?statement.
+  ?statement a wikibase:BestRank;
+             psn:P2048/wikibase:quantityAmount ?value.
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 80
