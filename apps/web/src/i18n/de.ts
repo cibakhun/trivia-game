@@ -356,7 +356,7 @@ export const de = {
       open: 'Öffnen',
       newTitle: 'Neue Partie',
       newText:
-        'Du bekommst einen Einladungscode für ein oder zwei Mitspieler. Freie Plätze kannst du mit Bots füllen und so auch allein spielen. Gespielt wird zu zweit oder zu dritt.',
+        'Du bekommst einen Einladungslink für ein oder zwei Mitspieler. Freie Plätze kannst du mit Bots füllen und so auch allein spielen. Gespielt wird zu zweit oder zu dritt.',
       create: 'Partie eröffnen',
       shortTimers:
         'Kurze Zeiten für Spieltests (8 s je Wissensfrage, 10 s je Schätzfrage, 5 s je Wahl)',
@@ -375,11 +375,22 @@ export const de = {
       recentTitle: 'Letzte Partien',
       back: 'Zur Startseite',
     },
+    join: {
+      title: 'Einladung zur Partie',
+      text: 'Du wurdest zu einer Partie eingeladen.',
+      guest: 'Als Gast beitreten',
+      loginHint: 'Nach dem Anmelden trittst du der Partie sofort bei.',
+      joining: 'Du trittst der Partie bei …',
+      invalid:
+        'Dieser Einladungslink ist unvollständig. Öffne den ganzen Link oder gib den Code unter „Partie spielen“ ein.',
+      toOpen: 'Zu meiner offenen Partie',
+      toHub: 'Zu „Partie spielen“',
+    },
     lobby: {
       title: 'Aufstellung',
       code: 'Einladungscode',
       codeHint:
-        'Gib den Code deinen Mitspielern. Sie treten unter „Partie spielen“ mit dem Code bei.',
+        'Schick den Link deinen Mitspielern: Wer ihn öffnet, ist gleich dabei. Mit dem Code geht es auch, unter „Partie spielen“.',
       players: 'Spieler',
       host: 'eröffnet',
       freeSeat: 'frei',
@@ -391,8 +402,8 @@ export const de = {
       botsNote:
         'Partien mit Bots zählen nicht in der Statistik. Tritt ein Mitspieler bei und ist kein Platz frei, macht ein Bot Platz.',
       maps: 'Karte: zu zweit die {duo} mit {duoRegions} Regionen, zu dritt die {trio} mit {trioRegions} Regionen.',
-      copy: 'Code kopieren',
-      copied: 'Kopiert',
+      copy: 'Link kopieren',
+      copied: 'Link kopiert',
       bots: {
         one: 'Ein freier Platz geht beim Start an einen Bot.',
         other: '{count} freie Plätze gehen beim Start an Bots.',

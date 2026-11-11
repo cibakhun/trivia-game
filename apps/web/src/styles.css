@@ -1719,7 +1719,16 @@ select:focus-visible {
 }
 
 .invite-copy {
-  min-height: 36px;
+  min-height: 40px;
+  margin-top: 0.25rem;
+}
+
+/* Rückfall, wenn der Browser nicht kopieren darf: der Link zum Markieren, bricht überall um */
+.invite-link {
+  max-width: 100%;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  user-select: all;
 }
 
 .lobby h3 {

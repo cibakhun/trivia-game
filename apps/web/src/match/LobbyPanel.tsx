@@ -9,11 +9,12 @@ import {
 import { useEffect, useState } from 'react';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
+import { inviteLink } from '../router.ts';
 
 /**
- * Aufstellung: Einladungscode, Plätze, Start durch den Gastgeber. In einer normalen Partie setzt
- * der Gastgeber auf freie Plätze Bots (ADR-052), gestartet wird ab zwei Mitspielern (Menschen und
- * Bots). In einer Testpartie gehen freie Plätze beim Start von selbst an Bots.
+ * Aufstellung: Einladungslink und Code, Plätze, Start durch den Gastgeber. In einer normalen Partie
+ * setzt der Gastgeber auf freie Plätze Bots (ADR-052), gestartet wird ab zwei Mitspielern (Menschen
+ * und Bots). In einer Testpartie gehen freie Plätze beim Start von selbst an Bots.
  */
 export function LobbyPanel({
   view,
@@ -205,15 +206,21 @@ function BotControls({
   );
 }
 
-/** Einladungscode als Buchstabenplättchen mit Knopf zum Kopieren. */
+/**
+ * Einladung: der Code als Buchstabenplättchen und ein Knopf, der den Einladungslink kopiert. Wer
+ * den Link öffnet, tritt der Aufstellung bei (`JoinScreen`). Lässt der Browser das Kopieren nicht
+ * zu (etwa ohne HTTPS im Heimnetz), steht der Link zum Markieren da.
+ */
 function InviteCode({ code }: { readonly code: string }) {
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), 2000);
     return () => clearTimeout(timer);
   }, [copied]);
-  const canCopy = typeof navigator !== 'undefined' && navigator.clipboard !== undefined;
+  const link = inviteLink(code);
+  const canCopy = !failed && typeof navigator !== 'undefined' && navigator.clipboard !== undefined;
   return (
     <div className="invite">
       <span className="muted">{t('match.lobby.code')}</span>
@@ -227,17 +234,24 @@ function InviteCode({ code }: { readonly code: string }) {
       {canCopy ? (
         <button
           type="button"
-          className="button button-quiet invite-copy"
+          className="button invite-copy"
           onClick={() => {
-            void navigator.clipboard.writeText(code).then(
+            void navigator.clipboard.writeText(link).then(
               () => setCopied(true),
-              () => setCopied(false),
+              () => setFailed(true),
             );
           }}
         >
           {copied ? t('match.lobby.copied') : t('match.lobby.copy')}
         </button>
-      ) : null}
+      ) : (
+        <span className="invite-link" data-testid="invite-link">
+          {link}
+        </span>
+      )}
+      <span className="visually-hidden" aria-live="polite">
+        {copied ? t('match.lobby.copied') : ''}
+      </span>
       <p className="muted">{t('match.lobby.codeHint')}</p>
     </div>
   );

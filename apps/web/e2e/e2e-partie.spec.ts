@@ -9,8 +9,8 @@ import { closeAnswerDb, matchSolution, testDb } from './answers.ts';
 
 /**
  * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots,
- * eine normale Partie am Handy allein mit Bots aus der Aufstellung (ADR-052) und eine normale
- * Partie zu zweit in zwei Browser-Kontexten, alle mit Spieltestzeiten. Jeder Spieler wählt die
+ * eine normale Partie am Handy allein mit Bots aus der Aufstellung (ADR-052), der Einladungslink
+ * und eine normale Partie zu zweit in zwei Browser-Kontexten, die Partien mit Spieltestzeiten. Jeder Spieler wählt die
  * erste markierte Region und antwortet richtig; die Lösung liest nur der Test aus der Datenbank.
  * Die Ablaufsteuerung läuft im Testserver wie im api-Prozess.
  */
@@ -293,6 +293,62 @@ test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die R
   expect([...boards.keys()]).toEqual(expect.arrayContaining(['pick', 'question', 'reveal']));
   expect(new Set(boards.values()).size).toBe(1);
   await page.context().close();
+});
+
+test('Einladungslink: Wer ihn öffnet, tritt der Aufstellung bei', async ({ browser }) => {
+  const host = await newPlayer(browser, { permissions: ['clipboard-read', 'clipboard-write'] });
+  await host
+    .getByRole('region', { name: 'Neue Partie' })
+    .getByRole('button', { name: 'Partie eröffnen' })
+    .click();
+  await expect(host).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
+  const matchId = matchIdOf(host);
+  const lobby = host.getByTestId('match-lobby');
+  const taken = lobby.locator('[data-testid="lobby-seat"].taken');
+  const code = (await host.getByTestId('invite-code').innerText()).trim();
+
+  // Der Knopf kopiert den Link zur Adresse, unter der das Spiel gerade läuft
+  await lobby.getByRole('button', { name: 'Link kopieren' }).click();
+  await expect(lobby.getByRole('button', { name: 'Link kopiert' })).toBeVisible();
+  const link = await host.evaluate(() => navigator.clipboard.readText());
+  expect(link).toBe(`${new URL(host.url()).origin}/partie/beitreten/${code}`);
+
+  // Mit Konto in diesem Browser: öffnen genügt
+  const friend = await newPlayer(browser);
+  await friend.goto(link);
+  await expect(friend).toHaveURL(host.url());
+  await expect(friend.getByTestId('match-lobby')).toContainText('Warte, bis');
+  await expect(taken).toHaveCount(2);
+
+  // Ohne Konto: Das Öffnen allein legt nichts an und belegt keinen Platz (Linkvorschauen)
+  const stranger = await (await browser.newContext()).newPage();
+  await stranger.goto('/partie/beitreten/abc');
+  await expect(stranger.getByTestId('join-screen')).toContainText('unvollständig');
+  await stranger.goto(link.replace(code, code.toLowerCase()));
+  const invitation = stranger.getByTestId('join-screen');
+  await expect(invitation).toContainText('Einladung zur Partie');
+  await expect(invitation.getByTestId('invite-code')).toHaveText(code);
+  const joinAsGuest = invitation.getByRole('button', { name: 'Als Gast beitreten' });
+  await expect(joinAsGuest).toBeVisible();
+  const seats = () =>
+    testDb()
+      .selectFrom('match_players')
+      .select('join_order')
+      .where('match_id', '=', matchId)
+      .execute();
+  expect(await seats()).toHaveLength(2);
+  const session = (await stranger.context().cookies()).filter((c) => c.name === 'rdw_session');
+  expect(session).toHaveLength(0);
+  // Ein Tipp legt das Gastkonto an und tritt bei
+  await joinAsGuest.click();
+  await expect(stranger).toHaveURL(host.url());
+  await expect(taken).toHaveCount(3);
+
+  // Volle Partie: Der Link sagt es, statt still zur Startseite zu führen
+  const late = await newPlayer(browser);
+  await late.goto(link);
+  await expect(late.getByTestId('join-screen')).toContainText('schon voll');
+  expect(await seats()).toHaveLength(3);
 });
 
 test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => {
