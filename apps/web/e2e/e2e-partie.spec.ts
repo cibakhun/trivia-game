@@ -1,4 +1,10 @@
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import {
+  expect,
+  test,
+  type Browser,
+  type BrowserContextOptions,
+  type Page,
+} from '@playwright/test';
 import { closeAnswerDb, matchSolution, testDb } from './answers.ts';
 
 /**
@@ -13,8 +19,8 @@ test.afterAll(async () => {
 });
 
 /** Gast anlegen und zur Partie-Übersicht gehen. */
-async function newPlayer(browser: Browser): Promise<Page> {
-  const page = await (await browser.newContext()).newPage();
+async function newPlayer(browser: Browser, context: BrowserContextOptions = {}): Promise<Page> {
+  const page = await (await browser.newContext(context)).newPage();
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
   await page.getByRole('button', { name: 'Partie spielen' }).click();
@@ -31,6 +37,46 @@ async function succeeds(action: Promise<unknown>): Promise<boolean> {
   return action.then(
     () => true,
     () => false,
+  );
+}
+
+/**
+ * Wählt die erste markierte Region. Zählt nur, wenn die Wahl beim Server ankommt: Liegt etwas über
+ * der Region und schluckt den Tipp, wählt der Server nach Ablauf der Zeit zufällig.
+ */
+async function pickFirst(page: Page, matchId: string, how: 'click' | 'tap'): Promise<boolean> {
+  const region = page.getByTestId('match-board').getByRole('button').first();
+  const accepted = page
+    .waitForResponse(
+      (r) => r.request().method() === 'POST' && r.url().endsWith(`/matches/${matchId}/pick`),
+      { timeout: 2_000 },
+    )
+    .then(
+      (r) => r.ok(),
+      () => false,
+    );
+  // Kommt die Abfrage dazwischen, ist die Wahl vielleicht schon vorbei: dann neu lesen
+  const done = await succeeds(
+    how === 'tap' ? region.tap({ timeout: 2_000 }) : region.click({ timeout: 2_000 }),
+  );
+  return (await accepted) && done;
+}
+
+/** Beantwortet die Frage `seq` richtig. `false` heißt: Die Frage war inzwischen vorbei. */
+async function answerRight(page: Page, matchId: string, seq: number): Promise<boolean> {
+  const question = page.getByTestId('match-question');
+  const solution = await matchSolution(matchId, seq);
+  return succeeds(
+    solution.kind === 'TRIVIA'
+      ? question
+          .getByRole('button', { name: solution.optionText, exact: true })
+          .click({ timeout: 5_000 })
+      : question
+          .getByLabel(/^Deine Schätzung/)
+          .fill(solution.input, { timeout: 5_000 })
+          .then(() =>
+            question.getByRole('button', { name: 'Antwort abgeben' }).click({ timeout: 5_000 }),
+          ),
   );
 }
 
@@ -60,9 +106,7 @@ async function playToEnd(page: Page, options: { reloadOnce?: boolean } = {}): Pr
     if (state === 'finished') break;
     if (state === 'abandoned') throw new Error('Die Partie wurde abgebrochen');
     if (state === 'pick') {
-      const region = page.getByTestId('match-board').getByRole('button').first();
-      // Kommt die Abfrage dazwischen, ist die Wahl vielleicht schon vorbei: dann neu lesen
-      if (await succeeds(region.click({ timeout: 2_000 }))) picks += 1;
+      if (await pickFirst(page, matchId, 'click')) picks += 1;
     } else if (state === 'question' && !answered.has(seq)) {
       const question = page.getByTestId('match-question');
       if (reload) {
@@ -71,20 +115,7 @@ async function playToEnd(page: Page, options: { reloadOnce?: boolean } = {}): Pr
         await expect(question).toBeVisible();
         await expect(question).toContainText('Die Seite wurde neu geladen');
       }
-      const solution = await matchSolution(matchId, seq);
-      // Eine Antwort kann nur scheitern, wenn die Frage inzwischen vorbei ist: dann neu lesen
-      const sent =
-        solution.kind === 'TRIVIA'
-          ? question
-              .getByRole('button', { name: solution.optionText, exact: true })
-              .click({ timeout: 5_000 })
-          : question
-              .getByLabel(/^Deine Schätzung/)
-              .fill(solution.input, { timeout: 5_000 })
-              .then(() =>
-                question.getByRole('button', { name: 'Antwort abgeben' }).click({ timeout: 5_000 }),
-              );
-      if (await succeeds(sent)) answered.add(seq);
+      if (await answerRight(page, matchId, seq)) answered.add(seq);
     } else if (state === 'reveal' && !revealed.has(seq)) {
       // Die Auflösung steht nur kurz; ohne Warten zählen, ob sie zu sehen war
       const text = await page
@@ -151,6 +182,58 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   await result.getByRole('button', { name: 'Neue Partie' }).click();
   await expect(page).toHaveURL(/\/partie$/);
   await expect(page.getByRole('region', { name: 'Letzte Partien' })).toContainText('beendet');
+});
+
+test('Partie am Handy: Die Karte steht still, ein Tipp wählt die Region', async ({ browser }) => {
+  test.setTimeout(120_000);
+  const page = await newPlayer(browser, {
+    viewport: { width: 390, height: 664 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const setup = page.getByTestId('test-match');
+  await setup.getByLabel('Zu dritt').check();
+  await setup.getByLabel(/^Kurze Zeiten/).check();
+  await setup.getByRole('button', { name: 'Testpartie eröffnen' }).click();
+  await expect(page).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
+  await page.getByTestId('match-lobby').getByRole('button', { name: 'Partie starten' }).click();
+  await expect(page.getByTestId('match-board')).toBeVisible();
+
+  const matchId = matchIdOf(page);
+  const screen = page.getByTestId('match-screen');
+  /** Lage der Karte je Zustand: Sie darf sich zwischen Wahl, Frage und Auflösung nicht bewegen. */
+  const boards = new Map<string, string>();
+  const answered = new Set<number>();
+  let picks = 0;
+  const until = Date.now() + 100_000;
+  while (picks < 3 || !boards.has('question') || !boards.has('reveal')) {
+    if (Date.now() > until) throw new Error('Wahl, Frage und Auflösung kamen nicht rechtzeitig');
+    const state = (await screen.getAttribute('data-state')) ?? '';
+    const seq = Number((await screen.getAttribute('data-seq')) ?? 0);
+    if (state === 'finished' || state === 'abandoned') break;
+    const layout = await page.evaluate(() => {
+      const box = document.querySelector('[data-testid="match-board"]')?.getBoundingClientRect();
+      return {
+        scrollY: Math.round(window.scrollY),
+        overflow: document.documentElement.scrollHeight - window.innerHeight,
+        board: box ? [box.x, box.y, box.width, box.height].map(Math.round).join(' ') : '',
+      };
+    });
+    // Eine feste Bildschirmseite: nichts zu scrollen, also kann auch nichts springen
+    expect(layout.scrollY).toBe(0);
+    expect(layout.overflow).toBeLessThanOrEqual(0);
+    if (layout.board) boards.set(state, layout.board);
+    if (state === 'pick') {
+      if (await pickFirst(page, matchId, 'tap')) picks += 1;
+    } else if (state === 'question' && !answered.has(seq)) {
+      if (await answerRight(page, matchId, seq)) answered.add(seq);
+    }
+    await page.waitForTimeout(100);
+  }
+  expect(picks).toBeGreaterThanOrEqual(3);
+  expect([...boards.keys()]).toEqual(expect.arrayContaining(['pick', 'question', 'reveal']));
+  expect(new Set(boards.values()).size).toBe(1);
+  await page.context().close();
 });
 
 test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => {

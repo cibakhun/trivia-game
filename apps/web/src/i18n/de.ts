@@ -409,11 +409,12 @@ export const de = {
       FINISHED: 'Abrechnung',
     },
     pick: {
-      capital:
-        'Du bist dran: Wähle deine Hauptstadt. Zu jeder anderen Hauptstadt bleibt mindestens ein Feld Abstand.',
+      capital: 'Du bist dran: Wähle deine Hauptstadt.',
       land: 'Du bist dran: Wähle eine freie Region an deinem Gebiet.',
       target: 'Du bist dran: Wähle eine gegnerische Region für deinen Angriff.',
-      hint: 'Wählbare Regionen sind auf der Karte markiert. Wählst du nicht rechtzeitig, wählt der Server zufällig.',
+      hint: 'Markierte Regionen sind wählbar. Läuft die Zeit ab, wählt der Server zufällig.',
+      hintCapital:
+        'Zu jeder anderen Hauptstadt bleibt ein Feld Abstand. Läuft die Zeit ab, wählt der Server zufällig.',
       banner: 'Du bist dran!',
       waitingCapital: '{name} wählt eine Hauptstadt.',
       waitingLand: '{name} wählt eine Region.',

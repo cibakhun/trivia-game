@@ -50,11 +50,13 @@ export function SeatList({ view, name }: { readonly view: MatchView; readonly na
               <span className="seat-points">
                 <CountUp value={s.points} render={(n) => tp('match.seats.points', n)} />
               </span>
-              {' · '}
-              {tp('match.seats.regions', s.regions)}
+              <span className="seat-regions">
+                {' · '}
+                {tp('match.seats.regions', s.regions)}
+              </span>
               {s.capital !== null && !s.eliminated ? (
                 <>
-                  {' · '}
+                  <span className="sep">{' · '}</span>
                   <LifeShields
                     left={s.capitalLivesLeft}
                     max={maxLives}

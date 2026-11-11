@@ -1146,15 +1146,19 @@ select:focus-visible {
   grid-template-columns: minmax(0, 1.25fr) minmax(340px, 1fr);
 }
 
+/*
+ * Schmal und hoch (Handy, Tablet hochkant): alles untereinander. Ein Handy im Querformat ist dafür
+ * zu niedrig und behält die zwei Spalten.
+ */
 /* Untereinander liegt die Karte oft außer Sicht: Bänder dann mitten im Bildschirm */
-@media (max-width: 900px) {
+@media (max-width: 900px) and (min-height: 500px), (max-width: 560px) {
   .moment-layer {
     position: fixed;
     inset: 0;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px) and (min-height: 500px), (max-width: 560px) {
   .match-body,
   .match-page[data-state='finished'] .match-body {
     grid-template-columns: minmax(0, 1fr);
@@ -1177,15 +1181,333 @@ select:focus-visible {
     width: calc(100% + 1.2rem);
     border-radius: 0;
   }
+}
 
-  /* Beim Wählen zuerst die Karte, die Anweisung darunter */
-  .match-page[data-state='pick'] .match-body,
-  .match-page[data-state='waiting-pick'] .match-body {
+/* Das letzte Ereignis unter der Wahl braucht nur das Handy, sonst steht es im Verlauf */
+.pick-last {
+  display: none;
+}
+
+/*
+ * Laufende Partie auf Handy und Tablet hochkant: eine feste Bildschirmseite ohne Scrollen. Oben
+ * Phase und Spielstand, in der Mitte die Karte (immer an derselben Stelle), unten das Blatt mit
+ * Wahl, Frage oder Auflösung. Nur das Blatt scrollt, wenn es zu lang wird; der Verlauf entfällt,
+ * das letzte Ereignis steht in der Wahlleiste. Unter 500 px Höhe (Handy quer) wäre die Karte zu
+ * klein; dort bleibt die scrollende Seite.
+ */
+@media (max-width: 900px) and (min-height: 500px) {
+  .match-page.playing {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    overflow: hidden;
+    overflow-anchor: none;
+  }
+
+  .match-page.playing .match-head {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+
+  .match-page.playing .match-head h1,
+  .match-page.playing .sound-toggle span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .match-page.playing .step-ribbon {
+    white-space: nowrap;
+    font-size: 0.95rem;
+  }
+
+  .match-page.playing .page-nav {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+  }
+
+  /* Die Karte behält immer dieselbe Größe: unten ist ein fester Streifen für die Wahlleiste
+     reserviert, Frage und Auflösung schieben sich als Blatt von unten darüber */
+  .match-page.playing .match-body {
+    --sheet-min: 10.5rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       'seats'
       'board'
-      'panel'
-      'log';
+      'sheet';
+    grid-template-rows: auto minmax(0, 1fr) var(--sheet-min);
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .match-page.playing .map-art {
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* Das Blatt liegt im Feld von Karte und Leiste, unten bündig; den Spielstand verdeckt es nie */
+  .match-page.playing .match-panel {
+    grid-area: 2 / 1 / 4 / 2;
+    align-self: end;
+    position: relative;
+    z-index: 4;
+    min-height: var(--sheet-min);
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: var(--bg);
+    box-shadow: 0 -12px 24px -10px rgb(40 25 10 / 0.35);
+  }
+
+  /* Inhalt sitzt unten im Blatt; wird er zu lang, bleibt sein Anfang oben erreichbar */
+  .match-page.playing .match-panel > :first-child {
+    margin-top: auto;
+  }
+
+  /* Beim Wählen bleibt es eine Leiste: Die Karte darüber ist frei */
+  .match-page.playing[data-state='pick'] .match-panel,
+  .match-page.playing[data-state='waiting-pick'] .match-panel {
+    max-height: var(--sheet-min);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* Frage: ein Blatt fester Höhe, von oben gefüllt. Ein Hinweis darunter verschiebt nichts. */
+  .match-page.playing[data-state='question'] .match-panel {
+    height: min(100%, 36rem);
+  }
+
+  .match-page.playing[data-state='question'] .match-panel > :first-child {
+    margin-top: 0;
+  }
+
+  /* Auflösung: knapp gehalten, damit oben die Karte mit der Eroberung sichtbar bleibt */
+  .match-page.playing[data-state='reveal'] .match-panel {
+    max-height: 78%;
+  }
+
+  /* Die Restzeit der Auflösung bleibt unten stehen, auch wenn das Blatt scrollt */
+  .match-page.playing[data-state='reveal'] .match-panel > .countdown {
+    position: sticky;
+    bottom: 0;
+    padding-block: 0.3rem;
+    background: var(--bg);
+  }
+
+  .match-page.playing .resolution {
+    gap: 0.5rem;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .match-page.playing .resolution h2 {
+    font-size: 1.1rem;
+  }
+
+  /* Frage bleibt (Zuschauer sehen sie nur hier), von den Optionen nur die richtige */
+  .match-page.playing .result-question > .muted,
+  .match-page.playing .result-options li:not(.correct) {
+    display: none;
+  }
+
+  .match-page.playing .result-question {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.92rem;
+  }
+
+  .match-page.playing .result-options {
+    margin: 0;
+  }
+
+  .match-page.playing .sides {
+    font-size: 0.82rem;
+  }
+
+  .match-page.playing .sides th,
+  .match-page.playing .sides td {
+    padding: 0.25rem 0.3rem;
+  }
+
+  .match-page.playing .sides thead th {
+    font-size: 0.8rem;
+  }
+
+  .match-page.playing .who svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .match-page.playing .outcome li {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.9rem;
+  }
+
+  .match-page.playing .question {
+    padding: 0.75rem 0.85rem;
+    gap: 0.5rem;
+  }
+
+  .match-page.playing .prompt {
+    font-size: 1.2rem;
+  }
+
+  .match-page.playing .question-kind {
+    font-size: 0.75rem;
+  }
+
+  .match-page.playing .note {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.88rem;
+  }
+
+  .match-page.playing .duel-head {
+    padding: 0.4rem 0.5rem;
+    gap: 0.2rem;
+  }
+
+  .match-page.playing .duel-side {
+    padding: 0.15rem 0.2rem;
+  }
+
+  .match-page.playing .duel-side svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .match-page.playing .duel-name {
+    font-size: 0.9rem;
+  }
+
+  .match-page.playing .duel-role {
+    font-size: 0.66rem;
+  }
+
+  .match-page.playing .duel-title {
+    font-size: 0.92rem;
+    padding-top: 0.2rem;
+  }
+
+  .match-page.playing .options {
+    gap: 0.45rem;
+  }
+
+  .match-page.playing .option {
+    min-height: 46px;
+    padding: 0.45rem 0.8rem 0.45rem 0.5rem;
+    font-size: 1rem;
+    gap: 0.6rem;
+  }
+
+  .match-page.playing .option-key {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .match-page.playing .estimate input {
+    font-size: 1.3rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .match-page.playing .countdown {
+    gap: 0.15rem;
+    font-size: 0.9rem;
+  }
+
+  .match-page.playing .match-log {
+    display: none;
+  }
+
+  .match-page.playing .pick-card {
+    gap: 0.35rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .match-page.playing .pick-card p {
+    margin: 0;
+  }
+
+  .match-page.playing .pick-hint {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .match-page.playing .pick-last {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* Bänder bleiben im Kartenfeld, schmal oben am Rand: die Karte bleibt lesbar */
+  .match-page.playing .moment-layer {
+    position: relative;
+    inset: auto;
+    overflow: hidden;
+  }
+
+  .match-page.playing .turn-banner {
+    top: 0.5rem;
+    max-width: 96%;
+    gap: 0.25rem;
+    --banner-y: 0%;
+  }
+
+  .match-page.playing .moment-ribbon {
+    gap: 0.4rem;
+    padding: 0.4rem 1.7rem;
+    font-size: 1.2rem;
+  }
+
+  .match-page.playing .moment-ribbon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .match-page.playing .moment-detail {
+    font-size: 0.85rem;
+  }
+}
+
+/* Niedrige Handys: Die Wahlleiste wird schmaler, damit die Karte groß genug bleibt, und die Frage
+   darf auch den Spielstand verdecken, damit der Knopf zum Abgeben ohne Scrollen zu sehen ist */
+@media (max-width: 900px) and (min-height: 500px) and (max-height: 620px) {
+  .match-page.playing .match-body {
+    --sheet-min: 7.5rem;
+  }
+
+  .match-page.playing .pick-hint {
+    display: none;
+  }
+
+  .match-page.playing[data-state='question'] .match-panel {
+    grid-row: 1 / 4;
+  }
+}
+
+/* Tablet hochkant: breite Zeilen, die Frage braucht weniger Höhe; der Spielstand behält seine Höhe,
+   egal wer dran ist (das Abzeichen „am Zug“ entfällt, die Kachel leuchtet ohnehin) */
+@media (min-width: 561px) and (max-width: 900px) and (min-height: 500px) {
+  .match-page.playing[data-state='question'] .match-panel {
+    height: min(100%, 28rem);
+  }
+
+  .match-page.playing .seat-name .badge {
+    display: none;
+  }
+
+  .match-page.playing .seat-facts {
+    min-height: 3em;
   }
 }
 
@@ -1250,8 +1572,16 @@ select:focus-visible {
   gap: 0.35rem;
   max-width: min(92%, 36rem);
   pointer-events: none;
-  transform: translate(-50%, -50%);
-  animation: banner 1.8s ease-in-out both;
+  transform: translate(-50%, var(--banner-y));
+  animation: banner 1.5s ease-in-out both;
+  --banner-y: -50%;
+}
+
+/* Beim Wählen verdeckt kein Band die Mitte der Karte: es steht oben am Rand */
+.match-page[data-state='pick'] .turn-banner,
+.match-page[data-state='waiting-pick'] .turn-banner {
+  top: 0.75rem;
+  --banner-y: 0%;
 }
 
 .moment-ribbon {
@@ -1554,32 +1884,54 @@ select:focus-visible {
   }
 
   .seat {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-    text-align: center;
-    padding: 0.4rem 0.3rem;
-    row-gap: 0.1rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.35rem;
+    padding: 0.3rem 0.4rem;
+    border-top-width: 3px;
   }
 
+  /* Wappen nur neben dem Namen; Punkte und Schilde bekommen die ganze Breite der Kachel */
   .seat-mark {
     grid-row: auto;
   }
 
-  .seat-name {
-    font-size: 0.95rem;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .seat-mark svg {
+    width: 24px;
+    height: 24px;
   }
 
-  .seat-name .badge {
+  .seat-name {
+    font-size: 0.85rem;
+    line-height: 1.15;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .seat-name .badge,
+  .seat-regions,
+  .seat-facts .sep {
     display: none;
   }
 
+  /* Zwei Zeilen fest, auch bevor es Schilde gibt: so bleibt die Karte darunter an ihrem Platz */
   .seat-facts {
-    font-size: 0.85rem;
-    line-height: 1.3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    align-content: flex-start;
+    gap: 0.1rem 0.35rem;
+    grid-column: 1 / -1;
+    min-height: calc(2.5em + 0.1rem);
+    font-size: 0.78rem;
+    line-height: 1.25;
+  }
+
+  .seat-points {
+    white-space: nowrap;
+  }
+
+  .seat.turn {
+    transform: none;
   }
 
   .sides {
@@ -1852,20 +2204,20 @@ select:focus-visible {
 @keyframes banner {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.6);
+    transform: translate(-50%, var(--banner-y)) scale(0.6);
   }
   18% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.05);
+    transform: translate(-50%, var(--banner-y)) scale(1.05);
   }
   28%,
   78% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, var(--banner-y)) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -60%) scale(0.98);
+    transform: translate(-50%, calc(var(--banner-y) - 10%)) scale(0.98);
   }
 }
 

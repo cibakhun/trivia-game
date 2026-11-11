@@ -215,10 +215,12 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
 
   const title = view ? t(`match.kind.${view.match.kind}`) : t('match.title');
   const label = view ? stepLabel(view) : null;
+  // Laufende Partie: auf dem Handy eine feste Bildschirmseite ohne Scrollen (Karte, Leiste, Blatt)
+  const playing = Boolean(view?.board && map) && state !== 'finished' && state !== 'abandoned';
 
   return (
     <main
-      className="match-page"
+      className={`match-page${playing ? ' playing' : ''}`}
       data-testid="match-screen"
       data-state={state}
       data-seq={seq ?? undefined}
@@ -329,7 +331,13 @@ function StatePanel({
 
   switch (state) {
     case 'pick':
-    case 'waiting-pick':
+    case 'waiting-pick': {
+      // Beim Warten das letzte Ereignis, damit man auf dem Handy ohne Verlauf sieht, was passiert ist
+      const latest = state === 'waiting-pick' ? latestLine(events, name, region) : null;
+      const hint =
+        view.board?.step.kind === 'CAPITAL_PICK'
+          ? t('match.pick.hintCapital')
+          : t('match.pick.hint');
       return (
         <section
           className={`card stack pick-card${state === 'pick' ? ' turn' : ''}`}
@@ -339,10 +347,12 @@ function StatePanel({
           <p>
             <strong>{pickText(view, name)}</strong>
           </p>
-          {state === 'pick' ? <p className="muted">{t('match.pick.hint')}</p> : null}
+          {state === 'pick' ? <p className="muted pick-hint">{hint}</p> : null}
           {phaseTimer(timers.pickMs)}
+          {latest ? <p className="pick-last">{latest}</p> : null}
         </section>
       );
+    }
     case 'question':
       if (!local?.question) return null;
       return (
@@ -419,6 +429,20 @@ function MomentBanner({ moment }: { readonly moment: Moment }) {
       {moment.detail ? <span className="moment-detail">{moment.detail}</span> : null}
     </div>
   );
+}
+
+/** Jüngste Zeile des Verlaufs: steht auf dem Handy in der Wahlleiste, weil der Verlauf dort fehlt. */
+function latestLine(
+  events: Parameters<typeof revealFor>[0],
+  name: (seat: number) => string,
+  region: (region: number) => string,
+): string | null {
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
+    const text = event ? logText(event, name, region) : null;
+    if (text) return text;
+  }
+  return null;
 }
 
 function MatchLog({
