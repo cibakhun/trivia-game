@@ -709,6 +709,15 @@ describe('Duell und seine Folgen', () => {
       winner: 'ATTACKER',
     });
     expect(r.state.questions).toBe(2);
+    // Wer die Schätzfrage im Stechen verpasst, liegt unendlich weit daneben
+    const missed = ok(
+      applyRealmInput(both, {
+        kind: 'DUEL_ESTIMATES',
+        attacker: answer(null, null),
+        defender: answer('500'),
+      }),
+    );
+    expect(resolved(missed.events)).toMatchObject({ reason: 'ESTIMATE', winner: 'DEFENDER' });
   });
 });
 
