@@ -97,6 +97,10 @@ Zwei oder drei Spieler auf einer festen Karte je Spielerzahl (Wendelmark zu drit
 | M3 Echtzeit | WebSocket mit Sitzungsprüfung, ein Kanal je Partie, vollständiger Zustand beim Wiederverbinden, Herzschlag | drei Testclients sehen jede Frage gleichzeitig; Wiederverbinden mitten in einer Frage |
 | M4 Browser | Startseite „Partie spielen“, Aufstellung, Karte, Frage mit Countdown, Wahl, Duell zuschauen, Ergebnis – umgesetzt am 2026-11-10 mit Abfrage statt WebSocket (ADR-050), vor M3 | E2E: ganze Testpartie gegen zwei Bots, normale Partie mit zwei Browsern; Spieltest beim Product Owner (allein gegen Bots oder mit Mitspielern) |
 | M5 Fragen | mehr Fragen nach Entscheidung E2, keine Wiederholung über mehrere Partien je Spieler | Inhaltsprüfung grün; in den ersten 5 Partien eines Spielers wiederholt sich keine Frage |
+| A1 Ausbau: Regeln | Partie mit Burgen, Dörfern, Armeen, Brot und Baustoff und Glücksrad als eigene Zustandsmaschine in `game-core`, Bots, Regelwerte, Doku – umgesetzt am 2026-11-11 (ADR-057, [MATCH_RULES.md §11](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)) | Unit-Tests je Regel; Simulation von je 1 000 Partien zu dritt und zu zweit mit Invarianten, Obergrenzen und Bändern der Spielbalance |
+| A2 Ausbau: Server | Startfrage, Burgen, Dörfer, Rüstzeit, Aufdecken und Glücksrad in der Ablaufsteuerung, Lieblingskategorien in der Aufstellung, Migration; laufende Partien der bisherigen Art spielen zu Ende | Integrationstest: ganze Partie mit Ausbau gegen Bots, Rüstzeit nach Ablauf, Wiederanlauf |
+| A3 Ausbau: Browser | Bildentwürfe zur Freigabe, dann Rüstzeit mit Werkzeugen, Gebäude und Armeen auf der Karte, Glücksrad in der Ansage; nach dem Strang „Partie am Handy ruhiger machen“ | E2E: ganze Partie mit Ausbau; Prüfung am iPhone |
+| A4 Ausbau: Spieltest | mit dem Product Owner am Handy, danach Zahlen und Zeiten nachziehen | Rückmeldung des Product Owners |
 
 Danach geht es mit der Eternal-Welt weiter (Phase 2 Paket 3 und 4, dann Phase 3).
 

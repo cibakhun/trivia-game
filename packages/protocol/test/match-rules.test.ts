@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_MATCH_ECONOMY,
   DEFAULT_MATCH_RULES,
+  DEFAULT_REALM_RULES,
+  isRealmRules,
   MATCH_MAP_BY_SEATS,
   matchRulesForSeats,
   matchRulesSchema,
   PLAYTEST_MATCH_RULES,
+  PLAYTEST_REALM_RULES,
   SECOND_MS,
   type MatchRules,
 } from '../src/index.ts';
@@ -102,5 +106,77 @@ describe('Regeln der Partie', () => {
 
     const extra = { ...clone(), bonus: 1 };
     expect(matchRulesSchema.safeParse(extra).success).toBe(false);
+  });
+});
+
+describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
+  it('Standard- und Spieltestwerte sind gültig, die bisherige Partie hat keinen Ausbau', () => {
+    expect(matchRulesSchema.parse(DEFAULT_REALM_RULES)).toEqual(DEFAULT_REALM_RULES);
+    expect(matchRulesSchema.parse(PLAYTEST_REALM_RULES)).toEqual(PLAYTEST_REALM_RULES);
+    expect(isRealmRules(DEFAULT_REALM_RULES)).toBe(true);
+    expect(isRealmRules(DEFAULT_MATCH_RULES)).toBe(false);
+    expect(DEFAULT_MATCH_RULES.economy).toBeUndefined();
+  });
+
+  it('entspricht dem freigegebenen Konzept (O-25 bis O-35)', () => {
+    const e = DEFAULT_MATCH_ECONOMY;
+    expect(DEFAULT_REALM_RULES.campaign.rounds).toBe(5);
+    expect(e.favorites).toBe(4);
+    expect(e.startArmies).toBe(3);
+    expect(e.yields).toEqual({ plain: 1, village: 2, town: 3, castleBread: 2, castleMaterial: 2 });
+    expect(e.costs).toEqual({
+      village: { bread: 1, material: 3 },
+      town: { bread: 2, material: 6 },
+      castle: { bread: 8, material: 16 },
+      army: { bread: 2, material: 0 },
+    });
+    expect(e.tradeRate).toBe(3);
+    expect(e.maxCastles).toBe(2);
+    expect(e.armyCap).toBe(6);
+    expect(e.lots).toEqual({ village: 2, town: 3, castle: 4, free: 2 });
+    expect(e.timers).toEqual({
+      prepareMs: 40 * SECOND_MS,
+      ordersRevealMs: 2 * SECOND_MS,
+      wheelMs: 3 * SECOND_MS,
+    });
+  });
+
+  it('übernimmt sonst die Regeln der Partie; Spieltest ändert nur die Zeiten', () => {
+    const { economy, campaign, ...rest } = DEFAULT_REALM_RULES;
+    expect(economy).toBe(DEFAULT_MATCH_ECONOMY);
+    expect(campaign).toEqual({ rounds: 5 });
+    expect({ ...rest, campaign: DEFAULT_MATCH_RULES.campaign }).toEqual(DEFAULT_MATCH_RULES);
+    expect({
+      ...PLAYTEST_REALM_RULES,
+      timers: DEFAULT_REALM_RULES.timers,
+      economy: { ...PLAYTEST_REALM_RULES.economy, timers: DEFAULT_MATCH_ECONOMY.timers },
+    }).toEqual(DEFAULT_REALM_RULES);
+  });
+
+  it('zu zweit bleibt der Ausbau erhalten', () => {
+    const two = matchRulesForSeats(DEFAULT_REALM_RULES, 2);
+    expect(matchRulesSchema.parse(two)).toEqual(two);
+    expect(two.economy).toBe(DEFAULT_MATCH_ECONOMY);
+    expect(two.map).toBe('KERNMARK');
+  });
+
+  it('lehnt Sekunden statt Millisekunden, negative Preise und unbekannte Felder ab', () => {
+    const parse = (economy: unknown) =>
+      matchRulesSchema.safeParse({ ...DEFAULT_REALM_RULES, economy }).success;
+    expect(
+      parse({
+        ...DEFAULT_MATCH_ECONOMY,
+        timers: { ...DEFAULT_MATCH_ECONOMY.timers, prepareMs: 40 },
+      }),
+    ).toBe(false);
+    expect(
+      parse({
+        ...DEFAULT_MATCH_ECONOMY,
+        costs: { ...DEFAULT_MATCH_ECONOMY.costs, army: { bread: -1, material: 0 } },
+      }),
+    ).toBe(false);
+    expect(parse({ ...DEFAULT_MATCH_ECONOMY, gold: 1 })).toBe(false);
+    expect(parse({ ...DEFAULT_MATCH_ECONOMY, favorites: 0 })).toBe(false);
+    expect(parse({ ...DEFAULT_MATCH_ECONOMY, armyCap: 0 })).toBe(false);
   });
 });

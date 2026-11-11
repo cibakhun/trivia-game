@@ -84,7 +84,7 @@ Status ADR-043 bis ADR-045: *angenommen, 2026-11-10, Phase 2 Paket 2 (Konto)*.
 | ADR-044 | **Namen aus Bausteinen** (O-10): Spielername = Adjektiv + nach dem Geschlecht des Nomens gebeugte Endung + Tier oder Rolle (+ Zahl 2–99), z. B. „Kühner Falke“, „Flinkes Wiesel 7“; eindeutig über `player_profiles.display_name`, gespeichert als `name_parts`. Reichsname wie bisher Vorsilbe + Endung, je Instanz nicht erzwungen eindeutig. Der Server schlägt je fünf freie Namen vor (`GET /names/player`, `GET /instances/:id/kingdom-names`); angenommen wird jede gültige Kombination der Bausteine, nicht nur ein gezeigter Vorschlag. Gäste haben keinen Spielernamen. Beim Beitritt und bei der Neugründung zieht der Zufallsstrom `spawn` weiter einen Namen, auch wenn einer gewählt wurde, damit die Farbe dieselbe bleibt; der gewählte Name gehört zum Anfrage-Hash der Idempotenz | kein freier Text ohne Meldefunktion; der Server muss sich keine gezeigten Vorschläge merken; Bausteine ohne Personenbezug, beidseitig gegendert | nur gezeigte Vorschläge annehmen (Zustand je Sitzung), freie Namen mit Wortfilter (leicht zu umgehen, braucht Moderation) | gering |
 | ADR-045 | **Löschung inaktiver Gäste** (O-03, [SECURITY.md §5.2](SECURITY.md#52-umsetzung)): stündliche Kontopflege im `api`-Prozess (erster Lauf nach 1 min, höchstens 50 Löschungen und 200 geprüfte Konten je Lauf, die ältesten zuerst, wartende oder scheiternde Konten verdrängen spätere nicht; mit dem Worker als Job). Gastkonten mit `coalesce(last_seen_at, created_at)` älter als 90 Tage werden gelöscht; offene Kämpfe werden vorher ausgewertet, läuft danach noch eine Frist, folgt die Löschung in einem späteren Lauf. Kaskade `deleteAccount` in einer Transaktion: Platzhalterkonto, persönliche Tabellen löschen, persönliche Ereignisse zu `REDACTED` (`seq` bleibt), Rohtexte eigener Antworten leeren, Konto-ID aus der Gründungsspur (`kingdom_history`) entfernen, Reiche, Teilnahmen, Kampfteilnahmen und Regelversionen (`world_rules.created_by`) auf den Platzhalter, Reichsname „Vergessenes Reich #NNNN“. Die Trigger der Protokolle und der unveränderlichen Regelversionen erlauben genau diese Schwärzungen (Migration 0011). Derselbe Lauf löscht abgelaufene Sitzungen und leert Bootstrap-Hashes nach 24 h. `ACCOUNT_REFERENCES` nennt jede Spalte mit Konto-ID; ein Integrationstest prüft sie gegen den Katalog und sucht die alte ID nach einer Löschung in allen Tabellen | Datenminimierung nach O-03; die Spielwelt anderer bleibt stimmig (Regionen, Statistik, lückenlose Ereignisfolge); dieselbe Kaskade dient später dem Löschantrag `DELETE /me` | `ON DELETE CASCADE` (löscht Spielhistorie anderer mit), Reiche des Gasts auflösen (Karte ändert sich ohne Kampf), Löschen ohne Platzhalter (Fremdschlüssel) | mittel |
 
-Status ADR-046: *angenommen, 2026-11-10, Entscheidung des Product Owners*. Status ADR-047: *angenommen, 2026-11-10, Partie Paket M1 (Regeln); Werte als Standardannahme bis zum ersten Spieltest*. Status ADR-049: *angenommen, 2026-11-10, Partie Paket M2 (Server); Werte [E] bis zum ersten Spieltest*. Status ADR-050: *angenommen, 2026-11-10, Partie Paket M4 (Browser); Abfrage bis M3, Startseite [E]*. Status ADR-051: *angenommen, 2026-11-10, Entscheidung des Product Owners für „Alte Landkarte“ (Krisz 22:50 Uhr: „sieht gar nicht mal so schlecht aus, baus mal aus“)*. Status ADR-052: *angenommen, 2026-11-11, Wunsch des Product Owners nach der ersten Partie am Handy; Einzelheiten [E] bis zur Entscheidung über [O-21] und [O-22]; [O-23] entschieden (A)*. ADR-048 gilt seitdem nur noch für die Testpartie. Status ADR-053: *angenommen, 2026-11-11, Rückmeldung des Product Owners nach der Partie am iPhone; Dauer der Pausen [E] bis zur Entscheidung über [O-24]*. Status ADR-054: *angenommen, 2026-11-11, Wunsch des Product Owners nach gut erkennbaren Animationen auf der Karte; Länge des ersten Takts [E] bis zur Entscheidung über [O-24]*. Status ADR-055: *angenommen, 2026-11-11, Entscheidung des Product Owners, nachdem es bei der Durchsicht von ADR-054 aufgefallen war; Dauer [E] bis zur Entscheidung über [O-24]*.
+Status ADR-046: *angenommen, 2026-11-10, Entscheidung des Product Owners*. Status ADR-047: *angenommen, 2026-11-10, Partie Paket M1 (Regeln); Werte als Standardannahme bis zum ersten Spieltest*. Status ADR-049: *angenommen, 2026-11-10, Partie Paket M2 (Server); Werte [E] bis zum ersten Spieltest*. Status ADR-050: *angenommen, 2026-11-10, Partie Paket M4 (Browser); Abfrage bis M3, Startseite [E]*. Status ADR-051: *angenommen, 2026-11-10, Entscheidung des Product Owners für „Alte Landkarte“ (Krisz 22:50 Uhr: „sieht gar nicht mal so schlecht aus, baus mal aus“)*. Status ADR-052: *angenommen, 2026-11-11, Wunsch des Product Owners nach der ersten Partie am Handy; Einzelheiten [E] bis zur Entscheidung über [O-21] und [O-22]; [O-23] entschieden (A)*. ADR-048 gilt seitdem nur noch für die Testpartie. Status ADR-053: *angenommen, 2026-11-11, Rückmeldung des Product Owners nach der Partie am iPhone; Dauer der Pausen [E] bis zur Entscheidung über [O-24]*. Status ADR-054: *angenommen, 2026-11-11, Wunsch des Product Owners nach gut erkennbaren Animationen auf der Karte; Länge des ersten Takts [E] bis zur Entscheidung über [O-24]*. Status ADR-055: *angenommen, 2026-11-11, Entscheidung des Product Owners, nachdem es bei der Durchsicht von ADR-054 aufgefallen war; Dauer [E] bis zur Entscheidung über [O-24]*. Status ADR-057: *angenommen, 2026-11-11, Freigabe des Spielkonzepts durch den Product Owner mit allen Empfehlungen ([O-25] bis [O-35]); Regeln und Simulation im Spielkern, Server und Browser folgen; alle Zahlen [E] bis zum ersten Spieltest*.
 
 | ID | Entscheidung | Begründung | Verworfene Alternativen | Kosten einer späteren Änderung |
 |---|---|---|---|---|
@@ -98,6 +98,7 @@ Status ADR-046: *angenommen, 2026-11-10, Entscheidung des Product Owners*. Statu
 | ADR-053 | **Ansage: Die Partie hält an, damit man sieht, was geschieht; die Auflösung zeigt, wer was geantwortet hat** (Rückmeldung des Product Owners vom 2026-11-11, 06:14 Uhr, nach einer Partie am iPhone: „immer noch bisschen zu hektisch“; „wer greift wen wo an“ und „wer was geantwortet hat“ ließen sich besser zeigen; außerdem saß die Karte zu tief). (1) Neue Phase `ANNOUNCE` des Servers ohne Eingabe (Migration 0013 erweitert zwei Prüfungen von `matches`): Jede Wahl bleibt `timers.pickShowMs` = 1,2 s stehen, bevor ein anderer Sitz wählt oder eine Frage kommt (nicht, wenn derselbe Mensch gleich noch einmal wählt); vor jedem Duell steht `timers.announceMs` = 2,5 s lang fest, wer wen wo angreift, erst dann wird die Frage geöffnet. Die Auflösung steht 6 s statt 5 s **[E]**. Beide Zeiten sind in gespeicherten Regeln optional: Partien von vor ADR-053 laufen ohne Ansage zu Ende. (2) Im Browser sagt die Leiste unter der Karte in einem Satz, was die Karte zeigt: nach einer Wahl ein Ring um die Region und das Wappen dessen, der gewählt hat; vor einem Duell der Pfeil des Angreifers und ein Titel aus der eigenen Sicht („Du wirst in … angegriffen!“). (3) Die Auflösung nennt oben die Folge mit dem Wappen des Siegers; darunter steht jeder Sitz als Plättchen an der Antwort, die er gewählt hat, bei Schätzfragen in der Rangfolge mit Schätzung, Abstand und Zeit. (4) Die Handy-Ansicht steht auch in WebKit fest: Die Karte liegt in einem eigenen Rahmen statt als SVG mit `height: 100%` direkt im Raster, das Dokument scrollt während der Partie nicht, die Mindesthöhe rechnet mit `100dvh` ([MATCH_RULES.md §5](MATCH_RULES.md#ansage), [ART_DIRECTION.md §4](ART_DIRECTION.md#4-karte-der-partie), [API.md §2.6](API.md#26-partie)) | Bots handelten in null Zeit: Mehrere Wahlen und ein Angriff kamen in einem einzigen Abruf an, die Duellfrage stand ohne Vorwarnung da, und wer zuschaute, erfuhr erst aus der Auflösung, worum es ging. Die Pause gehört auf den Server, weil die Zeit einer Frage ab dem Öffnen läuft: Eine Ansage nur im Browser würde Antwortzeit kosten oder die Geräte auseinanderlaufen lassen, und nach einem Neuladen wäre sie weg. Sie ist eine Phase der Ablaufsteuerung und kein Schritt der Regeln, damit Zustandsmaschine, Simulationen und Wiederholbarkeit unberührt bleiben. Die alte Auflösung war eine Tabelle, die am Handy nicht auf das Blatt passte (die Restzeit lag über den Zeilen); Wappen an den Antworten liest man ohne Tabelle. Die Verschiebung am iPhone ließ sich in WebKit nachstellen: Dort bezieht sich `height: 100%` eines Rasterkinds auf das ganze Raster, in Chromium auf das Rasterfeld | Ereignisse nur im Browser nacheinander abspielen (Fragezeit liefe schon, nach einem Neuladen verloren, zwei Handys zeigen Verschiedenes); Bots mit Bedenkzeit über die Frist der Wahl (verlängert die Partie, ohne etwas zu zeigen); eigener Schritt in der Zustandsmaschine von game-core (Tempo der Darstellung ist keine Regel, alte Zustände und Simulationen müssten ihn kennen); Auflösung per Knopf weiterschalten (hält alle auf, bis der Langsamste tippt; siehe [O-24]); Tabelle der Auflösung nur verkleinern (bleibt am Handy unlesbar) | gering: Zeiten sind Regelwerte, die Phase ist eine Prüfung in der Datenbank |
 | ADR-054 | **Das Duell spielt auf der Karte: Aufmarsch, Stand, Ausgang, dann die Antworten** (Wunsch des Product Owners vom 2026-11-11, 11:10 Uhr: gut erkennbare Animationen, wer wen an welcher Stelle angreift, am besten direkt auf der Karte, dann der Angriff und danach erst kurz eine Animation, um den Ausgang zu sehen; dazu sein Maßstab aus dem Projektchat: poliert, flüssig, angenehm und ohne Erklärung verständlich). (1) Aufstellung: In der Ansage tritt alles außer den beiden beteiligten Regionen unter einem Schleier zurück; in ihrer Mitte stehen die Wappen von Angreifer und Verteidiger als Plättchen, dazwischen ein Blockpfeil in der Farbe des Angreifers über die gemeinsame Grenze. Eine angegriffene Hauptstadt behält ihre Burg, sie steht für den Verteidiger. Das Bild bleibt stehen, solange die Frage läuft. Es löst Pfeil und Siegel aus ADR-053 ab. (2) Auflösung in zwei Takten **[E]**: Ist ein Duell entschieden, zeigt zuerst nur die Karte den Ausgang (Eroberung, Treffer auf die Hauptstadt, fallendes Reich, gehaltene Verteidigung, je eigene Bewegung), und die Leiste sagt ihn in einem Satz aus der eigenen Sicht; erst danach erscheint das Blatt mit den Antworten. Der erste Takt dauert ein Viertel der Auflösung, höchstens 1,5 s, und läuft allein im Browser innerhalb der Auflösung des Servers: kein neuer Zustand, keine neue Phase, keine Migration; wer mitten in die Auflösung kommt, sieht gleich die Antworten. (3) Während einer Frage springen Animationen der Karte auf ihr Endbild, statt abgeschaltet zu werden; vorher liefen nach jeder Frage alle Einfärbungen noch einmal an, was erst ohne das Blatt der Auflösung sichtbar wurde. (4) Ein Band über der Karte weicht an den unteren Rand, wenn das Duell in der oberen Hälfte steht ([ART_DIRECTION.md §4 und §5](ART_DIRECTION.md#4-karte-der-partie)) | Der alte Pfeil war ein schmaler Strich mit Siegel auf der Grenze: richtig, aber am Handy leicht zu übersehen, und wer angreift und wer verteidigt, stand nur im Text. Wappen in den Regionen zeigen beide Seiten dort, wo es geschieht, in den Farben und Zeichen, die schon den Spielstand tragen; der Schleier nimmt den Rest der Karte zurück, ohne ihn zu verstecken. Der Ausgang gehört vor die Antworten, weil er die Frage ist, die jeder zuerst hat („habe ich die Region?“); das Blatt der Auflösung verdeckt am Handy die halbe Karte und kam bisher im selben Augenblick wie die Änderung darunter. Der Takt liegt im Browser, weil er nichts an der Zeit einer Frage oder an der Reihenfolge der Züge ändert: Alle Geräte bekommen dieselbe Auflösung mit derselben Frist, nur ihre Darstellung ist gegliedert | Eigene Phase des Servers für den Ausgang (verlängert jede Partie und braucht eine Migration, siehe [O-24]); Ausgang und Antworten gleichzeitig wie bisher (das Blatt verdeckt die Karte, die Bewegung geht unter); Figuren oder Truppen, die über die Karte ziehen (mehr Zeichnungen, auf 24 kleinen Regionen am Handy zu eng); Pfeil und Siegel nur vergrößern (verdeckten Namen und Burgen); Wappen an der Grenze statt in der Mitte (halb über Namen und Münzen, ausprobiert und verworfen) | gering: nur Darstellung im Browser, die Länge des Takts ist eine Konstante |
 | ADR-055 | **Die letzte Auflösung steht, bevor abgerechnet wird** (bei der Durchsicht von ADR-054 aufgefallen: Das Duell, das die Partie entscheidet, zeigte weder den Ausgang auf der Karte noch die Antworten, weil der Server die Partie im Augenblick der Auflösung beendete; das war schon vor ADR-054 so. Entscheidung des Product Owners vom 2026-11-11, 12:58 Uhr: Auch das letzte Duell zeigt Ausgang und Antworten). (1) Server: Nach der letzten Frage steht die Phase `REVEAL` wie nach jeder anderen (`timers.revealMs`). Der Status bleibt so lange `RUNNING`; erst der Schritt danach rechnet ab (Status `FINISHED`, `finishedAt`, Statistik). Kein neuer Zustand, keine neue Phase, keine Migration: Die Ablaufsteuerung kannte diesen Weg schon, er wurde nur übersprungen. (2) Der Schritt `FINISHED` merkt sich die Feldzugrunde, in der Schluss war (`round`, in gespeicherten Partien optional). Solange die letzte Auflösung steht, bleiben daraus im Band die Runde und in der Zugfolge die Sitze der letzten Runde stehen, alle erledigt: Die Kopfzeile ändert sich im entscheidenden Moment nicht, die Karte springt nicht. (3) Browser: Die letzte Auflösung sieht aus wie jede andere (erst der Ausgang auf der Karte, dann die Antworten); Sieg oder Niederlage klingen erst, wenn die Abrechnung erscheint. Eine Partie dauert dadurch 6 s länger **[E]** ([MATCH_RULES.md §5](MATCH_RULES.md#letzte-auflösung), [API.md §2.6](API.md#26-partie)) | Der entscheidende Schlag ist der Höhepunkt der Partie. Ohne seine Auflösung sprang die Partie von der Frage direkt zur Rangliste; wer verlor, sah nicht einmal, was der andere geantwortet hatte. Der Weg über den Server hält alle Geräte auf demselben Stand, auch nach einem Neuladen, und nutzt die Phase, die jede andere Auflösung schon hat | Nur im Browser nachspielen, während der Server schon abgerechnet hat (braucht eine eigene Erkennung für „eben erst gesehen“, zeigt nach einem Neuladen nichts und hält die Abrechnung je Gerät verschieden lange zurück); eigene Phase für das Ende (Migration ohne Gewinn gegenüber `REVEAL`); `MATCH_FINISHED` erst mit der Abrechnung schreiben (das Ereignis entsteht in der Zustandsmaschine zusammen mit dem Ausgang des Duells; es zu verschieben trennte Verlauf und Zustand) | gering: eine Bedingung im Server, die Dauer ist `timers.revealMs` |
+| ADR-057 | **Partie mit Ausbau: eigene Zustandsmaschine im Spielkern, Regeln als optionaler Abschnitt `economy`** (Spielkonzept „Burgen, Dörfer, Armeen“, vom Product Owner am 2026-11-11 mit allen Empfehlungen freigegeben, [O-25] bis [O-35]). (1) Der Ausbau ist eine neue reine Zustandsmaschine `realm.ts` mit eigenem Zustand (`realm-state.ts`), Rüstzeit (`realm-orders.ts`), Glücksrad (`realm-wheel.ts`), Rohstoff je Region (`realm-resources.ts`) und Bots (`realm-bots.ts`); `match.ts` bleibt unverändert. (2) Die Regeln bekommen den optionalen Abschnitt `economy` in `matchRulesSchema` (`RealmRules`, `DEFAULT_REALM_RULES` mit fünf Runden); ohne ihn läuft die Partie wie bisher, gespeicherte Partien bleiben gültig. Der Server wählt im nächsten Schritt anhand dieses Abschnitts die Zustandsmaschine. (3) Neue Schritte: Startfrage, Burgen, Dörfer, Rüstzeit (`PREPARE`, alle gleichzeitig und verdeckt, Befehle je Sitz ersetzbar, schließt, sobald alle abgegeben haben, oder per `CLOSE_PREPARE`) und Glücksrad (`DUEL_WHEEL`). Zeit und Zufall bleiben beim Aufrufer: Das Rad hat ganzzahlige Gewichte, der Aufrufer dreht es mit dem Strom `match` und meldet die Kategorie (`SPIN_WHEEL`). (4) Der Rohstoff einer Region folgt ihrer Landschaft im Kartenbild; ein Test im Browser hält beide deckungsgleich. (5) Simulation mit den echten Regeln und Bots (`realm-simulation.test.ts`, Messwerte über `realm-measure.ts`) ([MATCH_RULES.md §11](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)) | Der Ausbau ändert fast jeden Schritt (Startfrage statt Losen, zwei Setzrunden, Rüstzeit, Rad vor jeder Frage, andere Folgen eines Duells): In `match.ts` eingebaut, hinge jede Regel der laufenden Partie an einer Fallunterscheidung, und ihre Tests und Simulationen müssten sich mitändern. Eine eigene Zustandsmaschine lässt die spielbare Partie unberührt und erlaubt, beide nebeneinander zu betreiben, bis der Ausbau gespielt ist. Ein optionaler Abschnitt in denselben Regeln nutzt Spielerzahl, Karten, Zeiten und Werte weiter und braucht keine zweite Regeldatei. Die Rüstzeit verdeckt und gleichzeitig hält eine Partie in der Zielzeit (nacheinander kostet je Runde 40 bis 80 s); weil jeder Befehl nur eigene Felder und Vorräte betrifft, gilt jeder gegen den Stand vom Rundenbeginn. Ganzzahlige Gewichte zeigen auf Server und Browser dasselbe Rad | `match.ts` um den Ausbau erweitern (eine Zustandsmaschine mit zwei Spielarten, Risiko für die laufende Partie); eigene Regeldatei `realmRulesSchema` neben `matchRulesSchema` (doppelte Felder, zwei Wege durch den Server); Rad in der Zustandsmaschine drehen (sie würfelt sonst nie, Wiederholung bräuchte den Zufall im Zustand); Rohstoffe frei zufällig je Partie statt nach Landschaft (unsichtbar auf der Karte); Befehle sofort anwenden statt beim Aufdecken (Gegner sähen die Rüstzeit) | mittel: Zustandsmaschine und Regelwerte sind neu und noch ungespielt; Zahlen sind Regelwerte, eine Änderung braucht keine Migration |
 
 ## Offene Entscheidungen
 
@@ -285,6 +286,122 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 - **D:** Die Auflösung endet früher, sobald alle Menschen auf „Weiter“ getippt haben. Nimmt Wartezeit heraus, braucht aber einen neuen Endpunkt und hält nichts auf, wenn jemand nicht tippt.
 **Empfehlung:** A im nächsten Spiel ausprobieren und danach nach Gefühl B oder C; D erst, wenn die Auflösung zu lang wirkt. Die Werte stehen in den Regeln (`timers`), eine Änderung braucht keine Migration.
 
+### O-25 Ausbau: Welche Rohstoffe?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Lesbarkeit am Handy, Tiefe der Wirtschaft · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.2](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Der Zettel nannte „Brot und Wasser“ und fragte, welche und wie viele Rohstoffe es gibt.
+- **A (gewählt):** zwei, Brot für Armeen und einen Teil jedes Baus, Baustoff für Bauten; jedes Feld liefert einen, sichtbar an der Landschaft.
+- **B:** Brot und Wasser wie auf dem Zettel; Wasser passt schlechter zu Bauten.
+- **C:** drei Rohstoffe; mehr Tauschen, mehr zu lesen am Handy.
+**Empfehlung (gewählt):** A.
+
+### O-26 Ausbau: Lesart „+3 Armeen beim Platzieren (bis 6)“
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Stärke von Burg und Dorf, Zahl der Armeen · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.4](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Der Zettel ließ offen, wo die drei Armeen entstehen und wofür die 6 gilt.
+- **A (gewählt):** Die Startburg beginnt mit 3 Armeen; auf einem Feld stehen höchstens 6.
+- **B:** Jedes neue Dorf bringt 3 Armeen mit (Dörfer doppelt stark).
+- **C:** Jeder Kauf bringt 3 Armeen auf einmal.
+**Empfehlung (gewählt):** A.
+
+### O-27 Ausbau: Lesart „Bevorzugung … für den Verteidiger“
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Wert von Gebäuden im Duell · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.5](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Auf dem Zettel war das Wort abgeschnitten; gemeint ist eine Bevorzugung der Lieblingskategorien.
+- **A (gewählt):** Gebäude geben dem Verteidiger Lose im Glücksrad: Dorf 2, Stadt 3, Burg 4.
+- **B:** Gebäude geben ihrem Besitzer auch beim Angriff von dort aus Lose.
+- **C:** Gebäude geben keine Lose; dann schützen nur Leben und Armeen.
+**Empfehlung (gewählt):** A.
+
+### O-28 Ausbau: Bringen Gebäude Punkte?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Gleichgewicht von Bauen und Angreifen · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.7](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Mit Punkten für Gebäude (Dorf 50, Stadt 100, Burg 300) gewann in der Grobsimulation zu zweit in 63 bis 76 % der Partien, wer nur baut; ohne sie sind beide Wege gleich stark (51 zu 49).
+- **A (gewählt):** Nein, nur Land zählt wie bisher: Feld 100, Startburg 300, je Verteidigung +50.
+- **B:** Dorf 50, Stadt 100, Burg 300 Punkte.
+**Empfehlung (gewählt):** A.
+
+### O-29 Ausbau: Preis und Grenze der zweiten Burg
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** wie oft ein Reich fällt, Ziel für den Ausbau · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.3](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Ziel: Etwa jeder Zweite schafft die zweite Burg. Gemessen mit den echten Regeln bei fünf Runden: zu dritt 61 %, zu zweit 40 % der Spieler.
+- **A (gewählt):** 8 Brot + 16 Baustoff, höchstens zwei Burgen je Reich.
+- **B:** 6 + 12 (in der Grobsimulation 87 %, ein Reich fällt fast nie).
+- **C:** keine Grenze für Burgen.
+**Empfehlung (gewählt):** A.
+
+### O-30 Ausbau: Bleibt die Landnahme?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Dauer, Einstieg · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.1](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Die Landnahme mit Schätzfragen ist bekannt und gespielt.
+- **A (gewählt):** Ja, wie bisher; Armeen wirken erst im Feldzug. Wählbar ist ein freies Feld an Burg, Dorf oder eigenem Land.
+- **B:** Freie Felder mit Armeen besetzen statt Schätzrunden (ein anderes Spiel, länger, braucht eine eigene Simulation).
+**Empfehlung (gewählt):** A.
+
+### O-31 Ausbau: Wie lang ist der Feldzug?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Dauer, zweite Burg erreichbar · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.9](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Gemessen mit den echten Regeln und gleich starken Bots: fünf Runden typisch 14,4 Minuten zu dritt und 10,4 zu zweit; vier Runden 12,4 und 9,0 (zweite Burg 27 und 9 %); sechs Runden 16,4 und 11,9.
+- **A (gewählt):** 5 Runden.
+- **B:** 4 Runden, kürzer, aber die zweite Burg kaum erreichbar.
+- **C:** 6 Runden, länger.
+**Empfehlung (gewählt):** A.
+
+### O-32 Ausbau: Wie läuft die Rüstzeit?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Dauer, Spielgefühl am Handy · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.4](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Die Rüstzeit ist der einzige neue Bedienabschnitt.
+- **A (gewählt):** alle gleichzeitig und verdeckt, höchstens 40 s, vorbei, sobald alle fertig sind; Aufdecken 2 s.
+- **B:** 30 s (ausgereizt rund 1 Minute kürzer, am Handy knapp).
+- **C:** nacheinander und offen vor dem eigenen Angriff (je Runde 40 bis 80 s länger, der Verteidiger kann nicht reagieren).
+**Empfehlung (gewählt):** A.
+
+### O-33 Ausbau: Wie heißen die Dinge im Spiel?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Sprache des Spiels · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.2](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Eigene Namen, keine aus dem Vorbild.
+- **A (gewählt):** Brot, Baustoff, Dorf, Stadt, Burg, Armee, Rüstzeit, Glücksrad.
+- **B:** andere eigene Namen, zum Beispiel Korn, Stein, Siedlung, Feste, Heer.
+**Empfehlung (gewählt):** A. Im Code: `BREAD`, `MATERIAL`, `VILLAGE`, `TOWN`, `CASTLE`, `armies`, `PREPARE`, `wheel`.
+
+### O-34 Ausbau: Wie viele Spieler?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Karte, Dauer · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.1](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Der Zettel deutete vier Spieler an.
+- **A (gewählt):** 2 oder 3 wie bisher, auf Kernmark und Wendelmark.
+- **B:** auch 4; braucht eine größere Karte und dauert geschätzt über 20 Minuten (nicht simuliert).
+**Empfehlung (gewählt):** A.
+
+### O-35 Ausbau: Wer greift in der letzten Runde zuerst an?
+
+**Status: entschieden am 2026-11-11 durch den Product Owner – Empfehlung, wie umgesetzt.** Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ mit allen Empfehlungen (ADR-057).
+
+**Priorität:** P1 (Ausbau) · **Wirkung:** Fairness der letzten Runde · **Herkunft:** Spielkonzept vom 2026-11-11, ADR-057, [MATCH_RULES.md §11.1](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen)
+**Stand:** Bei wechselnder Reihenfolge hatte zu dritt der Sitz, der in Runde 5 zuerst angreift, einen Nachteil (Grobsimulation 30 %), weil die anderen danach noch angreifen.
+- **A (gewählt):** Wer nach Punkten vorn liegt, greift zuerst an, wer hinten liegt, zuletzt; bei gleichen Punkten die Reihenfolge der Runde (`realmAttackOrder`).
+- **B:** weiter wechselnd wie in den übrigen Runden.
+**Empfehlung (gewählt):** A. Gemessen gewinnen danach die Plätze der Startfrage zu dritt 34, 35 und 31 %.
+
 ## Änderungsprotokoll
 
 | Datum | Änderung |
@@ -323,3 +440,4 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | 2026-11-11 | ADR-053 angenommen (Rückmeldung des Product Owners nach der Partie am iPhone): Phase `ANNOUNCE` mit gezeigter Wahl und Ansage vor jedem Duell (Migration 0013), Auflösung 6 s und mit Wappen an den Antworten, Handy-Ansicht in WebKit fest; O-24 (Länge der Pausen) neu erfasst |
 | 2026-11-11 | ADR-054 angenommen (Wunsch des Product Owners nach gut erkennbaren Animationen auf der Karte): Aufstellung eines Duells mit Wappen und Blockpfeil unter einem Schleier, Auflösung in zwei Takten (erst der Ausgang auf der Karte, dann die Antworten), Animationen der Karte laufen nach einer Frage nicht mehr neu an; O-24 um den ersten Takt ergänzt |
 | 2026-11-11 | ADR-055 angenommen (Entscheidung des Product Owners, nachdem es bei der Durchsicht von ADR-054 aufgefallen war): Die Auflösung des letzten Duells steht wie jede andere, erst danach rechnet der Server ab; Band und Zugfolge bleiben so lange stehen, Sieg oder Niederlage klingen mit der Abrechnung; O-24 um die 6 s je Partie ergänzt |
+| 2026-11-11 | ADR-057 angenommen (Freigabe des Spielkonzepts „Burgen, Dörfer, Armeen“ durch den Product Owner mit allen Empfehlungen): Partie mit Ausbau als eigene Zustandsmaschine im Spielkern, Regeln als optionaler Abschnitt `economy`, Bots und Simulation; O-25 bis O-35 erfasst und entschieden; Regeln in MATCH_RULES §11 |
