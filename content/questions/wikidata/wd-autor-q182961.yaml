@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-autor-q182961
+kind: TRIVIA
+category: LITERATURE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:autor
+sources:
+  - title: "Wikidata: Jane Eyre (Q182961)"
+    url: https://www.wikidata.org/wiki/Q182961
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: Wer schrieb „Jane Eyre“?
+    options:
+      a: Charlotte Brontë
+      b: Fjodor Dostojewski
+      c: Charles Dickens
+      d: Gustave Flaubert

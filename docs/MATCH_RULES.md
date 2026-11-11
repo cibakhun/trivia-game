@@ -153,7 +153,7 @@ Kartengröße zu zweit (je 4 000 Partien gleich starker Bots, 2026-11-11): Der V
 - Kartengröße zu zweit: 16 Regionen **[E]** (§2, §9). Alternativen: 14 Regionen (vier Landnahmerunden, noch kürzer) oder weiter die ganze Wendelmark (acht Runden).
 - Partien mit Bots: Sie zählen nicht in der Statistik und es gibt sie überall **[E]** (§7). Der Product Owner entscheidet, ob das so bleibt, zum Beispiel ob Siege gegen schwere Bots zählen sollen.
 - Testpartie: Seit Bots in der normalen Partie sitzen können, braucht sie kein Spieler mehr. Vorschlag: nur noch für Tests behalten und von der Seite „Partie spielen“ nehmen.
-- Fragenquelle für mehr als eine Partie ohne Wiederholung (E2, Paket M5). Bis dahin wiederholt sich innerhalb einer Partie keine Frage, solange der Bestand andere hat; mit den 40 Testfragen kommen in langen Partien Wiederholungen vor.
+- Fragenquelle für mehr als eine Partie ohne Wiederholung (E2, Paket M5). Quelle entschieden (PO 2026-11-11): Wikidata-Fakten mit eigener Formulierung (ADR-056); spielbar werden die Entwürfe erst nach der Prüfung. Bis dahin wiederholt sich innerhalb einer Partie keine Frage, solange der Bestand andere hat; mit den 40 Testfragen kommen in langen Partien Wiederholungen vor.
 - Laufende Partie verlassen oder aufgeben: heute nicht vorgesehen; wer geht, verpasst alle weiteren Fragen und Wahlen, die Partie läuft bis zum Ende weiter. Ob es ein Aufgeben gibt und wie es zählt, entscheidet der Product Owner nach dem Spieltest.
 - Partien mit Fremden über eine Warteschlange und eine Rangliste brauchen einen erreichbaren Server ([O-11]).
 

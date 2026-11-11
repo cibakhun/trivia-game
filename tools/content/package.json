@@ -9,7 +9,9 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "validate": "tsx src/cli.ts ../../content",
-    "import": "tsx --env-file-if-exists=../../.env src/import-cli.ts ../../content"
+    "import": "tsx --env-file-if-exists=../../.env src/import-cli.ts ../../content",
+    "wikidata:fetch": "node src/wikidata/fetch.ts",
+    "wikidata:generate": "tsx src/wikidata/generate-cli.ts ../../content"
   },
   "dependencies": {
     "@rdw/db": "workspace:*",

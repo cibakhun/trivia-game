@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-berg-hoehe-q216059
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:berg-hoehe
+sources:
+  - title: "Wikidata: Tai Shan (Q216059)"
+    url: https://www.wikidata.org/wiki/Q216059
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "1545"
+  answer_precision: 0
+  answer_unit: m
+  input_min: "1"
+  input_max: "9000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie hoch ist der Tai Shan (in Metern über dem Meeresspiegel)?
+    unit_label: Meter

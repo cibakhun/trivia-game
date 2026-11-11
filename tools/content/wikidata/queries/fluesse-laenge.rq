@@ -1,0 +1,13 @@
+# Bekannte Flüsse mit Länge (normalisiert in Metern).
+SELECT ?item ?label ?sitelinks ?value WHERE {
+  ?item wdt:P31 wd:Q4022;
+        wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 70)
+  ?item p:P2043 ?statement.
+  ?statement a wikibase:BestRank;
+             psn:P2043/wikibase:quantityAmount ?value.
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 80

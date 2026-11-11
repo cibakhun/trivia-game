@@ -1,0 +1,5834 @@
+{
+ "name": "staedte-einwohner-de",
+ "fetchedAt": "2026-11-11T20:55:27.768Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Großstädte in Deutschland mit Einwohnerzahlen seit 2015 und Stichtag.\nSELECT ?item ?label ?sitelinks ?value ?date WHERE {\n  ?item wdt:P31 wd:Q1549591;\n        wdt:P17 wd:Q183;\n        wikibase:sitelinks ?sitelinks.\n  ?item p:P1082 ?statement.\n  ?statement ps:P1082 ?value;\n             pq:P585 ?date;\n             wikibase:rank ?rank.\n  FILTER(?rank != wikibase:DeprecatedRank)\n  FILTER(YEAR(?date) >= 2015)\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\n",
+ "rowCount": 832,
+ "rows": [
+  {
+   "item": "Q1726",
+   "value": "1487708",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1456039",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1464301",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1510378",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1450381",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1500560",
+   "date": "2016-05-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1512491",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1488202",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1471508",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1505005",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1726",
+   "value": "1505036",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q1055",
+   "value": "1841179",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1841179",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1853935",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1892122",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1830584",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1852478",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1841179",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1787408",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1910160",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1810438",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1862565",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1055",
+   "value": "1869473",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q1794",
+   "value": "746878",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "732688",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "736414",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "759224",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "773068",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "775790",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "753056",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "764474",
+   "date": "2022-06-30T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "764104",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "756021",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q1794",
+   "value": "760656",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q365",
+   "value": "1025523",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1083498",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1075935",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1073096",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1081701",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1087863",
+   "date": "2021-01-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1073096",
+   "date": "2022-09-30T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1087353",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1084831",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1080394",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1085664",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1060582",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q365",
+   "value": "1024621",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q1731",
+   "value": "561922",
+   "date": "2022-10-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "563311",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "555351",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "551072",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "556549",
+   "date": "2020-10-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "566222",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "547172",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "554649",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "564904",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1731",
+   "value": "562764",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q1022",
+   "value": "626275",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "628032",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "633484",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "623738",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "634830",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "630305",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "632865",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "632743",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "612663",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1022",
+   "value": "609365",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q1718",
+   "value": "617280",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "628437",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "629047",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "645923",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "613230",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "639407",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "631217",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "619294",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "619294",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "618685",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "619444",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1718",
+   "value": "619477",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q1715",
+   "value": "538068",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "548186",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "535061",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "542668",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "532163",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "535932",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "545045",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "552710",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "543247",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "532864",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "522131",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q1715",
+   "value": "522803",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q2079",
+   "value": "571088",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "615081",
+   "date": "2022-10-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "601866",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "581980",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "587857",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "619879",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "633592",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "611850",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "616093",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "601668",
+   "date": "2020-01-23T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "560472",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "625341",
+   "date": "2023-03-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "621278",
+   "date": "2022-09-30T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2079",
+   "value": "615932",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q24879",
+   "value": "563290",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "565719",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "569396",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "568006",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "569352",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "569352",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "577026",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "566573",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "569814",
+   "date": "2019-03-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "586271",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q24879",
+   "value": "588413",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q586",
+   "value": "323336",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "323587",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "327258",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "327258",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "336465",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "320820",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "331885",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "335789",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "318809",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "325490",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "330579",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "327919",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q586",
+   "value": "322960",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q2090",
+   "value": "515201",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "526091",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "511628",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "509975",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "518370",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "510632",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "515543",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "523026",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "518365",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "518365",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "529508",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q2090",
+   "value": "531159",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q1295",
+   "value": "587010",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "587010",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "595471",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "587696",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "586852",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "586600",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "593317",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "585813",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "586181",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "603462",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1295",
+   "value": "600880",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q1711",
+   "value": "171810",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "175710",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "180334",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "185750",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "187119",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "178347",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "182219",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "167505",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "182112",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "183154",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "184754",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1711",
+   "value": "185137",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q1720",
+   "value": "222889",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "215110",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "217556",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "217118",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "217118",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "209779",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "220552",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "217123",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "213528",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "224684",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1720",
+   "value": "223888",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q2966",
+   "value": "162273",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "159245",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "159914",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "162960",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "160355",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "160601",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "158741",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "155756",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q2966",
+   "value": "156092",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q1017",
+   "value": "247380",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "252769",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "252136",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "248960",
+   "date": "2021-01-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "245885",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "249070",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "244951",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "246272",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "254782",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "262670",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1017",
+   "value": "263703",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1729",
+   "value": "214969",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "212988",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "218793",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "217159",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "213227",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "213692",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "211113",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "215675",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "213699",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "210118",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1729",
+   "value": "215199",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q1707",
+   "value": "246794",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "247236",
+   "date": "2017-03-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "248873",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "247548",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "246269",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "247943",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "246601",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "252668",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "251842",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "247717",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1707",
+   "value": "246243",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q1733",
+   "value": "239364",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "238136",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "236188",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "238697",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "236188",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "238478",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "240114",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "235723",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "235775",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "244329",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q1733",
+   "value": "244494",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q2843",
+   "value": "217198",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "220211",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "219044",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "216856",
+   "date": "2017-03-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "216709",
+   "date": "2018-06-30T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "216253",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "216318",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "218095",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "217198",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "216530",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "216277",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "215846",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "216889",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2843",
+   "value": "217061",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q2066",
+   "value": "586608",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "582415",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "579432",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "583109",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "584580",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "583393",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "590194",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "574682",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q2066",
+   "value": "573618",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q1724",
+   "value": "180966",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "180741",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "183509",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "183144",
+   "date": "2019-03-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "179634",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "181959",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "179709",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "178141",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "179349",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "182971",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1724",
+   "value": "182859",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q1040",
+   "value": "307755",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "311919",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "313092",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "309050",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "309247",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "309999",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "309964",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "308436",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "307263",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "308707",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q1040",
+   "value": "306502",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q3138",
+   "value": "112195",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "114914",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "110013",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "110570",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "112737",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "110636",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "110636",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "110111",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "104342",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q3138",
+   "value": "105054",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q2119",
+   "value": "319536",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "309370",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "307997",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "309370",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "316877",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "311831",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "305780",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "315554",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "309721",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "304781",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "316265",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2119",
+   "value": "318035",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q2100",
+   "value": "503707",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "498590",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "498590",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "502211",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "498110",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "502211",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "491231",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "495152",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "498590",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "495885",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "499845",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "502270",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q2100",
+   "value": "500810",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q3012",
+   "value": "123953",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "130288",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "126949",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "125596",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "129942",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "128928",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "126329",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "126405",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "122636",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q3012",
+   "value": "129882",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q2833",
+   "value": "237244",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "227590",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "229636",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "230940",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "230241",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "230241",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "231848",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "236140",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "237460",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2833",
+   "value": "238299",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2742",
+   "value": "306368",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "314319",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "314319",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "311846",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "316403",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "310039",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "313559",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "322904",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "320946",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "317713",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2742",
+   "value": "308258",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q2749",
+   "value": "301786",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "300000",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "292851",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "296478",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "303150",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "295830",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "289584",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "288631",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "286374",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "295135",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "295135",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "301033",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q2749",
+   "value": "301105",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q3033",
+   "value": "118914",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "119529",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "134212",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "127259",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "130521",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "120261",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "132873",
+   "date": "2016-06-30T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "132866",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "119177",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "118946",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "119801",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3033",
+   "value": "116557",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q1709",
+   "value": "98596",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1709",
+   "value": "95818",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1709",
+   "value": "95740",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1709",
+   "value": "98733",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1709",
+   "value": "95797",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1709",
+   "value": "95818",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1709",
+   "value": "98308",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1709",
+   "value": "97922",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q2978",
+   "value": "151517",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "152610",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "152610",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "157443",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "150894",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "153542",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "145465",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "148638",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "159465",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2978",
+   "value": "151389",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q2795",
+   "value": "248042",
+   "date": "2022-10-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "248563",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "243105",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "246353",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "248645",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "250681",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "247235",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "246855",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "245618",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2795",
+   "value": "247252",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q2814",
+   "value": "238005",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "237865",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "242083",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "242172",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "238061",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "239173",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "239257",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "236991",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "226767",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2814",
+   "value": "226186",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q2999",
+   "value": "133753",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "124873",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "132215",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "126010",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "127810",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "126933",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "128246",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "127880",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "127880",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "127200",
+   "date": "2015-12-01T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "126635",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2999",
+   "value": "133258",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q2865",
+   "value": "200406",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "200736",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "201585",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "201585",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "199062",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "201048",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "204202",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "204687",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "197984",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "197230",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2865",
+   "value": "196799",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q2112",
+   "value": "332552",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "338332",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "339842",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "333786",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "333786",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "333451",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "338410",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "334002",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "333509",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "331605",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2112",
+   "value": "331419",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2773",
+   "value": "252066",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "251804",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "248561",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "248823",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "248023",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "252768",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "248292",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "248292",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "248667",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "252962",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2773",
+   "value": "252811",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q3104",
+   "value": "113844",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "114024",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "114024",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "115268",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "113638",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "112586",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "115298",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "113378",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q3104",
+   "value": "113020",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q2107",
+   "value": "354382",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "350046",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "352390",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "353590",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "355004",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "354572",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "354382",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "358938",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "358876",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "358193",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q2107",
+   "value": "357243",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q3150",
+   "value": "110791",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q3150",
+   "value": "109725",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q3150",
+   "value": "109353",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q3150",
+   "value": "111191",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q3150",
+   "value": "110502",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q3150",
+   "value": "111407",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q3150",
+   "value": "111099",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q3004",
+   "value": "140799",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "135244",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "137072",
+   "date": "2018-06-30T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "133323",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "132438",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "138016",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "133639",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "141029",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "142308",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "136981",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3004",
+   "value": "141185",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q2765",
+   "value": "266199",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "260654",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "260126",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "265885",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "260305",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "259105",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "262528",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "263000",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2765",
+   "value": "267930",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q2103",
+   "value": "365742",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "365529",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "364628",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "366385",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "364628",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "364454",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "364920",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "363441",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "358676",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q2103",
+   "value": "358880",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q3014",
+   "value": "129813",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "123914",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "124151",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "124151",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "125408",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "125555",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "123949",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "125550",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "127256",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "123909",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "125961",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "125309",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "125244",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3014",
+   "value": "129560",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q3042",
+   "value": "124589",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "131295",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "126658",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "128744",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "123734",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "130892",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "134170",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "136824",
+   "date": "2018-06-30T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "135490",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "132746",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3042",
+   "value": "133195",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q2916",
+   "value": "164748",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "164748",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "165034",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "166960",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "164070",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "167366",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "164223",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "164374",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "166057",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q2916",
+   "value": "166257",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q3126",
+   "value": "116450",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "111962",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "110998",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "113292",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "110238",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "117806",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "116562",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "108336",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3126",
+   "value": "115928",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q715",
+   "value": "132516",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "125960",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "128334",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "125113",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "125613",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "123771",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "131986",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q2758",
+   "value": "268943",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "259996",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "261001",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "268465",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "259665",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "260925",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "262188",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "261454",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "261454",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "267213",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q2758",
+   "value": "267176",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q715",
+   "value": "126458",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "125960",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "122567",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q715",
+   "value": "130093",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q2971",
+   "value": "157092",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "152531",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "149075",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "154755",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "148677",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "148126",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "150580",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "155749",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "156378",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q2971",
+   "value": "155906",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q3214",
+   "value": "99515",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "100219",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "99515",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "100534",
+   "date": "2017-06-30T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "100010",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "101036",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "98359",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "98693",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "95123",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3214",
+   "value": "95140",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q2838",
+   "value": "209566",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "211099",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "213646",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "213178",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2805",
+   "value": "226699",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "228426",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "226844",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "228550",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "225144",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "226812",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "227020",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "227020",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "227050",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "231406",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q2805",
+   "value": "230738",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q3185",
+   "value": "102325",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "101990",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "105439",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "100319",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "101701",
+   "date": "2018-06-30T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "101687",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "101858",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "101744",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "98510",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q3185",
+   "value": "98207",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q2838",
+   "value": "210824",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "211382",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "211422",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "210829",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "210829",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "208752",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2838",
+   "value": "210934",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2938",
+   "value": "163838",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "163838",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "175300",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "165748",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "163113",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "163905",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "166414",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "163577",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "163851",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2938",
+   "value": "168581",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2706",
+   "value": "118610",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "118502",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2910",
+   "value": "172557",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "166621",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "168497",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "176110",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "174265",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "172145",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "172253",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "177222",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q2910",
+   "value": "177355",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q3046",
+   "value": "126016",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "125542",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "124289",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "125529",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "128992",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "127849",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "123493",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "134912",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q3046",
+   "value": "134422",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q2938",
+   "value": "168299",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2706",
+   "value": "114677",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "113634",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "113634",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "113634",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "113557",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "113034",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "113173",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "114025",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "115468",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2706",
+   "value": "113026",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q3075",
+   "value": "131344",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "126405",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "132032",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "131433",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "132449",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "124171",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "126526",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "129122",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "127748",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "125403",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3075",
+   "value": "132036",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q2936",
+   "value": "169605",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "170389",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "163830",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "176614",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "177055",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "168210",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "168210",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "167081",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "174629",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "165711",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q2936",
+   "value": "172830",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q3085",
+   "value": "119040",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "115817",
+   "date": "2019-12-01T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "116456",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "117547",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "115006",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "115966",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "118528",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "115762",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3085",
+   "value": "118852",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3750",
+   "value": "94847",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q3750",
+   "value": "91368",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q3750",
+   "value": "94859",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q3750",
+   "value": "94152",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q3750",
+   "value": "93634",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q3750",
+   "value": "96011",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q3750",
+   "value": "95608",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q3750",
+   "value": "95162",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q2948",
+   "value": "153796",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "153810",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "155163",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "153109",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "152882",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "152731",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "159672",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "154139",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "154317",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2948",
+   "value": "153767",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q2942",
+   "value": "159360",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "159360",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "159193",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "161545",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "158803",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "160643",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "158957",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "158908",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "165626",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2942",
+   "value": "164621",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q2899",
+   "value": "170739",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "172404",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "170880",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "170880",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "170936",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "170921",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "173255",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "171265",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "169278",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "173050",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2899",
+   "value": "171674",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q2880",
+   "value": "179111",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "179111",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "180849",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "180761",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "179238",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "179397",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "179185",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "179968",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "179108",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "179571",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2880",
+   "value": "178967",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q2871",
+   "value": "188713",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "188687",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "189044",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "188266",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "187730",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "189783",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "188814",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "190490",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "190384",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q2871",
+   "value": "189983",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q3167",
+   "value": "102114",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3167",
+   "value": "102836",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3167",
+   "value": "102560",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3167",
+   "value": "101516",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3167",
+   "value": "102355",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3167",
+   "value": "102337",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3167",
+   "value": "102685",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3167",
+   "value": "102450",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q3050",
+   "value": "111734",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3050",
+   "value": "112267",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3050",
+   "value": "115344",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3050",
+   "value": "114851",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3050",
+   "value": "113360",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3050",
+   "value": "120224",
+   "date": "2017-06-01T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3050",
+   "value": "110714",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3050",
+   "value": "111693",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3117",
+   "value": "111645",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "113085",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "111341",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "112712",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "111966",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "112660",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "111627",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "111525",
+   "date": "2017-06-30T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "111361",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3117",
+   "value": "111174",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q3097",
+   "value": "109499",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "112613",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "112970",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "111770",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "110994",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "110994",
+   "date": "2019-10-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "110611",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "110584",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "113828",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3097",
+   "value": "113333",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q3069",
+   "value": "117364",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3069",
+   "value": "117311",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3069",
+   "value": "118705",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3069",
+   "value": "117383",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3069",
+   "value": "117409",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3069",
+   "value": "118113",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3069",
+   "value": "118535",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3069",
+   "value": "118482",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q3132",
+   "value": "103725",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q3132",
+   "value": "105287",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q3132",
+   "value": "105606",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q3132",
+   "value": "103949",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q3132",
+   "value": "103725",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q3132",
+   "value": "101503",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q3132",
+   "value": "101298",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q2904",
+   "value": "156621",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "156374",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "156940",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "156774",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "157368",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "156490",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "157896",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "155851",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "156266",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q2904",
+   "value": "155851",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q3200",
+   "value": "103694",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "104548",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "104948",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "104548",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "104614",
+   "date": "2017-07-30T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "101079",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "105039",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "104970",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3200",
+   "value": "104433",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3764",
+   "value": "95724",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q3764",
+   "value": "95107",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q3764",
+   "value": "96565",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q3764",
+   "value": "95876",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q3764",
+   "value": "95897",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q3764",
+   "value": "96563",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q3764",
+   "value": "91808",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q3764",
+   "value": "91474",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "75",
+   "label": "Witten"
+  }
+ ]
+}

@@ -1,0 +1,1213 @@
+{
+ "name": "olympia",
+ "fetchedAt": "2026-11-11T20:57:44.205Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Olympische Sommer- und Winterspiele mit Austragungsort und Datum.\nSELECT ?item ?label ?type ?answer ?answerLabel ?date ?start WHERE {\n  VALUES ?type { wd:Q135976384 wd:Q137592217 }\n  ?item wdt:P31 ?type;\n        wdt:P276 ?answer.\n  OPTIONAL { ?item wdt:P585 ?date }\n  OPTIONAL { ?item wdt:P580 ?start }\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n  ?answer rdfs:label ?answerLabel.\n  FILTER(LANG(?answerLabel) = \"de\")\n}\n",
+ "rowCount": 136,
+ "rows": [
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q978030",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Oval Lingotto",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q1393382",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Pala alpitour",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q1934014",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Cesana Pariol",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q1992061",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Centro Olimpico Biathlon",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9678",
+   "answer": "Q39420",
+   "label": "Olympische Winterspiele 2014",
+   "answerLabel": "Sotschi",
+   "date": "2014-02-01T00:00:00Z",
+   "start": "2014-02-07T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8080",
+   "answer": "Q1524",
+   "label": "Olympische Sommerspiele 1896",
+   "answerLabel": "Athen",
+   "start": "1896-04-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9680",
+   "answer": "Q7089110",
+   "label": "Olympische Winterspiele 2018",
+   "answerLabel": "PyeongChang Olympic Stadium",
+   "date": "2018-01-01T00:00:00Z",
+   "start": "2018-02-09T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q956",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Peking",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q20745708",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Nationale Eisschnelllaufhalle",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q55640291",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Nordisches Ski- und Biathlonzentrum Guyangshu",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9678",
+   "answer": "Q266071",
+   "label": "Olympische Winterspiele 2014",
+   "answerLabel": "Krasnaja Poljana",
+   "date": "2014-02-01T00:00:00Z",
+   "start": "2014-02-07T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8088",
+   "answer": "Q90",
+   "label": "Olympische Sommerspiele 1900",
+   "answerLabel": "Paris",
+   "start": "1900-05-14T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q181278",
+   "answer": "Q1490",
+   "label": "Olympische Sommerspiele 2020",
+   "answerLabel": "Tokio",
+   "date": "2021-01-01T00:00:00Z",
+   "start": "2021-07-24T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q995653",
+   "answer": "Q90",
+   "label": "Olympische Sommerspiele 2024",
+   "answerLabel": "Paris",
+   "date": "2024-01-01T00:00:00Z",
+   "start": "2024-07-26T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q133525",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Nationalstadion Peking",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q244877",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Nationales Schwimmzentrum Peking",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8128",
+   "answer": "Q12892",
+   "label": "Olympische Sommerspiele 1920",
+   "answerLabel": "Antwerpen",
+   "start": "1920-04-20T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q1139142",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Nationales Hallenstadion Peking",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q1321458",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Cadillac Arena",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q193074",
+   "answer": "Q1589654",
+   "label": "Olympische Winterspiele 2022",
+   "answerLabel": "Hauptstadt-Hallenstadion",
+   "date": "2022-01-01T00:00:00Z",
+   "start": "2022-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8368",
+   "answer": "Q1490",
+   "label": "Olympische Sommerspiele 1940",
+   "answerLabel": "Tokio",
+   "date": "1940-01-01T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8150",
+   "answer": "Q64",
+   "label": "Olympische Sommerspiele 1936",
+   "answerLabel": "Berlin",
+   "start": "1936-08-01T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8111",
+   "answer": "Q84",
+   "label": "Olympische Sommerspiele 1908",
+   "answerLabel": "London",
+   "start": "1908-04-27T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q1451505",
+   "answer": "Q65",
+   "label": "Olympische Sommerspiele 2028",
+   "answerLabel": "Los Angeles",
+   "date": "2028-01-01T00:00:00Z",
+   "start": "2028-07-14T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8368",
+   "answer": "Q1757",
+   "label": "Olympische Sommerspiele 1940",
+   "answerLabel": "Helsinki",
+   "date": "1940-01-01T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8138",
+   "answer": "Q727",
+   "label": "Olympische Sommerspiele 1928",
+   "answerLabel": "Amsterdam",
+   "start": "1928-07-28T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8118",
+   "answer": "Q1754",
+   "label": "Olympische Sommerspiele 1912",
+   "answerLabel": "Stockholm",
+   "start": "1912-05-05T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8132",
+   "answer": "Q90",
+   "label": "Olympische Sommerspiele 1924",
+   "answerLabel": "Paris",
+   "start": "1924-05-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q29389034",
+   "answer": "Q1630884",
+   "label": "Olympische Winterspiele 2030",
+   "answerLabel": "Französische Alpen",
+   "date": "2030-02-01T00:00:00Z",
+   "start": "2030-02-01T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8456",
+   "answer": "Q65",
+   "label": "Olympische Sommerspiele 1984",
+   "answerLabel": "Los Angeles",
+   "start": "1984-07-28T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8143",
+   "answer": "Q65",
+   "label": "Olympische Sommerspiele 1932",
+   "answerLabel": "Los Angeles",
+   "start": "1932-07-30T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q31039462",
+   "answer": "Q34932",
+   "label": "Olympische Sommerspiele 2032",
+   "answerLabel": "Brisbane",
+   "date": "2032-01-01T00:00:00Z",
+   "start": "2032-07-23T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8456",
+   "answer": "Q849784",
+   "label": "Olympische Sommerspiele 1984",
+   "answerLabel": "Los Angeles Memorial Coliseum",
+   "start": "1984-07-28T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8429",
+   "answer": "Q767558",
+   "label": "Olympische Sommerspiele 1968",
+   "answerLabel": "Estadio Olímpico Universitario",
+   "date": "1968-01-01T00:00:00Z",
+   "start": "1968-10-12T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8098",
+   "answer": "Q38022",
+   "label": "Olympische Sommerspiele 1904",
+   "answerLabel": "St. Louis",
+   "start": "1904-07-01T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8376",
+   "answer": "Q84",
+   "label": "Olympische Sommerspiele 1944",
+   "answerLabel": "London",
+   "date": "1944-01-01T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8403",
+   "answer": "Q84",
+   "label": "Olympische Sommerspiele 1948",
+   "answerLabel": "London",
+   "start": "1948-07-29T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q517318",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Rogers Arena",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q699653",
+   "answer": "Q1735",
+   "label": "Winter-Paralympics 1988",
+   "answerLabel": "Innsbruck",
+   "date": "1988-01-01T00:00:00Z",
+   "start": "1988-01-17T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q612227",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "BC Place Stadium",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q744568",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Richmond Olympic Oval",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q750571",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Whistler Olympic Park",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8123",
+   "answer": "Q64",
+   "label": "Olympische Sommerspiele 1916",
+   "answerLabel": "Berlin",
+   "date": "1916-01-01T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q113511381",
+   "answer": "Q23337",
+   "label": "Olympische Winterspiele 2034",
+   "answerLabel": "Salt Lake City",
+   "date": "2034-02-01T00:00:00Z",
+   "start": "2034-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9632",
+   "answer": "Q41158",
+   "label": "Olympische Winterspiele 1956",
+   "answerLabel": "Cortina d’Ampezzo",
+   "date": "1956-01-01T00:00:00Z",
+   "start": "1956-01-26T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q41158",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Cortina d’Ampezzo",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q24639",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Vancouver",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q300010",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Predazzo",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9583",
+   "answer": "Q83236",
+   "label": "Olympische Winterspiele 1924",
+   "answerLabel": "Chamonix-Mont-Blanc",
+   "date": "1924-01-01T00:00:00Z",
+   "start": "1924-01-25T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8407",
+   "answer": "Q1757",
+   "label": "Olympische Sommerspiele 1952",
+   "answerLabel": "Helsinki",
+   "start": "1952-07-19T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q40871",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Livigno",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8470",
+   "answer": "Q8684",
+   "label": "Olympische Sommerspiele 1988",
+   "answerLabel": "Seoul",
+   "date": "1988-01-01T00:00:00Z",
+   "start": "1988-09-17T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8411",
+   "answer": "Q3141",
+   "label": "Olympische Sommerspiele 1956",
+   "answerLabel": "Melbourne",
+   "start": "1956-11-22T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8470",
+   "answer": "Q392086",
+   "label": "Olympische Sommerspiele 1988",
+   "answerLabel": "Olympiastadion Seoul",
+   "date": "1988-01-01T00:00:00Z",
+   "start": "1988-09-17T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q490",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Mailand",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9642",
+   "answer": "Q1289",
+   "label": "Olympische Winterspiele 1968",
+   "answerLabel": "Grenoble",
+   "date": "1968-02-01T00:00:00Z",
+   "start": "1968-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9632",
+   "answer": "Q2022888",
+   "label": "Olympische Winterspiele 1956",
+   "answerLabel": "Olympisches Eisstadion Cortina",
+   "date": "1956-01-01T00:00:00Z",
+   "start": "1956-01-26T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8420",
+   "answer": "Q1490",
+   "label": "Olympische Sommerspiele 1964",
+   "answerLabel": "Tokio",
+   "start": "1964-10-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q2028",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Verona",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8415",
+   "answer": "Q220",
+   "label": "Olympische Sommerspiele 1960",
+   "answerLabel": "Rom",
+   "start": "1960-08-25T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9658",
+   "answer": "Q36312",
+   "label": "Olympische Winterspiele 1988",
+   "answerLabel": "Calgary",
+   "date": "1988-02-01T00:00:00Z",
+   "start": "1988-02-13T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8531",
+   "answer": "Q23556",
+   "label": "Olympische Sommerspiele 1996",
+   "answerLabel": "Atlanta",
+   "date": "1996-01-01T00:00:00Z",
+   "start": "1996-07-20T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9646",
+   "answer": "Q673240",
+   "label": "Olympische Winterspiele 1972",
+   "answerLabel": "Makomanai Open Stadium",
+   "date": "1972-02-01T00:00:00Z",
+   "start": "1972-02-03T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q327161",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Tesero",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q776576",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Arco della Pace",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9646",
+   "answer": "Q37951",
+   "label": "Olympische Winterspiele 1972",
+   "answerLabel": "Sapporo",
+   "date": "1972-02-01T00:00:00Z",
+   "start": "1972-02-03T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q1782828",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "Vikingskipet",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q3143296",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "Olympische Bob- und Rodelbahn Lillehammer",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q3353373",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "Gjøvik Olympiske Fjellhall",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q6365428",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "Kanthaugen Freestyleanlegg",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8544",
+   "answer": "Q3130",
+   "label": "Olympische Sommerspiele 2000",
+   "answerLabel": "Sydney",
+   "date": "2000-01-01T00:00:00Z",
+   "start": "2000-09-15T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8429",
+   "answer": "Q1489",
+   "label": "Olympische Sommerspiele 1968",
+   "answerLabel": "Mexiko-Stadt",
+   "date": "1968-01-01T00:00:00Z",
+   "start": "1968-10-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q256064",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "Kvitfjell",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q477911",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "CC Amfi",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q632041",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "Lysgårdsbakken",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9663",
+   "answer": "Q954639",
+   "label": "Olympische Winterspiele 1994",
+   "answerLabel": "Hafjell",
+   "date": "1994-02-01T00:00:00Z",
+   "start": "1994-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q832644",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Pacific Coliseum",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q909714",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Whistler Sliding Centre",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q1137200",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Cypress Mountain",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9674",
+   "answer": "Q1206060",
+   "label": "Olympische Winterspiele 2010",
+   "answerLabel": "Whistler-Blackcomb",
+   "date": "2010-02-01T00:00:00Z",
+   "start": "2010-02-12T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8444",
+   "answer": "Q340",
+   "label": "Olympische Sommerspiele 1976",
+   "answerLabel": "Montreal",
+   "date": "1976-01-01T00:00:00Z",
+   "start": "1976-07-17T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9660",
+   "answer": "Q2698412",
+   "label": "Olympische Winterspiele 1992",
+   "answerLabel": "Théâtre des Cérémonies",
+   "date": "1992-02-01T00:00:00Z",
+   "start": "1992-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8558",
+   "answer": "Q189663",
+   "label": "Olympische Sommerspiele 2004",
+   "answerLabel": "Olympiastadion Athen",
+   "date": "2004-01-01T00:00:00Z",
+   "start": "2004-08-13T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8531",
+   "answer": "Q795345",
+   "label": "Olympische Sommerspiele 1996",
+   "answerLabel": "Centennial Olympic Stadium",
+   "date": "1996-01-01T00:00:00Z",
+   "start": "1996-07-20T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q11194",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Sarajevo",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q187944",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Jahorina",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q879414",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Bjelašnica",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8558",
+   "answer": "Q1524",
+   "label": "Olympische Sommerspiele 2004",
+   "answerLabel": "Athen",
+   "date": "2004-01-01T00:00:00Z",
+   "start": "2004-08-13T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8438",
+   "answer": "Q131610",
+   "label": "Olympische Sommerspiele 1972",
+   "answerLabel": "Olympiastadion München",
+   "date": "1972-01-01T00:00:00Z",
+   "start": "1972-08-26T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8444",
+   "answer": "Q285467",
+   "label": "Olympische Sommerspiele 1976",
+   "answerLabel": "Olympiastadion Montreal",
+   "date": "1976-01-01T00:00:00Z",
+   "start": "1976-07-17T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9660",
+   "answer": "Q159469",
+   "label": "Olympische Winterspiele 1992",
+   "answerLabel": "Albertville",
+   "date": "1992-02-01T00:00:00Z",
+   "start": "1992-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9651",
+   "answer": "Q1735",
+   "label": "Olympische Winterspiele 1976",
+   "answerLabel": "Innsbruck",
+   "date": "1976-02-01T00:00:00Z",
+   "start": "1976-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9636",
+   "answer": "Q1735",
+   "label": "Olympische Winterspiele 1964",
+   "answerLabel": "Innsbruck",
+   "date": "1964-01-01T00:00:00Z",
+   "start": "1964-01-29T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q495",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Turin",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9652",
+   "answer": "Q192700",
+   "label": "Olympische Winterspiele 1980",
+   "answerLabel": "Lake Placid",
+   "date": "1980-02-01T00:00:00Z",
+   "start": "1980-02-14T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9634",
+   "answer": "Q2182804",
+   "label": "Olympische Winterspiele 1960",
+   "answerLabel": "Palisades Tahoe",
+   "date": "1960-02-01T00:00:00Z",
+   "start": "1960-02-18T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9664",
+   "answer": "Q128849",
+   "label": "Olympische Winterspiele 1998",
+   "answerLabel": "Nagano",
+   "date": "1998-02-01T00:00:00Z",
+   "start": "1998-02-07T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9664",
+   "answer": "Q981819",
+   "label": "Olympische Winterspiele 1998",
+   "answerLabel": "Olympiastadion Nagano",
+   "date": "1998-02-01T00:00:00Z",
+   "start": "1998-02-07T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q10201",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Pragelato",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9591",
+   "answer": "Q68986",
+   "label": "Olympische Winterspiele 1928",
+   "answerLabel": "St. Moritz",
+   "date": "1928-02-01T00:00:00Z",
+   "start": "1928-02-11T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9591",
+   "answer": "Q2455367",
+   "label": "Olympische Winterspiele 1928",
+   "answerLabel": "Eisstadion St. Moritz",
+   "date": "1928-02-01T00:00:00Z",
+   "start": "1928-02-11T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8450",
+   "answer": "Q649",
+   "label": "Olympische Sommerspiele 1980",
+   "answerLabel": "Moskau",
+   "date": "1980-01-01T00:00:00Z",
+   "start": "1980-07-19T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q9039",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Bardonecchia",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8567",
+   "answer": "Q956",
+   "label": "Olympische Sommerspiele 2008",
+   "answerLabel": "Peking",
+   "date": "2008-08-01T00:00:00Z",
+   "start": "2008-08-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q903860",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Stadion Asim Ferhatović Hase",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q1268862",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Olympiahalle Juan Antonio Samaranch",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q1280411",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Skenderija",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q1657209",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Igman Olympic Jumps",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q7422989",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Olympische Bob- und Schlittenbahn in Sarajevo",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q241560",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Torino Palavela",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9596",
+   "answer": "Q192700",
+   "label": "Olympische Winterspiele 1932",
+   "answerLabel": "Lake Placid",
+   "date": "1932-02-01T00:00:00Z",
+   "start": "1932-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9596",
+   "answer": "Q2588112",
+   "label": "Olympische Winterspiele 1932",
+   "answerLabel": "James B. Sheffield Olympic Skating Rink",
+   "date": "1932-02-01T00:00:00Z",
+   "start": "1932-02-04T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8577",
+   "answer": "Q84",
+   "label": "Olympische Sommerspiele 2012",
+   "answerLabel": "London",
+   "date": "2012-01-01T00:00:00Z",
+   "start": "2012-07-27T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9623",
+   "answer": "Q866409",
+   "label": "Olympische Winterspiele 1952",
+   "answerLabel": "Bislett-Stadion",
+   "date": "1952-02-01T00:00:00Z",
+   "start": "1952-02-14T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9615",
+   "answer": "Q68986",
+   "label": "Olympische Winterspiele 1948",
+   "answerLabel": "St. Moritz",
+   "date": "1948-01-01T00:00:00Z",
+   "start": "1948-01-30T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9636",
+   "answer": "Q672833",
+   "label": "Olympische Winterspiele 1964",
+   "answerLabel": "Bergiselschanze",
+   "date": "1964-01-01T00:00:00Z",
+   "start": "1964-01-29T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q10295",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Sauze d’Oulx",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q10302",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Sestriere",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9600",
+   "answer": "Q127043",
+   "label": "Olympische Winterspiele 1936",
+   "answerLabel": "Garmisch-Partenkirchen",
+   "date": "1936-02-01T00:00:00Z",
+   "start": "1936-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9600",
+   "answer": "Q669932",
+   "label": "Olympische Winterspiele 1936",
+   "answerLabel": "Große Olympiaschanze",
+   "date": "1936-02-01T00:00:00Z",
+   "start": "1936-02-06T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q82294",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Delta Center",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q482993",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Park City",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9657",
+   "answer": "Q8069772",
+   "label": "Olympische Winterspiele 1984",
+   "answerLabel": "Zetra-Eisbahn",
+   "date": "1984-01-01T00:00:00Z",
+   "start": "1984-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q23337",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Salt Lake City",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9672",
+   "answer": "Q214629",
+   "label": "Olympische Winterspiele 2006",
+   "answerLabel": "Olympiastadion Turin",
+   "date": "2006-02-01T00:00:00Z",
+   "start": "2006-02-10T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q922761",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Rice-Eccles Stadium",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q1111563",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Soldier Hollow",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q1369595",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Utah Olympic Oval",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q1911946",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Maverik Center",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q2469941",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Olympiapark Utah",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q3021172",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Deer Valley Resort",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q3821992",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Weber County Ice Sheet",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q9668",
+   "answer": "Q3822288",
+   "label": "Olympische Winterspiele 2002",
+   "answerLabel": "Peaks Ice Arena",
+   "date": "2002-02-01T00:00:00Z",
+   "start": "2002-02-08T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8488",
+   "answer": "Q1492",
+   "label": "Olympische Sommerspiele 1992",
+   "answerLabel": "Barcelona",
+   "date": "1992-01-01T00:00:00Z",
+   "start": "1992-07-25T00:00:00Z"
+  },
+  {
+   "type": "Q135976384",
+   "item": "Q8613",
+   "answer": "Q8678",
+   "label": "Olympische Sommerspiele 2016",
+   "answerLabel": "Rio de Janeiro",
+   "date": "2016-01-01T00:00:00Z",
+   "start": "2016-08-05T00:00:00Z"
+  },
+  {
+   "type": "Q137592217",
+   "item": "Q4630399",
+   "answer": "Q40516",
+   "label": "Olympische Winterspiele 2026",
+   "answerLabel": "Bormio",
+   "date": "2026-01-01T00:00:00Z",
+   "start": "2026-02-06T00:00:00Z"
+  }
+ ]
+}

@@ -1,0 +1,13 @@
+# Bekannte Komponisten und Maler mit Geburtsdatum.
+SELECT ?item ?label ?sitelinks ?occupation ?birth WHERE {
+  VALUES ?occupation { wd:Q36834 wd:Q1028181 }
+  ?item wdt:P106 ?occupation;
+        wdt:P31 wd:Q5;
+        wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 100)
+  ?item wdt:P569 ?birth.
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 300

@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-olympia-q9600
+kind: TRIVIA
+category: SPORTS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:olympia
+sources:
+  - title: "Wikidata: Olympischen Winterspiele 1936 (Q9600)"
+    url: https://www.wikidata.org/wiki/Q9600
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: In welcher Stadt fanden die Olympischen Winterspiele 1936 statt?
+    options:
+      a: Chamonix-Mont-Blanc
+      b: Innsbruck
+      c: Sapporo
+      d: Garmisch-Partenkirchen

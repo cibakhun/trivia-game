@@ -1,0 +1,1258 @@
+{
+ "name": "laender-flaeche",
+ "fetchedAt": "2026-11-11T20:54:32.282Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Heutige Staaten mit Fläche (normalisiert in Quadratmetern).\nSELECT ?item ?label ?sitelinks ?value WHERE {\n  ?item wdt:P31 wd:Q6256;\n        wikibase:sitelinks ?sitelinks.\n  FILTER NOT EXISTS { ?item wdt:P576 ?dissolved }\n  ?item p:P2046 ?statement.\n  ?statement a wikibase:BestRank;\n             psn:P2046/wikibase:quantityAmount ?value.\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\n",
+ "rowCount": 208,
+ "rows": [
+  {
+   "item": "Q43",
+   "value": "783562000000",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q142",
+   "value": "643801000000",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q30",
+   "value": "9833517000000",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten"
+  },
+  {
+   "item": "Q159",
+   "value": "17098246000000",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q17",
+   "value": "377973680000",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q38",
+   "value": "302068000000",
+   "sitelinks": "409",
+   "label": "Italien"
+  },
+  {
+   "item": "Q183",
+   "value": "357587770000",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q668",
+   "value": "3287593000000",
+   "sitelinks": "404",
+   "label": "Indien"
+  },
+  {
+   "item": "Q33",
+   "value": "338478340000",
+   "sitelinks": "403",
+   "label": "Finnland"
+  },
+  {
+   "item": "Q96",
+   "value": "1960647000000",
+   "sitelinks": "402",
+   "label": "Mexiko"
+  },
+  {
+   "item": "Q148",
+   "value": "9562910000000",
+   "sitelinks": "401",
+   "label": "Volksrepublik China"
+  },
+  {
+   "item": "Q408",
+   "value": "7688287000000",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q16",
+   "value": "9984670000000",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q29",
+   "value": "505990000000",
+   "sitelinks": "397",
+   "label": "Spanien"
+  },
+  {
+   "item": "Q145",
+   "value": "242495000000",
+   "sitelinks": "396",
+   "label": "Vereinigtes Königreich"
+  },
+  {
+   "item": "Q20",
+   "value": "385207000000",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q79",
+   "value": "1010407870000",
+   "sitelinks": "392",
+   "label": "Ägypten"
+  },
+  {
+   "item": "Q36",
+   "value": "312683000000",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q212",
+   "value": "603550000000",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q39",
+   "value": "41291000000",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q155",
+   "value": "8509360850000",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q222",
+   "value": "28748000000",
+   "sitelinks": "387",
+   "label": "Albanien"
+  },
+  {
+   "item": "Q31",
+   "value": "30688000000",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q298",
+   "value": "756102000000",
+   "sitelinks": "382",
+   "label": "Chile"
+  },
+  {
+   "item": "Q801",
+   "value": "20770000000",
+   "sitelinks": "380",
+   "label": "Israel"
+  },
+  {
+   "item": "Q41",
+   "value": "131957000000",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q794",
+   "value": "1648195000000",
+   "sitelinks": "376",
+   "label": "Iran"
+  },
+  {
+   "item": "Q55",
+   "value": "37378000000",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q262",
+   "value": "2381741000000",
+   "sitelinks": "374",
+   "label": "Algerien"
+  },
+  {
+   "item": "Q414",
+   "value": "2780085000000",
+   "sitelinks": "372",
+   "label": "Argentinien"
+  },
+  {
+   "item": "Q40",
+   "value": "83878990000",
+   "sitelinks": "372",
+   "label": "Österreich"
+  },
+  {
+   "item": "Q45",
+   "value": "92225000000",
+   "sitelinks": "372",
+   "label": "Portugal"
+  },
+  {
+   "item": "Q34",
+   "value": "447425160000",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q35",
+   "value": "42925460000",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q881",
+   "value": "331690000000",
+   "sitelinks": "369",
+   "label": "Vietnam"
+  },
+  {
+   "item": "Q258",
+   "value": "1221037000000",
+   "sitelinks": "368",
+   "label": "Südafrika"
+  },
+  {
+   "item": "Q739",
+   "value": "1141748000000",
+   "sitelinks": "367",
+   "label": "Kolumbien"
+  },
+  {
+   "item": "Q252",
+   "value": "1916907000000",
+   "sitelinks": "366",
+   "label": "Indonesien"
+  },
+  {
+   "item": "Q889",
+   "value": "652230000000",
+   "sitelinks": "363",
+   "label": "Afghanistan"
+  },
+  {
+   "item": "Q227",
+   "value": "86600000000",
+   "sitelinks": "363",
+   "label": "Aserbaidschan"
+  },
+  {
+   "item": "Q219",
+   "value": "110993600000",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q184",
+   "value": "207596760000",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q28",
+   "value": "93011400000",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q869",
+   "value": "513119500000",
+   "sitelinks": "356",
+   "label": "Thailand"
+  },
+  {
+   "item": "Q843",
+   "value": "881913000000",
+   "sitelinks": "356",
+   "label": "Pakistan"
+  },
+  {
+   "item": "Q224",
+   "value": "56594000000",
+   "sitelinks": "356",
+   "label": "Kroatien"
+  },
+  {
+   "item": "Q884",
+   "value": "100295000000",
+   "sitelinks": "356",
+   "label": "Südkorea"
+  },
+  {
+   "item": "Q399",
+   "value": "29743423459",
+   "sitelinks": "355",
+   "label": "Armenien"
+  },
+  {
+   "item": "Q189",
+   "value": "103004000000",
+   "sitelinks": "355",
+   "label": "Island"
+  },
+  {
+   "item": "Q213",
+   "value": "78871000000",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q191",
+   "value": "45335000000",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q403",
+   "value": "88499000000",
+   "sitelinks": "352",
+   "label": "Serbien"
+  },
+  {
+   "item": "Q664",
+   "value": "268021000000",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q37",
+   "value": "65300000000",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q230",
+   "value": "69700000000",
+   "sitelinks": "351",
+   "label": "Georgien"
+  },
+  {
+   "item": "Q232",
+   "value": "2724910000000",
+   "sitelinks": "350",
+   "label": "Kasachstan"
+  },
+  {
+   "item": "Q796",
+   "value": "437072000000",
+   "sitelinks": "350",
+   "label": "Irak"
+  },
+  {
+   "item": "Q851",
+   "value": "2250000000000",
+   "sitelinks": "350",
+   "label": "Saudi-Arabien"
+  },
+  {
+   "item": "Q1033",
+   "value": "923768000000",
+   "sitelinks": "349",
+   "label": "Nigeria"
+  },
+  {
+   "item": "Q218",
+   "value": "238397000000",
+   "sitelinks": "349",
+   "label": "Rumänien"
+  },
+  {
+   "item": "Q902",
+   "value": "147570000000",
+   "sitelinks": "349",
+   "label": "Bangladesch"
+  },
+  {
+   "item": "Q115",
+   "value": "1104300000000",
+   "sitelinks": "348",
+   "label": "Äthiopien"
+  },
+  {
+   "item": "Q717",
+   "value": "912050000000",
+   "sitelinks": "346",
+   "label": "Venezuela"
+  },
+  {
+   "item": "Q237",
+   "value": "440000",
+   "sitelinks": "343",
+   "label": "Vatikanstadt"
+  },
+  {
+   "item": "Q27",
+   "value": "69797000000",
+   "sitelinks": "343",
+   "label": "Irland"
+  },
+  {
+   "item": "Q225",
+   "value": "10000000",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina"
+  },
+  {
+   "item": "Q225",
+   "value": "51187000000",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina"
+  },
+  {
+   "item": "Q225",
+   "value": "51209200000",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina"
+  },
+  {
+   "item": "Q214",
+   "value": "49033720839",
+   "sitelinks": "341",
+   "label": "Slowakei"
+  },
+  {
+   "item": "Q833",
+   "value": "330803000000",
+   "sitelinks": "340",
+   "label": "Malaysia"
+  },
+  {
+   "item": "Q114",
+   "value": "581309000000",
+   "sitelinks": "338",
+   "label": "Kenia"
+  },
+  {
+   "item": "Q858",
+   "value": "185180000000",
+   "sitelinks": "337",
+   "label": "Syrien"
+  },
+  {
+   "item": "Q211",
+   "value": "64593770000",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "61760390000",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q1028",
+   "value": "446550000000",
+   "sitelinks": "335",
+   "label": "Marokko"
+  },
+  {
+   "item": "Q32",
+   "value": "2593050000",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q1049",
+   "value": "1878000000000",
+   "sitelinks": "335",
+   "label": "Sudan"
+  },
+  {
+   "item": "Q974",
+   "value": "2345410000000",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo"
+  },
+  {
+   "item": "Q1016",
+   "value": "1759540000000",
+   "sitelinks": "334",
+   "label": "Libyen"
+  },
+  {
+   "item": "Q928",
+   "value": "343448000000",
+   "sitelinks": "334",
+   "label": "Philippinen"
+  },
+  {
+   "item": "Q228",
+   "value": "468000000",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q334",
+   "value": "719100000",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q419",
+   "value": "1285216000000",
+   "sitelinks": "333",
+   "label": "Peru"
+  },
+  {
+   "item": "Q424",
+   "value": "181035000000",
+   "sitelinks": "332",
+   "label": "Kambodscha"
+  },
+  {
+   "item": "Q217",
+   "value": "33843500000",
+   "sitelinks": "331",
+   "label": "Moldau"
+  },
+  {
+   "item": "Q215",
+   "value": "20271000000",
+   "sitelinks": "331",
+   "label": "Slowenien"
+  },
+  {
+   "item": "Q822",
+   "value": "10452000000",
+   "sitelinks": "329",
+   "label": "Libanon"
+  },
+  {
+   "item": "Q948",
+   "value": "163610000000",
+   "sitelinks": "329",
+   "label": "Tunesien"
+  },
+  {
+   "item": "Q229",
+   "value": "9242450000",
+   "sitelinks": "327",
+   "label": "Zypern"
+  },
+  {
+   "item": "Q233",
+   "value": "316000000",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q221",
+   "value": "25713000000",
+   "sitelinks": "327",
+   "label": "Nordmazedonien"
+  },
+  {
+   "item": "Q1045",
+   "value": "637657000000",
+   "sitelinks": "326",
+   "label": "Somalia"
+  },
+  {
+   "item": "Q117",
+   "value": "238535000000",
+   "sitelinks": "326",
+   "label": "Ghana"
+  },
+  {
+   "item": "Q77",
+   "value": "176215000000",
+   "sitelinks": "324",
+   "label": "Uruguay"
+  },
+  {
+   "item": "Q837",
+   "value": "147181254346",
+   "sitelinks": "324",
+   "label": "Nepal"
+  },
+  {
+   "item": "Q236",
+   "value": "13883000000",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q916",
+   "value": "1246700000000",
+   "sitelinks": "323",
+   "label": "Angola"
+  },
+  {
+   "item": "Q711",
+   "value": "1564116000000",
+   "sitelinks": "322",
+   "label": "Mongolei"
+  },
+  {
+   "item": "Q235",
+   "value": "2080000",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q1019",
+   "value": "587295000000",
+   "sitelinks": "321",
+   "label": "Madagaskar"
+  },
+  {
+   "item": "Q924",
+   "value": "947303000000",
+   "sitelinks": "321",
+   "label": "Tansania"
+  },
+  {
+   "item": "Q813",
+   "value": "199951000000",
+   "sitelinks": "320",
+   "label": "Kirgisistan"
+  },
+  {
+   "item": "Q878",
+   "value": "83600000000",
+   "sitelinks": "320",
+   "label": "Vereinigte Arabische Emirate"
+  },
+  {
+   "item": "Q954",
+   "value": "390757000000",
+   "sitelinks": "320",
+   "label": "Simbabwe"
+  },
+  {
+   "item": "Q657",
+   "value": "1284000000000",
+   "sitelinks": "318",
+   "label": "Tschad"
+  },
+  {
+   "item": "Q836",
+   "value": "676577200000",
+   "sitelinks": "318",
+   "label": "Myanmar"
+  },
+  {
+   "item": "Q736",
+   "value": "257204270000",
+   "sitelinks": "317",
+   "label": "Ecuador"
+  },
+  {
+   "item": "Q347",
+   "value": "160500000",
+   "sitelinks": "316",
+   "label": "Liechtenstein"
+  },
+  {
+   "item": "Q1030",
+   "value": "825615000000",
+   "sitelinks": "316",
+   "label": "Namibia"
+  },
+  {
+   "item": "Q819",
+   "value": "236800000000",
+   "sitelinks": "316",
+   "label": "Laos"
+  },
+  {
+   "item": "Q963",
+   "value": "581737000000",
+   "sitelinks": "315",
+   "label": "Botswana"
+  },
+  {
+   "item": "Q805",
+   "value": "455503000000",
+   "sitelinks": "315",
+   "label": "Jemen"
+  },
+  {
+   "item": "Q238",
+   "value": "61200000",
+   "sitelinks": "314",
+   "label": "San Marino"
+  },
+  {
+   "item": "Q1009",
+   "value": "475442000000",
+   "sitelinks": "314",
+   "label": "Kamerun"
+  },
+  {
+   "item": "Q810",
+   "value": "89341000000",
+   "sitelinks": "314",
+   "label": "Jordanien"
+  },
+  {
+   "item": "Q1008",
+   "value": "322463000000",
+   "sitelinks": "313",
+   "label": "Elfenbeinküste"
+  },
+  {
+   "item": "Q423",
+   "value": "120540000000",
+   "sitelinks": "313",
+   "label": "Nordkorea"
+  },
+  {
+   "item": "Q750",
+   "value": "1098581000000",
+   "sitelinks": "313",
+   "label": "Bolivien"
+  },
+  {
+   "item": "Q241",
+   "value": "109884000000",
+   "sitelinks": "312",
+   "label": "Kuba"
+  },
+  {
+   "item": "Q1036",
+   "value": "241038000000",
+   "sitelinks": "312",
+   "label": "Uganda"
+  },
+  {
+   "item": "Q733",
+   "value": "406756000000",
+   "sitelinks": "312",
+   "label": "Paraguay"
+  },
+  {
+   "item": "Q912",
+   "value": "1240192000000",
+   "sitelinks": "312",
+   "label": "Mali"
+  },
+  {
+   "item": "Q265",
+   "value": "448978000000",
+   "sitelinks": "310",
+   "label": "Usbekistan"
+  },
+  {
+   "item": "Q854",
+   "value": "65610000000",
+   "sitelinks": "310",
+   "label": "Sri Lanka"
+  },
+  {
+   "item": "Q965",
+   "value": "274200000000",
+   "sitelinks": "309",
+   "label": "Burkina Faso"
+  },
+  {
+   "item": "Q1041",
+   "value": "196722000000",
+   "sitelinks": "309",
+   "label": "Senegal"
+  },
+  {
+   "item": "Q953",
+   "value": "752618000000",
+   "sitelinks": "309",
+   "label": "Sambia"
+  },
+  {
+   "item": "Q962",
+   "value": "114763000000",
+   "sitelinks": "308",
+   "label": "Benin"
+  },
+  {
+   "item": "Q986",
+   "value": "117600000000",
+   "sitelinks": "308",
+   "label": "Eritrea"
+  },
+  {
+   "item": "Q863",
+   "value": "143100000000",
+   "sitelinks": "308",
+   "label": "Tadschikistan"
+  },
+  {
+   "item": "Q398",
+   "value": "786500000",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q1025",
+   "value": "1030700000000",
+   "sitelinks": "306",
+   "label": "Mauretanien"
+  },
+  {
+   "item": "Q817",
+   "value": "17818000000",
+   "sitelinks": "306",
+   "label": "Kuwait"
+  },
+  {
+   "item": "Q917",
+   "value": "38394000000",
+   "sitelinks": "305",
+   "label": "Bhutan"
+  },
+  {
+   "item": "Q967",
+   "value": "27834000000",
+   "sitelinks": "304",
+   "label": "Burundi"
+  },
+  {
+   "item": "Q804",
+   "value": "74177300000",
+   "sitelinks": "304",
+   "label": "Panama"
+  },
+  {
+   "item": "Q1037",
+   "value": "26338000000",
+   "sitelinks": "303",
+   "label": "Ruanda"
+  },
+  {
+   "item": "Q1029",
+   "value": "801590000000",
+   "sitelinks": "302",
+   "label": "Mosambik"
+  },
+  {
+   "item": "Q1032",
+   "value": "1267000000000",
+   "sitelinks": "302",
+   "label": "Niger"
+  },
+  {
+   "item": "Q800",
+   "value": "51179920000",
+   "sitelinks": "302",
+   "label": "Costa Rica"
+  },
+  {
+   "item": "Q945",
+   "value": "56785000000",
+   "sitelinks": "302",
+   "label": "Togo"
+  },
+  {
+   "item": "Q1006",
+   "value": "245857000000",
+   "sitelinks": "301",
+   "label": "Guinea"
+  },
+  {
+   "item": "Q1005",
+   "value": "11300000000",
+   "sitelinks": "301",
+   "label": "Gambia"
+  },
+  {
+   "item": "Q929",
+   "value": "622984000000",
+   "sitelinks": "301",
+   "label": "Zentralafrikanische Republik"
+  },
+  {
+   "item": "Q971",
+   "value": "342000000000",
+   "sitelinks": "300",
+   "label": "Republik Kongo"
+  },
+  {
+   "item": "Q977",
+   "value": "23200000000",
+   "sitelinks": "300",
+   "label": "Dschibuti"
+  },
+  {
+   "item": "Q1007",
+   "value": "36125000000",
+   "sitelinks": "300",
+   "label": "Guinea-Bissau"
+  },
+  {
+   "item": "Q783",
+   "value": "112492000000",
+   "sitelinks": "300",
+   "label": "Honduras"
+  },
+  {
+   "item": "Q874",
+   "value": "491210000000",
+   "sitelinks": "299",
+   "label": "Turkmenistan"
+  },
+  {
+   "item": "Q1020",
+   "value": "118484000000",
+   "sitelinks": "298",
+   "label": "Malawi"
+  },
+  {
+   "item": "Q921",
+   "value": "5765313533",
+   "sitelinks": "298",
+   "label": "Brunei"
+  },
+  {
+   "item": "Q842",
+   "value": "309500000000",
+   "sitelinks": "297",
+   "label": "Oman"
+  },
+  {
+   "item": "Q1000",
+   "value": "267667000000",
+   "sitelinks": "296",
+   "label": "Gabun"
+  },
+  {
+   "item": "Q1044",
+   "value": "71740000000",
+   "sitelinks": "294",
+   "label": "Sierra Leone"
+  },
+  {
+   "item": "Q790",
+   "value": "27750000000",
+   "sitelinks": "293",
+   "label": "Haiti"
+  },
+  {
+   "item": "Q1014",
+   "value": "111369000000",
+   "sitelinks": "292",
+   "label": "Liberia"
+  },
+  {
+   "item": "Q1011",
+   "value": "4033000000",
+   "sitelinks": "291",
+   "label": "Kap Verde"
+  },
+  {
+   "item": "Q574",
+   "value": "14918720000",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q846",
+   "value": "11437000000",
+   "sitelinks": "291",
+   "label": "Katar"
+  },
+  {
+   "item": "Q826",
+   "value": "298000000",
+   "sitelinks": "290",
+   "label": "Malediven"
+  },
+  {
+   "item": "Q730",
+   "value": "163270000000",
+   "sitelinks": "288",
+   "label": "Suriname"
+  },
+  {
+   "item": "Q792",
+   "value": "21041000000",
+   "sitelinks": "288",
+   "label": "El Salvador"
+  },
+  {
+   "item": "Q1050",
+   "value": "17364000000",
+   "sitelinks": "287",
+   "label": "Eswatini"
+  },
+  {
+   "item": "Q734",
+   "value": "214970000000",
+   "sitelinks": "287",
+   "label": "Guyana"
+  },
+  {
+   "item": "Q691",
+   "value": "462840000000",
+   "sitelinks": "286",
+   "label": "Papua-Neuguinea"
+  },
+  {
+   "item": "Q970",
+   "value": "2034000000",
+   "sitelinks": "284",
+   "label": "Komoren"
+  },
+  {
+   "item": "Q983",
+   "value": "28051000000",
+   "sitelinks": "284",
+   "label": "Äquatorialguinea"
+  },
+  {
+   "item": "Q1027",
+   "value": "2040000000",
+   "sitelinks": "284",
+   "label": "Mauritius"
+  },
+  {
+   "item": "Q1246",
+   "value": "10909000000",
+   "sitelinks": "284",
+   "label": "Kosovo"
+  },
+  {
+   "item": "Q766",
+   "value": "10991909540",
+   "sitelinks": "283",
+   "label": "Jamaika"
+  },
+  {
+   "item": "Q811",
+   "value": "120340000000",
+   "sitelinks": "283",
+   "label": "Nicaragua"
+  },
+  {
+   "item": "Q958",
+   "value": "644329000000",
+   "sitelinks": "283",
+   "label": "Südsudan"
+  },
+  {
+   "item": "Q242",
+   "value": "22966000000",
+   "sitelinks": "282",
+   "label": "Belize"
+  },
+  {
+   "item": "Q774",
+   "value": "108889000000",
+   "sitelinks": "282",
+   "label": "Guatemala"
+  },
+  {
+   "item": "Q1013",
+   "value": "30355000000",
+   "sitelinks": "281",
+   "label": "Lesotho"
+  },
+  {
+   "item": "Q712",
+   "value": "18274000000",
+   "sitelinks": "281",
+   "label": "Fidschi"
+  },
+  {
+   "item": "Q778",
+   "value": "13878000000",
+   "sitelinks": "281",
+   "label": "Bahamas"
+  },
+  {
+   "item": "Q786",
+   "value": "48670820000",
+   "sitelinks": "281",
+   "label": "Dominikanische Republik"
+  },
+  {
+   "item": "Q1042",
+   "value": "459000000",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q244",
+   "value": "439000000",
+   "sitelinks": "276",
+   "label": "Barbados"
+  },
+  {
+   "item": "Q1039",
+   "value": "1001000000",
+   "sitelinks": "274",
+   "label": "São Tomé und Príncipe"
+  },
+  {
+   "item": "Q784",
+   "value": "751096551",
+   "sitelinks": "267",
+   "label": "Dominica"
+  },
+  {
+   "item": "Q781",
+   "value": "440290000",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda"
+  },
+  {
+   "item": "Q697",
+   "value": "21200000",
+   "sitelinks": "265",
+   "label": "Naoero"
+  },
+  {
+   "item": "Q686",
+   "value": "12190000000",
+   "sitelinks": "264",
+   "label": "Vanuatu"
+  },
+  {
+   "item": "Q678",
+   "value": "748506563",
+   "sitelinks": "261",
+   "label": "Tonga"
+  },
+  {
+   "item": "Q683",
+   "value": "2842000000",
+   "sitelinks": "261",
+   "label": "Samoa"
+  },
+  {
+   "item": "Q695",
+   "value": "465550362",
+   "sitelinks": "259",
+   "label": "Palau"
+  },
+  {
+   "item": "Q672",
+   "value": "25630000",
+   "sitelinks": "253",
+   "label": "Tuvalu"
+  },
+  {
+   "item": "Q769",
+   "value": "348500000",
+   "sitelinks": "252",
+   "label": "Grenada"
+  },
+  {
+   "item": "Q710",
+   "value": "811000000",
+   "sitelinks": "251",
+   "label": "Kiribati"
+  },
+  {
+   "item": "Q754",
+   "value": "5128000000",
+   "sitelinks": "251",
+   "label": "Trinidad und Tobago"
+  },
+  {
+   "item": "Q685",
+   "value": "28400000000",
+   "sitelinks": "245",
+   "label": "Salomonen"
+  },
+  {
+   "item": "Q763",
+   "value": "271950000",
+   "sitelinks": "239",
+   "label": "St. Kitts und Nevis"
+  },
+  {
+   "item": "Q757",
+   "value": "389000000",
+   "sitelinks": "238",
+   "label": "St. Vincent und die Grenadinen"
+  },
+  {
+   "item": "Q709",
+   "value": "181000000",
+   "sitelinks": "237",
+   "label": "Marshallinseln"
+  },
+  {
+   "item": "Q760",
+   "value": "617012867",
+   "sitelinks": "236",
+   "label": "St. Lucia"
+  },
+  {
+   "item": "Q219060",
+   "value": "6020000000",
+   "sitelinks": "225",
+   "label": "Palästina"
+  },
+  {
+   "item": "Q702",
+   "value": "702000000",
+   "sitelinks": "224",
+   "label": "Föderierte Staaten von Mikronesien"
+  },
+  {
+   "item": "Q21203",
+   "value": "193000000",
+   "sitelinks": "200",
+   "label": "Aruba"
+  },
+  {
+   "item": "Q26988",
+   "value": "240000000",
+   "sitelinks": "188",
+   "label": "Cookinseln"
+  },
+  {
+   "item": "Q23681",
+   "value": "3355000000",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q34020",
+   "value": "260000000",
+   "sitelinks": "179",
+   "label": "Niue"
+  },
+  {
+   "item": "Q34754",
+   "value": "177000000000",
+   "sitelinks": "167",
+   "label": "Somaliland"
+  },
+  {
+   "item": "Q25279",
+   "value": "444000000",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q26273",
+   "value": "34000000",
+   "sitelinks": "126",
+   "label": "Sint Maarten"
+  },
+  {
+   "item": "Q29999",
+   "value": "42201000000",
+   "sitelinks": "108",
+   "label": "Königreich der Niederlande"
+  },
+  {
+   "item": "Q756617",
+   "value": "2220930000000",
+   "sitelinks": "56",
+   "label": "Königreich Dänemark"
+  }
+ ]
+}

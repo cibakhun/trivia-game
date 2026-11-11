@@ -1,0 +1,10 @@
+# Chemische Elemente mit Symbol und Ordnungszahl.
+SELECT ?item ?label ?sitelinks ?symbol ?number WHERE {
+  ?item wdt:P31 wd:Q11344;
+        wdt:P246 ?symbol;
+        wdt:P1086 ?number;
+        wikibase:sitelinks ?sitelinks.
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY ?number

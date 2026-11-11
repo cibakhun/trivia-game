@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-olympia-q9672
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:olympia
+sources:
+  - title: "Wikidata: Olympischen Winterspiele 2006 (Q9672)"
+    url: https://www.wikidata.org/wiki/Q9672
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: In welcher Stadt fanden die Olympischen Winterspiele 2006 statt?
+    options:
+      a: Vancouver
+      b: Salt Lake City
+      c: Peking
+      d: Turin

@@ -54,3 +54,15 @@ Alle Klänge entstehen beim Spielen im Browser (Web Audio: Oszillatoren, gefilte
 ## Bibliotheken mit sichtbarem Anteil
 
 Bibliotheken stehen in den `package.json`-Dateien; sie bringen keine Grafiken ins Spiel.
+
+## Datenquellen für Fragen
+
+Fakten sind nicht urheberrechtlich geschützt, Formulierungen schon, und in der EU schützt das Datenbankrecht zusätzlich das Abschöpfen großer Teile einer fremden Sammlung. Deshalb nutzen wir nur Quellen, deren Lizenz die Übernahme auch großer Teile für ein kommerzielles Spiel erlaubt, und formulieren die Fragen selbst ([QUIZ_ENGINE.md §9.1](QUIZ_ENGINE.md#91-pipeline-e), ADR-056). Jede neue Quelle kommt hier hinein, **bevor** ein Generator sie abfragt.
+
+| Quelle | Lizenz | Nutzung im Projekt | Nachweis |
+|---|---|---|---|
+| Wikidata | CC0 1.0 (gemeinfrei; keine Namensnennung nötig, Verzicht auch auf das Datenbankrecht) | Abfragen `tools/content/wikidata/queries/`, Datenstände `content/wikidata/`, Entwürfe `content/questions/wikidata/`; je Frage die Wikidata-Seite als Quelle | [Wikidata:Licensing](https://www.wikidata.org/wiki/Wikidata:Licensing) |
+
+Geprüft am 2026-11-11 und für spätere Schätzfragen geeignet, aber noch nicht genutzt: Destatis GENESIS-Online (Datenlizenz Deutschland – Namensnennung 2.0, Quellenvermerk und Hinweis auf Änderungen), Eurostat (Wiederverwendung mit Quellenangabe; Daten zu Ländern außerhalb von EU und EFTA nicht kommerziell), Weltbank (CC BY 4.0, je Datensatz prüfen).
+
+Ausgeschlossen: Open Trivia DB und OpenTriviaQA (CC BY-SA 4.0, Share-Alike), The Trivia API (CC BY-NC 4.0, kommerziell nur im Abo), Qukkiz-Questions (GPL-3.0), Fragen aus Quizsendungen, Quizbüchern und Quizseiten (geschützt), Wikipedia-Texte, DBpedia und OpenStreetMap als Datenquelle (Share-Alike).

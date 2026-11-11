@@ -1,0 +1,15 @@
+# Heutige Staaten mit Einwohnerzahlen seit 2015 und Stichtag (die neueste wählt der Generator).
+SELECT ?item ?label ?sitelinks ?value ?date WHERE {
+  ?item wdt:P31 wd:Q6256;
+        wikibase:sitelinks ?sitelinks.
+  FILTER NOT EXISTS { ?item wdt:P576 ?dissolved }
+  ?item p:P1082 ?statement.
+  ?statement ps:P1082 ?value;
+             pq:P585 ?date;
+             wikibase:rank ?rank.
+  FILTER(?rank != wikibase:DeprecatedRank)
+  FILTER(YEAR(?date) >= 2015)
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY DESC(?sitelinks)

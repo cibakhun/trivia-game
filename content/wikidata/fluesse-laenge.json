@@ -1,0 +1,490 @@
+{
+ "name": "fluesse-laenge",
+ "fetchedAt": "2026-11-11T20:53:51.455Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte Flüsse mit Länge (normalisiert in Metern).\nSELECT ?item ?label ?sitelinks ?value WHERE {\n  ?item wdt:P31 wd:Q4022;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 70)\n  ?item p:P2043 ?statement.\n  ?statement a wikibase:BestRank;\n             psn:P2043/wikibase:quantityAmount ?value.\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 80\n",
+ "rowCount": 80,
+ "rows": [
+  {
+   "item": "Q3392",
+   "value": "6650000",
+   "sitelinks": "248",
+   "label": "Nil"
+  },
+  {
+   "item": "Q3783",
+   "value": "6400000",
+   "sitelinks": "218",
+   "label": "Amazonas"
+  },
+  {
+   "item": "Q1653",
+   "value": "2850000",
+   "sitelinks": "200",
+   "label": "Donau"
+  },
+  {
+   "item": "Q584",
+   "value": "1232700",
+   "sitelinks": "190",
+   "label": "Rhein"
+  },
+  {
+   "item": "Q626",
+   "value": "3530000",
+   "sitelinks": "189",
+   "label": "Wolga"
+  },
+  {
+   "item": "Q5089",
+   "value": "2525000",
+   "sitelinks": "181",
+   "label": "Ganges"
+  },
+  {
+   "item": "Q1497",
+   "value": "3766000",
+   "sitelinks": "181",
+   "label": "Mississippi"
+  },
+  {
+   "item": "Q5413",
+   "value": "6300000",
+   "sitelinks": "168",
+   "label": "Jangtsekiang"
+  },
+  {
+   "item": "Q3503",
+   "value": "4700000",
+   "sitelinks": "168",
+   "label": "Kongo"
+  },
+  {
+   "item": "Q7348",
+   "value": "3180000",
+   "sitelinks": "159",
+   "label": "Indus"
+  },
+  {
+   "item": "Q3542",
+   "value": "4180000",
+   "sitelinks": "156",
+   "label": "Niger"
+  },
+  {
+   "item": "Q7355",
+   "value": "5464000",
+   "sitelinks": "155",
+   "label": "Gelber Fluss"
+  },
+  {
+   "item": "Q34589",
+   "value": "2800000",
+   "sitelinks": "142",
+   "label": "Euphrat"
+  },
+  {
+   "item": "Q19686",
+   "value": "334000",
+   "sitelinks": "131",
+   "label": "Themse"
+  },
+  {
+   "item": "Q1471",
+   "value": "776670",
+   "sitelinks": "131",
+   "label": "Seine"
+  },
+  {
+   "item": "Q35591",
+   "value": "1850000",
+   "sitelinks": "130",
+   "label": "Tigris"
+  },
+  {
+   "item": "Q40855",
+   "value": "2285000",
+   "sitelinks": "126",
+   "label": "Dnipro"
+  },
+  {
+   "item": "Q40059",
+   "value": "252000",
+   "sitelinks": "124",
+   "label": "Jordan"
+  },
+  {
+   "item": "Q1644",
+   "value": "1094260",
+   "sitelinks": "122",
+   "label": "Elbe"
+  },
+  {
+   "item": "Q548",
+   "value": "1047000",
+   "sitelinks": "119",
+   "label": "Weichsel"
+  },
+  {
+   "item": "Q41179",
+   "value": "4350000",
+   "sitelinks": "119",
+   "label": "Mekong"
+  },
+  {
+   "item": "Q6862",
+   "value": "2824000",
+   "sitelinks": "114",
+   "label": "Amur"
+  },
+  {
+   "item": "Q45403",
+   "value": "2900000",
+   "sitelinks": "113",
+   "label": "Brahmaputra"
+  },
+  {
+   "item": "Q46841",
+   "value": "4294000",
+   "sitelinks": "112",
+   "label": "Lena"
+  },
+  {
+   "item": "Q80240",
+   "value": "2428000",
+   "sitelinks": "112",
+   "label": "Ural"
+  },
+  {
+   "item": "Q973",
+   "value": "3650000",
+   "sitelinks": "112",
+   "label": "Ob"
+  },
+  {
+   "item": "Q1229",
+   "value": "1870000",
+   "sitelinks": "109",
+   "label": "Don"
+  },
+  {
+   "item": "Q5419",
+   "value": "3726000",
+   "sitelinks": "109",
+   "label": "Missouri"
+  },
+  {
+   "item": "Q643",
+   "value": "652000",
+   "sitelinks": "108",
+   "label": "Po"
+  },
+  {
+   "item": "Q1469",
+   "value": "1006000",
+   "sitelinks": "108",
+   "label": "Loire"
+  },
+  {
+   "item": "Q602",
+   "value": "812000",
+   "sitelinks": "107",
+   "label": "Rhone"
+  },
+  {
+   "item": "Q552",
+   "value": "854000",
+   "sitelinks": "107",
+   "label": "Oder"
+  },
+  {
+   "item": "Q131210",
+   "value": "1352000",
+   "sitelinks": "105",
+   "label": "Dnister"
+  },
+  {
+   "item": "Q78707",
+   "value": "3487000",
+   "sitelinks": "104",
+   "label": "Jenissei"
+  },
+  {
+   "item": "Q13712",
+   "value": "405000",
+   "sitelinks": "104",
+   "label": "Tiber"
+  },
+  {
+   "item": "Q134750",
+   "value": "3058000",
+   "sitelinks": "104",
+   "label": "Sankt-Lorenz-Strom"
+  },
+  {
+   "item": "Q134750",
+   "value": "1197000",
+   "sitelinks": "104",
+   "label": "Sankt-Lorenz-Strom"
+  },
+  {
+   "item": "Q8493",
+   "value": "2620000",
+   "sitelinks": "103",
+   "label": "Amudarja"
+  },
+  {
+   "item": "Q14294",
+   "value": "1007000",
+   "sitelinks": "102",
+   "label": "Tajo"
+  },
+  {
+   "item": "Q131792",
+   "value": "2140000",
+   "sitelinks": "101",
+   "label": "Orinoco"
+  },
+  {
+   "item": "Q132726",
+   "value": "1376000",
+   "sitelinks": "100",
+   "label": "Yamuna"
+  },
+  {
+   "item": "Q1265",
+   "value": "2334000",
+   "sitelinks": "100",
+   "label": "Colorado River"
+  },
+  {
+   "item": "Q645",
+   "value": "74000",
+   "sitelinks": "96",
+   "label": "Newa"
+  },
+  {
+   "item": "Q128102",
+   "value": "4248000",
+   "sitelinks": "96",
+   "label": "Irtysch"
+  },
+  {
+   "item": "Q882739",
+   "value": "1783000",
+   "sitelinks": "95",
+   "label": "Blauer Nil"
+  },
+  {
+   "item": "Q104437",
+   "value": "3190000",
+   "sitelinks": "94",
+   "label": "Yukon River"
+  },
+  {
+   "item": "Q483159",
+   "value": "2212000",
+   "sitelinks": "94",
+   "label": "Syrdarja"
+  },
+  {
+   "item": "Q8197",
+   "value": "1020000",
+   "sitelinks": "94",
+   "label": "Düna"
+  },
+  {
+   "item": "Q41986",
+   "value": "950000",
+   "sitelinks": "94",
+   "label": "Maas"
+  },
+  {
+   "item": "Q160636",
+   "value": "3051000",
+   "sitelinks": "91",
+   "label": "Rio Grande"
+  },
+  {
+   "item": "Q10965",
+   "value": "910000",
+   "sitelinks": "91",
+   "label": "Ebro"
+  },
+  {
+   "item": "Q2251",
+   "value": "2000000",
+   "sitelinks": "91",
+   "label": "Columbia River"
+  },
+  {
+   "item": "Q3140",
+   "value": "492000",
+   "sitelinks": "91",
+   "label": "Hudson River"
+  },
+  {
+   "item": "Q173017",
+   "value": "1750000",
+   "sitelinks": "90",
+   "label": "Limpopo"
+  },
+  {
+   "item": "Q1670",
+   "value": "524000",
+   "sitelinks": "90",
+   "label": "Main"
+  },
+  {
+   "item": "Q4814791",
+   "value": "2620000",
+   "sitelinks": "89",
+   "label": "Weißer Nil"
+  },
+  {
+   "item": "Q4915",
+   "value": "1579000",
+   "sitelinks": "89",
+   "label": "Ohio River"
+  },
+  {
+   "item": "Q14299",
+   "value": "897000",
+   "sitelinks": "89",
+   "label": "Douro"
+  },
+  {
+   "item": "Q127892",
+   "value": "4880000",
+   "sitelinks": "89",
+   "label": "Rio Paraná"
+  },
+  {
+   "item": "Q1667",
+   "value": "544000",
+   "sitelinks": "88",
+   "label": "Mosel"
+  },
+  {
+   "item": "Q181475",
+   "value": "2200000",
+   "sitelinks": "88",
+   "label": "Oranje"
+  },
+  {
+   "item": "Q35827",
+   "value": "290000",
+   "sitelinks": "88",
+   "label": "Río de la Plata"
+  },
+  {
+   "item": "Q134350",
+   "value": "966000",
+   "sitelinks": "88",
+   "label": "Theiß"
+  },
+  {
+   "item": "Q183078",
+   "value": "2508000",
+   "sitelinks": "88",
+   "label": "Murray River"
+  },
+  {
+   "item": "Q131574",
+   "value": "430000",
+   "sitelinks": "87",
+   "label": "Moldau"
+  },
+  {
+   "item": "Q191314",
+   "value": "1465000",
+   "sitelinks": "87",
+   "label": "Godavari"
+  },
+  {
+   "item": "Q175117",
+   "value": "473000",
+   "sitelinks": "86",
+   "label": "Moskwa"
+  },
+  {
+   "item": "Q18278",
+   "value": "1790000",
+   "sitelinks": "86",
+   "label": "Río Uruguay"
+  },
+  {
+   "item": "Q26076",
+   "value": "2170000",
+   "sitelinks": "86",
+   "label": "Irrawaddy"
+  },
+  {
+   "item": "Q3569",
+   "value": "1050000",
+   "sitelinks": "85",
+   "label": "Senegal-Strom"
+  },
+  {
+   "item": "Q162737",
+   "value": "1779000",
+   "sitelinks": "84",
+   "label": "Angara"
+  },
+  {
+   "item": "Q160819",
+   "value": "1130000",
+   "sitelinks": "83",
+   "label": "Gambia"
+  },
+  {
+   "item": "Q14383",
+   "value": "945000",
+   "sitelinks": "83",
+   "label": "Save"
+  },
+  {
+   "item": "Q5077",
+   "value": "647000",
+   "sitelinks": "83",
+   "label": "Garonne"
+  },
+  {
+   "item": "Q79082",
+   "value": "1805000",
+   "sitelinks": "83",
+   "label": "Kama"
+  },
+  {
+   "item": "Q193499",
+   "value": "1400000",
+   "sitelinks": "82",
+   "label": "Krishna"
+  },
+  {
+   "item": "Q118771",
+   "value": "2250000",
+   "sitelinks": "82",
+   "label": "Rio Negro"
+  },
+  {
+   "item": "Q179396",
+   "value": "2621000",
+   "sitelinks": "82",
+   "label": "Río Paraguay"
+  },
+  {
+   "item": "Q172089",
+   "value": "1500000",
+   "sitelinks": "82",
+   "label": "Oka"
+  },
+  {
+   "item": "Q179751",
+   "value": "1072000",
+   "sitelinks": "81",
+   "label": "Aras"
+  }
+ ]
+}

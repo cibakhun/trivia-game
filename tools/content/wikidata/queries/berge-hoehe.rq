@@ -1,0 +1,14 @@
+# Bekannte Berge und Vulkane mit Höhe über dem Meer (normalisiert in Metern).
+SELECT ?item ?label ?sitelinks ?value WHERE {
+  VALUES ?class { wd:Q8502 wd:Q8072 wd:Q169358 }
+  ?item wdt:P31 ?class;
+        wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 60)
+  ?item p:P2044 ?statement.
+  ?statement a wikibase:BestRank;
+             psn:P2044/wikibase:quantityAmount ?value.
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}
+ORDER BY DESC(?sitelinks)
+LIMIT 80

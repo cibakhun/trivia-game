@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-nobel-medizin-q42985
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:nobel
+sources:
+  - title: "Wikidata: Iwan Pawlow (Q42985)"
+    url: https://www.wikidata.org/wiki/Q42985
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "1904"
+  answer_precision: 0
+  answer_unit: year
+  input_min: "1901"
+  input_max: "2026"
+  scale_type: LINEAR
+  scale: 15
+translations:
+  de:
+    status: DRAFT
+    prompt: Für welches Jahr erhielt Iwan Pawlow den Nobelpreis für Physiologie oder Medizin?
+    unit_label: Jahr

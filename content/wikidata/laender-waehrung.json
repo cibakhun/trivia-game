@@ -1,0 +1,1898 @@
+{
+ "name": "laender-waehrung",
+ "fetchedAt": "2026-11-11T20:54:47.304Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Heutige Staaten mit Währung und Kontinent.\nSELECT ?item ?label ?sitelinks ?answer ?answerLabel ?continent WHERE {\n  ?item wdt:P31 wd:Q6256;\n        wikibase:sitelinks ?sitelinks;\n        wdt:P38 ?answer.\n  FILTER NOT EXISTS { ?item wdt:P576 ?dissolved }\n  OPTIONAL { ?item wdt:P30 ?continent }\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n  ?answer rdfs:label ?answerLabel.\n  FILTER(LANG(?answerLabel) = \"de\")\n}\nORDER BY DESC(?sitelinks)\n",
+ "rowCount": 236,
+ "rows": [
+  {
+   "item": "Q43",
+   "answer": "Q172872",
+   "sitelinks": "430",
+   "label": "Türkei",
+   "answerLabel": "türkische Lira",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q43",
+   "answer": "Q172872",
+   "sitelinks": "430",
+   "label": "Türkei",
+   "answerLabel": "türkische Lira",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q142",
+   "answer": "Q4916",
+   "sitelinks": "428",
+   "label": "Frankreich",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q142",
+   "answer": "Q214393",
+   "sitelinks": "428",
+   "label": "Frankreich",
+   "answerLabel": "CFP-Franc",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q30",
+   "answer": "Q4917",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten",
+   "answerLabel": "US-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q159",
+   "answer": "Q41044",
+   "sitelinks": "421",
+   "label": "Russland",
+   "answerLabel": "russischer Rubel",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q159",
+   "answer": "Q41044",
+   "sitelinks": "421",
+   "label": "Russland",
+   "answerLabel": "russischer Rubel",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q159",
+   "answer": "Q41044",
+   "sitelinks": "421",
+   "label": "Russland",
+   "answerLabel": "russischer Rubel",
+   "continent": "Q5401"
+  },
+  {
+   "item": "Q17",
+   "answer": "Q8146",
+   "sitelinks": "419",
+   "label": "Japan",
+   "answerLabel": "Yen",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q38",
+   "answer": "Q4916",
+   "sitelinks": "409",
+   "label": "Italien",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q183",
+   "answer": "Q4916",
+   "sitelinks": "405",
+   "label": "Deutschland",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q668",
+   "answer": "Q80524",
+   "sitelinks": "404",
+   "label": "Indien",
+   "answerLabel": "Indische Rupie",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q33",
+   "answer": "Q4916",
+   "sitelinks": "403",
+   "label": "Finnland",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q96",
+   "answer": "Q4730",
+   "sitelinks": "402",
+   "label": "Mexiko",
+   "answerLabel": "Mexikanischer Peso",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q148",
+   "answer": "Q39099",
+   "sitelinks": "401",
+   "label": "Volksrepublik China",
+   "answerLabel": "Renminbi",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q408",
+   "answer": "Q259502",
+   "sitelinks": "400",
+   "label": "Australien",
+   "answerLabel": "Australischer Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q16",
+   "answer": "Q1104069",
+   "sitelinks": "398",
+   "label": "Kanada",
+   "answerLabel": "kanadischer Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q29",
+   "answer": "Q4916",
+   "sitelinks": "397",
+   "label": "Spanien",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q145",
+   "answer": "Q25224",
+   "sitelinks": "396",
+   "label": "Vereinigtes Königreich",
+   "answerLabel": "Pfund Sterling",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q20",
+   "answer": "Q132643",
+   "sitelinks": "394",
+   "label": "Norwegen",
+   "answerLabel": "norwegische Krone",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q79",
+   "answer": "Q199462",
+   "sitelinks": "392",
+   "label": "Ägypten",
+   "answerLabel": "ägyptisches Pfund",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q36",
+   "answer": "Q123213",
+   "sitelinks": "391",
+   "label": "Polen",
+   "answerLabel": "Złoty",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q212",
+   "answer": "Q81893",
+   "sitelinks": "390",
+   "label": "Ukraine",
+   "answerLabel": "Hrywnja",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q39",
+   "answer": "Q25344",
+   "sitelinks": "387",
+   "label": "Schweiz",
+   "answerLabel": "Schweizer Franken",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q155",
+   "answer": "Q173117",
+   "sitelinks": "387",
+   "label": "Brasilien",
+   "answerLabel": "brasilianischer Real",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q222",
+   "answer": "Q125999",
+   "sitelinks": "387",
+   "label": "Albanien",
+   "answerLabel": "Albanischer Lek",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q31",
+   "answer": "Q4916",
+   "sitelinks": "383",
+   "label": "Belgien",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q298",
+   "answer": "Q200050",
+   "sitelinks": "382",
+   "label": "Chile",
+   "answerLabel": "chilenischer Peso",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q801",
+   "answer": "Q131309",
+   "sitelinks": "380",
+   "label": "Israel",
+   "answerLabel": "Schekel",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q41",
+   "answer": "Q4916",
+   "sitelinks": "378",
+   "label": "Griechenland",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q794",
+   "answer": "Q188608",
+   "sitelinks": "376",
+   "label": "Iran",
+   "answerLabel": "iranischer Rial",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q55",
+   "answer": "Q4916",
+   "sitelinks": "375",
+   "label": "Niederlande",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q262",
+   "answer": "Q199674",
+   "sitelinks": "374",
+   "label": "Algerien",
+   "answerLabel": "algerischer Dinar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q414",
+   "answer": "Q199578",
+   "sitelinks": "372",
+   "label": "Argentinien",
+   "answerLabel": "argentinischer Peso",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q40",
+   "answer": "Q4916",
+   "sitelinks": "372",
+   "label": "Österreich",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q45",
+   "answer": "Q4916",
+   "sitelinks": "372",
+   "label": "Portugal",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q34",
+   "answer": "Q122922",
+   "sitelinks": "370",
+   "label": "Schweden",
+   "answerLabel": "schwedische Krone",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q35",
+   "answer": "Q25417",
+   "sitelinks": "369",
+   "label": "Dänemark",
+   "answerLabel": "dänische Krone",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q881",
+   "answer": "Q192090",
+   "sitelinks": "369",
+   "label": "Vietnam",
+   "answerLabel": "vietnamesischer Đồng",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q258",
+   "answer": "Q181907",
+   "sitelinks": "368",
+   "label": "Südafrika",
+   "answerLabel": "südafrikanischer Rand",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q739",
+   "answer": "Q244819",
+   "sitelinks": "367",
+   "label": "Kolumbien",
+   "answerLabel": "kolumbianischer Peso",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q252",
+   "answer": "Q41588",
+   "sitelinks": "366",
+   "label": "Indonesien",
+   "answerLabel": "indonesische Rupiah",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q227",
+   "answer": "Q483725",
+   "sitelinks": "363",
+   "label": "Aserbaidschan",
+   "answerLabel": "Aserbaidschan-Manat",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q889",
+   "answer": "Q199471",
+   "sitelinks": "363",
+   "label": "Afghanistan",
+   "answerLabel": "Afghani",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q219",
+   "answer": "Q4916",
+   "sitelinks": "361",
+   "label": "Bulgarien",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q184",
+   "answer": "Q21531507",
+   "sitelinks": "359",
+   "label": "Belarus",
+   "answerLabel": "Belarussischer Rubel",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q28",
+   "answer": "Q47190",
+   "sitelinks": "358",
+   "label": "Ungarn",
+   "answerLabel": "Forint",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q224",
+   "answer": "Q4916",
+   "sitelinks": "356",
+   "label": "Kroatien",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q843",
+   "answer": "Q188289",
+   "sitelinks": "356",
+   "label": "Pakistan",
+   "answerLabel": "pakistanische Rupie",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q869",
+   "answer": "Q177882",
+   "sitelinks": "356",
+   "label": "Thailand",
+   "answerLabel": "Baht",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q884",
+   "answer": "Q202040",
+   "sitelinks": "356",
+   "label": "Südkorea",
+   "answerLabel": "südkoreanischer Won",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q399",
+   "answer": "Q130498",
+   "sitelinks": "355",
+   "label": "Armenien",
+   "answerLabel": "Dram",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q189",
+   "answer": "Q131473",
+   "sitelinks": "355",
+   "label": "Island",
+   "answerLabel": "isländische Krone",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q213",
+   "answer": "Q131016",
+   "sitelinks": "355",
+   "label": "Tschechien",
+   "answerLabel": "tschechische Krone",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q191",
+   "answer": "Q4916",
+   "sitelinks": "354",
+   "label": "Estland",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q403",
+   "answer": "Q172524",
+   "sitelinks": "352",
+   "label": "Serbien",
+   "answerLabel": "serbischer Dinar",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q664",
+   "answer": "Q1472704",
+   "sitelinks": "352",
+   "label": "Neuseeland",
+   "answerLabel": "Neuseeland-Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q37",
+   "answer": "Q4916",
+   "sitelinks": "352",
+   "label": "Litauen",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q230",
+   "answer": "Q4608",
+   "sitelinks": "351",
+   "label": "Georgien",
+   "answerLabel": "georgischer Lari",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q232",
+   "answer": "Q173751",
+   "sitelinks": "350",
+   "label": "Kasachstan",
+   "answerLabel": "Tenge",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q232",
+   "answer": "Q173751",
+   "sitelinks": "350",
+   "label": "Kasachstan",
+   "answerLabel": "Tenge",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q796",
+   "answer": "Q193094",
+   "sitelinks": "350",
+   "label": "Irak",
+   "answerLabel": "irakischer Dinar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q851",
+   "answer": "Q199857",
+   "sitelinks": "350",
+   "label": "Saudi-Arabien",
+   "answerLabel": "Saudi-Rial",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q218",
+   "answer": "Q131645",
+   "sitelinks": "349",
+   "label": "Rumänien",
+   "answerLabel": "rumänischer Leu",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q902",
+   "answer": "Q194453",
+   "sitelinks": "349",
+   "label": "Bangladesch",
+   "answerLabel": "Taka",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1033",
+   "answer": "Q203567",
+   "sitelinks": "349",
+   "label": "Nigeria",
+   "answerLabel": "Naira",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q115",
+   "answer": "Q206243",
+   "sitelinks": "348",
+   "label": "Äthiopien",
+   "answerLabel": "Äthiopischer Birr",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q27",
+   "answer": "Q4916",
+   "sitelinks": "343",
+   "label": "Irland",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q237",
+   "answer": "Q4916",
+   "sitelinks": "343",
+   "label": "Vatikanstadt",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q225",
+   "answer": "Q179620",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina",
+   "answerLabel": "konvertible Mark",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q225",
+   "answer": "Q2538687",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina",
+   "answerLabel": "bosnischer Dinar",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q214",
+   "answer": "Q4916",
+   "sitelinks": "341",
+   "label": "Slowakei",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q833",
+   "answer": "Q163712",
+   "sitelinks": "340",
+   "label": "Malaysia",
+   "answerLabel": "Ringgit",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q114",
+   "answer": "Q202882",
+   "sitelinks": "338",
+   "label": "Kenia",
+   "answerLabel": "Kenia-Schilling",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q858",
+   "answer": "Q240468",
+   "sitelinks": "337",
+   "label": "Syrien",
+   "answerLabel": "syrische Lira",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q211",
+   "answer": "Q4916",
+   "sitelinks": "336",
+   "label": "Lettland",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q1049",
+   "answer": "Q271206",
+   "sitelinks": "335",
+   "label": "Sudan",
+   "answerLabel": "sudanesisches Pfund",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q32",
+   "answer": "Q4916",
+   "sitelinks": "335",
+   "label": "Luxemburg",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q1028",
+   "answer": "Q200192",
+   "sitelinks": "335",
+   "label": "Marokko",
+   "answerLabel": "Marokkanischer Dirham",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q928",
+   "answer": "Q17193",
+   "sitelinks": "334",
+   "label": "Philippinen",
+   "answerLabel": "philippinischer Peso",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q974",
+   "answer": "Q4734",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo",
+   "answerLabel": "Kongo-Franc",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1016",
+   "answer": "Q190699",
+   "sitelinks": "334",
+   "label": "Libyen",
+   "answerLabel": "libyscher Dinar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q334",
+   "answer": "Q190951",
+   "sitelinks": "333",
+   "label": "Singapur",
+   "answerLabel": "Singapur-Dollar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q228",
+   "answer": "Q4916",
+   "sitelinks": "333",
+   "label": "Andorra",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q419",
+   "answer": "Q204656",
+   "sitelinks": "333",
+   "label": "Peru",
+   "answerLabel": "Nuevo Sol",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q424",
+   "answer": "Q204737",
+   "sitelinks": "332",
+   "label": "Kambodscha",
+   "answerLabel": "Kambodschanischer Riel",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q217",
+   "answer": "Q181129",
+   "sitelinks": "331",
+   "label": "Moldau",
+   "answerLabel": "moldauischer Leu",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q215",
+   "answer": "Q4916",
+   "sitelinks": "331",
+   "label": "Slowenien",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q822",
+   "answer": "Q201880",
+   "sitelinks": "329",
+   "label": "Libanon",
+   "answerLabel": "libanesisches Pfund",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q948",
+   "answer": "Q4602",
+   "sitelinks": "329",
+   "label": "Tunesien",
+   "answerLabel": "tunesischer Dinar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q229",
+   "answer": "Q4916",
+   "sitelinks": "327",
+   "label": "Zypern",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q233",
+   "answer": "Q4916",
+   "sitelinks": "327",
+   "label": "Malta",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q221",
+   "answer": "Q177875",
+   "sitelinks": "327",
+   "label": "Nordmazedonien",
+   "answerLabel": "mazedonischer Denar",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q1045",
+   "answer": "Q4603",
+   "sitelinks": "326",
+   "label": "Somalia",
+   "answerLabel": "Somalia-Schilling",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q117",
+   "answer": "Q183530",
+   "sitelinks": "326",
+   "label": "Ghana",
+   "answerLabel": "Cedi",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q77",
+   "answer": "Q209272",
+   "sitelinks": "324",
+   "label": "Uruguay",
+   "answerLabel": "uruguayischer Peso",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q837",
+   "answer": "Q202895",
+   "sitelinks": "324",
+   "label": "Nepal",
+   "answerLabel": "Nepalesische Rupie",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q236",
+   "answer": "Q4916",
+   "sitelinks": "323",
+   "label": "Montenegro",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q916",
+   "answer": "Q200337",
+   "sitelinks": "323",
+   "label": "Angola",
+   "answerLabel": "Kwanza",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q711",
+   "answer": "Q183435",
+   "sitelinks": "322",
+   "label": "Mongolei",
+   "answerLabel": "Tögrög",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q235",
+   "answer": "Q4916",
+   "sitelinks": "321",
+   "label": "Monaco",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q924",
+   "answer": "Q4589",
+   "sitelinks": "321",
+   "label": "Tansania",
+   "answerLabel": "Tansania-Schilling",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1019",
+   "answer": "Q4584",
+   "sitelinks": "321",
+   "label": "Madagaskar",
+   "answerLabel": "Ariary",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q813",
+   "answer": "Q35881",
+   "sitelinks": "320",
+   "label": "Kirgisistan",
+   "answerLabel": "Som",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q4917",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "US-Dollar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q25224",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Pfund Sterling",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q8146",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Yen",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q39099",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Renminbi",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q4916",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Euro",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q181907",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "südafrikanischer Rand",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q80524",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Indische Rupie",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q182803",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Simbabwe-Dollar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q259502",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Australischer Dollar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q125352135",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Simbabwe-Gold",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q878",
+   "answer": "Q200294",
+   "sitelinks": "320",
+   "label": "Vereinigte Arabische Emirate",
+   "answerLabel": "VAE-Dirham",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q657",
+   "answer": "Q847739",
+   "sitelinks": "318",
+   "label": "Tschad",
+   "answerLabel": "CFA-Franc BEAC",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q836",
+   "answer": "Q201875",
+   "sitelinks": "318",
+   "label": "Myanmar",
+   "answerLabel": "Kyat",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q736",
+   "answer": "Q4917",
+   "sitelinks": "317",
+   "label": "Ecuador",
+   "answerLabel": "US-Dollar",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q347",
+   "answer": "Q25344",
+   "sitelinks": "316",
+   "label": "Liechtenstein",
+   "answerLabel": "Schweizer Franken",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q819",
+   "answer": "Q200055",
+   "sitelinks": "316",
+   "label": "Laos",
+   "answerLabel": "Kip",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q805",
+   "answer": "Q240512",
+   "sitelinks": "316",
+   "label": "Jemen",
+   "answerLabel": "Jemen-Rial",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1030",
+   "answer": "Q181907",
+   "sitelinks": "316",
+   "label": "Namibia",
+   "answerLabel": "südafrikanischer Rand",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1030",
+   "answer": "Q202462",
+   "sitelinks": "316",
+   "label": "Namibia",
+   "answerLabel": "Namibia-Dollar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q963",
+   "answer": "Q186794",
+   "sitelinks": "315",
+   "label": "Botswana",
+   "answerLabel": "botswanischer Pula",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q238",
+   "answer": "Q4916",
+   "sitelinks": "314",
+   "label": "San Marino",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q810",
+   "answer": "Q203722",
+   "sitelinks": "314",
+   "label": "Jordanien",
+   "answerLabel": "jordanischer Dinar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1009",
+   "answer": "Q847739",
+   "sitelinks": "314",
+   "label": "Kamerun",
+   "answerLabel": "CFA-Franc BEAC",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q423",
+   "answer": "Q106720",
+   "sitelinks": "313",
+   "label": "Nordkorea",
+   "answerLabel": "nordkoreanischer Won",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q750",
+   "answer": "Q200737",
+   "sitelinks": "313",
+   "label": "Bolivien",
+   "answerLabel": "Boliviano",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q1008",
+   "answer": "Q861690",
+   "sitelinks": "313",
+   "label": "Elfenbeinküste",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q241",
+   "answer": "Q201505",
+   "sitelinks": "312",
+   "label": "Kuba",
+   "answerLabel": "kubanischer Peso",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q733",
+   "answer": "Q207514",
+   "sitelinks": "312",
+   "label": "Paraguay",
+   "answerLabel": "Paraguayischer Guaraní",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q912",
+   "answer": "Q861690",
+   "sitelinks": "312",
+   "label": "Mali",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1036",
+   "answer": "Q4598",
+   "sitelinks": "312",
+   "label": "Uganda",
+   "answerLabel": "Uganda-Schilling",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q265",
+   "answer": "Q487888",
+   "sitelinks": "310",
+   "label": "Usbekistan",
+   "answerLabel": "Soʻm",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q854",
+   "answer": "Q4596",
+   "sitelinks": "310",
+   "label": "Sri Lanka",
+   "answerLabel": "Sri-Lanka-Rupie",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q953",
+   "answer": "Q73408",
+   "sitelinks": "309",
+   "label": "Sambia",
+   "answerLabel": "sambischer Kwacha",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q965",
+   "answer": "Q861690",
+   "sitelinks": "309",
+   "label": "Burkina Faso",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1041",
+   "answer": "Q861690",
+   "sitelinks": "309",
+   "label": "Senegal",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q863",
+   "answer": "Q199886",
+   "sitelinks": "308",
+   "label": "Tadschikistan",
+   "answerLabel": "Somoni",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q962",
+   "answer": "Q861690",
+   "sitelinks": "308",
+   "label": "Benin",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q986",
+   "answer": "Q171503",
+   "sitelinks": "308",
+   "label": "Eritrea",
+   "answerLabel": "eritreischer Nakfa",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q398",
+   "answer": "Q201871",
+   "sitelinks": "306",
+   "label": "Bahrain",
+   "answerLabel": "Bahrain-Dinar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q817",
+   "answer": "Q193098",
+   "sitelinks": "306",
+   "label": "Kuwait",
+   "answerLabel": "Kuwait-Dinar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1025",
+   "answer": "Q207024",
+   "sitelinks": "306",
+   "label": "Mauretanien",
+   "answerLabel": "Ouguiya",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q917",
+   "answer": "Q201799",
+   "sitelinks": "305",
+   "label": "Bhutan",
+   "answerLabel": "Ngultrum",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q804",
+   "answer": "Q4917",
+   "sitelinks": "304",
+   "label": "Panama",
+   "answerLabel": "US-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q804",
+   "answer": "Q210472",
+   "sitelinks": "304",
+   "label": "Panama",
+   "answerLabel": "Panamaischer Balboa",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q967",
+   "answer": "Q238007",
+   "sitelinks": "304",
+   "label": "Burundi",
+   "answerLabel": "Burundi-Franc",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1037",
+   "answer": "Q4741",
+   "sitelinks": "303",
+   "label": "Ruanda",
+   "answerLabel": "Ruanda-Franc",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q800",
+   "answer": "Q242915",
+   "sitelinks": "302",
+   "label": "Costa Rica",
+   "answerLabel": "Costa-Rica-Colón",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q945",
+   "answer": "Q861690",
+   "sitelinks": "302",
+   "label": "Togo",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1032",
+   "answer": "Q861690",
+   "sitelinks": "302",
+   "label": "Niger",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1029",
+   "answer": "Q200753",
+   "sitelinks": "302",
+   "label": "Mosambik",
+   "answerLabel": "Metical",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q929",
+   "answer": "Q847739",
+   "sitelinks": "301",
+   "label": "Zentralafrikanische Republik",
+   "answerLabel": "CFA-Franc BEAC",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1005",
+   "answer": "Q202885",
+   "sitelinks": "301",
+   "label": "Gambia",
+   "answerLabel": "Dalasi",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1006",
+   "answer": "Q213311",
+   "sitelinks": "301",
+   "label": "Guinea",
+   "answerLabel": "Franc Guinéen",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q783",
+   "answer": "Q4719",
+   "sitelinks": "300",
+   "label": "Honduras",
+   "answerLabel": "Lempira",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q971",
+   "answer": "Q847739",
+   "sitelinks": "300",
+   "label": "Republik Kongo",
+   "answerLabel": "CFA-Franc BEAC",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q977",
+   "answer": "Q4594",
+   "sitelinks": "300",
+   "label": "Dschibuti",
+   "answerLabel": "Dschibuti-Franc",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1007",
+   "answer": "Q861690",
+   "sitelinks": "300",
+   "label": "Guinea-Bissau",
+   "answerLabel": "CFA-Franc BCEAO",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q874",
+   "answer": "Q486637",
+   "sitelinks": "299",
+   "label": "Turkmenistan",
+   "answerLabel": "Turkmenistan-Manat",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q921",
+   "answer": "Q206319",
+   "sitelinks": "298",
+   "label": "Brunei",
+   "answerLabel": "Brunei-Dollar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1020",
+   "answer": "Q211694",
+   "sitelinks": "298",
+   "label": "Malawi",
+   "answerLabel": "Malawi-Kwacha",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q842",
+   "answer": "Q272290",
+   "sitelinks": "297",
+   "label": "Oman",
+   "answerLabel": "Omanischer Rial",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1000",
+   "answer": "Q847739",
+   "sitelinks": "296",
+   "label": "Gabun",
+   "answerLabel": "CFA-Franc BEAC",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1044",
+   "answer": "Q4587",
+   "sitelinks": "294",
+   "label": "Sierra Leone",
+   "answerLabel": "Sierra-leonischer Leone",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q790",
+   "answer": "Q203955",
+   "sitelinks": "293",
+   "label": "Haiti",
+   "answerLabel": "Gourde",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q1014",
+   "answer": "Q242988",
+   "sitelinks": "292",
+   "label": "Liberia",
+   "answerLabel": "Liberianischer Dollar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q574",
+   "answer": "Q4917",
+   "sitelinks": "291",
+   "label": "Osttimor",
+   "answerLabel": "US-Dollar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q574",
+   "answer": "Q572213",
+   "sitelinks": "291",
+   "label": "Osttimor",
+   "answerLabel": "Münzen Osttimors",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q846",
+   "answer": "Q206386",
+   "sitelinks": "291",
+   "label": "Katar",
+   "answerLabel": "Katar-Riyal",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1011",
+   "answer": "Q4591",
+   "sitelinks": "291",
+   "label": "Kap Verde",
+   "answerLabel": "Kap-Verde-Escudo",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q826",
+   "answer": "Q206600",
+   "sitelinks": "290",
+   "label": "Malediven",
+   "answerLabel": "Rufiyaa",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q730",
+   "answer": "Q202036",
+   "sitelinks": "288",
+   "label": "Suriname",
+   "answerLabel": "Suriname-Dollar",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q792",
+   "answer": "Q4917",
+   "sitelinks": "288",
+   "label": "El Salvador",
+   "answerLabel": "US-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q1050",
+   "answer": "Q4823",
+   "sitelinks": "287",
+   "label": "Eswatini",
+   "answerLabel": "Lilangeni",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q734",
+   "answer": "Q213005",
+   "sitelinks": "287",
+   "label": "Guyana",
+   "answerLabel": "Guyana-Dollar",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q691",
+   "answer": "Q200759",
+   "sitelinks": "286",
+   "label": "Papua-Neuguinea",
+   "answerLabel": "Kina",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q1246",
+   "answer": "Q4916",
+   "sitelinks": "284",
+   "label": "Kosovo",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q970",
+   "answer": "Q267264",
+   "sitelinks": "284",
+   "label": "Komoren",
+   "answerLabel": "Komoren-Franc",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q983",
+   "answer": "Q847739",
+   "sitelinks": "284",
+   "label": "Äquatorialguinea",
+   "answerLabel": "CFA-Franc BEAC",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1027",
+   "answer": "Q212967",
+   "sitelinks": "284",
+   "label": "Mauritius",
+   "answerLabel": "Mauritius-Rupie",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q766",
+   "answer": "Q209792",
+   "sitelinks": "283",
+   "label": "Jamaika",
+   "answerLabel": "Jamaika-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q811",
+   "answer": "Q207312",
+   "sitelinks": "283",
+   "label": "Nicaragua",
+   "answerLabel": "Córdoba Oro",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q958",
+   "answer": "Q244366",
+   "sitelinks": "283",
+   "label": "Südsudan",
+   "answerLabel": "südsudanesisches Pfund",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q242",
+   "answer": "Q275112",
+   "sitelinks": "282",
+   "label": "Belize",
+   "answerLabel": "Belize-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q774",
+   "answer": "Q207396",
+   "sitelinks": "282",
+   "label": "Guatemala",
+   "answerLabel": "guatemaltekischer Quetzal",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q712",
+   "answer": "Q4592",
+   "sitelinks": "281",
+   "label": "Fidschi",
+   "answerLabel": "Fidschi-Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q778",
+   "answer": "Q194339",
+   "sitelinks": "281",
+   "label": "Bahamas",
+   "answerLabel": "Bahama-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q786",
+   "answer": "Q242922",
+   "sitelinks": "281",
+   "label": "Dominikanische Republik",
+   "answerLabel": "dominikanischer Peso",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q1013",
+   "answer": "Q181907",
+   "sitelinks": "281",
+   "label": "Lesotho",
+   "answerLabel": "südafrikanischer Rand",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1013",
+   "answer": "Q208039",
+   "sitelinks": "281",
+   "label": "Lesotho",
+   "answerLabel": "Lesothischer Loti",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1042",
+   "answer": "Q4595",
+   "sitelinks": "278",
+   "label": "Seychellen",
+   "answerLabel": "Seychellen-Rupie",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q244",
+   "answer": "Q194351",
+   "sitelinks": "276",
+   "label": "Barbados",
+   "answerLabel": "Barbados-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q1039",
+   "answer": "Q193712",
+   "sitelinks": "274",
+   "label": "São Tomé und Príncipe",
+   "answerLabel": "São-toméischer Dobra",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q784",
+   "answer": "Q26365",
+   "sitelinks": "267",
+   "label": "Dominica",
+   "answerLabel": "Ostkaribischer Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q781",
+   "answer": "Q26365",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda",
+   "answerLabel": "Ostkaribischer Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q697",
+   "answer": "Q259502",
+   "sitelinks": "265",
+   "label": "Naoero",
+   "answerLabel": "Australischer Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q686",
+   "answer": "Q207523",
+   "sitelinks": "264",
+   "label": "Vanuatu",
+   "answerLabel": "Vatu",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q678",
+   "answer": "Q4613",
+   "sitelinks": "261",
+   "label": "Tonga",
+   "answerLabel": "Paʻanga",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q683",
+   "answer": "Q4588",
+   "sitelinks": "261",
+   "label": "Samoa",
+   "answerLabel": "samoanischer Tala",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q695",
+   "answer": "Q4917",
+   "sitelinks": "259",
+   "label": "Palau",
+   "answerLabel": "US-Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q695",
+   "answer": "Q4917",
+   "sitelinks": "259",
+   "label": "Palau",
+   "answerLabel": "US-Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q672",
+   "answer": "Q4406",
+   "sitelinks": "253",
+   "label": "Tuvalu",
+   "answerLabel": "Tuvaluischer Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q672",
+   "answer": "Q259502",
+   "sitelinks": "253",
+   "label": "Tuvalu",
+   "answerLabel": "Australischer Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q672",
+   "answer": "Q4406",
+   "sitelinks": "253",
+   "label": "Tuvalu",
+   "answerLabel": "Tuvaluischer Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q672",
+   "answer": "Q259502",
+   "sitelinks": "253",
+   "label": "Tuvalu",
+   "answerLabel": "Australischer Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q769",
+   "answer": "Q26365",
+   "sitelinks": "252",
+   "label": "Grenada",
+   "answerLabel": "Ostkaribischer Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q710",
+   "answer": "Q259502",
+   "sitelinks": "251",
+   "label": "Kiribati",
+   "answerLabel": "Australischer Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q710",
+   "answer": "Q259502",
+   "sitelinks": "251",
+   "label": "Kiribati",
+   "answerLabel": "Australischer Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q710",
+   "answer": "Q1049963",
+   "sitelinks": "251",
+   "label": "Kiribati",
+   "answerLabel": "Kiribati-Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q710",
+   "answer": "Q1049963",
+   "sitelinks": "251",
+   "label": "Kiribati",
+   "answerLabel": "Kiribati-Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q754",
+   "answer": "Q242890",
+   "sitelinks": "251",
+   "label": "Trinidad und Tobago",
+   "answerLabel": "Trinidad-und-Tobago-Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q685",
+   "answer": "Q4597",
+   "sitelinks": "245",
+   "label": "Salomonen",
+   "answerLabel": "Salomonen-Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q685",
+   "answer": "Q4597",
+   "sitelinks": "245",
+   "label": "Salomonen",
+   "answerLabel": "Salomonen-Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q763",
+   "answer": "Q26365",
+   "sitelinks": "239",
+   "label": "St. Kitts und Nevis",
+   "answerLabel": "Ostkaribischer Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q757",
+   "answer": "Q26365",
+   "sitelinks": "238",
+   "label": "St. Vincent und die Grenadinen",
+   "answerLabel": "Ostkaribischer Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q709",
+   "answer": "Q4917",
+   "sitelinks": "237",
+   "label": "Marshallinseln",
+   "answerLabel": "US-Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q760",
+   "answer": "Q26365",
+   "sitelinks": "236",
+   "label": "St. Lucia",
+   "answerLabel": "Ostkaribischer Dollar",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q219060",
+   "answer": "Q131309",
+   "sitelinks": "225",
+   "label": "Palästina",
+   "answerLabel": "Schekel",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q702",
+   "answer": "Q4917",
+   "sitelinks": "224",
+   "label": "Föderierte Staaten von Mikronesien",
+   "answerLabel": "US-Dollar",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q21203",
+   "answer": "Q232270",
+   "sitelinks": "200",
+   "label": "Aruba",
+   "answerLabel": "Aruba-Florin",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q26988",
+   "answer": "Q507737",
+   "sitelinks": "188",
+   "label": "Cookinseln",
+   "answerLabel": "Cookinsel-Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q26988",
+   "answer": "Q1472704",
+   "sitelinks": "188",
+   "label": "Cookinseln",
+   "answerLabel": "Neuseeland-Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q23681",
+   "answer": "Q172872",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern",
+   "answerLabel": "türkische Lira",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q34020",
+   "answer": "Q1472704",
+   "sitelinks": "179",
+   "label": "Niue",
+   "answerLabel": "Neuseeland-Dollar",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q34754",
+   "answer": "Q737384",
+   "sitelinks": "167",
+   "label": "Somaliland",
+   "answerLabel": "Somaliland-Schilling",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q25279",
+   "answer": "Q737779",
+   "sitelinks": "166",
+   "label": "Curaçao",
+   "answerLabel": "Karibischer Gulden",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q26273",
+   "answer": "Q737779",
+   "sitelinks": "126",
+   "label": "Sint Maarten",
+   "answerLabel": "Karibischer Gulden",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q29999",
+   "answer": "Q4916",
+   "sitelinks": "108",
+   "label": "Königreich der Niederlande",
+   "answerLabel": "Euro",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q29999",
+   "answer": "Q4917",
+   "sitelinks": "108",
+   "label": "Königreich der Niederlande",
+   "answerLabel": "US-Dollar",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q29999",
+   "answer": "Q232270",
+   "sitelinks": "108",
+   "label": "Königreich der Niederlande",
+   "answerLabel": "Aruba-Florin",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q29999",
+   "answer": "Q737779",
+   "sitelinks": "108",
+   "label": "Königreich der Niederlande",
+   "answerLabel": "Karibischer Gulden",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q756617",
+   "answer": "Q25417",
+   "sitelinks": "56",
+   "label": "Königreich Dänemark",
+   "answerLabel": "dänische Krone",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q756617",
+   "answer": "Q191068",
+   "sitelinks": "56",
+   "label": "Königreich Dänemark",
+   "answerLabel": "färöische Krone",
+   "continent": "Q46"
+  }
+ ]
+}

@@ -1,0 +1,490 @@
+{
+ "name": "berge-hoehe",
+ "fetchedAt": "2026-11-11T20:53:21.423Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte Berge und Vulkane mit Höhe über dem Meer (normalisiert in Metern).\nSELECT ?item ?label ?sitelinks ?value WHERE {\n  VALUES ?class { wd:Q8502 wd:Q8072 wd:Q169358 }\n  ?item wdt:P31 ?class;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 60)\n  ?item p:P2044 ?statement.\n  ?statement a wikibase:BestRank;\n             psn:P2044/wikibase:quantityAmount ?value.\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 80\n",
+ "rowCount": 80,
+ "rows": [
+  {
+   "item": "Q513",
+   "value": "8848.86",
+   "sitelinks": "238",
+   "label": "Mount Everest"
+  },
+  {
+   "item": "Q39231",
+   "value": "3777.24",
+   "sitelinks": "146",
+   "label": "Fuji"
+  },
+  {
+   "item": "Q39231",
+   "value": "3777.24",
+   "sitelinks": "146",
+   "label": "Fuji"
+  },
+  {
+   "item": "Q524",
+   "value": "1281",
+   "sitelinks": "136",
+   "label": "Vesuv"
+  },
+  {
+   "item": "Q524",
+   "value": "1281",
+   "sitelinks": "136",
+   "label": "Vesuv"
+  },
+  {
+   "item": "Q583",
+   "value": "4805.59",
+   "sitelinks": "127",
+   "label": "Mont Blanc"
+  },
+  {
+   "item": "Q16990",
+   "value": "3357",
+   "sitelinks": "125",
+   "label": "Ätna"
+  },
+  {
+   "item": "Q43105",
+   "value": "5642",
+   "sitelinks": "113",
+   "label": "Elbrus"
+  },
+  {
+   "item": "Q72303",
+   "value": "5137",
+   "sitelinks": "112",
+   "label": "Ararat"
+  },
+  {
+   "item": "Q72303",
+   "value": "5137",
+   "sitelinks": "112",
+   "label": "Ararat"
+  },
+  {
+   "item": "Q43512",
+   "value": "8611",
+   "sitelinks": "112",
+   "label": "K2"
+  },
+  {
+   "item": "Q72303",
+   "value": "5137",
+   "sitelinks": "112",
+   "label": "Ararat"
+  },
+  {
+   "item": "Q80344",
+   "value": "2917.727",
+   "sitelinks": "110",
+   "label": "Berg Olymp"
+  },
+  {
+   "item": "Q725591",
+   "value": "4466",
+   "sitelinks": "107",
+   "label": "Bazardüzü"
+  },
+  {
+   "item": "Q725591",
+   "value": "2706",
+   "sitelinks": "107",
+   "label": "Bazardüzü"
+  },
+  {
+   "item": "Q38954",
+   "value": "3715",
+   "sitelinks": "105",
+   "label": "Teide"
+  },
+  {
+   "item": "Q82019",
+   "value": "8586",
+   "sitelinks": "102",
+   "label": "Kangchendzönga"
+  },
+  {
+   "item": "Q130018",
+   "value": "6190",
+   "sitelinks": "100",
+   "label": "Denali"
+  },
+  {
+   "item": "Q83497",
+   "value": "1745",
+   "sitelinks": "96",
+   "label": "Mount Rushmore"
+  },
+  {
+   "item": "Q1374",
+   "value": "4477.54",
+   "sitelinks": "92",
+   "label": "Matterhorn"
+  },
+  {
+   "item": "Q229107",
+   "value": "6638",
+   "sitelinks": "91",
+   "label": "Kailash"
+  },
+  {
+   "item": "Q165440",
+   "value": "8167",
+   "sitelinks": "90",
+   "label": "Dhaulagiri"
+  },
+  {
+   "item": "Q130736",
+   "value": "8126",
+   "sitelinks": "90",
+   "label": "Nanga Parbat"
+  },
+  {
+   "item": "Q169986",
+   "value": "8485",
+   "sitelinks": "89",
+   "label": "Makalu"
+  },
+  {
+   "item": "Q172070",
+   "value": "5199",
+   "sitelinks": "89",
+   "label": "Mount-Kenya-Massiv"
+  },
+  {
+   "item": "Q377485",
+   "value": "2287",
+   "sitelinks": "88",
+   "label": "Sinai"
+  },
+  {
+   "item": "Q131230",
+   "value": "4207.3",
+   "sitelinks": "87",
+   "label": "Mauna Kea"
+  },
+  {
+   "item": "Q131230",
+   "value": "4207.3",
+   "sitelinks": "87",
+   "label": "Mauna Kea"
+  },
+  {
+   "item": "Q130321",
+   "value": "2033",
+   "sitelinks": "87",
+   "label": "Athos"
+  },
+  {
+   "item": "Q168702",
+   "value": "8516",
+   "sitelinks": "86",
+   "label": "Lhotse"
+  },
+  {
+   "item": "Q178167",
+   "value": "2228",
+   "sitelinks": "86",
+   "label": "Mount Kosciuszko"
+  },
+  {
+   "item": "Q170089",
+   "value": "8188",
+   "sitelinks": "84",
+   "label": "Cho Oyu"
+  },
+  {
+   "item": "Q14081",
+   "value": "6263.47",
+   "sitelinks": "84",
+   "label": "Chimborazo"
+  },
+  {
+   "item": "Q14081",
+   "value": "6263.47",
+   "sitelinks": "84",
+   "label": "Chimborazo"
+  },
+  {
+   "item": "Q170070",
+   "value": "8163",
+   "sitelinks": "82",
+   "label": "Manaslu"
+  },
+  {
+   "item": "Q134108",
+   "value": "2910",
+   "sitelinks": "80",
+   "label": "Merapi"
+  },
+  {
+   "item": "Q40758",
+   "value": "5610",
+   "sitelinks": "79",
+   "label": "Damavand"
+  },
+  {
+   "item": "Q40758",
+   "value": "5628",
+   "sitelinks": "79",
+   "label": "Damavand"
+  },
+  {
+   "item": "Q40758",
+   "value": "5610",
+   "sitelinks": "79",
+   "label": "Damavand"
+  },
+  {
+   "item": "Q40758",
+   "value": "5628",
+   "sitelinks": "79",
+   "label": "Damavand"
+  },
+  {
+   "item": "Q104674",
+   "value": "1344.527",
+   "sitelinks": "78",
+   "label": "Ben Nevis"
+  },
+  {
+   "item": "Q105124",
+   "value": "8027",
+   "sitelinks": "78",
+   "label": "Shishapangma"
+  },
+  {
+   "item": "Q1045888",
+   "value": "4884",
+   "sitelinks": "77",
+   "label": "Carstensz-Pyramide"
+  },
+  {
+   "item": "Q180996",
+   "value": "8051",
+   "sitelinks": "77",
+   "label": "Broad Peak"
+  },
+  {
+   "item": "Q107635",
+   "value": "2744",
+   "sitelinks": "77",
+   "label": "Paektusan"
+  },
+  {
+   "item": "Q107635",
+   "value": "2744",
+   "sitelinks": "77",
+   "label": "Paektusan"
+  },
+  {
+   "item": "Q3375",
+   "value": "2962.06",
+   "sitelinks": "75",
+   "label": "Zugspitze"
+  },
+  {
+   "item": "Q120306",
+   "value": "5959",
+   "sitelinks": "75",
+   "label": "Mount Logan"
+  },
+  {
+   "item": "Q168714",
+   "value": "2850",
+   "sitelinks": "73",
+   "label": "Tambora"
+  },
+  {
+   "item": "Q168714",
+   "value": "2850",
+   "sitelinks": "73",
+   "label": "Tambora"
+  },
+  {
+   "item": "Q213360",
+   "value": "1085",
+   "sitelinks": "72",
+   "label": "Tafelberg"
+  },
+  {
+   "item": "Q233836",
+   "value": "6893",
+   "sitelinks": "72",
+   "label": "Nevado Ojos del Salado"
+  },
+  {
+   "item": "Q181157",
+   "value": "5452",
+   "sitelinks": "72",
+   "label": "Popocatépetl"
+  },
+  {
+   "item": "Q181157",
+   "value": "5454",
+   "sitelinks": "72",
+   "label": "Popocatépetl"
+  },
+  {
+   "item": "Q216059",
+   "value": "1545",
+   "sitelinks": "71",
+   "label": "Tai Shan"
+  },
+  {
+   "item": "Q60967",
+   "value": "4095",
+   "sitelinks": "71",
+   "label": "Kinabalu"
+  },
+  {
+   "item": "Q187138",
+   "value": "8080",
+   "sitelinks": "71",
+   "label": "Hidden Peak"
+  },
+  {
+   "item": "Q1451",
+   "value": "1486",
+   "sitelinks": "70",
+   "label": "Pinatubo"
+  },
+  {
+   "item": "Q1484",
+   "value": "2462",
+   "sitelinks": "70",
+   "label": "Mayon"
+  },
+  {
+   "item": "Q186853",
+   "value": "8034",
+   "sitelinks": "70",
+   "label": "Gasherbrum II"
+  },
+  {
+   "item": "Q1484",
+   "value": "2462",
+   "sitelinks": "70",
+   "label": "Mayon"
+  },
+  {
+   "item": "Q188982",
+   "value": "3794",
+   "sitelinks": "69",
+   "label": "Mount Erebus"
+  },
+  {
+   "item": "Q5059",
+   "value": "3724",
+   "sitelinks": "69",
+   "label": "Mount Cook"
+  },
+  {
+   "item": "Q188982",
+   "value": "3794",
+   "sitelinks": "69",
+   "label": "Mount Erebus"
+  },
+  {
+   "item": "Q194057",
+   "value": "4389",
+   "sitelinks": "69",
+   "label": "Mount Rainier"
+  },
+  {
+   "item": "Q203568",
+   "value": "4090",
+   "sitelinks": "69",
+   "label": "Aragaz"
+  },
+  {
+   "item": "Q194057",
+   "value": "4389",
+   "sitelinks": "69",
+   "label": "Mount Rainier"
+  },
+  {
+   "item": "Q205976",
+   "value": "826",
+   "sitelinks": "67",
+   "label": "Ölberg"
+  },
+  {
+   "item": "Q215471",
+   "value": "2813.95",
+   "sitelinks": "66",
+   "label": "Hermon"
+  },
+  {
+   "item": "Q105261",
+   "value": "2455",
+   "sitelinks": "66",
+   "label": "Parnass"
+  },
+  {
+   "item": "Q1024",
+   "value": "2864",
+   "sitelinks": "65",
+   "label": "Triglav"
+  },
+  {
+   "item": "Q238147",
+   "value": "5636",
+   "sitelinks": "65",
+   "label": "Citlaltépetl"
+  },
+  {
+   "item": "Q181476",
+   "value": "5897",
+   "sitelinks": "65",
+   "label": "Cotopaxi"
+  },
+  {
+   "item": "Q181476",
+   "value": "5897",
+   "sitelinks": "65",
+   "label": "Cotopaxi"
+  },
+  {
+   "item": "Q211529",
+   "value": "7010",
+   "sitelinks": "64",
+   "label": "Khan Tengri"
+  },
+  {
+   "item": "Q219986",
+   "value": "7570",
+   "sitelinks": "64",
+   "label": "Gangkhar Puensum"
+  },
+  {
+   "item": "Q194215",
+   "value": "867",
+   "sitelinks": "63",
+   "label": "Amsterdam-Insel"
+  },
+  {
+   "item": "Q3388",
+   "value": "3798",
+   "sitelinks": "63",
+   "label": "Großglockner"
+  },
+  {
+   "item": "Q207680",
+   "value": "5033",
+   "sitelinks": "63",
+   "label": "Kasbek"
+  },
+  {
+   "item": "Q207680",
+   "value": "5033",
+   "sitelinks": "63",
+   "label": "Kasbek"
+  }
+ ]
+}
