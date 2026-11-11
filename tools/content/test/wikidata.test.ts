@@ -4,7 +4,7 @@ import { validateQuestionText } from '../src/index.ts';
 import { flattenBinding } from '../src/wikidata/fetch.ts';
 import { generateFromTemplate, pickDistractors, type SnapshotData, type Template } from '../src/wikidata/generate.ts';
 import { personName } from '../src/wikidata/de.ts';
-import { currencyNamesCountry, TEMPLATES } from '../src/wikidata/templates.ts';
+import { capitalNamesCountry, currencyNamesCountry, TEMPLATES } from '../src/wikidata/templates.ts';
 import { createRng, foldText, spreadPick, yearOf } from '../src/wikidata/util.ts';
 
 const fetchedAt = '2026-11-11T12:00:00.000Z';
@@ -77,6 +77,15 @@ describe('Wikidata-Hilfen', () => {
     expect(currencyNamesCountry('Schweiz', 'Schweizer Franken')).toBe(true);
     expect(currencyNamesCountry('Polen', 'Złoty')).toBe(false);
     expect(currencyNamesCountry('Mongolei', 'Tögrög')).toBe(false);
+  });
+
+  it('erkennt Hauptstädte, deren Name das Land verrät', () => {
+    expect(capitalNamesCountry('Luxemburg', 'Luxemburg')).toBe(true);
+    expect(capitalNamesCountry('Mexiko', 'Mexiko-Stadt')).toBe(true);
+    expect(capitalNamesCountry('El Salvador', 'San Salvador')).toBe(true);
+    expect(capitalNamesCountry('Guinea-Bissau', 'Bissau')).toBe(true);
+    expect(capitalNamesCountry('Dominikanische Republik', 'Santo Domingo')).toBe(false);
+    expect(capitalNamesCountry('Brasilien', 'Brasília')).toBe(false);
   });
 
   it('nimmt keine richtige Antwort und keine Dubletten als falsche Antwort', () => {

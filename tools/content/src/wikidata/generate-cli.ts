@@ -13,6 +13,8 @@ import { TEMPLATES } from './templates.ts';
  * schreibt je Frage eine YAML-Datei nach `content/questions/wikidata/`. Vorhandene Dateien
  * bleiben unberührt, damit sprachlich überarbeitete Entwürfe nicht überschrieben werden; mit
  * `--force` werden sie neu erzeugt. `--report` schreibt eine Übersicht zum Gegenlesen (Markdown).
+ * Entwürfe, die die Prüfung nicht bestehen, werden nie geschrieben; Prüffehler und fehlende
+ * Datenstände beenden den Lauf mit Code 1.
  */
 
 const HEADER = (accessed: string) =>
@@ -67,12 +69,14 @@ async function main(): Promise<number> {
   const snapshotDir = path.join(contentDir, 'wikidata');
   const outDir = path.join(contentDir, 'questions', 'wikidata');
   const generated: GeneratedQuestion[] = [];
+  let missing = 0;
   let errors = 0;
 
   for (const template of TEMPLATES) {
     const file = path.join(snapshotDir, `${template.snapshot}.json`);
     if (!(await exists(file))) {
       console.log(`fehlt  ${template.id}: kein Datenstand ${path.relative(contentDir, file)}`);
+      missing++;
       continue;
     }
     const snapshot = JSON.parse(await readFile(file, 'utf8')) as SnapshotData;
@@ -87,9 +91,12 @@ async function main(): Promise<number> {
   for (const { question } of generated) {
     const file = path.join(outDir, `${question.key}.yaml`);
     const text = toYaml(question);
-    for (const issue of validateQuestionText(text, { file, fixture: false }).issues) {
-      errors++;
-      console.log(`FEHLER ${question.key}: ${issue.message}`);
+    const { issues } = validateQuestionText(text, { file, fixture: false });
+    for (const issue of issues) console.log(`FEHLER ${question.key}: ${issue.message}`);
+    // ungültige Entwürfe nie schreiben, auch nicht mit --force über eine gültige Datei
+    if (issues.length > 0) {
+      errors += issues.length;
+      continue;
     }
     if (dryRun) continue;
     if (!force && (await exists(file))) {
@@ -104,9 +111,10 @@ async function main(): Promise<number> {
   const estimates = generated.filter((g) => g.question.kind === 'ESTIMATE').length;
   console.log(
     `\n${generated.length} Entwürfe (${estimates} Schätzung, ${generated.length - estimates} Auswahl): ` +
-      `${written} geschrieben, ${kept} vorhanden und unverändert, ${errors} Prüffehler`,
+      `${written} geschrieben, ${kept} vorhanden und unverändert, ${errors} Prüffehler` +
+      (missing > 0 ? `, ${missing} ${missing === 1 ? 'Datenstand fehlt' : 'Datenstände fehlen'}` : ''),
   );
-  return errors > 0 ? 1 : 0;
+  return errors > 0 || missing > 0 ? 1 : 0;
 }
 
 main().then(

@@ -474,6 +474,23 @@ const ordnungszahl: EstimateTemplate = {
 
 // ---------------------------------------------------------------- Auswahlfragen
 
+/**
+ * Hauptstadt, deren Name die Antwort verrät: „Luxemburg – Luxemburg“, „Mexiko – Mexiko-Stadt“,
+ * „El Salvador – San Salvador“ (gleiches Wort ab vier Buchstaben in Land und Stadt).
+ */
+export function capitalNamesCountry(country: string, capital: string): boolean {
+  const a = foldText(country);
+  const b = foldText(capital);
+  if (a.includes(b) || b.includes(a)) return true;
+  const words = (text: string) =>
+    text
+      .split(/[\s-]+/)
+      .map(foldText)
+      .filter((w) => w.length >= 4);
+  const capitalWords = words(capital);
+  return words(country).some((w) => capitalWords.includes(w));
+}
+
 const hauptstadt: ChoiceTemplate = {
   kind: 'TRIVIA',
   id: 'hauptstadt',
@@ -482,12 +499,9 @@ const hauptstadt: ChoiceTemplate = {
   count: 8,
   window: 100,
   extract: (rows) =>
-    singleAnswerFacts(rows, CAPITAL_EXCLUSIONS, { withGroup: true, rename: countryName }).filter((f) => {
-      // „Luxemburg – Luxemburg“, „Mexiko – Mexiko-Stadt“: Antwort steckt in der Frage
-      const country = f.label.toLocaleLowerCase('de');
-      const capital = f.answer.toLocaleLowerCase('de');
-      return !capital.includes(country) && !country.includes(capital);
-    }),
+    singleAnswerFacts(rows, CAPITAL_EXCLUSIONS, { withGroup: true, rename: countryName }).filter(
+      (f) => !capitalNamesCountry(f.label, f.answer),
+    ),
   prompt: (f) => `Wie heißt die Hauptstadt ${ofCountry(f.label)}?`,
 };
 
