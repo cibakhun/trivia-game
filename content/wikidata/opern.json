@@ -1,0 +1,658 @@
+{
+ "name": "opern",
+ "fetchedAt": "2026-11-11T20:57:48.279Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte Opern mit Komponist.\nSELECT ?item ?label ?sitelinks ?answer ?answerLabel ?answerBirth WHERE {\n  ?item wdt:P7937 wd:Q1344;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 30)\n  ?item wdt:P86 ?answer.\n  OPTIONAL { ?answer wdt:P569 ?answerBirth }\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n  ?answer rdfs:label ?answerLabel.\n  FILTER(LANG(?answerLabel) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 200\n",
+ "rowCount": 81,
+ "rows": [
+  {
+   "item": "Q185968",
+   "answer": "Q56158",
+   "sitelinks": "75",
+   "label": "Carmen",
+   "answerLabel": "Georges Bizet",
+   "answerBirth": "1838-10-25T00:00:00Z"
+  },
+  {
+   "item": "Q5064",
+   "answer": "Q254",
+   "sitelinks": "67",
+   "label": "Die Zauberflöte",
+   "answerLabel": "Wolfgang Amadeus Mozart",
+   "answerBirth": "1756-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q19005",
+   "answer": "Q7311",
+   "sitelinks": "64",
+   "label": "Madama Butterfly",
+   "answerLabel": "Giacomo Puccini",
+   "answerBirth": "1858-12-22T00:00:00Z"
+  },
+  {
+   "item": "Q171277",
+   "answer": "Q7317",
+   "sitelinks": "63",
+   "label": "Aida",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q201873",
+   "answer": "Q254",
+   "sitelinks": "62",
+   "label": "Le nozze di Figaro",
+   "answerLabel": "Wolfgang Amadeus Mozart",
+   "answerBirth": "1756-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q192039",
+   "answer": "Q254",
+   "sitelinks": "62",
+   "label": "Don Giovanni",
+   "answerLabel": "Wolfgang Amadeus Mozart",
+   "answerBirth": "1756-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q192941",
+   "answer": "Q7311",
+   "sitelinks": "61",
+   "label": "Tosca",
+   "answerLabel": "Giacomo Puccini",
+   "answerBirth": "1858-12-22T00:00:00Z"
+  },
+  {
+   "item": "Q189234",
+   "answer": "Q7317",
+   "sitelinks": "58",
+   "label": "Rigoletto",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q190237",
+   "answer": "Q1511",
+   "sitelinks": "55",
+   "label": "Der Ring des Nibelungen",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q202230",
+   "answer": "Q7317",
+   "sitelinks": "54",
+   "label": "Nabucco",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q207990",
+   "answer": "Q7311",
+   "sitelinks": "53",
+   "label": "Turandot",
+   "answerLabel": "Giacomo Puccini",
+   "answerBirth": "1858-12-22T00:00:00Z"
+  },
+  {
+   "item": "Q1324254",
+   "answer": "Q1511",
+   "sitelinks": "52",
+   "label": "Tristan und Isolde",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q208659",
+   "answer": "Q9726",
+   "sitelinks": "50",
+   "label": "Il barbiere di Siviglia",
+   "answerLabel": "Gioachino Rossini",
+   "answerBirth": "1792-02-29T00:00:00Z"
+  },
+  {
+   "item": "Q188621",
+   "answer": "Q7311",
+   "sitelinks": "49",
+   "label": "Die Bohème",
+   "answerLabel": "Giacomo Puccini",
+   "answerBirth": "1858-12-22T00:00:00Z"
+  },
+  {
+   "item": "Q203470",
+   "answer": "Q7317",
+   "sitelinks": "49",
+   "label": "Il trovatore",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q193778",
+   "answer": "Q255",
+   "sitelinks": "48",
+   "label": "Fidelio",
+   "answerLabel": "Ludwig van Beethoven",
+   "answerBirth": "1770-12-16T00:00:00Z"
+  },
+  {
+   "item": "Q207410",
+   "answer": "Q254",
+   "sitelinks": "48",
+   "label": "Così fan tutte",
+   "answerLabel": "Wolfgang Amadeus Mozart",
+   "answerBirth": "1756-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q221806",
+   "answer": "Q181894",
+   "sitelinks": "48",
+   "label": "Cavalleria rusticana",
+   "answerLabel": "Pietro Mascagni",
+   "answerBirth": "1863-12-07T00:00:00Z"
+  },
+  {
+   "item": "Q242667",
+   "answer": "Q180975",
+   "sitelinks": "47",
+   "label": "Jesus Christ Superstar",
+   "answerLabel": "Andrew Lloyd Webber",
+   "answerBirth": "1948-03-22T00:00:00Z"
+  },
+  {
+   "item": "Q248644",
+   "answer": "Q189015",
+   "sitelinks": "46",
+   "label": "Pagliacci",
+   "answerLabel": "Ruggero Leoncavallo",
+   "answerBirth": "1857-04-23T00:00:00Z"
+  },
+  {
+   "item": "Q23085",
+   "answer": "Q1511",
+   "sitelinks": "45",
+   "label": "Lohengrin",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q172324",
+   "answer": "Q7317",
+   "sitelinks": "45",
+   "label": "Otello",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q50956",
+   "answer": "Q7315",
+   "sitelinks": "45",
+   "label": "Eugen Onegin",
+   "answerLabel": "Pjotr Iljitsch Tschaikowski",
+   "answerBirth": "1840-05-07T00:00:00Z"
+  },
+  {
+   "item": "Q220340",
+   "answer": "Q1511",
+   "sitelinks": "45",
+   "label": "Parsifal",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q179110",
+   "answer": "Q7317",
+   "sitelinks": "44",
+   "label": "Don Carlos",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q212451",
+   "answer": "Q7317",
+   "sitelinks": "43",
+   "label": "La forza del destino",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q318455",
+   "answer": "Q7317",
+   "sitelinks": "42",
+   "label": "Falstaff",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q221757",
+   "answer": "Q7317",
+   "sitelinks": "42",
+   "label": "Un ballo in maschera",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q324319",
+   "answer": "Q1511",
+   "sitelinks": "41",
+   "label": "Die Walküre",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q114640",
+   "answer": "Q1511",
+   "sitelinks": "41",
+   "label": "Der fliegende Holländer",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q156435",
+   "answer": "Q154812",
+   "sitelinks": "41",
+   "label": "Der Freischütz",
+   "answerLabel": "Carl Maria von Weber",
+   "answerBirth": "1786-11-01T00:00:00Z"
+  },
+  {
+   "item": "Q156435",
+   "answer": "Q154812",
+   "sitelinks": "41",
+   "label": "Der Freischütz",
+   "answerLabel": "Carl Maria von Weber",
+   "answerBirth": "1786-11-18T00:00:00Z"
+  },
+  {
+   "item": "Q156435",
+   "answer": "Q154812",
+   "sitelinks": "41",
+   "label": "Der Freischütz",
+   "answerLabel": "Carl Maria von Weber",
+   "answerBirth": "1786-12-18T00:00:00Z"
+  },
+  {
+   "item": "Q745951",
+   "answer": "Q180278",
+   "sitelinks": "40",
+   "label": "Faust",
+   "answerLabel": "Charles Gounod",
+   "answerBirth": "1818-06-17T00:00:00Z"
+  },
+  {
+   "item": "Q327717",
+   "answer": "Q1511",
+   "sitelinks": "40",
+   "label": "Das Rheingold",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q459341",
+   "answer": "Q7311",
+   "sitelinks": "40",
+   "label": "Manon Lescaut",
+   "answerLabel": "Giacomo Puccini",
+   "answerBirth": "1858-12-22T00:00:00Z"
+  },
+  {
+   "item": "Q560619",
+   "answer": "Q1511",
+   "sitelinks": "39",
+   "label": "Tannhäuser",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q244209",
+   "answer": "Q101698",
+   "sitelinks": "39",
+   "label": "Lucia di Lammermoor",
+   "answerLabel": "Gaetano Donizetti",
+   "answerBirth": "1797-11-29T00:00:00Z"
+  },
+  {
+   "item": "Q272029",
+   "answer": "Q1511",
+   "sitelinks": "38",
+   "label": "Götterdämmerung",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q723407",
+   "answer": "Q13894",
+   "sitelinks": "38",
+   "label": "Salome",
+   "answerLabel": "Richard Strauss",
+   "answerBirth": "1864-06-11T00:00:00Z"
+  },
+  {
+   "item": "Q320353",
+   "answer": "Q170209",
+   "sitelinks": "38",
+   "label": "Norma",
+   "answerLabel": "Vincenzo Bellini",
+   "answerBirth": "1801-11-03T00:00:00Z"
+  },
+  {
+   "item": "Q221047",
+   "answer": "Q7315",
+   "sitelinks": "38",
+   "label": "Pique Dame",
+   "answerLabel": "Pjotr Iljitsch Tschaikowski",
+   "answerBirth": "1840-05-07T00:00:00Z"
+  },
+  {
+   "item": "Q464930",
+   "answer": "Q83309",
+   "sitelinks": "37",
+   "label": "Die Fledermaus",
+   "answerLabel": "Johann Strauss",
+   "answerBirth": "1825-10-25T00:00:00Z"
+  },
+  {
+   "item": "Q210711",
+   "answer": "Q254",
+   "sitelinks": "37",
+   "label": "Die Entführung aus dem Serail",
+   "answerLabel": "Wolfgang Amadeus Mozart",
+   "answerBirth": "1756-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q332536",
+   "answer": "Q101698",
+   "sitelinks": "37",
+   "label": "L’elisir d’amore",
+   "answerLabel": "Gaetano Donizetti",
+   "answerBirth": "1797-11-29T00:00:00Z"
+  },
+  {
+   "item": "Q333146",
+   "answer": "Q1511",
+   "sitelinks": "37",
+   "label": "Siegfried",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q335012",
+   "answer": "Q41555",
+   "sitelinks": "37",
+   "label": "Hoffmanns Erzählungen",
+   "answerLabel": "Jacques Offenbach",
+   "answerBirth": "1819-06-20T00:00:00Z"
+  },
+  {
+   "item": "Q465540",
+   "answer": "Q1511",
+   "sitelinks": "36",
+   "label": "Die Meistersinger von Nürnberg",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q320363",
+   "answer": "Q7317",
+   "sitelinks": "36",
+   "label": "Macbeth",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q548161",
+   "answer": "Q7317",
+   "sitelinks": "36",
+   "label": "Simon Boccanegra",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q471240",
+   "answer": "Q13894",
+   "sitelinks": "36",
+   "label": "Der Rosenkavalier",
+   "answerLabel": "Richard Strauss",
+   "answerBirth": "1864-06-11T00:00:00Z"
+  },
+  {
+   "item": "Q478202",
+   "answer": "Q191917",
+   "sitelinks": "36",
+   "label": "Die lustige Witwe",
+   "answerLabel": "Franz Lehár",
+   "answerBirth": "1870-04-30T00:00:00Z"
+  },
+  {
+   "item": "Q723776",
+   "answer": "Q130759",
+   "sitelinks": "36",
+   "label": "Orfeo ed Euridice",
+   "answerLabel": "Christoph Willibald Gluck",
+   "answerBirth": "1714-07-02T00:00:00Z"
+  },
+  {
+   "item": "Q907745",
+   "answer": "Q48173",
+   "sitelinks": "36",
+   "label": "Die verkaufte Braut",
+   "answerLabel": "Bedřich Smetana",
+   "answerBirth": "1824-03-02T00:00:00Z"
+  },
+  {
+   "item": "Q767249",
+   "answer": "Q7302",
+   "sitelinks": "35",
+   "label": "Rinaldo",
+   "answerLabel": "Georg Friedrich Händel",
+   "answerBirth": "1685-03-05T00:00:00Z"
+  },
+  {
+   "item": "Q729659",
+   "answer": "Q9726",
+   "sitelinks": "35",
+   "label": "Guillaume Tell",
+   "answerLabel": "Gioachino Rossini",
+   "answerBirth": "1792-02-29T00:00:00Z"
+  },
+  {
+   "item": "Q727868",
+   "answer": "Q7311",
+   "sitelinks": "35",
+   "label": "Gianni Schicchi",
+   "answerLabel": "Giacomo Puccini",
+   "answerBirth": "1858-12-22T00:00:00Z"
+  },
+  {
+   "item": "Q723559",
+   "answer": "Q254",
+   "sitelinks": "35",
+   "label": "Idomeneo",
+   "answerLabel": "Wolfgang Amadeus Mozart",
+   "answerBirth": "1756-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q724008",
+   "answer": "Q53068",
+   "sitelinks": "35",
+   "label": "L’Orfeo",
+   "answerLabel": "Claudio Monteverdi",
+   "answerBirth": "1567-05-25T00:00:00Z"
+  },
+  {
+   "item": "Q578526",
+   "answer": "Q254",
+   "sitelinks": "34",
+   "label": "La clemenza di Tito",
+   "answerLabel": "Wolfgang Amadeus Mozart",
+   "answerBirth": "1756-01-27T00:00:00Z"
+  },
+  {
+   "item": "Q176700",
+   "answer": "Q9726",
+   "sitelinks": "34",
+   "label": "La Cenerentola",
+   "answerLabel": "Gioachino Rossini",
+   "answerBirth": "1792-02-29T00:00:00Z"
+  },
+  {
+   "item": "Q211279",
+   "answer": "Q7317",
+   "sitelinks": "34",
+   "label": "Ernani",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q729568",
+   "answer": "Q101698",
+   "sitelinks": "34",
+   "label": "La fille du régiment",
+   "answerLabel": "Gaetano Donizetti",
+   "answerBirth": "1797-11-29T00:00:00Z"
+  },
+  {
+   "item": "Q723941",
+   "answer": "Q101698",
+   "sitelinks": "34",
+   "label": "Don Pasquale",
+   "answerLabel": "Gaetano Donizetti",
+   "answerBirth": "1797-11-29T00:00:00Z"
+  },
+  {
+   "item": "Q746646",
+   "answer": "Q9695",
+   "sitelinks": "33",
+   "label": "Dido and Aeneas",
+   "answerLabel": "Henry Purcell",
+   "answerBirth": "1659-09-10T00:00:00Z"
+  },
+  {
+   "item": "Q386846",
+   "answer": "Q132682",
+   "sitelinks": "33",
+   "label": "Boris Godunow",
+   "answerLabel": "Modest Petrowitsch Mussorgski",
+   "answerBirth": "1839-03-21T00:00:00Z"
+  },
+  {
+   "item": "Q275354",
+   "answer": "Q164004",
+   "sitelinks": "32",
+   "label": "Fürst Igor",
+   "answerLabel": "Alexander Porfirjewitsch Borodin",
+   "answerBirth": "1833-11-12T00:00:00Z"
+  },
+  {
+   "item": "Q589932",
+   "answer": "Q9726",
+   "sitelinks": "32",
+   "label": "L’italiana in Algeri",
+   "answerLabel": "Gioachino Rossini",
+   "answerBirth": "1792-02-29T00:00:00Z"
+  },
+  {
+   "item": "Q211460",
+   "answer": "Q7317",
+   "sitelinks": "32",
+   "label": "Attila",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q753152",
+   "answer": "Q150445",
+   "sitelinks": "31",
+   "label": "Samson et Dalila",
+   "answerLabel": "Camille Saint-Saëns",
+   "answerBirth": "1835-10-09T00:00:00Z"
+  },
+  {
+   "item": "Q757134",
+   "answer": "Q7317",
+   "sitelinks": "31",
+   "label": "Giovanna d'Arco",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q776107",
+   "answer": "Q207951",
+   "sitelinks": "31",
+   "label": "Lakmé",
+   "answerLabel": "Léo Delibes",
+   "answerBirth": "1836-02-21T00:00:00Z"
+  },
+  {
+   "item": "Q753123",
+   "answer": "Q170209",
+   "sitelinks": "30",
+   "label": "La sonnambula",
+   "answerLabel": "Vincenzo Bellini",
+   "answerBirth": "1801-11-03T00:00:00Z"
+  },
+  {
+   "item": "Q831255",
+   "answer": "Q7298",
+   "sitelinks": "30",
+   "label": "Rusalka",
+   "answerLabel": "Antonín Dvořák",
+   "answerBirth": "1841-09-08T00:00:00Z"
+  },
+  {
+   "item": "Q689441",
+   "answer": "Q1511",
+   "sitelinks": "30",
+   "label": "Rienzi",
+   "answerLabel": "Richard Wagner",
+   "answerBirth": "1813-05-22T00:00:00Z"
+  },
+  {
+   "item": "Q468625",
+   "answer": "Q7317",
+   "sitelinks": "30",
+   "label": "I Lombardi alla prima crociata",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q559848",
+   "answer": "Q101698",
+   "sitelinks": "30",
+   "label": "Anna Bolena",
+   "answerLabel": "Gaetano Donizetti",
+   "answerBirth": "1797-11-29T00:00:00Z"
+  },
+  {
+   "item": "Q1137065",
+   "answer": "Q41555",
+   "sitelinks": "30",
+   "label": "Orpheus in der Unterwelt",
+   "answerLabel": "Jacques Offenbach",
+   "answerBirth": "1819-06-20T00:00:00Z"
+  },
+  {
+   "item": "Q545265",
+   "answer": "Q7317",
+   "sitelinks": "30",
+   "label": "Luisa Miller",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q471645",
+   "answer": "Q7317",
+   "sitelinks": "30",
+   "label": "Les vêpres siciliennes",
+   "answerLabel": "Giuseppe Verdi",
+   "answerBirth": "1813-10-10T00:00:00Z"
+  },
+  {
+   "item": "Q460319",
+   "answer": "Q7311",
+   "sitelinks": "30",
+   "label": "La fanciulla del West",
+   "answerLabel": "Giacomo Puccini",
+   "answerBirth": "1858-12-22T00:00:00Z"
+  }
+ ]
+}

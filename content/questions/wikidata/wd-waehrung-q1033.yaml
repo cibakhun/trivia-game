@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-waehrung-q1033
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:waehrung
+sources:
+  - title: "Wikidata: Nigeria (Q1033)"
+    url: https://www.wikidata.org/wiki/Q1033
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: Mit welcher Währung bezahlt man in Nigeria?
+    options:
+      a: Kwanza
+      b: Dalasi
+      c: Naira
+      d: Ouguiya

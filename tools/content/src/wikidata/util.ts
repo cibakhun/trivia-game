@@ -61,17 +61,43 @@ export function distinct<T>(values: readonly T[]): T[] {
  * Wählt `count` Einträge gleichmäßig verteilt aus den ersten `window` einer nach Bekanntheit
  * sortierten Liste, damit leichte und schwerere Fragen dabei sind. Liefert die Position im
  * Fenster mit, aus der sich die Schwierigkeit ableitet.
+ *
+ * Ohne `seed` sind es feste Abstände (erster, …, letzter). Mit `seed` wird das Fenster in
+ * `count` gleich große Abschnitte geteilt und aus jedem einer gelost, damit zwei Vorlagen über
+ * dieselbe Liste (Fläche und Einwohner der Staaten) nicht dieselben Gegenstände abfragen.
  */
-export function spreadPick<T>(ranked: readonly T[], count: number, window: number): { item: T; share: number }[] {
+export function spreadPick<T>(
+  ranked: readonly T[],
+  count: number,
+  window: number,
+  seed?: string,
+): { item: T; share: number }[] {
   const size = Math.min(ranked.length, Math.max(window, count));
   if (size <= count) return ranked.slice(0, size).map((item, i) => ({ item, share: size > 1 ? i / (size - 1) : 0 }));
+  const rng = seed === undefined ? null : createRng(`${seed}:auswahl`);
   const picks: { item: T; share: number }[] = [];
   for (let i = 0; i < count; i++) {
-    const index = Math.round((i * (size - 1)) / (count - 1 || 1));
+    let index: number;
+    if (rng) {
+      const from = Math.floor((i * size) / count);
+      const to = Math.floor(((i + 1) * size) / count);
+      index = from + Math.floor(rng() * (to - from));
+    } else {
+      index = Math.round((i * (size - 1)) / (count - 1 || 1));
+    }
     const item = ranked[index];
     if (item !== undefined) picks.push({ item, share: index / (size - 1) });
   }
   return picks;
+}
+
+/** Vergleichsform ohne Groß-/Kleinschreibung, Akzente und Satzzeichen („Soʻm“ → „som“). */
+export function foldText(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLocaleLowerCase('de')
+    .replace(/\p{Lm}|[^\p{L}\p{N}]/gu, '');
 }
 
 /** Schwierigkeit aus der Lage im Fenster: bekannteste Drittel 2, mittleres 3, letztes 4. */

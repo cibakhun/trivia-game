@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-hauptstadt-q40
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:hauptstadt
+sources:
+  - title: "Wikidata: Österreich (Q40)"
+    url: https://www.wikidata.org/wiki/Q40
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie heißt die Hauptstadt von Österreich?
+    options:
+      a: Stockholm
+      b: Lissabon
+      c: Wien
+      d: Brüssel

@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-olympia-q8415
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:olympia
+sources:
+  - title: "Wikidata: Olympischen Sommerspiele 1960 (Q8415)"
+    url: https://www.wikidata.org/wiki/Q8415
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: In welcher Stadt fanden die Olympischen Sommerspiele 1960 statt?
+    options:
+      a: Montreal
+      b: Mexiko-Stadt
+      c: Rom
+      d: Moskau

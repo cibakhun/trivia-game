@@ -1,0 +1,1746 @@
+{
+ "name": "laender-hauptstadt",
+ "fetchedAt": "2026-11-11T20:54:40.250Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Heutige Staaten mit Hauptstadt und Kontinent (für plausible falsche Antworten).\nSELECT ?item ?label ?sitelinks ?answer ?answerLabel ?continent WHERE {\n  ?item wdt:P31 wd:Q6256;\n        wikibase:sitelinks ?sitelinks;\n        wdt:P36 ?answer.\n  FILTER NOT EXISTS { ?item wdt:P576 ?dissolved }\n  OPTIONAL { ?item wdt:P30 ?continent }\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n  ?answer rdfs:label ?answerLabel.\n  FILTER(LANG(?answerLabel) = \"de\")\n}\nORDER BY DESC(?sitelinks)\n",
+ "rowCount": 217,
+ "rows": [
+  {
+   "item": "Q43",
+   "answer": "Q3640",
+   "sitelinks": "430",
+   "label": "Türkei",
+   "answerLabel": "Ankara",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q43",
+   "answer": "Q3640",
+   "sitelinks": "430",
+   "label": "Türkei",
+   "answerLabel": "Ankara",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q142",
+   "answer": "Q90",
+   "sitelinks": "428",
+   "label": "Frankreich",
+   "answerLabel": "Paris",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q30",
+   "answer": "Q61",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten",
+   "answerLabel": "Washington, D.C.",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q159",
+   "answer": "Q649",
+   "sitelinks": "421",
+   "label": "Russland",
+   "answerLabel": "Moskau",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q159",
+   "answer": "Q649",
+   "sitelinks": "421",
+   "label": "Russland",
+   "answerLabel": "Moskau",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q159",
+   "answer": "Q649",
+   "sitelinks": "421",
+   "label": "Russland",
+   "answerLabel": "Moskau",
+   "continent": "Q5401"
+  },
+  {
+   "item": "Q17",
+   "answer": "Q1490",
+   "sitelinks": "419",
+   "label": "Japan",
+   "answerLabel": "Tokio",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q38",
+   "answer": "Q220",
+   "sitelinks": "409",
+   "label": "Italien",
+   "answerLabel": "Rom",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q183",
+   "answer": "Q64",
+   "sitelinks": "405",
+   "label": "Deutschland",
+   "answerLabel": "Berlin",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q668",
+   "answer": "Q987",
+   "sitelinks": "404",
+   "label": "Indien",
+   "answerLabel": "Neu-Delhi",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q33",
+   "answer": "Q1757",
+   "sitelinks": "403",
+   "label": "Finnland",
+   "answerLabel": "Helsinki",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q96",
+   "answer": "Q1489",
+   "sitelinks": "402",
+   "label": "Mexiko",
+   "answerLabel": "Mexiko-Stadt",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q148",
+   "answer": "Q956",
+   "sitelinks": "401",
+   "label": "Volksrepublik China",
+   "answerLabel": "Peking",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q408",
+   "answer": "Q3114",
+   "sitelinks": "400",
+   "label": "Australien",
+   "answerLabel": "Canberra",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q16",
+   "answer": "Q1930",
+   "sitelinks": "398",
+   "label": "Kanada",
+   "answerLabel": "Ottawa",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q29",
+   "answer": "Q2807",
+   "sitelinks": "397",
+   "label": "Spanien",
+   "answerLabel": "Madrid",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q145",
+   "answer": "Q84",
+   "sitelinks": "396",
+   "label": "Vereinigtes Königreich",
+   "answerLabel": "London",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q79",
+   "answer": "Q85",
+   "sitelinks": "392",
+   "label": "Ägypten",
+   "answerLabel": "Kairo",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q36",
+   "answer": "Q270",
+   "sitelinks": "391",
+   "label": "Polen",
+   "answerLabel": "Warschau",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q212",
+   "answer": "Q1899",
+   "sitelinks": "390",
+   "label": "Ukraine",
+   "answerLabel": "Kiew",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q39",
+   "answer": "Q70",
+   "sitelinks": "387",
+   "label": "Schweiz",
+   "answerLabel": "Bern",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q155",
+   "answer": "Q2844",
+   "sitelinks": "387",
+   "label": "Brasilien",
+   "answerLabel": "Brasília",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q222",
+   "answer": "Q19689",
+   "sitelinks": "387",
+   "label": "Albanien",
+   "answerLabel": "Tirana",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q31",
+   "answer": "Q239",
+   "sitelinks": "383",
+   "label": "Belgien",
+   "answerLabel": "Brüssel",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q298",
+   "answer": "Q2887",
+   "sitelinks": "382",
+   "label": "Chile",
+   "answerLabel": "Santiago de Chile",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q801",
+   "answer": "Q1218",
+   "sitelinks": "380",
+   "label": "Israel",
+   "answerLabel": "Jerusalem",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q41",
+   "answer": "Q1524",
+   "sitelinks": "378",
+   "label": "Griechenland",
+   "answerLabel": "Athen",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q794",
+   "answer": "Q3616",
+   "sitelinks": "376",
+   "label": "Iran",
+   "answerLabel": "Teheran",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q55",
+   "answer": "Q727",
+   "sitelinks": "375",
+   "label": "Niederlande",
+   "answerLabel": "Amsterdam",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q262",
+   "answer": "Q3561",
+   "sitelinks": "374",
+   "label": "Algerien",
+   "answerLabel": "Algier",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q414",
+   "answer": "Q1486",
+   "sitelinks": "372",
+   "label": "Argentinien",
+   "answerLabel": "Buenos Aires",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q45",
+   "answer": "Q597",
+   "sitelinks": "372",
+   "label": "Portugal",
+   "answerLabel": "Lissabon",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q40",
+   "answer": "Q1741",
+   "sitelinks": "372",
+   "label": "Österreich",
+   "answerLabel": "Wien",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q34",
+   "answer": "Q1754",
+   "sitelinks": "370",
+   "label": "Schweden",
+   "answerLabel": "Stockholm",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q35",
+   "answer": "Q1748",
+   "sitelinks": "369",
+   "label": "Dänemark",
+   "answerLabel": "Kopenhagen",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q881",
+   "answer": "Q1858",
+   "sitelinks": "369",
+   "label": "Vietnam",
+   "answerLabel": "Hanoi",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q258",
+   "answer": "Q3926",
+   "sitelinks": "368",
+   "label": "Südafrika",
+   "answerLabel": "Pretoria",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q258",
+   "answer": "Q37701",
+   "sitelinks": "368",
+   "label": "Südafrika",
+   "answerLabel": "Bloemfontein",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q258",
+   "answer": "Q5465",
+   "sitelinks": "368",
+   "label": "Südafrika",
+   "answerLabel": "Kapstadt",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q739",
+   "answer": "Q2841",
+   "sitelinks": "367",
+   "label": "Kolumbien",
+   "answerLabel": "Bogotá",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q252",
+   "answer": "Q3630",
+   "sitelinks": "366",
+   "label": "Indonesien",
+   "answerLabel": "Jakarta",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q227",
+   "answer": "Q9248",
+   "sitelinks": "363",
+   "label": "Aserbaidschan",
+   "answerLabel": "Baku",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q889",
+   "answer": "Q5838",
+   "sitelinks": "363",
+   "label": "Afghanistan",
+   "answerLabel": "Kabul",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q219",
+   "answer": "Q472",
+   "sitelinks": "361",
+   "label": "Bulgarien",
+   "answerLabel": "Sofia",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q184",
+   "answer": "Q2280",
+   "sitelinks": "359",
+   "label": "Belarus",
+   "answerLabel": "Minsk",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q28",
+   "answer": "Q1781",
+   "sitelinks": "358",
+   "label": "Ungarn",
+   "answerLabel": "Budapest",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q224",
+   "answer": "Q1435",
+   "sitelinks": "356",
+   "label": "Kroatien",
+   "answerLabel": "Zagreb",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q869",
+   "answer": "Q1861",
+   "sitelinks": "356",
+   "label": "Thailand",
+   "answerLabel": "Bangkok",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q884",
+   "answer": "Q8684",
+   "sitelinks": "356",
+   "label": "Südkorea",
+   "answerLabel": "Seoul",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q843",
+   "answer": "Q1362",
+   "sitelinks": "356",
+   "label": "Pakistan",
+   "answerLabel": "Islamabad",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q399",
+   "answer": "Q1953",
+   "sitelinks": "355",
+   "label": "Armenien",
+   "answerLabel": "Jerewan",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q189",
+   "answer": "Q1764",
+   "sitelinks": "355",
+   "label": "Island",
+   "answerLabel": "Reykjavík",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q213",
+   "answer": "Q1085",
+   "sitelinks": "355",
+   "label": "Tschechien",
+   "answerLabel": "Prag",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q191",
+   "answer": "Q1770",
+   "sitelinks": "354",
+   "label": "Estland",
+   "answerLabel": "Tallinn",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q403",
+   "answer": "Q3711",
+   "sitelinks": "352",
+   "label": "Serbien",
+   "answerLabel": "Belgrad",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q664",
+   "answer": "Q23661",
+   "sitelinks": "352",
+   "label": "Neuseeland",
+   "answerLabel": "Wellington",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q37",
+   "answer": "Q216",
+   "sitelinks": "352",
+   "label": "Litauen",
+   "answerLabel": "Vilnius",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q230",
+   "answer": "Q994",
+   "sitelinks": "351",
+   "label": "Georgien",
+   "answerLabel": "Tiflis",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q232",
+   "answer": "Q1520",
+   "sitelinks": "350",
+   "label": "Kasachstan",
+   "answerLabel": "Astana",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q232",
+   "answer": "Q1520",
+   "sitelinks": "350",
+   "label": "Kasachstan",
+   "answerLabel": "Astana",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q796",
+   "answer": "Q1530",
+   "sitelinks": "350",
+   "label": "Irak",
+   "answerLabel": "Bagdad",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q851",
+   "answer": "Q3692",
+   "sitelinks": "350",
+   "label": "Saudi-Arabien",
+   "answerLabel": "Riad",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q218",
+   "answer": "Q19660",
+   "sitelinks": "349",
+   "label": "Rumänien",
+   "answerLabel": "Bukarest",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q902",
+   "answer": "Q1354",
+   "sitelinks": "349",
+   "label": "Bangladesch",
+   "answerLabel": "Dhaka",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q115",
+   "answer": "Q3624",
+   "sitelinks": "348",
+   "label": "Äthiopien",
+   "answerLabel": "Addis Abeba",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q717",
+   "answer": "Q1533",
+   "sitelinks": "346",
+   "label": "Venezuela",
+   "answerLabel": "Caracas",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q237",
+   "answer": "Q237",
+   "sitelinks": "343",
+   "label": "Vatikanstadt",
+   "answerLabel": "Vatikanstadt",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q27",
+   "answer": "Q1761",
+   "sitelinks": "343",
+   "label": "Irland",
+   "answerLabel": "Dublin",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q225",
+   "answer": "Q11194",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina",
+   "answerLabel": "Sarajevo",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q214",
+   "answer": "Q1780",
+   "sitelinks": "341",
+   "label": "Slowakei",
+   "answerLabel": "Bratislava",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q833",
+   "answer": "Q1865",
+   "sitelinks": "340",
+   "label": "Malaysia",
+   "answerLabel": "Kuala Lumpur",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q114",
+   "answer": "Q3870",
+   "sitelinks": "338",
+   "label": "Kenia",
+   "answerLabel": "Nairobi",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q858",
+   "answer": "Q3766",
+   "sitelinks": "337",
+   "label": "Syrien",
+   "answerLabel": "Damaskus",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q211",
+   "answer": "Q1773",
+   "sitelinks": "336",
+   "label": "Lettland",
+   "answerLabel": "Riga",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q32",
+   "answer": "Q1842",
+   "sitelinks": "335",
+   "label": "Luxemburg",
+   "answerLabel": "Luxemburg",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q1028",
+   "answer": "Q3551",
+   "sitelinks": "335",
+   "label": "Marokko",
+   "answerLabel": "Rabat",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1049",
+   "answer": "Q1963",
+   "sitelinks": "335",
+   "label": "Sudan",
+   "answerLabel": "Chartum",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q928",
+   "answer": "Q1461",
+   "sitelinks": "334",
+   "label": "Philippinen",
+   "answerLabel": "Manila",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q974",
+   "answer": "Q3838",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo",
+   "answerLabel": "Kinshasa",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1016",
+   "answer": "Q3579",
+   "sitelinks": "334",
+   "label": "Libyen",
+   "answerLabel": "Tripolis",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q228",
+   "answer": "Q1863",
+   "sitelinks": "333",
+   "label": "Andorra",
+   "answerLabel": "Andorra la Vella",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q334",
+   "answer": "Q334",
+   "sitelinks": "333",
+   "label": "Singapur",
+   "answerLabel": "Singapur",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q419",
+   "answer": "Q2868",
+   "sitelinks": "333",
+   "label": "Peru",
+   "answerLabel": "Lima",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q424",
+   "answer": "Q1850",
+   "sitelinks": "332",
+   "label": "Kambodscha",
+   "answerLabel": "Phnom Penh",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q217",
+   "answer": "Q21197",
+   "sitelinks": "331",
+   "label": "Moldau",
+   "answerLabel": "Kischinau",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q215",
+   "answer": "Q437",
+   "sitelinks": "331",
+   "label": "Slowenien",
+   "answerLabel": "Ljubljana",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q822",
+   "answer": "Q3820",
+   "sitelinks": "329",
+   "label": "Libanon",
+   "answerLabel": "Beirut",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q948",
+   "answer": "Q3572",
+   "sitelinks": "329",
+   "label": "Tunesien",
+   "answerLabel": "Tunis",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q229",
+   "answer": "Q3856",
+   "sitelinks": "327",
+   "label": "Zypern",
+   "answerLabel": "Nikosia",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q233",
+   "answer": "Q23800",
+   "sitelinks": "327",
+   "label": "Malta",
+   "answerLabel": "Valletta",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q221",
+   "answer": "Q384",
+   "sitelinks": "327",
+   "label": "Nordmazedonien",
+   "answerLabel": "Skopje",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q117",
+   "answer": "Q3761",
+   "sitelinks": "326",
+   "label": "Ghana",
+   "answerLabel": "Accra",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1045",
+   "answer": "Q2449",
+   "sitelinks": "326",
+   "label": "Somalia",
+   "answerLabel": "Mogadischu",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q77",
+   "answer": "Q1335",
+   "sitelinks": "324",
+   "label": "Uruguay",
+   "answerLabel": "Montevideo",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q837",
+   "answer": "Q3037",
+   "sitelinks": "324",
+   "label": "Nepal",
+   "answerLabel": "Kathmandu",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q236",
+   "answer": "Q23564",
+   "sitelinks": "323",
+   "label": "Montenegro",
+   "answerLabel": "Podgorica",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q916",
+   "answer": "Q3897",
+   "sitelinks": "323",
+   "label": "Angola",
+   "answerLabel": "Luanda",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q711",
+   "answer": "Q23430",
+   "sitelinks": "322",
+   "label": "Mongolei",
+   "answerLabel": "Ulaanbaatar",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q235",
+   "answer": "Q235",
+   "sitelinks": "321",
+   "label": "Monaco",
+   "answerLabel": "Monaco",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q924",
+   "answer": "Q3866",
+   "sitelinks": "321",
+   "label": "Tansania",
+   "answerLabel": "Dodoma",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1019",
+   "answer": "Q3915",
+   "sitelinks": "321",
+   "label": "Madagaskar",
+   "answerLabel": "Antananarivo",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q813",
+   "answer": "Q9361",
+   "sitelinks": "320",
+   "label": "Kirgisistan",
+   "answerLabel": "Bischkek",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q878",
+   "answer": "Q1519",
+   "sitelinks": "320",
+   "label": "Vereinigte Arabische Emirate",
+   "answerLabel": "Abu Dhabi",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q954",
+   "answer": "Q3921",
+   "sitelinks": "320",
+   "label": "Simbabwe",
+   "answerLabel": "Harare",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q657",
+   "answer": "Q3659",
+   "sitelinks": "318",
+   "label": "Tschad",
+   "answerLabel": "N’Djamena",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q836",
+   "answer": "Q37400",
+   "sitelinks": "318",
+   "label": "Myanmar",
+   "answerLabel": "Naypyidaw",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q736",
+   "answer": "Q2900",
+   "sitelinks": "317",
+   "label": "Ecuador",
+   "answerLabel": "Quito",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q347",
+   "answer": "Q1844",
+   "sitelinks": "316",
+   "label": "Liechtenstein",
+   "answerLabel": "Vaduz",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q819",
+   "answer": "Q9326",
+   "sitelinks": "316",
+   "label": "Laos",
+   "answerLabel": "Vientiane",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1030",
+   "answer": "Q3935",
+   "sitelinks": "316",
+   "label": "Namibia",
+   "answerLabel": "Windhoek",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q805",
+   "answer": "Q2471",
+   "sitelinks": "315",
+   "label": "Jemen",
+   "answerLabel": "Sanaa",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q805",
+   "answer": "Q131694",
+   "sitelinks": "315",
+   "label": "Jemen",
+   "answerLabel": "Aden",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q963",
+   "answer": "Q3919",
+   "sitelinks": "315",
+   "label": "Botswana",
+   "answerLabel": "Gaborone",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q238",
+   "answer": "Q1848",
+   "sitelinks": "314",
+   "label": "San Marino",
+   "answerLabel": "San Marino",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q810",
+   "answer": "Q3805",
+   "sitelinks": "314",
+   "label": "Jordanien",
+   "answerLabel": "Amman",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1009",
+   "answer": "Q3808",
+   "sitelinks": "314",
+   "label": "Kamerun",
+   "answerLabel": "Yaoundé",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q423",
+   "answer": "Q18808",
+   "sitelinks": "313",
+   "label": "Nordkorea",
+   "answerLabel": "Pjöngjang",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q750",
+   "answer": "Q2907",
+   "sitelinks": "313",
+   "label": "Bolivien",
+   "answerLabel": "Sucre",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q750",
+   "answer": "Q1491",
+   "sitelinks": "313",
+   "label": "Bolivien",
+   "answerLabel": "La Paz",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q1008",
+   "answer": "Q3768",
+   "sitelinks": "313",
+   "label": "Elfenbeinküste",
+   "answerLabel": "Yamoussoukro",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q241",
+   "answer": "Q1563",
+   "sitelinks": "312",
+   "label": "Kuba",
+   "answerLabel": "Havanna",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q733",
+   "answer": "Q2933",
+   "sitelinks": "312",
+   "label": "Paraguay",
+   "answerLabel": "Asunción",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q912",
+   "answer": "Q3703",
+   "sitelinks": "312",
+   "label": "Mali",
+   "answerLabel": "Bamako",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1036",
+   "answer": "Q3894",
+   "sitelinks": "312",
+   "label": "Uganda",
+   "answerLabel": "Kampala",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q265",
+   "answer": "Q269",
+   "sitelinks": "310",
+   "label": "Usbekistan",
+   "answerLabel": "Taschkent",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q854",
+   "answer": "Q35381",
+   "sitelinks": "310",
+   "label": "Sri Lanka",
+   "answerLabel": "Colombo",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q854",
+   "answer": "Q41963",
+   "sitelinks": "310",
+   "label": "Sri Lanka",
+   "answerLabel": "Sri Jayewardenepura Kotte",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q953",
+   "answer": "Q3881",
+   "sitelinks": "309",
+   "label": "Sambia",
+   "answerLabel": "Lusaka",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q965",
+   "answer": "Q3777",
+   "sitelinks": "309",
+   "label": "Burkina Faso",
+   "answerLabel": "Ouagadougou",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1041",
+   "answer": "Q3718",
+   "sitelinks": "309",
+   "label": "Senegal",
+   "answerLabel": "Dakar",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q962",
+   "answer": "Q3799",
+   "sitelinks": "308",
+   "label": "Benin",
+   "answerLabel": "Porto-Novo",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q863",
+   "answer": "Q9365",
+   "sitelinks": "308",
+   "label": "Tadschikistan",
+   "answerLabel": "Duschanbe",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q986",
+   "answer": "Q3642",
+   "sitelinks": "308",
+   "label": "Eritrea",
+   "answerLabel": "Asmara",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q398",
+   "answer": "Q3882",
+   "sitelinks": "306",
+   "label": "Bahrain",
+   "answerLabel": "Manama",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q817",
+   "answer": "Q35178",
+   "sitelinks": "306",
+   "label": "Kuwait",
+   "answerLabel": "Kuweit-Stadt",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1025",
+   "answer": "Q3688",
+   "sitelinks": "306",
+   "label": "Mauretanien",
+   "answerLabel": "Nouakchott",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q917",
+   "answer": "Q9270",
+   "sitelinks": "305",
+   "label": "Bhutan",
+   "answerLabel": "Thimphu",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q804",
+   "answer": "Q3306",
+   "sitelinks": "304",
+   "label": "Panama",
+   "answerLabel": "Panama-Stadt",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q967",
+   "answer": "Q167551",
+   "sitelinks": "304",
+   "label": "Burundi",
+   "answerLabel": "Gitega",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1037",
+   "answer": "Q3859",
+   "sitelinks": "303",
+   "label": "Ruanda",
+   "answerLabel": "Kigali",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q800",
+   "answer": "Q3070",
+   "sitelinks": "302",
+   "label": "Costa Rica",
+   "answerLabel": "San José",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q945",
+   "answer": "Q3792",
+   "sitelinks": "302",
+   "label": "Togo",
+   "answerLabel": "Lomé",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1032",
+   "answer": "Q3674",
+   "sitelinks": "302",
+   "label": "Niger",
+   "answerLabel": "Niamey",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1029",
+   "answer": "Q3889",
+   "sitelinks": "302",
+   "label": "Mosambik",
+   "answerLabel": "Maputo",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q929",
+   "answer": "Q3832",
+   "sitelinks": "301",
+   "label": "Zentralafrikanische Republik",
+   "answerLabel": "Bangui",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1006",
+   "answer": "Q3733",
+   "sitelinks": "301",
+   "label": "Guinea",
+   "answerLabel": "Conakry",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1005",
+   "answer": "Q3726",
+   "sitelinks": "301",
+   "label": "Gambia",
+   "answerLabel": "Banjul",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q783",
+   "answer": "Q3238",
+   "sitelinks": "300",
+   "label": "Honduras",
+   "answerLabel": "Tegucigalpa",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q977",
+   "answer": "Q3604",
+   "sitelinks": "300",
+   "label": "Dschibuti",
+   "answerLabel": "Dschibuti",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q971",
+   "answer": "Q3844",
+   "sitelinks": "300",
+   "label": "Republik Kongo",
+   "answerLabel": "Brazzaville",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1007",
+   "answer": "Q3739",
+   "sitelinks": "300",
+   "label": "Guinea-Bissau",
+   "answerLabel": "Bissau",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q874",
+   "answer": "Q23438",
+   "sitelinks": "299",
+   "label": "Turkmenistan",
+   "answerLabel": "Aşgabat",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1020",
+   "answer": "Q3876",
+   "sitelinks": "298",
+   "label": "Malawi",
+   "answerLabel": "Lilongwe",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q921",
+   "answer": "Q9279",
+   "sitelinks": "298",
+   "label": "Brunei",
+   "answerLabel": "Bandar Seri Begawan",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q842",
+   "answer": "Q3826",
+   "sitelinks": "297",
+   "label": "Oman",
+   "answerLabel": "Maskat",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1000",
+   "answer": "Q3825",
+   "sitelinks": "296",
+   "label": "Gabun",
+   "answerLabel": "Libreville",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1044",
+   "answer": "Q3780",
+   "sitelinks": "294",
+   "label": "Sierra Leone",
+   "answerLabel": "Freetown",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q790",
+   "answer": "Q34261",
+   "sitelinks": "293",
+   "label": "Haiti",
+   "answerLabel": "Port-au-Prince",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q1014",
+   "answer": "Q3748",
+   "sitelinks": "292",
+   "label": "Liberia",
+   "answerLabel": "Monrovia",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q574",
+   "answer": "Q9310",
+   "sitelinks": "291",
+   "label": "Osttimor",
+   "answerLabel": "Dili",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q846",
+   "answer": "Q3861",
+   "sitelinks": "291",
+   "label": "Katar",
+   "answerLabel": "Doha",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q1011",
+   "answer": "Q3751",
+   "sitelinks": "291",
+   "label": "Kap Verde",
+   "answerLabel": "Praia",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q826",
+   "answer": "Q9347",
+   "sitelinks": "290",
+   "label": "Malediven",
+   "answerLabel": "Malé",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q730",
+   "answer": "Q3001",
+   "sitelinks": "288",
+   "label": "Suriname",
+   "answerLabel": "Paramaribo",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q792",
+   "answer": "Q3110",
+   "sitelinks": "288",
+   "label": "El Salvador",
+   "answerLabel": "San Salvador",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q734",
+   "answer": "Q10717",
+   "sitelinks": "287",
+   "label": "Guyana",
+   "answerLabel": "Georgetown",
+   "continent": "Q18"
+  },
+  {
+   "item": "Q1050",
+   "answer": "Q3904",
+   "sitelinks": "287",
+   "label": "Eswatini",
+   "answerLabel": "Mbabane",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1050",
+   "answer": "Q101418",
+   "sitelinks": "287",
+   "label": "Eswatini",
+   "answerLabel": "Lobamba",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q691",
+   "answer": "Q36526",
+   "sitelinks": "286",
+   "label": "Papua-Neuguinea",
+   "answerLabel": "Port Moresby",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q970",
+   "answer": "Q3901",
+   "sitelinks": "284",
+   "label": "Komoren",
+   "answerLabel": "Moroni",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q983",
+   "answer": "Q1140136",
+   "sitelinks": "284",
+   "label": "Äquatorialguinea",
+   "answerLabel": "Ciudad de la Paz",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1027",
+   "answer": "Q3929",
+   "sitelinks": "284",
+   "label": "Mauritius",
+   "answerLabel": "Port Louis",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1246",
+   "answer": "Q25270",
+   "sitelinks": "284",
+   "label": "Kosovo",
+   "answerLabel": "Pristina",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q766",
+   "answer": "Q34692",
+   "sitelinks": "283",
+   "label": "Jamaika",
+   "answerLabel": "Kingston",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q811",
+   "answer": "Q131546626",
+   "sitelinks": "283",
+   "label": "Nicaragua",
+   "answerLabel": "Managua",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q958",
+   "answer": "Q1947",
+   "sitelinks": "283",
+   "label": "Südsudan",
+   "answerLabel": "Juba",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q242",
+   "answer": "Q3043",
+   "sitelinks": "282",
+   "label": "Belize",
+   "answerLabel": "Belmopan",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q774",
+   "answer": "Q1555",
+   "sitelinks": "282",
+   "label": "Guatemala",
+   "answerLabel": "Guatemala-Stadt",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q712",
+   "answer": "Q38807",
+   "sitelinks": "281",
+   "label": "Fidschi",
+   "answerLabel": "Suva",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q778",
+   "answer": "Q2467",
+   "sitelinks": "281",
+   "label": "Bahamas",
+   "answerLabel": "Nassau",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q786",
+   "answer": "Q34820",
+   "sitelinks": "281",
+   "label": "Dominikanische Republik",
+   "answerLabel": "Santo Domingo",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q1013",
+   "answer": "Q3909",
+   "sitelinks": "281",
+   "label": "Lesotho",
+   "answerLabel": "Maseru",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q1042",
+   "answer": "Q3940",
+   "sitelinks": "278",
+   "label": "Seychellen",
+   "answerLabel": "Victoria",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q244",
+   "answer": "Q36168",
+   "sitelinks": "276",
+   "label": "Barbados",
+   "answerLabel": "Bridgetown",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q1039",
+   "answer": "Q3932",
+   "sitelinks": "274",
+   "label": "São Tomé und Príncipe",
+   "answerLabel": "São Tomé",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q784",
+   "answer": "Q36281",
+   "sitelinks": "267",
+   "label": "Dominica",
+   "answerLabel": "Roseau",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q697",
+   "answer": "Q31026",
+   "sitelinks": "265",
+   "label": "Naoero",
+   "answerLabel": "Yaren",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q686",
+   "answer": "Q37806",
+   "sitelinks": "264",
+   "label": "Vanuatu",
+   "answerLabel": "Port Vila",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q683",
+   "answer": "Q36260",
+   "sitelinks": "261",
+   "label": "Samoa",
+   "answerLabel": "Apia",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q678",
+   "answer": "Q38834",
+   "sitelinks": "261",
+   "label": "Tonga",
+   "answerLabel": "Nukuʻalofa",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q695",
+   "answer": "Q515229",
+   "sitelinks": "259",
+   "label": "Palau",
+   "answerLabel": "Ngerulmud",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q695",
+   "answer": "Q515229",
+   "sitelinks": "259",
+   "label": "Palau",
+   "answerLabel": "Ngerulmud",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q672",
+   "answer": "Q34126",
+   "sitelinks": "253",
+   "label": "Tuvalu",
+   "answerLabel": "Funafuti",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q672",
+   "answer": "Q34126",
+   "sitelinks": "253",
+   "label": "Tuvalu",
+   "answerLabel": "Funafuti",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q769",
+   "answer": "Q41547",
+   "sitelinks": "252",
+   "label": "Grenada",
+   "answerLabel": "St. George’s",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q710",
+   "answer": "Q131233",
+   "sitelinks": "251",
+   "label": "Kiribati",
+   "answerLabel": "South Tarawa",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q710",
+   "answer": "Q131233",
+   "sitelinks": "251",
+   "label": "Kiribati",
+   "answerLabel": "South Tarawa",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q754",
+   "answer": "Q39178",
+   "sitelinks": "251",
+   "label": "Trinidad und Tobago",
+   "answerLabel": "Port of Spain",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q685",
+   "answer": "Q40921",
+   "sitelinks": "245",
+   "label": "Salomonen",
+   "answerLabel": "Honiara",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q685",
+   "answer": "Q40921",
+   "sitelinks": "245",
+   "label": "Salomonen",
+   "answerLabel": "Honiara",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q763",
+   "answer": "Q41295",
+   "sitelinks": "239",
+   "label": "St. Kitts und Nevis",
+   "answerLabel": "Basseterre",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q757",
+   "answer": "Q41474",
+   "sitelinks": "238",
+   "label": "St. Vincent und die Grenadinen",
+   "answerLabel": "Kingstown",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q709",
+   "answer": "Q12919",
+   "sitelinks": "237",
+   "label": "Marshallinseln",
+   "answerLabel": "Majuro",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q760",
+   "answer": "Q41699",
+   "sitelinks": "236",
+   "label": "St. Lucia",
+   "answerLabel": "Castries",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q219060",
+   "answer": "Q158119",
+   "sitelinks": "225",
+   "label": "Palästina",
+   "answerLabel": "Ramallah",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q219060",
+   "answer": "Q212938",
+   "sitelinks": "225",
+   "label": "Palästina",
+   "answerLabel": "Ostjerusalem",
+   "continent": "Q48"
+  },
+  {
+   "item": "Q702",
+   "answer": "Q42751",
+   "sitelinks": "224",
+   "label": "Föderierte Staaten von Mikronesien",
+   "answerLabel": "Palikir",
+   "continent": "Q55643"
+  },
+  {
+   "item": "Q21203",
+   "answer": "Q131243",
+   "sitelinks": "200",
+   "label": "Aruba",
+   "answerLabel": "Oranjestad",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q26988",
+   "answer": "Q170482",
+   "sitelinks": "188",
+   "label": "Cookinseln",
+   "answerLabel": "Avarua",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q23681",
+   "answer": "Q2762100",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern",
+   "answerLabel": "Nord-Nikosia",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q34020",
+   "answer": "Q30966",
+   "sitelinks": "179",
+   "label": "Niue",
+   "answerLabel": "Alofi",
+   "continent": "Q538"
+  },
+  {
+   "item": "Q34754",
+   "answer": "Q168652",
+   "sitelinks": "167",
+   "label": "Somaliland",
+   "answerLabel": "Hargeysa",
+   "continent": "Q15"
+  },
+  {
+   "item": "Q25279",
+   "answer": "Q132679",
+   "sitelinks": "166",
+   "label": "Curaçao",
+   "answerLabel": "Willemstad",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q26273",
+   "answer": "Q30958",
+   "sitelinks": "126",
+   "label": "Sint Maarten",
+   "answerLabel": "Philipsburg",
+   "continent": "Q49"
+  },
+  {
+   "item": "Q29999",
+   "answer": "Q727",
+   "sitelinks": "108",
+   "label": "Königreich der Niederlande",
+   "answerLabel": "Amsterdam",
+   "continent": "Q46"
+  },
+  {
+   "item": "Q756617",
+   "answer": "Q1748",
+   "sitelinks": "56",
+   "label": "Königreich Dänemark",
+   "answerLabel": "Kopenhagen",
+   "continent": "Q46"
+  }
+ ]
+}

@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-oper-q185968
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:oper
+sources:
+  - title: "Wikidata: Carmen (Q185968)"
+    url: https://www.wikidata.org/wiki/Q185968
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: Wer komponierte die Oper „Carmen“?
+    options:
+      a: Pjotr Tschaikowski
+      b: Georges Bizet
+      c: Camille Saint-Saëns
+      d: Alexander Borodin

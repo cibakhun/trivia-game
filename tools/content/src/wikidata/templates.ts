@@ -1,6 +1,6 @@
-import { inCountry, nominative, ofCountry } from './de.ts';
+import { countryName, hasNominative, inCountry, nominative, ofCountry, personName } from './de.ts';
 import type { ChoiceFact, ChoiceTemplate, EstimateFact, EstimateTemplate, Template } from './generate.ts';
-import { distinct, groupByItem, numberOf, yearOf, type Row } from './util.ts';
+import { distinct, foldText, groupByItem, numberOf, yearOf, type Row } from './util.ts';
 
 /**
  * Vorlagen für Fragen aus Wikidata. Jede Vorlage gehört zu einer Abfrage unter
@@ -14,27 +14,43 @@ type Exclusions = Readonly<Record<string, string>>;
 const sitelinksOf = (rows: readonly Row[]): number => Math.max(...rows.map((r) => numberOf(r['sitelinks']) ?? 0));
 const labelOf = (rows: readonly Row[]): string => rows[0]?.['label'] ?? '';
 
-/** Ein eindeutiger Zahlenwert je Gegenstand; mehrere verschiedene (gerundete) Werte → kein Fakt. */
+/**
+ * Ein eindeutiger Zahlenwert je Gegenstand; mehrere verschiedene (gerundete) Werte → kein Fakt.
+ * Mit `named` nur Gegenstände, für die `de.ts` eine geprüfte Form mit Artikel kennt: Namen ohne
+ * diese Form ergäben holprige Fragen („der Berg „Berg Olymp““) und sind meist ohnehin abseitig.
+ */
 function singleValueFacts(
   rows: readonly Row[],
   exclude: Exclusions,
   convert: (value: number) => number,
+  options: { named?: boolean; rename?: (label: string) => string } = {},
 ): EstimateFact[] {
   const facts: EstimateFact[] = [];
   for (const [qid, group] of groupByItem(rows)) {
     if (exclude[qid]) continue;
+    if (options.named && !hasNominative(labelOf(group))) continue;
     const values = distinct(
       group.map((r) => numberOf(r['value'])).filter((v): v is number => v !== null).map((v) => Math.round(convert(v))),
     );
     const value = values[0];
     if (values.length !== 1 || value === undefined || value <= 0) continue;
-    facts.push({ qid, label: labelOf(group), rank: -sitelinksOf(group), value });
+    const label = options.rename ? options.rename(labelOf(group)) : labelOf(group);
+    facts.push({ qid, label, rank: -sitelinksOf(group), value });
   }
   return facts;
 }
 
+/** Stichtag als Zeitangabe: „Ende 2025“ für den 31. Dezember, sonst „im Jahr 2025“. */
+function asOfPhrase(date: string, year: number): string {
+  return /^\+?\d+-12-31T/.test(date) ? `Ende ${year}` : `im Jahr ${year}`;
+}
+
 /** Neuester Wert mit Stichtag je Gegenstand (Einwohnerzahlen). */
-function latestValueFacts(rows: readonly Row[], exclude: Exclusions): EstimateFact[] {
+function latestValueFacts(
+  rows: readonly Row[],
+  exclude: Exclusions,
+  rename: (label: string) => string = (label) => label,
+): EstimateFact[] {
   const facts: EstimateFact[] = [];
   for (const [qid, group] of groupByItem(rows)) {
     if (exclude[qid]) continue;
@@ -47,7 +63,14 @@ function latestValueFacts(rows: readonly Row[], exclude: Exclusions): EstimateFa
     const value = values[0];
     const asOf = yearOf(latestDate);
     if (values.length !== 1 || value === undefined || asOf === null) continue;
-    facts.push({ qid, label: labelOf(group), rank: -sitelinksOf(group), value, asOf });
+    facts.push({
+      qid,
+      label: rename(labelOf(group)),
+      rank: -sitelinksOf(group),
+      value,
+      asOf,
+      context: asOfPhrase(latestDate, asOf),
+    });
   }
   return facts;
 }
@@ -56,7 +79,12 @@ function latestValueFacts(rows: readonly Row[], exclude: Exclusions): EstimateFa
 function singleAnswerFacts(
   rows: readonly Row[],
   exclude: Exclusions,
-  options: { onePerAnswer?: boolean; withGroup?: boolean } = {},
+  options: {
+    onePerAnswer?: boolean;
+    withGroup?: boolean;
+    rename?: (label: string) => string;
+    answerName?: (label: string) => string;
+  } = {},
 ): ChoiceFact[] {
   const facts: ChoiceFact[] = [];
   for (const [qid, group] of groupByItem(rows)) {
@@ -68,9 +96,9 @@ function singleAnswerFacts(
     const groups = distinct(group.map((r) => r['continent'] ?? '').filter(Boolean)).sort();
     facts.push({
       qid,
-      label: labelOf(group),
+      label: options.rename ? options.rename(labelOf(group)) : labelOf(group),
       rank: -sitelinksOf(group),
-      answer: first['answerLabel'],
+      answer: options.answerName ? options.answerName(first['answerLabel']) : first['answerLabel'],
       ...(birthYears.length === 1 && birthYears[0] !== undefined ? { year: birthYears[0] } : {}),
       ...(options.withGroup && groups.length > 0 ? { group: groups.join('+') } : {}),
       context: first['answer'] ?? '',
@@ -86,7 +114,59 @@ function singleAnswerFacts(
   return [...best.values()];
 }
 
+// ---------------------------------------------------------------- Ausschlüsse
+
+/**
+ * Gebiete, die Wikidata als Land führt, die aber kein allgemein anerkannter souveräner Staat
+ * sind oder einen Staat doppelt abbilden. Gilt für alle Fragen über Staaten.
+ */
+const NOT_SOVEREIGN: Exclusions = {
+  Q21203: 'Aruba: Land im Königreich der Niederlande, kein eigener Staat',
+  Q25279: 'Curaçao: Land im Königreich der Niederlande, kein eigener Staat',
+  Q26273: 'Sint Maarten: Land im Königreich der Niederlande, kein eigener Staat',
+  Q29999: 'Königreich der Niederlande: Gesamtstaat, doppelt zu „Niederlande“',
+  Q756617: 'Königreich Dänemark: Gesamtstaat, doppelt zu „Dänemark“',
+  Q26988: 'Cookinseln: mit Neuseeland assoziiert, kein UN-Mitglied',
+  Q34020: 'Niue: mit Neuseeland assoziiert, kein UN-Mitglied',
+  Q23681: 'Nordzypern: nur von der Türkei anerkannt',
+  Q34754: 'Somaliland: von keinem Staat anerkannt',
+  Q219060: 'Palästina: Anerkennung umstritten, von Deutschland nicht anerkannt',
+};
+
+const COUNTRY_EXCLUSIONS: Exclusions = {
+  ...NOT_SOVEREIGN,
+};
+
+const CAPITAL_EXCLUSIONS: Exclusions = {
+  ...NOT_SOVEREIGN,
+  Q183: 'Deutschland: zu leicht für deutsches Publikum',
+  Q801: 'Israel: Hauptstadt Jerusalem international umstritten',
+};
+
 // ---------------------------------------------------------------- Schätzfragen
+
+/**
+ * Gegenstände, die in Deutschland jeder kennt: Die Bekanntheit in Wikidata (Zahl der
+ * Sprachversionen) unterschätzt das, deshalb hier Stufe 2.
+ */
+const FAMILIAR_IN_GERMANY: ReadonlySet<string> = new Set([
+  'Q3375', // Zugspitze
+  'Q584', // Rhein
+  'Q1653', // Donau
+  'Q1644', // Elbe
+  'Q1670', // Main
+  'Q1667', // Mosel
+  'Q552', // Oder
+  'Q151356', // Berliner Fernsehturm
+]);
+const familiar = (fact: EstimateFact): 2 | undefined => (FAMILIAR_IN_GERMANY.has(fact.qid) ? 2 : undefined);
+
+const MOUNTAIN_EXCLUSIONS: Exclusions = {
+  Q194215: 'Amsterdam-Insel: Insel, kein Berg',
+  Q83497: 'Mount Rushmore: bekannt als Denkmal, die Höhe des Bergs fragt niemand',
+  Q205976: 'Ölberg: mehrere Berge dieses Namens (Jerusalem, Siebengebirge)',
+  Q377485: 'Sinai: Lage des biblischen Bergs umstritten',
+};
 
 const bergHoehe: EstimateTemplate = {
   kind: 'ESTIMATE',
@@ -97,12 +177,20 @@ const bergHoehe: EstimateTemplate = {
   window: 40,
   unit: 'm',
   unitLabel: 'Meter',
-  inputMin: 0,
+  inputMin: 1,
   inputMax: 9000,
   scaleType: 'LOG',
   scale: 0.3,
-  extract: (rows) => singleValueFacts(rows, {}, (m) => m),
+  extract: (rows) => singleValueFacts(rows, MOUNTAIN_EXCLUSIONS, (m) => m, { named: true }),
   prompt: (f) => `Wie hoch ist ${nominative(f.label, 'der Berg')} (in Metern über dem Meeresspiegel)?`,
+  difficulty: familiar,
+};
+
+const RIVER_EXCLUSIONS: Exclusions = {
+  Q8493: 'Amudarja: Länge je nach Quellfluss 1415 oder über 2500 km',
+  Q882739: 'Blauer Nil: Länge je nach Zählung 1450 oder 1783 km',
+  Q4814791: 'Weißer Nil: Länge je nach Zählung sehr verschieden',
+  Q35827: 'Río de la Plata: Mündungstrichter, kein Fluss im üblichen Sinn',
 };
 
 const flussLaenge: EstimateTemplate = {
@@ -111,15 +199,17 @@ const flussLaenge: EstimateTemplate = {
   snapshot: 'fluesse-laenge',
   category: 'GEOGRAPHY',
   count: 6,
-  window: 40,
+  window: 50,
   unit: 'km',
   unitLabel: 'Kilometer',
   inputMin: 1,
   inputMax: 10000,
   scaleType: 'LOG',
   scale: 0.3,
-  extract: (rows) => singleValueFacts(rows, {}, (m) => m / 1000).filter((f) => f.value >= 100),
+  extract: (rows) =>
+    singleValueFacts(rows, RIVER_EXCLUSIONS, (m) => m / 1000, { named: true }).filter((f) => f.value >= 100),
   prompt: (f) => `Wie lang ist ${nominative(f.label, 'der Fluss')} (in Kilometern)?`,
+  difficulty: familiar,
 };
 
 const landFlaeche: EstimateTemplate = {
@@ -128,14 +218,14 @@ const landFlaeche: EstimateTemplate = {
   snapshot: 'laender-flaeche',
   category: 'GEOGRAPHY',
   count: 5,
-  window: 60,
+  window: 80,
   unit: 'km2',
   unitLabel: 'Quadratkilometer',
   inputMin: 1,
   inputMax: 20000000,
   scaleType: 'LOG',
   scale: 0.4,
-  extract: (rows) => singleValueFacts(rows, {}, (m2) => m2 / 1_000_000),
+  extract: (rows) => singleValueFacts(rows, COUNTRY_EXCLUSIONS, (m2) => m2 / 1_000_000, { rename: countryName }),
   prompt: (f) => `Wie groß ist die Fläche ${ofCountry(f.label)} (in Quadratkilometern)?`,
 };
 
@@ -145,15 +235,15 @@ const landEinwohner: EstimateTemplate = {
   snapshot: 'laender-einwohner',
   category: 'GEOGRAPHY',
   count: 5,
-  window: 60,
+  window: 80,
   unit: 'count',
   unitLabel: 'Einwohner',
   inputMin: 1000,
   inputMax: 2000000000,
   scaleType: 'LOG',
   scale: 0.4,
-  extract: (rows) => latestValueFacts(rows, {}),
-  prompt: (f) => `Wie viele Menschen lebten ${f.asOf ?? ''} ${inCountry(f.label)}?`.replace(/ {2,}/g, ' '),
+  extract: (rows) => latestValueFacts(rows, COUNTRY_EXCLUSIONS, countryName),
+  prompt: (f) => `Wie viele Menschen lebten ${f.context ?? ''} ${inCountry(f.label)}?`.replace(/ {2,}/g, ' '),
 };
 
 const stadtEinwohner: EstimateTemplate = {
@@ -162,7 +252,7 @@ const stadtEinwohner: EstimateTemplate = {
   snapshot: 'staedte-einwohner-de',
   category: 'GEOGRAPHY',
   count: 6,
-  window: 40,
+  window: 60,
   unit: 'count',
   unitLabel: 'Einwohner',
   inputMin: 1000,
@@ -170,7 +260,7 @@ const stadtEinwohner: EstimateTemplate = {
   scaleType: 'LOG',
   scale: 0.3,
   extract: (rows) => latestValueFacts(rows, {}),
-  prompt: (f) => `Wie viele Einwohner hatte ${f.label} im Jahr ${f.asOf ?? ''}?`,
+  prompt: (f) => `Wie viele Einwohner hatte ${f.label} ${f.context ?? ''}?`.replace(/ {2,}/g, ' '),
 };
 
 const bauwerkHoehe: EstimateTemplate = {
@@ -186,11 +276,80 @@ const bauwerkHoehe: EstimateTemplate = {
   inputMax: 1000,
   scaleType: 'LOG',
   scale: 0.3,
-  extract: (rows) => singleValueFacts(rows, {}, (m) => m),
+  // nur Bauwerke mit geprüfter deutscher Form: das schließt unfertige (Jeddah Tower) und in
+  // Deutschland kaum bekannte Hochhäuser aus; mehrdeutige Höhen (mit/ohne Antenne) fallen ohnehin weg
+  extract: (rows) => singleValueFacts(rows, {}, (m) => m, { named: true }),
   prompt: (f) => `Wie hoch ist ${nominative(f.label, 'das Bauwerk')} (in Metern)?`,
+  difficulty: familiar,
 };
 
-const COMPOSER = 'Q36834';
+/**
+ * Personen für die Geburtsjahr-Frage: nur, wer vor allem als Komponist oder Maler bekannt ist.
+ * Die Abfrage liefert jeden mit einem dieser Berufe, darunter Politiker, Popstars und Gelehrte;
+ * die Berufsangabe sagt nicht, wofür jemand bekannt ist. Unsichere Geburtsjahre (Botticelli,
+ * Tizian, Palestrina) fehlen bewusst.
+ */
+const PEOPLE: Readonly<Record<string, { role: string; name?: string }>> = {
+  Q255: { role: 'der Komponist' }, // Ludwig van Beethoven
+  Q254: { role: 'der Komponist' }, // Wolfgang Amadeus Mozart
+  Q1339: { role: 'der Komponist' }, // Johann Sebastian Bach
+  Q1511: { role: 'der Komponist' }, // Richard Wagner
+  Q1268: { role: 'der Komponist' }, // Frédéric Chopin
+  Q7315: { role: 'der Komponist' }, // Pjotr Iljitsch Tschaikowski
+  Q7317: { role: 'der Komponist' }, // Giuseppe Verdi
+  Q7312: { role: 'der Komponist' }, // Franz Schubert
+  Q1340: { role: 'der Komponist' }, // Antonio Vivaldi
+  Q7314: { role: 'der Komponist' }, // Igor Strawinsky
+  Q7294: { role: 'der Komponist' }, // Johannes Brahms
+  Q7302: { role: 'der Komponist' }, // Georg Friedrich Händel
+  Q7349: { role: 'der Komponist' }, // Joseph Haydn
+  Q7304: { role: 'der Komponist' }, // Gustav Mahler
+  Q7298: { role: 'der Komponist' }, // Antonín Dvořák
+  Q7311: { role: 'der Komponist' }, // Giacomo Puccini
+  Q1151: { role: 'der Komponist' }, // Hector Berlioz
+  Q4700: { role: 'der Komponist' }, // Claude Debussy
+  Q7351: { role: 'der Komponist' }, // Robert Schumann
+  Q41309: { role: 'der Komponist' }, // Franz Liszt
+  Q46096: { role: 'der Komponist' }, // Felix Mendelssohn Bartholdy
+  Q9726: { role: 'der Komponist' }, // Gioachino Rossini
+  Q80621: { role: 'der Komponist' }, // Edvard Grieg
+  Q1178: { role: 'der Komponist' }, // Maurice Ravel
+  Q80135: { role: 'der Komponist' }, // Dmitri Schostakowitsch
+  Q45682: { role: 'der Komponist' }, // Jean Sibelius
+  Q56158: { role: 'der Komponist' }, // Georges Bizet
+  Q41555: { role: 'der Komponist' }, // Jacques Offenbach
+  Q83326: { role: 'der Komponist' }, // Béla Bartók
+  Q762: { role: 'der Maler' }, // Leonardo da Vinci
+  Q5582: { role: 'der Maler' }, // Vincent van Gogh
+  Q5592: { role: 'der Maler und Bildhauer' }, // Michelangelo
+  Q5577: { role: 'der Maler' }, // Salvador Dalí
+  Q5598: { role: 'der Maler' }, // Rembrandt van Rijn
+  Q5588: { role: 'die Malerin' }, // Frida Kahlo
+  Q5597: { role: 'der Maler' }, // Raffael
+  Q5432: { role: 'der Maler' }, // Francisco de Goya
+  Q5589: { role: 'der Maler' }, // Henri Matisse
+  Q5603: { role: 'der Pop-Art-Künstler' }, // Andy Warhol
+  Q5586: { role: 'der Maler' }, // Katsushika Hokusai
+  Q5599: { role: 'der Maler' }, // Peter Paul Rubens
+  Q297: { role: 'der Maler' }, // Diego Velázquez
+  Q296: { role: 'der Maler' }, // Claude Monet
+  Q35548: { role: 'der Maler' }, // Paul Cézanne
+  Q37693: { role: 'der Maler' }, // Paul Gauguin
+  Q33477: { role: 'der Maler' }, // Eugène Delacroix
+  Q41406: { role: 'der Maler' }, // Edvard Munch
+  Q46373: { role: 'der Maler' }, // Edgar Degas
+  Q37571: { role: 'der Maler' }, // Jackson Pollock
+  Q40599: { role: 'der Maler' }, // Édouard Manet
+  Q42207: { role: 'der Maler', name: 'Caravaggio' }, // Michelangelo Merisi da Caravaggio
+  Q41264: { role: 'der Maler' }, // Jan Vermeer
+  Q301: { role: 'der Maler' }, // El Greco
+  Q39931: { role: 'der Maler' }, // Pierre-Auguste Renoir
+  Q34661: { role: 'der Maler' }, // Gustav Klimt
+  Q152384: { role: 'der Maler' }, // Joan Miró
+  Q93284: { role: 'der Maler' }, // Marc Chagall
+  Q61064: { role: 'der Maler' }, // Wassily Kandinsky
+};
+
 const geburtsjahr: EstimateTemplate = {
   kind: 'ESTIMATE',
   id: 'geburtsjahr',
@@ -207,16 +366,16 @@ const geburtsjahr: EstimateTemplate = {
   extract: (rows) => {
     const facts: EstimateFact[] = [];
     for (const [qid, group] of groupByItem(rows)) {
+      const person = PEOPLE[qid];
       const years = distinct(group.map((r) => yearOf(r['birth'])).filter((y): y is number => y !== null));
       const year = years[0];
-      if (years.length !== 1 || year === undefined || year < 1000) continue;
-      const composer = group.some((r) => r['occupation'] === COMPOSER);
+      if (!person || years.length !== 1 || year === undefined || year < 1000) continue;
       facts.push({
         qid,
-        label: labelOf(group),
+        label: person.name ?? personName(labelOf(group)),
         rank: -sitelinksOf(group),
         value: year,
-        context: composer ? 'der Komponist' : 'der Maler',
+        context: person.role,
       });
     }
     return facts;
@@ -257,11 +416,29 @@ const nobelJahr: EstimateTemplate = {
       const years = distinct(group.map((r) => yearOf(r['date'])).filter((y): y is number => y !== null));
       const year = years[0];
       if (!prize || years.length !== 1 || year === undefined) continue;
-      facts.push({ qid, label: labelOf(group), rank: -sitelinksOf(group), value: year, keySuffix: prize.slug, context: prize.name });
+      facts.push({
+        qid,
+        label: personName(labelOf(group)),
+        rank: -sitelinksOf(group),
+        value: year,
+        keySuffix: prize.slug,
+        context: prize.name,
+      });
     }
-    return facts;
+    // Rang innerhalb des eigenen Preises, abwechselnd über die Preise: sonst stellen die vielen
+    // bekannten Literaturpreisträger alle Fragen
+    const order = Object.values(NOBEL).map((p) => p.slug);
+    const byPrize = new Map<string, EstimateFact[]>();
+    for (const fact of facts) byPrize.set(fact.keySuffix ?? '', [...(byPrize.get(fact.keySuffix ?? '') ?? []), fact]);
+    return [...byPrize].flatMap(([slug, list]) =>
+      [...list]
+        .sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label, 'de'))
+        .map((fact, i) => ({ ...fact, rank: i * order.length + order.indexOf(slug) })),
+    );
   },
-  prompt: (f) => `In welchem Jahr erhielt ${f.label} ${f.context ?? 'den Nobelpreis'}?`,
+  // „Für welches Jahr“: Wikidata führt das Preisjahr; manche Preise wurden erst im Folgejahr
+  // überreicht (Einstein: Preis für 1921, verliehen 1922)
+  prompt: (f) => `Für welches Jahr erhielt ${f.label} ${f.context ?? 'den Nobelpreis'}?`,
 };
 
 function elementRows(rows: readonly Row[]): { qid: string; label: string; symbol: string; number: number; sitelinks: number }[] {
@@ -297,18 +474,15 @@ const ordnungszahl: EstimateTemplate = {
 
 // ---------------------------------------------------------------- Auswahlfragen
 
-/** Deutschland ist für ein deutsches Publikum keine Frage. */
-const COUNTRY_EXCLUSIONS: Exclusions = { Q183: 'zu leicht für deutsches Publikum' };
-
 const hauptstadt: ChoiceTemplate = {
   kind: 'TRIVIA',
   id: 'hauptstadt',
   snapshot: 'laender-hauptstadt',
   category: 'GEOGRAPHY',
   count: 8,
-  window: 80,
+  window: 100,
   extract: (rows) =>
-    singleAnswerFacts(rows, COUNTRY_EXCLUSIONS, { withGroup: true }).filter((f) => {
+    singleAnswerFacts(rows, CAPITAL_EXCLUSIONS, { withGroup: true, rename: countryName }).filter((f) => {
       // „Luxemburg – Luxemburg“, „Mexiko – Mexiko-Stadt“: Antwort steckt in der Frage
       const country = f.label.toLocaleLowerCase('de');
       const capital = f.answer.toLocaleLowerCase('de');
@@ -317,13 +491,23 @@ const hauptstadt: ChoiceTemplate = {
   prompt: (f) => `Wie heißt die Hauptstadt ${ofCountry(f.label)}?`,
 };
 
-/** Währung, deren Name das Land verrät („Schweizer Franken“ zu „Schweiz“). */
-function currencyNamesCountry(country: string, currency: string): boolean {
-  const stem = country.slice(0, 4).toLocaleLowerCase('de');
-  return currency
-    .toLocaleLowerCase('de')
-    .split(/\s+/)
-    .some((word) => word.startsWith(stem));
+/**
+ * Währung, deren Name das Land verrät: „Schweizer Franken“ zu „Schweiz“, „Kap-Verde-Escudo“ zu
+ * „Kap Verde“, „VAE-Dirham“ zu „Vereinigte Arabische Emirate“.
+ */
+export function currencyNamesCountry(country: string, currency: string): boolean {
+  const words = (text: string) =>
+    text
+      .split(/[\s-]+/)
+      .map(foldText)
+      .filter((w) => w.length > 0);
+  const currencyWords = words(currency);
+  const countryWords = words(country);
+  const initials = countryWords.map((w) => w[0]).join('');
+  if (countryWords.length >= 2 && currencyWords.includes(initials)) return true;
+  return countryWords
+    .filter((w) => w.length >= 3)
+    .some((w) => currencyWords.some((c) => c.startsWith(w.slice(0, 4))));
 }
 
 const waehrung: ChoiceTemplate = {
@@ -334,7 +518,7 @@ const waehrung: ChoiceTemplate = {
   count: 6,
   window: 80,
   extract: (rows) => {
-    const facts = singleAnswerFacts(rows, COUNTRY_EXCLUSIONS, { withGroup: true });
+    const facts = singleAnswerFacts(rows, COUNTRY_EXCLUSIONS, { withGroup: true, rename: countryName });
     // gemeinsame Währungen (Euro, CFA-Franc, US-Dollar …) sind mehrdeutig oder zu leicht
     const countriesPerCurrency = new Map<string, Set<string>>();
     for (const row of rows) {
@@ -349,6 +533,46 @@ const waehrung: ChoiceTemplate = {
   prompt: (f) => `Mit welcher Währung bezahlt man ${inCountry(f.label)}?`,
 };
 
+/**
+ * Werke, nach deren Autor die Vorlage nicht fragt. Religiöse und antike Schriften fallen schon
+ * durch die Regel „Autor ab 1200 geboren“ weg (meist ohne Autor oder mit legendärem).
+ */
+const WORK_EXCLUSIONS: Exclusions = {
+  Q48244: 'NS-Propaganda, kein Quizstoff',
+  Q26193: 'antisemitische Fälschung, kein Quizstoff',
+  Q36393: 'Propagandaschrift, Autor steht im Titel',
+  Q58784: 'Sachbuch; die Vorlage fragt nach Romanen, Dramen und Gedichten',
+  Q205921: 'Sachbuch; die Vorlage fragt nach Romanen, Dramen und Gedichten',
+  Q471726: 'Sachbuch; die Vorlage fragt nach Romanen, Dramen und Gedichten',
+  Q193034: 'Sachbuch; die Vorlage fragt nach Romanen, Dramen und Gedichten',
+  Q245265: 'Sachbuch; die Vorlage fragt nach Romanen, Dramen und Gedichten',
+  Q235193: 'Sachbuch; die Vorlage fragt nach Romanen, Dramen und Gedichten',
+  Q131719: 'Sachbuch; die Vorlage fragt nach Romanen, Dramen und Gedichten',
+  Q200306: 'Fachbuch, Autor steht im Titel',
+  Q651532: 'Volksmärchen; Halliwell-Phillipps hat es nur gesammelt',
+  Q11831: 'Volksmärchen; die Brüder Grimm haben es gesammelt',
+  Q45735: 'deutscher Titel kaum bekannt (auch „Schweinchen Wilbur“)',
+  Q8265: 'chinesischer Klassiker, in Deutschland kaum bekannt',
+  Q70784: 'chinesischer Klassiker, in Deutschland kaum bekannt',
+  Q70806: 'chinesischer Klassiker, in Deutschland kaum bekannt',
+  Q70827: 'chinesischer Klassiker, in Deutschland kaum bekannt',
+  Q212180: 'Handschrift ohne Autor',
+};
+
+/** Gebräuchlicher deutscher Titel, wo Wikidata den Originaltitel führt. */
+const WORK_TITLES: Readonly<Record<string, string>> = {
+  "L'Étranger": 'Der Fremde',
+};
+
+/** Ob ein Teil des Autorennamens im Titel steht („Das Tagebuch der Anne Frank“). */
+function authorInTitle(title: string, author: string): boolean {
+  const folded = foldText(title);
+  return author
+    .split(/\s+/)
+    .map(foldText)
+    .some((part) => part.length >= 4 && folded.includes(part));
+}
+
 const autor: ChoiceTemplate = {
   kind: 'TRIVIA',
   id: 'autor',
@@ -356,7 +580,14 @@ const autor: ChoiceTemplate = {
   category: 'LITERATURE',
   count: 8,
   window: 60,
-  extract: (rows) => singleAnswerFacts(rows, {}, { onePerAnswer: true }),
+  extract: (rows) =>
+    singleAnswerFacts(rows, WORK_EXCLUSIONS, {
+      onePerAnswer: true,
+      answerName: personName,
+      rename: (title) => WORK_TITLES[title] ?? title,
+    }).filter(
+      (f) => f.year !== undefined && f.year >= 1200 && !authorInTitle(f.label, f.answer),
+    ),
   prompt: (f) => `Wer schrieb „${f.label}“?`,
 };
 
@@ -367,7 +598,8 @@ const oper: ChoiceTemplate = {
   category: 'ARTS_CULTURE',
   count: 6,
   window: 40,
-  extract: (rows) => singleAnswerFacts(rows, {}, { onePerAnswer: true }),
+  extract: (rows) =>
+    singleAnswerFacts(rows, { Q242667: 'Rockoper, eher Musical' }, { onePerAnswer: true, answerName: personName }),
   prompt: (f) => `Wer komponierte die Oper „${f.label}“?`,
 };
 
@@ -378,7 +610,7 @@ const gemaelde: ChoiceTemplate = {
   category: 'ARTS_CULTURE',
   count: 8,
   window: 50,
-  extract: (rows) => singleAnswerFacts(rows, {}, { onePerAnswer: true }),
+  extract: (rows) => singleAnswerFacts(rows, {}, { onePerAnswer: true, answerName: personName }),
   prompt: (f) => `Wer malte das Gemälde „${f.label}“?`,
 };
 
@@ -396,21 +628,73 @@ const elementSymbol: ChoiceTemplate = {
       .map((e) => ({ qid: e.qid, label: e.symbol, rank: -e.sitelinks, answer: e.label, context: e.symbol })),
   prompt: (f) => `Welches chemische Element hat das Symbol „${f.label}“?`,
   shortlist: 4,
-  // falsche Antworten: Elemente, deren deutscher Name mit dem Anfangsbuchstaben des Symbols beginnt
+  // falsche Antworten: zuerst Elemente, deren deutscher Name mit dem Buchstaben des Symbols
+  // beginnt (Au → Aluminium, Arsen), dann solche mit dem Anfangsbuchstaben der richtigen Antwort
+  // (O → Schwefel, Stickstoff für Sauerstoff), damit keine Möglichkeit offensichtlich abfällt
   distractorPool: (fact, _facts, rows) => {
-    const letter = fact.label[0]?.toLocaleLowerCase('de') ?? '';
+    const initial = (text: string) => text[0]?.toLocaleLowerCase('de') ?? '';
+    const letter = initial(fact.label);
+    const answerLetter = initial(fact.answer);
     const all = elementRows(rows)
       .filter((e) => e.number <= 103)
       .sort((a, b) => b.sitelinks - a.sitelinks);
-    const sameInitial = all.filter((e) => e.label[0]?.toLocaleLowerCase('de') === letter).map((e) => e.label);
-    const sameSymbolLetter = all.filter((e) => e.symbol[0]?.toLocaleLowerCase('de') === letter).map((e) => e.label);
-    return distinct([...sameInitial, ...sameSymbolLetter, ...all.map((e) => e.label)]);
+    const sameInitial = all.filter((e) => initial(e.label) === letter).map((e) => e.label);
+    const sameAnswerInitial = all.filter((e) => initial(e.label) === answerLetter).map((e) => e.label);
+    const sameSymbolLetter = all.filter((e) => initial(e.symbol) === letter).map((e) => e.label);
+    return distinct([...sameInitial, ...sameAnswerInitial, ...sameSymbolLetter, ...all.map((e) => e.label)]);
   },
 };
 
 /** „Austragung der Olympischen Sommerspiele“ (frühere Klasse Q159821 hat keine Instanzen mehr). */
 const SUMMER = 'Q135976384';
 const CANCELLED_GAMES = new Set([1916, 1940, 1944]);
+
+/**
+ * Ausrichterstädte. Wikidata nennt als Ort (P276) auch Stadien und Skigebiete, bei manchen
+ * Spielen nur diese (1952 Bislett-Stadion statt Oslo, 1972 Olympiastadion statt München). Eine
+ * Frage entsteht nur, wenn genau eine dieser Städte als Ort genannt ist; Spiele mit zwei
+ * Ausrichtern (2026 Mailand und Cortina) fallen damit weg.
+ */
+const HOST_CITIES: ReadonlySet<string> = new Set([
+  'Q1524', // Athen
+  'Q90', // Paris
+  'Q38022', // St. Louis
+  'Q84', // London
+  'Q1754', // Stockholm
+  'Q12892', // Antwerpen
+  'Q83236', // Chamonix-Mont-Blanc
+  'Q727', // Amsterdam
+  'Q68986', // St. Moritz
+  'Q192700', // Lake Placid
+  'Q65', // Los Angeles
+  'Q127043', // Garmisch-Partenkirchen
+  'Q64', // Berlin
+  'Q1757', // Helsinki
+  'Q41158', // Cortina d’Ampezzo
+  'Q3141', // Melbourne
+  'Q220', // Rom
+  'Q1490', // Tokio
+  'Q1735', // Innsbruck
+  'Q1489', // Mexiko-Stadt
+  'Q1289', // Grenoble
+  'Q37951', // Sapporo
+  'Q340', // Montreal
+  'Q649', // Moskau
+  'Q11194', // Sarajevo
+  'Q8684', // Seoul
+  'Q36312', // Calgary
+  'Q159469', // Albertville
+  'Q1492', // Barcelona
+  'Q23556', // Atlanta
+  'Q128849', // Nagano
+  'Q3130', // Sydney
+  'Q23337', // Salt Lake City
+  'Q495', // Turin
+  'Q956', // Peking
+  'Q24639', // Vancouver
+  'Q39420', // Sotschi
+  'Q8678', // Rio de Janeiro
+]);
 
 const olympia: ChoiceTemplate = {
   kind: 'TRIVIA',
@@ -422,11 +706,15 @@ const olympia: ChoiceTemplate = {
   extract: (rows) => {
     const facts: ChoiceFact[] = [];
     for (const [qid, group] of groupByItem(rows)) {
-      const answers = distinct(group.map((r) => r['answer'] ?? ''));
       const first = group[0];
-      if (answers.length !== 1 || !first?.['answerLabel']) continue;
+      // nur Olympische Spiele (die Abfrage liefert auch die Winter-Paralympics 1988)
+      if (!first?.['label']?.startsWith('Olympische ')) continue;
+      const cities = distinct(group.filter((r) => HOST_CITIES.has(r['answer'] ?? '')).map((r) => r['answerLabel'] ?? ''));
+      const city = cities[0];
+      if (cities.length !== 1 || !city) continue;
+      // das Jahr aus der Bezeichnung: Tokio 2020 fand 2021 statt, heißt aber „Sommerspiele 2020“
       const year =
-        yearOf(first['date']) ?? yearOf(first['start']) ?? numberOf(/\b(18|19|20)\d\d\b/.exec(first['label'] ?? '')?.[0]);
+        numberOf(/\b(18|19|20)\d\d\b/.exec(first['label'])?.[0]) ?? yearOf(first['date']) ?? yearOf(first['start']);
       if (year === null || year > 2026 || CANCELLED_GAMES.has(year)) continue;
       const summer = first['type'] === SUMMER;
       facts.push({
@@ -434,7 +722,7 @@ const olympia: ChoiceTemplate = {
         label: `Olympischen ${summer ? 'Sommerspiele' : 'Winterspiele'} ${year}`,
         // ohne Bekanntheitswert: jüngere Spiele zuerst, damit die Auswahl über die Jahrzehnte streut
         rank: -year,
-        answer: first['answerLabel'],
+        answer: city,
         group: summer ? 'sommer' : 'winter',
         year,
       });

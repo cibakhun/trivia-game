@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-land-flaeche-q214
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:land-flaeche
+sources:
+  - title: "Wikidata: Slowakei (Q214)"
+    url: https://www.wikidata.org/wiki/Q214
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "49034"
+  answer_precision: 0
+  answer_unit: km2
+  input_min: "1"
+  input_max: "20000000"
+  scale_type: LOG
+  scale: 0.4
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie groß ist die Fläche der Slowakei (in Quadratkilometern)?
+    unit_label: Quadratkilometer

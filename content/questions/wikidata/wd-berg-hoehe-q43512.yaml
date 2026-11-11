@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-berg-hoehe-q43512
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:berg-hoehe
+sources:
+  - title: "Wikidata: K2 (Q43512)"
+    url: https://www.wikidata.org/wiki/Q43512
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "8611"
+  answer_precision: 0
+  answer_unit: m
+  input_min: "1"
+  input_max: "9000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie hoch ist der K2 (in Metern über dem Meeresspiegel)?
+    unit_label: Meter

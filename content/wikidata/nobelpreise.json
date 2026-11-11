@@ -1,0 +1,1725 @@
+{
+ "name": "nobelpreise",
+ "fetchedAt": "2026-11-11T20:54:59.941Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Nobelpreisträger (Literatur, Physik, Chemie, Medizin) mit Jahr der Auszeichnung.\nSELECT ?item ?label ?sitelinks ?prize ?date WHERE {\n  VALUES ?prize { wd:Q37922 wd:Q38104 wd:Q44585 wd:Q80061 }\n  ?item p:P166 ?statement.\n  ?statement ps:P166 ?prize;\n             pq:P585 ?date.\n  ?item wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 80)\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\n",
+ "rowCount": 245,
+ "rows": [
+  {
+   "prize": "Q38104",
+   "item": "Q937",
+   "date": "1921-01-01T00:00:00Z",
+   "sitelinks": "322",
+   "label": "Albert Einstein"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q8016",
+   "date": "1953-01-01T00:00:00Z",
+   "sitelinks": "266",
+   "label": "Winston Churchill"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q7241",
+   "date": "1913-11-13T00:00:00Z",
+   "sitelinks": "248",
+   "label": "Rabindranath Tagore"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q5878",
+   "date": "1982-01-01T00:00:00Z",
+   "sitelinks": "209",
+   "label": "Gabriel García Márquez"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q23434",
+   "date": "1954-01-01T00:00:00Z",
+   "sitelinks": "209",
+   "label": "Ernest Hemingway"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q34670",
+   "date": "1957-01-01T00:00:00Z",
+   "sitelinks": "205",
+   "label": "Albert Camus"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q33760",
+   "date": "1950-01-01T00:00:00Z",
+   "sitelinks": "187",
+   "label": "Bertrand Russell"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q19185",
+   "date": "1925-01-01T00:00:00Z",
+   "sitelinks": "187",
+   "label": "George Bernard Shaw"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q9021",
+   "date": "1918-01-01T00:00:00Z",
+   "sitelinks": "183",
+   "label": "Max Planck"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q9123",
+   "date": "1908-01-01T00:00:00Z",
+   "sitelinks": "174",
+   "label": "Ernest Rutherford"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q7176",
+   "date": "1988-01-01T00:00:00Z",
+   "sitelinks": "173",
+   "label": "Nagib Mahfuz"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q8753",
+   "date": "1938-01-01T00:00:00Z",
+   "sitelinks": "172",
+   "label": "Enrico Fermi"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q34189",
+   "date": "1971-01-01T00:00:00Z",
+   "sitelinks": "168",
+   "label": "Pablo Neruda"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q37030",
+   "date": "1929-01-01T00:00:00Z",
+   "sitelinks": "167",
+   "label": "Thomas Mann"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q9130",
+   "date": "1933-01-01T00:00:00Z",
+   "sitelinks": "165",
+   "label": "Erwin Schrödinger"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q25973",
+   "date": "1946-01-01T00:00:00Z",
+   "sitelinks": "164",
+   "label": "Hermann Hesse"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42443",
+   "date": "1921-01-01T00:00:00Z",
+   "sitelinks": "161",
+   "label": "Anatole France"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q34474",
+   "date": "1970-01-01T00:00:00Z",
+   "sitelinks": "160",
+   "label": "Alexander Issajewitsch Solschenizyn"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q37767",
+   "date": "1948-01-01T00:00:00Z",
+   "sitelinks": "160",
+   "label": "T. S. Eliot"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q39246",
+   "date": "1965-01-01T00:00:00Z",
+   "sitelinks": "159",
+   "label": "Richard Feynman"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q35149",
+   "date": "1901-01-01T00:00:00Z",
+   "sitelinks": "158",
+   "label": "Wilhelm Conrad Röntgen"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q44519",
+   "date": "1909-01-01T00:00:00Z",
+   "sitelinks": "155",
+   "label": "Selma Lagerlöf"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q40213",
+   "date": "1923-01-01T00:00:00Z",
+   "sitelinks": "154",
+   "label": "William Butler Yeats"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q38392",
+   "date": "1949-01-01T00:00:00Z",
+   "sitelinks": "149",
+   "label": "William Faulkner"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q39212",
+   "date": "1962-01-01T00:00:00Z",
+   "sitelinks": "149",
+   "label": "John Steinbeck"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q47484",
+   "date": "1947-01-01T00:00:00Z",
+   "sitelinks": "145",
+   "label": "André Gide"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q80900",
+   "date": "1938-01-01T00:00:00Z",
+   "sitelinks": "144",
+   "label": "Pearl S. Buck"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q41223",
+   "date": "1958-01-01T00:00:00Z",
+   "sitelinks": "142",
+   "label": "Boris Leonidowitsch Pasternak"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q40904",
+   "date": "1932-01-01T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Werner Heisenberg"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q47162",
+   "date": "1915-01-01T00:00:00Z",
+   "sitelinks": "141",
+   "label": "Romain Rolland"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q37327",
+   "date": "1969-01-01T00:00:00Z",
+   "sitelinks": "140",
+   "label": "Samuel Beckett"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q41502",
+   "date": "1905-01-01T00:00:00Z",
+   "sitelinks": "140",
+   "label": "Henryk Sienkiewicz"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42156",
+   "date": "1927-01-01T00:00:00Z",
+   "sitelinks": "138",
+   "label": "Henri Bergson"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q241248",
+   "date": "2006-01-01T00:00:00Z",
+   "sitelinks": "138",
+   "label": "Orhan Pamuk"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q6538",
+   "date": "1999-01-01T00:00:00Z",
+   "sitelinks": "137",
+   "label": "Günter Grass"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q37064",
+   "date": "1945-01-01T00:00:00Z",
+   "sitelinks": "136",
+   "label": "Alexander Fleming"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q37060",
+   "date": "1998-01-01T00:00:00Z",
+   "sitelinks": "136",
+   "label": "José Saramago"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q1403",
+   "date": "1934-01-01T00:00:00Z",
+   "sitelinks": "135",
+   "label": "Luigi Pirandello"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q40826",
+   "date": "1920-01-01T00:00:00Z",
+   "sitelinks": "135",
+   "label": "Knut Hamsun"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q72334",
+   "date": "1993-01-01T00:00:00Z",
+   "sitelinks": "135",
+   "label": "Toni Morrison"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q40874",
+   "date": "2007-01-01T00:00:00Z",
+   "sitelinks": "134",
+   "label": "Doris Lessing"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q49747",
+   "date": "1911-01-01T00:00:00Z",
+   "sitelinks": "132",
+   "label": "Maurice Maeterlinck"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q39803",
+   "date": "2010-01-01T00:00:00Z",
+   "sitelinks": "131",
+   "label": "Mario Vargas Llosa"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q36488",
+   "date": "1909-01-01T00:00:00Z",
+   "sitelinks": "130",
+   "label": "Guglielmo Marconi"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q234819",
+   "date": "2013-01-01T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Alice Munro"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q47619",
+   "date": "1991-01-01T00:00:00Z",
+   "sitelinks": "128",
+   "label": "Nadine Gordimer"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q38049",
+   "date": "2009-01-01T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Herta Müller"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q47243",
+   "date": "2004-01-01T00:00:00Z",
+   "sitelinks": "127",
+   "label": "Elfriede Jelinek"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q25351",
+   "date": "1902-01-01T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Theodor Mommsen"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q80871",
+   "date": "1945-01-01T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Gabriela Mistral"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q43736",
+   "date": "1968-01-01T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Kawabata Yasunari"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q46405",
+   "date": "1903-01-01T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Bjørnstjerne Bjørnson"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q46602",
+   "date": "1933-01-01T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Iwan Alexejewitsch Bunin"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q862",
+   "date": "1987-01-01T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Joseph Brodsky"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q37193",
+   "date": "1905-01-01T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Robert Koch"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q42985",
+   "date": "1904-01-01T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Iwan Petrowitsch Pawlow"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q47480",
+   "date": "1933-01-01T00:00:00Z",
+   "sitelinks": "125",
+   "label": "Paul Dirac"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42247",
+   "date": "1901-01-01T00:00:00Z",
+   "sitelinks": "124",
+   "label": "Sully Prudhomme"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42596",
+   "date": "1904-01-01T00:00:00Z",
+   "sitelinks": "124",
+   "label": "Frédéric Mistral"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q43440",
+   "date": "1906-01-01T00:00:00Z",
+   "sitelinks": "123",
+   "label": "Giosuè Carducci"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q43523",
+   "date": "1912-01-01T00:00:00Z",
+   "sitelinks": "123",
+   "label": "Gerhart Hauptmann"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q45970",
+   "date": "1980-01-01T00:00:00Z",
+   "sitelinks": "123",
+   "label": "Czesław Miłosz"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q274334",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "123",
+   "label": "Swetlana Alexandrowna Alexijewitsch"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42552",
+   "date": "1996-01-01T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Wisława Szymborska"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q46739",
+   "date": "1990-01-01T00:00:00Z",
+   "sitelinks": "122",
+   "label": "Octavio Paz"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q82248",
+   "date": "1932-01-01T00:00:00Z",
+   "sitelinks": "121",
+   "label": "John Galsworthy"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q83059",
+   "date": "1976-01-01T00:00:00Z",
+   "sitelinks": "121",
+   "label": "Saul Bellow"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q7728",
+   "date": "1926-01-01T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Grazia Deledda"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q58978",
+   "date": "1954-01-01T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Max Born"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q47285",
+   "date": "1906-01-01T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Joseph John Thomson"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42747",
+   "date": "1972-01-01T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Heinrich Böll"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q47561",
+   "date": "1961-01-01T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Ivo Andrić"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q123469",
+   "date": "1930-01-01T00:00:00Z",
+   "sitelinks": "120",
+   "label": "Sinclair Lewis"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q44183",
+   "date": "1983-01-01T00:00:00Z",
+   "sitelinks": "119",
+   "label": "William Golding"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q80889",
+   "date": "1928-01-01T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Sigrid Undset"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q81685",
+   "date": "1952-01-01T00:00:00Z",
+   "sitelinks": "118",
+   "label": "François Mauriac"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42398",
+   "date": "1965-01-01T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Michail Alexandrowitsch Scholochow"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q272855",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "118",
+   "label": "Kazuo Ishiguro"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q60429",
+   "date": "1930-01-01T00:00:00Z",
+   "sitelinks": "117",
+   "label": "C. V. Raman"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q41688",
+   "date": "1902-01-01T00:00:00Z",
+   "sitelinks": "117",
+   "label": "Hendrik Antoon Lorentz"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q43293",
+   "date": "2003-01-01T00:00:00Z",
+   "sitelinks": "117",
+   "label": "J. M. Coetzee"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q41488",
+   "date": "1986-01-01T00:00:00Z",
+   "sitelinks": "114",
+   "label": "Wole Soyinka"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q41042",
+   "date": "2005-01-01T00:00:00Z",
+   "sitelinks": "114",
+   "label": "Harold Pinter"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q75612",
+   "date": "1978-01-01T00:00:00Z",
+   "sitelinks": "114",
+   "label": "Isaac Bashevis Singer"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q7504",
+   "date": "1935-01-01T00:00:00Z",
+   "sitelinks": "113",
+   "label": "Irène Joliot-Curie"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q48983",
+   "date": "1954-01-01T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Linus Pauling"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q80064",
+   "date": "1981-01-01T00:00:00Z",
+   "sitelinks": "112",
+   "label": "Elias Canetti"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q41269",
+   "date": "1903-01-01T00:00:00Z",
+   "sitelinks": "111",
+   "label": "Henri Becquerel"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q8998",
+   "date": "2012-01-01T00:00:00Z",
+   "sitelinks": "110",
+   "label": "Mo Yan"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q83333",
+   "date": "1962-01-01T00:00:00Z",
+   "sitelinks": "110",
+   "label": "James Watson"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q44593",
+   "date": "2001-01-01T00:00:00Z",
+   "sitelinks": "110",
+   "label": "V. S. Naipaul"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q765",
+   "date": "1997-01-01T00:00:00Z",
+   "sitelinks": "109",
+   "label": "Dario Fo"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q80095",
+   "date": "1994-01-01T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Kenzaburō Ōe"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q57074",
+   "date": "1966-01-01T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Nelly Sachs"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q121180",
+   "date": "1924-01-01T00:00:00Z",
+   "sitelinks": "108",
+   "label": "Władysław Reymont"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q7487",
+   "date": "1964-01-01T00:00:00Z",
+   "sitelinks": "107",
+   "label": "Dorothy Crowfoot Hodgkin"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q93157",
+   "date": "1936-01-01T00:00:00Z",
+   "sitelinks": "107",
+   "label": "Eugene O’Neill"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q93356",
+   "date": "1995-01-01T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Seamus Heaney"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q130975",
+   "date": "1923-01-01T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Robert Andrews Millikan"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q127234",
+   "date": "1907-01-01T00:00:00Z",
+   "sitelinks": "106",
+   "label": "Albert A. Michelson"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q18143",
+   "date": "2000-01-01T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Gao Xingjian"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q65989",
+   "date": "1945-01-01T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Wolfgang Pauli"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q185007",
+   "date": "1986-01-01T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Rita Levi-Montalcini"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42122",
+   "date": "2011-01-01T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Tomas Tranströmer"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q76487",
+   "date": "1910-01-01T00:00:00Z",
+   "sitelinks": "105",
+   "label": "Paul Heyse"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q80956",
+   "date": "1903-01-01T00:00:00Z",
+   "sitelinks": "104",
+   "label": "Svante Arrhenius"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q131318",
+   "date": "1956-01-01T00:00:00Z",
+   "sitelinks": "104",
+   "label": "Juan Ramón Jiménez"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q47755",
+   "date": "2002-01-01T00:00:00Z",
+   "sitelinks": "104",
+   "label": "Imre Kertész"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57100",
+   "date": "1963-01-01T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Maria Goeppert-Mayer"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q42037",
+   "date": "2008-01-01T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Jean-Marie Gustave Le Clézio"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q75603",
+   "date": "1967-01-01T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Miguel Ángel Asturias"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q2344210",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "103",
+   "label": "Louise Glück"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q80321",
+   "date": "1955-01-01T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Halldór Laxness"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q79000",
+   "date": "1902-01-01T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Pieter Zeeman"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q47695",
+   "date": "1908-01-01T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Rudolf Eucken"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q254032",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "102",
+   "label": "Olga Tokarczuk"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q83184",
+   "date": "1922-01-01T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Jacinto Benavente"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q83331",
+   "date": "1929-01-01T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Louis de Broglie"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q131721",
+   "date": "1910-01-01T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Johannes Diderik van der Waals"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q133747",
+   "date": "1915-01-01T00:00:00Z",
+   "sitelinks": "101",
+   "label": "William Henry Bragg"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q129155",
+   "date": "1937-01-01T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Roger Martin du Gard"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q222944",
+   "date": "2014-01-01T00:00:00Z",
+   "sitelinks": "101",
+   "label": "Patrick Modiano"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q5646626",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "100",
+   "label": "Han Kang"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q80884",
+   "date": "1935-01-01T00:00:00Z",
+   "sitelinks": "99",
+   "label": "James Chadwick"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q102822",
+   "date": "1901-01-01T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Jacobus Henricus van ’t Hoff"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57063",
+   "date": "1905-01-01T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Philipp Lenard"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q133267",
+   "date": "1962-01-01T00:00:00Z",
+   "sitelinks": "99",
+   "label": "Lew Dawidowitsch Landau"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q155790",
+   "date": "1963-01-01T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Eugene Paul Wigner"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q132589",
+   "date": "1989-01-01T00:00:00Z",
+   "sitelinks": "98",
+   "label": "Camilo José Cela"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q123280",
+   "date": "1962-01-01T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Francis Crick"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57077",
+   "date": "1909-01-01T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Ferdinand Braun"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q133042",
+   "date": "1966-01-01T00:00:00Z",
+   "sitelinks": "97",
+   "label": "Samuel Agnon"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q57065",
+   "date": "1944-01-01T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Otto Hahn"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q83038",
+   "date": "1959-01-01T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Salvatore Quasimodo"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q179282",
+   "date": "1979-01-01T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Steven Weinberg"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57068",
+   "date": "1911-01-01T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Wilhelm Wien"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q192112",
+   "date": "2013-01-01T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Peter Higgs"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q226525",
+   "date": "1919-01-01T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Carl Spitteler"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q132701",
+   "date": "1992-01-01T00:00:00Z",
+   "sitelinks": "96",
+   "label": "Derek Walcott"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q949",
+   "date": "1956-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "John Bardeen"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q949",
+   "date": "1972-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "John Bardeen"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q57075",
+   "date": "1918-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Fritz Haber"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q83297",
+   "date": "1904-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "John William Strutt, 3. Baron Rayleigh"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q78496",
+   "date": "1973-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Konrad Lorenz"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q93137",
+   "date": "1951-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Pär Lagerkvist"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q462843",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Tu Youyou"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q199654",
+   "date": "1983-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Barbara McClintock"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q129173",
+   "date": "1916-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Verner von Heidenstam"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q165823",
+   "date": "1963-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Giorgos Seferis"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q102483",
+   "date": "1984-01-01T00:00:00Z",
+   "sitelinks": "95",
+   "label": "Jaroslav Seifert"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q150526",
+   "date": "1906-01-01T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Santiago Ramón y Cajal"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q102034",
+   "date": "1902-01-01T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Ronald Ross"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q83174",
+   "date": "1975-01-01T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Eugenio Montale"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q155794",
+   "date": "1967-01-01T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Hans Bethe"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q133232",
+   "date": "1908-01-01T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Gabriel Lippmann"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q155777",
+   "date": "1949-01-01T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Yukawa Hideki"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q1153825",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "94",
+   "label": "Annie Ernaux"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q950726",
+   "date": "1904-01-01T00:00:00Z",
+   "sitelinks": "93",
+   "label": "William Ramsay"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q163415",
+   "date": "1956-01-01T00:00:00Z",
+   "sitelinks": "93",
+   "label": "William Bradford Shockley"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57067",
+   "date": "1914-01-01T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Max von Laue"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q148109",
+   "date": "1983-01-01T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Subrahmanyan Chandrasekhar"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q169577",
+   "date": "1939-01-01T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Ernest Lawrence"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q44107",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "93",
+   "label": "Peter Handke"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q193803",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Roger Penrose"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q172840",
+   "date": "1969-01-01T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Murray Gell-Mann"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q129187",
+   "date": "1973-01-01T00:00:00Z",
+   "sitelinks": "92",
+   "label": "Patrick White"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q62891",
+   "date": "1913-01-01T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Heike Kamerlingh Onnes"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q131729",
+   "date": "1915-01-01T00:00:00Z",
+   "sitelinks": "91",
+   "label": "William Lawrence Bragg"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q56855591",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Donna Strickland"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q172844",
+   "date": "1978-01-01T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Pjotr Leonidowitsch Kapiza"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q131487",
+   "date": "1917-01-01T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Karl Gjellerup"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q131549",
+   "date": "1985-01-01T00:00:00Z",
+   "sitelinks": "91",
+   "label": "Claude Simon"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q70554",
+   "date": "1902-01-01T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Emil Fischer"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q12658",
+   "date": "1909-01-01T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Wilhelm Ostwald"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q172254",
+   "date": "1908-01-01T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Ilja Iljitsch Metschnikow"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q162900",
+   "date": "1927-01-01T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Charles Thomson Rees Wilson"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q159552",
+   "date": "1944-01-01T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Johannes Vilhelm Jensen"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q317877",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Abdulrazak Gurnah"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q225554",
+   "date": "1917-01-01T00:00:00Z",
+   "sitelinks": "90",
+   "label": "Henrik Pontoppidan"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q127944",
+   "date": "1927-01-01T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Arthur Holly Compton"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q204733",
+   "date": "1947-01-01T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Gerty Cori"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57072",
+   "date": "1943-01-01T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Otto M. Stern"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57070",
+   "date": "1925-01-01T00:00:00Z",
+   "sitelinks": "89",
+   "label": "Gustav Hertz"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q127349",
+   "date": "1904-01-01T00:00:00Z",
+   "sitelinks": "89",
+   "label": "José Echegaray"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q107402",
+   "date": "1977-01-01T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Rosalyn Sussman Yalow"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q76425",
+   "date": "1901-01-01T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Emil von Behring"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q181369",
+   "date": "1957-01-01T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Chen Ning Yang"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q155786",
+   "date": "1971-01-01T00:00:00Z",
+   "sitelinks": "88",
+   "label": "Dennis Gábor"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57066",
+   "date": "1925-01-01T00:00:00Z",
+   "sitelinks": "88",
+   "label": "James Franck"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q151564",
+   "date": "1958-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Frederick Sanger"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q151564",
+   "date": "1980-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Frederick Sanger"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q28189",
+   "date": "1979-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Abdus Salam"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q35703",
+   "date": "1988-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Gertrude Belle Elion"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q123026",
+   "date": "1920-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Charles Édouard Guillaume"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q104668",
+   "date": "2003-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Witali Lasarewitsch Ginsburg"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q134085",
+   "date": "1926-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Jean Perrin"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q57092",
+   "date": "1919-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Johannes Stark"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q134641",
+   "date": "1931-01-01T00:00:00Z",
+   "sitelinks": "87",
+   "label": "Erik Axel Karlfeldt"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q56068",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "86",
+   "label": "Jennifer Doudna"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q57089",
+   "date": "1908-01-01T00:00:00Z",
+   "sitelinks": "86",
+   "label": "Paul Ehrlich"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q84405",
+   "date": "1930-01-01T00:00:00Z",
+   "sitelinks": "86",
+   "label": "Karl Landsteiner"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q165969",
+   "date": "1944-01-01T00:00:00Z",
+   "sitelinks": "86",
+   "label": "Isidor Isaac Rabi"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q131326",
+   "date": "1974-01-01T00:00:00Z",
+   "sitelinks": "86",
+   "label": "Eyvind Johnson"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q160478",
+   "date": "1979-01-01T00:00:00Z",
+   "sitelinks": "86",
+   "label": "Odysseas Elytis"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q134644",
+   "date": "1977-01-01T00:00:00Z",
+   "sitelinks": "86",
+   "label": "Vicente Aleixandre"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q103844",
+   "date": "2008-01-01T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Françoise Barré-Sinoussi"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q185777",
+   "date": "1912-01-01T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Alexis Carrel"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q169366",
+   "date": "1936-01-01T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Carl David Anderson"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q153194",
+   "date": "1947-01-01T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Edward Victor Appleton"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q132723",
+   "date": "1939-01-01T00:00:00Z",
+   "sitelinks": "85",
+   "label": "Frans Eemil Sillanpää"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q57125",
+   "date": "1920-01-01T00:00:00Z",
+   "sitelinks": "84",
+   "label": "Walther Nernst"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q102830",
+   "date": "1921-01-01T00:00:00Z",
+   "sitelinks": "84",
+   "label": "Frederick Soddy"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q54945",
+   "date": "1970-01-01T00:00:00Z",
+   "sitelinks": "84",
+   "label": "Hannes Alfvén"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q184566",
+   "date": "1964-01-01T00:00:00Z",
+   "sitelinks": "84",
+   "label": "Charles Hard Townes"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q160518",
+   "date": "1912-01-01T00:00:00Z",
+   "sitelinks": "84",
+   "label": "Gustaf Dalén"
+  },
+  {
+   "prize": "Q37922",
+   "item": "Q132695",
+   "date": "1974-01-01T00:00:00Z",
+   "sitelinks": "84",
+   "label": "Harry Martinson"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q78520",
+   "date": "1936-01-01T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Victor Franz Hess"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q180468",
+   "date": "1937-01-01T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Albert Szent-Györgyi"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q200136",
+   "date": "2004-01-01T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Linda B. Buck"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q133222",
+   "date": "1937-01-01T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Clinton Davisson"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q188128",
+   "date": "2003-01-01T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Alexei Alexejewitsch Abrikossow"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q178344",
+   "date": "1968-01-01T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Luis Walter Alvarez"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q171034",
+   "date": "1978-01-01T00:00:00Z",
+   "sitelinks": "83",
+   "label": "Robert Woodrow Wilson"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q103854",
+   "date": "1975-01-01T00:00:00Z",
+   "sitelinks": "82",
+   "label": "Aage Niels Bohr"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q183279",
+   "date": "2000-01-01T00:00:00Z",
+   "sitelinks": "82",
+   "label": "Schores Iwanowitsch Alfjorow"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q172877",
+   "date": "1978-01-01T00:00:00Z",
+   "sitelinks": "82",
+   "label": "Arno Penzias"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q43917",
+   "date": "1907-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Eduard Buchner"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q26322",
+   "date": "2009-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Carol W. Greider"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q26321",
+   "date": "2009-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Elizabeth Blackburn"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q133846",
+   "date": "1937-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "George Paget Thomson"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q183631",
+   "date": "1951-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Ernest Walton"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q123022",
+   "date": "1952-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Felix Bloch"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q153178",
+   "date": "1992-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Georges Charpak"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q160522",
+   "date": "1917-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Charles Glover Barkla"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q169330",
+   "date": "1928-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Owen Willans Richardson"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q170741",
+   "date": "1924-01-01T00:00:00Z",
+   "sitelinks": "81",
+   "label": "Manne Siegbahn"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q150989",
+   "date": "1935-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Frédéric Joliot-Curie"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q17280087",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Emmanuelle Charpentier"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q76474",
+   "date": "1954-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Walther Bothe"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q62897",
+   "date": "1951-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "John Cockcroft"
+  },
+  {
+   "prize": "Q80061",
+   "item": "Q150630",
+   "date": "1906-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Camillo Golgi"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q80905",
+   "date": "1960-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Donald Arthur Glaser"
+  },
+  {
+   "prize": "Q44585",
+   "item": "Q103835",
+   "date": "1936-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Peter Debye"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q186481",
+   "date": "2002-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Riccardo Giacconi"
+  },
+  {
+   "prize": "Q38104",
+   "item": "Q172118",
+   "date": "1946-01-01T00:00:00Z",
+   "sitelinks": "80",
+   "label": "Percy Williams Bridgman"
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 import type { EstimateScaleType, QuestionCategory } from '@rdw/protocol';
 import type { QuestionFile } from '../schema.ts';
-import { createRng, difficultyFromShare, qidKey, shuffle, spreadPick, type Row } from './util.ts';
+import { createRng, difficultyFromShare, foldText, qidKey, shuffle, spreadPick, type Row } from './util.ts';
 
 /**
  * Erzeugt Fragenentwürfe aus Wikidata-Datenständen (docs/QUIZ_ENGINE.md §9.1). Wikidata liefert
@@ -44,6 +44,8 @@ export interface EstimateTemplate {
   readonly scale: number;
   readonly extract: (rows: readonly Row[]) => EstimateFact[];
   readonly prompt: (fact: EstimateFact) => string;
+  /** Feste Schwierigkeit statt der aus der Bekanntheit (undefined: aus der Bekanntheit). */
+  readonly difficulty?: (fact: EstimateFact) => 2 | 3 | 4 | undefined;
 }
 
 /** Ein Fakt für eine Auswahlfrage. */
@@ -142,35 +144,38 @@ export function buildEstimate(
 }
 
 /**
- * Falsche Antworten: nur aus der gleichen Gruppe, solange sie mindestens drei bietet; dann nach
- * Jahresabstand und Bekanntheit sortiert; drei werden aus den `shortlist` besten gelost.
+ * Falsche Antworten: nur aus der gleichen Gruppe, solange sie mindestens drei bietet. Mit Jahr
+ * (z. B. Geburtsjahr des Autors) zählt der Jahresabstand, dann die Bekanntheit; ohne Jahr die
+ * ähnliche Bekanntheit (Hauptstädte ähnlich bekannter Staaten) oder, mit `keepOrder`, die
+ * Reihenfolge des Vorrats. Drei werden aus den `shortlist` besten gelost. Antworten, die sich
+ * von der richtigen oder voneinander nur in Akzenten oder Satzzeichen unterscheiden („Som“ und
+ * „Soʻm“), fallen weg.
  */
 export function pickDistractors(
   fact: ChoiceFact,
   candidates: readonly { answer: string; group?: string; year?: number; rank: number }[],
   rng: () => number,
-  shortlistSize = 6,
+  options: { shortlist?: number; keepOrder?: boolean } = {},
 ): string[] | null {
-  const correct = fact.answer.toLocaleLowerCase('de');
-  const seen = new Set<string>([correct]);
+  const seen = new Set<string>([foldText(fact.answer)]);
   const unique: { answer: string; score: number; sameGroup: boolean }[] = [];
   for (const c of candidates) {
-    const norm = c.answer.toLocaleLowerCase('de');
-    if (seen.has(norm)) continue;
+    const norm = foldText(c.answer);
+    if (norm === '' || seen.has(norm)) continue;
     seen.add(norm);
-    const yearPenalty =
-      fact.year !== undefined && c.year !== undefined ? Math.abs(c.year - fact.year) : fact.year !== undefined ? 500 : 0;
-    unique.push({
-      answer: c.answer,
-      score: yearPenalty + c.rank * 0.01,
-      sameGroup: fact.group === undefined || c.group === fact.group,
-    });
+    let score: number;
+    if (fact.year !== undefined) {
+      score = (c.year !== undefined ? Math.abs(c.year - fact.year) : 500) + c.rank * 0.01;
+    } else {
+      score = (options.keepOrder ? c.rank : Math.abs(c.rank - fact.rank)) * 0.01;
+    }
+    unique.push({ answer: c.answer, score, sameGroup: fact.group === undefined || c.group === fact.group });
   }
   const sameGroup = unique.filter((c) => c.sameGroup);
   const usable = sameGroup.length >= 3 ? sameGroup : unique;
   if (usable.length < 3) return null;
   usable.sort((a, b) => a.score - b.score || a.answer.localeCompare(b.answer, 'de'));
-  const shortlist = usable.slice(0, Math.max(3, Math.min(shortlistSize, usable.length)));
+  const shortlist = usable.slice(0, Math.max(3, Math.min(options.shortlist ?? 6, usable.length)));
   return shuffle(shortlist, rng)
     .slice(0, 3)
     .map((c) => c.answer);
@@ -211,20 +216,23 @@ export function generateFromTemplate(template: Template, snapshot: SnapshotData)
     const facts = ranked(template.extract(snapshot.rows)).filter(
       (f) => f.value >= template.inputMin && f.value <= template.inputMax,
     );
-    return spreadPick(facts, template.count, template.window).map(({ item, share }) => ({
+    return spreadPick(facts, template.count, template.window, template.id).map(({ item, share }) => ({
       template: template.id,
       sourceLabel: item.label,
-      question: buildEstimate(template, item, difficultyFromShare(share), accessed),
+      question: buildEstimate(template, item, template.difficulty?.(item) ?? difficultyFromShare(share), accessed),
     }));
   }
   const facts = ranked(template.extract(snapshot.rows));
   const result: GeneratedQuestion[] = [];
-  for (const { item, share } of spreadPick(facts, template.count, template.window)) {
+  for (const { item, share } of spreadPick(facts, template.count, template.window, template.id)) {
     const rng = createRng(`wd-${template.id}-${item.qid}:distractors`);
     const pool = template.distractorPool
       ? template.distractorPool(item, facts, snapshot.rows).map((answer, rank) => ({ answer, rank }))
       : facts.filter((f) => f.qid !== item.qid);
-    const distractors = pickDistractors(item, pool, rng, template.shortlist);
+    const distractors = pickDistractors(item, pool, rng, {
+      ...(template.shortlist !== undefined ? { shortlist: template.shortlist } : {}),
+      keepOrder: template.distractorPool !== undefined,
+    });
     if (!distractors) continue;
     const difficulty = template.difficulty?.(item) ?? difficultyFromShare(share);
     result.push({

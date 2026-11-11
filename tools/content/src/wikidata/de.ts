@@ -29,6 +29,7 @@ const COUNTRY_FORMS: Readonly<Record<string, CountryForms>> = {
   Elfenbeinküste: feminine('Elfenbeinküste'),
   Vatikanstadt: feminine('Vatikanstadt'),
   'Volksrepublik China': feminine('Volksrepublik China'),
+  'Republik Moldau': feminine('Republik Moldau'),
   'Republik Kongo': feminine('Republik Kongo'),
   'Demokratische Republik Kongo': { of: 'der Demokratischen Republik Kongo', in: 'in der Demokratischen Republik Kongo' },
   'Zentralafrikanische Republik': { of: 'der Zentralafrikanischen Republik', in: 'in der Zentralafrikanischen Republik' },
@@ -58,6 +59,20 @@ const COUNTRY_FORMS: Readonly<Record<string, CountryForms>> = {
   Marshallinseln: plural('Marshallinseln', 'Marshallinseln', 'auf'),
 };
 
+/**
+ * Bezeichnungen aus Wikidata, die im Fragetext anders heißen müssen: „Naoero“ ist die
+ * Eigenbezeichnung von Nauru, „Moldau“ allein ist auch der Fluss.
+ */
+const COUNTRY_NAMES: Readonly<Record<string, string>> = {
+  Naoero: 'Nauru',
+  Moldau: 'Republik Moldau',
+};
+
+/** Gebräuchlicher deutscher Name eines Staates. */
+export function countryName(label: string): string {
+  return COUNTRY_NAMES[label] ?? label;
+}
+
 /** „die Hauptstadt der Schweiz“, „die Fläche von Kanada“. */
 export function ofCountry(label: string): string {
   return COUNTRY_FORMS[label]?.of ?? `von ${label}`;
@@ -66,6 +81,29 @@ export function ofCountry(label: string): string {
 /** „in der Schweiz“, „im Irak“, „auf den Philippinen“, „in Polen“. */
 export function inCountry(label: string): string {
   return COUNTRY_FORMS[label]?.in ?? `in ${label}`;
+}
+
+/** Gebräuchliche Kurzform, wo Wikidata den vollen Namen führt. */
+const PERSON_NAMES: Readonly<Record<string, string>> = {
+  'Joanne K. Rowling': 'J. K. Rowling',
+  'Lyman Frank Baum': 'L. Frank Baum',
+  'Elwyn Brooks White': 'E. B. White',
+  'Samuel Phillips Huntington': 'Samuel P. Huntington',
+};
+
+/**
+ * Name einer Person für Antwortmöglichkeiten: Kurzform aus der Liste oder russischer Name ohne
+ * Vatersnamen („Fjodor Michailowitsch Dostojewski“ → „Fjodor Dostojewski“), damit die Knöpfe
+ * auf dem Handy nicht umbrechen.
+ */
+export function personName(label: string): string {
+  const known = PERSON_NAMES[label];
+  if (known) return known;
+  const parts = label.split(' ');
+  if (parts.length === 3 && /(?:owitsch|ewitsch|itsch|owna|ewna|ichna)$/.test(parts[1] ?? '')) {
+    return `${parts[0]} ${parts[2]}`;
+  }
+  return label;
 }
 
 /**
@@ -106,6 +144,39 @@ const NOMINATIVE: Readonly<Record<string, string>> = {
   'Mount Rainier': 'der Mount Rainier',
   'Mount St. Helens': 'der Mount St. Helens',
   'Pico de Orizaba': 'der Pico de Orizaba',
+  Citlaltépetl: 'der Pico de Orizaba (Citlaltépetl)',
+  'Berg Olymp': 'der Olymp',
+  Kailash: 'der Kailash',
+  Dhaulagiri: 'der Dhaulagiri',
+  'Mount-Kenya-Massiv': 'der Mount Kenya',
+  'Mount Kosciuszko': 'der Mount Kosciuszko',
+  'Cho Oyu': 'der Cho Oyu',
+  Manaslu: 'der Manaslu',
+  Merapi: 'der Merapi',
+  'Ben Nevis': 'der Ben Nevis',
+  Shishapangma: 'der Shishapangma',
+  'Carstensz-Pyramide': 'die Carstensz-Pyramide',
+  'Broad Peak': 'der Broad Peak',
+  Paektusan: 'der Paektusan',
+  'Mount Logan': 'der Mount Logan',
+  Tambora: 'der Tambora',
+  Tafelberg: 'der Tafelberg bei Kapstadt',
+  'Nevado Ojos del Salado': 'der Ojos del Salado',
+  'Tai Shan': 'der Tai Shan',
+  Kinabalu: 'der Kinabalu',
+  'Hidden Peak': 'der Hidden Peak',
+  Pinatubo: 'der Pinatubo',
+  Mayon: 'der Mayon',
+  'Gasherbrum II': 'der Gasherbrum II',
+  'Mount Erebus': 'der Mount Erebus',
+  'Mount Cook': 'der Mount Cook',
+  Aragaz: 'der Aragaz',
+  Hermon: 'der Hermon',
+  Parnass: 'der Parnass',
+  Cotopaxi: 'der Cotopaxi',
+  'Khan Tengri': 'der Khan Tengri',
+  'Gangkhar Puensum': 'der Gangkhar Puensum',
+  Kasbek: 'der Kasbek',
   // Flüsse
   Nil: 'der Nil',
   Amazonas: 'der Amazonas',
@@ -183,6 +254,28 @@ const NOMINATIVE: Readonly<Record<string, string>> = {
   Senegal: 'der Senegal',
   Volta: 'der Volta',
   Murray: 'der Murray',
+  'Murray River': 'der Murray',
+  Dnipro: 'der Dnipro',
+  Yamuna: 'die Yamuna',
+  'Yukon River': 'der Yukon',
+  Düna: 'die Düna',
+  Maas: 'die Maas',
+  'Columbia River': 'der Columbia River',
+  'Hudson River': 'der Hudson River',
+  'Ohio River': 'der Ohio',
+  Douro: 'der Douro',
+  'Rio Paraná': 'der Paraná',
+  Godavari: 'die Godavari',
+  Moskwa: 'die Moskwa',
+  'Río Uruguay': 'der Uruguay',
+  'Senegal-Strom': 'der Senegal',
+  Angara: 'die Angara',
+  Gambia: 'der Gambia',
+  Krishna: 'die Krishna',
+  'Rio Negro': 'der Rio Negro',
+  'Río Paraguay': 'der Paraguay',
+  Oka: 'die Oka',
+  Aras: 'der Aras',
   // Bauwerke
   Eiffelturm: 'der Eiffelturm',
   'Burj Khalifa': 'der Burj Khalifa',
@@ -216,11 +309,24 @@ const NOMINATIVE: Readonly<Record<string, string>> = {
   'Mailänder Dom': 'der Mailänder Dom',
   'Westminster Abbey': 'die Westminster Abbey',
   'Lotte World Tower': 'der Lotte World Tower',
-  'Shard': 'The Shard',
-  'The Shard': 'The Shard',
+  'The Shard': 'das Hochhaus The Shard in London',
   'Messeturm': 'der Messeturm',
   'Commerzbank Tower': 'der Commerzbank Tower',
   'Olympiaturm': 'der Olympiaturm',
+  'Sears-Tower': 'der Willis Tower (früher Sears Tower) in Chicago',
+  'Kathedrale von Florenz': 'der Dom von Florenz mit seiner Kuppel',
+  'Tokio-Turm': 'der Tokyo Tower',
+  'Shanghai World Financial Center': 'das Shanghai World Financial Center',
+  'Fernsehturm Ostankino': 'der Fernsehturm Ostankino in Moskau',
+  Galataturm: 'der Galataturm in Istanbul',
+  Kulturpalast: 'der Kulturpalast in Warschau',
+  'Grande Arche': 'die Grande Arche in Paris',
+  '30 St Mary Axe': 'das Londoner Hochhaus 30 St Mary Axe („die Gurke“)',
+  'Tour Montparnasse': 'der Tour Montparnasse in Paris',
+  'Bank of China Tower': 'der Bank of China Tower in Hongkong',
+  'Woolworth Building': 'das Woolworth Building in New York',
+  'Turning Torso': 'der Turning Torso in Malmö',
+  'Lakhta Center': 'das Lakhta Center in Sankt Petersburg',
 };
 
 /** „die Zugspitze“ oder, falls unbekannt, „<Gattung> „<Name>““ (z. B. „der Berg „Zugspitze““). */

@@ -35,3 +35,12 @@ Die 40 Testfragen sind von Claude entworfen (`AI_ASSISTED`, `DRAFT`). Fakten und
 3. Gegenlesen, Text glätten, dann Fakten- und Sprachprüfung in `reviews` eintragen und freigeben wie jede andere Frage.
 
 Nicht spielbare Gegenstände schließen die Vorlagen in `tools/content/src/wikidata/templates.ts` aus; Namen mit Artikel („die Zugspitze“) stehen in `de.ts`.
+
+Was der erste Datenstand (2026-11-11) gelehrt hat und die Vorlagen deshalb festhalten:
+
+- **Berufe sagen nicht, wofür jemand bekannt ist.** Wikidata führt Leonardo da Vinci auch als Komponist und George W. Bush als Maler. Die Geburtsjahr-Frage nimmt deshalb nur Personen aus einer festen Liste mit passender Bezeichnung („der Komponist“, „die Malerin“).
+- **Orte sind oft Stadien.** Bei Olympischen Spielen nennt Wikidata neben der Stadt auch Stadien und Skigebiete, manchmal nur diese. Gefragt wird nur, wenn genau eine bekannte Ausrichterstadt genannt ist; das Jahr kommt aus der Bezeichnung (Tokio 2020 fand 2021 statt).
+- **„Land“ heißt nicht „Staat“.** Aruba, die Cookinseln, Somaliland und ähnliche Gebiete fallen weg, ebenso Palästina (Anerkennung umstritten). Wikidata-Bezeichnungen wie „Naoero“ oder „Moldau“ werden zu „Nauru“ und „Republik Moldau“.
+- **Nur Namen mit geprüfter deutscher Form.** Berge, Flüsse und Bauwerke ohne Eintrag in `de.ts` werden nicht gefragt; das hält auch abseitige Gegenstände (Hochhäuser in São Paulo, unfertige Türme) heraus.
+- **Werke ohne Dichtung.** Die Autor-Frage nimmt nur Autoren ab 1200 (keine religiösen oder antiken Schriften ohne gesicherten Autor), keine Sachbücher, keine Propaganda und keine Titel, in denen der Autor steht.
+- **Einwohnerzahlen deutscher Städte** mischen in Wikidata amtliche Zahlen und städtische Melderegister; vor der Freigabe gegen Destatis prüfen.

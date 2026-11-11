@@ -1,0 +1,6114 @@
+{
+ "name": "laender-einwohner",
+ "fetchedAt": "2026-11-11T20:54:27.444Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Heutige Staaten mit Einwohnerzahlen seit 2015 und Stichtag (die neueste wählt der Generator).\nSELECT ?item ?label ?sitelinks ?value ?date WHERE {\n  ?item wdt:P31 wd:Q6256;\n        wikibase:sitelinks ?sitelinks.\n  FILTER NOT EXISTS { ?item wdt:P576 ?dissolved }\n  ?item p:P1082 ?statement.\n  ?statement ps:P1082 ?value;\n             pq:P585 ?date;\n             wikibase:rank ?rank.\n  FILTER(?rank != wikibase:DeprecatedRank)\n  FILTER(YEAR(?date) >= 2015)\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\n",
+ "rowCount": 872,
+ "rows": [
+  {
+   "item": "Q43",
+   "value": "80144878",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q43",
+   "value": "85279553",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q43",
+   "value": "82003882",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q43",
+   "value": "78665830",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q43",
+   "value": "83614362",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q43",
+   "value": "85372377",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q43",
+   "value": "84680273",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "430",
+   "label": "Türkei"
+  },
+  {
+   "item": "Q142",
+   "value": "67063703",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "67749632",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "66380602",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "68373433",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "66992159",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "67118648",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "66628000",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "68605616",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q142",
+   "value": "67257982",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "428",
+   "label": "Frankreich"
+  },
+  {
+   "item": "Q30",
+   "value": "325145963",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten"
+  },
+  {
+   "item": "Q30",
+   "value": "331449281",
+   "date": "2020-04-01T00:00:00Z",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten"
+  },
+  {
+   "item": "Q30",
+   "value": "328239523",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten"
+  },
+  {
+   "item": "Q30",
+   "value": "340110988",
+   "date": "2024-07-01T00:00:00Z",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten"
+  },
+  {
+   "item": "Q30",
+   "value": "332278200",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten"
+  },
+  {
+   "item": "Q30",
+   "value": "323952889",
+   "date": "2016-07-09T00:00:00Z",
+   "sitelinks": "427",
+   "label": "Vereinigte Staaten"
+  },
+  {
+   "item": "Q159",
+   "value": "146900000",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146804372",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146800000",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146800000",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146300000",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "147182123",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146119928",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146500000",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146519759",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146781000",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146980000",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146447000",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q159",
+   "value": "146151000",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "421",
+   "label": "Russland"
+  },
+  {
+   "item": "Q17",
+   "value": "126309690",
+   "date": "2019-02-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126004305",
+   "date": "2020-02-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "125682000",
+   "date": "2021-12-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126317168",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126166948",
+   "date": "2019-10-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126529100",
+   "date": "2018-07-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126131444",
+   "date": "2019-09-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126416629",
+   "date": "2018-09-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "124631000",
+   "date": "2023-02-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126218856",
+   "date": "2019-08-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126161181",
+   "date": "2019-11-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126785797",
+   "date": "2017-07-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126253652",
+   "date": "2019-04-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126443180",
+   "date": "2018-10-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126493181",
+   "date": "2018-03-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126143993",
+   "date": "2019-12-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "123802000",
+   "date": "2024-10-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "125961625",
+   "date": "2020-03-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126434565",
+   "date": "2018-12-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126264931",
+   "date": "2019-07-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126146099",
+   "date": "2020-10-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126509241",
+   "date": "2018-06-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126251556",
+   "date": "2019-06-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "125440000",
+   "date": "2022-02-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126501966",
+   "date": "2018-04-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126452921",
+   "date": "2018-11-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "127094745",
+   "date": "2015-10-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "125988209",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126180643",
+   "date": "2019-05-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126465796",
+   "date": "2018-05-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126248424",
+   "date": "2019-03-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q17",
+   "value": "126496302",
+   "date": "2018-08-01T00:00:00Z",
+   "sitelinks": "419",
+   "label": "Japan"
+  },
+  {
+   "item": "Q38",
+   "value": "60551416",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "409",
+   "label": "Italien"
+  },
+  {
+   "item": "Q38",
+   "value": "60317000",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "409",
+   "label": "Italien"
+  },
+  {
+   "item": "Q38",
+   "value": "58850717",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "409",
+   "label": "Italien"
+  },
+  {
+   "item": "Q38",
+   "value": "60599936",
+   "date": "2016-11-30T00:00:00Z",
+   "sitelinks": "409",
+   "label": "Italien"
+  },
+  {
+   "item": "Q183",
+   "value": "83122889",
+   "date": "2020-06-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83577140",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "82521653",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83155031",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "81292400",
+   "date": "2015-03-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83222442",
+   "date": "2021-09-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "84079811",
+   "date": "2022-06-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83695430",
+   "date": "2022-03-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83129285",
+   "date": "2021-06-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83157201",
+   "date": "2020-03-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83166711",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "84358845",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "82979100",
+   "date": "2018-09-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83190556",
+   "date": "2020-09-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "82695000",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83121363",
+   "date": "2021-03-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "84270625",
+   "date": "2022-09-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83149277",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83237124",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "82175700",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q183",
+   "value": "83467117",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "405",
+   "label": "Deutschland"
+  },
+  {
+   "item": "Q668",
+   "value": "1339180127",
+   "date": "2017-07-01T00:00:00Z",
+   "sitelinks": "404",
+   "label": "Indien"
+  },
+  {
+   "item": "Q668",
+   "value": "1309053980",
+   "date": "2015-07-01T00:00:00Z",
+   "sitelinks": "404",
+   "label": "Indien"
+  },
+  {
+   "item": "Q668",
+   "value": "1326093247",
+   "date": "2020-07-01T00:00:00Z",
+   "sitelinks": "404",
+   "label": "Indien"
+  },
+  {
+   "item": "Q668",
+   "value": "1349217956",
+   "date": "2018-08-03T00:00:00Z",
+   "sitelinks": "404",
+   "label": "Indien"
+  },
+  {
+   "item": "Q668",
+   "value": "1324171354",
+   "date": "2016-07-01T00:00:00Z",
+   "sitelinks": "404",
+   "label": "Indien"
+  },
+  {
+   "item": "Q33",
+   "value": "5652881",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "403",
+   "label": "Finnland"
+  },
+  {
+   "item": "Q33",
+   "value": "5608218",
+   "date": "2024-02-29T00:00:00Z",
+   "sitelinks": "403",
+   "label": "Finnland"
+  },
+  {
+   "item": "Q33",
+   "value": "5563970",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "403",
+   "label": "Finnland"
+  },
+  {
+   "item": "Q33",
+   "value": "5501043",
+   "date": "2016-09-30T00:00:00Z",
+   "sitelinks": "403",
+   "label": "Finnland"
+  },
+  {
+   "item": "Q33",
+   "value": "5516224",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "403",
+   "label": "Finnland"
+  },
+  {
+   "item": "Q96",
+   "value": "124777324",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "402",
+   "label": "Mexiko"
+  },
+  {
+   "item": "Q96",
+   "value": "132274416",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "402",
+   "label": "Mexiko"
+  },
+  {
+   "item": "Q96",
+   "value": "131135337",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "402",
+   "label": "Mexiko"
+  },
+  {
+   "item": "Q96",
+   "value": "129829800",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "402",
+   "label": "Mexiko"
+  },
+  {
+   "item": "Q148",
+   "value": "1404890000",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "401",
+   "label": "Volksrepublik China"
+  },
+  {
+   "item": "Q148",
+   "value": "1442965000",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "401",
+   "label": "Volksrepublik China"
+  },
+  {
+   "item": "Q148",
+   "value": "1397028553",
+   "date": "2015-07-01T00:00:00Z",
+   "sitelinks": "401",
+   "label": "Volksrepublik China"
+  },
+  {
+   "item": "Q148",
+   "value": "1443497378",
+   "date": "2020-11-01T00:00:00Z",
+   "sitelinks": "401",
+   "label": "Volksrepublik China"
+  },
+  {
+   "item": "Q148",
+   "value": "1409517397",
+   "date": "2017-07-01T00:00:00Z",
+   "sitelinks": "401",
+   "label": "Volksrepublik China"
+  },
+  {
+   "item": "Q148",
+   "value": "1403500365",
+   "date": "2016-07-01T00:00:00Z",
+   "sitelinks": "401",
+   "label": "Volksrepublik China"
+  },
+  {
+   "item": "Q408",
+   "value": "23401892",
+   "date": "2016-08-09T00:00:00Z",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q408",
+   "value": "24511800",
+   "date": "2017-03-01T00:00:00Z",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q408",
+   "value": "25422788",
+   "date": "2021-08-10T00:00:00Z",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q408",
+   "value": "27309396",
+   "date": "2024-09-30T00:00:00Z",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q408",
+   "value": "25671900",
+   "date": "2020-03-31T00:00:00Z",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q408",
+   "value": "26473055",
+   "date": "2023-03-31T00:00:00Z",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q408",
+   "value": "27614411",
+   "date": "2025-06-30T00:00:00Z",
+   "sitelinks": "400",
+   "label": "Australien"
+  },
+  {
+   "item": "Q16",
+   "value": "36991981",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "36708083",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "40000000",
+   "date": "2023-06-16T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "41798407",
+   "date": "2026-07-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "38037204",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "37601230",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "35702707",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "35151728",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q16",
+   "value": "37065084",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "398",
+   "label": "Kanada"
+  },
+  {
+   "item": "Q29",
+   "value": "46528024",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "397",
+   "label": "Spanien"
+  },
+  {
+   "item": "Q29",
+   "value": "46449565",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "397",
+   "label": "Spanien"
+  },
+  {
+   "item": "Q29",
+   "value": "46733038",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "397",
+   "label": "Spanien"
+  },
+  {
+   "item": "Q29",
+   "value": "47415750",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "397",
+   "label": "Spanien"
+  },
+  {
+   "item": "Q29",
+   "value": "48592909",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "397",
+   "label": "Spanien"
+  },
+  {
+   "item": "Q145",
+   "value": "66022273",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "396",
+   "label": "Vereinigtes Königreich"
+  },
+  {
+   "item": "Q145",
+   "value": "65102385",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "396",
+   "label": "Vereinigtes Königreich"
+  },
+  {
+   "item": "Q145",
+   "value": "67326569",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "396",
+   "label": "Vereinigtes Königreich"
+  },
+  {
+   "item": "Q20",
+   "value": "5213985",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5504329",
+   "date": "2023-05-16T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5594340",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5258317",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5488984",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5627400",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5328212",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5295619",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5425270",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5550203",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5367580",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q20",
+   "value": "5391369",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "394",
+   "label": "Norwegen"
+  },
+  {
+   "item": "Q79",
+   "value": "107476864",
+   "date": "2023-01-18T00:00:00Z",
+   "sitelinks": "392",
+   "label": "Ägypten"
+  },
+  {
+   "item": "Q79",
+   "value": "94798827",
+   "date": "2017-03-28T00:00:00Z",
+   "sitelinks": "392",
+   "label": "Ägypten"
+  },
+  {
+   "item": "Q79",
+   "value": "114535772",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "392",
+   "label": "Ägypten"
+  },
+  {
+   "item": "Q79",
+   "value": "114500000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "392",
+   "label": "Ägypten"
+  },
+  {
+   "item": "Q36",
+   "value": "38265013",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "38433600",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "37563071",
+   "date": "2024-06-30T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "38382576",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "38432992",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "38437239",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "38036118",
+   "date": "2021-03-31T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "38411148",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q36",
+   "value": "37986412",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "391",
+   "label": "Polen"
+  },
+  {
+   "item": "Q212",
+   "value": "42386403",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q212",
+   "value": "41588354",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q212",
+   "value": "42800501",
+   "date": "2015-10-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q212",
+   "value": "42558328",
+   "date": "2017-02-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q212",
+   "value": "42760516",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q212",
+   "value": "42153201",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q212",
+   "value": "41902416",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q212",
+   "value": "41167335",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "390",
+   "label": "Ukraine"
+  },
+  {
+   "item": "Q222",
+   "value": "2793592",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Albanien"
+  },
+  {
+   "item": "Q222",
+   "value": "2873457",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Albanien"
+  },
+  {
+   "item": "Q222",
+   "value": "2811655",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Albanien"
+  },
+  {
+   "item": "Q155",
+   "value": "213317639",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "203062512",
+   "date": "2022-08-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "202656788",
+   "date": "2015-07-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "212583750",
+   "date": "2024-07-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "213421037",
+   "date": "2025-07-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "214211951",
+   "date": "2026-07-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q39",
+   "value": "8738791",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q39",
+   "value": "8902308",
+   "date": "2023-06-30T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q39",
+   "value": "8466017",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q155",
+   "value": "210147125",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "206081432",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "207353391",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "211755692",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q155",
+   "value": "208494900",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Brasilien"
+  },
+  {
+   "item": "Q39",
+   "value": "8962300",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q39",
+   "value": "8962258",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q39",
+   "value": "9051029",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q39",
+   "value": "9104063",
+   "date": "2025-09-30T00:00:00Z",
+   "sitelinks": "387",
+   "label": "Schweiz"
+  },
+  {
+   "item": "Q31",
+   "value": "11431406",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11209044",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11584008",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11267910",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11521238",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11372068",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11492641",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11376070",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11322088",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q31",
+   "value": "11825551",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "383",
+   "label": "Belgien"
+  },
+  {
+   "item": "Q298",
+   "value": "17373831",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "382",
+   "label": "Chile"
+  },
+  {
+   "item": "Q298",
+   "value": "19458000",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "382",
+   "label": "Chile"
+  },
+  {
+   "item": "Q298",
+   "value": "18054726",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "382",
+   "label": "Chile"
+  },
+  {
+   "item": "Q801",
+   "value": "8463400",
+   "date": "2015-12-01T00:00:00Z",
+   "sitelinks": "380",
+   "label": "Israel"
+  },
+  {
+   "item": "Q801",
+   "value": "8796200",
+   "date": "2017-12-01T00:00:00Z",
+   "sitelinks": "380",
+   "label": "Israel"
+  },
+  {
+   "item": "Q801",
+   "value": "9093000",
+   "date": "2019-09-01T00:00:00Z",
+   "sitelinks": "380",
+   "label": "Israel"
+  },
+  {
+   "item": "Q801",
+   "value": "8891800",
+   "date": "2018-07-01T00:00:00Z",
+   "sitelinks": "380",
+   "label": "Israel"
+  },
+  {
+   "item": "Q801",
+   "value": "9840000",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "380",
+   "label": "Israel"
+  },
+  {
+   "item": "Q801",
+   "value": "8654900",
+   "date": "2017-02-01T00:00:00Z",
+   "sitelinks": "380",
+   "label": "Israel"
+  },
+  {
+   "item": "Q41",
+   "value": "10721582",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10566531",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "9716889",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10482487",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10775971",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10820883",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10732882",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10698599",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10754679",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q41",
+   "value": "10641221",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "378",
+   "label": "Griechenland"
+  },
+  {
+   "item": "Q794",
+   "value": "92417700",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "376",
+   "label": "Iran"
+  },
+  {
+   "item": "Q794",
+   "value": "86758304",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "376",
+   "label": "Iran"
+  },
+  {
+   "item": "Q794",
+   "value": "84923314",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "376",
+   "label": "Iran"
+  },
+  {
+   "item": "Q794",
+   "value": "79966230",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "376",
+   "label": "Iran"
+  },
+  {
+   "item": "Q55",
+   "value": "17590672",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q55",
+   "value": "17282163",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q55",
+   "value": "17000000",
+   "date": "2016-03-21T00:00:00Z",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q55",
+   "value": "17407585",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q55",
+   "value": "17081507",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q55",
+   "value": "17942942",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q55",
+   "value": "17181084",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "375",
+   "label": "Niederlande"
+  },
+  {
+   "item": "Q262",
+   "value": "41318142",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "374",
+   "label": "Algerien"
+  },
+  {
+   "item": "Q262",
+   "value": "43900000",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "374",
+   "label": "Algerien"
+  },
+  {
+   "item": "Q262",
+   "value": "46164219",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "374",
+   "label": "Algerien"
+  },
+  {
+   "item": "Q262",
+   "value": "45600000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "374",
+   "label": "Algerien"
+  },
+  {
+   "item": "Q414",
+   "value": "43417000",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Argentinien"
+  },
+  {
+   "item": "Q414",
+   "value": "44938712",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Argentinien"
+  },
+  {
+   "item": "Q414",
+   "value": "47327407",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Argentinien"
+  },
+  {
+   "item": "Q414",
+   "value": "44271041",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Argentinien"
+  },
+  {
+   "item": "Q414",
+   "value": "45377046",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Argentinien"
+  },
+  {
+   "item": "Q45",
+   "value": "10347892",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Portugal"
+  },
+  {
+   "item": "Q45",
+   "value": "10600000",
+   "date": "2018-06-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Portugal"
+  },
+  {
+   "item": "Q40",
+   "value": "8809212",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Österreich"
+  },
+  {
+   "item": "Q40",
+   "value": "8979894",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "372",
+   "label": "Österreich"
+  },
+  {
+   "item": "Q34",
+   "value": "10591058",
+   "date": "2025-05-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10588818",
+   "date": "2025-04-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "9804082",
+   "date": "2015-07-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10582576",
+   "date": "2024-09-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10548336",
+   "date": "2023-07-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10352390",
+   "date": "2020-06-30T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10053061",
+   "date": "2017-06-30T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10551707",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10389806",
+   "date": "2021-03-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "9954420",
+   "date": "2016-09-30T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10373225",
+   "date": "2020-09-30T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10313447",
+   "date": "2019-09-30T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10000000",
+   "date": "2017-01-20T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10171524",
+   "date": "2018-06-30T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10327589",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10161797",
+   "date": "2017-05-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10343403",
+   "date": "2020-03-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10587696",
+   "date": "2025-03-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10379295",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10576145",
+   "date": "2024-08-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10120242",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10587710",
+   "date": "2024-12-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10596652",
+   "date": "2025-07-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q34",
+   "value": "10609460",
+   "date": "2025-09-01T00:00:00Z",
+   "sitelinks": "370",
+   "label": "Schweden"
+  },
+  {
+   "item": "Q35",
+   "value": "5822863",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q35",
+   "value": "5789957",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q35",
+   "value": "5668743",
+   "date": "2015-04-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q881",
+   "value": "91700000",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Vietnam"
+  },
+  {
+   "item": "Q881",
+   "value": "94660000",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Vietnam"
+  },
+  {
+   "item": "Q881",
+   "value": "96208984",
+   "date": "2019-04-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Vietnam"
+  },
+  {
+   "item": "Q35",
+   "value": "5659715",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q35",
+   "value": "5678348",
+   "date": "2015-07-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q35",
+   "value": "5699220",
+   "date": "2015-10-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q35",
+   "value": "5827463",
+   "date": "2019-10-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q35",
+   "value": "5707251",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "369",
+   "label": "Dänemark"
+  },
+  {
+   "item": "Q258",
+   "value": "55445000",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "368",
+   "label": "Südafrika"
+  },
+  {
+   "item": "Q258",
+   "value": "60142978",
+   "date": "2021-07-01T00:00:00Z",
+   "sitelinks": "368",
+   "label": "Südafrika"
+  },
+  {
+   "item": "Q258",
+   "value": "62027503",
+   "date": "2022-02-02T00:00:00Z",
+   "sitelinks": "368",
+   "label": "Südafrika"
+  },
+  {
+   "item": "Q258",
+   "value": "59622350",
+   "date": "2020-07-01T00:00:00Z",
+   "sitelinks": "368",
+   "label": "Südafrika"
+  },
+  {
+   "item": "Q258",
+   "value": "55653654",
+   "date": "2016-03-06T00:00:00Z",
+   "sitelinks": "368",
+   "label": "Südafrika"
+  },
+  {
+   "item": "Q258",
+   "value": "57725600",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "368",
+   "label": "Südafrika"
+  },
+  {
+   "item": "Q739",
+   "value": "49065615",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "367",
+   "label": "Kolumbien"
+  },
+  {
+   "item": "Q739",
+   "value": "52321152",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "367",
+   "label": "Kolumbien"
+  },
+  {
+   "item": "Q252",
+   "value": "261115456",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "366",
+   "label": "Indonesien"
+  },
+  {
+   "item": "Q252",
+   "value": "275439000",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "366",
+   "label": "Indonesien"
+  },
+  {
+   "item": "Q252",
+   "value": "270625568",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "366",
+   "label": "Indonesien"
+  },
+  {
+   "item": "Q252",
+   "value": "263991379",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "366",
+   "label": "Indonesien"
+  },
+  {
+   "item": "Q252",
+   "value": "270203917",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "366",
+   "label": "Indonesien"
+  },
+  {
+   "item": "Q227",
+   "value": "10145212",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "363",
+   "label": "Aserbaidschan"
+  },
+  {
+   "item": "Q227",
+   "value": "10127874",
+   "date": "2019-08-01T00:00:00Z",
+   "sitelinks": "363",
+   "label": "Aserbaidschan"
+  },
+  {
+   "item": "Q227",
+   "value": "10180770",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "363",
+   "label": "Aserbaidschan"
+  },
+  {
+   "item": "Q889",
+   "value": "41454761",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "363",
+   "label": "Afghanistan"
+  },
+  {
+   "item": "Q889",
+   "value": "36643815",
+   "date": "2020-07-01T00:00:00Z",
+   "sitelinks": "363",
+   "label": "Afghanistan"
+  },
+  {
+   "item": "Q889",
+   "value": "37466414",
+   "date": "2021-07-01T00:00:00Z",
+   "sitelinks": "363",
+   "label": "Afghanistan"
+  },
+  {
+   "item": "Q219",
+   "value": "6951482",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6916548",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6423207",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6437360",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6795803",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "7075991",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6520000",
+   "date": "2021-09-07T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "7000039",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "7000039",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "7127822",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6447710",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "7153784",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "7050034",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "7101859",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6445481",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q219",
+   "value": "6838937",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "361",
+   "label": "Bulgarien"
+  },
+  {
+   "item": "Q184",
+   "value": "9504704",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9255524",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9408400",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9056080",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9413446",
+   "date": "2019-10-04T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9498364",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9491823",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9200617",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9109280",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9349645",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9155978",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q184",
+   "value": "9480868",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "359",
+   "label": "Belarus"
+  },
+  {
+   "item": "Q28",
+   "value": "9730772",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9772756",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9830485",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9778371",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9599744",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9855571",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9689010",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9603634",
+   "date": "2022-10-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9603634",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9797561",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9769526",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q28",
+   "value": "9489000",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "358",
+   "label": "Ungarn"
+  },
+  {
+   "item": "Q224",
+   "value": "3871833",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Kroatien"
+  },
+  {
+   "item": "Q843",
+   "value": "189380513",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Pakistan"
+  },
+  {
+   "item": "Q843",
+   "value": "193203476",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Pakistan"
+  },
+  {
+   "item": "Q843",
+   "value": "212215030",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Pakistan"
+  },
+  {
+   "item": "Q843",
+   "value": "197015955",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Pakistan"
+  },
+  {
+   "item": "Q843",
+   "value": "223773700",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Pakistan"
+  },
+  {
+   "item": "Q843",
+   "value": "216565318",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Pakistan"
+  },
+  {
+   "item": "Q869",
+   "value": "65931550",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Thailand"
+  },
+  {
+   "item": "Q869",
+   "value": "66188503",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Thailand"
+  },
+  {
+   "item": "Q884",
+   "value": "51270000",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Südkorea"
+  },
+  {
+   "item": "Q884",
+   "value": "51069375",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Südkorea"
+  },
+  {
+   "item": "Q884",
+   "value": "51628117",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Südkorea"
+  },
+  {
+   "item": "Q884",
+   "value": "51466201",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "356",
+   "label": "Südkorea"
+  },
+  {
+   "item": "Q189",
+   "value": "376248",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Island"
+  },
+  {
+   "item": "Q189",
+   "value": "364260",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Island"
+  },
+  {
+   "item": "Q189",
+   "value": "348580",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Island"
+  },
+  {
+   "item": "Q189",
+   "value": "350710",
+   "date": "2018-03-31T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Island"
+  },
+  {
+   "item": "Q213",
+   "value": "10900555",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q399",
+   "value": "2930450",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Armenien"
+  },
+  {
+   "item": "Q213",
+   "value": "10701777",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10909500",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10578820",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10533000",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10827529",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10553800",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10700155",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10578800",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10649800",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q213",
+   "value": "10610055",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Tschechien"
+  },
+  {
+   "item": "Q189",
+   "value": "357050",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Island"
+  },
+  {
+   "item": "Q189",
+   "value": "332529",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "355",
+   "label": "Island"
+  },
+  {
+   "item": "Q191",
+   "value": "1315635",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1328976",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1330068",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1315944",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1365884",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1331796",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1324820",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1313271",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1369995",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1374687",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q191",
+   "value": "1319133",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "354",
+   "label": "Estland"
+  },
+  {
+   "item": "Q403",
+   "value": "6647003",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Serbien"
+  },
+  {
+   "item": "Q403",
+   "value": "7022268",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Serbien"
+  },
+  {
+   "item": "Q403",
+   "value": "6605168",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Serbien"
+  },
+  {
+   "item": "Q403",
+   "value": "7041599",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Serbien"
+  },
+  {
+   "item": "Q664",
+   "value": "4663700",
+   "date": "2015-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "5118700",
+   "date": "2021-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "5103700",
+   "date": "2020-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "4941200",
+   "date": "2018-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "4699755",
+   "date": "2018-03-06T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "4859500",
+   "date": "2017-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "4767600",
+   "date": "2016-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "5040400",
+   "date": "2019-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "4993923",
+   "date": "2023-03-07T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "5120700",
+   "date": "2022-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "5263100",
+   "date": "2023-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q664",
+   "value": "5307800",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Neuseeland"
+  },
+  {
+   "item": "Q37",
+   "value": "2794090",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2921262",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2808901",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2860002",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2847904",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2888558",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2805998",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2794184",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q37",
+   "value": "2810761",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "352",
+   "label": "Litauen"
+  },
+  {
+   "item": "Q230",
+   "value": "3694600",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "351",
+   "label": "Georgien"
+  },
+  {
+   "item": "Q230",
+   "value": "3720400",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "351",
+   "label": "Georgien"
+  },
+  {
+   "item": "Q230",
+   "value": "3717100",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "351",
+   "label": "Georgien"
+  },
+  {
+   "item": "Q230",
+   "value": "3929581",
+   "date": "2024-11-14T00:00:00Z",
+   "sitelinks": "351",
+   "label": "Georgien"
+  },
+  {
+   "item": "Q232",
+   "value": "18276500",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Kasachstan"
+  },
+  {
+   "item": "Q232",
+   "value": "18037646",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Kasachstan"
+  },
+  {
+   "item": "Q232",
+   "value": "20139914",
+   "date": "2024-06-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Kasachstan"
+  },
+  {
+   "item": "Q232",
+   "value": "19002586",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Kasachstan"
+  },
+  {
+   "item": "Q796",
+   "value": "38274618",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Irak"
+  },
+  {
+   "item": "Q796",
+   "value": "37202572",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Irak"
+  },
+  {
+   "item": "Q796",
+   "value": "43500000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Irak"
+  },
+  {
+   "item": "Q851",
+   "value": "32552336",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Saudi-Arabien"
+  },
+  {
+   "item": "Q851",
+   "value": "33000000",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "350",
+   "label": "Saudi-Arabien"
+  },
+  {
+   "item": "Q218",
+   "value": "19053815",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Rumänien"
+  },
+  {
+   "item": "Q218",
+   "value": "19586539",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Rumänien"
+  },
+  {
+   "item": "Q902",
+   "value": "171466990",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Bangladesch"
+  },
+  {
+   "item": "Q902",
+   "value": "164669751",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Bangladesch"
+  },
+  {
+   "item": "Q902",
+   "value": "169356251",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Bangladesch"
+  },
+  {
+   "item": "Q902",
+   "value": "175686899",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Bangladesch"
+  },
+  {
+   "item": "Q1033",
+   "value": "190886311",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Nigeria"
+  },
+  {
+   "item": "Q1033",
+   "value": "209603600",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Nigeria"
+  },
+  {
+   "item": "Q1033",
+   "value": "211400708",
+   "date": "2021-06-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Nigeria"
+  },
+  {
+   "item": "Q1033",
+   "value": "182202000",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "349",
+   "label": "Nigeria"
+  },
+  {
+   "item": "Q115",
+   "value": "104957438",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "348",
+   "label": "Äthiopien"
+  },
+  {
+   "item": "Q115",
+   "value": "128691692",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "348",
+   "label": "Äthiopien"
+  },
+  {
+   "item": "Q115",
+   "value": "120283026",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "348",
+   "label": "Äthiopien"
+  },
+  {
+   "item": "Q717",
+   "value": "28515829",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "346",
+   "label": "Venezuela"
+  },
+  {
+   "item": "Q717",
+   "value": "31250306",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "346",
+   "label": "Venezuela"
+  },
+  {
+   "item": "Q717",
+   "value": "31977065",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "346",
+   "label": "Venezuela"
+  },
+  {
+   "item": "Q27",
+   "value": "4813608",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "343",
+   "label": "Irland"
+  },
+  {
+   "item": "Q27",
+   "value": "5149139",
+   "date": "2022-04-01T00:00:00Z",
+   "sitelinks": "343",
+   "label": "Irland"
+  },
+  {
+   "item": "Q237",
+   "value": "764",
+   "date": "2023-06-26T00:00:00Z",
+   "sitelinks": "343",
+   "label": "Vatikanstadt"
+  },
+  {
+   "item": "Q237",
+   "value": "605",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "343",
+   "label": "Vatikanstadt"
+  },
+  {
+   "item": "Q237",
+   "value": "618",
+   "date": "2018-07-03T00:00:00Z",
+   "sitelinks": "343",
+   "label": "Vatikanstadt"
+  },
+  {
+   "item": "Q237",
+   "value": "949",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "343",
+   "label": "Vatikanstadt"
+  },
+  {
+   "item": "Q225",
+   "value": "3507017",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina"
+  },
+  {
+   "item": "Q225",
+   "value": "3816459",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "342",
+   "label": "Bosnien und Herzegowina"
+  },
+  {
+   "item": "Q214",
+   "value": "5426252",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "341",
+   "label": "Slowakei"
+  },
+  {
+   "item": "Q214",
+   "value": "5419451",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "341",
+   "label": "Slowakei"
+  },
+  {
+   "item": "Q214",
+   "value": "5439892",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "341",
+   "label": "Slowakei"
+  },
+  {
+   "item": "Q214",
+   "value": "5449270",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "341",
+   "label": "Slowakei"
+  },
+  {
+   "item": "Q214",
+   "value": "5409407",
+   "date": "2025-12-31T00:00:00Z",
+   "sitelinks": "341",
+   "label": "Slowakei"
+  },
+  {
+   "item": "Q833",
+   "value": "31624264",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "340",
+   "label": "Malaysia"
+  },
+  {
+   "item": "Q833",
+   "value": "32447385",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "340",
+   "label": "Malaysia"
+  },
+  {
+   "item": "Q833",
+   "value": "30331007",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "340",
+   "label": "Malaysia"
+  },
+  {
+   "item": "Q833",
+   "value": "34231700",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "340",
+   "label": "Malaysia"
+  },
+  {
+   "item": "Q114",
+   "value": "48468138",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "338",
+   "label": "Kenia"
+  },
+  {
+   "item": "Q114",
+   "value": "47564296",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "338",
+   "label": "Kenia"
+  },
+  {
+   "item": "Q858",
+   "value": "18499181",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "337",
+   "label": "Syrien"
+  },
+  {
+   "item": "Q858",
+   "value": "18269868",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "337",
+   "label": "Syrien"
+  },
+  {
+   "item": "Q858",
+   "value": "22933531",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "337",
+   "label": "Syrien"
+  },
+  {
+   "item": "Q858",
+   "value": "23865423",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "337",
+   "label": "Syrien"
+  },
+  {
+   "item": "Q858",
+   "value": "18284407",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "337",
+   "label": "Syrien"
+  },
+  {
+   "item": "Q858",
+   "value": "23000000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "337",
+   "label": "Syrien"
+  },
+  {
+   "item": "Q211",
+   "value": "1883008",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "1871882",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "1875757",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "1929900",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "1953000",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "1909000",
+   "date": "2019-12-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "1856932",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q211",
+   "value": "1845096",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "336",
+   "label": "Lettland"
+  },
+  {
+   "item": "Q32",
+   "value": "645397",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "681973",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "634730",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "599449",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "602000",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "660809",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "613900",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "672050",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "626108",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q32",
+   "value": "690959",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q1049",
+   "value": "40533330",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Sudan"
+  },
+  {
+   "item": "Q1049",
+   "value": "40235000",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Sudan"
+  },
+  {
+   "item": "Q1049",
+   "value": "48945000",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Sudan"
+  },
+  {
+   "item": "Q1028",
+   "value": "36828330",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Marokko"
+  },
+  {
+   "item": "Q1028",
+   "value": "36029138",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Marokko"
+  },
+  {
+   "item": "Q1028",
+   "value": "37076584",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Marokko"
+  },
+  {
+   "item": "Q1028",
+   "value": "38300000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "335",
+   "label": "Marokko"
+  },
+  {
+   "item": "Q928",
+   "value": "100981437",
+   "date": "2015-08-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Philippinen"
+  },
+  {
+   "item": "Q974",
+   "value": "86790567",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo"
+  },
+  {
+   "item": "Q974",
+   "value": "78736153",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo"
+  },
+  {
+   "item": "Q974",
+   "value": "91931000",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo"
+  },
+  {
+   "item": "Q974",
+   "value": "105789731",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo"
+  },
+  {
+   "item": "Q928",
+   "value": "109035343",
+   "date": "2020-05-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Philippinen"
+  },
+  {
+   "item": "Q928",
+   "value": "112729484",
+   "date": "2024-07-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Philippinen"
+  },
+  {
+   "item": "Q974",
+   "value": "81339988",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo"
+  },
+  {
+   "item": "Q974",
+   "value": "76196619",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Demokratische Republik Kongo"
+  },
+  {
+   "item": "Q1016",
+   "value": "6678567",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Libyen"
+  },
+  {
+   "item": "Q1016",
+   "value": "6374616",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Libyen"
+  },
+  {
+   "item": "Q1016",
+   "value": "7381023",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Libyen"
+  },
+  {
+   "item": "Q1016",
+   "value": "7100000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "334",
+   "label": "Libyen"
+  },
+  {
+   "item": "Q334",
+   "value": "5685807",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5781728",
+   "date": "2016-07-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5535002",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5607283",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5888926",
+   "date": "2017-07-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5703569",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5866139",
+   "date": "2021-07-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5638676",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q334",
+   "value": "5612253",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q228",
+   "value": "78015",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "81588",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "87097",
+   "date": "2024-12-31T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "85101",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "76177",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "74794",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "73105",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "87486",
+   "date": "2025-02-28T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "79535",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "77543",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q228",
+   "value": "89752",
+   "date": "2026-06-30T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Andorra"
+  },
+  {
+   "item": "Q419",
+   "value": "29381884",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Peru"
+  },
+  {
+   "item": "Q419",
+   "value": "33726000",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Peru"
+  },
+  {
+   "item": "Q419",
+   "value": "32162184",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Peru"
+  },
+  {
+   "item": "Q419",
+   "value": "34157732",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "333",
+   "label": "Peru"
+  },
+  {
+   "item": "Q424",
+   "value": "17423880",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "332",
+   "label": "Kambodscha"
+  },
+  {
+   "item": "Q424",
+   "value": "16005373",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "332",
+   "label": "Kambodscha"
+  },
+  {
+   "item": "Q215",
+   "value": "2065895",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Slowenien"
+  },
+  {
+   "item": "Q215",
+   "value": "2062874",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Slowenien"
+  },
+  {
+   "item": "Q215",
+   "value": "2116972",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Slowenien"
+  },
+  {
+   "item": "Q215",
+   "value": "2066880",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Slowenien"
+  },
+  {
+   "item": "Q217",
+   "value": "3599528",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Moldau"
+  },
+  {
+   "item": "Q217",
+   "value": "2603813",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Moldau"
+  },
+  {
+   "item": "Q217",
+   "value": "2681735",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Moldau"
+  },
+  {
+   "item": "Q217",
+   "value": "2550900",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Moldau"
+  },
+  {
+   "item": "Q217",
+   "value": "2409207",
+   "date": "2024-04-08T00:00:00Z",
+   "sitelinks": "331",
+   "label": "Moldau"
+  },
+  {
+   "item": "Q822",
+   "value": "5261372",
+   "date": "2021-07-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Libanon"
+  },
+  {
+   "item": "Q822",
+   "value": "6100075",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Libanon"
+  },
+  {
+   "item": "Q822",
+   "value": "5702398",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Libanon"
+  },
+  {
+   "item": "Q822",
+   "value": "5300000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Libanon"
+  },
+  {
+   "item": "Q948",
+   "value": "11304500",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Tunesien"
+  },
+  {
+   "item": "Q948",
+   "value": "11565204",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Tunesien"
+  },
+  {
+   "item": "Q948",
+   "value": "11532127",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Tunesien"
+  },
+  {
+   "item": "Q948",
+   "value": "11972169",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Tunesien"
+  },
+  {
+   "item": "Q948",
+   "value": "37100000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Tunesien"
+  },
+  {
+   "item": "Q948",
+   "value": "12400000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "329",
+   "label": "Tunesien"
+  },
+  {
+   "item": "Q229",
+   "value": "1344976",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Zypern"
+  },
+  {
+   "item": "Q233",
+   "value": "465292",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q233",
+   "value": "484630",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q233",
+   "value": "515332",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q233",
+   "value": "504062",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q233",
+   "value": "553214",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q233",
+   "value": "531511",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q233",
+   "value": "518536",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Malta"
+  },
+  {
+   "item": "Q221",
+   "value": "1836713",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Nordmazedonien"
+  },
+  {
+   "item": "Q221",
+   "value": "2075301",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "327",
+   "label": "Nordmazedonien"
+  },
+  {
+   "item": "Q117",
+   "value": "28308301",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "326",
+   "label": "Ghana"
+  },
+  {
+   "item": "Q117",
+   "value": "32833031",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "326",
+   "label": "Ghana"
+  },
+  {
+   "item": "Q1045",
+   "value": "18100000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "326",
+   "label": "Somalia"
+  },
+  {
+   "item": "Q1045",
+   "value": "11031386",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "326",
+   "label": "Somalia"
+  },
+  {
+   "item": "Q77",
+   "value": "3444263",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "324",
+   "label": "Uruguay"
+  },
+  {
+   "item": "Q77",
+   "value": "3456750",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "324",
+   "label": "Uruguay"
+  },
+  {
+   "item": "Q837",
+   "value": "29164578",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "324",
+   "label": "Nepal"
+  },
+  {
+   "item": "Q837",
+   "value": "30327877",
+   "date": "2020-07-01T00:00:00Z",
+   "sitelinks": "324",
+   "label": "Nepal"
+  },
+  {
+   "item": "Q236",
+   "value": "622303",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q236",
+   "value": "622359",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q236",
+   "value": "622159",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q236",
+   "value": "619211",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q236",
+   "value": "622373",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q236",
+   "value": "621306",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q236",
+   "value": "617213",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q236",
+   "value": "622028",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Montenegro"
+  },
+  {
+   "item": "Q916",
+   "value": "36749906",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Angola"
+  },
+  {
+   "item": "Q916",
+   "value": "32866270",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Angola"
+  },
+  {
+   "item": "Q916",
+   "value": "29784193",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "323",
+   "label": "Angola"
+  },
+  {
+   "item": "Q711",
+   "value": "3409939",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "322",
+   "label": "Mongolei"
+  },
+  {
+   "item": "Q711",
+   "value": "3075647",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "322",
+   "label": "Mongolei"
+  },
+  {
+   "item": "Q235",
+   "value": "38350",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q235",
+   "value": "39050",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q235",
+   "value": "38695",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q235",
+   "value": "38100",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q235",
+   "value": "38423",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q235",
+   "value": "39150",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q235",
+   "value": "38367",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q235",
+   "value": "38857",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Monaco"
+  },
+  {
+   "item": "Q924",
+   "value": "57310019",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Tansania"
+  },
+  {
+   "item": "Q924",
+   "value": "61741120",
+   "date": "2022-08-03T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Tansania"
+  },
+  {
+   "item": "Q1019",
+   "value": "25570895",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Madagaskar"
+  },
+  {
+   "item": "Q1019",
+   "value": "31964956",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "321",
+   "label": "Madagaskar"
+  },
+  {
+   "item": "Q878",
+   "value": "9400145",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Vereinigte Arabische Emirate"
+  },
+  {
+   "item": "Q878",
+   "value": "9890400",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Vereinigte Arabische Emirate"
+  },
+  {
+   "item": "Q878",
+   "value": "10100000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Vereinigte Arabische Emirate"
+  },
+  {
+   "item": "Q954",
+   "value": "15178979",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Simbabwe"
+  },
+  {
+   "item": "Q813",
+   "value": "6201500",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Kirgisistan"
+  },
+  {
+   "item": "Q813",
+   "value": "6694200",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Kirgisistan"
+  },
+  {
+   "item": "Q813",
+   "value": "6000000",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Kirgisistan"
+  },
+  {
+   "item": "Q813",
+   "value": "7281800",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "320",
+   "label": "Kirgisistan"
+  },
+  {
+   "item": "Q657",
+   "value": "15477751",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "318",
+   "label": "Tschad"
+  },
+  {
+   "item": "Q657",
+   "value": "19319064",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "318",
+   "label": "Tschad"
+  },
+  {
+   "item": "Q836",
+   "value": "53370609",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "318",
+   "label": "Myanmar"
+  },
+  {
+   "item": "Q736",
+   "value": "16624858",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "317",
+   "label": "Ecuador"
+  },
+  {
+   "item": "Q736",
+   "value": "16938986",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "317",
+   "label": "Ecuador"
+  },
+  {
+   "item": "Q347",
+   "value": "37922",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "316",
+   "label": "Liechtenstein"
+  },
+  {
+   "item": "Q347",
+   "value": "38020",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "316",
+   "label": "Liechtenstein"
+  },
+  {
+   "item": "Q347",
+   "value": "37468",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "316",
+   "label": "Liechtenstein"
+  },
+  {
+   "item": "Q819",
+   "value": "6858160",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "316",
+   "label": "Laos"
+  },
+  {
+   "item": "Q1030",
+   "value": "2533794",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "316",
+   "label": "Namibia"
+  },
+  {
+   "item": "Q963",
+   "value": "2480244",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "315",
+   "label": "Botswana"
+  },
+  {
+   "item": "Q963",
+   "value": "2291661",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "315",
+   "label": "Botswana"
+  },
+  {
+   "item": "Q805",
+   "value": "28250420",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "315",
+   "label": "Jemen"
+  },
+  {
+   "item": "Q805",
+   "value": "34400000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "315",
+   "label": "Jemen"
+  },
+  {
+   "item": "Q238",
+   "value": "33600",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "San Marino"
+  },
+  {
+   "item": "Q238",
+   "value": "33400",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "San Marino"
+  },
+  {
+   "item": "Q238",
+   "value": "33607",
+   "date": "2020-08-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "San Marino"
+  },
+  {
+   "item": "Q238",
+   "value": "34167",
+   "date": "2026-07-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "San Marino"
+  },
+  {
+   "item": "Q1009",
+   "value": "28372687",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "Kamerun"
+  },
+  {
+   "item": "Q1009",
+   "value": "24053727",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "Kamerun"
+  },
+  {
+   "item": "Q810",
+   "value": "9813095",
+   "date": "2016-10-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "Jordanien"
+  },
+  {
+   "item": "Q810",
+   "value": "9702353",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "Jordanien"
+  },
+  {
+   "item": "Q810",
+   "value": "10428241",
+   "date": "2019-06-19T00:00:00Z",
+   "sitelinks": "314",
+   "label": "Jordanien"
+  },
+  {
+   "item": "Q810",
+   "value": "9531712",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "Jordanien"
+  },
+  {
+   "item": "Q810",
+   "value": "11300000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "314",
+   "label": "Jordanien"
+  },
+  {
+   "item": "Q1008",
+   "value": "24294750",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "313",
+   "label": "Elfenbeinküste"
+  },
+  {
+   "item": "Q1008",
+   "value": "31165654",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "313",
+   "label": "Elfenbeinküste"
+  },
+  {
+   "item": "Q423",
+   "value": "26418204",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "313",
+   "label": "Nordkorea"
+  },
+  {
+   "item": "Q423",
+   "value": "25490965",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "313",
+   "label": "Nordkorea"
+  },
+  {
+   "item": "Q750",
+   "value": "11051600",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "313",
+   "label": "Bolivien"
+  },
+  {
+   "item": "Q750",
+   "value": "12244159",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "313",
+   "label": "Bolivien"
+  },
+  {
+   "item": "Q733",
+   "value": "6811297",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Paraguay"
+  },
+  {
+   "item": "Q241",
+   "value": "11181595",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Kuba"
+  },
+  {
+   "item": "Q912",
+   "value": "18541980",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Mali"
+  },
+  {
+   "item": "Q241",
+   "value": "11484636",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Kuba"
+  },
+  {
+   "item": "Q241",
+   "value": "10985974",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Kuba"
+  },
+  {
+   "item": "Q912",
+   "value": "19329841",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Mali"
+  },
+  {
+   "item": "Q912",
+   "value": "20250833",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Mali"
+  },
+  {
+   "item": "Q912",
+   "value": "22395489",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Mali"
+  },
+  {
+   "item": "Q1036",
+   "value": "47123531",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Uganda"
+  },
+  {
+   "item": "Q1036",
+   "value": "42862958",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "312",
+   "label": "Uganda"
+  },
+  {
+   "item": "Q265",
+   "value": "31576400",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "310",
+   "label": "Usbekistan"
+  },
+  {
+   "item": "Q265",
+   "value": "34915100",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "310",
+   "label": "Usbekistan"
+  },
+  {
+   "item": "Q265",
+   "value": "33570609",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "310",
+   "label": "Usbekistan"
+  },
+  {
+   "item": "Q854",
+   "value": "22037000",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "310",
+   "label": "Sri Lanka"
+  },
+  {
+   "item": "Q854",
+   "value": "21444000",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "310",
+   "label": "Sri Lanka"
+  },
+  {
+   "item": "Q965",
+   "value": "19751466",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Burkina Faso"
+  },
+  {
+   "item": "Q965",
+   "value": "23025776",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Burkina Faso"
+  },
+  {
+   "item": "Q965",
+   "value": "20488000",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Burkina Faso"
+  },
+  {
+   "item": "Q965",
+   "value": "19193382",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Burkina Faso"
+  },
+  {
+   "item": "Q965",
+   "value": "20903278",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Burkina Faso"
+  },
+  {
+   "item": "Q1041",
+   "value": "15850567",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Senegal"
+  },
+  {
+   "item": "Q1041",
+   "value": "16876720",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Senegal"
+  },
+  {
+   "item": "Q1041",
+   "value": "18100000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Senegal"
+  },
+  {
+   "item": "Q953",
+   "value": "19610769",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Sambia"
+  },
+  {
+   "item": "Q953",
+   "value": "17094130",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "309",
+   "label": "Sambia"
+  },
+  {
+   "item": "Q863",
+   "value": "8921343",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "308",
+   "label": "Tadschikistan"
+  },
+  {
+   "item": "Q863",
+   "value": "9200000",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "308",
+   "label": "Tadschikistan"
+  },
+  {
+   "item": "Q863",
+   "value": "8610000",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "308",
+   "label": "Tadschikistan"
+  },
+  {
+   "item": "Q863",
+   "value": "9504000",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "308",
+   "label": "Tadschikistan"
+  },
+  {
+   "item": "Q962",
+   "value": "11175692",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "308",
+   "label": "Benin"
+  },
+  {
+   "item": "Q962",
+   "value": "14111034",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "308",
+   "label": "Benin"
+  },
+  {
+   "item": "Q986",
+   "value": "3497000",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "308",
+   "label": "Eritrea"
+  },
+  {
+   "item": "Q817",
+   "value": "4136528",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Kuwait"
+  },
+  {
+   "item": "Q817",
+   "value": "4464000",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Kuwait"
+  },
+  {
+   "item": "Q817",
+   "value": "4600000",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Kuwait"
+  },
+  {
+   "item": "Q817",
+   "value": "4300000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Kuwait"
+  },
+  {
+   "item": "Q398",
+   "value": "1487340",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1409661",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1569666",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1494188",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1456384",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1472233",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1362142",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1477469",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1463265",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "2700000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q398",
+   "value": "1600000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Bahrain"
+  },
+  {
+   "item": "Q1025",
+   "value": "4420184",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Mauretanien"
+  },
+  {
+   "item": "Q1025",
+   "value": "4736139",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Mauretanien"
+  },
+  {
+   "item": "Q1025",
+   "value": "4614974",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Mauretanien"
+  },
+  {
+   "item": "Q1025",
+   "value": "4900000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "306",
+   "label": "Mauretanien"
+  },
+  {
+   "item": "Q917",
+   "value": "807610",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "305",
+   "label": "Bhutan"
+  },
+  {
+   "item": "Q917",
+   "value": "787424",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "305",
+   "label": "Bhutan"
+  },
+  {
+   "item": "Q917",
+   "value": "796682",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "305",
+   "label": "Bhutan"
+  },
+  {
+   "item": "Q967",
+   "value": "13689450",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Burundi"
+  },
+  {
+   "item": "Q967",
+   "value": "10864245",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Burundi"
+  },
+  {
+   "item": "Q967",
+   "value": "11175378",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Burundi"
+  },
+  {
+   "item": "Q967",
+   "value": "11530580",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Burundi"
+  },
+  {
+   "item": "Q804",
+   "value": "3960035",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Panama"
+  },
+  {
+   "item": "Q804",
+   "value": "4570133",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Panama"
+  },
+  {
+   "item": "Q804",
+   "value": "4293261",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Panama"
+  },
+  {
+   "item": "Q804",
+   "value": "4565559",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "304",
+   "label": "Panama"
+  },
+  {
+   "item": "Q1037",
+   "value": "13246394",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "303",
+   "label": "Ruanda"
+  },
+  {
+   "item": "Q1037",
+   "value": "12208407",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "303",
+   "label": "Ruanda"
+  },
+  {
+   "item": "Q1037",
+   "value": "14569341",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "303",
+   "label": "Ruanda"
+  },
+  {
+   "item": "Q945",
+   "value": "9304337",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Togo"
+  },
+  {
+   "item": "Q800",
+   "value": "5163038",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Costa Rica"
+  },
+  {
+   "item": "Q800",
+   "value": "5044197",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Costa Rica"
+  },
+  {
+   "item": "Q800",
+   "value": "4905769",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Costa Rica"
+  },
+  {
+   "item": "Q800",
+   "value": "5265575",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Costa Rica"
+  },
+  {
+   "item": "Q1032",
+   "value": "21477348",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Niger"
+  },
+  {
+   "item": "Q1029",
+   "value": "29668834",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Mosambik"
+  },
+  {
+   "item": "Q945",
+   "value": "9515240",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Togo"
+  },
+  {
+   "item": "Q945",
+   "value": "7797694",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Togo"
+  },
+  {
+   "item": "Q945",
+   "value": "12400000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "302",
+   "label": "Togo"
+  },
+  {
+   "item": "Q1006",
+   "value": "12717176",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Guinea"
+  },
+  {
+   "item": "Q1006",
+   "value": "17521167",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Guinea"
+  },
+  {
+   "item": "Q929",
+   "value": "5152421",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Zentralafrikanische Republik"
+  },
+  {
+   "item": "Q929",
+   "value": "4659080",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Zentralafrikanische Republik"
+  },
+  {
+   "item": "Q1005",
+   "value": "2213889",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Gambia"
+  },
+  {
+   "item": "Q1005",
+   "value": "2416668",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Gambia"
+  },
+  {
+   "item": "Q1005",
+   "value": "2639916",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Gambia"
+  },
+  {
+   "item": "Q1005",
+   "value": "2347696",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "301",
+   "label": "Gambia"
+  },
+  {
+   "item": "Q1007",
+   "value": "1861283",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Guinea-Bissau"
+  },
+  {
+   "item": "Q783",
+   "value": "11002356",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Honduras"
+  },
+  {
+   "item": "Q783",
+   "value": "9265067",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Honduras"
+  },
+  {
+   "item": "Q783",
+   "value": "10062994",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Honduras"
+  },
+  {
+   "item": "Q971",
+   "value": "6142180",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Republik Kongo"
+  },
+  {
+   "item": "Q971",
+   "value": "6278845",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Republik Kongo"
+  },
+  {
+   "item": "Q971",
+   "value": "5260750",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Republik Kongo"
+  },
+  {
+   "item": "Q977",
+   "value": "1152944",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Dschibuti"
+  },
+  {
+   "item": "Q977",
+   "value": "956985",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Dschibuti"
+  },
+  {
+   "item": "Q977",
+   "value": "1000000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "300",
+   "label": "Dschibuti"
+  },
+  {
+   "item": "Q874",
+   "value": "5850901",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "299",
+   "label": "Turkmenistan"
+  },
+  {
+   "item": "Q874",
+   "value": "6117933",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "299",
+   "label": "Turkmenistan"
+  },
+  {
+   "item": "Q1020",
+   "value": "18622104",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "298",
+   "label": "Malawi"
+  },
+  {
+   "item": "Q1020",
+   "value": "17563749",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "298",
+   "label": "Malawi"
+  },
+  {
+   "item": "Q921",
+   "value": "458949",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "298",
+   "label": "Brunei"
+  },
+  {
+   "item": "Q921",
+   "value": "428697",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "298",
+   "label": "Brunei"
+  },
+  {
+   "item": "Q842",
+   "value": "4636262",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "297",
+   "label": "Oman"
+  },
+  {
+   "item": "Q842",
+   "value": "5100000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "297",
+   "label": "Oman"
+  },
+  {
+   "item": "Q842",
+   "value": "4829480",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "297",
+   "label": "Oman"
+  },
+  {
+   "item": "Q1000",
+   "value": "2300000",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "296",
+   "label": "Gabun"
+  },
+  {
+   "item": "Q1000",
+   "value": "2025137",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "296",
+   "label": "Gabun"
+  },
+  {
+   "item": "Q1044",
+   "value": "7557212",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "294",
+   "label": "Sierra Leone"
+  },
+  {
+   "item": "Q1044",
+   "value": "7092113",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "294",
+   "label": "Sierra Leone"
+  },
+  {
+   "item": "Q790",
+   "value": "10981229",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "293",
+   "label": "Haiti"
+  },
+  {
+   "item": "Q1014",
+   "value": "4731906",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "292",
+   "label": "Liberia"
+  },
+  {
+   "item": "Q1014",
+   "value": "5214030",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "292",
+   "label": "Liberia"
+  },
+  {
+   "item": "Q574",
+   "value": "1280438",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1205813",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1224562",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1360596",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1341296",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1320942",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1299995",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1243235",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1261845",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q574",
+   "value": "1400638",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Osttimor"
+  },
+  {
+   "item": "Q1011",
+   "value": "546388",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Kap Verde"
+  },
+  {
+   "item": "Q1011",
+   "value": "555988",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Kap Verde"
+  },
+  {
+   "item": "Q846",
+   "value": "2639211",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "291",
+   "label": "Katar"
+  },
+  {
+   "item": "Q826",
+   "value": "436330",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "290",
+   "label": "Malediven"
+  },
+  {
+   "item": "Q792",
+   "value": "6029976",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "288",
+   "label": "El Salvador"
+  },
+  {
+   "item": "Q730",
+   "value": "563402",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "288",
+   "label": "Suriname"
+  },
+  {
+   "item": "Q792",
+   "value": "6377853",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "288",
+   "label": "El Salvador"
+  },
+  {
+   "item": "Q734",
+   "value": "777859",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "287",
+   "label": "Guyana"
+  },
+  {
+   "item": "Q734",
+   "value": "878674",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "287",
+   "label": "Guyana"
+  },
+  {
+   "item": "Q1050",
+   "value": "1124753",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "287",
+   "label": "Eswatini"
+  },
+  {
+   "item": "Q1050",
+   "value": "1160164",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "287",
+   "label": "Eswatini"
+  },
+  {
+   "item": "Q1050",
+   "value": "1148130",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "287",
+   "label": "Eswatini"
+  },
+  {
+   "item": "Q1050",
+   "value": "1093238",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "287",
+   "label": "Eswatini"
+  },
+  {
+   "item": "Q1050",
+   "value": "1230506",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "287",
+   "label": "Eswatini"
+  },
+  {
+   "item": "Q691",
+   "value": "8251162",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "286",
+   "label": "Papua-Neuguinea"
+  },
+  {
+   "item": "Q691",
+   "value": "8935000",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "286",
+   "label": "Papua-Neuguinea"
+  },
+  {
+   "item": "Q970",
+   "value": "841683",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Komoren"
+  },
+  {
+   "item": "Q970",
+   "value": "823652",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Komoren"
+  },
+  {
+   "item": "Q970",
+   "value": "860294",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Komoren"
+  },
+  {
+   "item": "Q970",
+   "value": "881070",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Komoren"
+  },
+  {
+   "item": "Q970",
+   "value": "902348",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Komoren"
+  },
+  {
+   "item": "Q970",
+   "value": "900000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Komoren"
+  },
+  {
+   "item": "Q983",
+   "value": "1222442",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Äquatorialguinea"
+  },
+  {
+   "item": "Q983",
+   "value": "1847549",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Äquatorialguinea"
+  },
+  {
+   "item": "Q1246",
+   "value": "1586659",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Kosovo"
+  },
+  {
+   "item": "Q1027",
+   "value": "1264613",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Mauritius"
+  },
+  {
+   "item": "Q983",
+   "value": "1267689",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "284",
+   "label": "Äquatorialguinea"
+  },
+  {
+   "item": "Q766",
+   "value": "2890299",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Jamaika"
+  },
+  {
+   "item": "Q766",
+   "value": "2950210",
+   "date": "2015-07-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Jamaika"
+  },
+  {
+   "item": "Q766",
+   "value": "2734093",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Jamaika"
+  },
+  {
+   "item": "Q811",
+   "value": "6676948",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Nicaragua"
+  },
+  {
+   "item": "Q811",
+   "value": "7005764",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Nicaragua"
+  },
+  {
+   "item": "Q811",
+   "value": "6217581",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Nicaragua"
+  },
+  {
+   "item": "Q958",
+   "value": "12575714",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Südsudan"
+  },
+  {
+   "item": "Q958",
+   "value": "12340000",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "283",
+   "label": "Südsudan"
+  },
+  {
+   "item": "Q774",
+   "value": "17263239",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "282",
+   "label": "Guatemala"
+  },
+  {
+   "item": "Q242",
+   "value": "374681",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "282",
+   "label": "Belize"
+  },
+  {
+   "item": "Q242",
+   "value": "411106",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "282",
+   "label": "Belize"
+  },
+  {
+   "item": "Q242",
+   "value": "366954",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "282",
+   "label": "Belize"
+  },
+  {
+   "item": "Q778",
+   "value": "395361",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Bahamas"
+  },
+  {
+   "item": "Q778",
+   "value": "399440",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Bahamas"
+  },
+  {
+   "item": "Q786",
+   "value": "10760028",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Dominikanische Republik"
+  },
+  {
+   "item": "Q712",
+   "value": "915303",
+   "date": "2016-07-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Fidschi"
+  },
+  {
+   "item": "Q712",
+   "value": "905502",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Fidschi"
+  },
+  {
+   "item": "Q712",
+   "value": "926276",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Fidschi"
+  },
+  {
+   "item": "Q1013",
+   "value": "2007201",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Lesotho"
+  },
+  {
+   "item": "Q1013",
+   "value": "2233339",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "281",
+   "label": "Lesotho"
+  },
+  {
+   "item": "Q1042",
+   "value": "93419",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q1042",
+   "value": "119773",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q1042",
+   "value": "100447",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q1042",
+   "value": "96762",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q1042",
+   "value": "95843",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q1042",
+   "value": "98462",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q1042",
+   "value": "99258",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "278",
+   "label": "Seychellen"
+  },
+  {
+   "item": "Q244",
+   "value": "285719",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "276",
+   "label": "Barbados"
+  },
+  {
+   "item": "Q244",
+   "value": "303431",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "276",
+   "label": "Barbados"
+  },
+  {
+   "item": "Q1039",
+   "value": "204327",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "274",
+   "label": "São Tomé und Príncipe"
+  },
+  {
+   "item": "Q784",
+   "value": "74656",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "267",
+   "label": "Dominica"
+  },
+  {
+   "item": "Q784",
+   "value": "73543",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "267",
+   "label": "Dominica"
+  },
+  {
+   "item": "Q784",
+   "value": "73925",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "267",
+   "label": "Dominica"
+  },
+  {
+   "item": "Q781",
+   "value": "96453",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda"
+  },
+  {
+   "item": "Q781",
+   "value": "94520",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda"
+  },
+  {
+   "item": "Q781",
+   "value": "99337",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda"
+  },
+  {
+   "item": "Q781",
+   "value": "95425",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda"
+  },
+  {
+   "item": "Q781",
+   "value": "101489",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda"
+  },
+  {
+   "item": "Q781",
+   "value": "96286",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "266",
+   "label": "Antigua und Barbuda"
+  },
+  {
+   "item": "Q697",
+   "value": "13650",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "265",
+   "label": "Naoero"
+  },
+  {
+   "item": "Q686",
+   "value": "300019",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "264",
+   "label": "Vanuatu"
+  },
+  {
+   "item": "Q686",
+   "value": "276244",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "264",
+   "label": "Vanuatu"
+  },
+  {
+   "item": "Q678",
+   "value": "105697",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "261",
+   "label": "Tonga"
+  },
+  {
+   "item": "Q678",
+   "value": "108020",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "261",
+   "label": "Tonga"
+  },
+  {
+   "item": "Q683",
+   "value": "200010",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "261",
+   "label": "Samoa"
+  },
+  {
+   "item": "Q683",
+   "value": "196440",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "261",
+   "label": "Samoa"
+  },
+  {
+   "item": "Q683",
+   "value": "198410",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "261",
+   "label": "Samoa"
+  },
+  {
+   "item": "Q683",
+   "value": "195979",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "261",
+   "label": "Samoa"
+  },
+  {
+   "item": "Q695",
+   "value": "21729",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "259",
+   "label": "Palau"
+  },
+  {
+   "item": "Q672",
+   "value": "10643",
+   "date": "2022-12-12T00:00:00Z",
+   "sitelinks": "253",
+   "label": "Tuvalu"
+  },
+  {
+   "item": "Q672",
+   "value": "11792",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "253",
+   "label": "Tuvalu"
+  },
+  {
+   "item": "Q672",
+   "value": "11192",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "253",
+   "label": "Tuvalu"
+  },
+  {
+   "item": "Q769",
+   "value": "107825",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "252",
+   "label": "Grenada"
+  },
+  {
+   "item": "Q769",
+   "value": "114299",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "252",
+   "label": "Grenada"
+  },
+  {
+   "item": "Q710",
+   "value": "119438",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "251",
+   "label": "Kiribati"
+  },
+  {
+   "item": "Q710",
+   "value": "110136",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "251",
+   "label": "Kiribati"
+  },
+  {
+   "item": "Q710",
+   "value": "134518",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "251",
+   "label": "Kiribati"
+  },
+  {
+   "item": "Q754",
+   "value": "1369125",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "251",
+   "label": "Trinidad und Tobago"
+  },
+  {
+   "item": "Q685",
+   "value": "611343",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "245",
+   "label": "Salomonen"
+  },
+  {
+   "item": "Q763",
+   "value": "46922",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "239",
+   "label": "St. Kitts und Nevis"
+  },
+  {
+   "item": "Q763",
+   "value": "55345",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "239",
+   "label": "St. Kitts und Nevis"
+  },
+  {
+   "item": "Q757",
+   "value": "100804",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "238",
+   "label": "St. Vincent und die Grenadinen"
+  },
+  {
+   "item": "Q757",
+   "value": "109897",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "238",
+   "label": "St. Vincent und die Grenadinen"
+  },
+  {
+   "item": "Q757",
+   "value": "109296",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "238",
+   "label": "St. Vincent und die Grenadinen"
+  },
+  {
+   "item": "Q709",
+   "value": "53127",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "237",
+   "label": "Marshallinseln"
+  },
+  {
+   "item": "Q709",
+   "value": "54366",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "237",
+   "label": "Marshallinseln"
+  },
+  {
+   "item": "Q760",
+   "value": "167591",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "236",
+   "label": "St. Lucia"
+  },
+  {
+   "item": "Q760",
+   "value": "178844",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "236",
+   "label": "St. Lucia"
+  },
+  {
+   "item": "Q219060",
+   "value": "5227193",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "225",
+   "label": "Palästina"
+  },
+  {
+   "item": "Q219060",
+   "value": "4684777",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "225",
+   "label": "Palästina"
+  },
+  {
+   "item": "Q219060",
+   "value": "5400000",
+   "date": "2026-01-01T00:00:00Z",
+   "sitelinks": "225",
+   "label": "Palästina"
+  },
+  {
+   "item": "Q702",
+   "value": "105544",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "224",
+   "label": "Föderierte Staaten von Mikronesien"
+  },
+  {
+   "item": "Q702",
+   "value": "75817",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "224",
+   "label": "Föderierte Staaten von Mikronesien"
+  },
+  {
+   "item": "Q21203",
+   "value": "109241",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "200",
+   "label": "Aruba"
+  },
+  {
+   "item": "Q21203",
+   "value": "106739",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "200",
+   "label": "Aruba"
+  },
+  {
+   "item": "Q21203",
+   "value": "107457",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "200",
+   "label": "Aruba"
+  },
+  {
+   "item": "Q26988",
+   "value": "17583",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "188",
+   "label": "Cookinseln"
+  },
+  {
+   "item": "Q26988",
+   "value": "14222",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "188",
+   "label": "Cookinseln"
+  },
+  {
+   "item": "Q26988",
+   "value": "17434",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "188",
+   "label": "Cookinseln"
+  },
+  {
+   "item": "Q23681",
+   "value": "462747",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "448268",
+   "date": "2021-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "419810",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "420556",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "351965",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "372486",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "331432",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "339478",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "489308",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q23681",
+   "value": "476214",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "182",
+   "label": "Türkische Republik Nordzypern"
+  },
+  {
+   "item": "Q34020",
+   "value": "1821",
+   "date": "2025-01-01T00:00:00Z",
+   "sitelinks": "179",
+   "label": "Niue"
+  },
+  {
+   "item": "Q34020",
+   "value": "1933",
+   "date": "2022-01-01T00:00:00Z",
+   "sitelinks": "179",
+   "label": "Niue"
+  },
+  {
+   "item": "Q34754",
+   "value": "6500000",
+   "date": "2024-01-01T00:00:00Z",
+   "sitelinks": "167",
+   "label": "Somaliland"
+  },
+  {
+   "item": "Q25279",
+   "value": "158659",
+   "date": "2019-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "160012",
+   "date": "2018-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "152849",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "156971",
+   "date": "2015-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "160338",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "148925",
+   "date": "2023-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "160337",
+   "date": "2017-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "158989",
+   "date": "2016-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q25279",
+   "value": "156223",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "166",
+   "label": "Curaçao"
+  },
+  {
+   "item": "Q26273",
+   "value": "43847",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "126",
+   "label": "Sint Maarten"
+  },
+  {
+   "item": "Q756617",
+   "value": "5930987",
+   "date": "2020-01-01T00:00:00Z",
+   "sitelinks": "56",
+   "label": "Königreich Dänemark"
+  }
+ ]
+}

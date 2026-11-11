@@ -1,0 +1,34 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-autor-q41542
+kind: TRIVIA
+category: LITERATURE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:autor
+sources:
+  - title: "Wikidata: Dracula (Q41542)"
+    url: https://www.wikidata.org/wiki/Q41542
+    accessed: 2026-11-11
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: Wer schrieb „Dracula“?
+    options:
+      a: Bram Stoker
+      b: Mark Twain
+      c: Lewis Carroll
+      d: Oscar Wilde

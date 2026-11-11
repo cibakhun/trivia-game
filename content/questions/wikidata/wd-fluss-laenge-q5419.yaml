@@ -1,0 +1,31 @@
+# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+schema_version: 1
+key: wd-fluss-laenge-q5419
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:wikidata
+  - vorlage:fluss-laenge
+sources:
+  - title: "Wikidata: Missouri (Q5419)"
+    url: https://www.wikidata.org/wiki/Q5419
+    accessed: 2026-11-11
+reviews: []
+estimate:
+  answer_value: "3726"
+  answer_precision: 0
+  answer_unit: km
+  input_min: "1"
+  input_max: "10000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: Wie lang ist der Missouri (in Kilometern)?
+    unit_label: Kilometer
