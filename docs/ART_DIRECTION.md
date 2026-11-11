@@ -106,7 +106,7 @@ Der erste Takt gehört zur Auflösung des Servers und verlängert die Partie nic
 
 Regeln:
 
-- **Keine Bewegung, solange die Zeit einer Frage läuft** (ARCHITECTURE §15): Frage und Antworten stehen sofort da; auf der Karte springen laufende Änderungen auf ihr Endbild, und Dauerbewegungen ruhen. Die Animationen werden dafür auf einen Durchlauf ohne Dauer gestellt und nicht abgeschaltet: Mit `animation: none` liefen nach der Frage alle noch einmal an, und die ganze Karte färbte sich unter dem Ausgang des Duells neu ein.
+- **Keine Bewegung, solange die eigene Antwortzeit läuft** (ARCHITECTURE §15): Frage und Antworten stehen sofort da; auf der Karte springen laufende Änderungen auf ihr Endbild, und Dauerbewegungen ruhen. Das gilt für den Zustand, in dem dieser Spieler antwortet. Wer schon geantwortet hat oder zuschaut, wird bei nichts gestört: Dort drängen die Wappen des Duells weiter leicht gegeneinander und zeigen, dass es läuft. Die Animationen werden dafür auf einen Durchlauf ohne Dauer gestellt und nicht abgeschaltet: Mit `animation: none` liefen nach der Frage alle noch einmal an, und die ganze Karte färbte sich unter dem Ausgang des Duells neu ein.
 - Der Grundzustand jedes Elements ist sein Endbild; die Bewegung führt nur dorthin. So stimmt das Bild auch ohne Bewegung (Frage, „Bewegung reduzieren“).
 - Eine Animation, die an einem dauerhaften Zustand hängt (Farbe einer Region, getroffene Burg), behält ihren Namen, solange der Zustand gilt; Ursprung und Takt ändern sich über Variablen. Ein anderer Name ließe sie neu anlaufen.
 - Bewegte Teile der Karte sind Gruppen (`<g>` mit `transform-box: fill-box`), nie `<use>`, und tragen keinen CSS-Filter (Schatten als eigene Form): Beides ruckelt oder verrutscht in WebKit.

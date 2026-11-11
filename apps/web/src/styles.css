@@ -1725,8 +1725,9 @@ select:focus-visible {
     margin-top: 0;
   }
 
-  /* Auflösung: knapp gehalten, damit oben die Karte mit der Eroberung sichtbar bleibt */
-  .match-page.playing[data-state='reveal'] .match-panel {
+  /* Auflösung: knapp gehalten, damit oben die Karte mit der Eroberung sichtbar bleibt. Im ersten
+     Takt (Ausgang) gilt weiter die Höhe der Leiste. */
+  .match-page.playing[data-state='reveal']:not([data-beat='outcome']) .match-panel {
     max-height: 78%;
   }
 
@@ -1944,7 +1945,7 @@ select:focus-visible {
     display: none;
   }
 
-  .match-page.playing[data-state='reveal'] .match-panel {
+  .match-page.playing[data-state='reveal']:not([data-beat='outcome']) .match-panel {
     max-height: 100%;
   }
 }
