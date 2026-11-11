@@ -1,7 +1,9 @@
 import { WENDELMARK } from '@rdw/game-core';
 import {
+  DEFAULT_MATCH_ECONOMY,
   matchViewSchema,
   parseMatchEvent,
+  QUESTION_CATEGORIES,
   type MatchView,
   type ParsedMatchEvent,
 } from '@rdw/protocol';
@@ -134,4 +136,149 @@ export function event(
   const parsed = parseMatchEvent({ seq, type, payload, at: AT });
   if (!parsed) throw new Error(`Ereignis ${type} passt nicht zum Schema`);
   return parsed;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Partie mit Ausbau (MATCH_RULES §11)
+// ---------------------------------------------------------------------------------------------
+
+export type RealmView = NonNullable<MatchView['realm']>;
+export type RealmBoardView = NonNullable<RealmView['board']>;
+export type RealmStepView = RealmBoardView['step'];
+export type RealmBuildingCode = RealmBoardView['regions'][number]['building'];
+
+/** Besitz auf der Wendelmark: Sitz 2 im Norden (ich), Sitz 0 im Westen, Sitz 1 im Südosten. */
+export const REALM_OWNER: readonly number[] = [
+  2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1,
+];
+/** Startburgen: Graufurt (2) für Sitz 2, Hagelstein (10) für Sitz 0, Rabenfels (18) für Sitz 1. */
+export const REALM_CASTLES: Readonly<Record<number, number>> = { 2: 2, 10: 0, 18: 1 };
+export const REALM_BUILDINGS_AT: Readonly<Record<number, RealmBuildingCode>> = {
+  5: 'VILLAGE',
+  6: 'TOWN',
+  11: 'VILLAGE',
+  12: 'VILLAGE',
+  13: 'TOWN',
+  16: 'VILLAGE',
+};
+export const REALM_ARMIES_AT: Readonly<Record<number, number>> = {
+  2: 3,
+  6: 2,
+  7: 1,
+  10: 2,
+  11: 3,
+  12: 2,
+  13: 1,
+  18: 3,
+};
+export const REALM_FAVORITES = [
+  ['HISTORY', 'GEOGRAPHY', 'SPORTS', 'GENERAL'],
+  ['SCIENCE', 'TECHNOLOGY', 'MATHEMATICS', 'GENERAL'],
+  ['HISTORY', 'LITERATURE', 'ARTS_CULTURE', 'NATURE_ANIMALS'],
+] as const;
+
+export function realmStep(partial: Partial<RealmStepView> = {}): RealmStepView {
+  return {
+    kind: 'PREPARE',
+    round: 2,
+    chooser: null,
+    attacker: null,
+    defender: null,
+    region: null,
+    category: null,
+    wheel: null,
+    finishReason: null,
+    ...partial,
+  };
+}
+
+export interface RealmViewOptions {
+  /** Vorräte je Sitz; ohne Angabe 7 Brot und 10 Baustoff für mich (Sitz 2). */
+  readonly stock?: Readonly<Record<number, { bread: number; material: number }>>;
+  /** Gebäude und Armeen, die vom Grundbild abweichen. */
+  readonly buildings?: Readonly<Record<number, RealmBuildingCode>>;
+  readonly armies?: Readonly<Record<number, number>>;
+  readonly eliminated?: readonly number[];
+  readonly step?: Partial<RealmStepView>;
+  readonly myOrders?: RealmView['myOrders'];
+  readonly map?: string;
+}
+
+/**
+ * Ansicht einer laufenden Partie mit Ausbau zu dritt in der Rüstzeit der zweiten Runde; ich bin
+ * Sitz 2. Geprüft gegen das Schema des Protokolls.
+ */
+export function realmViewOf(
+  options: RealmViewOptions = {},
+  overrides: Partial<MatchView> = {},
+): MatchView {
+  const base = viewOf();
+  const stock: Record<number, { bread: number; material: number }> = {
+    0: { bread: 6, material: 8 },
+    1: { bread: 3, material: 11 },
+    2: { bread: 7, material: 10 },
+    ...options.stock,
+  };
+  const buildingAt = (id: number): RealmBuildingCode =>
+    options.buildings?.[id] ??
+    (REALM_CASTLES[id] !== undefined ? 'CASTLE' : (REALM_BUILDINGS_AT[id] ?? 'NONE'));
+  const board: RealmBoardView = {
+    map: options.map ?? 'WENDELMARK',
+    regions: REALM_OWNER.map((owner, id) => ({
+      owner,
+      value: REALM_CASTLES[id] !== undefined ? 300 : 100,
+      fortifications: 0,
+      building: buildingAt(id),
+      castleLivesLeft: buildingAt(id) === 'CASTLE' ? 3 : 0,
+      startCastleOf: REALM_CASTLES[id] ?? null,
+      armies: options.armies?.[id] ?? REALM_ARMIES_AT[id] ?? 0,
+    })),
+    seats: [0, 1, 2].map((seat) => ({
+      seat,
+      favorites: [...(REALM_FAVORITES[seat] ?? [])],
+      bread: stock[seat]?.bread ?? 0,
+      material: stock[seat]?.material ?? 0,
+      income: { bread: 4, material: 5 },
+      startCastle: Number(
+        Object.keys(REALM_CASTLES).find((id) => REALM_CASTLES[Number(id)] === seat),
+      ),
+      castles: REALM_OWNER.filter((owner, id) => owner === seat && buildingAt(id) === 'CASTLE')
+        .length,
+      castleLivesLeft: 3,
+      eliminated: options.eliminated?.includes(seat) ?? false,
+      points: 1000,
+      regions: REALM_OWNER.filter((owner) => owner === seat).length,
+    })),
+    order: [2, 0, 1],
+    step: realmStep(options.step),
+    turns: [
+      { seat: 0, status: 'DONE' },
+      { seat: 1, status: 'DONE' },
+      { seat: 2, status: 'NOW' },
+    ],
+    questions: 6,
+    duels: 3,
+  };
+  return matchViewSchema.parse({
+    ...base,
+    match: { ...base.match, mode: 'REALM' },
+    players: base.players.map((player) => ({
+      ...player,
+      isMe: player.seat === 2,
+      favorites: [...(REALM_FAVORITES[player.seat ?? 0] ?? [])],
+    })),
+    mySeat: 2,
+    board: null,
+    realm: {
+      categories: [...QUESTION_CATEGORIES],
+      favoritesCount: DEFAULT_MATCH_ECONOMY.favorites,
+      campaignRounds: 5,
+      economy: DEFAULT_MATCH_ECONOMY,
+      board,
+      myOrders: options.myOrders ?? null,
+    },
+    phase: { kind: 'PREPARE', deadline: AT, remainingMs: 40_000 },
+    legalRegions: [],
+    ...overrides,
+  });
 }

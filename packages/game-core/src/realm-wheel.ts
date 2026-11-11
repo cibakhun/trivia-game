@@ -1,5 +1,13 @@
-import type { QuestionCategory } from '@rdw/protocol';
-import { armiesInRange, type RealmState, type RealmWheel } from './realm-state.ts';
+import type { MatchEconomy, QuestionCategory } from '@rdw/protocol';
+import type { MatchMap } from './match-map.ts';
+import {
+  armiesInRangeOn,
+  realmMapOf,
+  type RealmBoardRegion,
+  type RealmBuilding,
+  type RealmState,
+  type RealmWheel,
+} from './realm-state.ts';
 import type { Rng } from './rng.ts';
 
 /**
@@ -71,10 +79,9 @@ export function buildRealmWheel(
   };
 }
 
-/** Lose des Verteidigers für das Gebäude auf dem Feld. */
-export function buildingLots(state: RealmState, region: number): number {
-  const { lots } = state.rules.economy;
-  switch (state.regions[region]?.building ?? 'NONE') {
+/** Lose, die ein Gebäude dem Verteidiger bringt (Dorf 2, Stadt 3, Burg 4). */
+export function buildingLotsOf(lots: MatchEconomy['lots'], building: RealmBuilding): number {
+  switch (building) {
     case 'VILLAGE':
       return lots.village;
     case 'TOWN':
@@ -86,20 +93,56 @@ export function buildingLots(state: RealmState, region: number): number {
   }
 }
 
-/** Rad eines Angriffs von `attacker` auf `region` im aktuellen Zustand. */
-export function realmWheel(state: RealmState, attacker: number, region: number): RealmWheel {
-  const target = state.regions[region];
+/** Lose des Verteidigers für das Gebäude auf dem Feld. */
+export function buildingLots(state: RealmState, region: number): number {
+  return buildingLotsOf(state.rules.economy.lots, state.regions[region]?.building ?? 'NONE');
+}
+
+/**
+ * Ausschnitt des Bretts, aus dem sich ein Glücksrad rechnen lässt: beim Server der Zustand der
+ * Partie, im Browser die Ansicht (`realm.board`), damit die Vorschau vor dem Angriff dasselbe Rad
+ * zeigt, das der Server danach dreht.
+ */
+export interface RealmWheelBoard {
+  readonly map: MatchMap;
+  readonly economy: MatchEconomy;
+  readonly regions: readonly RealmBoardRegion[];
+  /** Kategorien des Rads. */
+  readonly categories: readonly QuestionCategory[];
+  /** Lieblingskategorien je Sitz. */
+  readonly favorites: readonly (readonly QuestionCategory[])[];
+}
+
+/** Rad eines Angriffs von `attacker` auf `region` auf einem beliebigen Brett. */
+export function realmWheelOn(board: RealmWheelBoard, attacker: number, region: number): RealmWheel {
+  const target = board.regions[region];
   if (!target || target.owner === null || target.owner === attacker) {
     throw new RangeError(`Region ${region} ist kein Ziel für Sitz ${attacker}`);
   }
   const defender = target.owner;
   return buildRealmWheel(
-    state.categories,
-    state.seats[attacker]?.favorites ?? [],
-    state.seats[defender]?.favorites ?? [],
-    armiesInRange(state, attacker, region),
-    armiesInRange(state, defender, region) + buildingLots(state, region),
-    state.rules.economy.lots.free,
+    board.categories,
+    board.favorites[attacker] ?? [],
+    board.favorites[defender] ?? [],
+    armiesInRangeOn(board.map, board.regions, attacker, region),
+    armiesInRangeOn(board.map, board.regions, defender, region) +
+      buildingLotsOf(board.economy.lots, target.building),
+    board.economy.lots.free,
+  );
+}
+
+/** Rad eines Angriffs von `attacker` auf `region` im aktuellen Zustand. */
+export function realmWheel(state: RealmState, attacker: number, region: number): RealmWheel {
+  return realmWheelOn(
+    {
+      map: realmMapOf(state),
+      economy: state.rules.economy,
+      regions: state.regions,
+      categories: state.categories,
+      favorites: state.seats.map((s) => s.favorites),
+    },
+    attacker,
+    region,
   );
 }
 

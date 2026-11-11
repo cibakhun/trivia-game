@@ -34,6 +34,8 @@ import {
   type MatchCreateRequest,
   type PasswordChangeRequest,
   type PlayerNamePartsDto,
+  type QuestionCategory,
+  type RealmOrderDto,
   type RegisterRequest,
 } from '@rdw/protocol';
 import { z } from 'zod';
@@ -221,6 +223,22 @@ export const api = {
   ) =>
     request('POST', `/matches/${matchId}/seats/${joinOrder}/bot`, matchActionResponseSchema, {
       body: { strength },
+      idempotencyKey,
+    }),
+  /** Lieblingskategorien des eigenen Platzes in der Aufstellung einer Partie mit Ausbau. */
+  setMatchFavorites: (
+    matchId: string,
+    categories: readonly QuestionCategory[],
+    idempotencyKey: string,
+  ) =>
+    request('POST', `/matches/${matchId}/favorites`, matchActionResponseSchema, {
+      body: { categories },
+      idempotencyKey,
+    }),
+  /** Befehle der Rüstzeit abgeben; eine weitere Abgabe ersetzt die vorige (API.md §2.6). */
+  submitMatchOrders: (matchId: string, orders: readonly RealmOrderDto[], idempotencyKey: string) =>
+    request('POST', `/matches/${matchId}/orders`, matchActionResponseSchema, {
+      body: { orders },
       idempotencyKey,
     }),
   match: (matchId: string, after: number) =>

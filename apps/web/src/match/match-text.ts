@@ -20,9 +20,12 @@ function isMapId(id: string): id is MatchMapId {
   return (MATCH_MAP_IDS as readonly string[]).includes(id);
 }
 
-/** Karte der Partie; unbekannte Kennungen fallen auf die Wendelmark zurück. */
+/**
+ * Karte der Partie, mit Ausbau aus `realm.board`; unbekannte Kennungen fallen auf die Wendelmark
+ * zurück.
+ */
 export function mapOfView(view: MatchView): MatchMap {
-  const id = view.board?.map ?? 'WENDELMARK';
+  const id = view.board?.map ?? view.realm?.board?.map ?? 'WENDELMARK';
   return matchMap(isMapId(id) ? id : 'WENDELMARK');
 }
 
