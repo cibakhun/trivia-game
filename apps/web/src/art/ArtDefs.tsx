@@ -22,7 +22,6 @@ export type SymbolId =
   | 'sea'
   | 'castle'
   | 'shield'
-  | 'swords'
   | 'emblem-0'
   | 'emblem-1'
   | 'emblem-2';
@@ -246,17 +245,6 @@ export function ArtDefs({ prefix }: { readonly prefix: string }) {
           strokeWidth="7"
           strokeLinejoin="round"
         />
-      </symbol>
-      <symbol id={id('swords')} viewBox={BOX}>
-        <g className="art-ink art-steel" strokeWidth="4" strokeLinejoin="round">
-          <path d="M-38-42L-30-44L22 8L16 14L-36-34Z" />
-          <path d="M38-42L30-44L-22 8L-16 14L36-34Z" />
-          <path d="M8 6L26 24M-8 6L-26 24" strokeWidth="7" />
-          <path
-            d="M20 22L34 36L38 32L24 18Z M-20 22L-34 36L-38 32L-24 18Z"
-            className="art-ink art-roof"
-          />
-        </g>
       </symbol>
       {/* Wappenbilder der Sitze, wie die Zeichen ◆ ● ▲ */}
       <symbol id={id('emblem-0')} viewBox={BOX}>

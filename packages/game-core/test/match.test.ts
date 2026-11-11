@@ -546,7 +546,7 @@ describe('Feldzug', () => {
           : s,
     );
     const { state, events } = duel({ ...start, regions, seats, duels: 1 }, MUEHLBACH, true, false);
-    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'LAST_KINGDOM' });
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'LAST_KINGDOM', round: 1 });
     expect(matchPhase(state)).toBe('FINISHED');
     expect(stepTimeLimitMs(state)).toBeNull();
     const finished = events.at(-1);
@@ -574,7 +574,7 @@ describe('Feldzug', () => {
       step: { kind: 'CAMPAIGN_TARGET', round: 4, attacker: 2, queue: [] },
     });
     const { state, events } = duel(start, OTTERBRUCH, true, false);
-    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' });
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: 4 });
     const standings = matchStandings(state);
     expect(events.at(-1)).toEqual({ kind: 'MATCH_FINISHED', reason: 'ROUNDS_COMPLETE', standings });
     // Sitz 0: Eschenhain 300 + 17 Regionen à 100 − Otterbruch; Sitz 2: 300 + 3 · 100; Sitz 1: 300 + 200
@@ -715,7 +715,7 @@ describe('Partie zu zweit', () => {
       state = duel(state, legalRegions(state)[0] as number, false, false).state;
     }
     expect(attackers).toEqual([0, 1, 1, 0, 0, 1, 1, 0]);
-    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' });
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: 4 });
     expect(state.duels).toBe(8);
     expect(state.questions).toBe(13);
     expect(matchStandings(state).map((s) => s.place)).toHaveLength(2);
@@ -744,7 +744,7 @@ describe('Partie zu zweit', () => {
       'KINGDOM_ELIMINATED',
       'MATCH_FINISHED',
     ]);
-    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'LAST_KINGDOM' });
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'LAST_KINGDOM', round: 2 });
     expect(matchStandings(state)).toMatchObject([
       // Hagelstein und die eroberte Lindenhof je 300, dazu 14 gewöhnliche Regionen
       { seat: 0, place: 1, points: 2 * 300 + 14 * 100, eliminated: false },
@@ -900,11 +900,15 @@ describe('Zugfolge', () => {
     ]);
   });
 
-  it('ist nach dem Ende leer', () => {
+  it('ist nach dem Ende leer; der Schritt merkt sich die Runde, in der Schluss war', () => {
     const state: MatchState = {
       ...campaignState(),
-      step: { kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' },
+      step: { kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: 4 },
     };
     expect(turnOrder(state)).toEqual([]);
+    // Partien von vor ADR-055 kennen die Runde nicht
+    expect(turnOrder({ ...state, step: { kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' } })).toEqual(
+      [],
+    );
   });
 });

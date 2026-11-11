@@ -60,15 +60,25 @@ Unit-Tests (`apps/web/test/map-art.test.ts`) sichern für beide Karten: genau di
 | Ansage (ADR-053) | dieselbe Leiste, ganz gefüllt und mittig gesetzt: nach einer Wahl ein Satz mit dem Wappen dessen, der gewählt hat; vor einem Duell als Titel, wo angegriffen wird, darunter als Plättchen, wer wen angreift. Die Karte ist ganz frei |
 | Frage | festes Blatt über der Karte, von oben gefüllt. Ein Hinweis unter dem Knopf verschiebt nichts |
 | Gespeichert, verpasst, zuschauen | niedriges Blatt, die Karte bleibt darüber sichtbar |
+| Ausgang eines Duells (ADR-054) | dieselbe Leiste wie in der Ansage, ganz gefüllt: ein Satz mit dem Wappen des Siegers, klein darunter der Grund. Die Karte ist ganz frei und zeigt den Ausgang |
 | Auflösung | Blatt bis höchstens 78 % der Fläche, so hoch wie sein Inhalt und ohne Scrollen; oben bleibt die Karte sichtbar. Auf dem Handy stehen von den Antwortmöglichkeiten nur die richtige und die gewählten da, die Erklärung entfällt |
 
-Der Spielstand hat feste Höhe (Punkte und Schilde in zwei Zeilen, auch bevor es Schilde gibt), der Verlauf entfällt. Regeln dazu: Was über den Regionen liegt (Ränder, Ringe, Motive, Pfeil), nimmt keine Tipps an; das Blatt bekommt seinen Platz über das Raster, nie über den Seitenlauf. Ein Handy im Querformat ist dafür zu niedrig und behält Karte und Blatt nebeneinander.
+Der Spielstand hat feste Höhe (Punkte und Schilde in zwei Zeilen, auch bevor es Schilde gibt), der Verlauf entfällt. Regeln dazu: Was über den Regionen liegt (Ränder, Ringe, Motive, die Aufstellung eines Duells), nimmt keine Tipps an; das Blatt bekommt seinen Platz über das Raster, nie über den Seitenlauf. Ein Handy im Querformat ist dafür zu niedrig und behält Karte und Blatt nebeneinander.
 
 Damit die Seite auch am iPhone fest steht (Rückmeldung vom 2026-11-11: die Karte saß zu tief und unter der Leiste, die Seite ließ sich verschieben): Die Karte liegt in einem eigenen Rahmen (`.board-frame`), der sein Rasterfeld füllt, und füllt diesen Rahmen; ein SVG mit `height: 100%` direkt im Raster wird in WebKit so hoch wie das ganze Raster. Solange die Partie läuft, scrollt auch das Dokument nicht (`html.match-playing`), und die Mindesthöhe der Seite rechnet mit dem sichtbaren Bereich (`100dvh`), nicht mit dem Bildschirm hinter der Adressleiste.
 
-**Ansage** (`match/AnnouncePanel.tsx`, [MATCH_RULES.md §5](MATCH_RULES.md#ansage)): Die Partie hält nach jeder Wahl und vor jedem Duell kurz an, damit man sieht, was geschieht, bevor das Nächste kommt. Die Karte zeigt es, die Leiste sagt es in einem Satz. Nach einer Wahl zieht sich ein Ring in der Farbe des Sitzes um die gewählte Region. Vor einem Duell steht der Pfeil des Angreifers auf der umkämpften Region; der Titel ist aus der eigenen Sicht geschrieben („Du wirst in Fuchsmoor angegriffen!“ in Rot, „Dein Angriff auf …“, sonst „Angriff auf …“) und nennt die Hauptstadt, wenn sie das Ziel ist. Darunter steht mit Wappen, wer wen angreift. Es gibt nichts zu tun: Die Zeit läuft nur als schmaler Strich ohne Zahl.
+**Ansage** (`match/AnnouncePanel.tsx`, [MATCH_RULES.md §5](MATCH_RULES.md#ansage)): Die Partie hält nach jeder Wahl und vor jedem Duell kurz an, damit man sieht, was geschieht, bevor das Nächste kommt. Die Karte zeigt es, die Leiste sagt es in einem Satz. Nach einer Wahl zieht sich ein Ring in der Farbe des Sitzes um die gewählte Region. Vor einem Duell stellt die Karte es auf (siehe „Duell auf der Karte“); der Titel ist aus der eigenen Sicht geschrieben („Du wirst in Fuchsmoor angegriffen!“ in Rot, „Dein Angriff auf …“, sonst „Angriff auf …“) und nennt die Hauptstadt, wenn sie das Ziel ist. Darunter steht mit Wappen, wer wen angreift. Es gibt nichts zu tun: Die Zeit läuft nur als schmaler Strich ohne Zahl.
 
-**Auflösung** (`match/RevealPanel.tsx`): oben in einem Satz, was daraus folgt, mit dem Wappen des Siegers und einem Rand in seiner Farbe, klein darunter der Grund. Darunter die Frage und **wer was geantwortet hat**: Bei einer Wissensfrage steht jeder Sitz als Plättchen (Wappen und Name, `match/SeatChip.tsx`) an der Antwort, die er gewählt hat; die richtige Antwort ist grün mit Haken, eine gewählte falsche rot mit Kreuz, wer nicht geantwortet hat, steht darunter. Bei einer Schätzfrage stehen die Sitze in der Rangfolge untereinander, mit Schätzung, Abstand und Zeit, in der Landnahme daneben, wie viele Regionen der Platz wählt. Der Angriffspfeil bleibt auf der Karte, bis es weitergeht. Richtig und falsch stehen nie nur in der Farbe (Haken, Kreuz, für Vorleseprogramme „richtig“).
+**Auflösung** (`match/RevealPanel.tsx`): oben in einem Satz, was daraus folgt, mit dem Wappen des Siegers und einem Rand in seiner Farbe, klein darunter der Grund. Darunter die Frage und **wer was geantwortet hat**: Bei einer Wissensfrage steht jeder Sitz als Plättchen (Wappen und Name, `match/SeatChip.tsx`) an der Antwort, die er gewählt hat; die richtige Antwort ist grün mit Haken, eine gewählte falsche rot mit Kreuz, wer nicht geantwortet hat, steht darunter. Bei einer Schätzfrage stehen die Sitze in der Rangfolge untereinander, mit Schätzung, Abstand und Zeit, in der Landnahme daneben, wie viele Regionen der Platz wählt. Die umkämpfte Region behält bis zum nächsten Zug einen Rand in der Farbe des Siegers. Richtig und falsch stehen nie nur in der Farbe (Haken, Kreuz, für Vorleseprogramme „richtig“).
+
+**Duell auf der Karte** (`match/MatchBoard.tsx`, `art/attack.ts`, ADR-054; Wunsch des Product Owners vom 2026-11-11: gut erkennbar und direkt auf der Karte, wer wen wo angreift, und nach dem Angriff erst kurz der Ausgang). Ein Duell spielt auf der Karte in vier Bildern; Leiste und Blatt sagen dasselbe in Worten.
+
+1. **Aufmarsch** (Ansage): Alles außer den beiden beteiligten Regionen tritt unter einem dunklen Schleier zurück (`--map-veil`). In der Mitte der Region, aus der angegriffen wird, erscheint das Wappen des Angreifers als Plättchen; ein Blockpfeil in seiner Farbe schießt über die gemeinsame Grenze; in der Mitte der umkämpften Region stellt sich das Wappen des Verteidigers dagegen. Wo ein Plättchen steht, weichen Name, Münze und Motive. Ist das Ziel eine Hauptstadt, steht ihre Burg für den Verteidiger: Es gibt kein zweites Plättchen, der Pfeil endet kurz hinter der Grenze, und nur der Name weicht, damit Burg und Leben frei bleiben. Die Regeln sagen nicht, von wo angegriffen wird; das Bild nimmt die angrenzende eigene Region, die der Hauptstadt des Angreifers am nächsten liegt, bei Gleichstand die mit der kleineren Nummer.
+2. **Stand** (Frage): Dasselbe Bild steht ruhig, solange die Frage läuft. Auf dem Handy liegt das Blatt der Frage darüber, der Fragekopf nennt beide Seiten.
+3. **Ausgang** (erster Takt der Auflösung): Bevor die Antworten erscheinen, zeigt die Karte, wie es ausging (Bewegungen in §5). In der Leiste steht dazu ein Satz aus der eigenen Sicht mit dem Wappen des Siegers (`match/OutcomePanel.tsx`): „Du eroberst Hagelstein!“, „Du hältst Graufurt!“, „Dein Angriff auf Graufurt scheitert.“, „Du verlierst Hagelstein.“, für Zuschauer „… erobert …“ oder „… hält …“; ein eigener Sieg steht in Grün, ein eigener Verlust in Rot, nie nur in der Farbe (der Satz sagt es). Vorleseprogramme bekommen hier schon den ganzen Satz der Auflösung.
+4. **Danach** (Rest der Auflösung): Der Schleier hebt sich, die Namen stehen wieder, die umkämpfte Region trägt einen Rand in der Farbe des Siegers, das Blatt mit den Antworten rollt sich auf.
+
+Der erste Takt gehört zur Auflösung des Servers und verlängert die Partie nicht: Er dauert ein Viertel der Auflösung, höchstens 1,5 s (`outcomeBeatMs`, `match/useOutcomeBeat.ts`), und entfällt, wenn von der Auflösung weniger als das Doppelte übrig ist (Seite mitten in der Auflösung neu geladen). Endet eine Wissensfrage unentschieden, bleibt die Aufstellung über der Auflösung stehen, bis die Schätzfrage das Duell entscheidet. Steht ein Duell in der oberen Hälfte der Karte, weicht ein Band („Runde 2 von 4“, „Ein Reich fällt!“) an den unteren Kartenrand, damit es Wappen und Burg nicht verdeckt.
 
 **Zugfolge** (`match/TurnOrder.tsx`, [MATCH_RULES.md §3](MATCH_RULES.md#zugfolge)): eine Zeile zwischen Spielstand und Karte, auf jedem Gerät. Je Zug ein Plättchen mit Nummer, Wappen und Name; der eigene Sitz heißt „Du“. Wer dran ist, ist golden hervorgehoben; wer dran war, trägt einen Haken und einen gestrichelten Rand; wer noch kommt, bleibt schlicht. Bei der Schätzfrage der Landnahme sind alle zugleich dran und stehen ohne Nummer nebeneinander. Der Zustand steht nie nur in der Farbe (Haken, Nummer, für Vorleseprogramme „war dran“, „ist dran“, „kommt noch“). Die Zeile hat feste Höhe und bewegt sich nicht: Lange Namen werden gekürzt, am Handy entfällt die Überschrift, nach der Abrechnung die ganze Zeile.
 
@@ -78,12 +88,16 @@ Damit die Seite auch am iPhone fest steht (Rückmeldung vom 2026-11-11: die Kart
 
 | Anlass | Bewegung |
 |---|---|
-| Region erobert | Die neue Farbe breitet sich von der Mitte aus wie Tinte (0,9 s) |
-| Region befestigt (Wert steigt) | Die Münze springt kurz |
-| Hauptstadt getroffen | Die Burg wackelt, ein Schild kippt weg |
+| Region erobert | Die neue Farbe breitet sich von der Mitte aus wie Tinte (0,9 s); nach einem Duell läuft sie von der Grenze her ein, über die der Angreifer kam, und die alte Farbe bleibt darunter stehen, bis sie überdeckt ist |
+| Region befestigt (Wert steigt) | Die Münze springt kurz (nach einem Duell erst, wenn die Beschriftung wieder steht) |
+| Hauptstadt getroffen | Die Burg wackelt, ein Schild kippt weg (nach einem Duell in dem Augenblick, in dem der Schlag sitzt) |
 | Du bist dran | Goldenes Band „Du bist dran!“ über der Karte (1,5 s, höchstens bis die eigene Wahl getroffen ist; es steht nie über der Ansage eines anderen), die Karte der Anweisung leuchtet |
 | Wählbare Regionen | Goldener, laufender Strichrand und sanftes Leuchten |
-| Duell | Rot pulsierender Rand um die umkämpfte Region; ein Pfeil in der Farbe des Angreifers zeichnet sich aus seiner angrenzenden Region (nahe seiner Hauptstadt) hinein, das Siegel mit gekreuzten Schwertern sitzt auf der Grenze. Pfeil und Siegel suchen sich eine Lage, die keine Namen, Münzen und Burgen verdeckt, und liegen über den Landschaftsmotiven, aber unter Namen und Münzen, damit ein Name auch im engsten Fall lesbar bleibt. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
+| Duell: Aufmarsch (Ansage, 1,2 s) | Der Schleier legt sich über die übrige Karte (0,35 s); das Wappen des Angreifers stempelt sich in seine Region (ab 0,12 s), der Pfeil schießt über die Grenze (ab 0,45 s), der Verteidiger stellt sich dagegen (ab 0,7 s). Danach drängen Angreifer und Pfeil im Takt des rot pulsierenden Rands gegen die umkämpfte Region, der Verteidiger gibt leicht nach. Im Fragekopf stehen sich die Wappen von Angreifer und Verteidiger gegenüber (ohne Bewegung) |
+| Duell: Ausgang, Region erobert | Das Wappen des Angreifers rückt in die Mitte der Region vor, das des Verteidigers kippt weg; ein Ring schlägt am Ziel aus, die Farbe des Siegers läuft von der Grenze her ein; nach 0,9 s steht die neue Beschriftung, das Wappen geht |
+| Duell: Ausgang, Hauptstadt getroffen | Das Wappen des Angreifers stößt bis zur Burg vor und kehrt zurück; die Burg wackelt, ein Schild kippt weg, der Ring schlägt in Warnrot aus |
+| Duell: Ausgang, Reich fällt | Wie eine Eroberung; die Burg stürzt, und die Farbe des Siegers läuft von der Hauptstadt aus Region um Region durch das Reich (0,12 s je Feld Abstand) |
+| Duell: Ausgang, Verteidigung hält | Der Pfeil prallt ab und verblasst, das Wappen des Angreifers wird zurückgeworfen und verblasst, das des Verteidigers richtet sich auf; danach springt die Münze mit dem neuen Wert |
 | Große Momente | Band über der Karte (1,5 s): „Die Landnahme beginnt“, „Der Feldzug beginnt“, „Runde 2 von 4“ (letzte Runde mit Hinweis), Tintenband; „Ein Reich fällt!“ in der Farbe und mit dem Wappen des Siegers. Ankündigungen erst, wenn gewählt wird; mehrere nacheinander. Während gewählt wird und in der Handy-Ansicht steht das Band schmal am oberen Kartenrand, damit die Regionen frei bleiben; Tipps gehen durch das Band hindurch |
 | Punkte ändern sich | Die Zahl zählt hoch (0,7 s) |
 | Gezeigte Wahl (Ansage) | Ein Ring in der Farbe des Sitzes zieht sich um die gewählte Region (0,5 s) und bleibt stehen, bis es weitergeht |
@@ -92,7 +106,10 @@ Damit die Seite auch am iPhone fest steht (Rückmeldung vom 2026-11-11: die Kart
 
 Regeln:
 
-- **Keine Bewegung, solange die Zeit einer Frage läuft** (ARCHITECTURE §15): Frage und Antworten stehen sofort da, und die Dauerbewegungen der Karte ruhen.
+- **Keine Bewegung, solange die eigene Antwortzeit läuft** (ARCHITECTURE §15): Frage und Antworten stehen sofort da; auf der Karte springen laufende Änderungen auf ihr Endbild, und Dauerbewegungen ruhen. Das gilt für den Zustand, in dem dieser Spieler antwortet. Wer schon geantwortet hat oder zuschaut, wird bei nichts gestört: Dort drängen die Wappen des Duells weiter leicht gegeneinander und zeigen, dass es läuft. Die Animationen werden dafür auf einen Durchlauf ohne Dauer gestellt und nicht abgeschaltet: Mit `animation: none` liefen nach der Frage alle noch einmal an, und die ganze Karte färbte sich unter dem Ausgang des Duells neu ein.
+- Der Grundzustand jedes Elements ist sein Endbild; die Bewegung führt nur dorthin. So stimmt das Bild auch ohne Bewegung (Frage, „Bewegung reduzieren“).
+- Eine Animation, die an einem dauerhaften Zustand hängt (Farbe einer Region, getroffene Burg), behält ihren Namen, solange der Zustand gilt; Ursprung und Takt ändern sich über Variablen. Ein anderer Name ließe sie neu anlaufen.
+- Bewegte Teile der Karte sind Gruppen (`<g>` mit `transform-box: fill-box`), nie `<use>`, und tragen keinen CSS-Filter (Schatten als eigene Form): Beides ruckelt oder verrutscht in WebKit.
 - Beim ersten Aufbau einer Seite laufen keine Änderungsanimationen, nur bei echten Änderungen.
 - „Bewegung reduzieren“ im System schaltet alle Animationen ab (CSS `prefers-reduced-motion`, auch die Zählanimation).
 
@@ -103,6 +120,7 @@ Elf kurze Klänge, im Browser erzeugt (Web Audio, keine Dateien, `apps/web/src/a
 - Schalter „Ton“ in der Kopfzeile der Partie; die Wahl bleibt im Browser gespeichert, Standard ist an.
 - Ton erst nach der ersten Berührung oder Taste (Regel der Browser), nichts beim ersten Aufbau einer Seite.
 - Während einer laufenden Frage nur der Klick der eigenen Antwort; Ergebnis und Folgen klingen in der Auflösung, die eigene Antwort zuerst, die Folge des Duells kurz danach.
+- Sieg oder Niederlage klingen erst, wenn die Abrechnung erscheint, nicht schon in der Auflösung des letzten Duells (ADR-055): Dort gehört der Klang dem Ausgang auf der Karte.
 
 ## 6. Bausteine im Code
 
@@ -114,7 +132,8 @@ Elf kurze Klänge, im Browser erzeugt (Web Audio, keine Dateien, `apps/web/src/a
 | `apps/web/src/art/ArtDefs.tsx` | Motive als SVG-Symbole, Wappenmuster, Papierfilter |
 | `apps/web/src/art/map-art.css` | Aussehen und Bewegungen der Karte |
 | `apps/web/src/art/SeatCrest.tsx`, `LifeShields.tsx`, `Emblem.tsx`, `HeroMap.tsx`, `CountUp.tsx` | Wappen je Sitz, Hauptstadtleben als Schilde (Spielstand und Abrechnung), Spielwappen, Kartenbild der Startseite, zählende Zahlen |
-| `apps/web/src/match/MatchBoard.tsx`, `art/attack.ts` | Karte der Partie mit Bedienung, Angriffspfeil |
+| `apps/web/src/match/MatchBoard.tsx`, `art/attack.ts` | Karte der Partie mit Bedienung, Aufstellung und Ausgang eines Duells |
+| `apps/web/src/match/OutcomePanel.tsx`, `useOutcomeBeat.ts` | Ausgang eines Duells in der Leiste, erster Takt der Auflösung |
 | `apps/web/src/match/moments.ts`, `useMoments.ts`, `DuelHeader.tsx` | Große Momente als Band, Fragekopf im Duell |
 | `apps/web/src/match/AnnouncePanel.tsx`, `RevealPanel.tsx`, `SeatChip.tsx` | Ansage (gezeigte Wahl, Duell), Auflösung mit den Antworten aller Sitze, Sitz als Plättchen |
 | `apps/web/src/match/TurnOrder.tsx` | Zugfolge über der Karte |

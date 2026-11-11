@@ -1,7 +1,7 @@
 import type { MatchView, ParsedMatchEvent } from '@rdw/protocol';
 import { useEffect, useRef } from 'react';
 import { playSound } from '../audio/sound.ts';
-import type { MatchScreenState } from './match-model.ts';
+import { lastOf, type MatchScreenState } from './match-model.ts';
 import { cuesFor } from './sound-cues.ts';
 
 /** Spielt die Klänge zu neuen Ereignissen (freigegeben über `installAudioUnlock` in main). */
@@ -20,7 +20,10 @@ export function useMatchSounds(
     const before = previous.current;
     previous.current = next;
     const fresh = before ? events.filter((e) => e.seq > before.lastSeq) : [];
-    for (const { cue, delayMs } of cuesFor(before, next, fresh, mySeat)) playSound(cue, delayMs);
+    const standings = lastOf(events, 'MATCH_FINISHED')?.payload.standings ?? null;
+    for (const { cue, delayMs } of cuesFor(before, next, fresh, mySeat, standings)) {
+      playSound(cue, delayMs);
+    }
     // Nur bei neuem Stand; die Ereignisliste wächst mit `lastSeq`
   }, [lastSeq, state, mySeat, view?.board !== undefined]);
 }

@@ -1,4 +1,4 @@
-import type { ParsedMatchEvent } from '@rdw/protocol';
+import type { MatchEventOf, ParsedMatchEvent } from '@rdw/protocol';
 import type { SoundCue } from '../audio/sound.ts';
 import type { MatchScreenState } from './match-model.ts';
 
@@ -6,6 +6,9 @@ import type { MatchScreenState } from './match-model.ts';
  * Welche Klänge neue Ereignisse auslösen (docs/ART_DIRECTION.md §5). Reine Zuordnung, damit sie
  * testbar ist; abgespielt wird in `useMatchSounds`. Nichts beim ersten Aufbau der Seite und nichts
  * während einer laufenden Frage außer der eigenen Antwort (ARCHITECTURE §15).
+ *
+ * Sieg oder Niederlage klingen erst, wenn die Abrechnung erscheint (ADR-055): `MATCH_FINISHED`
+ * steht schon im Verlauf, während die letzte Auflösung noch gezeigt wird.
  */
 
 export interface TimedCue {
@@ -20,6 +23,8 @@ export function cuesFor(
   next: { readonly state: MatchScreenState; readonly lastSeq: number },
   fresh: readonly ParsedMatchEvent[],
   mySeat: number | null,
+  /** Endstand aus `MATCH_FINISHED`, sobald es ihn gibt. */
+  standings: MatchEventOf<'MATCH_FINISHED'>['payload']['standings'] | null = null,
 ): TimedCue[] {
   if (!before || next.state === 'question') return [];
   const cues: TimedCue[] = [];
@@ -54,11 +59,7 @@ export function cuesFor(
         cues.push({ cue: 'fall', delayMs: delay + 300 });
         delay += EFFECT_DELAY_MS;
         break;
-      case 'MATCH_FINISHED': {
-        const mine = event.payload.standings.find((s) => s.seat === mySeat);
-        if (mine) cues.push({ cue: mine.place === 1 ? 'victory' : 'defeat', delayMs: delay + 400 });
-        break;
-      }
+      case 'MATCH_FINISHED':
       case 'MATCH_CREATED':
       case 'PLAYER_JOINED':
       case 'PLAYER_LEFT':
@@ -69,6 +70,10 @@ export function cuesFor(
       case 'TARGET_CHOSEN':
         break;
     }
+  }
+  if (next.state === 'finished' && before.state !== 'finished') {
+    const mine = standings?.find((s) => s.seat === mySeat);
+    if (mine) cues.push({ cue: mine.place === 1 ? 'victory' : 'defeat', delayMs: delay + 400 });
   }
   if (next.state === 'pick' && (before.state !== 'pick' || before.lastSeq !== next.lastSeq)) {
     cues.push({ cue: 'turn', delayMs: delay });

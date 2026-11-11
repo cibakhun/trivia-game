@@ -1,7 +1,7 @@
 import { WENDELMARK } from '@rdw/game-core';
 import { parseMatchEvent, type ParsedMatchEvent } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
-import { arrowScale, attackArrow, attackSource, regionMarks } from '../src/art/attack.ts';
+import { attackSource, duelLayout, duelScale, inUpperHalf } from '../src/art/attack.ts';
 import { mapArt } from '../src/art/map-art.ts';
 import {
   enqueueMoments,
@@ -10,7 +10,7 @@ import {
   type MomentSnapshot,
 } from '../src/match/moments.ts';
 
-/** Große Momente als Band und Angriffspfeil im Duell (Gestaltung, ADR-051). */
+/** Große Momente als Band und Aufstellung eines Duells auf der Karte (Gestaltung, ADR-051/054). */
 
 const name = (seat: number) => ['Anna (du)', 'Bot (schwer)', 'Bot (leicht)'][seat] ?? '?';
 
@@ -146,11 +146,33 @@ describe('Warteschlange der Bänder', () => {
   });
 });
 
-describe('Angriffspfeil', () => {
+describe('Aufstellung eines Duells', () => {
   const owner = WENDELMARK.regions.map(() => null as number | null);
   const at = (n: string) => WENDELMARK.regions.findIndex((r) => r.name === n);
+  const art = mapArt(WENDELMARK);
+  const s = art.size;
 
-  it('kommt aus einer angrenzenden Region des Angreifers, nah an seiner Hauptstadt', () => {
+  /** Eckpunkte des Blockpfeils: Beginn, Hals, Flügel, Spitze, Flügel, Hals, Beginn. */
+  function corners(arrow: string): { x: number; y: number }[] {
+    return [...arrow.matchAll(/[ML]([\d.-]+) ([\d.-]+)/g)].map((m) => ({
+      x: Number(m[1]),
+      y: Number(m[2]),
+    }));
+  }
+
+  function inside(p: { x: number; y: number }, polygon: readonly { x: number; y: number }[]) {
+    let hit = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const a = polygon[i]!;
+      const b = polygon[j]!;
+      if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) {
+        hit = !hit;
+      }
+    }
+    return hit;
+  }
+
+  it('der Angreifer zieht aus einer angrenzenden eigenen Region, nah an seiner Hauptstadt', () => {
     const target = at('Hagelstein');
     const own = [...owner];
     own[at('Ackerbrunn')] = 0;
@@ -160,57 +182,85 @@ describe('Angriffspfeil', () => {
     const from = attackSource(WENDELMARK, { owner: own, capital: at('Eschenhain') }, 0, target);
     expect(from).toBe(at('Ackerbrunn'));
     expect(WENDELMARK.adjacency[target]).toContain(from);
-    // Ohne angrenzende Region kein Pfeil
+    // Ohne angrenzende eigene Region gibt es keine Aufstellung
     expect(attackSource(WENDELMARK, { owner, capital: null }, 0, target)).toBeNull();
   });
 
-  it('läuft von der Quelle zum Ziel, das Siegel liegt dazwischen', () => {
-    const art = mapArt(WENDELMARK);
+  it('die Wappen stehen in der Mitte ihrer Regionen, der Pfeil zeigt vom Angreifer zum Ziel', () => {
     const from = at('Birkental');
     const to = at('Hagelstein');
-    const arrow = attackArrow(art, from, to);
-    expect(arrow).not.toBeNull();
+    const layout = duelLayout(art, from, to);
+    expect(layout).not.toBeNull();
     const a = art.regions[from]!;
     const b = art.regions[to]!;
+    expect(layout!.source).toEqual({ x: a.cx, y: a.cy });
+    expect(layout!.target).toEqual({ x: b.cx, y: b.cy });
+    expect(Math.hypot(layout!.dir.x, layout!.dir.y)).toBeCloseTo(1);
+    expect(layout!.distance).toBeCloseTo(Math.hypot(b.cx - a.cx, b.cy - a.cy), 0);
+    const points = corners(layout!.arrow);
+    expect(points).toHaveLength(7);
+    const start = points[0]!;
+    const tip = points[3]!;
     const near = (p: { x: number; y: number }, q: { cx: number; cy: number }) =>
       Math.hypot(p.x - q.cx, p.y - q.cy);
-    // Schaft beginnt beim Angreifer, Spitze im Ziel, Siegel ungefähr auf der Grenze
-    expect(near(arrow!.tail, a)).toBeLessThan(near(arrow!.tail, b));
-    expect(near(arrow!.tip, b)).toBeLessThan(near(arrow!.tip, a));
-    const gap = Math.hypot(a.cx - b.cx, a.cy - b.cy);
-    expect(near(arrow!.mid, a)).toBeLessThan(gap);
-    expect(near(arrow!.mid, b)).toBeLessThan(gap);
-    expect(arrow!.d).toMatch(/^M[\d.-]+ [\d.-]+Q/);
+    expect(near(start, a)).toBeLessThan(near(start, b));
+    expect(near(tip, b)).toBeLessThan(near(tip, a));
+    // Der Pfeil steht frei zwischen den Plättchen
+    expect(near(start, a)).toBeGreaterThan(layout!.radius);
+    expect(near(tip, b)).toBeGreaterThan(layout!.radius);
+    expect(duelLayout(art, from, from)).toBeNull();
+    expect(duelLayout(art, from, 99)).toBeNull();
   });
 
-  it('das Siegel weicht Namen, Münzen und Burgen aus', () => {
-    const art = mapArt(WENDELMARK);
-    const s = art.size;
+  it('auf jeder Grenze der Karte beginnt der Pfeil beim Angreifer und endet im Ziel', () => {
     for (const narrow of [false, true]) {
-      // Jede Nachbarschaft der Karte, alle Regionen besetzt, Hauptstadt im Angreiferfeld
-      const covered: string[] = [];
-      let pairs = 0;
-      for (const [from, list] of WENDELMARK.adjacency.entries()) {
-        for (const to of list) {
-          const marks = art.regions.flatMap((region) =>
-            regionMarks(region, s, { owned: true, capital: region.id === from, narrow }),
-          );
-          const arrow = attackArrow(art, from, to, marks, arrowScale(narrow));
-          expect(arrow).not.toBeNull();
-          pairs++;
-          const r = 0.18 * s * arrowScale(narrow);
-          const hit = marks.some((m) => {
-            const dx = Math.max(m.x0 - arrow!.mid.x, 0, arrow!.mid.x - m.x1);
-            const dy = Math.max(m.y0 - arrow!.mid.y, 0, arrow!.mid.y - m.y1);
-            return dx * dx + dy * dy < r * r;
-          });
-          if (hit) covered.push(`${from}→${to}`);
+      for (const castle of [false, true]) {
+        let pairs = 0;
+        for (const [from, list] of WENDELMARK.adjacency.entries()) {
+          for (const to of list) {
+            const layout = duelLayout(art, from, to, { scale: duelScale(narrow), castle });
+            expect(layout).not.toBeNull();
+            pairs++;
+            const points = corners(layout!.arrow);
+            const where = `${from}→${to}${narrow ? ' schmal' : ''}${castle ? ' Burg' : ''}`;
+            const tip = points[3]!;
+            const a = art.regions[from]!;
+            const b = art.regions[to]!;
+            expect(inside(points[0]!, a.outline), where).toBe(true);
+            // Die Spitze liegt jenseits der Mitte; ohne Burg sicher in der umkämpften Region
+            expect(Math.hypot(tip.x - b.cx, tip.y - b.cy), where).toBeLessThan(
+              Math.hypot(tip.x - a.cx, tip.y - a.cy),
+            );
+            if (!castle) expect(inside(tip, b.outline), where).toBe(true);
+          }
         }
+        expect(pairs).toBeGreaterThan(100);
       }
-      expect(pairs).toBeGreaterThan(100);
-      // Breit passt es überall; schmal sind die Namen größer, dort darf es in seltenen Fällen eng
-      // werden (die Namen liegen ohnehin über Pfeil und Siegel)
-      expect(covered.length, covered.join(' ')).toBeLessThanOrEqual(narrow ? 2 : 0);
     }
+  });
+
+  it('oben auf der Karte weicht das Band nach unten', () => {
+    // Die Wendelmark hat fünf Reihen: Die beiden oberen zählen zur oberen Hälfte
+    expect(inUpperHalf(art, [at('Graufurt'), at('Eisenhang')])).toBe(true);
+    expect(inUpperHalf(art, [at('Kranichsee'), at('Eisenhang')])).toBe(true);
+    expect(inUpperHalf(art, [at('Kranichsee'), at('Immenau')])).toBe(false);
+    expect(inUpperHalf(art, [at('Uferland'), at('Otterbruch')])).toBe(false);
+    // Ohne Aufstellung zählt nur die umkämpfte Region
+    expect(inUpperHalf(art, [null, at('Eschenhain')])).toBe(true);
+    expect(inUpperHalf(art, [null, at('Zinnberg')])).toBe(false);
+    expect(inUpperHalf(art, [null, 99])).toBe(false);
+  });
+
+  it('vor einer Burg endet der Pfeil kurz hinter der Grenze', () => {
+    const from = at('Ackerbrunn');
+    const to = at('Birkental');
+    const b = art.regions[to]!;
+    const reach = (castle: boolean) => {
+      const tip = corners(duelLayout(art, from, to, { castle })!.arrow)[3]!;
+      return Math.hypot(tip.x - b.cx, tip.y - b.cy);
+    };
+    // Burg, Münze und Leben liegen innerhalb von 0,62 Sechseckgrößen um die Mitte
+    expect(reach(true)).toBeGreaterThan(0.65 * s);
+    expect(reach(true)).toBeGreaterThan(reach(false));
   });
 });

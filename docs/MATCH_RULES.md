@@ -18,7 +18,7 @@ Code: Regeln als reine Funktionen in `packages/game-core/src/match.ts` (Zustands
 
 ## 2. Karte
 
-Die Karte richtet sich nach der Spielerzahl beim Start (`MATCH_MAP_BY_SEATS`) **[V, PO 2026-11-11; Größen E, ADR-052]**. Auf jedes Reich kommen acht Regionen, zu zweit wie zu dritt:
+Die Karte richtet sich nach der Spielerzahl beim Start (`MATCH_MAP_BY_SEATS`) **[V, PO 2026-11-11; Größen E, ADR-052]**. Auf jedes Reich kommen im Schnitt acht Regionen, zu zweit wie zu dritt; wie viele ein Reich wirklich bekommt, entscheidet die Landnahme (§3):
 
 | Spieler | Karte | Regionen | Reihen | Landnahme bei 2 + 1 Wahlen |
 |---|---|---|---|---|
@@ -33,7 +33,7 @@ Beide Karten sind eigene Karten und symmetrisch zur Mitte. Die Kernmark ist die 
 2. **Hauptstadtwahl:** Die Sitze wählen nacheinander eine freie Region mit mindestens `capital.minDistance` = 2 Feldern Abstand zu jeder gewählten Hauptstadt (ein Feld dazwischen). Die Hauptstadt ist 300 wert **[E]**.
 3. **Landnahme:** Jede Runde stellt allen dieselbe Schätzfrage. Rangfolge nach Abstand, bei gleichem Abstand nach effektiver Antwortzeit, bei völligem Gleichstand nach der Reihenfolge der Runde **[E]**. Nicht beantwortet zählt als unendlicher Abstand und unendliche Zeit. Zu dritt wählt der Erste zwei freie Regionen, der Zweite eine, der Dritte keine (`landGrab.picksByPlace` = 2, 1, 0); zu zweit der Erste zwei, der Zweite eine (2, 1) **[E]**; gewählt wird nacheinander, erst beide Regionen des Ersten. Wählbar ist eine freie Region am eigenen Gebiet, gibt es keine, jede freie. Die Runden laufen, bis alle Regionen vergeben sind (zu dritt auf der Wendelmark sieben, zu zweit auf der Kernmark fünf).
 4. **Feldzug:** `campaign.rounds` = 4 Runden; in jeder greift jedes lebende Reich einmal an, in der Reihenfolge der Runde **[E]**. Der Angreifer wählt eine gegnerische Region an seinem Gebiet (gibt es keine, jede gegnerische); dann folgt das Duell (§4).
-5. **Abrechnung:** Schluss nach der vierten Feldzugrunde oder sobald nur ein Reich übrig ist; Wertung nach §6.
+5. **Abrechnung:** Schluss nach der vierten Feldzugrunde oder sobald nur ein Reich übrig ist; Wertung nach §6. Auch die Auflösung des letzten Duells steht wie jede andere; die Abrechnung kommt erst danach ([§5](#letzte-auflösung)).
 
 ### Zugfolge
 
@@ -46,7 +46,7 @@ Mit dem Spielstand schickt der Server die Zugfolge des laufenden Abschnitts (`bo
 | Wahl der Landnahme | ein Eintrag je Wahl in der Rangfolge der Schätzfrage; wer zweimal wählt, steht zweimal da |
 | Feldzug | die Angreifer der Runde in ihrer Reihenfolge, auch während des Duells; ausgeschiedene Reiche entfallen |
 
-Nach der Abrechnung ist die Liste leer.
+Steht nach dem letzten Duell noch die Auflösung (§5), bleibt die Zeile der letzten Runde stehen, alle Einträge `DONE`, damit die Karte im entscheidenden Moment nicht springt. Nach der Abrechnung ist die Liste leer.
 
 ## 4. Duell
 
@@ -73,7 +73,7 @@ Nicht beantwortet zählt als falsch bzw. als unendlicher Abstand. Die Schätzfra
 | Wahl (Hauptstadt, Region, Angriffsziel) | 10 s | der Server wählt zufällig eine wählbare Region (`autoPickRegion`), bewusst ohne Strategie, damit Abwarten keinen Vorteil bringt |
 | Wissensfrage | 15 s | nicht beantwortet = falsch |
 | Schätzfrage | 20 s | nicht beantwortet = unendlicher Abstand |
-| Auflösung nach jeder Frage | 6 s | – |
+| Auflösung nach jeder Frage, auch nach der letzten | 6 s | – |
 | Gezeigte Wahl (Ansage) | 1,2 s | – |
 | Ansage eines Duells | 2,5 s | – |
 
@@ -87,6 +87,12 @@ Damit jeder mitbekommt, was geschieht, hält die Partie nach jeder Wahl und vor 
 - **Ansage eines Duells:** Hat der Angreifer sein Ziel gewählt, steht `timers.announceMs` lang fest, wer wen in welcher Region angreift. Erst danach wird die Wissensfrage geöffnet; ihre Zeit läuft nicht während der Ansage. Das Stechen folgt ohne weitere Ansage auf die Auflösung der Wissensfrage.
 
 Die Ansage ist eine Phase des Servers (`ANNOUNCE`), kein Schritt der Regeln: Die Zustandsmaschine in game-core, die Simulationen und die Wiederholbarkeit aus den Eingaben bleiben unberührt. Alle Mitspieler sehen denselben Stand zur selben Zeit, auch nach einem Neuladen. Partien, die vor ADR-053 gestartet wurden, kennen die beiden Zeiten nicht und laufen ohne Ansage zu Ende.
+
+### Letzte Auflösung
+
+Das Duell, das die Partie entscheidet, ist ihr Höhepunkt. Seine Auflösung steht deshalb `timers.revealMs` lang wie jede andere, mit dem Ausgang auf der Karte und den Antworten; erst danach erscheint die Abrechnung **[V, PO 2026-11-11; Dauer E, ADR-055, [O-24]]**. Bis ADR-055 endete die Partie im selben Augenblick, in dem die letzte Frage aufgelöst war: Niemand sah, wie das letzte Duell ausging und wer was geantwortet hatte.
+
+In dieser Zeit ist die Partie entschieden, aber noch nicht abgerechnet: Die Zustandsmaschine steht schon im Schritt `FINISHED` (er merkt sich die Feldzugrunde, in der Schluss war), `MATCH_FINISHED` mit dem Endstand ist das jüngste Ereignis, der Status der Partie bleibt `RUNNING`. Zu wählen oder zu beantworten gibt es nichts mehr. Mit dem Ende der Auflösung wechselt der Status auf `FINISHED`, und die Partie zählt in der Statistik (§7). Eine Partie dauert dadurch 6 s länger.
 
 ## 6. Wertung
 
@@ -137,7 +143,7 @@ Die Dauern der Tabelle stammen aus der Zeit vor ADR-053. Seit die Auflösung 6 s
 
 Der Sitzvorteil kommt aus der ersten Hauptstadtwahl: Wer zuerst wählt, nimmt die Mitte der Karte. Gegenproben vom 2026-11-10, zu zweit damals noch auf der Wendelmark (dort Sitz 0: 57,3 %): Wählt Sitz 1 bzw. 2 zuerst, gewinnt er zu dritt 39 % und zu zweit 56 %; eine andere Angriffsreihenfolge ändert zu zweit fast nichts (56 %). Nach der Landnahme liegen zu zweit beide gleich oft vorn, der Vorsprung entsteht im Feldzug. Mit festen, spiegelbildlichen Hauptstädten (zum Beispiel links und rechts in der Mitte) gewinnt zu zweit jeder Sitz rund 50 %. Weil die Sitze gelost werden, ist das über viele Partien fair, in einer einzelnen aber spürbar, zu zweit deutlich; die Bots wählen nach festen Regeln, Menschen womöglich anders. Nach den ersten Spieltests entscheiden (§10).
 
-Kartengröße zu zweit (je 4 000 Partien gleich starker Bots, 2026-11-11): Der Vorteil des zuerst Wählenden hängt kaum an der Größe. Gemessen wurden Ausschnitte der Wendelmark mit 24, 20, 19, 17, 16, 14 und 13 Regionen: 57 zu 41, 63 zu 36, 64 zu 36, 66 zu 34, 60 zu 39, 62 zu 35 und 66 zu 34, bei 8, 6, 6, 5, 5, 4 und 4 Landnahmerunden. Mit zufällig gesetzten Hauptstädten gewinnt auf jeder Größe jeder Sitz etwa gleich oft (rund 50 zu 48). Die Kernmark mit 16 Regionen ist unter den kleineren Karten die ausgeglichenste, verkürzt die Landnahme von acht auf fünf Runden und lässt wie zu dritt acht Regionen je Reich.
+Kartengröße zu zweit (je 4 000 Partien gleich starker Bots, 2026-11-11): Der Vorteil des zuerst Wählenden hängt kaum an der Größe. Gemessen wurden Ausschnitte der Wendelmark mit 24, 20, 19, 17, 16, 14 und 13 Regionen: 57 zu 41, 63 zu 36, 64 zu 36, 66 zu 34, 60 zu 39, 62 zu 35 und 66 zu 34, bei 8, 6, 6, 5, 5, 4 und 4 Landnahmerunden. Mit zufällig gesetzten Hauptstädten gewinnt auf jeder Größe jeder Sitz etwa gleich oft (rund 50 zu 48). Die Kernmark mit 16 Regionen ist unter den kleineren Karten die ausgeglichenste, verkürzt die Landnahme von acht auf fünf Runden und lässt wie zu dritt im Schnitt acht Regionen je Reich (wie viele ein Reich wirklich bekommt, entscheidet die Landnahme).
 
 ## 10. Offen
 

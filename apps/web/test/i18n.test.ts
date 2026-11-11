@@ -65,6 +65,10 @@ describe('deutsche Texte', () => {
       ...MATCH_DUEL_EFFECTS.filter((e) => e !== 'CAPITAL_HIT').map((e) => `match.duel.${e}`),
       'match.duel.CAPITAL_HIT.one',
       'match.duel.CAPITAL_HIT.other',
+      // Ausgang in der Leiste: je Sicht (Angreifer, Verteidiger, Zuschauer) ein Satz je Wirkung
+      ...(['attacker', 'defender', 'other'] as const).flatMap((role) =>
+        MATCH_DUEL_EFFECTS.map((effect) => `match.outcome.${role}.${effect}`),
+      ),
       ...MATCH_FINISH_REASONS.map((reason) => `match.result.reason.${reason}`),
       ...MATCH_ABANDON_REASONS.map((reason) => `match.abandoned.reason.${reason}`),
     ];

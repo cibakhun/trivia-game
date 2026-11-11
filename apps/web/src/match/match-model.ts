@@ -134,25 +134,92 @@ export function shownPick(events: readonly ParsedMatchEvent[]): ShownPick | null
   return last?.type === 'CAPITAL_CHOSEN' || last?.type === 'REGION_CLAIMED' ? last : null;
 }
 
-/** Duell, das die Karte hervorhebt: Angreifer und umkämpfte Region. */
+/** Duell, das die Karte hervorhebt: Angreifer, Verteidiger und umkämpfte Region. */
 export interface DuelFocus {
   readonly attacker: number;
+  readonly defender: number;
   readonly region: number;
 }
 
+/** Ausgang des Duells, das eine Auflösung entschieden hat. */
+export function duelResolved(reveal: Reveal | null): MatchEventOf<'DUEL_RESOLVED'> | null {
+  return (
+    reveal?.outcome.find((o): o is MatchEventOf<'DUEL_RESOLVED'> => o.type === 'DUEL_RESOLVED') ??
+    null
+  );
+}
+
 /**
- * Das laufende Duell aus dem Schritt; in der Auflösung das eben entschiedene, damit der Pfeil
- * stehen bleibt, bis es weitergeht.
+ * Das laufende Duell aus dem Schritt; in der Auflösung das eben entschiedene, damit die Karte es
+ * zeigt, bis es weitergeht.
  */
 export function duelFocus(view: MatchView, reveal: Reveal | null): DuelFocus | null {
   const step = view.board?.step;
-  if (step && step.attacker !== null && step.region !== null) {
-    return { attacker: step.attacker, region: step.region };
+  if (step && step.attacker !== null && step.defender !== null && step.region !== null) {
+    return { attacker: step.attacker, defender: step.defender, region: step.region };
   }
-  const resolved = reveal?.outcome.find(
-    (o): o is MatchEventOf<'DUEL_RESOLVED'> => o.type === 'DUEL_RESOLVED',
-  );
-  return resolved ? { attacker: resolved.payload.attacker, region: resolved.payload.region } : null;
+  const resolved = duelResolved(reveal)?.payload;
+  return resolved
+    ? { attacker: resolved.attacker, defender: resolved.defender, region: resolved.region }
+    : null;
+}
+
+/**
+ * Was die Karte von einem Duell zeigt (docs/ART_DIRECTION.md §4):
+ * `announce` der Aufmarsch vor der Frage, `duel` das stehende Bild, solange gefragt wird,
+ * `outcome` der Ausgang direkt nach der Entscheidung, `settled` der Rest der Auflösung.
+ */
+export type DuelScene = 'announce' | 'duel' | 'outcome' | 'settled';
+
+export type DuelEffect = MatchEventOf<'DUEL_RESOLVED'>['payload']['effect'];
+
+export interface DuelStage extends DuelFocus {
+  readonly scene: DuelScene;
+  /** Sieger und Wirkung, sobald das Duell entschieden ist. */
+  readonly winner: number | null;
+  readonly effect: DuelEffect | null;
+}
+
+/**
+ * Bühne des Duells auf der Karte. `outcomeBeat` sagt, ob der Ausgang gerade gezeigt wird (der
+ * erste Takt der Auflösung, siehe `outcomeBeatMs`).
+ */
+export function duelStage(
+  view: MatchView,
+  state: MatchScreenState,
+  reveal: Reveal | null,
+  outcomeBeat: boolean,
+): DuelStage | null {
+  const focus = duelFocus(view, reveal);
+  if (!focus) return null;
+  const resolved = state === 'reveal' ? duelResolved(reveal)?.payload : undefined;
+  if (resolved) {
+    return {
+      attacker: resolved.attacker,
+      defender: resolved.defender,
+      region: resolved.region,
+      scene: outcomeBeat ? 'outcome' : 'settled',
+      winner: resolved.winner === 'ATTACKER' ? resolved.attacker : resolved.defender,
+      effect: resolved.effect,
+    };
+  }
+  return {
+    ...focus,
+    scene: state === 'announce' ? 'announce' : 'duel',
+    winner: null,
+    effect: null,
+  };
+}
+
+/** Längster erster Takt der Auflösung: Die Karte zeigt den Ausgang, erst danach die Antworten. */
+export const OUTCOME_BEAT_MS = 1500;
+
+/**
+ * Dauer des ersten Takts aus der Zeit der Auflösung: ein Viertel, höchstens `OUTCOME_BEAT_MS`.
+ * Mit Spieltestzeiten (2 s Auflösung) bleibt eine halbe Sekunde.
+ */
+export function outcomeBeatMs(revealMs: number): number {
+  return Math.min(OUTCOME_BEAT_MS, Math.round(revealMs / 4));
 }
 
 /** Ereignisse, die auf die Auflösung einer Frage folgen, bis zur nächsten Frage. */

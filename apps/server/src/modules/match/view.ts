@@ -5,6 +5,7 @@ import {
   legalRegions,
   matchPoints,
   regionsOf,
+  roundOrder,
   turnOrder,
   type MatchState,
 } from '@rdw/game-core';
@@ -13,6 +14,7 @@ import type {
   MatchListResponse,
   MatchQuestionInfo,
   MatchStepView,
+  MatchTurn,
   MatchView,
 } from '@rdw/protocol';
 import { readGameNow } from '../../infra/clock.ts';
@@ -68,11 +70,26 @@ function stepView(state: MatchState): MatchStepView {
         region: step.region,
       };
     case 'FINISHED':
-      return { ...base, finishReason: step.reason };
+      return { ...base, round: step.round ?? null, finishReason: step.reason };
   }
 }
 
-export function boardView(state: MatchState): MatchBoard {
+/**
+ * Zugfolge für die Karte. Läuft die Partie nach dem letzten Duell noch (`closing`: Die letzte
+ * Auflösung steht, ADR-055), bleibt die Zeile der letzten Runde stehen, alle erledigt; sonst
+ * verschwände sie genau im entscheidenden Moment und die Karte spränge. Nach der Abrechnung ist
+ * sie leer.
+ */
+function turnsView(state: MatchState, closing: boolean): MatchTurn[] {
+  const { step } = state;
+  if (closing && step.kind === 'FINISHED' && step.round !== undefined) {
+    return roundOrder(state, step.round).map((seat) => ({ seat, status: 'DONE' }));
+  }
+  return turnOrder(state);
+}
+
+/** `closing`: Die Partie läuft noch (Status RUNNING), siehe `turnsView`. */
+export function boardView(state: MatchState, closing = false): MatchBoard {
   return {
     map: state.rules.map,
     regions: state.regions.map((r) => ({
@@ -90,7 +107,7 @@ export function boardView(state: MatchState): MatchBoard {
       regions: regionsOf(state, seat).length,
     })),
     step: stepView(state),
-    turns: turnOrder(state),
+    turns: turnsView(state, closing),
     questions: state.questions,
     duels: state.duels,
   };
@@ -229,7 +246,7 @@ export async function matchView(
     })),
     mySeat,
     isHost: match.hostUserId === params.userId,
-    board: state ? boardView(state) : null,
+    board: state ? boardView(state, match.status === 'RUNNING') : null,
     phase:
       match.phase !== null && match.phaseDeadlineAt !== null
         ? {

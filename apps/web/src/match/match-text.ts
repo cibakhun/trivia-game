@@ -57,7 +57,14 @@ export function stepLabel(view: MatchView): string | null {
         rounds: rulesOf(view.match.rulesPreset).campaign.rounds,
       });
     case 'FINISHED':
-      return t('match.step.FINISHED');
+      // Solange die letzte Auflösung steht (ADR-055), bleibt die Runde im Band: Die Abrechnung
+      // kommt erst danach
+      return view.match.status === 'RUNNING' && step.round !== null
+        ? t('match.step.CAMPAIGN', {
+            round: step.round,
+            rounds: rulesOf(view.match.rulesPreset).campaign.rounds,
+          })
+        : t('match.step.FINISHED');
   }
 }
 

@@ -11,9 +11,11 @@ import { t } from '../i18n/i18n.ts';
 import { LobbyPanel } from '../match/LobbyPanel.tsx';
 import { MatchBoard } from '../match/MatchBoard.tsx';
 import {
-  duelFocus,
+  duelResolved,
+  duelStage,
   lastOf,
   needsPresent,
+  outcomeBeatMs,
   revealFor,
   screenStateOf,
   shownPick,
@@ -29,6 +31,7 @@ import {
   seatNames,
   stepLabel,
 } from '../match/match-text.ts';
+import { OutcomePanel } from '../match/OutcomePanel.tsx';
 import { ResultPanel } from '../match/ResultPanel.tsx';
 import { RevealPanel } from '../match/RevealPanel.tsx';
 import { SeatList } from '../match/SeatList.tsx';
@@ -37,6 +40,7 @@ import type { Moment } from '../match/moments.ts';
 import { useMatchFeed } from '../match/useMatchFeed.ts';
 import { useMatchSounds } from '../match/useMatchSounds.ts';
 import { useMoments } from '../match/useMoments.ts';
+import { useOutcomeBeat } from '../match/useOutcomeBeat.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { QuestionPanel } from '../quiz/QuestionPanel.tsx';
 import { navigate } from '../router.ts';
@@ -124,8 +128,15 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     () => (state === 'reveal' && view?.question ? revealFor(events, view.question.seq) : null),
     [state, view?.question, events],
   );
-  // Der Angriffspfeil steht von der Ansage bis zum Ende der Auflösung
-  const focus = view ? duelFocus(view, reveal) : null;
+  // Ein entschiedenes Duell zeigt zuerst die Karte (erster Takt), danach das Blatt mit den Antworten
+  const resolved = duelResolved(reveal);
+  const outcomeBeat = useOutcomeBeat(
+    resolved && view?.question ? view.question.seq : null,
+    view ? outcomeBeatMs(view.match.timers.revealMs) : 0,
+    phaseDeadline,
+  );
+  // Das Duell steht von der Ansage bis zum Ende der Auflösung auf der Karte
+  const stage = view ? duelStage(view, state, reveal, outcomeBeat) : null;
   // Was ein Bot eben gewählt hat, trägt während der Ansage einen Ring
   const spot = state === 'announce' ? (shownPick(events)?.payload.region ?? null) : null;
 
@@ -257,6 +268,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
       className={`match-page${playing ? ' playing' : ''}`}
       data-testid="match-screen"
       data-state={state}
+      data-beat={state === 'reveal' ? (outcomeBeat ? 'outcome' : 'answers') : undefined}
       data-seq={seq ?? undefined}
     >
       <header className="match-head">
@@ -307,6 +319,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
               busy={busy}
               events={events}
               reveal={reveal}
+              outcome={outcomeBeat ? resolved : null}
               name={name}
               region={region}
               onEstimate={setEstimate}
@@ -325,8 +338,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
               board={view.board}
               name={name}
               legal={state === 'pick' ? view.legalRegions : []}
-              contested={focus?.region ?? null}
-              attacker={focus?.attacker ?? null}
+              duel={stage}
               spot={spot}
               busy={busy}
               onPick={pick}
@@ -348,6 +360,7 @@ function StatePanel({
   busy,
   events,
   reveal,
+  outcome,
   name,
   region,
   onEstimate,
@@ -362,6 +375,8 @@ function StatePanel({
   readonly busy: boolean;
   readonly events: Parameters<typeof revealFor>[0];
   readonly reveal: Reveal | null;
+  /** Eben entschiedenes Duell, solange erst die Karte den Ausgang zeigt. */
+  readonly outcome: ReturnType<typeof duelResolved>;
   readonly name: (seat: number) => string;
   readonly region: (region: number) => string;
   readonly onEstimate: (value: string) => void;
@@ -450,6 +465,9 @@ function StatePanel({
       );
     }
     case 'reveal':
+      if (outcome) {
+        return <OutcomePanel duel={outcome} mySeat={view.mySeat} name={name} region={region} />;
+      }
       return reveal ? (
         <RevealPanel
           reveal={reveal}

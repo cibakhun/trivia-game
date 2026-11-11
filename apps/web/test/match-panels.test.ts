@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { AnnouncePanel } from '../src/match/AnnouncePanel.tsx';
 import { revealFor } from '../src/match/match-model.ts';
 import { mapOfView, regionNames, seatNames } from '../src/match/match-text.ts';
+import { OutcomePanel } from '../src/match/OutcomePanel.tsx';
 import { RevealPanel } from '../src/match/RevealPanel.tsx';
 import { AT, event, viewOf } from './match-fixtures.ts';
 
@@ -321,5 +322,71 @@ describe('Ansage: wer wen wo angreift', () => {
     // Nach einem Neuladen ohne Wahl als letztes Ereignis: der mitgegebene Satz, sonst ein Platzhalter
     expect(textOf(announce(waiting, [], 'Die Landnahme läuft.'))).toBe('Die Landnahme läuft.');
     expect(textOf(announce(waiting))).toBe('Gleich geht es weiter.');
+  });
+});
+
+describe('Ausgang eines Duells in der Leiste (ADR-054)', () => {
+  function outcome(partial: Record<string, unknown>, mySeat: number | null = 1): string {
+    const resolved = duelResolved(40, partial);
+    if (resolved.type !== 'DUEL_RESOLVED') throw new Error('Ereignis ungültig');
+    return renderToStaticMarkup(
+      createElement(OutcomePanel, { duel: resolved, mySeat, name, region }),
+    );
+  }
+
+  it('aus der eigenen Sicht, in der Farbe des Siegers', () => {
+    const lost = outcome({});
+    expect(lost).toContain('outcome-lost seat-2');
+    expect(lost).toContain('data-effect="CONQUERED"');
+    expect(textOf(lost)).toBe(
+      'Du verlierst Goldwiese. Bot (schwer) erobert Goldwiese von Anna (du). Nur einer lag bei der Wissensfrage richtig.',
+    );
+
+    const held = outcome({ winner: 'DEFENDER', effect: 'FORTIFIED', regionValue: 150 });
+    expect(held).toContain('outcome-won seat-1');
+    expect(textOf(held)).toMatch(/^Du hältst Goldwiese! /);
+
+    const conquered = outcome({ attacker: 1, defender: 0 });
+    expect(conquered).toContain('outcome-won seat-1');
+    expect(textOf(conquered)).toMatch(/^Du eroberst Goldwiese! /);
+
+    const repelled = outcome({ attacker: 1, defender: 0, winner: 'DEFENDER', effect: 'FORTIFIED' });
+    expect(repelled).toContain('outcome-lost seat-0');
+    expect(textOf(repelled)).toMatch(/^Dein Angriff auf Goldwiese scheitert\. /);
+  });
+
+  it('Zuschauer lesen, wer die Region hat', () => {
+    const taken = outcome({ attacker: 0, defender: 2 });
+    expect(taken).toContain('outcome-other seat-0');
+    expect(textOf(taken)).toMatch(/^Bot \(leicht\) erobert Goldwiese\. /);
+    const kept = outcome({ attacker: 0, defender: 2, winner: 'DEFENDER', effect: 'FORTIFIED' });
+    expect(kept).toContain('outcome-other seat-2');
+    expect(textOf(kept)).toMatch(/^Bot \(schwer\) hält Goldwiese\. /);
+    // Ohne eigenen Sitz (Zuschauer) gilt dieselbe Sicht
+    expect(textOf(outcome({}, null))).toMatch(/^Bot \(schwer\) erobert Goldwiese\. /);
+  });
+
+  it('Hauptstadt: Treffer und Fall', () => {
+    const hit = outcome({ effect: 'CAPITAL_HIT', capitalLivesLeft: 2 });
+    expect(hit).toContain('outcome-lost seat-2');
+    expect(textOf(hit)).toMatch(/^Deine Hauptstadt Goldwiese wird getroffen! /);
+    expect(textOf(outcome({ effect: 'TAKEOVER', capitalLivesLeft: 0 }))).toMatch(
+      /^Deine Hauptstadt Goldwiese fällt\. /,
+    );
+    expect(
+      textOf(outcome({ attacker: 1, defender: 2, effect: 'CAPITAL_HIT', capitalLivesLeft: 1 })),
+    ).toMatch(/^Du triffst die Hauptstadt Goldwiese! /);
+    expect(
+      textOf(outcome({ attacker: 1, defender: 2, effect: 'TAKEOVER', capitalLivesLeft: 0 })),
+    ).toMatch(/^Du nimmst die Hauptstadt Goldwiese ein! /);
+  });
+
+  it('der Satz in der Leiste ist Schmuck, Screenreader bekommen den ganzen Satz', () => {
+    const html = outcome({});
+    expect(html).toMatch(/<p class="outcome-title" aria-hidden="true">/);
+    expect(html).toContain(
+      '<p class="visually-hidden">Bot (schwer) erobert Goldwiese von Anna (du).</p>',
+    );
+    expect(html).toContain('aria-live="polite"');
   });
 });

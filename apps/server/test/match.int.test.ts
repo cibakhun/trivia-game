@@ -146,7 +146,12 @@ interface Seat {
  * Spielt eine laufende Partie zu Ende: aktive Spieler wählen und antworten sofort; wartet die
  * Partie auf niemanden Aktiven, läuft die Spielzeit bis zur Frist und die Ablaufsteuerung weiter.
  */
-async function playToEnd(matchId: string, seats: readonly Seat[]): Promise<MatchView> {
+async function playToEnd(
+  matchId: string,
+  seats: readonly Seat[],
+  /** Hält früher an, sobald der erste Spieler diesen Stand sieht. */
+  until: (current: MatchView) => boolean = () => false,
+): Promise<MatchView> {
   const ctx = driverContext();
   const observer = seats[0]?.human;
   if (!observer) throw new Error('Keine Spieler');
@@ -155,7 +160,7 @@ async function playToEnd(matchId: string, seats: readonly Seat[]): Promise<Match
     for (const { human, mode } of seats) {
       if (mode === 'IDLE') continue;
       const current = await view(human, matchId);
-      if (current.match.status !== 'RUNNING') return current;
+      if (current.match.status !== 'RUNNING' || until(current)) return current;
       if (current.phase?.kind === 'PICK' && current.legalRegions.length > 0) {
         const response = await pick(human, matchId, current.legalRegions[0] ?? -1);
         expect(response.statusCode, response.body).toBe(200);
@@ -174,7 +179,7 @@ async function playToEnd(matchId: string, seats: readonly Seat[]): Promise<Match
     }
     if (!acted) {
       const current = await view(observer, matchId);
-      if (current.match.status !== 'RUNNING') return current;
+      if (current.match.status !== 'RUNNING' || until(current)) return current;
       await advanceGameClock(server.database.pool, (current.phase?.remainingMs ?? 0) + 1);
       await runMatchDriverOnce(server.db, ctx);
     }
@@ -517,6 +522,91 @@ describe('Partie zu zweit', () => {
     expect(winner).toBe(final.mySeat);
     expect(await statistics(active.userId)).toEqual({ matches_played: 1, matches_won: 1 });
     expect(await statistics(idle.userId)).toEqual({ matches_played: 1, matches_won: 0 });
+  });
+});
+
+describe('Letzte Auflösung vor der Abrechnung (ADR-055)', () => {
+  it('nach dem letzten Duell steht die Auflösung; erst danach endet die Partie und zählt', async () => {
+    const active = await newHuman();
+    const idle = await newHuman();
+    const matchId = await createMatch(active, { kind: 'STANDARD', rules: 'PLAYTEST' });
+    const code = (await view(active, matchId)).match.inviteCode ?? '';
+    expect((await joinMatch(idle, code)).statusCode).toBe(200);
+    expect((await startMatch(active, matchId)).statusCode).toBe(200);
+    const seats: Seat[] = [
+      { human: active, mode: 'ACTIVE' },
+      { human: idle, mode: 'IDLE' },
+    ];
+
+    const closing = await playToEnd(matchId, seats, (v) => v.board?.step.kind === 'FINISHED');
+    // Das letzte Duell ist entschieden, die Partie läuft noch: Alle sehen Ausgang und Antworten
+    expect(closing.match.status).toBe('RUNNING');
+    expect(closing.match.finishedAt).toBeNull();
+    expect(closing.phase?.kind).toBe('REVEAL');
+    expect(closing.phase?.remainingMs).toBeGreaterThan(0);
+    expect(closing.phase?.remainingMs).toBeLessThanOrEqual(closing.match.timers.revealMs);
+    expect(closing.question?.resolved).toBe(true);
+    expect(closing.legalRegions).toEqual([]);
+    const { step, turns, seats: kingdoms } = closing.board ?? { step: null, turns: [], seats: [] };
+    expect(step?.finishReason).toMatch(/^(ROUNDS_COMPLETE|LAST_KINGDOM)$/);
+    expect(step?.round).toBeGreaterThanOrEqual(1);
+    // Die Zugfolge der letzten Runde bleibt stehen, alle erledigt: Die Karte springt nicht
+    const alive = kingdoms.filter((k) => !k.eliminated).map((k) => k.seat);
+    expect(turns.map((t) => t.seat).sort()).toEqual(alive);
+    expect(turns.every((t) => t.status === 'DONE')).toBe(true);
+    // Der Endstand steht schon im Verlauf, direkt nach dem Ausgang des Duells
+    const types = await eventTypes(matchId);
+    expect(types.at(-1)).toBe('MATCH_FINISHED');
+    expect(types.lastIndexOf('DUEL_RESOLVED')).toBeGreaterThan(
+      types.lastIndexOf('QUESTION_RESOLVED'),
+    );
+    // Abgerechnet ist noch nichts, und zu wählen gibt es nichts mehr
+    expect(await statistics(active.userId)).toEqual({ matches_played: 0, matches_won: 0 });
+    expect(errorOf(await pick(active, matchId, 0))).toMatchObject({
+      status: 409,
+      code: 'STEP_NOT_AVAILABLE',
+    });
+    // Vor Ablauf der Auflösung ändert die Ablaufsteuerung nichts
+    const ctx = driverContext();
+    await runMatchDriverOnce(server.db, ctx);
+    const waiting = await view(active, matchId);
+    expect(waiting.match.status).toBe('RUNNING');
+    expect(waiting.lastEventSeq).toBe(closing.lastEventSeq);
+
+    await advanceGameClock(server.database.pool, (waiting.phase?.remainingMs ?? 0) + 1);
+    await runMatchDriverOnce(server.db, ctx);
+    const final = await view(active, matchId);
+    expect(final.match.status).toBe('FINISHED');
+    expect(final.match.finishedAt).not.toBeNull();
+    expect(final.phase).toBeNull();
+    expect(final.board?.step).toMatchObject({ kind: 'FINISHED', round: step?.round });
+    expect(final.board?.turns).toEqual([]);
+    // Die Abrechnung bringt kein neues Ereignis; jetzt zählt die Partie
+    expect(final.lastEventSeq).toBe(closing.lastEventSeq);
+    expect(await statistics(active.userId)).toEqual({ matches_played: 1, matches_won: 1 });
+    expect(await statistics(idle.userId)).toEqual({ matches_played: 1, matches_won: 0 });
+  });
+
+  it('auch ohne Ablaufsteuerung: Wer nach der Frist liest, bekommt die Abrechnung', async () => {
+    const human = await newHuman();
+    const matchId = await createMatch(human, {
+      kind: 'TEST',
+      rules: 'PLAYTEST',
+      seats: 3,
+      botStrengths: ['MEDIUM', 'MEDIUM'],
+    });
+    expect((await startMatch(human, matchId)).statusCode).toBe(200);
+    const closing = await playToEnd(
+      matchId,
+      [{ human, mode: 'ACTIVE' }],
+      (v) => v.board?.step.kind === 'FINISHED',
+    );
+    expect(closing.match.status).toBe('RUNNING');
+    expect(closing.phase?.kind).toBe('REVEAL');
+    await advanceGameClock(server.database.pool, (closing.phase?.remainingMs ?? 0) + 1);
+    const final = await view(human, matchId);
+    expect(final.match.status).toBe('FINISHED');
+    expect(final.phase).toBeNull();
   });
 });
 

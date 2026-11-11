@@ -62,6 +62,7 @@
   --map-label-halo: rgb(246 236 210 / 0.92);
   --map-pattern: rgb(45 28 12 / 0.4);
   --map-focus: #1f5fbf;
+  --map-veil: #2a1c0e;
 
   font-family: var(--font-body);
   font-size: 17px;
@@ -122,6 +123,7 @@
     --map-label-halo: rgb(50 43 32 / 0.92);
     --map-pattern: rgb(255 240 210 / 0.26);
     --map-focus: #8ab8ff;
+    --map-veil: #05080a;
     color-scheme: dark;
   }
 }

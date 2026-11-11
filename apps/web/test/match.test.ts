@@ -2,9 +2,13 @@ import { KERNMARK, WENDELMARK } from '@rdw/game-core';
 import type { MatchPresentedQuestion, MatchView } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
+  OUTCOME_BEAT_MS,
   duelFocus,
+  duelResolved,
+  duelStage,
   lastOf,
   needsPresent,
+  outcomeBeatMs,
   pollDelay,
   revealFor,
   screenStateOf,
@@ -21,7 +25,7 @@ import {
   seatNames,
   stepLabel,
 } from '../src/match/match-text.ts';
-import { AT, ID, event, viewOf } from './match-fixtures.ts';
+import { AT, ID, event, viewOf, type Step } from './match-fixtures.ts';
 
 /** Partie im Browser (M4): Kartengeometrie, Zustand des Bildschirms, Auflösung und Texte. */
 
@@ -128,7 +132,7 @@ describe('Zustand des Bildschirms', () => {
       { legalRegions: [] },
       { kind: 'DUEL_TRIVIA', round: 1, chooser: null, attacker: 2, defender: 1, region: 9 },
     );
-    expect(duelFocus(duel, null)).toEqual({ attacker: 2, region: 9 });
+    expect(duelFocus(duel, null)).toEqual({ attacker: 2, defender: 1, region: 9 });
     expect(duelFocus(viewOf(), null)).toBeNull();
     // Nach dem Duell steht der Schritt schon beim nächsten Angreifer ohne Ziel: Bis es weitergeht,
     // bleibt das eben entschiedene Duell auf der Karte
@@ -167,9 +171,83 @@ describe('Zustand des Bildschirms', () => {
       { legalRegions: [] },
       { kind: 'CAMPAIGN_TARGET', round: 1, chooser: 0, attacker: 0 },
     );
-    expect(duelFocus(next, revealFor(events, 5))).toEqual({ attacker: 2, region: 9 });
+    expect(duelFocus(next, revealFor(events, 5))).toEqual({ attacker: 2, defender: 1, region: 9 });
     // Ohne Ausgang (beide richtig, das Stechen folgt) zeigt der Schritt weiter auf das Duell
     expect(duelFocus(viewOf(), revealFor(events.slice(0, 2), 5))).toBeNull();
+    expect(duelResolved(revealFor(events, 5))?.payload.effect).toBe('CONQUERED');
+    expect(duelResolved(revealFor(events.slice(0, 2), 5))).toBeNull();
+    expect(duelResolved(null)).toBeNull();
+
+    // Bühne auf der Karte: Aufmarsch in der Ansage, stehendes Bild, solange gefragt wird
+    const fight = { attacker: 2, defender: 1, region: 9, winner: null, effect: null };
+    expect(duelStage(duel, 'announce', null, false)).toEqual({ ...fight, scene: 'announce' });
+    for (const state of ['presenting', 'question', 'answered', 'missed', 'spectating'] as const) {
+      expect(duelStage(duel, state, null, false)).toEqual({ ...fight, scene: 'duel' });
+    }
+    // Beide richtig: Die Auflösung entscheidet nichts, das Duell steht weiter
+    expect(duelStage(duel, 'reveal', revealFor(events.slice(0, 2), 5), false)).toEqual({
+      ...fight,
+      scene: 'duel',
+    });
+    // Entschieden: erst der Ausgang auf der Karte, danach nur noch der Rand des Siegers
+    const won = { attacker: 2, defender: 1, region: 9, winner: 2, effect: 'CONQUERED' };
+    expect(duelStage(next, 'reveal', revealFor(events, 5), true)).toEqual({
+      ...won,
+      scene: 'outcome',
+    });
+    expect(duelStage(next, 'reveal', revealFor(events, 5), false)).toEqual({
+      ...won,
+      scene: 'settled',
+    });
+    const held = [
+      ...events.slice(0, 2),
+      event(22, 'DUEL_RESOLVED', {
+        round: 1,
+        duel: 1,
+        attacker: 2,
+        defender: 1,
+        region: 9,
+        winner: 'DEFENDER',
+        reason: 'BOTH_WRONG',
+        effect: 'FORTIFIED',
+        capitalLivesLeft: null,
+        regionValue: 150,
+      }),
+    ];
+    expect(duelStage(next, 'reveal', revealFor(held, 5), true)).toMatchObject({
+      winner: 1,
+      effect: 'FORTIFIED',
+      scene: 'outcome',
+    });
+    expect(duelStage(viewOf(), 'pick', null, false)).toBeNull();
+
+    // Letztes Duell der Partie (ADR-055): Der Schritt ist schon „beendet“, die Auflösung steht
+    // noch. Die Karte zeigt den Ausgang wie bei jedem anderen Duell.
+    const closing = viewOf(
+      {
+        phase: { kind: 'REVEAL', deadline: AT, remainingMs: 2000 },
+        legalRegions: [],
+        question: { ...questionInfo('ANSWERED', 5), resolved: true } as MatchView['question'],
+      },
+      { kind: 'FINISHED', round: 4, chooser: null, finishReason: 'ROUNDS_COMPLETE' },
+    );
+    expect(screenStateOf(closing, null)).toBe('reveal');
+    expect(pollDelay(closing)).toBe(750);
+    expect(duelStage(closing, 'reveal', revealFor(events, 5), true)).toEqual({
+      ...won,
+      scene: 'outcome',
+    });
+    expect(duelStage(closing, 'reveal', revealFor(events, 5), false)).toEqual({
+      ...won,
+      scene: 'settled',
+    });
+  });
+
+  it('erster Takt der Auflösung: ein Viertel der Zeit, höchstens anderthalb Sekunden', () => {
+    expect(outcomeBeatMs(6000)).toBe(OUTCOME_BEAT_MS);
+    expect(outcomeBeatMs(8000)).toBe(1500);
+    expect(outcomeBeatMs(2000)).toBe(500);
+    expect(outcomeBeatMs(0)).toBe(0);
   });
 
   it('Auflösung, Ende, Aufstellung und Abbruch', () => {
@@ -309,6 +387,16 @@ describe('Texte der Partie', () => {
     expect(
       stepLabel(viewOf({}, { kind: 'CAMPAIGN_TARGET', round: 2, chooser: 1, attacker: 1 })),
     ).toBe('Feldzug · Runde 2 von 4');
+    // Solange die letzte Auflösung steht, bleibt die Runde im Band; danach die Abrechnung
+    const ended = { kind: 'FINISHED', round: 4, chooser: null, finishReason: 'ROUNDS_COMPLETE' };
+    expect(stepLabel(viewOf({}, ended as Partial<Step>))).toBe('Feldzug · Runde 4 von 4');
+    const finished = viewOf(
+      { match: { ...view.match, status: 'FINISHED' } },
+      ended as Partial<Step>,
+    );
+    expect(stepLabel(finished)).toBe('Abrechnung');
+    // Partien von vor ADR-055 kennen die letzte Runde nicht
+    expect(stepLabel(viewOf({}, { ...ended, round: null } as Partial<Step>))).toBe('Abrechnung');
   });
 
   it('fordert zur Wahl auf oder nennt, wer wählt', () => {

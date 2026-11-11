@@ -1202,6 +1202,63 @@ select:focus-visible {
   color: var(--danger);
 }
 
+/*
+ * Ausgang eines Duells (match/OutcomePanel.tsx): dieselbe Leiste wie die Ansage, solange die
+ * Karte zeigt, was geschieht. Wappen des Siegers und ein Satz, darunter klein der Grund.
+ */
+.outcome-card {
+  --tone: var(--accent);
+  border-color: var(--tone);
+  animation: outcome-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.outcome-card.seat-0 {
+  --tone: var(--seat-0);
+}
+
+.outcome-card.seat-1 {
+  --tone: var(--seat-1);
+}
+
+.outcome-card.seat-2 {
+  --tone: var(--seat-2);
+}
+
+.outcome-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.outcome-title svg {
+  flex: none;
+}
+
+.outcome-won .outcome-title {
+  color: var(--success);
+}
+
+.outcome-lost .outcome-title {
+  color: var(--danger);
+}
+
+.outcome-reason {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+@keyframes outcome-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
 .resolution h1.won {
   color: var(--success);
 }
@@ -1646,14 +1703,15 @@ select:focus-visible {
   /* Beim Wählen bleibt es eine Leiste: Die Karte darüber ist frei */
   .match-page.playing[data-state='pick'] .match-panel,
   .match-page.playing[data-state='waiting-pick'] .match-panel,
-  .match-page.playing[data-state='announce'] .match-panel {
+  .match-page.playing[data-state='announce'] .match-panel,
+  .match-page.playing[data-beat='outcome'] .match-panel {
     max-height: var(--sheet-min);
     background: transparent;
     box-shadow: none;
   }
 
-  /* Die Ansage füllt die Leiste ganz: Sie steht ruhig, egal wie lang ihr Satz ist */
-  .match-page.playing[data-state='announce'] .match-panel > .announce-card {
+  /* Ansage und Ausgang füllen die Leiste ganz: Sie steht ruhig, egal wie lang ihr Satz ist */
+  .match-page.playing .match-panel > .announce-card {
     flex: 1 1 auto;
     margin-top: 0;
   }
@@ -1667,8 +1725,9 @@ select:focus-visible {
     margin-top: 0;
   }
 
-  /* Auflösung: knapp gehalten, damit oben die Karte mit der Eroberung sichtbar bleibt */
-  .match-page.playing[data-state='reveal'] .match-panel {
+  /* Auflösung: knapp gehalten, damit oben die Karte mit der Eroberung sichtbar bleibt. Im ersten
+     Takt (Ausgang) gilt weiter die Höhe der Leiste. */
+  .match-page.playing[data-state='reveal']:not([data-beat='outcome']) .match-panel {
     max-height: 78%;
   }
 
@@ -1711,7 +1770,8 @@ select:focus-visible {
     font-size: 1.15rem;
   }
 
-  .match-page.playing .announce-title {
+  .match-page.playing .announce-title,
+  .match-page.playing .outcome-title {
     font-size: 1.3rem;
   }
 
@@ -1864,7 +1924,8 @@ select:focus-visible {
     padding-block: 0.45rem;
   }
 
-  .match-page.playing .announce-title {
+  .match-page.playing .announce-title,
+  .match-page.playing .outcome-title {
     font-size: 1.1rem;
   }
 
@@ -1884,7 +1945,7 @@ select:focus-visible {
     display: none;
   }
 
-  .match-page.playing[data-state='reveal'] .match-panel {
+  .match-page.playing[data-state='reveal']:not([data-beat='outcome']) .match-panel {
     max-height: 100%;
   }
 }
@@ -1924,14 +1985,16 @@ select:focus-visible {
   transform-origin: top center;
 }
 
-/* Während einer Frage ruhen die Dauerbewegungen der Karte */
 /*
  * Während einer Frage bewegt sich auf der Karte nichts (ARCHITECTURE §15): Änderungen springen
- * auf ihr Endbild, Dauerbewegungen stehen still.
+ * auf ihr Endbild, Dauerbewegungen stehen still. Die Animationen werden dafür nicht abgeschaltet,
+ * sondern auf einen Durchlauf ohne Dauer gestellt: `animation: none` ließe sie nach der Frage alle
+ * neu anlaufen, und die ganze Karte färbte sich unter dem Ausgang des Duells noch einmal ein.
  */
-.match-page[data-state='question'] .map-art *,
-.match-page[data-state='question'] .map-art .attack-arrow.draw * {
-  animation: none;
+.match-page[data-state='question'] .map-art * {
+  animation-duration: 1ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
 }
 
 .match-panel .question {
@@ -1974,9 +2037,17 @@ select:focus-visible {
 /* Beim Wählen und in einer Ansage verdeckt kein Band die Mitte der Karte: es steht oben am Rand */
 .match-page[data-state='pick'] .turn-banner,
 .match-page[data-state='waiting-pick'] .turn-banner,
-.match-page[data-state='announce'] .turn-banner {
+.match-page[data-state='announce'] .turn-banner,
+.match-page[data-beat='outcome'] .turn-banner {
   top: 0.75rem;
   --banner-y: 0%;
+}
+
+/* Steht ein Duell in der oberen Hälfte der Karte, weicht das Band an den unteren Rand */
+.match-page[data-state='announce'] .match-body:has(.map-art[data-duel-high]) .turn-banner,
+.match-page[data-beat='outcome'] .match-body:has(.map-art[data-duel-high]) .turn-banner {
+  top: auto;
+  bottom: 0.75rem;
 }
 
 .moment-ribbon {

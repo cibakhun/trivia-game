@@ -156,7 +156,7 @@ export const LAND_GRAB_PICKS_BY_SEATS: Readonly<Record<MatchSeatCount, readonly 
   Object.freeze({ 2: [2, 1], 3: [2, 1, 0] });
 
 /**
- * Karte je Spielerzahl [E] (ADR-052): acht Regionen je Reich. Zu dritt die ganze Wendelmark
+ * Karte je Spielerzahl [E] (ADR-052): im Schnitt acht Regionen je Reich. Zu dritt die ganze Wendelmark
  * (24 Regionen), zu zweit ihr Kernland (16 Regionen).
  */
 export const MATCH_MAP_BY_SEATS: Readonly<Record<MatchSeatCount, MatchMapId>> = Object.freeze({
