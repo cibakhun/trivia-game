@@ -47,6 +47,14 @@ export interface LocalQuestion {
   /** Erneut abgeholt (Reload): Dann zählt nur die Zeit des Servers. */
   readonly reloaded: boolean;
   readonly status: 'OPEN' | 'ANSWERED' | 'MISSED';
+  /** Eigene Antwort, sobald sie abgeschickt ist: Die Fragekarte zeigt sie bis zur Auflösung. */
+  readonly sent?: LocalAnswer | undefined;
+}
+
+/** Was dieser Browser geantwortet hat: die gewählte Option oder die geschriebene Zahl. */
+export interface LocalAnswer {
+  readonly optionToken?: string;
+  readonly rawInput?: string;
 }
 
 export type MatchScreenState =

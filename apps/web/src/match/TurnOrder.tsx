@@ -3,17 +3,18 @@ import { SeatCrest } from '../art/SeatCrest.tsx';
 import { t } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
 
-/** In der schmalen Zeile steht für den eigenen Sitz kurz „Du“, sonst der Name. */
+/** Für Screenreader steht am eigenen Sitz kurz „Du“, sonst der Name. */
 function shortName(view: MatchView, seat: number, name: SeatName): string {
   return seat === view.mySeat ? t('match.turns.you') : name(seat);
 }
 
 /**
- * Zugfolge des laufenden Abschnitts (MATCH_RULES §3, Zugfolge): eine Zeile mit den Wappen in der
- * Reihenfolge, in der gewählt oder angegriffen wird. Wer dran ist, leuchtet; wer schon dran war,
- * trägt einen Haken. Bei der Schätzfrage der Landnahme sind alle zugleich dran. Die Zeile ist
- * immer gleich hoch und bewegt sich nicht (keine Animation, auch nicht während einer Frage), damit
- * die Karte darunter an ihrem Platz bleibt.
+ * Zugfolge des laufenden Abschnitts (MATCH_RULES §3, Zugfolge): eine schmale Zeile unter dem
+ * Spielstand mit den Wappen in der Reihenfolge, in der gewählt oder angegriffen wird. Wer dran
+ * ist, trägt einen goldenen Rand; wer schon dran war, einen Haken. Bei der Schätzfrage der
+ * Landnahme sind alle zugleich dran. Die Zeile ist immer gleich hoch und bewegt sich nicht (keine
+ * Animation, auch nicht während einer Frage). Namen stehen nur für Screenreader da: Die Wappen
+ * stehen direkt darüber im Spielstand.
  */
 export function TurnOrder({ view, name }: { readonly view: MatchView; readonly name: SeatName }) {
   const board = view.board;
@@ -48,9 +49,10 @@ export function TurnOrder({ view, name }: { readonly view: MatchView; readonly n
                 {turn.status === 'DONE' ? '✓' : i + 1}
               </span>
             )}
-            <SeatCrest seat={turn.seat} size={20} />
-            <span className="turn-name">{shortName(view, turn.seat, name)}</span>
-            <span className="visually-hidden">{t(`match.turns.status.${turn.status}`)}</span>
+            <SeatCrest seat={turn.seat} size={18} />
+            <span className="visually-hidden">
+              {shortName(view, turn.seat, name)}, {t(`match.turns.status.${turn.status}`)}
+            </span>
           </li>
         ))}
       </ol>

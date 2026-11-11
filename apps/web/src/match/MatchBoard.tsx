@@ -19,6 +19,7 @@ import {
   type DuelLayout,
 } from '../art/attack.ts';
 import { mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
+import { COMPACT_SCALE, type StageFrame } from '../art/stage-frame.ts';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
 import type { DuelStage } from './match-model.ts';
@@ -35,23 +36,11 @@ import type { SeatName } from './match-text.ts';
  * auf die Burg sind kurz animiert (nicht bei „Bewegung reduzieren“).
  */
 
-/** Schmaler Bildschirm (Handy hochkant): Karte ohne Meeresrand, größere Schrift. */
-const NARROW = '(max-width: 560px)';
-
-function useNarrow(): boolean {
-  const [narrow, setNarrow] = useState(
-    () => typeof window.matchMedia === 'function' && window.matchMedia(NARROW).matches,
-  );
-  useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    const query = window.matchMedia(NARROW);
-    const update = () => setNarrow(query.matches);
-    update();
-    query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
-  }, []);
-  return narrow;
-}
+/** So weit reicht das Meer über das Kartenblatt hinaus (Karteneinheiten): genug für jeden Bildschirm. */
+const SEA = 3000;
+/** Kachel der Wellen jenseits des Kartenblatts, in Wellenabständen. */
+const FAR_COLUMNS = 12;
+const FAR_ROWS = 9;
 
 /** `true` ab dem zweiten Rendern: Beim ersten Aufbau läuft keine Änderungsanimation. */
 function useSettled(): boolean {
@@ -106,6 +95,7 @@ export function MatchBoard({
   spot,
   busy,
   onPick,
+  frame,
 }: {
   readonly map: MatchMap;
   readonly board: BoardState;
@@ -118,11 +108,18 @@ export function MatchBoard({
   readonly spot: number | null;
   readonly busy: boolean;
   readonly onPick: (region: number) => void;
+  /**
+   * Ausschnitt der Bühne (ADR-059): Die Karte füllt den Bildschirm, das Meer läuft bis zum Rand.
+   * `null`, solange die Bühne nicht gemessen ist; dann zeigt die Karte nur das Land.
+   */
+  readonly frame: StageFrame | null;
 }) {
   const art = useMemo(() => mapArt(map), [map]);
   const prefix = `map${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const settled = useSettled();
-  const narrow = useNarrow();
+  // Kleines Land (Handy): größere Schrift, weniger Zierde
+  const narrow = frame === null || frame.scale < COMPACT_SCALE;
+  const far = useMemo(() => farSea(art), [art]);
   const [hot, setHot] = useState<number | null>(null);
   const choosable = new Set(busy ? [] : legal);
   const maxLives = Math.max(
@@ -197,7 +194,8 @@ export function MatchBoard({
     <div className="board-frame">
       <svg
         className={`board map-art${narrow ? ' narrow' : ''}`}
-        viewBox={narrow ? art.tightViewBox : art.viewBox}
+        viewBox={frame?.viewBox ?? art.tightViewBox}
+        preserveAspectRatio="xMidYMid slice"
         role="group"
         aria-label={t('match.board.label', { name: map.name })}
         data-testid="match-board"
@@ -207,6 +205,25 @@ export function MatchBoard({
       >
         <ArtDefs prefix={prefix} />
         <defs>
+          <pattern
+            id={`${prefix}-far`}
+            width={far.width}
+            height={far.height}
+            patternUnits="userSpaceOnUse"
+          >
+            <g className="sea-marks">
+              {far.marks.map((w, i) => (
+                <use
+                  key={i}
+                  href={symbolRef(prefix, 'sea')}
+                  x={w.x - w.size / 2}
+                  y={w.y - w.size / 2}
+                  width={w.size}
+                  height={w.size}
+                />
+              ))}
+            </g>
+          </pattern>
           {art.regions.map((region) => (
             <clipPath key={region.id} id={`${prefix}-clip-${region.id}`}>
               <path d={region.d} />
@@ -214,7 +231,21 @@ export function MatchBoard({
           ))}
         </defs>
 
-        <rect className="sea" width={art.width} height={art.height} />
+        <rect
+          className="sea"
+          x={-SEA}
+          y={-SEA}
+          width={art.width + 2 * SEA}
+          height={art.height + 2 * SEA}
+        />
+        {/* Jenseits des Kartenblatts: dasselbe Meer mit Wellen als Muster, das Blatt bleibt frei */}
+        <path
+          className="sea-far"
+          aria-hidden="true"
+          fill={`url(#${prefix}-far)`}
+          fillRule="evenodd"
+          d={`M${-SEA} ${-SEA}H${art.width + SEA}V${art.height + SEA}H${-SEA}ZM0 0V${art.height}H${art.width}V0Z`}
+        />
         <g className="sea-marks" aria-hidden="true">
           {art.waves.map((w, i) => (
             <use
@@ -388,9 +419,6 @@ export function MatchBoard({
           ) : null}
         </g>
 
-        <Compass art={art} />
-        <Cartouche art={art} title={map.name} />
-
         {/* Das Duell liegt über allem: Der Schleier nimmt auch Namen und Münzen der übrigen
             Regionen zurück */}
         {duel ? (
@@ -409,6 +437,42 @@ export function MatchBoard({
       </svg>
     </div>
   );
+}
+
+/**
+ * Wellen im Meer jenseits des Kartenblatts, damit das Meer bis zum Bildschirmrand gezeichnet ist:
+ * eine Kachel, die sich wiederholt (ein Muster statt tausender einzelner Zeichen). Fest gewürfelt,
+ * jede Karte zeigt immer dieselben; am Kachelrand bleibt Platz, damit kein Zeichen zerschnitten wird.
+ */
+function farSea(art: MapArt): {
+  readonly width: number;
+  readonly height: number;
+  readonly marks: readonly { x: number; y: number; size: number }[];
+} {
+  let seed = 20261111;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const step = 0.85 * art.size;
+  const width = FAR_COLUMNS * step;
+  const height = FAR_ROWS * step;
+  const edge = 0.2 * art.size;
+  const marks: { x: number; y: number; size: number }[] = [];
+  for (let row = 0; row < FAR_ROWS; row++) {
+    for (let column = 0; column < FAR_COLUMNS; column++) {
+      const x = (column + 0.5 + (rand() - 0.5) * 0.7) * step;
+      const y = (row + 0.5 + (rand() - 0.5) * 0.5) * step;
+      const size = art.size * (0.22 + rand() * 0.1);
+      if (rand() < 0.35) continue;
+      marks.push({
+        x: Math.min(width - edge, Math.max(edge, x)),
+        y: Math.min(height - edge, Math.max(edge, y)),
+        size,
+      });
+    }
+  }
+  return { width, height, marks };
 }
 
 /** Landschaftsmotive einer Region; bei Hauptstädten nur die seitlichen. */
@@ -571,8 +635,9 @@ function DuelStageArt({
   const target = art.regions[duel.region];
   if (!target) return null;
   const from = source === null ? undefined : art.regions[source];
-  // Schleier über die ganze Karte mit Löchern für die zwei Regionen des Duells
-  const veil = `M0 0H${art.width}V${art.height}H0Z${target.d}${from ? from.d : ''}`;
+  // Schleier über das Land mit Löchern für die zwei Regionen des Duells. Das Meer füllt den ganzen
+  // Bildschirm und bleibt hell (ADR-059)
+  const veil = `${art.coast}${target.d}${from ? from.d : ''}`;
   const px = (n: number) => `${Math.round(n * 10) / 10}px`;
   // Schlag auf eine Burg: bis kurz vor die Mauer, nicht darüber
   const strike = layout ? Math.max(0, layout.distance - layout.radius - 0.36 * art.size) : 0;
@@ -706,66 +771,6 @@ function DuelToken({
           />
         </g>
       </g>
-    </g>
-  );
-}
-
-function Compass({ art }: { readonly art: MapArt }) {
-  const { x, y, r } = art.compass;
-  const point = (angle: number, length: number, width: number) => {
-    const rad = (angle * Math.PI) / 180;
-    const tip = { x: x + Math.sin(rad) * length, y: y - Math.cos(rad) * length };
-    const left = {
-      x: x + Math.sin(rad - Math.PI / 2) * width,
-      y: y - Math.cos(rad - Math.PI / 2) * width,
-    };
-    const right = {
-      x: x + Math.sin(rad + Math.PI / 2) * width,
-      y: y - Math.cos(rad + Math.PI / 2) * width,
-    };
-    return { tip, left, right };
-  };
-  const ray = (angle: number, length: number, width: number) => {
-    const { tip, left, right } = point(angle, length, width);
-    return (
-      <g key={angle}>
-        <path d={`M${x} ${y}L${left.x} ${left.y}L${tip.x} ${tip.y}Z`} className="compass-light" />
-        <path d={`M${x} ${y}L${right.x} ${right.y}L${tip.x} ${tip.y}Z`} className="compass-dark" />
-      </g>
-    );
-  };
-  return (
-    <g className="compass" aria-hidden="true">
-      <circle cx={x} cy={y} r={r * 0.78} className="compass-ring" />
-      <circle cx={x} cy={y} r={r * 0.64} className="compass-ring thin" />
-      {[45, 135, 225, 315].map((a) => ray(a, r * 0.62, r * 0.12))}
-      {[0, 90, 180, 270].map((a) => ray(a, r, r * 0.17))}
-      <circle cx={x} cy={y} r={r * 0.08} className="compass-hub" />
-      <text x={x} y={y - r * 1.2} className="compass-north">
-        N
-      </text>
-    </g>
-  );
-}
-
-function Cartouche({ art, title }: { readonly art: MapArt; readonly title: string }) {
-  const { x, y, width } = art.title;
-  const s = art.size;
-  const height = 0.72 * s;
-  const curl = 0.2 * s;
-  return (
-    <g className="cartouche" aria-hidden="true">
-      <path
-        d={`M${x + curl} ${y}H${x + width - curl}C${x + width} ${y} ${x + width} ${y + height} ${x + width - curl} ${y + height}H${x + curl}C${x} ${y + height} ${x} ${y} ${x + curl} ${y}Z`}
-        className="cartouche-scroll"
-      />
-      <path
-        d={`M${x + curl * 1.6} ${y + 0.12 * s}H${x + width - curl * 1.6}M${x + curl * 1.6} ${y + height - 0.12 * s}H${x + width - curl * 1.6}`}
-        className="cartouche-rule"
-      />
-      <text x={x + width / 2} y={y + height / 2 + 0.02 * s} className="cartouche-title">
-        {title}
-      </text>
     </g>
   );
 }

@@ -12,9 +12,10 @@ import { t, tp } from '../i18n/i18n.ts';
 import { inviteLink } from '../router.ts';
 
 /**
- * Aufstellung: Einladungslink und Code, Plätze, Start durch den Gastgeber. In einer normalen Partie
- * setzt der Gastgeber auf freie Plätze Bots (ADR-052), gestartet wird ab zwei Mitspielern (Menschen
- * und Bots). In einer Testpartie gehen freie Plätze beim Start von selbst an Bots.
+ * Aufstellung als Blatt auf der Karte (ADR-059): links die Plätze, rechts Einladungslink und Code
+ * und der Start durch den Gastgeber. In einer normalen Partie setzt der Gastgeber auf freie Plätze
+ * Bots (ADR-052), gestartet wird ab zwei Mitspielern (Menschen und Bots). In einer Testpartie gehen
+ * freie Plätze beim Start von selbst an Bots.
  */
 export function LobbyPanel({
   view,
@@ -56,109 +57,117 @@ export function LobbyPanel({
   const [duo, trio] = [mapOf(2), mapOf(3)];
 
   return (
-    <section className="card lobby stack" aria-labelledby="lobby-title" data-testid="match-lobby">
-      <h2 id="lobby-title">{t('match.lobby.title')}</h2>
-      {match.inviteCode ? <InviteCode code={match.inviteCode} /> : null}
-      <h3>{t('match.lobby.players')}</h3>
-      <ul className="lobby-seats">
-        {taken.map(({ joinOrder, player }) =>
-          player ? (
-            <li
-              key={joinOrder}
-              className={`lobby-seat taken${player.isBot ? ' bot' : ''}`}
-              data-testid="lobby-seat"
-            >
-              <PlayerShield name={player.name} />
+    <section className="sheet lobby" aria-labelledby="lobby-title" data-testid="match-lobby">
+      <div className="lobby-main">
+        <h2 id="lobby-title">{t('match.lobby.title')}</h2>
+        <h3 className="visually-hidden">{t('match.lobby.players')}</h3>
+        <ul className="lobby-seats">
+          {taken.map(({ joinOrder, player }) =>
+            player ? (
+              <li
+                key={joinOrder}
+                className={`lobby-seat taken${player.isBot ? ' bot' : ''}`}
+                data-testid="lobby-seat"
+              >
+                <PlayerShield name={player.name} />
+                <span className="lobby-name">
+                  {player.isMe ? t('match.you', { name: player.name }) : player.name}
+                </span>
+                {player.isHost ? <span className="badge">{t('match.lobby.host')}</span> : null}
+                {player.isBot && canSetBots ? (
+                  <BotControls player={player} busy={busy} onSetBot={onSetBot} />
+                ) : null}
+              </li>
+            ) : null,
+          )}
+          {free.map(({ joinOrder }, i) => (
+            <li key={joinOrder} className="lobby-seat free" data-testid="lobby-seat">
+              <PlayerShield name={null} />
               <span className="lobby-name">
-                {player.isMe ? t('match.you', { name: player.name }) : player.name}
+                {i < autoBots ? t('match.lobby.botSeat') : t('match.lobby.freeSeat')}
               </span>
-              {player.isHost ? <span className="badge">{t('match.lobby.host')}</span> : null}
-              {player.isBot && canSetBots ? (
-                <BotControls player={player} busy={busy} onSetBot={onSetBot} />
+              {canSetBots ? (
+                <button
+                  type="button"
+                  className="button button-small lobby-add-bot"
+                  disabled={busy}
+                  onClick={() => onSetBot(joinOrder, 'MEDIUM')}
+                >
+                  {t('match.lobby.addBot')}
+                </button>
               ) : null}
             </li>
-          ) : null,
-        )}
-        {free.map(({ joinOrder }, i) => (
-          <li key={joinOrder} className="lobby-seat free" data-testid="lobby-seat">
-            <PlayerShield name={null} />
-            <span className="lobby-name">
-              {i < autoBots ? t('match.lobby.botSeat') : t('match.lobby.freeSeat')}
-            </span>
-            {canSetBots ? (
+          ))}
+        </ul>
+        <div className="lobby-notes">
+          {autoBots > 0 ? <p>{tp('match.lobby.bots', autoBots)}</p> : null}
+          {hasBots && !test ? <p>{t('match.lobby.botsNote')}</p> : null}
+          <p>
+            {t('match.lobby.maps', {
+              duo: duo.name,
+              duoRegions: duo.regions,
+              trio: trio.name,
+              trioRegions: trio.regions,
+            })}
+          </p>
+          <p>
+            {t('match.lobby.timers', {
+              trivia: seconds(match.timers.triviaMs),
+              estimate: seconds(match.timers.estimateMs),
+              pick: seconds(match.timers.pickMs),
+            })}{' '}
+            {t('match.lobby.expires')}
+          </p>
+        </div>
+      </div>
+      <div className="lobby-side">
+        {match.inviteCode ? <InviteCode code={match.inviteCode} /> : null}
+        <div className="lobby-go">
+          {error ? <ErrorNote error={error} /> : null}
+          {view.isHost ? (
+            <>
+              {!canStart ? <p>{t('match.lobby.needPlayers')}</p> : null}
               <button
                 type="button"
-                className="button button-small lobby-add-bot"
-                disabled={busy}
-                onClick={() => onSetBot(joinOrder, 'MEDIUM')}
+                className="button button-primary button-wide"
+                disabled={busy || !canStart}
+                onClick={onStart}
               >
-                {t('match.lobby.addBot')}
+                {t('match.lobby.start')}
               </button>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-      {autoBots > 0 ? <p className="muted">{tp('match.lobby.bots', autoBots)}</p> : null}
-      {hasBots && !test ? <p className="muted">{t('match.lobby.botsNote')}</p> : null}
-      <p className="muted">
-        {t('match.lobby.maps', {
-          duo: duo.name,
-          duoRegions: duo.regions,
-          trio: trio.name,
-          trioRegions: trio.regions,
-        })}
-      </p>
-      <p className="muted">
-        {t('match.lobby.timers', {
-          trivia: seconds(match.timers.triviaMs),
-          estimate: seconds(match.timers.estimateMs),
-          pick: seconds(match.timers.pickMs),
-        })}
-      </p>
-      {error ? <ErrorNote error={error} /> : null}
-      {view.isHost ? (
-        <>
-          {!canStart ? <p>{t('match.lobby.needPlayers')}</p> : null}
-          <button
-            type="button"
-            className="button button-primary button-wide"
-            disabled={busy || !canStart}
-            onClick={onStart}
-          >
-            {t('match.lobby.start')}
-          </button>
-        </>
-      ) : (
-        <p aria-live="polite">{t('match.lobby.waitingHost', { name: host?.name ?? '?' })}</p>
-      )}
-      {confirming ? (
-        <div className="note" role="group" aria-label={t('match.lobby.cancel')}>
-          <p>{t('match.lobby.confirmCancel')}</p>
-          <div className="actions">
+            </>
+          ) : (
+            <p aria-live="polite">{t('match.lobby.waitingHost', { name: host?.name ?? '?' })}</p>
+          )}
+          {confirming ? (
+            <div className="note" role="group" aria-label={t('match.lobby.cancel')}>
+              <p>{t('match.lobby.confirmCancel')}</p>
+              <div className="actions">
+                <button
+                  type="button"
+                  className="button button-danger"
+                  disabled={busy}
+                  onClick={onLeave}
+                >
+                  {t('match.lobby.confirm')}
+                </button>
+                <button type="button" className="button" onClick={() => setConfirming(false)}>
+                  {t('match.lobby.keep')}
+                </button>
+              </div>
+            </div>
+          ) : (
             <button
               type="button"
-              className="button button-danger"
+              className="button button-quiet"
               disabled={busy}
-              onClick={onLeave}
+              onClick={() => (view.isHost ? setConfirming(true) : onLeave())}
             >
-              {t('match.lobby.confirm')}
+              {view.isHost ? t('match.lobby.cancel') : t('match.lobby.leave')}
             </button>
-            <button type="button" className="button" onClick={() => setConfirming(false)}>
-              {t('match.lobby.keep')}
-            </button>
-          </div>
+          )}
         </div>
-      ) : (
-        <button
-          type="button"
-          className="button button-quiet"
-          disabled={busy}
-          onClick={() => (view.isHost ? setConfirming(true) : onLeave())}
-        >
-          {view.isHost ? t('match.lobby.cancel') : t('match.lobby.leave')}
-        </button>
-      )}
-      <p className="muted">{t('match.lobby.expires')}</p>
+      </div>
     </section>
   );
 }

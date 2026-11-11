@@ -7,11 +7,12 @@ import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
 
 /**
- * Auflösung einer Frage für alle Sitze, auch für Zuschauer (docs/ART_DIRECTION.md §4): oben in
- * einem Satz, was daraus folgt, darunter die Frage und wer was geantwortet hat. Bei einer
- * Wissensfrage stehen die Wappen an der Antwort, die ihr Sitz gewählt hat; bei einer Schätzfrage
- * stehen die Sitze in der Reihenfolge ihrer Schätzung, die beste zuerst. Das Blatt passt ohne
- * Scrollen auf ein Handy; unten läuft als schmaler Strich die Zeit, bis es weitergeht.
+ * Auflösung einer Frage für alle Sitze, auch für Zuschauer (docs/ART_DIRECTION.md §4), als Blatt
+ * mitten auf der Karte: oben in einem Satz, was daraus folgt, darunter die Frage und wer was
+ * geantwortet hat. Bei einer Wissensfrage stehen die Wappen an der Antwort, die ihr Sitz gewählt
+ * hat, an derselben Stelle wie in der Frage; bei einer Schätzfrage stehen die Sitze in der
+ * Reihenfolge ihrer Schätzung, die beste zuerst. Das Blatt passt ohne Scrollen auf ein quer
+ * gehaltenes Handy.
  */
 
 type Answer = MatchEventOf<'QUESTION_RESOLVED'>['payload']['answers'][number];
@@ -34,12 +35,15 @@ export function RevealPanel({
   name,
   region,
   timer = null,
+  verdict = true,
 }: {
   readonly reveal: Reveal;
   readonly name: SeatName;
   readonly region: RegionName;
   /** Ablaufende Zeit der Auflösung; steht unten im Blatt. */
   readonly timer?: ReactNode;
+  /** `false`, wenn die Folge schon woanders steht (Ausgang des Duells im Blatt der Phase). */
+  readonly verdict?: boolean;
 }) {
   const { resolved, opened, outcome } = reveal;
   const q = resolved.payload;
@@ -66,14 +70,14 @@ export function RevealPanel({
 
   return (
     <section
-      className="resolution reveal"
+      className="sheet resolution reveal"
       aria-labelledby="reveal-title"
       data-testid="match-reveal"
     >
       <h2 id="reveal-title" className="visually-hidden">
         {t('match.reveal.title')}
       </h2>
-      {headline ? (
+      {headline && verdict ? (
         <div
           className={`reveal-verdict${winner === null ? '' : ` seat-${winner}`}${duel || !ranked ? '' : ' land'}`}
           data-testid="reveal-outcome"

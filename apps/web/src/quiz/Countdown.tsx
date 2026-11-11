@@ -10,6 +10,7 @@ export function Countdown({
   totalMs,
   onExpire,
   quiet = false,
+  brief = false,
 }: {
   /** Ende als `performance.now()`-Wert. */
   readonly deadline: number;
@@ -17,6 +18,8 @@ export function Countdown({
   readonly onExpire: () => void;
   /** Nur ein schmaler Balken ohne Text und ohne Warnfarbe: für Pausen, in denen nichts zu tun ist. */
   readonly quiet?: boolean;
+  /** Nur die Sekunden als Zahl (Bühne der Partie); der ganze Satz bleibt für Screenreader. */
+  readonly brief?: boolean;
 }) {
   const [remaining, setRemaining] = useState(() => Math.max(0, deadline - performance.now()));
   const expired = useRef(false);
@@ -50,7 +53,12 @@ export function Countdown({
           className={!quiet && seconds <= 5 ? 'urgent' : ''}
         />
       </div>
-      <span className={quiet ? 'visually-hidden' : 'countdown-text'}>
+      {brief && !quiet ? (
+        <span className={`countdown-seconds${seconds <= 5 ? ' urgent' : ''}`} aria-hidden="true">
+          {seconds}
+        </span>
+      ) : null}
+      <span className={quiet || brief ? 'visually-hidden' : 'countdown-text'}>
         {seconds > 0 ? tp('quiz.remaining', seconds) : t('quiz.timeUp')}
       </span>
     </div>

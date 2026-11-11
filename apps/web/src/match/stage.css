@@ -1,0 +1,1524 @@
+/*
+ * Bühne der Partie (ADR-059): Der ganze Bildschirm ist die Spielkarte, am Handy im Querformat.
+ * Links auf dem Meer steht der Spielstand, rechts das Blatt der Phase, Fragen und Auflösungen
+ * liegen als Blätter mitten auf der Karte. Die Karte steht immer an derselben Stelle.
+ *
+ * Maße: `--u` ist ein Bildschirmpunkt eines quer gehaltenen Handys (844 Punkte breit, 340 hoch
+ * mit sichtbarer Browserleiste). Auf größeren Bildschirmen wächst die ganze Bühne mit, auf
+ * kleineren schrumpft sie. Auch `rem` folgt dem, solange die Bühne steht.
+ */
+
+html.match-playing {
+  --u: clamp(0.7px, min(100vw / 844, 100vh / 340), 1.6px);
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  font-size: calc(16 * var(--u));
+}
+
+@supports (height: 100dvh) {
+  html.match-playing {
+    --u: clamp(0.7px, min(100dvw / 844, 100dvh / 340), 1.6px);
+  }
+}
+
+html.match-playing body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--map-sea);
+}
+
+.stage {
+  --safe-l: max(env(safe-area-inset-left, 0px), calc(8 * var(--u)));
+  --safe-r: max(env(safe-area-inset-right, 0px), calc(8 * var(--u)));
+  --rail-l: calc(140 * var(--u));
+  --rail-r: calc(192 * var(--u));
+  --edge: calc(6 * var(--u));
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--map-sea);
+  font-size: calc(14 * var(--u));
+  line-height: 1.25;
+  color: var(--text);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.stage h1,
+.stage h2,
+.stage h3,
+.stage p,
+.stage ul,
+.stage ol {
+  margin: 0;
+}
+
+.stage ul,
+.stage ol {
+  padding: 0;
+  list-style: none;
+}
+
+/* ---------- Karte im Vollbild ---------- */
+
+.stage-map,
+.stage-map .board-frame {
+  position: absolute;
+  inset: 0;
+}
+
+.stage-map .map-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Liegt ein Blatt auf der Karte, tritt sie leicht zurück, bleibt aber sichtbar */
+.stage-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--map-veil) 26%, transparent);
+  pointer-events: none;
+}
+
+/* Unter dem Schleier eines Blatts hebt die Karte kein Duell mehr hervor: Sonst läge das Land
+   doppelt im Dunkeln */
+.stage:has(> .stage-veil) .map-art .duel-veil {
+  opacity: 0;
+  animation: none;
+}
+
+.stage-rail {
+  position: absolute;
+  z-index: 2;
+  top: var(--edge);
+  bottom: var(--edge);
+}
+
+/* ---------- Links auf dem Meer: Abschnitt, Spielstand, Zugfolge ---------- */
+
+.stage-left {
+  left: var(--safe-l);
+  width: var(--rail-l);
+  display: flex;
+  flex-direction: column;
+  gap: calc(5 * var(--u));
+}
+
+.round-ribbon {
+  align-self: start;
+  padding: calc(2 * var(--u)) calc(13 * var(--u)) calc(2 * var(--u)) calc(8 * var(--u));
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(11.5 * var(--u));
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  clip-path: polygon(0 0, 100% 0, calc(100% - (8 * var(--u))) 50%, 100% 100%, 0 100%);
+}
+
+.plaques ul {
+  display: grid;
+  gap: calc(5 * var(--u));
+}
+
+.plaque {
+  --seat: var(--seat-0);
+  display: grid;
+  grid-template-columns: calc(27 * var(--u)) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'crest name name'
+    'crest points lives'
+    'foot foot foot';
+  column-gap: calc(7 * var(--u));
+  align-items: center;
+  padding: calc(4 * var(--u)) calc(8 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
+  background: var(--surface);
+  background-image: var(--paper-grain);
+  border: 1px solid var(--border-strong);
+  border-left: calc(5 * var(--u)) solid var(--seat);
+  border-radius: calc(8 * var(--u));
+  box-shadow: 0 calc(2 * var(--u)) calc(7 * var(--u)) rgb(40 25 8 / 0.3);
+}
+
+.plaque.seat-1 {
+  --seat: var(--seat-1);
+}
+
+.plaque.seat-2 {
+  --seat: var(--seat-2);
+}
+
+.plaque.turn {
+  outline: calc(2.5 * var(--u)) solid var(--map-gold);
+  outline-offset: calc(1 * var(--u));
+}
+
+.plaque.eliminated {
+  opacity: 0.6;
+  filter: grayscale(0.6);
+}
+
+.plaque-crest {
+  grid-area: crest;
+  display: grid;
+}
+
+.plaque-crest svg {
+  width: calc(27 * var(--u));
+  height: auto;
+}
+
+.plaque-name {
+  grid-area: name;
+  font-size: calc(13.5 * var(--u));
+  line-height: calc(17 * var(--u));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plaque-points {
+  grid-area: points;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  height: calc(18 * var(--u));
+  font-weight: 800;
+  font-size: calc(14 * var(--u));
+  line-height: calc(18 * var(--u));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.plaque-points .counting {
+  color: var(--accent);
+}
+
+.points-coin {
+  flex: none;
+  width: calc(13 * var(--u));
+  height: calc(13 * var(--u));
+}
+
+.points-coin circle {
+  fill: var(--map-coin);
+  stroke: var(--map-gold);
+}
+
+.plaque-lives {
+  grid-area: lives;
+  display: grid;
+}
+
+.plaque-state {
+  padding: 0 calc(6 * var(--u));
+  font-size: calc(10.5 * var(--u));
+  font-weight: 800;
+  line-height: calc(13 * var(--u));
+  white-space: nowrap;
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  border: 1px solid var(--primary-edge);
+  border-radius: calc(9 * var(--u));
+}
+
+.plaque-foot {
+  grid-area: foot;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(6 * var(--u));
+  /* Feste Höhe: Mit „am Zug“ darf die Tafel nicht wachsen, sonst rückt die Zugfolge darunter */
+  height: calc(20 * var(--u));
+  margin-top: calc(3 * var(--u));
+  padding-top: calc(2 * var(--u));
+  border-top: 1px solid var(--border);
+  font-size: calc(12 * var(--u));
+  line-height: calc(16 * var(--u));
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.plaque-out {
+  font-weight: 700;
+}
+
+.stage .seat-lives {
+  gap: calc(2 * var(--u));
+  vertical-align: 0;
+}
+
+.stage .seat-lives span {
+  width: calc(10 * var(--u));
+  height: calc(12 * var(--u));
+}
+
+/* Zugfolge: eine schmale Zeile, immer gleich hoch */
+.turn-order {
+  flex: none;
+}
+
+.turn-order-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.turn-order ol {
+  display: flex;
+  align-items: center;
+  gap: calc(3 * var(--u));
+  height: calc(26 * var(--u));
+  padding: 0 calc(4 * var(--u));
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border: 1px solid var(--border);
+  border-radius: calc(13 * var(--u));
+}
+
+.turn-step {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--u));
+  height: calc(20 * var(--u));
+  padding: 0 calc(4 * var(--u)) 0 calc(3 * var(--u));
+  border-radius: calc(10 * var(--u));
+  border: calc(1.5 * var(--u)) solid transparent;
+}
+
+.turn-step svg {
+  width: calc(15 * var(--u));
+  height: auto;
+}
+
+.turn-index {
+  min-width: calc(9 * var(--u));
+  font-size: calc(11 * var(--u));
+  font-weight: 800;
+  text-align: center;
+  color: var(--muted);
+}
+
+.turn-step.turn-done {
+  opacity: 0.55;
+}
+
+.turn-step.turn-done .turn-index {
+  color: var(--success);
+}
+
+.turn-step.turn-now {
+  background: var(--map-coin);
+  border-color: var(--map-gold);
+}
+
+.turn-step.turn-now .turn-index {
+  color: var(--text);
+}
+
+.stage-tools {
+  margin-top: auto;
+  display: flex;
+  gap: calc(6 * var(--u));
+}
+
+.stage .tool,
+.stage .sound-toggle {
+  display: inline-grid;
+  place-items: center;
+  min-width: calc(34 * var(--u));
+  min-height: calc(34 * var(--u));
+  padding: 0 calc(11 * var(--u));
+  font: inherit;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(17 * var(--u));
+  box-shadow: 0 calc(2 * var(--u)) calc(6 * var(--u)) rgb(40 25 8 / 0.28);
+  cursor: pointer;
+}
+
+.stage .sound-toggle {
+  padding: 0;
+}
+
+.stage .sound-toggle[aria-pressed='false'] {
+  color: var(--muted);
+}
+
+.stage .sound-toggle svg {
+  width: calc(17 * var(--u));
+  height: calc(17 * var(--u));
+}
+
+.stage .sound-toggle span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.stage .tool:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Rechts auf dem Meer: das Blatt der Phase ---------- */
+
+.stage-right {
+  right: var(--safe-r);
+  width: var(--rail-r);
+  display: flex;
+}
+
+.blatt {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(7 * var(--u));
+  padding: calc(9 * var(--u)) calc(10 * var(--u)) calc(10 * var(--u));
+  background: var(--surface);
+  background-image: var(--paper-grain);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(10 * var(--u));
+  box-shadow:
+    0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--surface) 55%, transparent),
+    0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
+  overflow: hidden;
+}
+
+/* Eigener Zug: goldener Rand, ohne Bewegung (auch während einer Frage) */
+.blatt.turn {
+  border-color: var(--map-gold);
+  box-shadow:
+    0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--map-gold) 55%, transparent),
+    0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
+}
+
+.blatt.attacked {
+  border-color: var(--danger);
+  box-shadow:
+    0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--danger) 40%, transparent),
+    0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
+}
+
+.blatt.outcome {
+  --tone: var(--seat-0);
+  border-color: var(--tone);
+  box-shadow:
+    0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--tone) 45%, transparent),
+    0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
+}
+
+.blatt.outcome.seat-1 {
+  --tone: var(--seat-1);
+}
+
+.blatt.outcome.seat-2 {
+  --tone: var(--seat-2);
+}
+
+.blatt-title,
+.blatt .announce-title,
+.blatt .outcome-title {
+  font-family: var(--font-display);
+  font-size: calc(20 * var(--u));
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+/* Restzeit einer Wahl: Sekunden oben rechts neben der Überschrift, darunter die Lunte */
+.blatt .countdown {
+  gap: 0;
+}
+
+.blatt .countdown-bar {
+  height: calc(7 * var(--u));
+  border-radius: calc(4 * var(--u));
+}
+
+.blatt .countdown.quiet .countdown-bar {
+  height: calc(4 * var(--u));
+}
+
+.blatt .countdown-bar span::after {
+  right: calc(-4 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
+  margin-top: calc(-5 * var(--u));
+}
+
+.blatt .countdown-seconds {
+  position: absolute;
+  top: calc(10 * var(--u));
+  right: calc(11 * var(--u));
+  font-weight: 800;
+  font-size: calc(17 * var(--u));
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-seconds.urgent {
+  color: var(--danger);
+}
+
+.blatt:has(.countdown-seconds) .blatt-title {
+  padding-right: calc(26 * var(--u));
+}
+
+/* Ruhige Zeit (Ansage, Warten, Auflösung): der Strich steht unten im Blatt */
+.blatt > .countdown.quiet,
+.blatt .announce-card > .countdown.quiet {
+  margin-top: auto;
+}
+
+.blatt-hint,
+.blatt-last {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.32;
+  color: var(--muted);
+}
+
+.blatt-last {
+  padding-top: calc(6 * var(--u));
+  border-top: 1px solid var(--border);
+}
+
+.blatt-lead {
+  display: flex;
+  align-items: center;
+  gap: calc(7 * var(--u));
+  font-size: calc(14 * var(--u));
+  line-height: 1.25;
+}
+
+.blatt-lead svg,
+.blatt .announce-line svg,
+.blatt .outcome-title svg {
+  flex: none;
+  width: calc(24 * var(--u));
+  height: auto;
+}
+
+.blatt-status {
+  font-size: calc(13.5 * var(--u));
+  line-height: 1.3;
+}
+
+.blatt-status.done {
+  font-weight: 700;
+  color: var(--success);
+}
+
+.blatt .note {
+  margin: 0;
+  padding: calc(5 * var(--u)) calc(7 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.3;
+  border-radius: calc(7 * var(--u));
+}
+
+.blatt .note-error {
+  margin-top: auto;
+}
+
+/* Ansage im Blatt */
+.blatt .announce-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: calc(7 * var(--u));
+  text-align: left;
+}
+
+.blatt .announce-duel {
+  flex: none;
+}
+
+.blatt .announce-line {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: calc(7 * var(--u));
+  font-size: calc(14.5 * var(--u));
+  line-height: 1.25;
+}
+
+.blatt .announce-versus {
+  justify-content: flex-start;
+  gap: calc(3 * var(--u)) calc(5 * var(--u));
+  font-size: calc(13 * var(--u));
+}
+
+.blatt.attacked .announce-title {
+  color: var(--danger);
+}
+
+.stage .seat-chip {
+  gap: calc(4 * var(--u));
+  max-width: calc(150 * var(--u));
+  padding: calc(1 * var(--u)) calc(8 * var(--u)) calc(1 * var(--u)) calc(3 * var(--u));
+  font-size: calc(12.5 * var(--u));
+}
+
+.stage .seat-chip svg {
+  width: calc(16 * var(--u));
+  height: auto;
+}
+
+/* Ausgang eines Duells im Blatt */
+.blatt .outcome-card {
+  display: grid;
+  gap: calc(7 * var(--u));
+  border: 0;
+  animation: outcome-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.blatt .outcome-title {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: calc(8 * var(--u));
+  font-size: calc(18 * var(--u));
+}
+
+.blatt .outcome-reason {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.32;
+}
+
+/* Wer gegen wen, worum */
+.blatt .duel-head {
+  gap: calc(4 * var(--u));
+  padding: 0 0 calc(7 * var(--u));
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+
+.blatt .duel-sides {
+  gap: calc(3 * var(--u));
+}
+
+.blatt .duel-side {
+  gap: calc(1 * var(--u));
+  padding: calc(4 * var(--u)) calc(2 * var(--u));
+  border-radius: calc(7 * var(--u));
+}
+
+.blatt .duel-side svg {
+  width: calc(24 * var(--u));
+  height: auto;
+}
+
+.blatt .duel-swords svg {
+  width: calc(20 * var(--u));
+  height: auto;
+}
+
+.blatt .duel-name {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.15;
+}
+
+.blatt .duel-role {
+  font-size: calc(9.5 * var(--u));
+}
+
+.blatt .duel-title {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.25;
+  text-align: left;
+}
+
+/* Ziffernfeld der Schätzfrage */
+.numpad-box {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 * var(--u));
+}
+
+.numpad {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: calc(5 * var(--u));
+}
+
+.stage .button.numkey {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  padding: 0;
+  font-size: calc(20 * var(--u));
+  font-weight: 800;
+  border-radius: calc(8 * var(--u));
+}
+
+.numkey svg {
+  width: calc(24 * var(--u));
+  height: auto;
+}
+
+.numkey-back {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.numkey-cross {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.stage .button {
+  min-height: calc(40 * var(--u));
+  padding: calc(6 * var(--u)) calc(12 * var(--u));
+  font-size: calc(14.5 * var(--u));
+  border-radius: calc(9 * var(--u));
+}
+
+.stage .button-small {
+  min-height: calc(32 * var(--u));
+  padding: calc(3 * var(--u)) calc(10 * var(--u));
+  font-size: calc(12.5 * var(--u));
+}
+
+.stage .blatt-go {
+  flex: none;
+  width: 100%;
+  min-height: calc(42 * var(--u));
+  font-size: calc(15.5 * var(--u));
+}
+
+/* ---------- Band über der Karte ---------- */
+
+.stage-banner {
+  position: absolute;
+  z-index: 3;
+  left: calc(var(--safe-l) + var(--rail-l));
+  right: calc(var(--safe-r) + var(--rail-r));
+  top: calc(10 * var(--u));
+  display: grid;
+  justify-items: center;
+  pointer-events: none;
+}
+
+/* Steht ein Duell in der oberen Hälfte der Karte, weicht das Band an den unteren Rand */
+.stage[data-state='announce']:has(.map-art[data-duel-high]) .stage-banner,
+.stage[data-beat='outcome']:has(.map-art[data-duel-high]) .stage-banner {
+  top: auto;
+  bottom: calc(10 * var(--u));
+}
+
+.turn-banner {
+  display: grid;
+  justify-items: center;
+  gap: calc(4 * var(--u));
+  max-width: 96%;
+  animation: stage-banner 1.5s ease-in-out both;
+}
+
+.moment-ribbon {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  padding: calc(4 * var(--u)) calc(26 * var(--u)) calc(5 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(19 * var(--u));
+  font-weight: 800;
+  line-height: 1.15;
+  white-space: nowrap;
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  filter: drop-shadow(0 calc(3 * var(--u)) calc(5 * var(--u)) rgb(30 18 6 / 0.4));
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - (11 * var(--u))) 50%,
+    100% 100%,
+    0 100%,
+    calc(11 * var(--u)) 50%
+  );
+}
+
+.moment-ribbon svg {
+  width: calc(21 * var(--u));
+  height: auto;
+}
+
+/* Phase und Runde: dunkles Tintenband mit goldener Schrift */
+.moment-ink .moment-ribbon {
+  color: var(--map-coin);
+  background: var(--map-ink);
+}
+
+/* Ein Reich fällt: Band in der Farbe des Siegers, mit dessen Wappen */
+.moment-seat .moment-ribbon {
+  color: #fff;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+}
+
+.moment-ribbon[data-seat='0'] {
+  background: var(--seat-0);
+}
+
+.moment-ribbon[data-seat='1'] {
+  background: var(--seat-1);
+}
+
+.moment-ribbon[data-seat='2'] {
+  background: var(--seat-2);
+}
+
+.moment-ribbon .crest .crest-shield {
+  stroke: #fff;
+}
+
+.moment-detail {
+  padding: calc(3 * var(--u)) calc(10 * var(--u));
+  border-radius: calc(8 * var(--u));
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 calc(2 * var(--u)) calc(6 * var(--u)) rgb(40 25 8 / 0.3);
+}
+
+@keyframes stage-banner {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  28%,
+  78% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8%) scale(0.98);
+  }
+}
+
+/* ---------- Blätter mitten auf der Karte: Frage, Auflösung, Abrechnung ---------- */
+
+.stage-centre {
+  position: absolute;
+  z-index: 4;
+  left: calc(var(--safe-l) + var(--rail-l) + (8 * var(--u)));
+  right: calc(var(--safe-r) + var(--rail-r) + (8 * var(--u)));
+  top: calc(8 * var(--u));
+  bottom: calc(8 * var(--u));
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/* Die Abrechnung reicht bis an den rechten Rand: Das Blatt der Phase hat dann nichts mehr zu sagen */
+.stage-centre.wide {
+  right: var(--safe-r);
+}
+
+.sheet {
+  position: relative;
+  width: min(100%, calc(396 * var(--u)));
+  max-height: 100%;
+  overflow: hidden auto;
+  padding: calc(11 * var(--u)) calc(14 * var(--u)) calc(13 * var(--u));
+  background: var(--surface);
+  background-image: var(--paper-grain);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(12 * var(--u));
+  box-shadow:
+    0 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--surface) 55%, transparent),
+    0 calc(10 * var(--u)) calc(28 * var(--u)) rgb(30 18 6 / 0.55);
+  pointer-events: auto;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  min-height: calc(21 * var(--u));
+  padding-right: calc(34 * var(--u));
+}
+
+.sheet-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  padding: calc(2 * var(--u)) calc(16 * var(--u)) calc(2 * var(--u)) calc(9 * var(--u));
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(12.5 * var(--u));
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  clip-path: polygon(0 0, 100% 0, calc(100% - (9 * var(--u))) 50%, 100% 100%, 0 100%);
+}
+
+.question-sheet {
+  display: grid;
+  gap: calc(8 * var(--u));
+}
+
+.sheet .countdown {
+  gap: 0;
+}
+
+.sheet .countdown-bar {
+  height: calc(8 * var(--u));
+  border-radius: calc(5 * var(--u));
+}
+
+.sheet .countdown-bar span::after {
+  right: calc(-4 * var(--u));
+  width: calc(11 * var(--u));
+  height: calc(11 * var(--u));
+  margin-top: calc(-5.5 * var(--u));
+}
+
+.sheet .countdown-seconds {
+  position: absolute;
+  top: calc(11 * var(--u));
+  right: calc(15 * var(--u));
+  font-weight: 800;
+  font-size: calc(19 * var(--u));
+  line-height: calc(21 * var(--u));
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-note {
+  font-size: calc(12 * var(--u));
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.sheet-prompt {
+  padding: calc(3 * var(--u)) calc(3 * var(--u)) calc(1 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(21 * var(--u));
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+.prompt-long .sheet-prompt {
+  font-size: calc(18 * var(--u));
+}
+
+.sheet-options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: calc(8 * var(--u));
+}
+
+.sheet-options .option {
+  height: 100%;
+  min-height: calc(50 * var(--u));
+  padding: calc(5 * var(--u)) calc(9 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u));
+  gap: calc(9 * var(--u));
+  font-size: calc(17 * var(--u));
+  line-height: 1.15;
+  border-radius: calc(9 * var(--u));
+  box-shadow: 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.2);
+}
+
+.sheet-options .option-key {
+  width: calc(30 * var(--u));
+  height: calc(30 * var(--u));
+  font-size: calc(15 * var(--u));
+}
+
+.sheet-options .option-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.options-mid .sheet-options .option {
+  font-size: calc(14.5 * var(--u));
+}
+
+.options-long .sheet-options .option {
+  font-size: calc(12.5 * var(--u));
+}
+
+.options-mid .sheet-options .option-key,
+.options-long .sheet-options .option-key {
+  width: calc(26 * var(--u));
+  height: calc(26 * var(--u));
+  font-size: calc(13.5 * var(--u));
+}
+
+/* Die eigene Antwort bleibt markiert, bis die Auflösung kommt */
+.sheet-options .option.chosen {
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  background: var(--map-coin);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 32%, transparent);
+  opacity: 1;
+}
+
+.sheet-options .option:disabled {
+  cursor: default;
+}
+
+.sheet-options .option:disabled:not(.chosen) {
+  opacity: 0.62;
+  box-shadow: none;
+}
+
+.estimate-entry {
+  display: flex;
+  align-items: baseline;
+  gap: calc(10 * var(--u));
+  min-height: calc(48 * var(--u));
+  padding: calc(6 * var(--u)) calc(14 * var(--u));
+  background: var(--map-coin);
+  border: calc(2 * var(--u)) solid var(--primary-edge);
+  border-radius: calc(10 * var(--u));
+  box-shadow: inset 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.25);
+}
+
+.estimate-entry.sent {
+  border-color: var(--map-gold);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 32%, transparent);
+}
+
+.estimate-value {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(29 * var(--u));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.caret {
+  display: inline-block;
+  width: calc(2 * var(--u));
+  height: 0.9em;
+  margin-left: calc(2 * var(--u));
+  vertical-align: -0.08em;
+  background: var(--text);
+}
+
+.estimate-unit {
+  font-size: calc(18 * var(--u));
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.estimate-note {
+  font-size: calc(12.5 * var(--u));
+  color: var(--muted);
+}
+
+/* Auflösung: dieselbe Karte wie die Frage, Antworten in zwei Spalten mit den Wappen daran */
+.sheet.reveal {
+  display: grid;
+  gap: calc(7 * var(--u));
+  animation: sheet-in 0.3s ease-out both;
+}
+
+.stage .reveal-verdict {
+  gap: calc(8 * var(--u));
+  padding: calc(5 * var(--u)) calc(9 * var(--u));
+  border-left-width: calc(4 * var(--u));
+  border-radius: 0 calc(8 * var(--u)) calc(8 * var(--u)) 0;
+}
+
+.stage .reveal-verdict svg {
+  width: calc(24 * var(--u));
+  height: auto;
+}
+
+.stage .reveal-headline {
+  font-size: calc(15 * var(--u));
+  line-height: 1.2;
+}
+
+.stage .reveal-reason {
+  font-size: calc(12 * var(--u));
+}
+
+.stage .reveal-prompt {
+  font-family: var(--font-display);
+  font-size: calc(16.5 * var(--u));
+  font-weight: 700;
+  line-height: 1.22;
+}
+
+.stage .reveal-solution {
+  font-size: calc(16 * var(--u));
+}
+
+.stage .reveal-options {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: calc(6 * var(--u));
+}
+
+.stage .reveal-option {
+  align-content: center;
+  gap: calc(3 * var(--u)) calc(6 * var(--u));
+  min-height: calc(40 * var(--u));
+  padding: calc(4 * var(--u)) calc(7 * var(--u));
+  font-size: calc(14 * var(--u));
+  line-height: 1.15;
+  border-radius: calc(8 * var(--u));
+}
+
+.stage .reveal-option:not(.correct, .wrong) {
+  opacity: 0.7;
+}
+
+.stage .reveal-mark {
+  width: calc(13 * var(--u));
+}
+
+.stage .reveal-option-text {
+  flex: 1 1 calc(60 * var(--u));
+}
+
+.stage .reveal-chips {
+  gap: calc(3 * var(--u));
+}
+
+.stage .reveal-ranks {
+  gap: calc(5 * var(--u));
+}
+
+.stage .reveal-rank {
+  grid-template-columns: calc(18 * var(--u)) minmax(0, 1fr) auto;
+  gap: calc(1 * var(--u)) calc(7 * var(--u));
+  padding: calc(4 * var(--u)) calc(8 * var(--u));
+  font-size: calc(14 * var(--u));
+  border-radius: calc(8 * var(--u));
+}
+
+.stage .reveal-detail,
+.stage .reveal-picks {
+  font-size: calc(11.5 * var(--u));
+}
+
+.stage .reveal-picks {
+  padding: calc(1 * var(--u)) calc(7 * var(--u));
+}
+
+.stage .reveal-silent {
+  gap: calc(4 * var(--u));
+  font-size: calc(12.5 * var(--u));
+}
+
+.stage .reveal-explanation {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.3;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+
+/* Abrechnung: links die Tabelle, rechts Ergebnis und Knöpfe */
+.sheet.result {
+  width: min(100%, calc(610 * var(--u)));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(190 * var(--u));
+  grid-template-areas:
+    'table laurel'
+    'table title'
+    'table reason'
+    'table note'
+    'table actions';
+  grid-template-rows: auto auto auto 1fr auto;
+  column-gap: calc(16 * var(--u));
+  row-gap: calc(5 * var(--u));
+  align-items: start;
+  animation: sheet-in 0.35s ease-out both;
+}
+
+.sheet.result .laurel {
+  grid-area: laurel;
+  justify-self: center;
+  width: calc(84 * var(--u));
+  height: auto;
+  margin: 0;
+}
+
+.sheet.result h1 {
+  grid-area: title;
+  font-family: var(--font-display);
+  font-size: calc(21 * var(--u));
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.sheet.result > p {
+  grid-area: reason;
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.3;
+  text-align: center;
+  color: var(--muted);
+}
+
+.sheet.result > p.muted {
+  grid-area: note;
+}
+
+.sheet.result .table-wrap {
+  grid-area: table;
+  align-self: center;
+}
+
+.sheet.result .actions {
+  grid-area: actions;
+  display: grid;
+  gap: calc(6 * var(--u));
+  margin: 0;
+}
+
+.sheet.result .sides {
+  font-size: calc(13.5 * var(--u));
+}
+
+.sheet.result .sides th,
+.sheet.result .sides td {
+  padding: calc(6 * var(--u)) calc(6 * var(--u));
+}
+
+.sheet.result .sides thead th {
+  font-size: calc(11.5 * var(--u));
+}
+
+.sheet.result .who {
+  gap: calc(6 * var(--u));
+}
+
+.sheet.result .who svg {
+  width: calc(21 * var(--u));
+  height: auto;
+}
+
+.sheet.result .place {
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
+  font-size: calc(12.5 * var(--u));
+}
+
+/* Hinweis, wenn die Abfrage scheitert: oben in der Mitte */
+.stage-toast {
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  top: calc(8 * var(--u));
+  width: min(92%, calc(330 * var(--u)));
+  transform: translateX(-50%);
+}
+
+.stage-toast .note {
+  margin: 0;
+  padding: calc(7 * var(--u)) calc(10 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  box-shadow: 0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
+}
+
+/* ---------- Vor und nach dem Spiel: Aufstellung, Abbruch, Laden ---------- */
+
+.stage-plain .stage-centre {
+  left: var(--safe-l);
+  right: var(--safe-r);
+}
+
+.stage-plain .hero-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.sheet.lobby {
+  width: min(100%, calc(640 * var(--u)));
+  max-width: none;
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(232 * var(--u));
+  gap: calc(16 * var(--u));
+  padding: calc(12 * var(--u)) calc(16 * var(--u)) calc(13 * var(--u));
+}
+
+.lobby-main,
+.lobby-side {
+  display: flex;
+  flex-direction: column;
+  gap: calc(7 * var(--u));
+  min-width: 0;
+}
+
+.lobby-side {
+  padding-left: calc(15 * var(--u));
+  border-left: 1px solid var(--border);
+}
+
+.sheet.lobby h2 {
+  font-family: var(--font-display);
+  font-size: calc(21 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sheet.lobby .lobby-seats {
+  display: grid;
+  gap: calc(5 * var(--u));
+  margin: 0;
+}
+
+.sheet.lobby .lobby-seat {
+  min-height: calc(38 * var(--u));
+  gap: calc(8 * var(--u));
+  padding: calc(3 * var(--u)) calc(8 * var(--u));
+  font-size: calc(14 * var(--u));
+  border-radius: calc(8 * var(--u));
+}
+
+.sheet.lobby .player-shield {
+  width: calc(24 * var(--u));
+  height: auto;
+}
+
+.sheet.lobby .badge {
+  font-size: calc(11 * var(--u));
+  padding: calc(1 * var(--u)) calc(7 * var(--u));
+}
+
+.sheet.lobby .lobby-bot-controls {
+  gap: calc(5 * var(--u));
+}
+
+.sheet.lobby .lobby-bot-controls select {
+  min-height: calc(32 * var(--u));
+  padding: calc(2 * var(--u)) calc(6 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  border-radius: calc(7 * var(--u));
+}
+
+.lobby-notes {
+  display: grid;
+  gap: calc(3 * var(--u));
+  margin-top: auto;
+  font-size: calc(11.5 * var(--u));
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.sheet.lobby .invite {
+  gap: calc(5 * var(--u));
+  padding: 0;
+  justify-items: stretch;
+  text-align: center;
+  font-size: calc(12 * var(--u));
+}
+
+.sheet.lobby .invite-code {
+  justify-content: center;
+  gap: calc(4 * var(--u));
+}
+
+.sheet.lobby .invite-tile {
+  width: calc(29 * var(--u));
+  height: calc(35 * var(--u));
+  font-size: calc(20 * var(--u));
+  border-radius: calc(6 * var(--u));
+}
+
+.sheet.lobby .invite p {
+  font-size: calc(11.5 * var(--u));
+  line-height: 1.3;
+}
+
+.sheet.lobby .invite-link {
+  font-size: calc(11.5 * var(--u));
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.lobby-go {
+  display: grid;
+  gap: calc(5 * var(--u));
+  margin-top: auto;
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.3;
+}
+
+.lobby-go .actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(6 * var(--u));
+  margin: 0;
+}
+
+.sheet.lobby .note {
+  margin: 0;
+  padding: calc(6 * var(--u)) calc(8 * var(--u));
+  font-size: calc(12.5 * var(--u));
+}
+
+.sheet.lobby .button-quiet,
+.sheet.lobby .link {
+  min-height: calc(30 * var(--u));
+  padding: calc(2 * var(--u)) calc(8 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  text-align: center;
+}
+
+.sheet.plain-sheet {
+  width: min(100%, calc(360 * var(--u)));
+  display: grid;
+  gap: calc(9 * var(--u));
+  justify-items: center;
+  padding: calc(18 * var(--u)) calc(20 * var(--u));
+  text-align: center;
+}
+
+.sheet.plain-sheet h2 {
+  font-family: var(--font-display);
+  font-size: calc(21 * var(--u));
+  font-weight: 800;
+}
+
+/* ---------- Hochformat am Handy: nur der Hinweis, das Handy zu drehen ---------- */
+
+.rotate-hint {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 600px) {
+  html.match-playing {
+    --u: 1px;
+  }
+
+  .stage > :not(.stage-map, .rotate-hint) {
+    display: none;
+  }
+
+  .rotate-hint {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: color-mix(in srgb, var(--map-veil) 30%, transparent);
+  }
+
+  .rotate-hint .sheet {
+    width: min(100%, 340px);
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: 24px 22px 26px;
+    text-align: center;
+  }
+
+  .rotate-hint h2 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .rotate-hint p {
+    font-size: 16px;
+    line-height: 1.35;
+    color: var(--muted);
+  }
+
+  .rotate-hint .rotate-lock {
+    font-size: 14px;
+  }
+}
+
+.rotate-art {
+  width: 112px;
+  height: 112px;
+}
+
+.rotate-art .phone {
+  fill: var(--map-coin);
+  stroke: var(--map-ink);
+  stroke-width: 4;
+}
+
+.rotate-art .phone-from {
+  fill: none;
+  stroke-dasharray: 5 6;
+  opacity: 0.55;
+}
+
+.rotate-art .rotate-arrow {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/*
+ * Während einer Frage bewegt sich auf der Karte nichts (ARCHITECTURE §15): Änderungen springen
+ * auf ihr Endbild, Dauerbewegungen stehen still. Die Animationen werden dafür nicht abgeschaltet,
+ * sondern auf einen Durchlauf ohne Dauer gestellt: `animation: none` ließe sie nach der Frage alle
+ * neu anlaufen, und die ganze Karte färbte sich unter dem Ausgang des Duells noch einmal ein.
+ */
+.stage[data-state='question'] .map-art *,
+.stage[data-state='presenting'] .map-art *,
+.stage[data-state='answered'] .map-art *,
+.stage[data-state='missed'] .map-art * {
+  animation-duration: 1ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-banner {
+    display: none;
+  }
+}
