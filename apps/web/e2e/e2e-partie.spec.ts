@@ -82,14 +82,18 @@ async function answerRight(page: Page, matchId: string, seq: number): Promise<bo
   );
 }
 
-/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053). */
+/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054). */
 interface Shown {
-  readonly state: 'announce' | 'reveal';
+  /** `outcome`: erster Takt der Auflösung eines Duells, die Karte zeigt den Ausgang. */
+  readonly state: 'announce' | 'outcome' | 'reveal';
   readonly text: string;
   /** Ansage eines Duells (sonst: eine gezeigte Wahl). */
   readonly duel: boolean;
-  /** Hervorhebung auf der Karte: Ring um die gewählte Region oder Angriffspfeil. */
+  /** Hervorhebung auf der Karte: Ring um die gewählte Region. */
   readonly ring: boolean;
+  /** Szene des Duells auf der Karte, falls eines steht. */
+  readonly scene: string | null;
+  /** Aufstellung auf der Karte: Wappen des Angreifers und Pfeil zum Ziel. */
   readonly arrow: boolean;
   /** Plättchen mit Wappen: an den Antworten der Auflösung oder in der Ansage. */
   readonly chips: number;
@@ -112,16 +116,24 @@ async function recordShown(page: Page): Promise<void> {
         .querySelector('[data-testid="match-screen"]')
         ?.getAttribute('data-state');
       if (state !== 'announce' && state !== 'reveal') return;
-      const card = document.querySelector(
-        state === 'announce' ? '[data-testid="match-announce"]' : '[data-testid="match-reveal"]',
-      );
+      const outcome =
+        state === 'reveal' ? document.querySelector('[data-testid="match-outcome"]') : null;
+      const card =
+        outcome ??
+        document.querySelector(
+          state === 'announce' ? '[data-testid="match-announce"]' : '[data-testid="match-reveal"]',
+        );
       if (!card) return;
       const entry: Shown = {
-        state,
+        state: outcome ? 'outcome' : state,
         text: card.textContent ?? '',
         duel: card.classList.contains('announce-duel'),
         ring: document.querySelector('.spot-ring') !== null,
-        arrow: document.querySelector('.attack-arrow') !== null,
+        scene:
+          document.querySelector('[data-testid="match-board"]')?.getAttribute('data-duel') ?? null,
+        arrow:
+          document.querySelector('.duel-stage .duel-token.attacker') !== null &&
+          document.querySelector('.duel-stage .duel-arrow') !== null,
         chips: card.querySelectorAll('.seat-chip').length,
         turnBanner: document.querySelector('.turn-banner.moment-gold') !== null,
         correctOption: card.querySelector('.reveal-option.correct') !== null,
@@ -239,7 +251,7 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   expect(played.reveals).toBeGreaterThan(0);
 
   // Ansagen (ADR-053): Die Wahl eines Bots bleibt mit einem Ring auf der Karte stehen; vor jedem
-  // Duell steht, wer wen wo angreift, und der Pfeil zeigt es auf der Karte
+  // Duell steht, wer wen wo angreift, und auf der Karte stehen Wappen und Pfeil (ADR-054)
   const shown = await shownBy(page);
   const picksShown = shown.filter((s) => s.state === 'announce' && !s.duel);
   expect(picksShown.length).toBeGreaterThan(3);
@@ -252,7 +264,16 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   for (const duel of duels) {
     expect(duel.text).toMatch(/(angegriffen!|Angriff auf )/);
     expect(duel.text).toMatch(/ greift .+ an\./);
-    expect(duel).toMatchObject({ arrow: true, ring: false, chips: 2 });
+    expect(duel).toMatchObject({ scene: 'announce', arrow: true, ring: false, chips: 2 });
+  }
+  // Ausgang (ADR-054): Erst zeigt die Karte, wie das Duell ausging, mit einem Satz in der Leiste;
+  // danach folgen die Antworten
+  const outcomes = shown.filter((s) => s.state === 'outcome');
+  expect(outcomes.length).toBeGreaterThan(0);
+  for (const outcome of outcomes) {
+    expect(outcome.scene).toBe('outcome');
+    expect(outcome.text).toMatch(/(erober|verlierst|triff|getroffen|nimm|fällt|scheitert|hält)/);
+    expect(shown[shown.indexOf(outcome) + 1]).toMatchObject({ state: 'reveal', scene: 'settled' });
   }
   // Auflösungen: Jeder Sitz der Frage steht mit seinem Wappen an seiner Antwort
   const reveals = shown.filter((s) => s.state === 'reveal');

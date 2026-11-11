@@ -480,6 +480,27 @@ export const de = {
       verbTail: 'an',
       next: 'Gleich geht es weiter.',
     },
+    /** Ausgang eines Duells in einem Satz, aus der Sicht des Angreifers, des Verteidigers, anderer. */
+    outcome: {
+      attacker: {
+        CONQUERED: 'Du eroberst {region}!',
+        CAPITAL_HIT: 'Du triffst die Hauptstadt {region}!',
+        TAKEOVER: 'Du nimmst die Hauptstadt {region} ein!',
+        FORTIFIED: 'Dein Angriff auf {region} scheitert.',
+      },
+      defender: {
+        CONQUERED: 'Du verlierst {region}.',
+        CAPITAL_HIT: 'Deine Hauptstadt {region} wird getroffen!',
+        TAKEOVER: 'Deine Hauptstadt {region} fällt.',
+        FORTIFIED: 'Du hältst {region}!',
+      },
+      other: {
+        CONQUERED: '{attacker} erobert {region}.',
+        CAPITAL_HIT: '{attacker} trifft die Hauptstadt {region}.',
+        TAKEOVER: '{attacker} nimmt die Hauptstadt {region} ein.',
+        FORTIFIED: '{defender} hält {region}.',
+      },
+    },
     reveal: {
       title: 'Auflösung',
       solution: 'Richtige Antwort: {answer}',
