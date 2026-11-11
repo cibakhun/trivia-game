@@ -691,11 +691,13 @@ function nextAttack(
   queue: readonly number[],
   events: RealmEvent[],
 ): RealmResult {
-  if (realmAliveSeats(state).length <= 1) return finish(state, 'LAST_KINGDOM', round, events);
+  if (realmAliveSeats(state).length <= 1) {
+    return finish(state, 'LAST_KINGDOM', round, attackers, events);
+  }
   const [attacker, ...rest] = queue.filter((seat) => isRealmSeatAlive(state, seat));
   if (attacker === undefined) {
     if (round >= state.rules.campaign.rounds) {
-      return finish(state, 'ROUNDS_COMPLETE', round, events);
+      return finish(state, 'ROUNDS_COMPLETE', round, attackers, events);
     }
     return startCampaignRound(state, round + 1, events);
   }
@@ -837,9 +839,13 @@ function finish(
   state: RealmState,
   reason: MatchFinishReason,
   round: number,
+  attackers: readonly number[],
   events: RealmEvent[],
 ): RealmResult {
-  const done: RealmState = { ...state, step: { kind: 'FINISHED', reason, round } };
+  const done: RealmState = {
+    ...state,
+    step: { kind: 'FINISHED', reason, round, attackers: [...attackers] },
+  };
   return {
     ok: true,
     state: done,

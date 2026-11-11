@@ -3,13 +3,13 @@ import type { FastifyBaseLogger } from 'fastify';
 import { sql } from 'kysely';
 import { readGameNow } from '../../infra/clock.ts';
 import type { MatchContext } from './context.ts';
-import { MatchRun } from './engine.ts';
 import { expireLobbies } from './lobby.ts';
+import { openRun } from './runs.ts';
 import { loadMatch, loadPlayers } from './store.ts';
 
 /**
  * Ablaufsteuerung der Partien (ADR-049): arbeitet fällige Fristen laufender Partien ab (Wahl nach
- * Zeitablauf, Auflösung, Ende der Anzeige) und lässt verwaiste Aufstellungen verfallen. Bis zum
+ * Zeitablauf, Auflösung, Ende der Anzeige, Ende der Rüstzeit) und lässt verwaiste Aufstellungen verfallen. Bis zum
  * Worker-Prozess läuft sie im api-Prozess, etwa zweimal je Sekunde; Lesen und Antworten holen
  * fällige Schritte zusätzlich sofort nach. Alles steht in der Datenbank, ein Neustart verliert
  * nichts: Nach dem Hochfahren arbeitet der erste Lauf auf, was in der Zwischenzeit fällig wurde.
@@ -40,7 +40,7 @@ export async function advanceMatch(
     ) {
       return 'NOT_DUE';
     }
-    const run = new MatchRun(tx, ctx, match, await loadPlayers(tx, matchId), now);
+    const run = openRun(tx, ctx, match, await loadPlayers(tx, matchId), now);
     await run.advanceDue();
     await run.commit();
     return 'ADVANCED';
@@ -116,7 +116,7 @@ async function abandonBroken(db: Db, ctx: MatchContext, matchId: string): Promis
   await db.transaction().execute(async (tx) => {
     const match = await loadMatch(tx, matchId, { lock: 'UPDATE' });
     if (match?.status !== 'RUNNING') return;
-    const run = new MatchRun(tx, ctx, match, await loadPlayers(tx, matchId), await readGameNow(tx));
+    const run = openRun(tx, ctx, match, await loadPlayers(tx, matchId), await readGameNow(tx));
     run.abandon('INTERNAL_ERROR');
     await run.commit();
   });

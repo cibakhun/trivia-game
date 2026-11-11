@@ -2,7 +2,9 @@ import {
   entityIdSchema,
   matchAnswerRequestSchema,
   matchCreateRequestSchema,
+  matchFavoritesRequestSchema,
   matchJoinRequestSchema,
+  matchOrdersRequestSchema,
   matchPickRequestSchema,
   matchSeatBotRequestSchema,
   type MatchActionResponse,
@@ -21,21 +23,23 @@ import { parseInput } from '../../infra/validation.ts';
 import { requireAuth } from '../identity/auth-hook.ts';
 import { answerMatchQuestion, presentMatchQuestion } from './answers.ts';
 import { matchContextFrom } from './context.ts';
-import { lockMatchFor } from './engine.ts';
 import {
   createLobby,
   expireLobbies,
   joinLobby,
   leaveLobby,
+  setFavorites,
   setSeatBot,
   startLobby,
 } from './lobby.ts';
+import { lockMatchFor } from './runs.ts';
 import { listMatches, matchView } from './view.ts';
 
 /**
  * Partie (API.md §2.6): anlegen, beitreten, Plätze mit Bots besetzen, verlassen, starten, lesen,
- * wählen, Frage abholen, antworten. Zustandsändernde Anfragen außer `present` brauchen einen Idempotency-Key; `present`
- * liefert bei Wiederholung dieselbe Frage mit derselben Frist.
+ * wählen, Frage abholen, antworten; mit Ausbau außerdem Lieblingskategorien wählen und die Befehle
+ * der Rüstzeit abgeben. Zustandsändernde Anfragen außer `present` brauchen einen Idempotency-Key;
+ * `present` liefert bei Wiederholung dieselbe Frage mit derselben Frist.
  */
 
 const matchParams = z.object({ matchId: entityIdSchema });
@@ -138,6 +142,31 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
     return send(reply, outcome);
   });
 
+  app.post('/matches/:matchId/favorites', async (request, reply) => {
+    const auth = requireAuth(request);
+    const { matchId } = parseInput(matchParams, request.params);
+    const body = parseInput(matchFavoritesRequestSchema, request.body);
+    const key = idempotencyKey(request);
+    const outcome = await runIdempotent(
+      ctx.db,
+      {
+        userId: auth.userId,
+        key,
+        endpoint: 'POST /matches/:matchId/favorites',
+        input: { matchId, ...body },
+      },
+      async (tx) => {
+        await setFavorites(tx, match, {
+          userId: auth.userId,
+          matchId,
+          categories: body.categories,
+        });
+        return { status: 200, body: await action(tx, matchId) };
+      },
+    );
+    return send(reply, outcome);
+  });
+
   app.post('/matches/:matchId/start', async (request, reply) => {
     const auth = requireAuth(request);
     const { matchId } = parseInput(matchParams, request.params);
@@ -178,6 +207,34 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
         // Abgelaufene Wahl: Der Server hat schon gewählt, die Anfrage kommt zu spät
         await run.advanceDue();
         await run.humanPick(auth.userId, body.region);
+        await run.commit();
+        return {
+          status: 200,
+          body: { matchId, serverTime: run.now.toISOString() } satisfies MatchActionResponse,
+        };
+      },
+    );
+    return send(reply, outcome);
+  });
+
+  app.post('/matches/:matchId/orders', async (request, reply) => {
+    const auth = requireAuth(request);
+    const { matchId } = parseInput(matchParams, request.params);
+    const body = parseInput(matchOrdersRequestSchema, request.body);
+    const key = idempotencyKey(request);
+    const outcome = await runIdempotent(
+      ctx.db,
+      {
+        userId: auth.userId,
+        key,
+        endpoint: 'POST /matches/:matchId/orders',
+        input: { matchId, ...body },
+      },
+      async (tx) => {
+        const run = await lockMatchFor(tx, match, matchId, auth.userId);
+        // Abgelaufene Rüstzeit: Es ist schon aufgedeckt, die Befehle kommen zu spät
+        await run.advanceDue();
+        await run.submitOrders(auth.userId, body.orders);
         await run.commit();
         return {
           status: 200,

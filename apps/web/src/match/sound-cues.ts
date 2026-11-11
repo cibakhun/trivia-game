@@ -69,6 +69,18 @@ export function cuesFor(
       case 'LAND_RANKED':
       case 'TARGET_CHOSEN':
         break;
+      // Partie mit Ausbau (MATCH_RULES §11): Töne kommen mit ihrer Ansicht im nächsten Schritt
+      case 'START_RANKED':
+      case 'CASTLE_CHOSEN':
+      case 'VILLAGE_CHOSEN':
+      case 'INCOME':
+      case 'ORDERS_SUBMITTED':
+      case 'PREPARE_CLOSED':
+      case 'ORDERS_REVEALED':
+      case 'WHEEL_SPUN':
+      case 'REALM_DUEL_RESOLVED':
+      case 'REALM_MATCH_FINISHED':
+        break;
     }
   }
   if (next.state === 'finished' && before.state !== 'finished') {

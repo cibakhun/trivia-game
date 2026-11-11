@@ -1,7 +1,16 @@
 import { z } from 'zod';
 import { entityIdSchema, timestampSchema } from './api.ts';
 import { answerRequestSchema } from './combat.ts';
-import { questionKindSchema } from './question.ts';
+import {
+  MAX_REALM_ORDERS,
+  matchModeSchema,
+  realmBuildingSchema,
+  realmOrderSchema,
+  realmStepKindSchema,
+  realmWheelSchema,
+} from './match-realm.ts';
+import { matchEconomySchema } from './match-rules.ts';
+import { QUESTION_CATEGORIES, questionCategorySchema, questionKindSchema } from './question.ts';
 
 /**
  * Rundenbasierte Partie über HTTP (docs/API.md §2.6, docs/MATCH_RULES.md, ADR-049). Bis zur
@@ -17,8 +26,11 @@ export const MATCH_STATUSES = ['LOBBY', 'RUNNING', 'FINISHED', 'ABANDONED'] as c
 export const matchStatusSchema = z.enum(MATCH_STATUSES);
 export type MatchStatus = z.infer<typeof matchStatusSchema>;
 
-/** Worauf eine laufende Partie wartet: eine Wahl, Antworten auf eine Frage, das Ende der Auflösung. */
-export const MATCH_PHASES = ['PICK', 'QUESTION', 'REVEAL', 'ANNOUNCE'] as const;
+/**
+ * Worauf eine laufende Partie wartet: eine Wahl, Antworten auf eine Frage, das Ende der Auflösung
+ * oder einer Ansage; in der Partie mit Ausbau auch auf die Befehle der Rüstzeit (`PREPARE`).
+ */
+export const MATCH_PHASES = ['PICK', 'QUESTION', 'REVEAL', 'ANNOUNCE', 'PREPARE'] as const;
 export const matchPhaseSchema = z.enum(MATCH_PHASES);
 export type MatchPhaseKind = z.infer<typeof matchPhaseSchema>;
 
@@ -65,17 +77,23 @@ export const matchRegionIndexSchema = z.number().int().min(0).max(63);
  * `POST /matches`: normale Partie (Mitspieler über den Einladungscode, freie Plätze auf Wunsch
  * mit Bots, ADR-052) oder Testpartie, in der Bots die freien Plätze von selbst füllen (nicht in
  * Produktion, ADR-048). `botStrengths` nennt die Stärke je freiem Platz, wenn niemand beitritt
- * (Länge = Plätze − 1); treten Menschen bei, entfallen Bots von hinten.
+ * (Länge = Plätze − 1); treten Menschen bei, entfallen Bots von hinten. `mode: "REALM"` spielt die
+ * Partie mit Ausbau (MATCH_RULES §11), solange der Server sie anbietet (`realmMatchesEnabled`).
  */
 export const matchCreateRequestSchema = z
   .discriminatedUnion('kind', [
     z
-      .object({ kind: z.literal('STANDARD'), rules: matchRulesPresetSchema.default('DEFAULT') })
+      .object({
+        kind: z.literal('STANDARD'),
+        rules: matchRulesPresetSchema.default('DEFAULT'),
+        mode: matchModeSchema.default('CLASSIC'),
+      })
       .strict(),
     z
       .object({
         kind: z.literal('TEST'),
         rules: matchRulesPresetSchema.default('DEFAULT'),
+        mode: matchModeSchema.default('CLASSIC'),
         seats: z.union([z.literal(2), z.literal(3)]),
         botStrengths: z.array(matchBotStrengthSchema).min(1).max(2),
       })
@@ -106,6 +124,36 @@ export const matchSeatBotRequestSchema = z
   .strict();
 export type MatchSeatBotRequest = z.infer<typeof matchSeatBotRequestSchema>;
 
+/**
+ * `POST /matches/:matchId/favorites`: eigene Lieblingskategorien in der Aufstellung einer Partie
+ * mit Ausbau (MATCH_RULES §11.1). Genau `realm.favoritesCount` verschiedene aus `realm.categories`;
+ * das Konto merkt sie sich für die nächste Partie.
+ */
+export const matchFavoritesRequestSchema = z
+  .object({
+    categories: z.array(questionCategorySchema).min(1).max(QUESTION_CATEGORIES.length),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (new Set(value.categories).size !== value.categories.length) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['categories'],
+        message: 'Jede Kategorie höchstens einmal',
+      });
+    }
+  });
+export type MatchFavoritesRequest = z.infer<typeof matchFavoritesRequestSchema>;
+
+/**
+ * `POST /matches/:matchId/orders`: Befehle der Rüstzeit abgeben und damit fertig sein (MATCH_RULES
+ * §11.4). Eine leere Liste heißt: in dieser Runde nichts tun.
+ */
+export const matchOrdersRequestSchema = z
+  .object({ orders: z.array(realmOrderSchema).max(MAX_REALM_ORDERS) })
+  .strict();
+export type MatchOrdersRequest = z.infer<typeof matchOrdersRequestSchema>;
+
 /** `POST /matches/:matchId/pick`: Hauptstadt, Region der Landnahme oder Angriffsziel. */
 export const matchPickRequestSchema = z.object({ region: matchRegionIndexSchema }).strict();
 export type MatchPickRequest = z.infer<typeof matchPickRequestSchema>;
@@ -128,6 +176,11 @@ export const matchPlayerSchema = z
     botStrength: matchBotStrengthSchema.nullable(),
     isHost: z.boolean(),
     isMe: z.boolean(),
+    /**
+     * Lieblingskategorien in der Partie mit Ausbau; `null` ohne Ausbau und solange in der
+     * Aufstellung nichts gewählt ist (beim Start bekommt dieser Platz dann zufällige).
+     */
+    favorites: z.array(questionCategorySchema).nullable(),
   })
   .strict();
 export type MatchPlayer = z.infer<typeof matchPlayerSchema>;
@@ -192,7 +245,108 @@ export const matchBoardSchema = z
   .strict();
 export type MatchBoard = z.infer<typeof matchBoardSchema>;
 
-export const MATCH_QUESTION_PURPOSES = ['LAND', 'DUEL_TRIVIA', 'DUEL_ESTIMATE'] as const;
+// ---------------------------------------------------------------------------------------------
+// Ansicht der Partie mit Ausbau (MATCH_RULES §11)
+// ---------------------------------------------------------------------------------------------
+
+const amountSchema = z.number().int().min(0);
+
+export const realmRegionStateSchema = z
+  .object({
+    owner: seatSchema.nullable(),
+    value: amountSchema,
+    fortifications: amountSchema,
+    building: realmBuildingSchema,
+    /** Verbliebene Leben der Burg auf diesem Feld; 0 ohne Burg. */
+    castleLivesLeft: amountSchema,
+    /** Sitz, dessen Startburg hier steht. */
+    startCastleOf: seatSchema.nullable(),
+    /** Armeen des Besitzers auf diesem Feld. */
+    armies: amountSchema,
+  })
+  .strict();
+
+export const realmSeatStateSchema = z
+  .object({
+    seat: seatSchema,
+    favorites: z.array(questionCategorySchema),
+    bread: amountSchema,
+    material: amountSchema,
+    /** Einkommen der nächsten Feldzugrunde nach heutigem Stand. */
+    income: z.object({ bread: amountSchema, material: amountSchema }).strict(),
+    startCastle: matchRegionIndexSchema.nullable(),
+    castles: amountSchema,
+    /** Verbliebene Leben aller eigenen Burgen. */
+    castleLivesLeft: amountSchema,
+    eliminated: z.boolean(),
+    points: amountSchema,
+    regions: amountSchema,
+  })
+  .strict();
+
+/** Aktueller Schritt der Partie mit Ausbau; Felder je nach Schritt, sonst `null`. */
+export const realmStepSchema = z
+  .object({
+    kind: realmStepKindSchema,
+    round: z.number().int().min(1).nullable(),
+    /** Wer jetzt wählt (Burg, Startdorf, Landnahme, Angriffsziel). */
+    chooser: seatSchema.nullable(),
+    attacker: seatSchema.nullable(),
+    defender: seatSchema.nullable(),
+    region: matchRegionIndexSchema.nullable(),
+    /** Kategorie, auf der das Glücksrad des laufenden Duells stehen blieb. */
+    category: questionCategorySchema.nullable(),
+    wheel: realmWheelSchema.nullable(),
+    finishReason: z.enum(['ROUNDS_COMPLETE', 'LAST_KINGDOM']).nullable(),
+  })
+  .strict();
+export type RealmStepView = z.infer<typeof realmStepSchema>;
+
+/**
+ * Karte der Partie mit Ausbau. Vorräte, Gebäude und Armeen sind für alle sichtbar; verdeckt sind
+ * nur die Befehle der laufenden Rüstzeit. In der Rüstzeit zeigt `turns`, wer schon fertig ist.
+ */
+export const realmBoardSchema = z
+  .object({
+    map: z.string().min(1),
+    regions: z.array(realmRegionStateSchema),
+    seats: z.array(realmSeatStateSchema),
+    /** Reihenfolge aus der Startfrage; leer, bis sie aufgelöst ist. */
+    order: z.array(seatSchema),
+    step: realmStepSchema,
+    turns: z.array(matchTurnSchema),
+    questions: amountSchema,
+    duels: amountSchema,
+  })
+  .strict();
+export type RealmBoard = z.infer<typeof realmBoardSchema>;
+
+/** Alles zur Partie mit Ausbau; in der Ansicht `null`, wenn die Partie ohne Ausbau läuft. */
+export const matchRealmViewSchema = z
+  .object({
+    /**
+     * Kategorien des Glücksrads, nur aus ihnen wählt man Lieblingskategorien: in der Aufstellung
+     * die, die gerade genug Wissensfragen haben, ab dem Start die der Partie.
+     */
+    categories: z.array(questionCategorySchema),
+    /** So viele Lieblingskategorien wählt jeder (`economy.favorites`). */
+    favoritesCount: z.number().int().min(1),
+    campaignRounds: z.number().int().min(1),
+    /** Preise, Erträge, Lose und Zeiten des Ausbaus (`rules.economy`). */
+    economy: matchEconomySchema,
+    /** Vor dem Start `null`. */
+    board: realmBoardSchema.nullable(),
+    /**
+     * Eigene Befehle der laufenden Rüstzeit, sobald sie abgegeben sind; sonst `null`. Befehle
+     * anderer stehen erst nach dem Aufdecken in `ORDERS_REVEALED`.
+     */
+    myOrders: z.array(realmOrderSchema).nullable(),
+  })
+  .strict();
+export type MatchRealmView = z.infer<typeof matchRealmViewSchema>;
+
+/** `START` ist die Startfrage der Partie mit Ausbau (MATCH_RULES §11.1). */
+export const MATCH_QUESTION_PURPOSES = ['LAND', 'DUEL_TRIVIA', 'DUEL_ESTIMATE', 'START'] as const;
 export const MATCH_ANSWER_STATUSES = [
   'NOT_PARTICIPATING',
   'NOT_PRESENTED',
@@ -244,6 +398,7 @@ export const matchViewSchema = z
       .object({
         id: entityIdSchema,
         kind: matchKindSchema,
+        mode: matchModeSchema,
         status: matchStatusSchema,
         /** Nur in der Aufstellung. */
         inviteCode: z.string().nullable(),
@@ -259,7 +414,9 @@ export const matchViewSchema = z
     players: z.array(matchPlayerSchema),
     mySeat: seatSchema.nullable(),
     isHost: z.boolean(),
+    /** Karte der Partie ohne Ausbau; mit Ausbau `null`, die Karte steht dann in `realm.board`. */
     board: matchBoardSchema.nullable(),
+    realm: matchRealmViewSchema.nullable(),
     phase: z
       .object({
         kind: matchPhaseSchema,
@@ -283,6 +440,7 @@ export const matchSummarySchema = z
   .object({
     id: entityIdSchema,
     kind: matchKindSchema,
+    mode: matchModeSchema,
     status: matchStatusSchema,
     inviteCode: z.string().nullable(),
     players: z.number().int().min(1).max(3),
@@ -294,7 +452,12 @@ export type MatchSummary = z.infer<typeof matchSummarySchema>;
 
 /** `GET /matches`: offene Partien des Kontos und die letzten beendeten. */
 export const matchListResponseSchema = z
-  .object({ matches: z.array(matchSummarySchema), testMatchesEnabled: z.boolean() })
+  .object({
+    matches: z.array(matchSummarySchema),
+    testMatchesEnabled: z.boolean(),
+    /** Ob dieser Server Partien mit Ausbau anlegt (`mode: "REALM"`). */
+    realmMatchesEnabled: z.boolean(),
+  })
   .strict();
 export type MatchListResponse = z.infer<typeof matchListResponseSchema>;
 
@@ -347,7 +510,7 @@ export const matchAnswerResponseSchema = z
   .strict();
 export type MatchAnswerResponse = z.infer<typeof matchAnswerResponseSchema>;
 
-/** Antwort auf Anlegen, Beitreten, Starten und Wählen: die ID; den Stand liefert `GET`. */
+/** Antwort auf Anlegen, Beitreten, Starten, Wählen und Befehle: die ID; den Stand liefert `GET`. */
 export const matchActionResponseSchema = z
   .object({ matchId: entityIdSchema, serverTime: timestampSchema })
   .strict();

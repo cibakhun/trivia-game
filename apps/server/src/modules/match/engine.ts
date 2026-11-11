@@ -1,41 +1,36 @@
 import { newId, type Tx } from '@rdw/db';
 import {
   absDecimal,
-  applyMatchInput,
-  autoPickRegion,
-  chooseRegionForBot,
   createRng,
-  currentChooser,
   deriveSeed,
   difficultyToB,
   formatDecimal,
   generateNpcEstimate,
   generateNpcTrivia,
-  MATCH_BOT_PROFILES,
-  matchStandings,
   parseDecimal,
-  pendingQuestion,
   pickQuestion,
   RNG_VERSION,
   subtractDecimal,
+  type MatchBotStrength,
   type MatchEstimateAnswer,
-  type MatchEvent,
-  type MatchInput,
-  type MatchState,
+  type NpcProfile,
   type QuestionCandidate,
   type Rng,
 } from '@rdw/game-core';
-import type { QuestionKind } from '@rdw/protocol';
+import type {
+  MatchRules,
+  QuestionCategory,
+  QuestionKind,
+  RealmOrderDto,
+  MATCH_QUESTION_PURPOSES,
+} from '@rdw/protocol';
 import { randomInt } from 'node:crypto';
 import { sql } from 'kysely';
-import { readGameNow } from '../../infra/clock.ts';
 import { randomToken } from '../../infra/crypto.ts';
 import { ApiError } from '../../infra/errors.ts';
 import { loadCandidates, loadQuestionContent, type QuestionContent } from '../quiz/questions.ts';
 import {
   appendMatchEvents,
-  loadMatch,
-  loadPlayers,
   saveMatch,
   type MatchEventInput,
   type MatchPlayerRow,
@@ -43,10 +38,12 @@ import {
 } from './store.ts';
 
 /**
- * Ablauf einer laufenden Partie (MATCH_RULES §3–§5, ADR-049). Die Regeln stehen in der
- * Zustandsmaschine aus game-core; hier kommen Zeit, Fragen, Bots und Speicherung dazu:
+ * Ablauf einer laufenden Partie (MATCH_RULES §3–§5 und §11, ADR-049, ADR-058). Die Regeln stehen
+ * in der Zustandsmaschine aus game-core; hier kommen Zeit, Fragen, Bots und Speicherung dazu.
+ * `MatchRun` ist der gemeinsame Teil beider Spielarten; was vom Schritt der Zustandsmaschine
+ * abhängt, liegt in `ClassicRun` (`classic-run.ts`) und `RealmRun` (`realm-run.ts`, mit Ausbau).
  *
- * - **PICK:** ein Mensch wählt bis zur Frist, sonst wählt der Server zufällig (`autoPickRegion`).
+ * - **PICK:** ein Mensch wählt bis zur Frist, sonst wählt der Server zufällig.
  *   Bots wählen sofort; ihre Wahl bleibt danach kurz stehen (ANNOUNCE).
  * - **ANNOUNCE:** Ansage ohne Eingabe (ADR-053): Die Karte zeigt, was zuletzt gewählt wurde oder
  *   wer wen wo angreift; nach der Frist geht es weiter. Vor jedem Duell und nach jeder Wahl, außer
@@ -54,6 +51,8 @@ import {
  * - **QUESTION:** eine Frage an die Sitze des Schritts; aufgelöst wird, sobald alle Menschen
  *   geantwortet haben oder die Frage schließt. Bot-Antworten stehen beim Öffnen fest.
  * - **REVEAL:** die Auflösung bleibt `revealMs` stehen, dann folgt der nächste Schritt.
+ * - **PREPARE** (nur mit Ausbau): Rüstzeit; alle Menschen geben verdeckt Befehle, bis alle fertig
+ *   sind oder die Frist abläuft.
  *
  * Alles läuft in der Transaktion des Aufrufers, der die Sperre auf die Partie hält. Ein Neustart
  * verliert nichts: Phase und Frist stehen in der Zeile, die Ablaufsteuerung macht dort weiter.
@@ -65,6 +64,9 @@ export interface MatchEngineContext {
   /** Testfragen erlaubt (nur local und test, ADR-021). */
   readonly allowFixtures: boolean;
 }
+
+/** Spielzeit und Zufall je Zweck im Strom `match` der Partie. */
+export type MatchDrawLabel = 'auto' | 'bot' | 'orders' | 'wheel';
 
 /** Zeit, die ein Client nach dem Öffnen einer Frage zum Abholen hat, ohne Zeit zu verlieren [E]. */
 export const PRESENT_GRACE_MS = 2_000;
@@ -88,7 +90,25 @@ export function botName(strength: keyof typeof BOT_NAMES, number?: number): stri
   return `Bot${number === undefined ? '' : ` ${number}`} (${BOT_NAMES[strength]})`;
 }
 
-export type QuestionPurpose = 'LAND' | 'DUEL_TRIVIA' | 'DUEL_ESTIMATE';
+export type QuestionPurpose = (typeof MATCH_QUESTION_PURPOSES)[number];
+
+/** Frage, die der aktuelle Schritt stellt. */
+export interface PendingMatchQuestion {
+  readonly type: QuestionKind;
+  readonly seats: readonly number[];
+  readonly purpose: QuestionPurpose;
+  /** Kategorie vom Glücksrad (Wissensfrage eines Duells mit Ausbau), sonst `null`. */
+  readonly category: QuestionCategory | null;
+}
+
+/** Gewertete Antworten einer aufgelösten Frage, je Sitz. */
+export interface ResolvedAnswers {
+  readonly seats: readonly number[];
+  /** Richtig beantwortet; verpasst zählt als falsch. */
+  correct(seat: number): boolean;
+  /** Abstand und Zeit der Schätzung; verpasst: beides `null`. */
+  estimate(seat: number): MatchEstimateAnswer;
+}
 
 interface Presentation {
   readonly options: readonly { readonly token: string; readonly key: string }[];
@@ -117,24 +137,8 @@ function newPresentation(content: QuestionContent): Record<string, unknown> {
   return { kind: 'TRIVIA', options: keys.map((key) => ({ token: randomToken(8), key })) };
 }
 
-function purposeOf(state: MatchState): QuestionPurpose {
-  switch (state.step.kind) {
-    case 'LAND_ESTIMATE':
-      return 'LAND';
-    case 'DUEL_TRIVIA':
-      return 'DUEL_TRIVIA';
-    case 'DUEL_ESTIMATE':
-      return 'DUEL_ESTIMATE';
-    case 'CAPITAL_PICK':
-    case 'LAND_PICK':
-    case 'CAMPAIGN_TARGET':
-    case 'FINISHED':
-      throw new Error(`Im Schritt ${state.step.kind} gibt es keine Frage`);
-  }
-}
-
 /** Ein Durchgang an einer gesperrten Partie: sammelt Ereignisse und schreibt sie am Ende. */
-export class MatchRun {
+export abstract class MatchRun {
   private readonly events: MatchEventInput[] = [];
   private steps = 0;
 
@@ -163,13 +167,10 @@ export class MatchRun {
     return this.players.find((p) => p.userId === userId)?.seat ?? null;
   }
 
-  get state(): MatchState {
-    if (!this.match.state) throw new Error('Partie ohne Zustand');
-    return this.match.state;
-  }
-
-  get rules() {
-    return this.state.rules;
+  /** Regeln der laufenden Partie; Zeiten, Karte und Plätze sind in beiden Spielarten gleich. */
+  get rules(): MatchRules {
+    if (!this.match.rules) throw new Error('Partie ohne Regeln');
+    return this.match.rules;
   }
 
   playerAt(seat: number): MatchPlayerRow {
@@ -182,50 +183,23 @@ export class MatchRun {
     return this.players.flatMap((p) => (p.userId === null ? [] : [p.userId]));
   }
 
-  /** Nächster Zufallsstrom `match` der Partie (Wahl nach Zeitablauf, Bot-Wahl), mit Protokoll. */
-  async drawRng(label: 'auto' | 'bot'): Promise<{ rng: Rng; entityId: string }> {
+  /**
+   * Nächster Zufallsstrom `match` der Partie (Wahl nach Zeitablauf, Bot-Wahl, Befehle eines Bots,
+   * Glücksrad), mit Protokoll.
+   */
+  async drawRng(label: MatchDrawLabel): Promise<{ rng: Rng; entityId: string }> {
     this.match.draws += 1;
     const entityId = `${this.match.id}.${label}${this.match.draws}`;
     return { rng: createRng(await deriveSeed(this.ctx.rngSecret, 'match', entityId)), entityId };
   }
 
-  private guard(): void {
+  protected guard(): void {
     this.steps += 1;
     if (this.steps > MAX_STEPS_PER_RUN) throw new Error('Partie kommt nicht zur Ruhe');
   }
 
-  /** Wendet eine Eingabe an; Fehler sind Programmfehler, außer bei Wahlen von Menschen. */
-  apply(input: MatchInput): void {
-    const result = applyMatchInput(this.state, input);
-    if (!result.ok) {
-      if (result.error === 'INVALID_REGION') {
-        throw new ApiError(422, 'INVALID_REGION', 'Diese Region ist nicht wählbar');
-      }
-      if (result.error === 'NOT_YOUR_TURN') {
-        throw new ApiError(409, 'NOT_YOUR_TURN', 'Ein anderer Sitz ist dran');
-      }
-      throw new Error(`Eingabe ${input.kind} abgelehnt: ${result.error}`);
-    }
-    this.match.state = result.state;
-    for (const event of result.events) this.emit(event.kind, eventPayload(event));
-  }
-
-  /**
-   * Hält die Partie für eine Ansage an (ADR-053); `false`, wenn die Regeln keine vorsehen (Partien
-   * von vor ADR-053 oder Dauer 0).
-   */
-  private announce(durationMs: number | undefined): boolean {
-    if (durationMs === undefined || durationMs <= 0) return false;
-    this.match.phase = 'ANNOUNCE';
-    this.match.phaseDeadlineAt = new Date(this.now.getTime() + durationMs);
-    return true;
-  }
-
-  /** Dauer der Ansage vor dem aktuellen Schritt: ein Duell wird länger angesagt als eine Wahl. */
-  private announceMsFor(state: MatchState): number | undefined {
-    const { timers } = this.rules;
-    return state.step.kind === 'DUEL_TRIVIA' ? timers.announceMs : timers.pickShowMs;
-  }
+  // -------------------------------------------------------------------------------------------
+  // Was vom Schritt der Zustandsmaschine abhängt
 
   /**
    * Beginnt den aktuellen Schritt: Bots wählen sofort, Menschen bekommen eine Frist, Fragen werden
@@ -235,62 +209,74 @@ export class MatchRun {
    * diesem Aufruf unmittelbar vorausging: Sie bleibt als Ansage stehen, bevor ein anderer Sitz
    * wählt oder eine Frage kommt. Nach einer Ansage oder Auflösung ist `picker` `null`.
    */
-  async enterStep(picker: number | null = null): Promise<void> {
-    for (;;) {
-      this.guard();
-      const state = this.state;
-      const { step } = state;
-      switch (step.kind) {
-        case 'FINISHED':
-          await this.finish();
-          return;
-        case 'CAPITAL_PICK':
-        case 'LAND_PICK':
-        case 'CAMPAIGN_TARGET': {
-          const seat = currentChooser(state);
-          if (seat === null) throw new Error('Wahl ohne Wählenden');
-          // Wählt derselbe Sitz gleich noch einmal (Landnahme), geht es ohne Pause weiter
-          if (picker !== null && picker !== seat && this.announce(this.rules.timers.pickShowMs)) {
-            return;
-          }
-          const player = this.playerAt(seat);
-          if (player.botStrength !== null) {
-            const { rng } = await this.drawRng('bot');
-            this.apply(pickInput(state, seat, chooseRegionForBot(state, rng)));
-            // Die Wahl bleibt stehen, damit alle sie sehen; ein Angriff wird angesagt
-            if (this.announce(this.announceMsFor(this.state))) return;
-            continue;
-          }
-          this.match.phase = 'PICK';
-          this.match.phaseDeadlineAt = new Date(
-            this.now.getTime() + this.rules.timers.pickMs + this.rules.timers.latencyAllowanceCapMs,
-          );
-          return;
-        }
-        case 'LAND_ESTIMATE':
-        case 'DUEL_TRIVIA':
-        case 'DUEL_ESTIMATE': {
-          // Nach der Wahl eines Menschen kommt die Frage nicht sofort: erst die Ansage
-          if (picker !== null && this.announce(this.announceMsFor(state))) return;
-          const opened = await this.openQuestion();
-          if (opened === 'WAITING') return;
-          if (opened === 'ABANDONED') return;
-          // Nur Bots an der Frage: sofort auflösen, die Auflösung bleibt trotzdem stehen
-          await this.resolveQuestion();
-          return;
-        }
-      }
-    }
+  abstract enterStep(picker?: number | null): Promise<void>;
+
+  /** Wer jetzt eine Region wählt, sonst `null`. */
+  protected abstract chooser(): number | null;
+
+  /** Zufällige wählbare Region für die Wahl nach Zeitablauf. */
+  protected abstract autoPick(rng: Rng): number;
+
+  /**
+   * Trägt die Wahl einer Region im aktuellen Schritt ein; `STEP_NOT_AVAILABLE`, wenn der Schritt
+   * keine Wahl ist, `INVALID_REGION` und `NOT_YOUR_TURN` nach den Regeln.
+   */
+  protected abstract applyPick(seat: number, region: number): void;
+
+  /** Frage des aktuellen Schritts, sonst `null`. */
+  protected abstract pendingQuestion(): PendingMatchQuestion | null;
+
+  /** Antwortprofil eines Bots für die Frage des aktuellen Schritts. */
+  protected abstract botProfile(seat: number, strength: MatchBotStrength): NpcProfile;
+
+  /** Trägt die Antworten der aufgelösten Frage in die Zustandsmaschine ein. */
+  protected abstract applyAnswers(answers: ResolvedAnswers): void;
+
+  /** Sitze auf Platz 1 der beendeten Partie. */
+  protected abstract winnerSeats(): ReadonlySet<number>;
+
+  /** Die Frist der Rüstzeit ist abgelaufen (nur mit Ausbau). */
+  protected closePrepare(): Promise<void> {
+    return Promise.reject(new Error('Rüstzeit in einer Partie ohne Ausbau'));
+  }
+
+  /** Befehle eines Menschen in der Rüstzeit (nur mit Ausbau). */
+  submitOrders(_userId: string, _orders: readonly RealmOrderDto[]): Promise<void> {
+    return Promise.reject(
+      new ApiError(409, 'STEP_NOT_AVAILABLE', 'Diese Partie hat keine Rüstzeit'),
+    );
+  }
+
+  // -------------------------------------------------------------------------------------------
+  // Gemeinsamer Ablauf
+
+  /**
+   * Hält die Partie für eine Ansage an (ADR-053); `false`, wenn die Regeln keine vorsehen (Partien
+   * von vor ADR-053 oder Dauer 0).
+   */
+  protected announce(durationMs: number | undefined): boolean {
+    if (durationMs === undefined || durationMs <= 0) return false;
+    this.match.phase = 'ANNOUNCE';
+    this.match.phaseDeadlineAt = new Date(this.now.getTime() + durationMs);
+    return true;
+  }
+
+  /** Ein Mensch ist mit einer Wahl dran: Frist setzen. */
+  protected awaitPick(): void {
+    const { timers } = this.rules;
+    this.match.phase = 'PICK';
+    this.match.phaseDeadlineAt = new Date(
+      this.now.getTime() + timers.pickMs + timers.latencyAllowanceCapMs,
+    );
   }
 
   /** Öffnet die Frage des Schritts; `RESOLVE_NOW`, wenn kein Mensch antworten muss. */
-  private async openQuestion(): Promise<'WAITING' | 'RESOLVE_NOW' | 'ABANDONED'> {
-    const state = this.state;
-    const pending = pendingQuestion(state);
-    if (!pending) throw new Error(`Schritt ${state.step.kind} ohne Frage`);
+  protected async openQuestion(): Promise<'WAITING' | 'RESOLVE_NOW' | 'ABANDONED'> {
+    const pending = this.pendingQuestion();
+    if (!pending) throw new Error('Schritt ohne Frage');
     const kind: QuestionKind = pending.type;
     const seq = (this.match.questionSeq ?? 0) + 1;
-    const versionId = await this.chooseQuestion(kind, seq);
+    const versionId = await this.chooseQuestion(kind, seq, pending.category);
     if (versionId === null) {
       this.abandon('NO_QUESTION_AVAILABLE');
       return 'ABANDONED';
@@ -308,7 +294,7 @@ export class MatchRun {
         seq,
         kind,
         version_id: versionId,
-        purpose: purposeOf(state),
+        purpose: pending.purpose,
         seats: [...pending.seats],
         presentation: JSON.stringify(newPresentation(content)),
         time_limit_ms: timeLimitMs,
@@ -320,7 +306,8 @@ export class MatchRun {
     for (const seat of pending.seats) {
       const player = this.playerAt(seat);
       if (player.botStrength !== null) {
-        await this.insertBotAnswer(seq, seat, player.botStrength, content, timeLimitMs);
+        const profile = this.botProfile(seat, player.botStrength);
+        await this.insertBotAnswer(seq, seat, player.botStrength, profile, content, timeLimitMs);
       }
     }
     this.match.questionSeq = seq;
@@ -329,24 +316,27 @@ export class MatchRun {
     this.emit('QUESTION_OPENED', {
       seq,
       kind,
-      purpose: purposeOf(state),
+      purpose: pending.purpose,
       seats: [...pending.seats],
       timeLimitMs,
       closesAt: closesAt.toISOString(),
+      ...(pending.category === null ? {} : { category: pending.category }),
     });
     const humans = pending.seats.filter((seat) => this.playerAt(seat).userId !== null);
     return humans.length > 0 ? 'WAITING' : 'RESOLVE_NOW';
   }
 
   /**
-   * Frage aus dem Bestand (QUIZ_ENGINE §5, Strom `question-pick` je Frage): keine, die in dieser
-   * Partie schon kam, solange es andere gibt; gesehen zählt für alle Menschen der Partie.
+   * Fragen einer Art, die gestellt werden können, und die in dieser Partie schon gestellten (alle
+   * Arten, neueste zuerst). Gesehen zählt für alle Menschen der Partie.
    */
-  private async chooseQuestion(kind: QuestionKind, seq: number): Promise<string | null> {
-    const userIds = this.humanUserIds();
+  private async questionPool(kind: QuestionKind): Promise<{
+    readonly candidates: readonly QuestionCandidate[];
+    readonly used: readonly { readonly question_id: string; readonly category: string }[];
+  }> {
     const candidates = await loadCandidates(this.tx, {
       kind,
-      userIds,
+      userIds: this.humanUserIds(),
       allowFixtures: this.ctx.allowFixtures,
       now: this.now,
     });
@@ -358,9 +348,35 @@ export class MatchRun {
       .where('mq.match_id', '=', this.match.id)
       .orderBy('mq.seq', 'desc')
       .execute();
+    return { candidates, used };
+  }
+
+  /** Kategorien, in denen es noch eine in dieser Partie ungestellte Frage der Art gibt. */
+  protected async freshCategories(kind: QuestionKind): Promise<ReadonlySet<string>> {
+    const { candidates, used } = await this.questionPool(kind);
     const usedIds = new Set(used.map((u) => u.question_id));
-    const fresh = candidates.filter((c: QuestionCandidate) => !usedIds.has(c.questionId));
-    const pool = fresh.length > 0 ? fresh : candidates;
+    return new Set(candidates.filter((c) => !usedIds.has(c.questionId)).map((c) => c.category));
+  }
+
+  /**
+   * Frage aus dem Bestand (QUIZ_ENGINE §5, Strom `question-pick` je Frage): keine, die in dieser
+   * Partie schon kam, solange es andere gibt. Mit `category` (Glücksrad) zuerst aus dieser
+   * Kategorie; hat sie keine ungestellte Frage mehr, eine ungestellte aus einer anderen, erst dann
+   * eine Wiederholung (MATCH_RULES §11.6).
+   */
+  private async chooseQuestion(
+    kind: QuestionKind,
+    seq: number,
+    category: QuestionCategory | null,
+  ): Promise<string | null> {
+    const { candidates, used } = await this.questionPool(kind);
+    const usedIds = new Set(used.map((u) => u.question_id));
+    const fresh = candidates.filter((c) => !usedIds.has(c.questionId));
+    const inCategory = (list: readonly QuestionCandidate[]) =>
+      category === null ? list : list.filter((c) => c.category === category);
+    const pool =
+      [inCategory(fresh), fresh, inCategory(candidates)].find((list) => list.length > 0) ??
+      candidates;
     const rng = createRng(
       await deriveSeed(this.ctx.rngSecret, 'question-pick', `${this.match.id}.q${seq}`),
     );
@@ -379,11 +395,11 @@ export class MatchRun {
   private async insertBotAnswer(
     seq: number,
     seat: number,
-    strength: keyof typeof MATCH_BOT_PROFILES,
+    strength: MatchBotStrength,
+    profile: NpcProfile,
     content: QuestionContent,
     timeLimitMs: number,
   ): Promise<void> {
-    const profile = MATCH_BOT_PROFILES[strength];
     const entityId = `${this.match.id}.q${seq}.s${seat}`;
     const rng = createRng(await deriveSeed(this.ctx.rngSecret, 'npc-answer', entityId));
     const rngAudit = {
@@ -554,41 +570,18 @@ export class MatchRun {
       }),
     });
 
-    const state = this.state;
-    switch (state.step.kind) {
-      case 'LAND_ESTIMATE':
-        this.apply({
-          kind: 'LAND_ESTIMATES',
-          answers: question.seats.map((seat) => ({ seat, ...estimateOf(seat) })),
-        });
-        break;
-      case 'DUEL_TRIVIA':
-        this.apply({
-          kind: 'DUEL_TRIVIA',
-          attackerCorrect: counted(state.step.attacker)?.is_correct === true,
-          defenderCorrect: counted(state.step.defender)?.is_correct === true,
-        });
-        break;
-      case 'DUEL_ESTIMATE':
-        this.apply({
-          kind: 'DUEL_ESTIMATES',
-          attacker: estimateOf(state.step.attacker),
-          defender: estimateOf(state.step.defender),
-        });
-        break;
-      case 'CAPITAL_PICK':
-      case 'LAND_PICK':
-      case 'CAMPAIGN_TARGET':
-      case 'FINISHED':
-        throw new Error(`Frage ${seq} passt nicht zum Schritt ${state.step.kind}`);
-    }
+    this.applyAnswers({
+      seats: question.seats,
+      correct: (seat) => counted(seat)?.is_correct === true,
+      estimate: estimateOf,
+    });
     this.match.phase = 'REVEAL';
     this.match.phaseDeadlineAt = new Date(this.now.getTime() + this.rules.timers.revealMs);
   }
 
   /**
-   * Arbeitet fällige Fristen ab: Wahl nach Zeitablauf, Auflösung einer Frage, Ende der Anzeige.
-   * Liefert `true`, wenn sich etwas geändert hat.
+   * Arbeitet fällige Fristen ab: Wahl nach Zeitablauf, Auflösung einer Frage, Ende der Anzeige,
+   * Ende der Rüstzeit. Liefert `true`, wenn sich etwas geändert hat.
    */
   async advanceDue(): Promise<boolean> {
     let changed = false;
@@ -601,19 +594,22 @@ export class MatchRun {
       changed = true;
       switch (this.match.phase) {
         case 'PICK': {
-          const seat = currentChooser(this.state);
+          const seat = this.chooser();
           if (seat === null) throw new Error('Wahl ohne Wählenden');
           const { rng, entityId } = await this.drawRng('auto');
-          const region = autoPickRegion(this.state, rng);
+          const region = this.autoPick(rng);
           this.emit('AUTO_PICKED', {
             seat,
             region,
             rng: { purpose: 'match', entityId, keyId: this.ctx.rngKeyId, version: RNG_VERSION },
           });
-          this.apply(pickInput(this.state, seat, region));
+          this.applyPick(seat, region);
           await this.enterStep(seat);
           break;
         }
+        case 'PREPARE':
+          await this.closePrepare();
+          break;
         case 'QUESTION':
           await this.resolveQuestion();
           break;
@@ -639,10 +635,10 @@ export class MatchRun {
       throw new ApiError(409, 'STEP_NOT_AVAILABLE', 'Gerade gibt es nichts zu wählen');
     }
     const seat = this.seatOf(userId);
-    if (seat === null || currentChooser(this.state) !== seat) {
+    if (seat === null || this.chooser() !== seat) {
       throw new ApiError(409, 'NOT_YOUR_TURN', 'Ein anderer Sitz ist dran');
     }
-    this.apply(pickInput(this.state, seat, region));
+    this.applyPick(seat, region);
     await this.enterStep(seat);
   }
 
@@ -668,18 +664,15 @@ export class MatchRun {
     if (Number(done) >= humans.length) await this.resolveQuestion();
   }
 
-  private async finish(): Promise<void> {
+  /** Abrechnung: Die Zustandsmaschine ist am Ende, die Partie wird beendet. */
+  protected async finish(): Promise<void> {
     this.match.status = 'FINISHED';
     this.match.phase = null;
     this.match.phaseDeadlineAt = null;
     this.match.finishedAt = this.now;
     // Testpartien zählen nicht (ADR-048), Partien mit Bots auch nicht (ADR-052) [E]
     if (this.match.kind !== 'STANDARD' || this.players.some((p) => p.userId === null)) return;
-    const finished = this.state.step;
-    if (finished.kind !== 'FINISHED') throw new Error('Partie ist nicht beendet');
-    const winners = new Set(
-      matchStandings(this.state).flatMap((s) => (s.place === 1 ? [s.seat] : [])),
-    );
+    const winners = this.winnerSeats();
     for (const player of this.players) {
       if (player.userId === null || player.seat === null) continue;
       await this.tx
@@ -705,42 +698,9 @@ export class MatchRun {
   }
 }
 
-function pickInput(state: MatchState, seat: number, region: number): MatchInput {
-  switch (state.step.kind) {
-    case 'CAPITAL_PICK':
-      return { kind: 'PICK_CAPITAL', seat, region };
-    case 'LAND_PICK':
-      return { kind: 'PICK_REGION', seat, region };
-    case 'CAMPAIGN_TARGET':
-      return { kind: 'PICK_TARGET', seat, region };
-    case 'LAND_ESTIMATE':
-    case 'DUEL_TRIVIA':
-    case 'DUEL_ESTIMATE':
-    case 'FINISHED':
-      throw new ApiError(409, 'STEP_NOT_AVAILABLE', 'Gerade gibt es nichts zu wählen');
-  }
-}
-
-function eventPayload(event: MatchEvent): Record<string, unknown> {
+/** Inhalt eines Ereignisses der Zustandsmaschine ohne seine Art (die wird der Ereignistyp). */
+export function eventPayload(event: { readonly kind: string }): Record<string, unknown> {
   return Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'kind'));
-}
-
-/**
- * Sperrt die Partie für einen Teilnehmer und liefert den Durchgang mit der Spielzeit nach der
- * Sperre. Wer nicht teilnimmt, bekommt „nicht gefunden“, wie bei fremden Herausforderungen.
- */
-export async function lockMatchFor(
-  tx: Tx,
-  ctx: MatchEngineContext,
-  matchId: string,
-  userId: string,
-): Promise<MatchRun> {
-  const match = await loadMatch(tx, matchId, { lock: 'UPDATE' });
-  const players = match ? await loadPlayers(tx, matchId) : [];
-  if (!match || !players.some((p) => p.userId === userId)) {
-    throw new ApiError(404, 'NOT_FOUND', 'Partie nicht gefunden');
-  }
-  return new MatchRun(tx, ctx, match, players, await readGameNow(tx));
 }
 
 /** Neue Partie-ID (UUIDv7). */

@@ -32,6 +32,11 @@ const serverEnvSchema = dbEnvSchema
     RNG_SECRET: base64Secret,
     RNG_KEY_ID: z.string().regex(/^[A-Za-z0-9._-]{1,64}$/, '1–64 Zeichen aus [A-Za-z0-9._-]'),
     LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
+    /**
+     * Wissensfragen, die eine Kategorie für das Glücksrad der Partie mit Ausbau braucht
+     * (MATCH_RULES §11.6). Ohne Angabe 20, lokal und in Tests 1.
+     */
+    REALM_MIN_CATEGORY_QUESTIONS: z.coerce.number().int().min(1).max(1000).optional(),
     /** Nur für die Prüfung „lokale Datenbank“: Der Treiber nimmt PGHOST, wenn die URL keinen Host hat. */
     PGHOST: z.string().optional(),
   })
@@ -66,6 +71,8 @@ export interface ServerConfig {
   readonly rngSecret: Uint8Array;
   readonly rngKeyId: string;
   readonly logLevel: (typeof LOG_LEVELS)[number];
+  /** `null` = Vorgabe der Umgebung (`matchContextFrom`). */
+  readonly realmMinCategoryQuestions: number | null;
 }
 
 /** Liest und prüft die Umgebung; nennt bei Fehlern nur Namen und Regeln, nie Werte. */
@@ -86,5 +93,6 @@ export function parseServerConfig(env: Record<string, string | undefined>): Serv
     rngSecret: e.RNG_SECRET,
     rngKeyId: e.RNG_KEY_ID,
     logLevel: e.LOG_LEVEL,
+    realmMinCategoryQuestions: e.REALM_MIN_CATEGORY_QUESTIONS ?? null,
   };
 }

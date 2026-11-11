@@ -1,9 +1,17 @@
 import {
   DEFAULT_REALM_RULES,
   matchRulesForSeats,
+  MAX_REALM_ORDERS as PROTOCOL_MAX_REALM_ORDERS,
   QUESTION_CATEGORIES,
+  REALM_BUILDING_CODES,
+  REALM_RESOURCE_CODES,
   type QuestionCategory,
+  type REALM_DUEL_EFFECTS,
+  type REALM_ORDER_ERRORS,
+  type REALM_STEP_KINDS,
+  type RealmOrderDto,
   type RealmRules,
+  type RealmWheelDto,
 } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
@@ -19,8 +27,11 @@ import {
   KERNMARK,
   MATCH_BOT_PROFILES,
   matchMap,
+  MAX_REALM_ORDERS,
   parseDecimal,
+  REALM_BUILDINGS,
   REALM_FAVORITE_THETA_BONUS,
+  REALM_RESOURCES,
   realmAttackOrder,
   realmFreeRegions,
   realmIncome,
@@ -34,14 +45,17 @@ import {
   spinRealmWheel,
   WENDELMARK,
   type MatchEstimateAnswer,
+  type RealmDuelEffect,
   type RealmEvent,
   type RealmInput,
   type RealmOrder,
+  type RealmOrderError,
   type RealmRegionState,
   type RealmResult,
   type RealmSeatState,
   type RealmState,
   type RealmStep,
+  type RealmWheel,
 } from '../src/index.ts';
 
 const THREE: RealmRules = DEFAULT_REALM_RULES;
@@ -682,7 +696,12 @@ describe('Duell und seine Folgen', () => {
       eliminatedInDuel: 1,
       eliminatedBy: 0,
     });
-    expect(r.state.step).toEqual({ kind: 'FINISHED', reason: 'LAST_KINGDOM', round: 1 });
+    expect(r.state.step).toEqual({
+      kind: 'FINISHED',
+      reason: 'LAST_KINGDOM',
+      round: 1,
+      attackers: [0, 1],
+    });
     const standings = realmStandings(r.state);
     expect(standings[0]).toMatchObject({ seat: 0, place: 1, regions: 16, castleLives: 3 });
     expect(standings[1]).toMatchObject({ seat: 1, place: 2, eliminated: true, points: 0 });
@@ -749,7 +768,12 @@ describe('Reihenfolge und Ende', () => {
         defenderCorrect: false,
       }),
     );
-    expect(done.state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: 5 });
+    expect(done.state.step).toEqual({
+      kind: 'FINISHED',
+      reason: 'ROUNDS_COMPLETE',
+      round: 5,
+      attackers: [1, 0],
+    });
     expect(done.events.at(-1)).toMatchObject({ kind: 'MATCH_FINISHED', reason: 'ROUNDS_COMPLETE' });
 
     const early = campaign(
@@ -822,5 +846,31 @@ describe('Bots im Duell', () => {
       // Außerhalb der Lieblingskategorien genau wie das NPC-Modell der Partie
       expect(other).toEqual(generateNpcAnswer(rng(), MATCH_BOT_PROFILES.MEDIUM, question));
     }
+  });
+});
+
+describe('Listen und Formen der Schnittstelle (protocol)', () => {
+  /** Zwei Typen sind gleich, wenn jeder dem anderen zuweisbar ist. */
+  type Same<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+  type Plain<T> = T extends readonly (infer U)[]
+    ? Plain<U>[]
+    : T extends object
+      ? { -readonly [K in keyof T]: Plain<T[K]> }
+      : T;
+
+  it('Gebäude, Rohstoffe und die Obergrenze der Befehle sind dieselben', () => {
+    expect([...REALM_BUILDINGS]).toEqual([...REALM_BUILDING_CODES]);
+    expect([...REALM_RESOURCES]).toEqual([...REALM_RESOURCE_CODES]);
+    expect(MAX_REALM_ORDERS).toBe(PROTOCOL_MAX_REALM_ORDERS);
+  });
+
+  it('Schritte, Folgen, Ablehnungsgründe, Befehle und Glücksrad passen zusammen (Typprüfung)', () => {
+    // Weicht eine Liste oder Form ab, schlägt die Typprüfung (`pnpm typecheck`) hier fehl
+    const steps: Same<RealmStep['kind'], (typeof REALM_STEP_KINDS)[number]> = true;
+    const effects: Same<RealmDuelEffect, (typeof REALM_DUEL_EFFECTS)[number]> = true;
+    const errors: Same<RealmOrderError, (typeof REALM_ORDER_ERRORS)[number]> = true;
+    const orders: Same<Plain<RealmOrder>, RealmOrderDto> = true;
+    const wheels: Same<Plain<RealmWheel>, RealmWheelDto> = true;
+    expect([steps, effects, errors, orders, wheels]).toEqual([true, true, true, true, true]);
   });
 });

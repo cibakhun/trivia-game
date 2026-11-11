@@ -17,7 +17,10 @@ import {
  * Vorräte betrifft, ist es gleich, in welcher Reihenfolge die Reiche aufgedeckt werden.
  */
 
-/** Obergrenze je Rüstzeit, damit eine Eingabe nicht beliebig groß wird. */
+/**
+ * Obergrenze je Rüstzeit, damit eine Eingabe nicht beliebig groß wird. Dieselbe Zahl wie
+ * `MAX_REALM_ORDERS` in protocol (Anfrage der API); ein Test hält beide gleich.
+ */
 export const MAX_REALM_ORDERS = 200;
 
 export type RealmOrderError =

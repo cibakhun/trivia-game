@@ -100,6 +100,9 @@ export function screenStateOf(
       return 'reveal';
     case 'ANNOUNCE':
       return 'announce';
+    // Rüstzeit der Partie mit Ausbau (MATCH_RULES §11): Der Browser zeigt sie erst im nächsten Schritt
+    case 'PREPARE':
+      return 'loading';
     case 'QUESTION': {
       const question = view.question;
       if (!question) return 'presenting';

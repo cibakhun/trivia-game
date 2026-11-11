@@ -11,7 +11,8 @@ import { readGameNow } from '../../infra/clock.ts';
 import { ApiError } from '../../infra/errors.ts';
 import { loadQuestionContent, recordExposure, type QuestionContent } from '../quiz/questions.ts';
 import type { MatchContext } from './context.ts';
-import { lockMatchFor, readPresentation, type MatchRun } from './engine.ts';
+import { readPresentation, type MatchRun } from './engine.ts';
+import { lockMatchFor } from './runs.ts';
 
 /**
  * Fragen der Partie abholen und beantworten, je Sitz wie bei Herausforderungen (QUIZ_ENGINE §6–7):

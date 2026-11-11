@@ -39,6 +39,7 @@ export function viewOf(
     match: {
       id: ID,
       kind: 'TEST',
+      mode: 'CLASSIC',
       status: 'RUNNING',
       inviteCode: null,
       rulesPreset: 'PLAYTEST',
@@ -64,6 +65,7 @@ export function viewOf(
         botStrength: null,
         isHost: true,
         isMe: true,
+        favorites: null,
       },
       {
         joinOrder: 1,
@@ -73,6 +75,7 @@ export function viewOf(
         botStrength: 'EASY',
         isHost: false,
         isMe: false,
+        favorites: null,
       },
       {
         joinOrder: 2,
@@ -82,6 +85,7 @@ export function viewOf(
         botStrength: 'HARD',
         isHost: false,
         isMe: false,
+        favorites: null,
       },
     ],
     mySeat: 1,
@@ -111,6 +115,7 @@ export function viewOf(
       questions: 0,
       duels: 0,
     },
+    realm: null,
     phase: { kind: 'PICK', deadline: AT, remainingMs: 5000 },
     legalRegions: [0, 5],
     question: null,

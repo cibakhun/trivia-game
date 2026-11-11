@@ -25,6 +25,7 @@ export function testConfig(databaseUrl: string): ServerConfig {
     rngSecret: TEST_RNG_SECRET,
     rngKeyId: 'test',
     logLevel: 'silent',
+    realmMinCategoryQuestions: null,
   };
 }
 

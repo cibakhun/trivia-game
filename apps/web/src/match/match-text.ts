@@ -207,5 +207,17 @@ export function logText(
     case 'QUESTION_OPENED':
     case 'QUESTION_RESOLVED':
       return null;
+    // Partie mit Ausbau (MATCH_RULES §11): Der Browser zeigt sie erst im nächsten Schritt
+    case 'START_RANKED':
+    case 'CASTLE_CHOSEN':
+    case 'VILLAGE_CHOSEN':
+    case 'INCOME':
+    case 'ORDERS_SUBMITTED':
+    case 'PREPARE_CLOSED':
+    case 'ORDERS_REVEALED':
+    case 'WHEEL_SPUN':
+    case 'REALM_DUEL_RESOLVED':
+    case 'REALM_MATCH_FINISHED':
+      return null;
   }
 }
