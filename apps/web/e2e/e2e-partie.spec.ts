@@ -128,9 +128,13 @@ async function recordShown(page: Page): Promise<void> {
           state === 'announce' ? '[data-testid="match-announce"]' : '[data-testid="match-reveal"]',
         );
       if (!card) return;
+      // Ohne die ablaufende Zeit: Ihr Text zählt die Sekunden herunter, während das Blatt steht.
+      // Mit ihm stünde dasselbe Blatt mehrfach in der Liste, sobald eine Sekunde umspringt.
+      const still = card.cloneNode(true) as Element;
+      for (const timer of still.querySelectorAll('[role="timer"]')) timer.remove();
       const entry: Shown = {
         state: outcome ? 'outcome' : state,
-        text: card.textContent ?? '',
+        text: still.textContent ?? '',
         duel: card.classList.contains('announce-duel'),
         ring: document.querySelector('.spot-ring') !== null,
         scene:
