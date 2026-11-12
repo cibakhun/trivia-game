@@ -182,6 +182,15 @@ export function withTrade(
   );
 }
 
+/**
+ * Tausch steht im Entwurf vorn: So zählt er für alles, was danach gebaut oder gekauft wird, auch
+ * wenn der Spieler erst später tauscht. Die übrige Reihenfolge bleibt. Ein gültiger Entwurf bleibt
+ * dabei gültig, weil alle anderen Befehle nur verbrauchen.
+ */
+export function tradesFirst(orders: readonly RealmOrderDto[]): RealmOrderDto[] {
+  return [...orders.filter((o) => o.kind === 'TRADE'), ...orders.filter((o) => o.kind !== 'TRADE')];
+}
+
 export interface SettledOrders {
   readonly orders: RealmOrderDto[];
   /** Befehle, die nicht mehr gingen und deshalb herausfielen (etwa ein Bau ohne den Tausch davor). */
@@ -344,6 +353,24 @@ export function fieldOptions(
   };
 }
 
+/** Was das Blatt der Rüstzeit zu einem Feld zeigt: bauen, Armeen kaufen oder ziehen. */
+export type PrepareTab = 'build' | 'buy' | 'move';
+
+export function tabsOf(field: FieldOptions): Readonly<Record<PrepareTab, boolean>> {
+  return {
+    build: field.build !== null,
+    buy: field.recruit !== null,
+    move: field.moves.some((move) => move.max > 0),
+  };
+}
+
+/** Gewünschter Reiter, wenn er auf dem Feld geht; sonst der erste, der geht. */
+export function prepareTab(field: FieldOptions, wanted: PrepareTab): PrepareTab {
+  const open = tabsOf(field);
+  if (open[wanted]) return wanted;
+  return open.build ? 'build' : open.buy ? 'buy' : open.move ? 'move' : 'build';
+}
+
 export interface TradeOption {
   readonly give: RealmResourceCode;
   /** So viel von `give` kostet 1 vom anderen Rohstoff. */
@@ -405,18 +432,8 @@ export function wheelPreview(play: RealmPlay, attacker: number, region: number):
 // Bildschirm
 // ---------------------------------------------------------------------------------------------
 
-export type RealmScreenState =
-  | MatchScreenState
-  /** Rüstzeit: Die eigenen Befehle sind noch offen. */
-  | 'prepare'
-  /** Rüstzeit: Die eigenen Befehle sind abgegeben, andere rüsten noch. */
-  | 'prepared'
-  /** Rüstzeit anderer: das eigene Reich ist gefallen. */
-  | 'watching-prepare'
-  /** Aufdecken: Die Befehle aller Reiche stehen kurz auf der Karte. */
-  | 'orders'
-  /** Das Glücksrad eines Duells dreht und zeigt die Kategorie. */
-  | 'wheel';
+/** Wie `MatchScreenState`: Die Zustände der Rüstzeit, des Aufdeckens und des Rads stehen dort. */
+export type RealmScreenState = MatchScreenState;
 
 /**
  * Was der Bildschirm zeigt. Ohne Ausbau und in allen gemeinsamen Schritten gilt `screenStateOf`;

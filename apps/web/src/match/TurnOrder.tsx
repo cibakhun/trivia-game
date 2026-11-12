@@ -12,12 +12,13 @@ function shortName(view: MatchView, seat: number, name: SeatName): string {
  * Zugfolge des laufenden Abschnitts (MATCH_RULES §3, Zugfolge): eine schmale Zeile unter dem
  * Spielstand mit den Wappen in der Reihenfolge, in der gewählt oder angegriffen wird. Wer dran
  * ist, trägt einen goldenen Rand; wer schon dran war, einen Haken. Bei der Schätzfrage der
- * Landnahme sind alle zugleich dran. Die Zeile ist immer gleich hoch und bewegt sich nicht (keine
- * Animation, auch nicht während einer Frage). Namen stehen nur für Screenreader da: Die Wappen
- * stehen direkt darüber im Spielstand.
+ * Landnahme, der Startfrage und in der Rüstzeit sind alle zugleich dran. Die Zeile ist immer gleich
+ * hoch und bewegt sich nicht (keine Animation, auch nicht während einer Frage). Namen stehen nur
+ * für Screenreader da: Die Wappen stehen direkt darüber im Spielstand.
  */
 export function TurnOrder({ view, name }: { readonly view: MatchView; readonly name: SeatName }) {
-  const board = view.board;
+  // Mit Ausbau steht die Zugfolge im Brett der Partie mit Ausbau (`realm.board`)
+  const board = view.board ?? view.realm?.board ?? null;
   if (!board || board.turns.length === 0) return null;
   const kind = board.step.kind;
   const label =
@@ -27,8 +28,19 @@ export function TurnOrder({ view, name }: { readonly view: MatchView; readonly n
         ? t('match.turns.LAND_ESTIMATE')
         : kind === 'LAND_PICK'
           ? t('match.turns.LAND_PICK')
-          : t('match.turns.CAMPAIGN');
-  const together = kind === 'LAND_ESTIMATE';
+          : kind === 'START_ESTIMATE' ||
+              kind === 'CASTLE_PICK' ||
+              kind === 'VILLAGE_PICK' ||
+              kind === 'PREPARE'
+            ? t(`realm.turns.${kind}`)
+            : t('match.turns.CAMPAIGN');
+  // Schätzfrage an alle und Rüstzeit: Alle sind zugleich dran, eine Reihenfolge gibt es nicht
+  const preparing = kind === 'PREPARE';
+  const together = kind === 'LAND_ESTIMATE' || kind === 'START_ESTIMATE' || preparing;
+  const statusText = (status: 'DONE' | 'NOW' | 'NEXT') =>
+    preparing && status !== 'NEXT'
+      ? t(status === 'DONE' ? 'realm.seats.ready' : 'realm.seats.busy')
+      : t(`match.turns.status.${status}`);
   return (
     <section className="turn-order" aria-labelledby="turns-title" data-testid="match-turns">
       <h2 id="turns-title" className="turn-order-label">
@@ -51,7 +63,7 @@ export function TurnOrder({ view, name }: { readonly view: MatchView; readonly n
             )}
             <SeatCrest seat={turn.seat} size={18} />
             <span className="visually-hidden">
-              {shortName(view, turn.seat, name)}, {t(`match.turns.status.${turn.status}`)}
+              {shortName(view, turn.seat, name)}, {statusText(turn.status)}
             </span>
           </li>
         ))}

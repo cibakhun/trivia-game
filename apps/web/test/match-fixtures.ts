@@ -200,13 +200,16 @@ export interface RealmViewOptions {
   readonly armies?: Readonly<Record<number, number>>;
   readonly eliminated?: readonly number[];
   readonly step?: Partial<RealmStepView>;
+  /** Zugfolge links; ohne Angabe sind Sitz 0 und 1 fertig und ich (Sitz 2) rüste noch. */
+  readonly turns?: RealmBoardView['turns'];
   readonly myOrders?: RealmView['myOrders'];
   readonly map?: string;
 }
 
 /**
  * Ansicht einer laufenden Partie mit Ausbau zu dritt in der Rüstzeit der zweiten Runde; ich bin
- * Sitz 2. Geprüft gegen das Schema des Protokolls.
+ * Anna auf Sitz 2, die Bots sitzen auf 0 (leicht) und 1 (schwer). Geprüft gegen das Schema des
+ * Protokolls.
  */
 export function realmViewOf(
   options: RealmViewOptions = {},
@@ -251,7 +254,7 @@ export function realmViewOf(
     })),
     order: [2, 0, 1],
     step: realmStep(options.step),
-    turns: [
+    turns: options.turns ?? [
       { seat: 0, status: 'DONE' },
       { seat: 1, status: 'DONE' },
       { seat: 2, status: 'NOW' },
@@ -262,11 +265,11 @@ export function realmViewOf(
   return matchViewSchema.parse({
     ...base,
     match: { ...base.match, mode: 'REALM' },
-    players: base.players.map((player) => ({
-      ...player,
-      isMe: player.seat === 2,
-      favorites: [...(REALM_FAVORITES[player.seat ?? 0] ?? [])],
-    })),
+    // Ich bin der Mensch der Runde: Anna sitzt hier auf Sitz 2, der Bot von dort auf Sitz 1
+    players: base.players.map((player) => {
+      const seat = player.seat === 1 ? 2 : player.seat === 2 ? 1 : player.seat;
+      return { ...player, seat, favorites: [...(REALM_FAVORITES[seat ?? 0] ?? [])] };
+    }),
     mySeat: 2,
     board: null,
     realm: {

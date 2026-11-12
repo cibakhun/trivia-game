@@ -39,6 +39,7 @@ function questionInfo(
     kind: 'ESTIMATE',
     purpose: 'LAND',
     seats: [0, 1, 2],
+    answered: [],
     closesAt: AT,
     resolved: false,
     myStatus,

@@ -2,7 +2,7 @@ import type { MatchEventOf } from '@rdw/protocol';
 import type { ReactNode } from 'react';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatDecimal, formatNumber, t, tp } from '../i18n/i18n.ts';
-import type { Reveal } from './match-model.ts';
+import { duelResolved, type Reveal } from './match-model.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
 
@@ -50,8 +50,9 @@ export function RevealPanel({
   const solution = q.solution;
   const unit = 'unit' in solution && solution.unit ? ` ${solution.unit}` : '';
 
-  const duel = outcome.find((o) => o.type === 'DUEL_RESOLVED');
+  const duel = duelResolved(reveal);
   const ranked = outcome.find((o) => o.type === 'LAND_RANKED');
+  const start = outcome.find((o) => o.type === 'START_RANKED');
   const fallen = outcome.filter((o) => o.type === 'KINGDOM_ELIMINATED');
   // Duell: Wirkung groß, Grund klein. Landnahme: Die Rangfolge steht in den Zeilen darunter.
   const duelLines = duel ? outcomeTexts(duel, name, region) : [];
@@ -59,9 +60,11 @@ export function RevealPanel({
     duelLines.at(-1) ??
     (ranked
       ? t('match.reveal.landTitle', { round: ranked.payload.round })
-      : opened?.payload.purpose === 'DUEL_TRIVIA'
-        ? t('match.reveal.bothCorrect')
-        : null);
+      : start
+        ? t('realm.reveal.startTitle')
+        : opened?.payload.purpose === 'DUEL_TRIVIA'
+          ? t('match.reveal.bothCorrect')
+          : null);
   const winner = duel
     ? duel.payload.winner === 'ATTACKER'
       ? duel.payload.attacker
@@ -79,7 +82,7 @@ export function RevealPanel({
       </h2>
       {headline && verdict ? (
         <div
-          className={`reveal-verdict${winner === null ? '' : ` seat-${winner}`}${duel || !ranked ? '' : ' land'}`}
+          className={`reveal-verdict${winner === null ? '' : ` seat-${winner}`}${duel || !(ranked || start) ? '' : ' land'}`}
           data-testid="reveal-outcome"
         >
           {winner === null ? null : <SeatCrest seat={winner} size={30} />}
@@ -168,7 +171,10 @@ function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly nam
   );
 }
 
-/** Schätzungen in Rangfolge; in der Landnahme steht rechts, wie viele Regionen der Platz wählt. */
+/**
+ * Schätzungen in Rangfolge; in der Landnahme steht rechts, wie viele Regionen der Platz wählt, bei
+ * der Startfrage, wer seine Burg zuerst setzt.
+ */
 function EstimateAnswers({
   reveal,
   name,
@@ -180,7 +186,16 @@ function EstimateAnswers({
 }) {
   const q = reveal.resolved.payload;
   const ranked = reveal.outcome.find((o) => o.type === 'LAND_RANKED');
-  const place = (seat: number) => ranked?.payload.ranking.find((r) => r.seat === seat) ?? null;
+  // Startfrage der Partie mit Ausbau: Der Platz sagt, wer seine Burg wann setzt
+  const start = reveal.outcome.find((o) => o.type === 'START_RANKED');
+  const startPlace = (seat: number) =>
+    start?.payload.ranking.find((r) => r.seat === seat)?.place ?? null;
+  const place = (seat: number) => {
+    const rank = ranked?.payload.ranking.find((r) => r.seat === seat);
+    if (rank) return rank;
+    const first = startPlace(seat);
+    return first === null ? null : { place: first, picks: null };
+  };
   const rows = [...q.answers].sort((a, b) => {
     const [pa, pb] = [place(a.seat), place(b.seat)];
     return pa && pb ? pa.place - pb.place : byEstimate(a, b);
@@ -217,11 +232,17 @@ function EstimateAnswers({
                   })}`
                 : ''}
             </span>
-            {rank ? (
+            {rank === null ? null : rank.picks === null ? (
+              <span className="reveal-picks">
+                {rank.place === 1
+                  ? t('realm.reveal.first')
+                  : t('realm.reveal.later', { place: rank.place })}
+              </span>
+            ) : (
               <span className={`reveal-picks${rank.picks > 0 ? '' : ' none'}`}>
                 {rank.picks > 0 ? tp('match.reveal.picks', rank.picks) : t('match.reveal.noPicks')}
               </span>
-            ) : null}
+            )}
           </li>
         );
       })}

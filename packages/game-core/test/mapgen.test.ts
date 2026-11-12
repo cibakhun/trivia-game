@@ -163,11 +163,24 @@ describe('NPC-Fraktionen', () => {
     return seen.size === keys.size;
   }
 
+  // Ab dieser Größe ist für jede Hauptstadt Platz: Die Fraktionen vor der letzten belegen zusammen
+  // höchstens ihre Zielgrößen. Kleinere Welten gibt es selten (rund 0,15 % der Seeds), und nur dort
+  // darf `placeFactions` abbrechen.
+  const roomyWorld = preset.factions.slice(0, -1).reduce((sum, f) => sum + f.size, 0) + 1;
+
   it('platziert getrennte, zusammenhängende Gebiete mit Hauptstadt zuerst (Eigenschaft)', () => {
     fc.assert(
       fc.property(seedArb, (seed) => {
         const cells = generateWorld(seed, preset.shape);
-        const factions = placeFactions(seed, cells, preset.factions);
+        let factions: ReturnType<typeof placeFactions>;
+        try {
+          factions = placeFactions(seed, cells, preset.factions);
+        } catch (error) {
+          // Nur eine zu kleine Welt darf scheitern, und nur mit dem eigenen Fehler
+          expect(error).toBeInstanceOf(MapGenerationError);
+          expect(cells.length).toBeLessThan(roomyWorld);
+          return;
+        }
         expect(factions.map((f) => f.archetype)).toEqual(preset.factions.map((f) => f.archetype));
         const land = new Set(cells.map(axialKey));
         const all = new Set<string>();
@@ -184,6 +197,16 @@ describe('NPC-Fraktionen', () => {
       }),
       { numRuns: 100 },
     );
+  });
+
+  it('meldet eine zu kleine Welt mit „Kein Platz“, statt Fraktionen wegzulassen', () => {
+    // Seeds, bei denen der Eigenschaftstest früher rot wurde (zuletzt in CI am 2026-11-12)
+    for (const seed of [-7386692001585812982n, -7189546852188289139n, -1938139523044439298n]) {
+      const cells = generateWorld(seed, preset.shape);
+      expect(cells.length).toBeLessThan(roomyWorld);
+      expect(() => placeFactions(seed, cells, preset.factions)).toThrow(MapGenerationError);
+      expect(() => placeFactions(seed, cells, preset.factions)).toThrow(/Kein Platz für Fraktion/);
+    }
   });
 
   it('erreicht auf der festen Testwelt alle Zielgrößen und Stufenbereiche', () => {

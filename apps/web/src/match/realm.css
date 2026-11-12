@@ -1,0 +1,1113 @@
+/*
+ * Partie mit Ausbau (MATCH_RULES §11, ADR-060): alles, was über die Bühne aus `stage.css` hinausgeht.
+ * Links die Tafeln mit Burgleben und Vorrat, rechts die Blätter der Rüstzeit, des Aufdeckens, des
+ * Angriffsziels, des Glücksrads und des Ausgangs, mitten auf der Karte das Glücksrad, davor die
+ * Aufstellung mit den Lieblingskategorien. Maße wie dort in `--u`, Farben nur über die Töne aus
+ * `theme.css`. Was auf der Karte selbst liegt (Gebäude, Armeen, Pläne), steht in `art/map-art.css`.
+ */
+
+/* ---------- Zeichen ---------- */
+
+.glyph {
+  flex: none;
+  overflow: visible;
+}
+
+.glyph path,
+.glyph circle,
+.glyph ellipse {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.glyph .g-fill,
+.glyph .g-bread {
+  fill: var(--map-wheat);
+}
+.glyph .g-paper {
+  fill: var(--map-coin);
+}
+.glyph .g-gold {
+  fill: var(--map-gold);
+}
+.glyph .g-ink {
+  fill: var(--map-ink);
+}
+.glyph .g-leaf {
+  fill: var(--map-leaf);
+}
+.glyph .g-stone {
+  fill: var(--map-stone);
+}
+.glyph .g-wood {
+  fill: var(--map-reed);
+}
+.glyph .g-roof {
+  fill: var(--map-roof);
+}
+.glyph .g-flag {
+  fill: var(--flag, var(--map-roof));
+}
+
+.amount {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(3 * var(--u));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Links: Tafeln der Reiche ---------- */
+
+/* Wie ohne Ausbau stehen die Leben neben den Punkten; im Fuß der Vorrat und der Stand der Rüstzeit */
+.plaque.realm .plaque-lives {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: calc(3 * var(--u));
+}
+
+.plaque.realm .plaque-lives.many {
+  font-size: calc(13 * var(--u));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.plaque.realm .plaque-foot {
+  justify-content: flex-start;
+  gap: calc(9 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  color: var(--text);
+}
+
+.plaque.realm .plaque-state {
+  margin-left: auto;
+}
+
+.plaque-state.ready {
+  color: var(--surface);
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.plaque-state.busy {
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+/* ---------- Rechts: Bausteine der Blätter ---------- */
+
+.blatt .crest,
+.blatt .swords-icon {
+  flex: none;
+  height: auto;
+}
+
+.blatt-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(6 * var(--u));
+  align-content: start;
+  overflow: hidden;
+}
+
+.blatt-wait {
+  font-size: calc(13 * var(--u));
+  line-height: 1.32;
+  color: var(--muted);
+}
+
+.blatt-wait strong {
+  color: var(--success);
+}
+
+.blatt-note,
+.detail-note {
+  font-size: calc(12 * var(--u));
+  line-height: 1.25;
+  color: var(--danger);
+}
+
+.feld {
+  display: grid;
+  gap: calc(1 * var(--u));
+}
+
+.feld-name {
+  font-family: var(--font-display);
+  font-size: calc(17 * var(--u));
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.feld-fact {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 calc(4 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  line-height: calc(16 * var(--u));
+  color: var(--muted);
+}
+
+.feld-fact .cost {
+  font-size: inherit;
+  color: var(--text);
+}
+
+/* Kurzfassung derselben Angabe neben dem Namen: nur bei niedrigem Bildschirm (siehe unten) */
+.feld-short {
+  display: none;
+  align-items: center;
+  gap: calc(2 * var(--u));
+  font-size: calc(13.5 * var(--u));
+  font-weight: 800;
+  line-height: calc(16 * var(--u));
+  white-space: nowrap;
+}
+
+.feld-short .cost {
+  font-size: inherit;
+}
+
+/* ---------- Rüstzeit ---------- */
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+  padding: calc(5 * var(--u)) 0;
+  border-block: 1px solid var(--border);
+  font-size: calc(17 * var(--u));
+}
+
+.stock-row > * {
+  flex: none;
+}
+
+.trade {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  height: calc(28 * var(--u));
+  padding: 0 calc(6 * var(--u));
+  font: inherit;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 800;
+  color: var(--text);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-radius: calc(14 * var(--u));
+  cursor: pointer;
+}
+
+.trade.on {
+  background: var(--map-coin);
+  border-color: var(--map-gold);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 30%, transparent);
+}
+
+.trade:disabled,
+.step-btn:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.income {
+  display: flex;
+  align-items: center;
+  gap: calc(9 * var(--u));
+  font-size: calc(13 * var(--u));
+}
+
+.income > span:first-child {
+  color: var(--muted);
+}
+
+.income-plus {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(1 * var(--u));
+  font-weight: 800;
+  color: var(--success);
+}
+
+.income-plus .amount {
+  color: var(--text);
+}
+
+.segs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(5 * var(--u));
+}
+
+.seg {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: calc(1 * var(--u));
+  min-height: calc(46 * var(--u));
+  padding: calc(4 * var(--u)) calc(2 * var(--u)) calc(3 * var(--u));
+  font: inherit;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 700;
+  color: var(--text);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-radius: calc(8 * var(--u));
+  box-shadow: 0 1px calc(2 * var(--u)) rgb(70 45 15 / 0.18);
+  cursor: pointer;
+}
+
+.seg.on {
+  background: var(--map-coin);
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  padding: calc(3 * var(--u)) calc(1 * var(--u)) calc(2 * var(--u));
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 30%, transparent);
+}
+
+.seg:disabled {
+  opacity: 0.42;
+  box-shadow: none;
+  cursor: default;
+}
+
+.detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(8 * var(--u));
+  min-height: calc(40 * var(--u));
+  padding: calc(4 * var(--u)) calc(6 * var(--u)) calc(4 * var(--u)) calc(9 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: calc(8 * var(--u));
+}
+
+.detail-what {
+  display: grid;
+  gap: calc(1 * var(--u));
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.detail[data-trade] {
+  gap: calc(4 * var(--u));
+  padding: calc(4 * var(--u)) calc(4 * var(--u)) calc(4 * var(--u)) calc(6 * var(--u));
+}
+
+.detail-what.trade-what {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(3 * var(--u));
+  font-size: calc(14 * var(--u));
+}
+
+.detail[data-trade] .stepper {
+  gap: calc(3 * var(--u));
+}
+
+.detail[data-trade] .step-btn {
+  width: calc(30 * var(--u));
+}
+
+.detail[data-trade] .step-value {
+  min-width: calc(14 * var(--u));
+  font-size: calc(18 * var(--u));
+}
+
+.trade-for {
+  font-size: calc(12 * var(--u));
+  color: var(--muted);
+}
+
+.stage .detail-go {
+  flex: none;
+  min-height: calc(34 * var(--u));
+  padding: calc(3 * var(--u)) calc(12 * var(--u));
+}
+
+.detail-none {
+  display: grid;
+  align-items: center;
+  min-height: calc(40 * var(--u));
+  padding: calc(4 * var(--u)) calc(9 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.25;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  border-radius: calc(8 * var(--u));
+}
+
+.act-note {
+  font-size: calc(12 * var(--u));
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.cost {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  font-size: calc(13 * var(--u));
+  font-weight: 600;
+}
+
+.stepper {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+}
+
+.step-btn {
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
+  padding: 0;
+  font: inherit;
+  font-size: calc(21 * var(--u));
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-radius: calc(8 * var(--u));
+  cursor: pointer;
+}
+
+.step-value {
+  min-width: 1.1em;
+  font-size: calc(21 * var(--u));
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.orders {
+  display: grid;
+  gap: calc(3 * var(--u));
+}
+
+.orders ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(4 * var(--u));
+  /* Höchstens drei Zeilen: Darüber rollt nur diese Liste, „Fertig“ bleibt an seinem Platz */
+  max-height: calc(80 * var(--u));
+  overflow-y: auto;
+}
+
+.orders-none {
+  font-size: calc(12.5 * var(--u));
+  line-height: calc(24 * var(--u));
+  color: var(--muted);
+}
+
+.order-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  height: calc(24 * var(--u));
+  padding: 0 calc(3 * var(--u)) 0 calc(6 * var(--u));
+  font: inherit;
+  font-size: calc(12.5 * var(--u));
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: calc(12 * var(--u));
+  white-space: nowrap;
+}
+
+button.order-chip {
+  cursor: pointer;
+}
+
+/* Viele Befehle: Die Plättchen rücken zusammen, ein Bau zeigt nur sein Zeichen (wo, zeigt die Karte) */
+.orders ul.dense .order-BUILD,
+.orders ul.dense .order-x {
+  display: none;
+}
+
+.orders ul.dense .order-chip {
+  gap: calc(3 * var(--u));
+  padding: 0 calc(5 * var(--u));
+}
+
+span.order-chip {
+  padding-right: calc(8 * var(--u));
+}
+
+.order-x {
+  width: calc(10 * var(--u));
+  text-align: center;
+  font-size: calc(15 * var(--u));
+  line-height: 1;
+  color: var(--muted);
+}
+
+.stage .trade:focus-visible,
+.stage .seg:focus-visible,
+.stage .step-btn:focus-visible,
+.stage .order-chip:focus-visible,
+.stage .fav:focus-visible {
+  outline: calc(2.5 * var(--u)) solid var(--accent);
+  outline-offset: calc(1 * var(--u));
+}
+
+/* Der Knopf eines Blatts steht immer unten, wo der Daumen liegt */
+.blatt > .blatt-go {
+  margin-top: auto;
+}
+
+/* ---------- Aufdecken ---------- */
+
+.aufdeck {
+  display: grid;
+  gap: calc(6 * var(--u));
+}
+
+.aufdeck-row {
+  --seat: var(--seat-0);
+  display: grid;
+  gap: calc(2 * var(--u));
+  padding: calc(4 * var(--u)) calc(6 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u));
+  border-left: calc(4 * var(--u)) solid var(--seat);
+  background: var(--surface-2);
+  border-radius: 0 calc(6 * var(--u)) calc(6 * var(--u)) 0;
+}
+
+.aufdeck-row.seat-1 {
+  --seat: var(--seat-1);
+}
+
+.aufdeck-row.seat-2 {
+  --seat: var(--seat-2);
+}
+
+.aufdeck-who {
+  display: flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  font-size: calc(13.5 * var(--u));
+}
+
+.aufdeck-who .crest {
+  width: calc(18 * var(--u));
+}
+
+.aufdeck-part {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.2;
+}
+
+.aufdeck-part.none {
+  color: var(--muted);
+}
+
+/* ---------- Lose im Glücksrad ---------- */
+
+.lots {
+  display: grid;
+  gap: calc(5 * var(--u));
+}
+
+.lot {
+  display: grid;
+  grid-template-columns: calc(62 * var(--u)) minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: calc(6 * var(--u));
+  font-size: calc(13 * var(--u));
+}
+
+.lot-who {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  min-width: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lot-who .crest {
+  width: calc(16 * var(--u));
+}
+
+.lot-free .lot-who {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.lot strong {
+  font-size: calc(15 * var(--u));
+  font-variant-numeric: tabular-nums;
+}
+
+.pips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: calc(2 * var(--u));
+}
+
+.pips i {
+  width: calc(7 * var(--u));
+  height: calc(13 * var(--u));
+  border-radius: calc(2 * var(--u));
+  background: var(--border-strong);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.22);
+}
+
+.lots-box {
+  display: grid;
+  gap: calc(5 * var(--u));
+  padding: calc(6 * var(--u)) calc(7 * var(--u)) calc(7 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: calc(8 * var(--u));
+}
+
+.lots-note {
+  font-size: calc(11.5 * var(--u));
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+/* ---------- Wer gegen wen ---------- */
+
+.duel-box {
+  display: grid;
+  gap: calc(3 * var(--u));
+  padding-bottom: calc(7 * var(--u));
+  border-bottom: 1px solid var(--border);
+}
+
+.duel-box-sides {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(4 * var(--u));
+  font-size: calc(14.5 * var(--u));
+}
+
+.duel-box-sides .swords-icon {
+  width: calc(20 * var(--u));
+}
+
+.duel-who {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  min-width: 0;
+}
+
+.duel-who strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duel-who .crest {
+  width: calc(22 * var(--u));
+}
+
+.duel-what {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+/* ---------- Ausgang eines Duells ---------- */
+
+.outcome-main {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(16 * var(--u));
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.outcome-main .crest {
+  width: calc(30 * var(--u));
+}
+
+.outcome-list {
+  display: grid;
+  gap: calc(4 * var(--u));
+  padding: calc(6 * var(--u)) calc(8 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: calc(8 * var(--u));
+}
+
+.outcome-list li {
+  display: flex;
+  align-items: center;
+  gap: calc(7 * var(--u));
+  font-size: calc(13 * var(--u));
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.outcome-list .points-coin {
+  width: calc(16 * var(--u));
+  height: calc(16 * var(--u));
+  margin: 0 calc(1 * var(--u));
+}
+
+.next {
+  margin-top: auto;
+  display: grid;
+  gap: calc(3 * var(--u));
+  padding-top: calc(7 * var(--u));
+  border-top: 1px solid var(--border);
+}
+
+.next p {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  font-weight: 700;
+}
+
+.next .crest {
+  width: calc(16 * var(--u));
+}
+
+/* Steht „Als Nächstes“ unten, hängt der Strich der Restzeit direkt darunter */
+.blatt > .next ~ .countdown.quiet {
+  margin-top: 0;
+}
+
+/* ---------- Glücksrad ---------- */
+
+.stage-centre.disc {
+  place-items: center;
+}
+
+.wheel-sheet {
+  width: min(100%, calc(262 * var(--u)));
+  pointer-events: none;
+}
+
+.wheel {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 calc(8 * var(--u)) calc(12 * var(--u)) rgb(30 18 6 / 0.55));
+}
+
+.wheel-rim {
+  fill: var(--map-gate);
+  stroke: var(--map-ink);
+  stroke-width: 2.5;
+}
+
+.wheel-rim-in {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 2;
+}
+
+.wheel-disc {
+  transform: rotate(var(--turn, 0deg));
+}
+
+.seg-free {
+  fill: var(--map-coin);
+}
+
+.seg-side {
+  opacity: 0.92;
+}
+
+.seg-line {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+.seg-hit-ring {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+.seg-glyph path,
+.seg-glyph circle,
+.seg-glyph ellipse {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.seg-glyph .seg-glyph-back {
+  fill: var(--map-coin);
+  stroke: var(--map-ink);
+  stroke-width: 4;
+}
+
+.seg-glyph .g-fill {
+  fill: var(--map-wheat);
+}
+.seg-glyph .g-paper {
+  fill: var(--map-coin);
+}
+.seg-glyph .g-gold {
+  fill: var(--map-gold);
+}
+.seg-glyph .g-ink {
+  fill: var(--map-ink);
+}
+.seg-glyph .g-leaf {
+  fill: var(--map-leaf);
+}
+
+.wheel-hub {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 2.5;
+}
+
+.wheel-hub-mark {
+  fill: var(--map-ink);
+}
+
+.wheel-pointer {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+/* Das Rad läuft aus und bleibt auf der gezogenen Kategorie stehen; erst dann leuchtet ihr Feld */
+.wheel.spinning .wheel-disc {
+  animation: wheel-spin var(--spin, 2s) cubic-bezier(0.13, 0.58, 0.12, 1) var(--spun, 0ms) both;
+}
+
+.wheel.spinning .seg-hit-ring {
+  animation: wheel-hit 320ms ease-out calc(var(--spin, 2s) + var(--spun, 0ms)) both;
+}
+
+@keyframes wheel-spin {
+  from {
+    transform: rotate(var(--turn-from, -1080deg));
+  }
+  to {
+    transform: rotate(var(--turn, 0deg));
+  }
+}
+
+@keyframes wheel-hit {
+  from {
+    opacity: 0;
+    stroke-width: 12;
+  }
+  to {
+    opacity: 1;
+    stroke-width: 5;
+  }
+}
+
+.wheel-hint {
+  font-size: calc(11.5 * var(--u));
+}
+
+.wheel-result {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: calc(9 * var(--u));
+  padding: calc(6 * var(--u)) calc(9 * var(--u));
+  background: var(--map-coin);
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  border-radius: calc(10 * var(--u));
+}
+
+.wheel-result span {
+  display: grid;
+}
+
+.wheel-result strong {
+  font-family: var(--font-display);
+  font-size: calc(19 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.wheel-result small {
+  font-size: calc(12 * var(--u));
+  color: var(--muted);
+}
+
+/* Was das Rad gezogen hat, steht erst da, wenn es steht */
+.stage[data-state='wheel'] .wheel-result {
+  animation: wheel-result-in 260ms ease-out calc(var(--wheel-spin, 0ms) + var(--wheel-spun, 0ms))
+    both;
+}
+
+@keyframes wheel-result-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(4 * var(--u)));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.blatt > .wheel-result ~ .countdown.quiet {
+  margin-top: 0;
+}
+
+/* ---------- Aufstellung: Lieblingskategorien ---------- */
+
+.lobby-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(8 * var(--u));
+}
+
+.sheet.lobby.fav-sheet {
+  width: min(100%, calc(744 * var(--u)));
+  grid-template-columns: minmax(0, 1fr) calc(188 * var(--u));
+  gap: calc(16 * var(--u));
+}
+
+.fav-sheet .lobby-main {
+  gap: calc(9 * var(--u));
+}
+
+.fav-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(10 * var(--u));
+}
+
+.fav-count {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.fav-count.full {
+  color: var(--success);
+}
+
+.fav-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(8 * var(--u));
+  align-content: center;
+}
+
+.fav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  width: 100%;
+  min-height: calc(50 * var(--u));
+  padding: calc(4 * var(--u)) calc(6 * var(--u));
+  font: inherit;
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+  line-height: 1.12;
+  text-align: left;
+  color: var(--text);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-radius: calc(9 * var(--u));
+  cursor: pointer;
+}
+
+/* Lange Namen brechen an der weichen Trennstelle aus `de.ts` („Natur-wissenschaft“) */
+.fav > span:not(.fav-check) {
+  min-width: 0;
+  hyphens: manual;
+  overflow-wrap: anywhere;
+}
+
+.fav.on {
+  background: var(--map-coin);
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  padding: calc(3 * var(--u)) calc(5 * var(--u));
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 35%, transparent);
+}
+
+.fav:disabled {
+  cursor: default;
+}
+
+.fav:disabled:not(.on) {
+  opacity: 0.45;
+}
+
+.fav-check {
+  position: absolute;
+  top: calc(-7 * var(--u));
+  right: calc(-6 * var(--u));
+  display: grid;
+  place-items: center;
+  width: calc(19 * var(--u));
+  height: calc(19 * var(--u));
+  font-size: calc(12 * var(--u));
+  font-weight: 800;
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  border: 1px solid var(--primary-edge);
+  border-radius: 50%;
+}
+
+.fav-note {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+/* Speichern gescheitert: steht an der Stelle des Hinweises, damit das Blatt nicht wächst */
+.sheet.lobby .fav-failed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(10 * var(--u));
+  padding: calc(4 * var(--u)) calc(4 * var(--u)) calc(4 * var(--u)) calc(8 * var(--u));
+  line-height: 1.3;
+}
+
+.fav-failed .button {
+  flex: none;
+  min-height: calc(34 * var(--u));
+  padding: calc(2 * var(--u)) calc(12 * var(--u));
+  font-size: calc(13.5 * var(--u));
+  white-space: nowrap;
+}
+
+.fav-side {
+  gap: calc(8 * var(--u));
+}
+
+.fav-side h3 {
+  font-family: var(--font-display);
+  font-size: calc(17 * var(--u));
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.fav-seats {
+  display: grid;
+  gap: calc(8 * var(--u));
+  margin-bottom: auto;
+}
+
+.fav-seats li {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+}
+
+.fav-seats li > span {
+  display: grid;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.fav-seats strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fav-seats small {
+  font-size: calc(12 * var(--u));
+  color: var(--muted);
+}
+
+.fav-wait {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+/* ---------- Niedriger Bildschirm (Leiste des Browsers sichtbar): das Blatt rückt zusammen ---------- */
+
+@media (min-aspect-ratio: 844 / 360) {
+  .stage-realm .blatt {
+    gap: calc(5 * var(--u));
+    padding: calc(7 * var(--u)) calc(10 * var(--u)) calc(8 * var(--u));
+  }
+  .stage-realm .blatt .countdown-seconds {
+    top: calc(8 * var(--u));
+  }
+  .stock-row {
+    padding: calc(2 * var(--u)) 0;
+    font-size: calc(15.5 * var(--u));
+  }
+  .blatt-body {
+    gap: calc(5 * var(--u));
+  }
+  /* Die Zeile unter dem Namen entfällt, ihre Angabe steht kurz neben dem Namen */
+  .prep .feld {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: calc(6 * var(--u));
+  }
+  .prep .feld-fact {
+    display: none;
+  }
+  .prep .feld-short {
+    display: inline-flex;
+  }
+  .seg {
+    min-height: calc(42 * var(--u));
+  }
+  .orders h3 {
+    display: none;
+  }
+  .orders ul {
+    max-height: calc(52 * var(--u));
+  }
+  .stage-realm .blatt-go {
+    min-height: calc(38 * var(--u));
+  }
+  .lots-note,
+  .wheel-hint {
+    display: none;
+  }
+  .fav {
+    min-height: calc(44 * var(--u));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel.spinning .wheel-disc,
+  .wheel.spinning .seg-hit-ring,
+  .stage[data-state='wheel'] .wheel-result {
+    animation: none;
+  }
+}

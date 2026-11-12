@@ -5,6 +5,7 @@ import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { AnnouncePanel } from './AnnouncePanel.tsx';
+import { Answers } from './Answers.tsx';
 import { DuelHeader } from './DuelHeader.tsx';
 import {
   shownPick,
@@ -16,6 +17,7 @@ import {
   logText,
   pickText,
   questionContext,
+  shortNames,
   type RegionName,
   type SeatName,
 } from './match-text.ts';
@@ -225,6 +227,7 @@ export function StageBlatt({
           ) : (
             <>
               <DuelHeader view={view} name={name} region={region} />
+              <Answers view={view} local={local} short={shortNames(view)} />
               <p className="blatt-hint">{t('match.stage.triviaRule')}</p>
             </>
           )}
@@ -250,6 +253,7 @@ export function StageBlatt({
         <>
           <h2 className="blatt-title">{questionTitle(view)}</h2>
           <DuelHeader view={view} name={name} region={region} />
+          <Answers view={view} local={local} short={shortNames(view)} />
           <p className={`blatt-status${state === 'answered' ? ' done' : ''}`} aria-live="polite">
             {text}
           </p>
@@ -286,10 +290,16 @@ export function StageBlatt({
         </>,
       );
     }
+    // Die letzten fünf gibt es nur in der Partie mit Ausbau: Dort zeichnet `RealmBlatt`
     case 'finished':
     case 'loading':
     case 'lobby':
     case 'abandoned':
+    case 'prepare':
+    case 'prepared':
+    case 'watching-prepare':
+    case 'orders':
+    case 'wheel':
       return null;
   }
 }
