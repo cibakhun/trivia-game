@@ -227,14 +227,34 @@ export function realmPoints(state: RealmState, seat: number): number {
   return state.regions.reduce((sum, r) => (r.owner === seat ? sum + r.value : sum), 0);
 }
 
-/** Armeen eines Sitzes auf einem Feld und seinen Nachbarn (Reichweite). */
-export function armiesInRange(state: RealmState, seat: number, region: number): number {
-  const map = realmMapOf(state);
+/**
+ * Was die Regeln von einem Feld wissen müssen, wenn sie auch der Browser aus seiner Ansicht
+ * rechnet (Rüstzeit planen, Lose fürs Glücksrad zeigen): beim Server ein `RealmRegionState`, im
+ * Browser ein Feld aus `realm.board.regions`.
+ */
+export interface RealmBoardRegion {
+  readonly owner: number | null;
+  readonly building: RealmBuilding;
+  readonly armies: number;
+}
+
+/** Armeen eines Sitzes auf einem Feld und seinen Nachbarn (Reichweite) auf einem beliebigen Brett. */
+export function armiesInRangeOn(
+  map: MatchMap,
+  regions: readonly RealmBoardRegion[],
+  seat: number,
+  region: number,
+): number {
   const own = (id: number) => {
-    const r = state.regions[id];
+    const r = regions[id];
     return r && r.owner === seat ? r.armies : 0;
   };
   return regionNeighbors(map, region).reduce((sum, id) => sum + own(id), own(region));
+}
+
+/** Armeen eines Sitzes auf einem Feld und seinen Nachbarn (Reichweite). */
+export function armiesInRange(state: RealmState, seat: number, region: number): number {
+  return armiesInRangeOn(realmMapOf(state), state.regions, seat, region);
 }
 
 /** Ertrag eines Felds je Feldzugrunde. */

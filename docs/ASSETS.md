@@ -24,15 +24,16 @@ Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext;
 
 | Asset | Datei | Herkunft |
 |---|---|---|
-| Landkarten der Wendelmark und der Kernmark (Grenzen, Küste, Fluss, Meer, Kompass, Titelschild) | `apps/web/src/art/map-art.ts`, `match/MatchBoard.tsx` | eigenes Verfahren, aus den Feldern der Regeln erzeugt |
+| Landkarten der Wendelmark und der Kernmark (Grenzen, Küste, Fluss, Meer bis an den Bildschirmrand) | `apps/web/src/art/map-art.ts`, `match/MatchBoard.tsx` | eigenes Verfahren, aus den Feldern der Regeln erzeugt |
 | Motive Baum, Tanne, Berg, Hügel, Feld, Gras, Schilf, See, Haus, Turm, Wellen, Burg, Schild | `apps/web/src/art/ArtDefs.tsx` | eigene Zeichnungen |
 | Wappenbilder ◆ ● ▲ und Wappenmuster | `apps/web/src/art/ArtDefs.tsx`, `art/SeatCrest.tsx` | eigene Zeichnungen, Grundformen |
 | Spielwappen (Schild, Buch, Krone) | `apps/web/src/art/Emblem.tsx` | eigene Zeichnung |
 | Lorbeerkranz der Siegerseite | `apps/web/src/match/ResultPanel.tsx` | eigene Zeichnung |
 | Papierkorn des Hintergrunds | `apps/web/src/theme.css` (SVG-Rauschfilter) | eigenes Verfahren |
-| Blockpfeil und Wappenplättchen eines Duells auf der Karte, Schwerter im Fragekopf | `apps/web/src/art/attack.ts`, `art/Swords.tsx`, `match/MatchBoard.tsx` | eigene Zeichnungen |
+| Blockpfeil und Wappenplättchen eines Duells auf der Karte, Schwerter im Blatt der Partie | `apps/web/src/art/attack.ts`, `art/Swords.tsx`, `match/MatchBoard.tsx` | eigene Zeichnungen |
 | Tuschezeichen Banner, Schlüssel, Übungsscheibe, Schriftrolle | `apps/web/src/art/Icons.tsx` | eigene Zeichnungen |
 | Schilde der Plätze in der Aufstellung, Lautsprecher am Ton-Schalter | `apps/web/src/match/LobbyPanel.tsx`, `components/SoundToggle.tsx` | eigene Zeichnungen |
+| Münze am Punktestand, Rücktaste des Ziffernfelds, gedrehtes Handy im Hinweis fürs Hochformat | `apps/web/src/match/SeatList.tsx`, `match/NumPad.tsx`, `match/RotateHint.tsx` | eigene Zeichnungen, Grundformen |
 | Zierzeichen ❦ ❧ ✓ | Unicode-Zeichen aus der Schrift | Teil der Schriften bzw. Systemschrift |
 
 ## Klänge

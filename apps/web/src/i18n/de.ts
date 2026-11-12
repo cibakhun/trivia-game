@@ -419,6 +419,36 @@ export const de = {
       expires: 'Eine nicht gestartete Aufstellung verfällt nach zwei Stunden.',
       timers: 'Zeiten: {trivia} s je Wissensfrage, {estimate} s je Schätzfrage, {pick} s je Wahl.',
     },
+    /** Bühne im Querformat (ADR-059): Blatt der Phase, Ziffernfeld, Hinweis im Hochformat. */
+    stage: {
+      leave: 'Verlassen',
+      pick: {
+        CAPITAL_PICK: 'Wähle deine Hauptstadt',
+        LAND_PICK: 'Wähle eine Region',
+        CAMPAIGN_TARGET: 'Wähle dein Angriffsziel',
+      },
+      wait: {
+        CAPITAL_PICK: 'Hauptstadtwahl',
+        LAND_PICK: 'Landnahme',
+        CAMPAIGN_TARGET: 'Feldzug',
+      },
+      role: {
+        attacker: 'Dein Angriff',
+        defender: 'Deine Verteidigung',
+        watching: 'Duell',
+        land: 'Landnahme',
+        tiebreak: 'Stechen',
+      },
+      triviaNext: 'Gleich kommt die Wissensfrage.',
+      tiebreakRule: 'Um {region}: Die genauere Schätzung gewinnt.',
+      triviaRule:
+        'Liegt nur einer richtig, gewinnt er. Liegt ihr beide richtig, entscheidet eine Schätzfrage. Liegt ihr beide falsch, hält der Verteidiger.',
+      numpad: { label: 'Zahlenfeld', comma: 'Komma', back: 'Letzte Ziffer löschen' },
+      rotateTitle: 'Bitte dreh dein Handy quer',
+      rotateText:
+        'Die Partie spielt auf der ganzen Karte. Im Querformat hat sie den meisten Platz.',
+      rotateLock: 'Dreht sich nichts? Dann ist an deinem Handy die Ausrichtungssperre an.',
+    },
     step: {
       CAPITAL_PICK: 'Hauptstadtwahl',
       LAND: 'Landnahme · Runde {round}',
@@ -533,7 +563,6 @@ export const de = {
       },
     },
     log: {
-      title: 'Verlauf',
       CAPITAL_CHOSEN: '{name} wählt {region} als Hauptstadt.',
       AUTO_PICKED: 'Zeit abgelaufen: Der Server wählt {region} für {name}.',
       LAND_RANKED: 'Landnahme, Runde {round}: {name} hat am genauesten geschätzt.',
@@ -552,7 +581,6 @@ export const de = {
     },
     seats: {
       title: 'Spielstand',
-      points: { one: '{count} Punkt', other: '{count} Punkte' },
       regions: { one: '{count} Region', other: '{count} Regionen' },
       eliminated: 'ausgeschieden',
       turn: 'am Zug',

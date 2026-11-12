@@ -28,7 +28,7 @@ export function OutcomePanel({
   const [reason, sentence] = outcomeTexts(duel, name, region);
   return (
     <section
-      className={`card pick-card announce-card outcome-card outcome-${tone} seat-${winner}`}
+      className={`outcome-card outcome-${tone} seat-${winner}`}
       data-testid="match-outcome"
       data-effect={p.effect}
       aria-live="polite"

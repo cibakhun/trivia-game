@@ -45,7 +45,7 @@ export function AnnouncePanel({
     const capital = view.board?.regions[step.region]?.capitalOf === step.defender;
     return (
       <section
-        className={`card pick-card announce-card announce-duel announce-${mine}`}
+        className={`announce-card announce-duel announce-${mine}`}
         data-testid="match-announce"
         aria-live="polite"
       >
@@ -65,11 +65,7 @@ export function AnnouncePanel({
   }
   const pick = shownPick(events);
   return (
-    <section
-      className="card pick-card announce-card"
-      data-testid="match-announce"
-      aria-live="polite"
-    >
+    <section className="announce-card" data-testid="match-announce" aria-live="polite">
       <p className="announce-line">
         {pick ? <SeatCrest seat={pick.payload.seat} size={26} /> : null}
         <strong>

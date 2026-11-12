@@ -3,14 +3,17 @@ import {
   test,
   type Browser,
   type BrowserContextOptions,
+  type Locator,
   type Page,
 } from '@playwright/test';
+import { showEstimate } from '../src/match/estimate-input.ts';
 import { closeAnswerDb, matchSolution, testDb } from './answers.ts';
 
 /**
  * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots,
- * eine normale Partie am Handy allein mit Bots aus der Aufstellung (ADR-052), der Einladungslink
- * und eine normale Partie zu zweit in zwei Browser-Kontexten, die Partien mit Spieltestzeiten.
+ * eine normale Partie am quer gehaltenen Handy allein mit Bots aus der Aufstellung (ADR-052,
+ * ADR-059), der Einladungslink und eine normale Partie zu zweit in zwei Browser-Kontexten, die
+ * Partien mit Spieltestzeiten.
  * Jeder Spieler wählt die erste markierte Region und antwortet richtig; die Lösung liest nur der
  * Test aus der Datenbank. Ansagen und Auflösungen (ADR-053) stehen nur kurz: Die Seite schreibt
  * selbst mit, was sie gezeigt hat. Die Ablaufsteuerung läuft im Testserver wie im api-Prozess.
@@ -64,22 +67,73 @@ async function pickFirst(page: Page, matchId: string, how: 'click' | 'tap'): Pro
   return (await accepted) && done;
 }
 
-/** Beantwortet die Frage `seq` richtig. `false` heißt: Die Frage war inzwischen vorbei. */
-async function answerRight(page: Page, matchId: string, seq: number): Promise<boolean> {
-  const question = page.getByTestId('match-question');
+/**
+ * Ob der Server die Antwort auf Frage `seq` annimmt. Vor dem Tipp aufrufen: Ein gelungener Tipp
+ * allein heißt nicht, dass die Antwort zählt.
+ */
+function answerAccepted(page: Page, matchId: string, seq: number): Promise<boolean> {
+  return page
+    .waitForResponse(
+      (r) =>
+        r.request().method() === 'POST' &&
+        r.url().endsWith(`/matches/${matchId}/questions/${seq}/answer`),
+      { timeout: 10_000 },
+    )
+    .then(
+      (r) => r.ok(),
+      () => false,
+    );
+}
+
+/**
+ * Beantwortet die Frage `seq` richtig. `false` heißt: Die Frage war inzwischen vorbei. Eine
+ * Schätzung steht in der Fragekarte auf der Karte; getippt wird am Handy auf dem Ziffernfeld im
+ * Blatt, am Rechner mit der Tastatur (ADR-059).
+ */
+async function answerRight(
+  page: Page,
+  matchId: string,
+  seq: number,
+  how: 'click' | 'tap' = 'click',
+): Promise<boolean> {
   const solution = await matchSolution(matchId, seq);
-  return succeeds(
-    solution.kind === 'TRIVIA'
-      ? question
-          .getByRole('button', { name: solution.optionText, exact: true })
-          .click({ timeout: 5_000 })
-      : question
-          .getByLabel(/^Deine Schätzung/)
-          .fill(solution.input, { timeout: 5_000 })
-          .then(() =>
-            question.getByRole('button', { name: 'Antwort abgeben' }).click({ timeout: 5_000 }),
-          ),
+  const press = (button: Locator) =>
+    how === 'tap' ? button.tap({ timeout: 5_000 }) : button.click({ timeout: 5_000 });
+  if (solution.kind === 'TRIVIA') {
+    const accepted = answerAccepted(page, matchId, seq);
+    const chosen = await succeeds(
+      press(
+        page
+          .getByTestId('match-question')
+          .getByRole('button', { name: solution.optionText, exact: true }),
+      ),
+    );
+    return chosen && (await accepted);
+  }
+  const pad = page.getByTestId('match-answering');
+  const value = page.getByTestId('estimate-value');
+  const key = (name: string) => press(pad.getByRole('button', { name, exact: true }));
+  const typed = await succeeds(
+    (async () => {
+      // Steht von einem abgebrochenen Versuch noch etwas da, erst leeren
+      const before = (await value.textContent({ timeout: 5_000 })) ?? '';
+      const left = before.replace(/[^\d,]/g, '').length;
+      for (let i = 0; i < left; i++) await key('Letzte Ziffer löschen');
+      if (how === 'tap') {
+        for (const char of solution.input) await key(char === ',' ? 'Komma' : char);
+      } else {
+        await page.keyboard.type(solution.input);
+      }
+    })(),
   );
+  if (!typed) return false;
+  // Keine Ziffer darf verloren gehen: Die Karte zeigt genau die getippte Zahl
+  const text = await value.textContent({ timeout: 1_000 }).catch(() => null);
+  if (text !== null && text !== showEstimate(solution.input)) {
+    throw new Error(`Die Fragekarte zeigt „${text}“ statt „${showEstimate(solution.input)}“`);
+  }
+  const accepted = answerAccepted(page, matchId, seq);
+  return (await succeeds(key('Antwort abgeben'))) && (await accepted);
 }
 
 /** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054, ADR-055). */
@@ -116,12 +170,15 @@ async function recordShown(page: Page): Promise<void> {
     const seen: Shown[] = [];
     (window as unknown as { shown: Shown[] }).shown = seen;
     const note = () => {
-      const state = document
-        .querySelector('[data-testid="match-screen"]')
-        ?.getAttribute('data-state');
+      const screen = document.querySelector('[data-testid="match-screen"]');
+      const state = screen?.getAttribute('data-state');
       if (state !== 'announce' && state !== 'reveal') return;
+      // Der Ausgang eines Duells bleibt im Blatt stehen, solange die Auflösung dauert (ADR-059):
+      // Welcher Takt läuft, sagt die Bühne
       const outcome =
-        state === 'reveal' ? document.querySelector('[data-testid="match-outcome"]') : null;
+        state === 'reveal' && screen?.getAttribute('data-beat') === 'outcome'
+          ? document.querySelector('[data-testid="match-outcome"]')
+          : null;
       const card =
         outcome ??
         document.querySelector(
@@ -159,7 +216,7 @@ async function recordShown(page: Page): Promise<void> {
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ['data-state'],
+      attributeFilter: ['data-state', 'data-beat'],
     });
   });
 }
@@ -279,7 +336,7 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
     expect(duel.text).toMatch(/ greift .+ an\./);
     expect(duel).toMatchObject({ scene: 'announce', arrow: true, ring: false, chips: 2 });
   }
-  // Ausgang (ADR-054): Erst zeigt die Karte, wie das Duell ausging, mit einem Satz in der Leiste;
+  // Ausgang (ADR-054): Erst zeigt die Karte, wie das Duell ausging, mit einem Satz im Blatt;
   // danach folgen die Antworten
   const outcomes = shown.filter((s) => s.state === 'outcome');
   expect(outcomes.length).toBeGreaterThan(0);
@@ -319,29 +376,54 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   await expect(page.getByRole('region', { name: 'Letzte Partien' })).toContainText('beendet');
 });
 
-test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die Region', async ({
+test('Partie am Handy quer: allein mit Bots, die Karte steht fest, ein Tipp wählt die Region', async ({
   browser,
 }) => {
   test.setTimeout(120_000);
-  const WIDTH = 390;
-  const page = await newPlayer(browser, {
-    viewport: { width: WIDTH, height: 664 },
-    hasTouch: true,
-    isMobile: true,
-  });
+  // Hochkant wie in der Hand; quer bleiben in Safari etwa 844 × 340 für die Seite
+  const UPRIGHT = { width: 390, height: 664 };
+  const ACROSS = { width: 844, height: 340 };
+  const page = await newPlayer(browser, { viewport: UPRIGHT, hasTouch: true, isMobile: true });
   /** Breite des Inhalts: Ragt etwas seitlich hinaus, ist die Seite breiter als der Bildschirm. */
   const contentWidth = () => page.evaluate(() => document.documentElement.scrollWidth);
-  expect(await contentWidth()).toBeLessThanOrEqual(WIDTH);
+  expect(await contentWidth()).toBeLessThanOrEqual(UPRIGHT.width);
 
-  // Normale Partie eröffnen: allein lässt sie sich nicht starten
+  // Normale Partie eröffnen: Übersicht und Eröffnen gehen auch hochkant
   const create = page.getByRole('region', { name: 'Neue Partie' });
   await create.getByLabel(/^Kurze Zeiten/).check();
   await create.getByRole('button', { name: 'Partie eröffnen' }).tap();
   await expect(page).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
+
+  // Die Partie spielt quer (ADR-059): Hochkant steht nur die Bitte, das Handy zu drehen
   const lobby = page.getByTestId('match-lobby');
+  const hint = page.locator('.rotate-hint');
+  await expect(hint).toBeVisible();
+  await expect(hint).toContainText('Bitte dreh dein Handy quer');
+  await expect(lobby).toBeHidden();
+  expect(await contentWidth()).toBeLessThanOrEqual(UPRIGHT.width);
+  await page.setViewportSize(ACROSS);
+  await expect(hint).toBeHidden();
+  await expect(lobby).toBeVisible();
+
+  /** Liegt ein Element ganz auf dem Bildschirm? */
+  const onScreen = (selector: string) =>
+    page.evaluate((sel) => {
+      const rect = document.querySelector(sel)?.getBoundingClientRect();
+      return (
+        rect !== undefined &&
+        rect.width > 0 &&
+        rect.left >= 0 &&
+        rect.top >= 0 &&
+        rect.right <= window.innerWidth + 0.5 &&
+        rect.bottom <= window.innerHeight + 0.5
+      );
+    }, selector);
+
+  // Die Aufstellung mit dem Einladungscode passt ohne Scrollen auf den Bildschirm; allein lässt
+  // sich die Partie nicht starten
   await expect(page.getByTestId('invite-code')).toHaveText(/^[A-HJ-NP-Z2-9]{6}$/);
-  // Die Aufstellung mit dem Einladungscode passt auf den Bildschirm
-  expect(await contentWidth()).toBeLessThanOrEqual(WIDTH);
+  expect(await onScreen('[data-testid="match-lobby"]')).toBe(true);
+  expect(await contentWidth()).toBeLessThanOrEqual(ACROSS.width);
   const start = lobby.getByRole('button', { name: 'Partie starten' });
   await expect(start).toBeDisabled();
   await expect(lobby).toContainText('mindestens einen Mitspieler oder einen Bot');
@@ -361,44 +443,58 @@ test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die R
   await lobby.getByRole('button', { name: 'Bot dazu' }).tap();
   await expect(bots).toHaveCount(2);
   await expect(lobby).toContainText('Partien mit Bots zählen nicht in der Statistik.');
-  expect(await contentWidth()).toBeLessThanOrEqual(WIDTH);
+  expect(await onScreen('[data-testid="match-lobby"]')).toBe(true);
   await start.tap();
   await expect(page.getByTestId('match-board')).toBeVisible();
   await expect(page.getByTestId('match-seats').getByRole('listitem')).toHaveCount(3);
   await expect(page.getByTestId('match-turns').getByRole('listitem')).toHaveCount(3);
 
-  const matchId = matchIdOf(page);
-  /** Lage von Karte und Zugfolge je Zustand: Zwischen Wahl, Frage und Auflösung bewegt sich nichts. */
-  const boards = new Map<string, string>();
-  const answered = new Set<number>();
-  let picks = 0;
-  let myTurns = 0;
-  const until = Date.now() + 100_000;
-  while (picks < 3 || !boards.has('question') || !boards.has('reveal')) {
-    if (Date.now() > until) throw new Error('Wahl, Frage und Auflösung kamen nicht rechtzeitig');
-    // Zustand, Lage und Zugfolge in einem Zug lesen, damit sie zusammenpassen
-    const now = await page.evaluate(() => {
+  /** Bühne in einem Zug gelesen, damit Zustand und Lage zusammenpassen. */
+  const read = () =>
+    page.evaluate(() => {
       const main = document.querySelector('[data-testid="match-screen"]');
-      const box = (selector: string) => {
-        const rect = document.querySelector(selector)?.getBoundingClientRect();
-        return rect ? [rect.x, rect.y, rect.width, rect.height].map(Math.round).join(' ') : '';
+      const rectOf = (selector: string) =>
+        document.querySelector(selector)?.getBoundingClientRect();
+      const box = (rect: DOMRect | undefined) =>
+        rect ? [rect.x, rect.y, rect.width, rect.height].map(Math.round).join(' ') : '';
+      const regions = [...document.querySelectorAll('.board-region')].map((region) =>
+        region.getBoundingClientRect(),
+      );
+      const land = {
+        left: Math.min(...regions.map((r) => r.left)),
+        top: Math.min(...regions.map((r) => r.top)),
+        right: Math.max(...regions.map((r) => r.right)),
+        bottom: Math.max(...regions.map((r) => r.bottom)),
       };
+      const left = rectOf('[data-stage-rail="left"]');
+      const right = rectOf('[data-stage-rail="right"]');
+      const sheet = rectOf('.stage-centre .sheet');
       return {
         state: main?.getAttribute('data-state') ?? '',
         seq: Number(main?.getAttribute('data-seq') ?? 0),
         scrollY: Math.round(window.scrollY),
         overflow: document.documentElement.scrollHeight - window.innerHeight,
         width: document.documentElement.scrollWidth,
-        board: box('[data-testid="match-board"]'),
-        turnsBox: box('[data-testid="match-turns"]'),
-        // Unterkante des Landes und Oberkante der Leiste darunter
-        land: Math.max(
-          0,
-          ...[...document.querySelectorAll('.board-region')].map(
-            (region) => region.getBoundingClientRect().bottom,
-          ),
-        ),
-        panel: document.querySelector('.match-panel')?.getBoundingClientRect().top ?? 0,
+        viewport: [window.innerWidth, window.innerHeight],
+        // Karte samt Ausschnitt, Spielstand, Zugfolge und Blatt: Sie stehen in jedem Zustand gleich
+        fixed: [
+          box(rectOf('[data-testid="match-board"]')),
+          document.querySelector('[data-testid="match-board"]')?.getAttribute('viewBox') ?? '',
+          box(left),
+          box(rectOf('[data-testid="match-turns"]')),
+          box(right),
+        ].join(' | '),
+        land,
+        rails: {
+          left: left?.left ?? -1,
+          leftEnd: left?.right ?? 0,
+          right: right?.left ?? 0,
+          rightEnd: right?.right ?? 0,
+        },
+        // Blatt mitten auf der Karte (Frage, Auflösung): zwischen den Rändern und ganz zu sehen
+        sheet: sheet
+          ? { left: sheet.left, top: sheet.top, right: sheet.right, bottom: sheet.bottom }
+          : null,
         locked: document.documentElement.classList.contains('match-playing'),
         turns: [...document.querySelectorAll('[data-testid="match-turns"] li')].map((li) => ({
           status: li.getAttribute('data-status'),
@@ -406,19 +502,37 @@ test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die R
         })),
       };
     });
+
+  const matchId = matchIdOf(page);
+  /** Lage der Bühne je Zustand: Zwischen Wahl, Frage und Auflösung bewegt sich nichts. */
+  const stages = new Map<string, string>();
+  const answered = new Set<number>();
+  let picks = 0;
+  let myTurns = 0;
+  const until = Date.now() + 100_000;
+  while (picks < 3 || !stages.has('question') || !stages.has('reveal')) {
+    if (Date.now() > until) throw new Error('Wahl, Frage und Auflösung kamen nicht rechtzeitig');
+    const now = await read();
     const { state, seq } = now;
     if (state === 'finished' || state === 'abandoned') break;
     // Eine feste Bildschirmseite: nichts zu scrollen, also kann auch nichts springen
     expect(now.scrollY).toBe(0);
     expect(now.overflow).toBeLessThanOrEqual(0);
-    expect(now.width).toBeLessThanOrEqual(WIDTH);
-    if (now.board) boards.set(state, `${now.board} | ${now.turnsBox}`);
-    // Die Seite steht fest (auch am iPhone lässt sich nichts verschieben), und solange gewählt
-    // oder angesagt wird, liegt das ganze Land über der Leiste
+    expect(now.width).toBeLessThanOrEqual(ACROSS.width);
     expect(now.locked).toBe(true);
-    if (state === 'pick' || state === 'waiting-pick' || state === 'announce') {
-      expect(now.land).toBeGreaterThan(0);
-      expect(now.land).toBeLessThanOrEqual(now.panel + 1);
+    stages.set(state, now.fixed);
+    // Die Karte füllt den Bildschirm; das ganze Land liegt frei zwischen Spielstand und Blatt
+    expect(now.rails.left).toBeGreaterThanOrEqual(0);
+    expect(now.rails.rightEnd).toBeLessThanOrEqual(ACROSS.width);
+    expect(now.land.left).toBeGreaterThanOrEqual(now.rails.leftEnd);
+    expect(now.land.right).toBeLessThanOrEqual(now.rails.right);
+    expect(now.land.top).toBeGreaterThanOrEqual(0);
+    expect(now.land.bottom).toBeLessThanOrEqual(ACROSS.height);
+    if (now.sheet) {
+      expect(now.sheet.left).toBeGreaterThanOrEqual(now.rails.leftEnd);
+      expect(now.sheet.right).toBeLessThanOrEqual(now.rails.right);
+      expect(now.sheet.top).toBeGreaterThanOrEqual(0);
+      expect(now.sheet.bottom).toBeLessThanOrEqual(ACROSS.height);
     }
     if (state === 'pick') {
       // Wer wählen darf, steht in der Zugfolge als Einziger auf „dran“
@@ -428,14 +542,27 @@ test('Partie am Handy: allein mit Bots, nichts verrutscht, ein Tipp wählt die R
       myTurns += 1;
       if (await pickFirst(page, matchId, 'tap')) picks += 1;
     } else if (state === 'question' && !answered.has(seq)) {
-      if (await answerRight(page, matchId, seq)) answered.add(seq);
+      if (await answerRight(page, matchId, seq, 'tap')) answered.add(seq);
     }
     await page.waitForTimeout(100);
   }
   expect(picks).toBeGreaterThanOrEqual(3);
   expect(myTurns).toBeGreaterThanOrEqual(3);
-  expect([...boards.keys()]).toEqual(expect.arrayContaining(['pick', 'question', 'reveal']));
-  expect(new Set(boards.values()).size).toBe(1);
+  // Vor der ersten Landnahme steht eine Schätzfrage: Sie wurde auf dem Ziffernfeld getippt
+  expect(answered.size).toBeGreaterThan(0);
+  expect([...stages.keys()]).toEqual(expect.arrayContaining(['pick', 'question', 'reveal']));
+  expect([...new Set(stages.values())]).toHaveLength(1);
+
+  // Mitten in der Partie gedreht: wieder nur der Hinweis; zurück im Querformat steht alles wie vorher
+  const [before] = stages.values();
+  await page.setViewportSize(UPRIGHT);
+  await expect(hint).toBeVisible();
+  await expect(page.getByTestId('match-seats')).toBeHidden();
+  expect(await contentWidth()).toBeLessThanOrEqual(UPRIGHT.width);
+  await page.setViewportSize(ACROSS);
+  await expect(hint).toBeHidden();
+  await expect(page.getByTestId('match-seats')).toBeVisible();
+  await expect.poll(async () => (await read()).fixed).toBe(before);
   await page.context().close();
 });
 

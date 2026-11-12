@@ -25,13 +25,20 @@ const SCENE: Readonly<Record<number, number>> = {
 
 /**
  * Die Wendelmark als Schmuckbild ohne Beschriftung (Startseite): Küste, Grenzen, Fluss, Motive
- * und drei Reiche in Sitzfarben. Rein dekorativ.
+ * und drei Reiche in Sitzfarben. Rein dekorativ. Mit `cover` füllt sie ihre Fläche ganz und wird
+ * dafür beschnitten: der Hintergrund der Aufstellung (ADR-059).
  */
-export function HeroMap() {
+export function HeroMap({ cover = false }: { readonly cover?: boolean }) {
   const art = useMemo(() => mapArt(WENDELMARK), []);
   const prefix = `hero${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
-    <svg className="map-art hero-map" viewBox={art.viewBox} aria-hidden="true" focusable="false">
+    <svg
+      className="map-art hero-map"
+      viewBox={art.viewBox}
+      preserveAspectRatio={cover ? 'xMidYMid slice' : undefined}
+      aria-hidden="true"
+      focusable="false"
+    >
       <ArtDefs prefix={prefix} />
       <rect className="sea" width={art.width} height={art.height} />
       <g className="sea-marks">

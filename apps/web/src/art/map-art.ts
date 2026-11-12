@@ -61,7 +61,7 @@ export interface MapArt {
   readonly width: number;
   readonly height: number;
   readonly viewBox: string;
-  /** Enger Ausschnitt nur um die Insel, für schmale Bildschirme (ohne Titel und Kompass). */
+  /** Enger Ausschnitt nur um die Insel: Ihn legt die Bühne zwischen ihre Ränder (ADR-059). */
   readonly tightViewBox: string;
   /** Sechseckgröße, auf die sich Schriften und Motive beziehen. */
   readonly size: number;
@@ -71,8 +71,6 @@ export interface MapArt {
   /** Fluss entlang innerer Grenzen, von Küste zu Küste; `null`, wenn keiner passt. */
   readonly river: string | null;
   readonly waves: readonly SeaMark[];
-  readonly compass: { readonly x: number; readonly y: number; readonly r: number };
-  readonly title: { readonly x: number; readonly y: number; readonly width: number };
 }
 
 interface Vertex {
@@ -251,7 +249,20 @@ function riverPath(
   return chain;
 }
 
+/** Die Zeichnung einer Karte ändert sich nie: einmal rechnen, dann aus dem Speicher. */
+const drawn = new WeakMap<MatchMap, MapArt>();
+
 export function mapArt(map: MatchMap, size = ART_HEX_SIZE): MapArt {
+  if (size !== ART_HEX_SIZE) return drawMapArt(map, size);
+  let art = drawn.get(map);
+  if (!art) {
+    art = drawMapArt(map, size);
+    drawn.set(map, art);
+  }
+  return art;
+}
+
+function drawMapArt(map: MatchMap, size: number): MapArt {
   const centres = map.regions.map((region) => axialToPixel(region.cell, size));
   const islandCentre = {
     x: centres.reduce((s, c) => s + c.x, 0) / centres.length,
@@ -375,7 +386,7 @@ export function mapArt(map: MatchMap, size = ART_HEX_SIZE): MapArt {
 
   const river = riverPath(vertices, edges, islandCentre);
 
-  // Bildausschnitt: Land plus Meeresrand, Platz für Titel und Kompass
+  // Bildausschnitt: Land plus Meeresrand
   const all = coastPoints.length > 0 ? coastPoints : [...vertices.values()].map((v) => v.pos);
   const margin = 0.75 * size;
   const minX = Math.min(...all.map((p) => p.x)) - margin;
@@ -406,11 +417,7 @@ export function mapArt(map: MatchMap, size = ART_HEX_SIZE): MapArt {
     };
   });
 
-  const titleWidth = 2.9 * size;
-  const title = { x: r2(0.22 * size), y: r2(0.2 * size), width: r2(titleWidth) };
-  const compass = { x: r2(width - 0.85 * size), y: r2(height - 0.85 * size), r: r2(0.55 * size) };
-
-  // Wellen im freien Meer, nicht unter Titel und Kompass
+  // Wellen im freien Meer
   const waveRand = seeded(`waves:${map.id}`);
   const landPoints = all.map(shift);
   const waves: SeaMark[] = [];
@@ -420,10 +427,8 @@ export function mapArt(map: MatchMap, size = ART_HEX_SIZE): MapArt {
       const px = x + (waveRand() - 0.5) * step * 0.7;
       const py = y + (waveRand() - 0.5) * step * 0.5;
       const nearLand = landPoints.some((p) => Math.hypot(p.x - px, p.y - py) < 0.42 * size);
-      const inTitle = px < title.x + titleWidth + 0.2 * size && py < title.y + 0.9 * size;
-      const inCompass = Math.hypot(px - compass.x, py - compass.y) < compass.r * 1.5;
       const insideLand = pointInPolygon({ x: px, y: py }, landPoints);
-      if (nearLand || inTitle || inCompass || insideLand || waveRand() < 0.35) continue;
+      if (nearLand || insideLand || waveRand() < 0.35) continue;
       waves.push({ x: r2(px), y: r2(py), size: r2(size * (0.22 + waveRand() * 0.1)) });
     }
   }
@@ -449,8 +454,6 @@ export function mapArt(map: MatchMap, size = ART_HEX_SIZE): MapArt {
           .join('')
       : null,
     waves,
-    compass,
-    title,
   };
 }
 

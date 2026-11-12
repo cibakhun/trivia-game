@@ -1,9 +1,10 @@
-import { regionNeighbors } from './match-map.ts';
+import type { MatchEconomy } from '@rdw/protocol';
+import { regionNeighbors, type MatchMap } from './match-map.ts';
 import {
   buildingLevel,
-  castlesOf,
   REALM_BUILDINGS,
   realmMapOf,
+  type RealmBoardRegion,
   type RealmBuilding,
   type RealmOrder,
   type RealmRegionState,
@@ -15,6 +16,10 @@ import {
  * Reichs prüfen und ausführen. Die Befehle laufen in der gegebenen Reihenfolge (erst tauschen, dann
  * bauen geht; umgekehrt nicht, wenn das Geld fehlt). Weil jeder Befehl nur eigene Felder und
  * Vorräte betrifft, ist es gleich, in welcher Reihenfolge die Reiche aufgedeckt werden.
+ *
+ * Die Regeln selbst stehen in `planRealmOrders` und brauchen nur einen Ausschnitt des Bretts. So
+ * prüft der Server gegen seinen Zustand (`checkRealmOrders`) und der Browser plant mit denselben
+ * Regeln auf seiner Ansicht.
  */
 
 /**
@@ -50,13 +55,25 @@ export interface RealmOrdersSummary {
   readonly traded: number;
 }
 
-export type RealmOrdersCheck =
+/**
+ * Ausschnitt des Bretts, gegen den Befehle geprüft werden: Karte, Regelwerte, Felder und die
+ * Vorräte des Reichs zu Beginn der Rüstzeit.
+ */
+export interface RealmOrdersBoard<R extends RealmBoardRegion = RealmBoardRegion> {
+  readonly map: MatchMap;
+  readonly economy: MatchEconomy;
+  readonly regions: readonly R[];
+  readonly bread: number;
+  readonly material: number;
+}
+
+export type RealmOrdersPlan<R extends RealmBoardRegion = RealmBoardRegion> =
   | {
       readonly ok: true;
       readonly bread: number;
       readonly material: number;
       /** Geänderte Regionen nach allen Befehlen. */
-      readonly regions: ReadonlyMap<number, RealmRegionState>;
+      readonly regions: ReadonlyMap<number, R>;
       readonly summary: RealmOrdersSummary;
     }
   | {
@@ -65,6 +82,8 @@ export type RealmOrdersCheck =
       /** Index des Befehls, an dem es scheitert. */
       readonly index: number;
     };
+
+export type RealmOrdersCheck = RealmOrdersPlan<RealmRegionState>;
 
 const BUILD_COST_KEY = { VILLAGE: 'village', TOWN: 'town', CASTLE: 'castle' } as const;
 
@@ -81,28 +100,58 @@ export function checkRealmOrders(
   seat: number,
   orders: readonly RealmOrder[],
 ): RealmOrdersCheck {
-  const fail = (error: RealmOrderError, index: number): RealmOrdersCheck => ({
+  const seatState = state.seats[seat];
+  if (!seatState || seatState.eliminatedInDuel !== null) {
+    return { ok: false, error: 'INVALID', index: 0 };
+  }
+  const plan = planRealmOrders(
+    {
+      map: realmMapOf(state),
+      economy: state.rules.economy,
+      regions: state.regions,
+      bread: seatState.bread,
+      material: seatState.material,
+    },
+    seat,
+    orders,
+  );
+  if (!plan.ok) return plan;
+  // Ein neues Gebäude beginnt ohne Treffer
+  const regions = new Map(plan.regions);
+  for (const { region } of plan.summary.built) {
+    const built = regions.get(region);
+    if (built) regions.set(region, { ...built, castleHits: 0 });
+  }
+  return { ...plan, regions };
+}
+
+/**
+ * Die Regeln der Rüstzeit auf einem beliebigen Brett: prüft die Befehle des Sitzes `seat` und
+ * rechnet Vorräte und geänderte Felder aus, ohne das Brett zu ändern. Ob das Reich überhaupt
+ * rüsten darf (nicht ausgeschieden, Rüstzeit läuft), prüft der Aufrufer.
+ */
+export function planRealmOrders<R extends RealmBoardRegion>(
+  board: RealmOrdersBoard<R>,
+  seat: number,
+  orders: readonly RealmOrder[],
+): RealmOrdersPlan<R> {
+  const fail = (error: RealmOrderError, index: number): RealmOrdersPlan<R> => ({
     ok: false,
     error,
     index,
   });
-  const seatState = state.seats[seat];
-  if (!seatState || seatState.eliminatedInDuel !== null) return fail('INVALID', 0);
   if (orders.length > MAX_REALM_ORDERS) return fail('TOO_MANY_ORDERS', MAX_REALM_ORDERS);
 
-  const map = realmMapOf(state);
-  const econ = state.rules.economy;
-  let bread = seatState.bread;
-  let material = seatState.material;
-  let castles = castlesOf(state, seat).length;
-  const changed = new Map<number, RealmRegionState>();
-  const regionAt = (id: number): RealmRegionState =>
-    changed.get(id) ?? (state.regions[id] as RealmRegionState);
+  const { map, economy: econ } = board;
+  let { bread, material } = board;
+  let castles = board.regions.filter((r) => r.owner === seat && r.building === 'CASTLE').length;
+  const changed = new Map<number, R>();
+  const regionAt = (id: number): R => changed.get(id) ?? (board.regions[id] as R);
   const isOwn = (id: unknown): id is number =>
     Number.isInteger(id) &&
     (id as number) >= 0 &&
-    (id as number) < state.regions.length &&
-    state.regions[id as number]?.owner === seat;
+    (id as number) < board.regions.length &&
+    board.regions[id as number]?.owner === seat;
   /** Armeen, die in dieser Runde noch ziehen dürfen: die vom Rundenbeginn, abzüglich gezogener. */
   const movable = new Map<number, number>();
   const builtHere = new Set<number>();
@@ -146,7 +195,7 @@ export function checkRealmOrders(
         bread -= cost.bread;
         material -= cost.material;
         if (next === 'CASTLE') castles += 1;
-        changed.set(order.region, { ...region, building: next, castleHits: 0 });
+        changed.set(order.region, { ...region, building: next });
         builtHere.add(order.region);
         built.push({ region: order.region, building: next });
         break;
@@ -175,8 +224,7 @@ export function checkRealmOrders(
         if (!regionNeighbors(map, order.from).includes(order.to)) {
           return fail('NOT_NEIGHBORS', index);
         }
-        const left =
-          movable.get(order.from) ?? (state.regions[order.from] as RealmRegionState).armies;
+        const left = movable.get(order.from) ?? (board.regions[order.from] as R).armies;
         if (left < order.count) return fail('NOT_ENOUGH_ARMIES', index);
         movable.set(order.from, left - order.count);
         const from = regionAt(order.from);

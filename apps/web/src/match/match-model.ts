@@ -47,6 +47,32 @@ export interface LocalQuestion {
   /** Erneut abgeholt (Reload): Dann zählt nur die Zeit des Servers. */
   readonly reloaded: boolean;
   readonly status: 'OPEN' | 'ANSWERED' | 'MISSED';
+  /** Eigene Antwort, sobald sie abgeschickt ist: Die Fragekarte zeigt sie bis zur Auflösung. */
+  readonly sent?: LocalAnswer | undefined;
+}
+
+/** Was dieser Browser geantwortet hat: die gewählte Option oder die geschriebene Zahl. */
+export interface LocalAnswer {
+  readonly optionToken?: string;
+  readonly rawInput?: string;
+}
+
+function sameAnswer(a: LocalAnswer, b: LocalAnswer): boolean {
+  return a.optionToken === b.optionToken && a.rawInput === b.rawInput;
+}
+
+/**
+ * Lehnt der Server eine Antwort ab, weil unter ihrem Schlüssel schon eine andere zählt, dann zählt
+ * eine der früheren, deren Bestätigung verloren ging (`lost`). Kommen mehrere in Frage, bleibt es
+ * bei `undefined`: Die Fragekarte zeigt dann lieber keine Antwort als eine, die nicht zählt.
+ */
+export function countedAnswer(
+  lost: readonly LocalAnswer[],
+  refused: LocalAnswer,
+): LocalAnswer | undefined {
+  const others = lost.filter((answer) => !sameAnswer(answer, refused));
+  const first = others[0];
+  return first && others.every((answer) => sameAnswer(answer, first)) ? first : undefined;
 }
 
 export type MatchScreenState =

@@ -3,12 +3,13 @@ import { DEFAULT_MATCH_RULES } from '@rdw/protocol';
 import { CountUp } from '../art/CountUp.tsx';
 import { LifeShields } from '../art/LifeShields.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
-import { t, tp } from '../i18n/i18n.ts';
+import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
 
 /**
- * Spielstand je Sitz als Wappenbanner: Wappen (Farbe und Bild), Name, Punkte (zählen bei
- * Änderungen hoch), Regionen und Hauptstadtleben als Schilde. Wer gerade wählt, leuchtet.
+ * Spielstand links auf dem Meer (ADR-059): je Sitz eine Tafel mit Wappen (Farbe und Bild), Name,
+ * Punkten als Münze mit Zahl (zählen bei Änderungen hoch) und Hauptstadtleben als Schilde, darunter
+ * die Zahl der Regionen. Wer gerade wählt, trägt einen goldenen Rand und „am Zug“.
  */
 export function SeatList({ view, name }: { readonly view: MatchView; readonly name: SeatName }) {
   const board = view.board;
@@ -19,16 +20,16 @@ export function SeatList({ view, name }: { readonly view: MatchView; readonly na
     ...board.seats.map((s) => s.capitalLivesLeft),
   );
   return (
-    <section className="seat-list" aria-labelledby="seats-title" data-testid="match-seats">
+    <section className="plaques" aria-labelledby="seats-title" data-testid="match-seats">
       <h2 id="seats-title" className="visually-hidden">
         {t('match.seats.title')}
       </h2>
-      <ul style={{ ['--seats' as string]: board.seats.length }}>
+      <ul>
         {board.seats.map((s) => (
           <li
             key={s.seat}
             className={[
-              'seat',
+              'plaque',
               `seat-${s.seat}`,
               chooser === s.seat ? 'turn' : '',
               s.seat === view.mySeat ? 'me' : '',
@@ -38,31 +39,34 @@ export function SeatList({ view, name }: { readonly view: MatchView; readonly na
               .join(' ')}
             data-seat={s.seat}
           >
-            <span className="seat-mark">
-              <SeatCrest seat={s.seat} size={34} />
+            <span className="plaque-crest">
+              <SeatCrest seat={s.seat} size={27} />
             </span>
-            <span className="seat-name">
-              <strong>{name(s.seat)}</strong>
-              {chooser === s.seat ? <span className="badge">{t('match.seats.turn')}</span> : null}
-              {s.eliminated ? <span className="badge">{t('match.seats.eliminated')}</span> : null}
+            <strong className="plaque-name">{name(s.seat)}</strong>
+            <span className="plaque-points">
+              <svg className="points-coin" viewBox="-50 -50 100 100" aria-hidden="true">
+                <circle r="40" strokeWidth="12" />
+              </svg>
+              <CountUp value={s.points} render={formatNumber} />
+              <span className="visually-hidden"> {t('match.result.pointsColumn')}</span>
             </span>
-            <span className="seat-facts">
-              <span className="seat-points">
-                <CountUp value={s.points} render={(n) => tp('match.seats.points', n)} />
+            {s.capital !== null && !s.eliminated ? (
+              <span className="plaque-lives">
+                <LifeShields
+                  left={s.capitalLivesLeft}
+                  max={maxLives}
+                  label={tp('match.board.lives', s.capitalLivesLeft)}
+                />
               </span>
-              <span className="seat-regions">
-                {' · '}
-                {tp('match.seats.regions', s.regions)}
-              </span>
-              {s.capital !== null && !s.eliminated ? (
-                <>
-                  <span className="sep">{' · '}</span>
-                  <LifeShields
-                    left={s.capitalLivesLeft}
-                    max={maxLives}
-                    label={tp('match.board.lives', s.capitalLivesLeft)}
-                  />
-                </>
+            ) : null}
+            <span className="plaque-foot">
+              {s.eliminated ? (
+                <span className="plaque-out">{t('match.seats.eliminated')}</span>
+              ) : (
+                <span className="plaque-regions">{tp('match.seats.regions', s.regions)}</span>
+              )}
+              {chooser === s.seat ? (
+                <span className="plaque-state">{t('match.seats.turn')}</span>
               ) : null}
             </span>
           </li>

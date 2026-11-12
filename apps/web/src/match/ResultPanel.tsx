@@ -6,7 +6,10 @@ import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
 import type { SeatName } from './match-text.ts';
 
-/** Abrechnung (MATCH_RULES §6): Platz, Punkte, Regionen und Hauptstadtleben je Sitz. */
+/**
+ * Abrechnung (MATCH_RULES §6) als Blatt auf der Karte: Platz, Punkte, Regionen und
+ * Hauptstadtleben je Sitz, daneben das Ergebnis und wie es weitergeht.
+ */
 export function ResultPanel({
   view,
   finished,
@@ -46,7 +49,7 @@ export function ResultPanel({
 
   return (
     <section
-      className={`resolution result${mine?.place === 1 ? ' victory' : ''}`}
+      className={`sheet resolution result${mine?.place === 1 ? ' victory' : ''}`}
       aria-labelledby="result-title"
       data-testid="match-result"
     >
