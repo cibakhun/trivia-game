@@ -46,7 +46,7 @@ export function StageQuestion({
   readonly busy: boolean;
   /** `false`, sobald die eigene Antwort abgegeben oder die Zeit abgelaufen ist. */
   readonly open: boolean;
-  /** Eingabe des Ziffernfelds (Schätzfrage). */
+  /** Eingabe des Ziffernfelds (Schätzfrage); sie steht nur da, solange die Karte offen ist. */
   readonly estimate: string;
   /** Eigene Antwort, sobald sie abgeschickt ist: gewählte Option oder geschriebene Zahl. */
   readonly sent: { readonly optionToken?: string; readonly rawInput?: string } | null;
@@ -116,7 +116,8 @@ export function StageQuestion({
               {': '}
             </span>
             <span className="estimate-value" data-testid="estimate-value" aria-live="polite">
-              {showEstimate(sent?.rawInput ?? estimate)}
+              {/* Zu zeigt die Karte nur, was abgeschickt wurde: lieber keine Zahl als eine, die nicht zählt */}
+              {showEstimate(sent?.rawInput ?? (open ? estimate : ''))}
               {open && !sent ? <i className="caret" aria-hidden="true" /> : null}
             </span>
             {question.unitLabel ? (
