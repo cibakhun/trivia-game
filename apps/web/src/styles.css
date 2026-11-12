@@ -202,6 +202,74 @@ select:focus-visible {
   color: var(--danger);
 }
 
+/* Auffangschirm (ADR-061): steht für sich über allem und scrollt selbst, auch wenn die Bühne der
+   Partie die Seite festhält. Das Blatt sitzt mit `margin: auto` in der Mitte, damit sein Anfang
+   auf einem niedrigen Bildschirm erreichbar bleibt. */
+.crash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: auto;
+  display: flex;
+  padding: 1rem;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.crash-sheet {
+  display: grid;
+  gap: 0.6rem;
+  width: min(100%, 36rem);
+  margin: auto;
+  padding: 1.1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-raised);
+}
+
+.crash-sheet h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.crash-sheet h2 {
+  margin: 0.4rem 0 0;
+  font-size: 1rem;
+}
+
+.crash-sheet p {
+  margin: 0;
+}
+
+.crash-cause {
+  padding: 0.5rem 0.75rem;
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.crash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.crash-report {
+  margin: 0;
+  max-height: 9.5rem;
+  overflow: auto;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 .badge {
   display: inline-block;
   margin: 0.25rem 0;
