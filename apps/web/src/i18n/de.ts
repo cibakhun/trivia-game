@@ -9,6 +9,25 @@ export const de = {
     loading: 'Lädt …',
     retry: 'Erneut versuchen',
   },
+  // Auffangschirm (ADR-061): steht statt der Seite, wenn ein Fehler die Anzeige anhält
+  crash: {
+    title: 'Die Seite ist stehen geblieben',
+    text: 'Ein Fehler in der Anzeige hat die Seite angehalten. Eine laufende Partie geht auf dem Server weiter: Lade die Seite neu, dann bist du wieder dabei.',
+    causeForeign:
+      'Wahrscheinliche Ursache: Etwas hat den Text der Seite verändert, meist die automatische Übersetzung des Browsers oder eine Erweiterung. Schalte die Übersetzung für diese Seite aus und lade neu.',
+    reload: 'Neu laden',
+    copy: 'Meldung kopieren',
+    copied: 'Kopiert',
+    reportTitle: 'Meldung für die Fehlersuche',
+    report: {
+      time: 'Zeit',
+      page: 'Seite',
+      browser: 'Browser',
+      error: 'Fehler',
+      stack: 'Stelle',
+      parts: 'Bauteile',
+    },
+  },
   sound: {
     label: 'Ton',
     turnOn: 'Klänge einschalten',
