@@ -206,7 +206,8 @@ export interface RealmViewOptions {
 
 /**
  * Ansicht einer laufenden Partie mit Ausbau zu dritt in der Rüstzeit der zweiten Runde; ich bin
- * Sitz 2. Geprüft gegen das Schema des Protokolls.
+ * Anna auf Sitz 2, die Bots sitzen auf 0 (leicht) und 1 (schwer). Geprüft gegen das Schema des
+ * Protokolls.
  */
 export function realmViewOf(
   options: RealmViewOptions = {},
@@ -262,11 +263,11 @@ export function realmViewOf(
   return matchViewSchema.parse({
     ...base,
     match: { ...base.match, mode: 'REALM' },
-    players: base.players.map((player) => ({
-      ...player,
-      isMe: player.seat === 2,
-      favorites: [...(REALM_FAVORITES[player.seat ?? 0] ?? [])],
-    })),
+    // Ich bin der Mensch der Runde: Anna sitzt hier auf Sitz 2, der Bot von dort auf Sitz 1
+    players: base.players.map((player) => {
+      const seat = player.seat === 1 ? 2 : player.seat === 2 ? 1 : player.seat;
+      return { ...player, seat, favorites: [...(REALM_FAVORITES[seat ?? 0] ?? [])] };
+    }),
     mySeat: 2,
     board: null,
     realm: {
