@@ -180,9 +180,7 @@ describe('Was ein Sieg am Ziel bewirkt', () => {
     expect(targetWinKey(play, last)).toBe('TAKEOVER');
     // Mit einer zweiten Burg fällt nur diese
     const two = playOf({ buildings: { 13: 'CASTLE' } });
-    expect(targetWinKey(two, { ...target(two, 18), castleLivesLeft: 1 })).toBe(
-      'CASTLE_DESTROYED',
-    );
+    expect(targetWinKey(two, { ...target(two, 18), castleLivesLeft: 1 })).toBe('CASTLE_DESTROYED');
   });
 });
 
@@ -194,9 +192,7 @@ describe('Wem die gezogene Kategorie liegt', () => {
     // Geschichte liegt Sitz 2 und Sitz 0, Technik nur Sitz 1, Politik niemandem
     expect(wheelFits('LITERATURE', favorites, 2, 1, 2, name)).toBe('liegt dir');
     expect(wheelFits('TECHNOLOGY', favorites, 2, 1, 2, name)).toBe('liegt Bot (schwer)');
-    expect(wheelFits('POLITICS_SOCIETY', favorites, 2, 1, 2, name)).toBe(
-      'liegt keinem von beiden',
-    );
+    expect(wheelFits('POLITICS_SOCIETY', favorites, 2, 1, 2, name)).toBe('liegt keinem von beiden');
     expect(wheelFits('HISTORY', favorites, 2, 0, 2, name)).toBe('liegt euch beiden');
   });
 

@@ -131,6 +131,101 @@ describe('Klänge der Partie', () => {
     ]);
   });
 
+  describe('mit Ausbau', () => {
+    const realmDuel = (seq: number, effect: string) =>
+      event(seq, 'REALM_DUEL_RESOLVED', {
+        round: 2,
+        duel: 3,
+        attacker: 0,
+        defender: 1,
+        region: 12,
+        category: 'HISTORY',
+        winner: effect === 'FORTIFIED' ? 'DEFENDER' : 'ATTACKER',
+        reason: 'TRIVIA',
+        effect,
+        building: effect === 'CASTLE_HIT' ? 'CASTLE' : 'NONE',
+        castleLivesLeft: effect === 'CASTLE_HIT' ? 2 : null,
+        regionValue: 100,
+        armyLost: null,
+      });
+    const revealed = (seq: number, seat: number) =>
+      event(seq, 'ORDERS_REVEALED', {
+        round: 2,
+        seat,
+        orders: [],
+        summary: { built: [], recruited: 0, moved: 0, traded: 0 },
+        bread: 3,
+        material: 4,
+      });
+
+    it('klingt ein Duell wie ohne Ausbau: gehalten, erobert oder Treffer', () => {
+      const cue = (effect: string) =>
+        cuesFor(at('answered', 6), at('reveal', 8), [realmDuel(8, effect)], null)[0]?.cue;
+      expect(cue('FORTIFIED')).toBe('defend');
+      expect(cue('CONQUERED')).toBe('conquer');
+      expect(cue('CASTLE_DESTROYED')).toBe('conquer');
+      expect(cue('BUILDING_DAMAGED')).toBe('capitalHit');
+      expect(cue('CASTLE_HIT')).toBe('capitalHit');
+      expect(cue('TAKEOVER')).toBe('capitalHit');
+    });
+
+    it('folgt die Wirkung des Duells auf die eigene Antwort', () => {
+      expect(
+        cuesFor(
+          at('answered', 6),
+          at('reveal', 8),
+          [resolved(7, true), realmDuel(8, 'CONQUERED')],
+          0,
+        ),
+      ).toEqual([
+        { cue: 'correct', delayMs: 0 },
+        { cue: 'conquer', delayMs: 550 },
+      ]);
+    });
+
+    it('klingt das Aufdecken einmal für alle Reiche, das Setzen von Burg und Dorf je Abruf einmal', () => {
+      const all = [revealed(21, 0), revealed(22, 1), revealed(23, 2)];
+      expect(cuesFor(at('prepared', 20), at('orders', 23), all, 2)).toEqual([
+        { cue: 'pick', delayMs: 0 },
+      ]);
+      const castle = event(5, 'CASTLE_CHOSEN', { seat: 1, region: 18, armies: 3 });
+      const village = event(6, 'VILLAGE_CHOSEN', { seat: 1, region: 13 });
+      expect(
+        cuesFor(at('waiting-pick', 4), at('waiting-pick', 6), [castle, village], 2).map(
+          (c) => c.cue,
+        ),
+      ).toEqual(['pick']);
+    });
+
+    it('bleiben Einkommen, Abgabe und Glücksrad still', () => {
+      const quiet = [
+        event(30, 'INCOME', { round: 2, income: [{ seat: 2, bread: 4, material: 5 }] }),
+        event(31, 'ORDERS_SUBMITTED', { round: 2, seat: 0 }),
+        event(32, 'PREPARE_CLOSED', { round: 2, missing: [] }),
+        event(33, 'WHEEL_SPUN', { round: 2, region: 12, category: 'HISTORY', exhausted: [] }),
+      ];
+      expect(cuesFor(at('prepare', 29), at('wheel', 33), quiet, 2)).toEqual([]);
+    });
+
+    it('klingt das Ende nach dem Endstand der Partie mit Ausbau', () => {
+      const standings = [
+        { seat: 2, place: 1 },
+        { seat: 0, place: 2 },
+      ];
+      expect(cuesFor(at('reveal', 9), at('finished', 9), [], 2, standings)).toEqual([
+        { cue: 'victory', delayMs: 400 },
+      ]);
+      expect(cuesFor(at('reveal', 9), at('finished', 9), [], 0, standings)[0]?.cue).toBe('defeat');
+    });
+
+    it('ruft das Horn zum eigenen Angriff, nicht zur Rüstzeit', () => {
+      expect(cuesFor(at('orders', 40), at('pick', 41), [], 2)).toEqual([
+        { cue: 'turn', delayMs: 0 },
+      ]);
+      expect(cuesFor(at('reveal', 40), at('prepare', 41), [], 2)).toEqual([]);
+    });
+  });
+
   it('der Schalter bleibt gespeichert', () => {
     setSoundEnabled(false);
     expect(soundEnabled()).toBe(false);
