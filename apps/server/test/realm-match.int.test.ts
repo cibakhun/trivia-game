@@ -622,9 +622,19 @@ describe('Angriff auf ein freies Feld (O-37, ADR-062)', () => {
   /**
    * Spielt bis zu einem eigenen Angriff, bei dem ein freies Feld am eigenen Land liegt, greift es
    * an und beantwortet die Wissensfrage richtig oder falsch. Zurück kommt der Stand in der
-   * Auflösung.
+   * Auflösung. Wo die Felder liegen, lost die Partie aus: Liegt in fünf Angriffen keines am eigenen
+   * Land, beginnt eine neue Partie (höchstens drei), damit der Test nicht am Zufall scheitert. In
+   * 300 Probepartien kam das nicht ein Mal vor.
    */
   async function claim(correct: boolean) {
+    for (let match = 0; match < 3; match++) {
+      const found = await claimIn(correct);
+      if (found) return found;
+    }
+    throw new Error('In drei Partien lag bei keinem Angriff ein freies Feld am eigenen Land');
+  }
+
+  async function claimIn(correct: boolean) {
     const human = await newHuman();
     const matchId = await startRealmTest(human, ['EASY']);
     for (let attack = 0; attack < 5; attack++) {
@@ -656,7 +666,7 @@ describe('Angriff auf ein freies Feld (O-37, ADR-062)', () => {
       const after = await view(human, matchId);
       return { human, matchId, mySeat, target, before, asked, after, all: await events(matchId) };
     }
-    throw new Error('In fünf Angriffen lag kein freies Feld am eigenen Land');
+    return null;
   }
 
   it('die Wissensfrage geht an den Angreifer allein; richtig beantwortet gehört das Feld ihm', async () => {
