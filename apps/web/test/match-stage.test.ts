@@ -173,6 +173,7 @@ describe('Blatt der Phase rechts auf dem Meer', () => {
         kind: 'TRIVIA',
         purpose: 'DUEL_TRIVIA',
         seats: [1, 2],
+        answered: [],
         closesAt: AT,
         resolved: false,
         myStatus: 'PRESENTED',
@@ -209,6 +210,80 @@ describe('Blatt der Phase rechts auf dem Meer', () => {
     const html = blatt(duel, 'answered', localOf(TRIVIA));
     expect(html).toContain('data-testid="match-waiting"');
     expect(textOf(html)).toContain('Deine Antwort ist gespeichert.');
+  });
+
+  describe('Liste, wer schon geantwortet hat', () => {
+    const asked = (answered: number[], myStatus: 'PRESENTED' | 'ANSWERED' = 'PRESENTED') => ({
+      ...duel,
+      question: duel.question && { ...duel.question, answered, myStatus },
+    });
+    const row = (html: string, seat: number) => {
+      const start = html.indexOf(`data-seat="${seat}"`);
+      return html.slice(html.lastIndexOf('<li', start), html.indexOf('</li>', start));
+    };
+
+    it('nennt je Sitz der Frage nur, dass geantwortet wurde, nie was', () => {
+      const html = blatt(asked([2]), 'question', localOf(TRIVIA));
+      expect(html).toContain('data-testid="match-answers"');
+      expect(textOf(html)).toContain('Antworten');
+      expect(count(html, 'data-answered=')).toBe(2);
+      expect(row(html, 1)).toContain('data-answered="false"');
+      expect(textOf(row(html, 1))).toBe('Du überlegst');
+      expect(row(html, 2)).toContain('data-answered="true"');
+      expect(textOf(row(html, 2))).toBe('Bot (schwer) ✓ hat geantwortet');
+      // Wer an der Frage nicht beteiligt ist, steht nicht in der Liste
+      expect(html).not.toContain('data-seat="0"');
+    });
+
+    it('zählt die eigene Antwort, sobald sie abgeschickt ist', () => {
+      const sent = { ...localOf(TRIVIA), sent: { optionToken: 'b' } };
+      expect(textOf(row(blatt(asked([]), 'question', sent), 1))).toBe('Du ✓ abgegeben');
+      // Nach dem Neuladen weiß es nur der Server
+      const reloaded = blatt(asked([1], 'ANSWERED'), 'answered', null);
+      expect(textOf(row(reloaded, 1))).toBe('Du ✓ abgegeben');
+      expect(textOf(row(reloaded, 2))).toBe('Bot (schwer) überlegt');
+    });
+
+    it('zählt eine eigene Antwort zu einer anderen Frage nicht', () => {
+      const old = { ...localOf(TRIVIA), seq: 6, status: 'ANSWERED' as const };
+      expect(textOf(row(blatt(asked([]), 'presenting', old), 1))).toBe('Du überlegst');
+    });
+
+    it('steht auch für Zuschauer da, bei der Schätzfrage weicht sie dem Ziffernfeld', () => {
+      const watching = viewOf(
+        {
+          phase: { kind: 'QUESTION', deadline: AT, remainingMs: 6000 },
+          legalRegions: [],
+          question: duel.question && {
+            ...duel.question,
+            seats: [0, 2],
+            answered: [0],
+            myStatus: 'NOT_PARTICIPATING',
+          },
+        },
+        { kind: 'DUEL_TRIVIA', round: 1, chooser: null, attacker: 0, defender: 2, region: 5 },
+      );
+      const html = blatt(watching, 'spectating');
+      expect(textOf(row(html, 0))).toBe('Bot (leicht) ✓ hat geantwortet');
+      expect(textOf(row(html, 2))).toBe('Bot (schwer) überlegt');
+      expect(html).not.toContain('data-seat="1"');
+
+      const tie = {
+        ...asked([]),
+        board: duel.board
+          ? { ...duel.board, step: { ...duel.board.step, kind: 'DUEL_ESTIMATE' as const } }
+          : null,
+      };
+      expect(blatt(tie, 'question', localOf(ESTIMATE))).not.toContain(
+        'data-testid="match-answers"',
+      );
+    });
+
+    it('fehlt ohne laufende Frage', () => {
+      expect(blatt({ ...duel, question: null }, 'spectating')).not.toContain(
+        'data-testid="match-answers"',
+      );
+    });
   });
 });
 

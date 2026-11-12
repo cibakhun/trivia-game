@@ -7,11 +7,14 @@ import {
   fieldOptions,
   planOrders,
   plannedRegion,
+  prepareTab,
   realmPlayOf,
   realmScreenStateOf,
   revealedOrders,
   settleOrders,
+  tabsOf,
   tradeOptions,
+  tradesFirst,
   wheelPreview,
   withBuild,
   withMove,
@@ -351,6 +354,62 @@ describe('Tausch', () => {
     const play = playOf();
     const orders = withBuild(withRecruit([], 2, 1), 0, true);
     expect(settleOrders(play, ME, orders)).toMatchObject({ orders, dropped: [] });
+  });
+});
+
+describe('Reihenfolge im Entwurf', () => {
+  it('stellt jeden Tausch nach vorn und lässt das Übrige, wie es war', () => {
+    const orders: RealmOrderDto[] = [
+      { kind: 'BUILD', region: 7 },
+      { kind: 'TRADE', give: 'MATERIAL', count: 1 },
+      { kind: 'RECRUIT', region: 2, count: 1 },
+      { kind: 'TRADE', give: 'BREAD', count: 1 },
+      { kind: 'MOVE', from: 2, to: 6, count: 1 },
+    ];
+    expect(tradesFirst(orders).map((o) => o.kind)).toEqual([
+      'TRADE',
+      'TRADE',
+      'BUILD',
+      'RECRUIT',
+      'MOVE',
+    ]);
+    expect(tradesFirst(orders).slice(0, 2)).toEqual([orders[1], orders[3]]);
+    expect(tradesFirst([])).toEqual([]);
+  });
+
+  it('macht einen Kauf möglich, für den erst der Tausch das Brot bringt', () => {
+    // 1 Brot reicht für keine Armee; 3 Baustoff gegen 1 Brot getauscht, reicht es
+    const play = playOf({ stock: { 2: { bread: 1, material: 10 } } });
+    const late: RealmOrderDto[] = [
+      { kind: 'RECRUIT', region: 2, count: 1 },
+      { kind: 'TRADE', give: 'MATERIAL', count: 1 },
+    ];
+    expect(planOrders(play, ME, late).ok).toBe(false);
+    expect(planOrders(play, ME, tradesFirst(late)).ok).toBe(true);
+  });
+});
+
+describe('Reiter des Blatts zu einem Feld', () => {
+  const field = (id: number, options: RealmViewOptions = {}) => {
+    const found = fieldOptions(playOf(options), ME, [], id);
+    if (!found) throw new Error('kein eigenes Feld');
+    return found;
+  };
+
+  it('öffnet nur, was auf dem Feld geht', () => {
+    // Burg: höchste Stufe, also kein Bau, aber Kauf und Zug
+    expect(tabsOf(field(2))).toEqual({ build: false, buy: true, move: true });
+    // Dorf ohne Armee: nur Bau
+    expect(tabsOf(field(5))).toEqual({ build: true, buy: false, move: false });
+    // Freies Feld mit einer Armee: Bau und Zug
+    expect(tabsOf(field(7))).toEqual({ build: true, buy: false, move: true });
+  });
+
+  it('bleibt beim gewünschten Reiter, wenn er geht, sonst beim ersten, der geht', () => {
+    expect(prepareTab(field(7), 'move')).toBe('move');
+    expect(prepareTab(field(7), 'buy')).toBe('build');
+    expect(prepareTab(field(2), 'build')).toBe('buy');
+    expect(prepareTab(field(5), 'move')).toBe('build');
   });
 });
 

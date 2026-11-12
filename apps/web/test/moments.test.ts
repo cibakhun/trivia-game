@@ -104,6 +104,128 @@ describe('Große Momente', () => {
   });
 });
 
+describe('Große Momente der Partie mit Ausbau', () => {
+  const between = (before: Partial<MomentSnapshot>, next: Partial<MomentSnapshot>) =>
+    momentsBetween(snap(before), snap(next), [], name, 5, true);
+  const titles = (before: Partial<MomentSnapshot>, next: Partial<MomentSnapshot>) =>
+    between(before, next).map((m) => m.title);
+
+  it('kündigt Burgen und Startdörfer an, je einmal', () => {
+    expect(
+      titles(
+        { state: 'reveal', kind: 'START_ESTIMATE', round: null },
+        { kind: 'CASTLE_PICK', round: null },
+      ),
+    ).toEqual(['Die Burgen werden gesetzt']);
+    expect(
+      titles({ kind: 'CASTLE_PICK', round: null }, { kind: 'VILLAGE_PICK', round: null }),
+    ).toEqual(['Jetzt die Dörfer']);
+    // Der nächste Sitz setzt: dieselbe Phase, kein neues Band
+    expect(
+      titles(
+        { kind: 'CASTLE_PICK', round: null, lastSeq: 10 },
+        { kind: 'CASTLE_PICK', round: null, lastSeq: 11 },
+      ),
+    ).toEqual([]);
+  });
+
+  it('kündigt jede Runde mit ihrer Rüstzeit an, die letzte als letzte', () => {
+    const first = between(
+      { kind: 'VILLAGE_PICK', round: null },
+      { state: 'prepare', kind: 'PREPARE', round: 1 },
+    );
+    expect(first).toMatchObject([
+      { key: 'prepare-1', title: 'Rüstzeit', detail: 'Runde 1 von 5', tone: 'ink' },
+    ]);
+    const last = between(
+      { kind: 'CAMPAIGN_TARGET', round: 4 },
+      { state: 'prepare', kind: 'PREPARE', round: 5 },
+    );
+    expect(last[0]?.detail).toBe('Letzte Runde des Feldzugs');
+    // Abgegeben oder zuschauend: dieselbe Rüstzeit
+    expect(
+      titles(
+        { state: 'prepare', kind: 'PREPARE', round: 2 },
+        { state: 'prepared', kind: 'PREPARE', round: 2 },
+      ),
+    ).toEqual([]);
+    expect(
+      titles(
+        { kind: 'CAMPAIGN_TARGET', round: 1 },
+        { state: 'watching-prepare', kind: 'PREPARE', round: 2 },
+      ),
+    ).toEqual(['Rüstzeit']);
+  });
+
+  it('kündigt das Aufdecken an und danach keinen eigenen Feldzug', () => {
+    const orders = between(
+      { state: 'prepared', kind: 'PREPARE', round: 2 },
+      { state: 'orders', kind: 'CAMPAIGN_TARGET', round: 2 },
+    );
+    expect(orders).toMatchObject([
+      { key: 'orders-2', title: 'Die Befehle werden aufgedeckt', detail: null },
+    ]);
+    expect(
+      titles(
+        { state: 'orders', kind: 'CAMPAIGN_TARGET', round: 2 },
+        { state: 'orders', kind: 'CAMPAIGN_TARGET', round: 2 },
+      ),
+    ).toEqual([]);
+    // Die Runde hat die Rüstzeit schon angekündigt
+    expect(
+      titles(
+        { state: 'orders', kind: 'CAMPAIGN_TARGET', round: 2 },
+        { kind: 'CAMPAIGN_TARGET', round: 2 },
+      ),
+    ).toEqual([]);
+    expect(
+      titles({ kind: 'DUEL_TRIVIA', round: 2 }, { kind: 'CAMPAIGN_TARGET', round: 2 }),
+    ).toEqual([]);
+  });
+
+  it('wartet mit der Ankündigung, solange eine Auflösung steht', () => {
+    expect(
+      titles(
+        { state: 'question', kind: 'DUEL_TRIVIA', round: 2 },
+        { state: 'reveal', kind: 'PREPARE', round: 3 },
+      ),
+    ).toEqual([]);
+    expect(
+      titles(
+        { state: 'reveal', kind: 'PREPARE', round: 3 },
+        { state: 'prepare', kind: 'PREPARE', round: 3 },
+      ),
+    ).toEqual([]);
+  });
+
+  it('sagt „Du bist dran“ beim eigenen Angriff, nicht in der Rüstzeit', () => {
+    expect(
+      titles(
+        { state: 'orders', kind: 'CAMPAIGN_TARGET', round: 2, lastSeq: 40 },
+        { state: 'pick', kind: 'CAMPAIGN_TARGET', round: 2, lastSeq: 41 },
+      ),
+    ).toEqual(['Du bist dran!']);
+    expect(
+      titles(
+        { kind: 'CAMPAIGN_TARGET', round: 1 },
+        { state: 'prepare', kind: 'PREPARE', round: 2 },
+      ),
+    ).toEqual(['Rüstzeit']);
+  });
+
+  it('feiert ein fallendes Reich wie ohne Ausbau', () => {
+    const [moment] = momentsBetween(
+      snap({ state: 'reveal', lastSeq: 8 }),
+      snap({ state: 'reveal', lastSeq: 10 }),
+      [eliminated(9, 1, 0)],
+      name,
+      5,
+      true,
+    );
+    expect(moment).toMatchObject({ title: 'Ein Reich fällt!', tone: 'seat', seat: 0 });
+  });
+});
+
 describe('Warteschlange der Bänder', () => {
   const turn = (lastSeq: number) =>
     momentsBetween(null, snap({ state: 'pick', lastSeq }), [], name, 4)[0]!;

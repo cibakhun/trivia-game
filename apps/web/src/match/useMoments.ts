@@ -1,6 +1,6 @@
 import type { MatchView, ParsedMatchEvent } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
-import { rulesOf, type MatchScreenState } from './match-model.ts';
+import { rulesOf, stepOf, type MatchScreenState } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import {
   enqueueMoments,
@@ -29,11 +29,16 @@ export function useMoments(
   const shown = useRef(new Set<string>());
   const [queue, setQueue] = useState<readonly Moment[]>([]);
   const lastSeq = events.at(-1)?.seq ?? 0;
-  const step = view?.board?.step ?? null;
-  const rounds = view ? rulesOf(view.match.rulesPreset).campaign.rounds : 0;
+  const step = stepOf(view);
+  const realm = view?.realm ?? null;
+  const rounds = realm
+    ? realm.campaignRounds
+    : view
+      ? rulesOf(view.match.rulesPreset).campaign.rounds
+      : 0;
 
   useEffect(() => {
-    if (!view?.board) return;
+    if (!step) return;
     const next: MomentSnapshot = {
       state,
       kind: step?.kind ?? null,
@@ -46,14 +51,14 @@ export function useMoments(
       before && !isCalm(state) ? { ...next, kind: before.kind, round: before.round } : next;
     if (state === 'question') return;
     const fresh = before ? events.filter((e) => e.seq > before.lastSeq) : [];
-    const moments = momentsBetween(before, next, fresh, name, rounds).filter(
+    const moments = momentsBetween(before, next, fresh, name, rounds, realm !== null).filter(
       (m) => !shown.current.has(m.key),
     );
     if (moments.length === 0) return;
     for (const m of moments) shown.current.add(m.key);
     setQueue((q) => enqueueMoments(q, moments));
     // Nur bei neuem Stand vergleichen; Namen und Ereignisliste ändern sich mit ihm
-  }, [lastSeq, state, step?.kind, step?.round, view?.board !== undefined]);
+  }, [lastSeq, state, step?.kind, step?.round, step !== null]);
 
   useEffect(() => {
     if (queue.length === 0 || state === 'question') return;

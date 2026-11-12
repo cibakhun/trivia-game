@@ -8,34 +8,55 @@ import type { SeatName } from './match-text.ts';
 
 /**
  * Abrechnung (MATCH_RULES §6) als Blatt auf der Karte: Platz, Punkte, Regionen und
- * Hauptstadtleben je Sitz, daneben das Ergebnis und wie es weitergeht.
+ * Hauptstadtleben je Sitz, daneben das Ergebnis und wie es weitergeht. Mit Ausbau (§11.8) stehen
+ * statt der Hauptstadt die Leben aller Burgen des Reichs da.
  */
+
+interface Standing {
+  readonly seat: number;
+  readonly place: number;
+  readonly points: number;
+  readonly regions: number;
+  readonly lives: number;
+  readonly eliminated: boolean;
+}
+
+function byPoints(seats: readonly Omit<Standing, 'place'>[]): Standing[] {
+  return [...seats]
+    .sort((a, b) => b.points - a.points)
+    .map((s, i) => ({
+      seat: s.seat,
+      place: i + 1,
+      points: s.points,
+      regions: s.regions,
+      lives: s.lives,
+      eliminated: s.eliminated,
+    }));
+}
+
 export function ResultPanel({
   view,
   finished,
   name,
 }: {
   readonly view: MatchView;
-  readonly finished: MatchEventOf<'MATCH_FINISHED'> | null;
+  readonly finished: MatchEventOf<'MATCH_FINISHED'> | MatchEventOf<'REALM_MATCH_FINISHED'> | null;
   readonly name: SeatName;
 }) {
+  // Mit Ausbau zählt jedes Reich die Leben all seiner Burgen
+  const realm = view.realm?.board ?? null;
   // Ohne das Ereignis (etwa nicht mehr im Speicher) zählt der Stand der Karte
-  const standings =
-    finished?.payload.standings ??
-    [...(view.board?.seats ?? [])]
-      .sort((a, b) => b.points - a.points)
-      .map((s, i) => ({
-        seat: s.seat,
-        place: i + 1,
-        points: s.points,
-        regions: s.regions,
-        capitalLives: s.capitalLivesLeft,
-        eliminated: s.eliminated,
-      }));
-  const maxLives = Math.max(
-    DEFAULT_MATCH_RULES.capital.lives,
-    ...standings.map((s) => s.capitalLives),
-  );
+  const standings: readonly Standing[] =
+    finished?.type === 'MATCH_FINISHED'
+      ? finished.payload.standings.map((s) => ({ ...s, lives: s.capitalLives }))
+      : finished?.type === 'REALM_MATCH_FINISHED'
+        ? finished.payload.standings.map((s) => ({ ...s, lives: s.castleLives }))
+        : byPoints(
+            realm
+              ? realm.seats.map((s) => ({ ...s, lives: s.castleLivesLeft }))
+              : (view.board?.seats ?? []).map((s) => ({ ...s, lives: s.capitalLivesLeft })),
+          );
+  const maxLives = Math.max(DEFAULT_MATCH_RULES.capital.lives, ...standings.map((s) => s.lives));
   const mine = standings.find((s) => s.seat === view.mySeat);
   const shared = mine?.place === 1 && standings.filter((s) => s.place === 1).length > 1;
   const headline =
@@ -66,7 +87,9 @@ export function ResultPanel({
               <th scope="col">{t('match.reveal.player')}</th>
               <th scope="col">{t('match.result.pointsColumn')}</th>
               <th scope="col">{t('match.result.regionsColumn')}</th>
-              <th scope="col">{t('match.result.livesColumn')}</th>
+              <th scope="col">
+                {realm ? t('realm.result.livesColumn') : t('match.result.livesColumn')}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -89,12 +112,14 @@ export function ResultPanel({
                 <td>{formatNumber(s.regions)}</td>
                 <td>
                   <LifeShields
-                    left={s.eliminated ? 0 : s.capitalLives}
+                    left={s.eliminated ? 0 : s.lives}
                     max={maxLives}
                     label={
                       s.eliminated
                         ? t('match.result.eliminated')
-                        : tp('match.board.lives', s.capitalLives)
+                        : realm
+                          ? tp('realm.seats.castleLives', s.lives)
+                          : tp('match.board.lives', s.lives)
                     }
                   />
                 </td>

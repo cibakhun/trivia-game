@@ -4,6 +4,7 @@ import {
   type MatchBotStrengthCode,
   type MatchCreateRequest,
   type MatchListResponse,
+  type MatchMode,
 } from '@rdw/protocol';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { ActionKey, ApiRequestError, api } from '../api/client.ts';
@@ -16,7 +17,8 @@ import { navigate } from '../router.ts';
 /**
  * Einstieg in die Partie (MATCH_RULES §3): offene Partie fortsetzen, neue Partie eröffnen, mit
  * Code beitreten oder, außer in Produktion, eine Testpartie gegen Bots eröffnen (ADR-048).
- * Jedes Konto ist höchstens in einer offenen Partie.
+ * Jedes Konto ist höchstens in einer offenen Partie. Bietet der Server die Partie mit Ausbau an
+ * (MATCH_RULES §11), steht über beiden Wegen die Wahl der Spielart.
  */
 
 type Summary = MatchListResponse['matches'][number];
@@ -31,6 +33,7 @@ export function MatchesScreen() {
   const [busy, setBusy] = useState(false);
   const [shortTimers, setShortTimers] = useState(false);
   const [testShortTimers, setTestShortTimers] = useState(false);
+  const [mode, setMode] = useState<MatchMode>('CLASSIC');
   const [code, setCode] = useState('');
   const [testSeats, setTestSeats] = useState<2 | 3>(3);
   const [bots, setBots] = useState<MatchBotStrengthCode[]>(['MEDIUM', 'MEDIUM']);
@@ -125,6 +128,30 @@ export function MatchesScreen() {
 
       {list && !open ? (
         <>
+          {list.realmMatchesEnabled ? (
+            <section className="card" data-testid="match-mode">
+              <fieldset className="choices">
+                <legend>{t('realm.hub.modeLegend')}</legend>
+                {(['CLASSIC', 'REALM'] as const).map((code) => (
+                  <label key={code} className="check">
+                    <input
+                      type="radio"
+                      name="match-mode"
+                      value={code}
+                      checked={mode === code}
+                      onChange={() => setMode(code)}
+                    />
+                    <span>
+                      <strong>{t(`realm.hub.${code}`)}</strong>{' '}
+                      <span className="muted">
+                        {t(code === 'CLASSIC' ? 'realm.hub.classicText' : 'realm.hub.realmText')}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+            </section>
+          ) : null}
           <div className="hub-grid">
             <section className="card stack" aria-labelledby="new-title">
               <h2 id="new-title" className="icon-title">
@@ -145,7 +172,7 @@ export function MatchesScreen() {
                 className="button button-primary"
                 disabled={busy}
                 onClick={() =>
-                  create({ kind: 'STANDARD', rules: shortTimers ? 'PLAYTEST' : 'DEFAULT' })
+                  create({ kind: 'STANDARD', rules: shortTimers ? 'PLAYTEST' : 'DEFAULT', mode })
                 }
               >
                 {t('match.hub.create')}
@@ -240,6 +267,7 @@ export function MatchesScreen() {
                     rules: testShortTimers ? 'PLAYTEST' : 'DEFAULT',
                     seats: testSeats,
                     botStrengths: bots.slice(0, testSeats - 1),
+                    mode,
                   })
                 }
               >

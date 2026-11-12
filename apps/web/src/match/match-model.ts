@@ -5,8 +5,10 @@ import {
   type MatchPresentedQuestion,
   type MatchRules,
   type MatchRulesPreset,
+  type MatchStepView,
   type MatchView,
   type ParsedMatchEvent,
+  type RealmStepView,
 } from '@rdw/protocol';
 
 /**
@@ -89,7 +91,25 @@ export type MatchScreenState =
   | 'spectating'
   | 'reveal'
   | 'finished'
-  | 'abandoned';
+  | 'abandoned'
+  // Partie mit Ausbau (MATCH_RULES §11), siehe `realmScreenStateOf`
+  /** Rüstzeit: Die eigenen Befehle sind noch offen. */
+  | 'prepare'
+  /** Rüstzeit: Die eigenen Befehle sind abgegeben, andere rüsten noch. */
+  | 'prepared'
+  /** Rüstzeit anderer: das eigene Reich ist gefallen. */
+  | 'watching-prepare'
+  /** Aufdecken: Die Befehle aller Reiche stehen kurz auf der Karte. */
+  | 'orders'
+  /** Das Glücksrad eines Duells dreht und zeigt die Kategorie. */
+  | 'wheel';
+
+/** Schritt der Partie, ohne oder mit Ausbau. */
+export type AnyStep = MatchStepView | RealmStepView;
+
+export function stepOf(view: MatchView | null): AnyStep | null {
+  return view?.board?.step ?? view?.realm?.board?.step ?? null;
+}
 
 /** Muss dieser Browser die laufende Frage jetzt abholen? */
 export function needsPresent(view: MatchView, local: LocalQuestion | null): boolean {
@@ -126,9 +146,9 @@ export function screenStateOf(
       return 'reveal';
     case 'ANNOUNCE':
       return 'announce';
-    // Rüstzeit der Partie mit Ausbau (MATCH_RULES §11): Der Browser zeigt sie erst im nächsten Schritt
+    // Rüstzeit der Partie mit Ausbau (MATCH_RULES §11): Wer rüstet, sagt `realmScreenStateOf`
     case 'PREPARE':
-      return 'loading';
+      return 'watching-prepare';
     case 'QUESTION': {
       const question = view.question;
       if (!question) return 'presenting';
@@ -156,11 +176,20 @@ export function lastOf<T extends ParsedMatchEvent['type']>(
 }
 
 /** Wahl, die eine Ansage gerade zeigt: das jüngste Ereignis, sofern es eine Wahl war. */
-export type ShownPick = MatchEventOf<'CAPITAL_CHOSEN'> | MatchEventOf<'REGION_CLAIMED'>;
+export type ShownPick =
+  | MatchEventOf<'CAPITAL_CHOSEN'>
+  | MatchEventOf<'REGION_CLAIMED'>
+  | MatchEventOf<'CASTLE_CHOSEN'>
+  | MatchEventOf<'VILLAGE_CHOSEN'>;
 
 export function shownPick(events: readonly ParsedMatchEvent[]): ShownPick | null {
   const last = events.at(-1);
-  return last?.type === 'CAPITAL_CHOSEN' || last?.type === 'REGION_CLAIMED' ? last : null;
+  return last?.type === 'CAPITAL_CHOSEN' ||
+    last?.type === 'REGION_CLAIMED' ||
+    last?.type === 'CASTLE_CHOSEN' ||
+    last?.type === 'VILLAGE_CHOSEN'
+    ? last
+    : null;
 }
 
 /** Duell, das die Karte hervorhebt: Angreifer, Verteidiger und umkämpfte Region. */
@@ -170,11 +199,15 @@ export interface DuelFocus {
   readonly region: number;
 }
 
+/** Entschiedenes Duell, ohne oder mit Ausbau. */
+export type DuelResolved = MatchEventOf<'DUEL_RESOLVED'> | MatchEventOf<'REALM_DUEL_RESOLVED'>;
+
 /** Ausgang des Duells, das eine Auflösung entschieden hat. */
-export function duelResolved(reveal: Reveal | null): MatchEventOf<'DUEL_RESOLVED'> | null {
+export function duelResolved(reveal: Reveal | null): DuelResolved | null {
   return (
-    reveal?.outcome.find((o): o is MatchEventOf<'DUEL_RESOLVED'> => o.type === 'DUEL_RESOLVED') ??
-    null
+    reveal?.outcome.find(
+      (o): o is DuelResolved => o.type === 'DUEL_RESOLVED' || o.type === 'REALM_DUEL_RESOLVED',
+    ) ?? null
   );
 }
 
@@ -183,7 +216,7 @@ export function duelResolved(reveal: Reveal | null): MatchEventOf<'DUEL_RESOLVED
  * zeigt, bis es weitergeht.
  */
 export function duelFocus(view: MatchView, reveal: Reveal | null): DuelFocus | null {
-  const step = view.board?.step;
+  const step = stepOf(view);
   if (step && step.attacker !== null && step.defender !== null && step.region !== null) {
     return { attacker: step.attacker, defender: step.defender, region: step.region };
   }
@@ -200,7 +233,27 @@ export function duelFocus(view: MatchView, reveal: Reveal | null): DuelFocus | n
  */
 export type DuelScene = 'announce' | 'duel' | 'outcome' | 'settled';
 
+/**
+ * Wirkung auf der Karte. Mit Ausbau zeigt sie dieselben vier Bilder: Ein beschädigtes Gebäude und
+ * eine getroffene Burg sind ein Treffer ohne Besitzerwechsel, eine zerstörte Burg ist eine
+ * Eroberung.
+ */
 export type DuelEffect = MatchEventOf<'DUEL_RESOLVED'>['payload']['effect'];
+
+export function duelEffect(effect: DuelResolved['payload']['effect']): DuelEffect {
+  switch (effect) {
+    case 'BUILDING_DAMAGED':
+    case 'CASTLE_HIT':
+      return 'CAPITAL_HIT';
+    case 'CASTLE_DESTROYED':
+      return 'CONQUERED';
+    case 'CONQUERED':
+    case 'CAPITAL_HIT':
+    case 'TAKEOVER':
+    case 'FORTIFIED':
+      return effect;
+  }
+}
 
 export interface DuelStage extends DuelFocus {
   readonly scene: DuelScene;
@@ -229,12 +282,12 @@ export function duelStage(
       region: resolved.region,
       scene: outcomeBeat ? 'outcome' : 'settled',
       winner: resolved.winner === 'ATTACKER' ? resolved.attacker : resolved.defender,
-      effect: resolved.effect,
+      effect: duelEffect(resolved.effect),
     };
   }
   return {
     ...focus,
-    scene: state === 'announce' ? 'announce' : 'duel',
+    scene: state === 'announce' || state === 'wheel' ? 'announce' : 'duel',
     winner: null,
     effect: null,
   };
@@ -253,7 +306,10 @@ export function outcomeBeatMs(revealMs: number): number {
 
 /** Ereignisse, die auf die Auflösung einer Frage folgen, bis zur nächsten Frage. */
 export type RevealOutcome =
-  MatchEventOf<'LAND_RANKED'> | MatchEventOf<'DUEL_RESOLVED'> | MatchEventOf<'KINGDOM_ELIMINATED'>;
+  | MatchEventOf<'LAND_RANKED'>
+  | MatchEventOf<'START_RANKED'>
+  | DuelResolved
+  | MatchEventOf<'KINGDOM_ELIMINATED'>;
 
 export interface Reveal {
   readonly opened: MatchEventOf<'QUESTION_OPENED'> | null;
@@ -276,7 +332,9 @@ export function revealFor(events: readonly ParsedMatchEvent[], seq: number): Rev
     if (event.type === 'QUESTION_OPENED') break;
     if (
       event.type === 'LAND_RANKED' ||
+      event.type === 'START_RANKED' ||
       event.type === 'DUEL_RESOLVED' ||
+      event.type === 'REALM_DUEL_RESOLVED' ||
       event.type === 'KINGDOM_ELIMINATED'
     ) {
       outcome.push(event);

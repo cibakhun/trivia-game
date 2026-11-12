@@ -260,33 +260,81 @@ function botNames(players: readonly MatchPlayerRow[]): Map<number, string> {
   return names;
 }
 
+/** Anteil des Zeitlimits, nach dem ein Bot bei einer Wissensfrage frühestens und spätestens „fertig“ ist. */
+const BOT_THINK_MIN = 0.2;
+const BOT_THINK_MAX = 0.55;
+
+/**
+ * Bedenkzeit, nach der ein Bot bei einer Wissensfrage als fertig gilt. Seine Antwort steht beim
+ * Öffnen fest und hat keine Zeit (nur Schätzungen tragen eine, `effective_ms`); die Anzeige „hat
+ * geantwortet“ bekommt deshalb eine feste, je Frage und Sitz verschiedene Dauer. Sie entscheidet
+ * nichts und verrät nichts über die Antwort.
+ */
+export function botThinkMs(
+  matchId: string,
+  seq: number,
+  seat: number,
+  timeLimitMs: number,
+): number {
+  let hash = 2166136261;
+  for (const char of `${matchId}.q${seq}.s${seat}`) {
+    hash = Math.imul(hash ^ (char.codePointAt(0) ?? 0), 16777619);
+  }
+  const share = BOT_THINK_MIN + ((hash >>> 0) / 0x1_0000_0000) * (BOT_THINK_MAX - BOT_THINK_MIN);
+  return Math.round(timeLimitMs * share);
+}
+
 async function questionInfo(
   db: Db,
   match: MatchRow,
   mySeat: number | null,
+  now: Date,
 ): Promise<MatchQuestionInfo | null> {
   if (match.questionSeq === null) return null;
   const question = await db
     .selectFrom('match_questions')
-    .select(['seq', 'kind', 'purpose', 'seats', 'closes_at', 'resolved_at'])
+    .select([
+      'seq',
+      'kind',
+      'purpose',
+      'seats',
+      'time_limit_ms',
+      'opened_at',
+      'closes_at',
+      'resolved_at',
+    ])
     .where('match_id', '=', match.id)
     .where('seq', '=', match.questionSeq)
     .executeTakeFirst();
   if (!question) return null;
+  const answers = await db
+    .selectFrom('match_answers')
+    .select(['seat', 'status', 'effective_ms'])
+    .where('match_id', '=', match.id)
+    .where('seq', '=', question.seq)
+    .execute();
   let myStatus: MatchQuestionInfo['myStatus'] = 'NOT_PARTICIPATING';
   if (mySeat !== null && question.seats.includes(mySeat)) {
-    const answer = await db
-      .selectFrom('match_answers')
-      .select('status')
-      .where('match_id', '=', match.id)
-      .where('seq', '=', question.seq)
-      .where('seat', '=', mySeat)
-      .executeTakeFirst();
+    const status = answers.find((a) => a.seat === mySeat)?.status;
     myStatus =
-      answer?.status === 'PRESENTED' || answer?.status === 'ANSWERED' || answer?.status === 'MISSED'
-        ? answer.status
+      status === 'PRESENTED' || status === 'ANSWERED' || status === 'MISSED'
+        ? status
         : 'NOT_PRESENTED';
   }
+  const resolved = question.resolved_at !== null;
+  const openMs = now.getTime() - question.opened_at.getTime();
+  const answered = answers
+    .filter((a) => {
+      if (a.status === 'ANSWERED') return true;
+      if (a.status !== 'GENERATED') return false;
+      // Bot: Die Antwort steht fest, zu sehen ist sie erst nach seiner Bedenkzeit
+      const thinkMs =
+        a.effective_ms ?? botThinkMs(match.id, question.seq, a.seat, question.time_limit_ms);
+      return resolved || openMs >= thinkMs;
+    })
+    .map((a) => a.seat)
+    .filter((seat) => question.seats.includes(seat))
+    .sort((a, b) => a - b);
   return {
     seq: question.seq,
     kind: question.kind === 'ESTIMATE' ? 'ESTIMATE' : 'TRIVIA',
@@ -297,8 +345,9 @@ async function questionInfo(
         ? question.purpose
         : 'LAND',
     seats: question.seats,
+    answered,
     closesAt: question.closes_at.toISOString(),
-    resolved: question.resolved_at !== null,
+    resolved,
     myStatus,
   };
 }
@@ -418,7 +467,7 @@ export async function matchView(
           }
         : null,
     legalRegions: legal,
-    question: await questionInfo(db, match, mySeat),
+    question: await questionInfo(db, match, mySeat, now),
     events: events.map((e) => ({
       seq: e.seq,
       type: e.type,

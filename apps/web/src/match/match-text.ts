@@ -6,7 +6,7 @@ import {
 } from '@rdw/protocol';
 import { matchMap, type MatchMap } from '@rdw/game-core';
 import { t, tp } from '../i18n/i18n.ts';
-import { rulesOf, type RevealOutcome } from './match-model.ts';
+import { rulesOf, stepOf, type RevealOutcome } from './match-model.ts';
 
 /**
  * Texte der Partie aus Ansicht und Ereignissen: Namen der Sitze und Regionen, Abschnitt,
@@ -15,6 +15,15 @@ import { rulesOf, type RevealOutcome } from './match-model.ts';
 
 export type SeatName = (seat: number) => string;
 export type RegionName = (region: number) => string;
+
+/** Am eigenen Sitz kurz „Du“, sonst der Name ohne Zusatz: für enge Zeilen im Blatt. */
+export function shortNames(view: MatchView): SeatName {
+  return (seat) => {
+    const player = view.players.find((p) => p.seat === seat);
+    if (!player) return `#${seat + 1}`;
+    return player.isMe ? t('match.youShort') : player.name;
+  };
+}
 
 function isMapId(id: string): id is MatchMapId {
   return (MATCH_MAP_IDS as readonly string[]).includes(id);
@@ -44,47 +53,64 @@ export function regionNames(map: MatchMap): RegionName {
 
 /** Abschnitt der Partie für die Kopfzeile, `null` vor dem Start. */
 export function stepLabel(view: MatchView): string | null {
-  const step = view.board?.step;
+  const step = stepOf(view);
   if (!step) return null;
+  // Mit Ausbau zählt der Feldzug eigene Runden (`realm.campaignRounds`) und heißt kurz „Runde“
+  const campaign = (round: number) =>
+    view.realm
+      ? t('realm.step.ROUND', { round, rounds: view.realm.campaignRounds })
+      : t('match.step.CAMPAIGN', {
+          round,
+          rounds: rulesOf(view.match.rulesPreset).campaign.rounds,
+        });
   switch (step.kind) {
     case 'CAPITAL_PICK':
       return t('match.step.CAPITAL_PICK');
+    case 'START_ESTIMATE':
+      return t('realm.step.START');
+    case 'CASTLE_PICK':
+      return t('realm.step.CASTLE_PICK');
+    case 'VILLAGE_PICK':
+      return t('realm.step.VILLAGE_PICK');
     case 'LAND_ESTIMATE':
     case 'LAND_PICK':
       return t('match.step.LAND', { round: step.round ?? 1 });
+    case 'PREPARE':
     case 'CAMPAIGN_TARGET':
+    case 'DUEL_WHEEL':
     case 'DUEL_TRIVIA':
     case 'DUEL_ESTIMATE':
-      return t('match.step.CAMPAIGN', {
-        round: step.round ?? 1,
-        rounds: rulesOf(view.match.rulesPreset).campaign.rounds,
-      });
+      return campaign(step.round ?? 1);
     case 'FINISHED':
       // Solange die letzte Auflösung steht (ADR-055), bleibt die Runde im Band: Die Abrechnung
       // kommt erst danach
       return view.match.status === 'RUNNING' && step.round !== null
-        ? t('match.step.CAMPAIGN', {
-            round: step.round,
-            rounds: rulesOf(view.match.rulesPreset).campaign.rounds,
-          })
+        ? campaign(step.round)
         : t('match.step.FINISHED');
   }
 }
 
 /** Aufforderung oder Wartehinweis in Phase `PICK`. */
 export function pickText(view: MatchView, name: SeatName): string | null {
-  const step = view.board?.step;
+  const step = stepOf(view);
   if (!step || step.chooser === null) return null;
   const mine = view.legalRegions.length > 0;
   const chooser = name(step.chooser);
   switch (step.kind) {
     case 'CAPITAL_PICK':
       return mine ? t('match.pick.capital') : t('match.pick.waitingCapital', { name: chooser });
+    case 'CASTLE_PICK':
+      return mine ? t('realm.pick.castle') : t('realm.pick.waitingCastle', { name: chooser });
+    case 'VILLAGE_PICK':
+      return mine ? t('realm.pick.village') : t('realm.pick.waitingVillage', { name: chooser });
     case 'LAND_PICK':
       return mine ? t('match.pick.land') : t('match.pick.waitingLand', { name: chooser });
     case 'CAMPAIGN_TARGET':
       return mine ? t('match.pick.target') : t('match.pick.waitingTarget', { name: chooser });
+    case 'START_ESTIMATE':
     case 'LAND_ESTIMATE':
+    case 'PREPARE':
+    case 'DUEL_WHEEL':
     case 'DUEL_TRIVIA':
     case 'DUEL_ESTIMATE':
     case 'FINISHED':
@@ -98,9 +124,11 @@ export function questionContext(
   name: SeatName,
   region: RegionName,
 ): string | null {
-  const step = view.board?.step;
+  const step = stepOf(view);
   if (!step) return null;
   switch (step.kind) {
+    case 'START_ESTIMATE':
+      return t('realm.question.startContext');
     case 'LAND_ESTIMATE':
       return t('match.question.land', { round: step.round ?? 1 });
     case 'DUEL_TRIVIA':
@@ -116,8 +144,12 @@ export function questionContext(
         ? t('match.question.duelEstimate', { region: region(step.region) })
         : null;
     case 'CAPITAL_PICK':
+    case 'CASTLE_PICK':
+    case 'VILLAGE_PICK':
     case 'LAND_PICK':
+    case 'PREPARE':
     case 'CAMPAIGN_TARGET':
+    case 'DUEL_WHEEL':
     case 'FINISHED':
       return null;
   }
@@ -150,6 +182,29 @@ export function outcomeTexts(
         p.effect === 'CAPITAL_HIT'
           ? tp('match.duel.CAPITAL_HIT', p.capitalLivesLeft ?? 0, params)
           : t(`match.duel.${p.effect}`, params);
+      return [t(`match.duel.reason.${p.reason}`), effect];
+    }
+    case 'START_RANKED':
+      return outcome.payload.ranking.map((r) =>
+        t('realm.reveal.startRank', { place: r.place, name: name(r.seat) }),
+      );
+    case 'REALM_DUEL_RESOLVED': {
+      const p = outcome.payload;
+      const params = {
+        attacker: name(p.attacker),
+        defender: name(p.defender),
+        region: region(p.region),
+        value: p.regionValue,
+      };
+      const effect =
+        p.effect === 'CASTLE_HIT'
+          ? tp('realm.duel.CASTLE_HIT', p.castleLivesLeft ?? 0, params)
+          : p.effect === 'BUILDING_DAMAGED'
+            ? t(
+                `realm.duel.BUILDING_DAMAGED.${p.building === 'VILLAGE' ? 'VILLAGE' : 'NONE'}`,
+                params,
+              )
+            : t(`realm.duel.${p.effect}`, params);
       return [t(`match.duel.reason.${p.reason}`), effect];
     }
     case 'KINGDOM_ELIMINATED':
@@ -199,6 +254,7 @@ export function logText(
         region: region(event.payload.region),
       });
     case 'DUEL_RESOLVED':
+    case 'REALM_DUEL_RESOLVED':
     case 'KINGDOM_ELIMINATED':
       return outcomeTexts(event, name, region).at(-1) ?? null;
     case 'MATCH_FINISHED':
@@ -210,17 +266,34 @@ export function logText(
     case 'QUESTION_OPENED':
     case 'QUESTION_RESOLVED':
       return null;
-    // Partie mit Ausbau (MATCH_RULES §11): Der Browser zeigt sie erst im nächsten Schritt
-    case 'START_RANKED':
+    // Partie mit Ausbau (MATCH_RULES §11)
+    case 'START_RANKED': {
+      const first = event.payload.ranking.find((r) => r.place === 1);
+      return first ? t('realm.log.START_RANKED', { name: name(first.seat) }) : null;
+    }
     case 'CASTLE_CHOSEN':
+      return t('realm.log.CASTLE_CHOSEN', {
+        name: name(event.payload.seat),
+        region: region(event.payload.region),
+      });
     case 'VILLAGE_CHOSEN':
+      return t('realm.log.VILLAGE_CHOSEN', {
+        name: name(event.payload.seat),
+        region: region(event.payload.region),
+      });
     case 'INCOME':
+      return t('realm.log.INCOME', { round: event.payload.round });
     case 'ORDERS_SUBMITTED':
-    case 'PREPARE_CLOSED':
+      return t('realm.log.ORDERS_SUBMITTED', { name: name(event.payload.seat) });
     case 'ORDERS_REVEALED':
+      return t('realm.log.ORDERS_REVEALED');
     case 'WHEEL_SPUN':
-    case 'REALM_DUEL_RESOLVED':
+      return t('realm.log.WHEEL_SPUN', {
+        category: t(`realm.category.${event.payload.category}`),
+      });
     case 'REALM_MATCH_FINISHED':
+      return t('match.log.MATCH_FINISHED');
+    case 'PREPARE_CLOSED':
       return null;
   }
 }

@@ -12,6 +12,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { buildApp, runMatchDriverOnce } from '../src/index.ts';
 import { createLobby } from '../src/modules/match/lobby.ts';
+import { botThinkMs } from '../src/modules/match/view.ts';
 import { ApiError } from '../src/infra/errors.ts';
 import {
   TestClient,
@@ -358,6 +359,112 @@ describe('Testpartie mit Bots', () => {
     expect(await statistics(human.userId)).toEqual({ matches_played: 0, matches_won: 0 });
     // Nach dem Ende ist das Konto frei für die nächste Partie
     await createMatch(human, { kind: 'STANDARD' });
+  });
+});
+
+describe('Wer schon geantwortet hat (API.md §2.6)', () => {
+  const sealedBots = (matchId: string, seq: number) =>
+    server.db
+      .selectFrom('match_answers')
+      .select(['seat', 'status', 'effective_ms'])
+      .where('match_id', '=', matchId)
+      .where('seq', '=', seq)
+      .where('status', '=', 'GENERATED')
+      .orderBy('seat')
+      .execute();
+
+  it('Schätzfrage: Bots erscheinen nach ihrer Schätzzeit, der Mensch mit seiner Antwort', async () => {
+    const human = await newHuman();
+    const matchId = await createMatch(human, {
+      kind: 'TEST',
+      rules: 'PLAYTEST',
+      seats: 3,
+      botStrengths: ['EASY', 'HARD'],
+    });
+    expect((await startMatch(human, matchId)).statusCode).toBe(200);
+    const opened = await playToEnd(
+      matchId,
+      [{ human, mode: 'ACTIVE' }],
+      (current) => current.phase?.kind === 'QUESTION',
+    );
+    const mySeat = opened.mySeat ?? -1;
+    expect(opened.question).toMatchObject({ seq: 1, kind: 'ESTIMATE', resolved: false });
+    // Eben geöffnet: Noch hat niemand geantwortet, obwohl die Antworten der Bots schon feststehen
+    expect(opened.question?.answered).toEqual([]);
+    const bots = await sealedBots(matchId, 1);
+    expect(bots).toHaveLength(2);
+    const times = bots.map((bot) => bot.effective_ms ?? 0);
+    expect(Math.min(...times)).toBeGreaterThan(0);
+    expect(Math.max(...times)).toBeLessThan(opened.phase?.remainingMs ?? 0);
+
+    // Abholen allein zählt nicht als Antwort
+    expect((await present(human, matchId, 1)).statusCode).toBe(200);
+    expect((await view(human, matchId)).question?.answered).toEqual([]);
+
+    // Die Spielzeit läuft bis zur Schätzzeit des schnelleren Bots, dann bis zu der des anderen
+    const [first, second] = [...bots].sort((a, b) => (a.effective_ms ?? 0) - (b.effective_ms ?? 0));
+    await advanceGameClock(server.database.pool, first?.effective_ms ?? 0);
+    const early = (await view(human, matchId)).question?.answered ?? [];
+    expect(early).toContain(first?.seat);
+    expect(early).not.toContain(mySeat);
+    await advanceGameClock(
+      server.database.pool,
+      (second?.effective_ms ?? 0) - (first?.effective_ms ?? 0),
+    );
+    const both = await view(human, matchId);
+    expect(both.question?.answered).toEqual(bots.map((bot) => bot.seat));
+    expect(both.question?.resolved).toBe(false);
+    // Die Liste sagt nur, dass geantwortet wurde: kein Wert, keine Zeit, keine Wertung
+    const raw = (await human.client.get(`/matches/${matchId}`)).body;
+    expect(raw).not.toMatch(/GENERATED|effective|distance|isCorrect/);
+
+    // Mit der eigenen Antwort ist die Frage aufgelöst, alle stehen in der Liste
+    const sent = await answer(human, matchId, 1, await answerPayload(matchId, 1));
+    expect(sent.statusCode, sent.body).toBe(200);
+    const done = await view(human, matchId);
+    expect(done.question).toMatchObject({ seq: 1, resolved: true, answered: [0, 1, 2] });
+  });
+
+  it('Wissensfrage: Ein Bot gilt erst nach seiner Bedenkzeit als fertig', async () => {
+    const human = await newHuman();
+    const matchId = await createMatch(human, {
+      kind: 'TEST',
+      rules: 'PLAYTEST',
+      seats: 3,
+      botStrengths: ['MEDIUM', 'MEDIUM'],
+    });
+    expect((await startMatch(human, matchId)).statusCode).toBe(200);
+    const opened = await playToEnd(
+      matchId,
+      [{ human, mode: 'ACTIVE' }],
+      (current) => current.phase?.kind === 'QUESTION' && current.question?.kind === 'TRIVIA',
+    );
+    const question = opened.question;
+    if (!question) throw new Error('Keine Wissensfrage erreicht');
+    expect(question.purpose).toBe('DUEL_TRIVIA');
+    expect(question.answered).toEqual([]);
+    const bots = await sealedBots(matchId, question.seq);
+    expect(bots.length).toBeGreaterThan(0);
+    // Die Antwort eines Bots auf eine Wissensfrage trägt keine Zeit
+    expect(bots.every((bot) => bot.effective_ms === null)).toBe(true);
+    const limit = opened.match.timers.triviaMs;
+    const think = bots.map((bot) => ({
+      seat: bot.seat,
+      ms: botThinkMs(matchId, question.seq, bot.seat, limit),
+    }));
+    const slowest = Math.max(...think.map((bot) => bot.ms));
+    expect(slowest).toBeLessThan(opened.phase?.remainingMs ?? 0);
+
+    // Nach der halben Bedenkzeit des schnellsten Bots steht noch niemand da
+    const fastest = Math.min(...think.map((bot) => bot.ms));
+    const half = Math.floor(fastest / 2);
+    await advanceGameClock(server.database.pool, half);
+    expect((await view(human, matchId)).question?.answered).toEqual([]);
+    await advanceGameClock(server.database.pool, slowest - half);
+    const later = await view(human, matchId);
+    expect(later.question?.seq).toBe(question.seq);
+    expect(later.question?.answered).toEqual(bots.map((bot) => bot.seat));
+    expect(later.question?.answered).not.toContain(opened.mySeat);
   });
 });
 

@@ -18,22 +18,49 @@ export interface TimedCue {
 
 const EFFECT_DELAY_MS = 550;
 
+/** Was die Klänge vom Endstand brauchen; beide Spielarten liefern es. */
+export interface Placed {
+  readonly seat: number;
+  readonly place: number;
+}
+
+type RealmEffect = MatchEventOf<'REALM_DUEL_RESOLVED'>['payload']['effect'];
+
+/** Mit Ausbau klingt ein Duell wie ohne: gehalten, erobert oder ein Treffer auf ein Gebäude. */
+function realmDuelCue(effect: RealmEffect): SoundCue {
+  switch (effect) {
+    case 'FORTIFIED':
+      return 'defend';
+    case 'CONQUERED':
+    case 'CASTLE_DESTROYED':
+      return 'conquer';
+    case 'BUILDING_DAMAGED':
+    case 'CASTLE_HIT':
+    case 'TAKEOVER':
+      return 'capitalHit';
+  }
+}
+
 export function cuesFor(
   before: { readonly state: MatchScreenState; readonly lastSeq: number } | null,
   next: { readonly state: MatchScreenState; readonly lastSeq: number },
   fresh: readonly ParsedMatchEvent[],
   mySeat: number | null,
-  /** Endstand aus `MATCH_FINISHED`, sobald es ihn gibt. */
-  standings: MatchEventOf<'MATCH_FINISHED'>['payload']['standings'] | null = null,
+  /** Endstand aus `MATCH_FINISHED` oder `REALM_MATCH_FINISHED`, sobald es ihn gibt. */
+  standings: readonly Placed[] | null = null,
 ): TimedCue[] {
   if (!before || next.state === 'question') return [];
   const cues: TimedCue[] = [];
   let delay = 0;
   for (const event of fresh) {
     switch (event.type) {
+      // Auch das Aufdecken: ein Klang für alle Reiche zusammen (siehe Filter unten)
       case 'CAPITAL_CHOSEN':
       case 'REGION_CLAIMED':
       case 'AUTO_PICKED':
+      case 'CASTLE_CHOSEN':
+      case 'VILLAGE_CHOSEN':
+      case 'ORDERS_REVEALED':
         cues.push({ cue: 'pick', delayMs: 0 });
         break;
       case 'QUESTION_RESOLVED': {
@@ -69,16 +96,16 @@ export function cuesFor(
       case 'LAND_RANKED':
       case 'TARGET_CHOSEN':
         break;
-      // Partie mit Ausbau (MATCH_RULES §11): Töne kommen mit ihrer Ansicht im nächsten Schritt
+      case 'REALM_DUEL_RESOLVED':
+        cues.push({ cue: realmDuelCue(event.payload.effect), delayMs: delay });
+        delay += EFFECT_DELAY_MS;
+        break;
+      // Partie mit Ausbau (MATCH_RULES §11): ohne eigenen Klang
       case 'START_RANKED':
-      case 'CASTLE_CHOSEN':
-      case 'VILLAGE_CHOSEN':
       case 'INCOME':
       case 'ORDERS_SUBMITTED':
       case 'PREPARE_CLOSED':
-      case 'ORDERS_REVEALED':
       case 'WHEEL_SPUN':
-      case 'REALM_DUEL_RESOLVED':
       case 'REALM_MATCH_FINISHED':
         break;
     }

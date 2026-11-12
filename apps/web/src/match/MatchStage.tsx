@@ -241,7 +241,7 @@ export function MatchStage({
           busy={busy}
           events={events}
           reveal={reveal}
-          outcome={resolved}
+          outcome={resolved?.type === 'DUEL_RESOLVED' ? resolved : null}
           outcomeBeat={outcomeBeat}
           error={actionError}
           name={name}
@@ -269,7 +269,7 @@ export function MatchStage({
  * Kurzes Band über der Karte: „Du bist dran!“, der Beginn eines Abschnitts oder der Fall eines
  * Reichs. Nur Zierde: Was zu tun ist, liest das Blatt daneben vor (aria-live).
  */
-function MomentBanner({ moment }: { readonly moment: Moment }) {
+export function MomentBanner({ moment }: { readonly moment: Moment }) {
   return (
     <div className={`turn-banner moment-${moment.tone}`}>
       <span className="moment-ribbon" data-seat={moment.seat ?? undefined}>
@@ -283,7 +283,7 @@ function MomentBanner({ moment }: { readonly moment: Moment }) {
   );
 }
 
-function AbandonedPanel({
+export function AbandonedPanel({
   view,
   events,
 }: {

@@ -362,6 +362,11 @@ export const matchQuestionInfoSchema = z
     kind: questionKindSchema,
     purpose: z.enum(MATCH_QUESTION_PURPOSES),
     seats: z.array(seatSchema),
+    /**
+     * Sitze, deren Antwort schon da ist: nur dass, nicht was. Ein Mensch steht hier, sobald seine
+     * Antwort gespeichert ist, ein Bot nach seiner Bedenkzeit (seine Antwort steht beim Öffnen fest).
+     */
+    answered: z.array(seatSchema),
     closesAt: timestampSchema,
     resolved: z.boolean(),
     myStatus: z.enum(MATCH_ANSWER_STATUSES),
