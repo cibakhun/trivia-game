@@ -176,22 +176,18 @@ function realmMoments(
     return before.state === 'orders' ? [] : [ink(`orders-${round}`, t('realm.moment.orders'))];
   }
   if (next.kind === before.kind && next.round === before.round) return [];
-  switch (next.kind) {
-    case 'CASTLE_PICK':
-      return [ink('castles', t('realm.moment.castles'))];
-    case 'VILLAGE_PICK':
-      return [ink('villages', t('realm.moment.villages'))];
-    case 'PREPARE':
-      return [
-        ink(
-          `prepare-${round}`,
-          t('realm.moment.prepare'),
-          round === campaignRounds
-            ? t('match.moment.lastRound')
-            : t('realm.step.ROUND', { round, rounds: campaignRounds }),
-        ),
-      ];
-    default:
-      return [];
+  if (next.kind === 'CASTLE_PICK') return [ink('castles', t('realm.moment.castles'))];
+  if (next.kind === 'VILLAGE_PICK') return [ink('villages', t('realm.moment.villages'))];
+  if (next.kind === 'PREPARE') {
+    return [
+      ink(
+        `prepare-${round}`,
+        t('realm.moment.prepare'),
+        round === campaignRounds
+          ? t('match.moment.lastRound')
+          : t('realm.step.ROUND', { round, rounds: campaignRounds }),
+      ),
+    ];
   }
+  return [];
 }

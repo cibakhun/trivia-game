@@ -719,6 +719,51 @@ html.match-playing body {
   font-size: calc(15.5 * var(--u));
 }
 
+/* Kleine Überschrift im Blatt */
+.blatt h3 {
+  font-family: var(--font-body);
+  font-size: calc(10.5 * var(--u));
+  font-weight: 800;
+  line-height: calc(13 * var(--u));
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Wer an der laufenden Frage schon geantwortet hat (ohne Bewegung: Die Fragezeit läuft) */
+.answers {
+  display: grid;
+  gap: calc(5 * var(--u));
+}
+
+.answers ul {
+  display: grid;
+  gap: calc(5 * var(--u));
+}
+
+.answers li {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  font-size: calc(13.5 * var(--u));
+}
+
+.answers .crest {
+  width: calc(18 * var(--u));
+}
+
+.answer-state {
+  margin-left: auto;
+  font-size: calc(12 * var(--u));
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.answer-state.on {
+  font-weight: 700;
+  color: var(--success);
+}
+
 /* ---------- Band über der Karte ---------- */
 
 .stage-banner {

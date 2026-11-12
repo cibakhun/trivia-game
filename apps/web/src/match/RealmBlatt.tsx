@@ -7,23 +7,23 @@ import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { AnnouncePanel } from './AnnouncePanel.tsx';
+import { Answers } from './Answers.tsx';
 import {
   shownPick,
   type LocalQuestion,
   type MatchScreenState,
   type Reveal,
 } from './match-model.ts';
-import { pickText, questionContext, type RegionName, type SeatName } from './match-text.ts';
+import {
+  pickText,
+  questionContext,
+  shortNames,
+  type RegionName,
+  type SeatName,
+} from './match-text.ts';
 import { NumPad } from './NumPad.tsx';
 import { revealedOrders, wheelPreview, type RealmPlay } from './realm-model.ts';
-import {
-  categoryName,
-  placeName,
-  revealedParts,
-  shortNames,
-  targetWinKey,
-  wheelFits,
-} from './realm-text.ts';
+import { categoryName, placeName, revealedParts, targetWinKey, wheelFits } from './realm-text.ts';
 import { latestLine } from './StageBlatt.tsx';
 
 /**
@@ -119,45 +119,6 @@ function Lots({
   );
 }
 
-/** Wer an der laufenden Frage schon geantwortet hat. Ohne Bewegung: Die Fragezeit läuft. */
-export function Answers({
-  view,
-  local,
-  short,
-}: {
-  readonly view: MatchView;
-  readonly local: LocalQuestion | null;
-  readonly short: SeatName;
-}) {
-  const question = view.question;
-  if (!question || question.seats.length === 0) return null;
-  const mine =
-    question.myStatus === 'ANSWERED' ||
-    (local?.seq === question.seq && (local.status === 'ANSWERED' || local.sent !== undefined));
-  return (
-    <div className="answers" data-testid="match-answers">
-      <h3>{t('realm.question.answers')}</h3>
-      <ul>
-        {question.seats.map((seat) => {
-          const me = seat === view.mySeat;
-          const done = me ? mine : question.answered.includes(seat);
-          return (
-            <li key={seat} data-seat={seat} data-answered={done ? 'true' : 'false'}>
-              <SeatCrest seat={seat} size={18} />
-              <strong>{short(seat)}</strong>
-              <span className={`answer-state${done ? ' on' : ''}`}>
-                {done
-                  ? t(me ? 'realm.question.answeredMe' : 'realm.question.answered')
-                  : t(me ? 'realm.question.thinkingMe' : 'realm.question.thinking')}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
 interface Fact {
   readonly icon: Mark | 'coin';
   readonly text: string;
@@ -233,23 +194,18 @@ function nextUp(
   name: SeatName,
 ): { readonly seat: number | null; readonly text: string } | null {
   const { step } = play.board;
-  switch (step.kind) {
-    case 'CAMPAIGN_TARGET':
-      if (step.chooser === null) return null;
-      return {
-        seat: step.chooser,
-        text:
-          step.chooser === view.mySeat
-            ? t('realm.outcome.nextAttackMe')
-            : t('realm.outcome.nextAttack', { name: name(step.chooser) }),
-      };
-    case 'PREPARE':
-      return { seat: null, text: t('realm.outcome.nextRound') };
-    case 'FINISHED':
-      return { seat: null, text: t('realm.outcome.nextEnd') };
-    default:
-      return null;
+  if (step.kind === 'CAMPAIGN_TARGET' && step.chooser !== null) {
+    return {
+      seat: step.chooser,
+      text:
+        step.chooser === view.mySeat
+          ? t('realm.outcome.nextAttackMe')
+          : t('realm.outcome.nextAttack', { name: name(step.chooser) }),
+    };
   }
+  if (step.kind === 'PREPARE') return { seat: null, text: t('realm.outcome.nextRound') };
+  if (step.kind === 'FINISHED') return { seat: null, text: t('realm.outcome.nextEnd') };
+  return null;
 }
 
 export function RealmBlatt({

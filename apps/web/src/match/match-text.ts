@@ -16,6 +16,15 @@ import { rulesOf, stepOf, type RevealOutcome } from './match-model.ts';
 export type SeatName = (seat: number) => string;
 export type RegionName = (region: number) => string;
 
+/** Am eigenen Sitz kurz „Du“, sonst der Name ohne Zusatz: für enge Zeilen im Blatt. */
+export function shortNames(view: MatchView): SeatName {
+  return (seat) => {
+    const player = view.players.find((p) => p.seat === seat);
+    if (!player) return `#${seat + 1}`;
+    return player.isMe ? t('match.youShort') : player.name;
+  };
+}
+
 function isMapId(id: string): id is MatchMapId {
   return (MATCH_MAP_IDS as readonly string[]).includes(id);
 }

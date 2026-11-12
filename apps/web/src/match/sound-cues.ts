@@ -54,12 +54,12 @@ export function cuesFor(
   let delay = 0;
   for (const event of fresh) {
     switch (event.type) {
+      // Auch das Aufdecken: ein Klang für alle Reiche zusammen (siehe Filter unten)
       case 'CAPITAL_CHOSEN':
       case 'REGION_CLAIMED':
       case 'AUTO_PICKED':
       case 'CASTLE_CHOSEN':
       case 'VILLAGE_CHOSEN':
-      // Aufdecken: ein Klang für alle Reiche zusammen (siehe Filter unten)
       case 'ORDERS_REVEALED':
         cues.push({ cue: 'pick', delayMs: 0 });
         break;

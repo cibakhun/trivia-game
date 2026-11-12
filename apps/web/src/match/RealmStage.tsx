@@ -42,7 +42,6 @@ import {
   prepareTab,
   realmPlayOf,
   realmScreenStateOf,
-  realmSeat,
   revealedOrders,
   settleOrders,
   tradesFirst,

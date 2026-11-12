@@ -490,6 +490,16 @@ export const de = {
       attacker: 'greift an',
       defender: 'verteidigt',
     },
+    /** Kurz für den eigenen Sitz, wo „Anna (du)“ zu lang wäre. */
+    youShort: 'Du',
+    /** Wer an der laufenden Frage schon geantwortet hat (nur dass, nicht was). */
+    answers: {
+      title: 'Antworten',
+      thinking: 'überlegt',
+      thinkingMe: 'überlegst',
+      answered: '✓ hat geantwortet',
+      answeredMe: '✓ abgegeben',
+    },
     question: {
       land: 'Landnahme, Runde {round}: Wer am genauesten schätzt, wählt zuerst.',
       duel: 'Duell um {region}: {attacker} greift {defender} an.',
@@ -630,7 +640,6 @@ export const de = {
     },
     bread: 'Brot',
     material: 'Baustoff',
-    you: 'Du',
     building: { NONE: 'Feld', VILLAGE: 'Dorf', TOWN: 'Stadt', CASTLE: 'Burg' },
     /** Feld samt Gebäude als Name: „Dorf Kranichsee“. */
     place: {
@@ -739,7 +748,6 @@ export const de = {
       tradeTitle: 'Tauschen',
       tradeFact: '{rate} geben, 1 bekommen',
       tradeGive: { BREAD: 'Brot gegen Baustoff', MATERIAL: 'Baustoff gegen Brot' },
-      tradeClose: 'Zurück zum Feld',
       tradeFor: 'für',
       income: 'Einkommen',
       hint: 'Tippe ein eigenes Feld an. Dort kannst du bauen, Armeen kaufen oder ziehen.',
@@ -803,7 +811,6 @@ export const de = {
       title: 'Glücksrad',
       lots: 'Lose im Rad',
       hint: 'Die Farbe zeigt, wessen Lieblingskategorie ein Feld ist.',
-      label: 'Glücksrad: {category}',
       fits: {
         both: 'liegt euch beiden',
         mine: 'liegt dir',
@@ -817,11 +824,6 @@ export const de = {
       startRule: 'Wer am genauesten schätzt, setzt seine Burg zuerst.',
       startContext: 'Startfrage: Wer am genauesten schätzt, setzt seine Burg zuerst.',
       attacked: 'Du wirst angegriffen',
-      answers: 'Antworten',
-      thinking: 'überlegt',
-      thinkingMe: 'überlegst',
-      answered: '✓ hat geantwortet',
-      answeredMe: '✓ abgegeben',
     },
     reveal: {
       startTitle: 'Startfrage: Wer am genauesten schätzt, setzt seine Burg zuerst.',
@@ -890,7 +892,6 @@ export const de = {
       next: 'Als Nächstes',
       nextAttack: '{name} greift an',
       nextAttackMe: 'Du greifst an',
-      nextTiebreak: 'Die Schätzfrage entscheidet',
       nextRound: 'Die nächste Runde beginnt',
       nextEnd: 'Die Abrechnung',
     },
@@ -920,7 +921,6 @@ export const de = {
       WHEEL_SPUN: 'Das Glücksrad zeigt {category}.',
     },
     moment: {
-      start: 'Die Startfrage',
       castles: 'Die Burgen werden gesetzt',
       villages: 'Jetzt die Dörfer',
       prepare: 'Rüstzeit',

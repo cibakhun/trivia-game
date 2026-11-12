@@ -102,16 +102,6 @@
 
 /* ---------- Rechts: Bausteine der Blätter ---------- */
 
-.blatt h3 {
-  font-family: var(--font-body);
-  font-size: calc(10.5 * var(--u));
-  font-weight: 800;
-  line-height: calc(13 * var(--u));
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .blatt .crest,
 .blatt .swords-icon {
   flex: none;
@@ -583,7 +573,7 @@ span.order-chip {
   color: var(--muted);
 }
 
-/* ---------- Wer gegen wen, wer schon geantwortet hat ---------- */
+/* ---------- Wer gegen wen ---------- */
 
 .duel-box {
   display: grid;
@@ -625,39 +615,6 @@ span.order-chip {
   font-size: calc(12.5 * var(--u));
   line-height: 1.25;
   color: var(--muted);
-}
-
-.answers {
-  display: grid;
-  gap: calc(5 * var(--u));
-}
-
-.answers ul {
-  display: grid;
-  gap: calc(5 * var(--u));
-}
-
-.answers li {
-  display: flex;
-  align-items: center;
-  gap: calc(6 * var(--u));
-  font-size: calc(13.5 * var(--u));
-}
-
-.answers .crest {
-  width: calc(18 * var(--u));
-}
-
-.answer-state {
-  margin-left: auto;
-  font-size: calc(12 * var(--u));
-  white-space: nowrap;
-  color: var(--muted);
-}
-
-.answer-state.on {
-  font-weight: 700;
-  color: var(--success);
 }
 
 /* ---------- Ausgang eines Duells ---------- */

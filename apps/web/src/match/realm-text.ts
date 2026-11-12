@@ -1,7 +1,6 @@
 import { regionResource } from '@rdw/game-core';
 import type {
   MatchEventOf,
-  MatchView,
   QuestionCategory,
   RealmBuildingCode,
   RealmOrderDto,
@@ -36,15 +35,6 @@ export function buildingMark(building: RealmBuilt): Mark {
 /** Feld samt Gebäude als Name: „Dorf Kranichsee“. */
 export function placeName(building: RealmBuildingCode, name: string): string {
   return t(`realm.place.${building}`, { region: name });
-}
-
-/** Am eigenen Sitz kurz „Du“, sonst der Name ohne Zusatz. */
-export function shortNames(view: MatchView): SeatName {
-  return (seat) => {
-    const player = view.players.find((p) => p.seat === seat);
-    if (!player) return `#${seat + 1}`;
-    return player.isMe ? t('realm.you') : player.name;
-  };
 }
 
 /** Ertrag eines Felds je Feldzugrunde, mit dem Gebäude, das dort steht. */
