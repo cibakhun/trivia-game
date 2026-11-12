@@ -264,6 +264,16 @@ describe('Fragekarte mitten auf der Karte', () => {
     expect(textOf(html)).toContain('1230');
     expect(html).toContain('estimate-entry sent');
   });
+
+  it('zeigt nach dem Schließen keine Eingabe, die nicht abgeschickt wurde', () => {
+    // Zählt beim Server eine frühere Antwort und ist unklar, welche, dann bleibt die Zahl weg
+    const html = card(ESTIMATE, { open: false, estimate: '17' });
+    expect(/data-testid="estimate-value"[^>]*>([^<]*)</.exec(html)?.[1]).toBe('');
+    expect(html).not.toContain('estimate-entry sent');
+    // Solange die Karte offen ist, steht die Eingabe da
+    const open = card(ESTIMATE, { open: true, estimate: '17' });
+    expect(/data-testid="estimate-value"[^>]*>([^<]*)</.exec(open)?.[1]).toBe('17');
+  });
 });
 
 describe('Hinweis im Hochformat', () => {
