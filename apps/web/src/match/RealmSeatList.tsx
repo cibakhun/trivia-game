@@ -74,28 +74,21 @@ export function RealmSeatList({
                 <CountUp value={s.points} render={formatNumber} />
                 <span className="visually-hidden"> {t('match.result.pointsColumn')}</span>
               </span>
-              {status ? (
-                <span className={`plaque-state ${status}`}>
-                  {status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
+              {s.eliminated || maxLives === 0 ? null : maxLives <= SHIELDS_MAX ? (
+                <span className="plaque-lives">
+                  <LifeShields left={s.castleLivesLeft} max={maxLives} label={lives} />
                 </span>
-              ) : null}
+              ) : (
+                <span className="plaque-lives many">
+                  <LifeShields left={1} max={1} label={lives} />
+                  <span aria-hidden="true">{s.castleLivesLeft}</span>
+                </span>
+              )}
               <span className="plaque-foot">
                 {s.eliminated ? (
                   <span className="plaque-out">{t('match.seats.eliminated')}</span>
                 ) : (
                   <>
-                    {maxLives === 0 ? (
-                      <span className="plaque-lives" />
-                    ) : maxLives <= SHIELDS_MAX ? (
-                      <span className="plaque-lives">
-                        <LifeShields left={s.castleLivesLeft} max={maxLives} label={lives} />
-                      </span>
-                    ) : (
-                      <span className="plaque-lives many">
-                        <LifeShields left={1} max={1} label={lives} />
-                        <span aria-hidden="true">{s.castleLivesLeft}</span>
-                      </span>
-                    )}
                     <Amount kind="bread" value={s.bread} label={t('realm.bread')} size={15} />
                     <Amount
                       kind="material"
@@ -105,6 +98,11 @@ export function RealmSeatList({
                     />
                   </>
                 )}
+                {status ? (
+                  <span className={`plaque-state ${status}`}>
+                    {status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
+                  </span>
+                ) : null}
               </span>
             </li>
           );

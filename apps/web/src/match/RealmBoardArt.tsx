@@ -179,8 +179,11 @@ export function RealmPlanArt({
   /** Besitzer je Feld, für das Zurücktreten fremder Felder. */
   readonly owners: readonly (number | null)[];
   readonly size: number;
-  /** `under`: Flächen und Ränder unter den Beschriftungen; `over`: Pfeile und Schilder darüber. */
-  readonly level: 'under' | 'over';
+  /**
+   * `under`: Flächen und Ränder unter den Beschriftungen; `over`: Pfeile darüber; `top`: Schilder
+   * über allem, auch über dem Schleier eines Duells.
+   */
+  readonly level: 'under' | 'over' | 'top';
 }) {
   const at = (id: number) => art.regions[id];
   if (level === 'under') {
@@ -198,6 +201,35 @@ export function RealmPlanArt({
           return r ? <path key={id} d={r.d} className="plan-target" /> : null;
         })}
         {selected ? <path d={selected.d} className="plan-selected" /> : null}
+      </g>
+    );
+  }
+  if (level === 'top') {
+    return (
+      <g className="realm-plan" aria-hidden="true">
+        {(layer.changes ?? []).map((change) => {
+          const r = at(change.region);
+          if (!r) return null;
+          const w = (change.text.length * 0.165 + 0.36) * s;
+          return (
+            <g
+              key={`${change.region}:${change.text}`}
+              className="plan-change"
+              style={{ ['--flag' as string]: `var(--seat-${change.seat})` }}
+            >
+              <rect
+                x={r.cx - w / 2}
+                y={r.cy - 0.72 * s}
+                width={w}
+                height={0.44 * s}
+                rx={0.22 * s}
+              />
+              <text x={r.cx} y={r.cy - 0.5 * s}>
+                {change.text}
+              </text>
+            </g>
+          );
+        })}
       </g>
     );
   }
@@ -248,23 +280,6 @@ export function RealmPlanArt({
             <circle cx={midX} cy={midY} r={0.19 * s} className="move-disc" />
             <text x={midX} y={midY} className="move-count">
               {move.count}
-            </text>
-          </g>
-        );
-      })}
-      {(layer.changes ?? []).map((change) => {
-        const r = at(change.region);
-        if (!r) return null;
-        const w = (change.text.length * 0.165 + 0.36) * s;
-        return (
-          <g
-            key={`${change.region}:${change.text}`}
-            className="plan-change"
-            style={{ ['--flag' as string]: `var(--seat-${change.seat})` }}
-          >
-            <rect x={r.cx - w / 2} y={r.cy - 0.72 * s} width={w} height={0.44 * s} rx={0.22 * s} />
-            <text x={r.cx} y={r.cy - 0.5 * s}>
-              {change.text}
             </text>
           </g>
         );

@@ -191,7 +191,10 @@ export function outcomeTexts(
         p.effect === 'CASTLE_HIT'
           ? tp('realm.duel.CASTLE_HIT', p.castleLivesLeft ?? 0, params)
           : p.effect === 'BUILDING_DAMAGED'
-            ? t(`realm.duel.BUILDING_DAMAGED.${p.building === 'VILLAGE' ? 'VILLAGE' : 'NONE'}`, params)
+            ? t(
+                `realm.duel.BUILDING_DAMAGED.${p.building === 'VILLAGE' ? 'VILLAGE' : 'NONE'}`,
+                params,
+              )
             : t(`realm.duel.${p.effect}`, params);
       return [t(`match.duel.reason.${p.reason}`), effect];
     }

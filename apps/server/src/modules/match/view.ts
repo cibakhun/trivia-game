@@ -270,7 +270,12 @@ const BOT_THINK_MAX = 0.55;
  * geantwortet“ bekommt deshalb eine feste, je Frage und Sitz verschiedene Dauer. Sie entscheidet
  * nichts und verrät nichts über die Antwort.
  */
-export function botThinkMs(matchId: string, seq: number, seat: number, timeLimitMs: number): number {
+export function botThinkMs(
+  matchId: string,
+  seq: number,
+  seat: number,
+  timeLimitMs: number,
+): number {
   let hash = 2166136261;
   for (const char of `${matchId}.q${seq}.s${seat}`) {
     hash = Math.imul(hash ^ (char.codePointAt(0) ?? 0), 16777619);

@@ -935,3 +935,113 @@
     opacity: 0.2;
   }
 }
+
+/* ---------- Partie mit Ausbau: Gebäude, Armeen, Pläne (MATCH_RULES §11) ---------- */
+
+.map-art .realm-plan {
+  pointer-events: none;
+}
+
+/* Geplanter Bau: blass, mit goldenem Plus */
+.map-art .building.ghost use {
+  opacity: 0.5;
+}
+.map-art .ghost-plus circle,
+.map-art .army-plus circle {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 1.5;
+}
+.map-art .ghost-plus path {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+/* Eben geändert (Aufdecken, Ausgang): goldener Schein, ohne Bewegung */
+.map-art .building.fresh,
+.map-art .army.fresh {
+  filter: drop-shadow(0 0 3px var(--map-gold)) drop-shadow(0 0 2px var(--map-gold));
+}
+
+.map-art .army-count,
+.map-art .army-plus text,
+.map-art .move-count,
+.map-art .plan-change text {
+  font-family: var(--font-body);
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-variant-numeric: tabular-nums;
+}
+.map-art .army-count {
+  font-size: 19px;
+  fill: #fff;
+}
+.map-art .army-plus text {
+  font-size: 12.5px;
+  fill: var(--map-ink);
+}
+
+/* Rüstzeit: Felder anderer Reiche treten zurück, mögliche Ziele eines Zugs sind gestrichelt */
+.map-art .plan-dim {
+  fill: var(--map-veil);
+  opacity: 0.3;
+}
+.map-art .plan-target {
+  fill: var(--map-gold);
+  fill-opacity: 0.2;
+  stroke: var(--map-gold);
+  stroke-width: 3.5;
+  stroke-dasharray: 8 6;
+  stroke-linejoin: round;
+}
+.map-art .plan-selected {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 6;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 2px var(--map-ink));
+}
+
+/* Zug: Pfeil in der Farbe des Reichs, in der Mitte die Zahl der Armeen */
+.map-art .move-halo {
+  fill: none;
+  stroke: var(--map-label-halo);
+  stroke-width: 13;
+  stroke-linecap: round;
+}
+.map-art .move-line {
+  fill: none;
+  stroke: var(--flag);
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+.map-art .move-tip {
+  fill: var(--flag);
+  stroke: var(--map-label-halo);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+.map-art .move-disc {
+  fill: var(--map-coin);
+  stroke: var(--flag);
+  stroke-width: 3;
+}
+.map-art .move-count {
+  font-size: 19px;
+  fill: var(--map-ink);
+}
+
+/* Schild über einem eben entschiedenen Feld */
+.map-art .plan-change rect {
+  fill: var(--map-ink);
+  stroke: var(--flag);
+  stroke-width: 3;
+}
+.map-art .plan-change text {
+  font-size: 19px;
+  fill: var(--map-coin);
+}

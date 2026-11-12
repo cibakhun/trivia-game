@@ -36,6 +36,9 @@ function noop() {
   // Ablauf der Rüstzeit: Den nächsten Schritt bringt die Abfrage
 }
 
+/** Ab so vielen Befehlen zeigen Bauten nur noch ihr Zeichen, damit alle in zwei Zeilen passen. */
+const DENSE_FROM = 4;
+
 function CostView({ cost }: { readonly cost: Cost }) {
   return (
     <span className="cost">
@@ -215,12 +218,7 @@ export function PreparePanel({
             <span>{t('realm.prepare.income')}</span>
             <span className="income-plus">
               +
-              <Amount
-                kind="bread"
-                value={stock.income.bread}
-                label={t('realm.bread')}
-                size={15}
-              />
+              <Amount kind="bread" value={stock.income.bread} label={t('realm.bread')} size={15} />
             </span>
             <span className="income-plus">
               +
@@ -254,7 +252,8 @@ export function PreparePanel({
         />
       )}
       <div className="stock-row" data-testid="prepare-stock">
-        <span className="stock-label">{t('realm.prepare.stock')}</span>
+        {/* Das Wort trüge die Zeile bei zweistelligen Vorräten über den Rand: nur für Screenreader */}
+        <span className="visually-hidden">{t('realm.prepare.stock')}</span>
         <Amount kind="bread" value={left.bread} label={t('realm.bread')} size={19} />
         <Amount kind="material" value={left.material} label={t('realm.material')} size={19} />
         {done ? null : (
@@ -279,12 +278,15 @@ export function PreparePanel({
         {chips.length === 0 ? (
           <p className="orders-none">{t('realm.prepare.none')}</p>
         ) : (
-          <ul data-testid="prepare-orders">
+          <ul
+            data-testid="prepare-orders"
+            className={chips.length > DENSE_FROM ? 'dense' : undefined}
+          >
             {chips.map((chip) => {
               const inner = (
                 <>
                   <MarkIcon kind={chip.icon} size={15} />
-                  <span>{chip.text}</span>
+                  <span className={`order-text order-${chip.kind}`}>{chip.text}</span>
                   {chip.tail ? <MarkIcon kind={chip.tail} size={15} /> : null}
                 </>
               );

@@ -125,15 +125,7 @@ export function CategoryIcon({
   );
 }
 
-export type Mark =
-  | 'bread'
-  | 'material'
-  | 'army'
-  | 'village'
-  | 'town'
-  | 'castle'
-  | 'trade'
-  | 'move';
+export type Mark = 'bread' | 'material' | 'army' | 'village' | 'town' | 'castle' | 'trade' | 'move';
 
 const MARKS: Readonly<Record<Mark, ReactNode>> = {
   bread: (

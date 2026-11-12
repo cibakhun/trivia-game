@@ -1,4 +1,4 @@
-import type { MatchBotStrengthCode } from '@rdw/protocol';
+import type { MatchBotStrengthCode, QuestionCategory, RealmOrderDto } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
 import { ActionKey, ApiRequestError, NetworkError, api, newActionKey } from '../api/client.ts';
 import { playSound } from '../audio/sound.ts';
@@ -9,7 +9,8 @@ import {
   type LocalAnswer,
   type LocalQuestion,
 } from '../match/match-model.ts';
-import { MatchStage } from '../match/MatchStage.tsx';
+import { MatchStage, type MatchStageProps } from '../match/MatchStage.tsx';
+import { RealmStage } from '../match/RealmStage.tsx';
 import { useMatchFeed } from '../match/useMatchFeed.ts';
 import { navigate } from '../router.ts';
 
@@ -18,7 +19,8 @@ import { navigate } from '../router.ts';
  * Countdown, Auflösung, Abrechnung. Den Stand liefert die Abfrage (`useMatchFeed`); sobald eine
  * Frage an diesen Sitz geht, holt der Browser sie sofort ab, denn ab dem Öffnen läuft die Zeit.
  * Nach einem Reload holt er sie erneut; dann zählt nur die Zeit des Servers. Diese Komponente
- * hält den Stand und schickt die Aktionen; was zu sehen ist, zeichnet die Bühne (`MatchStage`).
+ * hält den Stand und schickt die Aktionen; was zu sehen ist, zeichnet die Bühne: `MatchStage`, in
+ * der Partie mit Ausbau (MATCH_RULES §11) `RealmStage` mit Lieblingskategorien und Rüstzeit.
  */
 export function MatchScreen({ matchId }: { readonly matchId: string }) {
   const { view, events, error, phaseDeadline, refresh } = useMatchFeed(matchId);
@@ -33,6 +35,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
   const lostAnswers = useRef(new Map<number, LocalAnswer[]>());
   const pickKey = useRef(new ActionKey());
   const lobbyKey = useRef(new ActionKey());
+  const ordersKey = useRef(new ActionKey());
 
   const state = screenStateOf(view, local);
   const seq = view?.question?.seq ?? null;
@@ -141,6 +144,42 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     });
   }
 
+  function setFavorites(categories: readonly QuestionCategory[]) {
+    void runAction(async () => {
+      const key = lobbyKey.current;
+      try {
+        await api.setMatchFavorites(matchId, categories, key.for({ favorites: categories }));
+        key.settle();
+      } catch (e) {
+        key.settle(e);
+        throw e;
+      } finally {
+        refresh();
+      }
+    });
+  }
+
+  /** Befehle der Rüstzeit abgeben; `true`, wenn der Server sie angenommen hat. */
+  async function submitOrders(orders: readonly RealmOrderDto[]): Promise<boolean> {
+    if (!view) return false;
+    const round = view.realm?.board?.step.round ?? 0;
+    const key = ordersKey.current;
+    setBusy(true);
+    setActionError(null);
+    try {
+      await api.submitMatchOrders(matchId, orders, key.for({ round, orders }));
+      key.settle();
+      return true;
+    } catch (e) {
+      key.settle(e);
+      setActionError(e);
+      return false;
+    } finally {
+      setBusy(false);
+      refresh();
+    }
+  }
+
   function leaveMatch() {
     void runAction(async () => {
       const key = lobbyKey.current;
@@ -208,24 +247,27 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     });
   }
 
-  return (
-    <MatchStage
-      view={view}
-      events={events}
-      local={local}
-      phaseDeadline={phaseDeadline}
-      feedError={error}
-      actionError={actionError}
-      busy={busy}
-      estimate={estimate}
-      onRetry={refresh}
-      onEstimate={setEstimate}
-      onPick={pick}
-      onAnswer={answer}
-      onExpire={() => setLocal((l) => (l && l.status === 'OPEN' ? { ...l, status: 'MISSED' } : l))}
-      onStart={startMatch}
-      onLeave={leaveMatch}
-      onSetBot={setBot}
-    />
+  const stage: MatchStageProps = {
+    view,
+    events,
+    local,
+    phaseDeadline,
+    feedError: error,
+    actionError,
+    busy,
+    estimate,
+    onRetry: refresh,
+    onEstimate: setEstimate,
+    onPick: pick,
+    onAnswer: answer,
+    onExpire: () => setLocal((l) => (l && l.status === 'OPEN' ? { ...l, status: 'MISSED' } : l)),
+    onStart: startMatch,
+    onLeave: leaveMatch,
+    onSetBot: setBot,
+  };
+  return view?.match.mode === 'REALM' ? (
+    <RealmStage {...stage} onSetFavorites={setFavorites} onSubmitOrders={submitOrders} />
+  ) : (
+    <MatchStage {...stage} />
   );
 }

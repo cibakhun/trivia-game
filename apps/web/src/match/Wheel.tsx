@@ -38,12 +38,17 @@ export interface WheelPart {
   readonly defender: number;
 }
 
-/** Felder des Rads als Winkel; Kategorien aus `exhausted` fallen heraus (MATCH_RULES §11.6). */
+/**
+ * Felder des Rads als Winkel; Kategorien aus `exhausted` fallen heraus (MATCH_RULES §11.6). Sind
+ * alle erschöpft, gilt wie am Server wieder das ganze Rad.
+ */
 export function wheelParts(
-  wheel: RealmWheelDto,
+  wheel: Pick<RealmWheelDto, 'segments'>,
   exhausted: readonly QuestionCategory[] = [],
 ): WheelPart[] {
-  const live = wheel.segments.filter((s) => s.weight > 0 && !exhausted.includes(s.category));
+  const weighted = wheel.segments.filter((s) => s.weight > 0);
+  const open = weighted.filter((s) => !exhausted.includes(s.category));
+  const live = open.length > 0 ? open : weighted;
   const total = live.reduce((sum, s) => sum + s.weight, 0);
   if (total <= 0) return [];
   let angle = 0;

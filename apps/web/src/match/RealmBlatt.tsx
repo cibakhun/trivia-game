@@ -92,7 +92,7 @@ function Lots({
   defender,
   short,
 }: {
-  readonly wheel: RealmWheelDto;
+  readonly wheel: Pick<RealmWheelDto, 'attackerLots' | 'defenderLots' | 'freeLots'>;
   readonly attacker: number;
   readonly defender: number;
   readonly short: SeatName;
@@ -366,12 +366,7 @@ export function RealmBlatt({
                 </div>
                 <div className="lots-box">
                   <h3>{t('realm.target.lots')}</h3>
-                  <Lots
-                    wheel={wheel}
-                    attacker={view.mySeat}
-                    defender={aimed.owner}
-                    short={short}
-                  />
+                  <Lots wheel={wheel} attacker={view.mySeat} defender={aimed.owner} short={short} />
                   <p className="lots-note">{t('realm.target.lotsNote')}</p>
                 </div>
                 <p className="blatt-hint">
@@ -527,14 +522,7 @@ export function RealmBlatt({
               <span>
                 <strong>{categoryName(category)}</strong>
                 <small>
-                  {wheelFits(
-                    category,
-                    favorites,
-                    step.attacker,
-                    step.defender,
-                    view.mySeat,
-                    name,
-                  )}
+                  {wheelFits(category, favorites, step.attacker, step.defender, view.mySeat, name)}
                 </small>
               </span>
             </p>

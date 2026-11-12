@@ -351,8 +351,7 @@ export function MatchBoard({
                       role: 'button',
                       tabIndex: 0,
                       'aria-label': canPick ? region.name : label,
-                      'aria-pressed':
-                        !canPick && realm ? realm.selected === region.id : undefined,
+                      'aria-pressed': !canPick && realm ? realm.selected === region.id : undefined,
                       onClick: () => onPick(region.id),
                       onKeyDown: (event: KeyboardEvent) => onKey(event, region.id),
                       onPointerEnter: () => setHot(region.id),
@@ -506,6 +505,16 @@ export function MatchBoard({
             castle={castle}
             size={s}
             enter={settled}
+          />
+        ) : null}
+
+        {realm?.changes?.length ? (
+          <RealmPlanArt
+            art={art}
+            layer={realm}
+            owners={board.regions.map((r) => r.owner)}
+            size={s}
+            level="top"
           />
         ) : null}
       </svg>

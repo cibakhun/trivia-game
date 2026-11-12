@@ -70,6 +70,7 @@ export function terrainName(play: RealmPlay, region: number): string {
 export interface OrderChip {
   /** Stelle des Befehls im Entwurf. */
   readonly index: number;
+  readonly kind: RealmOrderDto['kind'];
   readonly icon: Mark;
   /** Zweites Zeichen hinter dem Text (Tausch: was man bekommt). */
   readonly tail: Mark | null;
@@ -99,6 +100,7 @@ export function orderChips(
         const name = t(`realm.building.${building}`);
         return {
           index,
+          kind: order.kind,
           icon: buildingMark(building),
           tail: null,
           text: t('realm.prepare.order.BUILD', { building: name }),
@@ -111,6 +113,7 @@ export function orderChips(
       case 'RECRUIT':
         return {
           index,
+          kind: order.kind,
           icon: 'army',
           tail: null,
           text: t('realm.prepare.order.RECRUIT', { count: order.count }),
@@ -122,6 +125,7 @@ export function orderChips(
       case 'MOVE':
         return {
           index,
+          kind: order.kind,
           icon: 'move',
           tail: null,
           text: t('realm.prepare.order.MOVE', { count: order.count }),
@@ -135,6 +139,7 @@ export function orderChips(
         const get = order.give === 'BREAD' ? 'MATERIAL' : 'BREAD';
         return {
           index,
+          kind: order.kind,
           icon: resourceMark(order.give),
           tail: resourceMark(get),
           text: t('realm.prepare.order.TRADE', { give: order.count * rate, get: order.count }),

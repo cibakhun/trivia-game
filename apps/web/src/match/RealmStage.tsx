@@ -29,7 +29,13 @@ import { regionNames, seatNames, stepLabel } from './match-text.ts';
 import { PreparePanel } from './PreparePanel.tsx';
 import type { RealmLayer } from './RealmBoardArt.tsx';
 import { RealmBlatt } from './RealmBlatt.tsx';
-import { layerRegions, outcomeSign, planLayer, realmBoardState, revealLayer } from './realm-layer.ts';
+import {
+  layerRegions,
+  outcomeSign,
+  planLayer,
+  realmBoardState,
+  revealLayer,
+} from './realm-layer.ts';
 import { RealmLobby } from './RealmLobby.tsx';
 import {
   fieldOptions,
@@ -217,6 +223,22 @@ export function RealmStage({
   const land = play ? mapArt(play.map).tightViewBox : null;
   const { stage, frame } = useStageFrame(land);
   const wheelMs = play?.realm.economy.timers.wheelMs ?? 0;
+  const spinMs = Math.round(wheelMs * WHEEL_SPIN_SHARE);
+  // Wie lange das Rad dieses Duells beim ersten Bild schon lief (Seite mitten in der Ansage
+  // geladen): einmal festgehalten, denn spätere Abfragen verschieben die Frist nur um Millisekunden
+  const wheelKey =
+    state === 'wheel' && step ? `${step.round}:${step.attacker}:${step.region}` : null;
+  const [spun, setSpun] = useState<{ key: string; elapsedMs: number } | null>(null);
+  if (wheelKey !== null && spun?.key !== wheelKey) {
+    setSpun({
+      key: wheelKey,
+      elapsedMs:
+        phaseDeadline === null
+          ? 0
+          : Math.max(0, Math.round(wheelMs - (phaseDeadline - performance.now()))),
+    });
+  }
+  const spunMs = wheelKey !== null && spun?.key === wheelKey ? spun.elapsedMs : 0;
 
   const attributes = {
     'data-testid': 'match-screen',
@@ -285,9 +307,7 @@ export function RealmStage({
   } else if (state === 'reveal' && realmDuel) {
     layer = { regions, changes: [outcomeSign(realmDuel)], fresh: [realmDuel.payload.region] };
   }
-  const own = preparing
-    ? board.regions.flatMap((r, id) => (r.owner === mySeat ? [id] : []))
-    : [];
+  const own = preparing ? board.regions.flatMap((r, id) => (r.owner === mySeat ? [id] : [])) : [];
 
   const tapRegion = (id: number) => {
     if (preparing) {
@@ -341,31 +361,21 @@ export function RealmStage({
         onAnswerTrivia={(optionToken) => onAnswer(asked, { optionToken })}
       />
     );
-  } else if (
-    state === 'wheel' &&
-    step.wheel &&
-    step.attacker !== null &&
-    step.defender !== null
-  ) {
+  } else if (state === 'wheel' && step.wheel && step.attacker !== null && step.defender !== null) {
     disc = true;
     sheet = (
-      <WheelSheet
-        key={`${step.round}:${step.attacker}:${step.region}`}
-        wheelMs={wheelMs}
-        phaseDeadline={phaseDeadline}
-      >
-        {(spinMs, elapsedMs) => (
-          <Wheel
-            wheel={step.wheel ?? { attackerLots: 0, defenderLots: 0, freeLots: 0, segments: [], total: 0 }}
-            attacker={step.attacker ?? 0}
-            defender={step.defender ?? 0}
-            landed={step.category}
-            exhausted={lastOf(events, 'WHEEL_SPUN')?.payload.exhausted ?? []}
-            spinMs={spinMs}
-            elapsedMs={elapsedMs}
-          />
-        )}
-      </WheelSheet>
+      <div className="wheel-sheet" data-testid="match-wheel-disc">
+        <Wheel
+          key={wheelKey}
+          wheel={step.wheel}
+          attacker={step.attacker}
+          defender={step.defender}
+          landed={step.category}
+          exhausted={lastOf(events, 'WHEEL_SPUN')?.payload.exhausted ?? []}
+          spinMs={spinMs}
+          elapsedMs={spunMs}
+        />
+      </div>
     );
   } else if (state === 'reveal' && reveal && !outcomeBeat) {
     // Den Ausgang eines Duells sagt das Blatt rechts; hier stehen Frage und Antworten
@@ -384,7 +394,7 @@ export function RealmStage({
     .map((turn) => name(turn.seat));
   const style: CSSProperties | undefined =
     state === 'wheel'
-      ? { ['--wheel-spin' as string]: `${Math.round(wheelMs * WHEEL_SPIN_SHARE)}ms` }
+      ? { ['--wheel-spin' as string]: `${spinMs}ms`, ['--wheel-spun' as string]: `${-spunMs}ms` }
       : undefined;
 
   return (
@@ -491,29 +501,5 @@ export function RealmStage({
       {toast}
       <RotateHint />
     </main>
-  );
-}
-
-/**
- * Das Glücksrad mitten auf der Karte. Es dreht den ersten Teil der Ansage und steht dann mit dem
- * Ergebnis; wer die Seite mittendrin lädt, sieht es an der Stelle weiterlaufen, an der es wäre.
- */
-function WheelSheet({
-  wheelMs,
-  phaseDeadline,
-  children,
-}: {
-  readonly wheelMs: number;
-  readonly phaseDeadline: number | null;
-  readonly children: (spinMs: number, elapsedMs: number) => ReactNode;
-}) {
-  // Beim ersten Bild festgehalten: Spätere Abfragen verschieben die Frist nur um Millisekunden
-  const [elapsedMs] = useState(() =>
-    phaseDeadline === null ? 0 : Math.max(0, wheelMs - (phaseDeadline - performance.now())),
-  );
-  return (
-    <div className="wheel-sheet" data-testid="match-wheel-disc">
-      {children(Math.round(wheelMs * WHEEL_SPIN_SHARE), elapsedMs)}
-    </div>
   );
 }
