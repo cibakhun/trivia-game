@@ -409,7 +409,7 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 ### O-36 Ausbau im Browser: Fristende der Rüstzeit und Lesezeit
 
 **Priorität:** P1 (erster Spieltest mit Ausbau) · **Wirkung:** Spielgefühl, Fairness am Fristende · **Herkunft:** ADR-060, [MATCH_RULES.md §11.4](MATCH_RULES.md#114-armeen-und-rüstzeit)
-**Stand:** Wer in der Rüstzeit Befehle eingestellt, aber nicht „Fertig“ getippt hat, täte nach den Regeln des Servers nichts. Der Browser gibt einen offenen, nicht leeren Entwurf deshalb 1,5 s vor Ablauf von selbst ab. Das Aufgedeckte steht 2 s (`ordersRevealMs`), das Glücksrad 3 s (`wheelMs`), davon dreht es knapp 2 s.
+**Stand:** Wer in der Rüstzeit Befehle eingestellt, aber nicht „Fertig“ getippt hat, täte nach den Regeln des Servers nichts. Der Browser gibt einen offenen, nicht leeren Entwurf deshalb 1,5 s vor Ablauf von selbst ab. Bekannte Lücke: Läuft genau dann eine Abgabe von Hand und scheitert sie, versucht der Browser es nicht noch einmal; bleibt es bei A, kommt ein einmaliger zweiter Versuch dazu. Das Aufgedeckte steht 2 s (`ordersRevealMs`), das Glücksrad 3 s (`wheelMs`), davon dreht es knapp 2 s.
 - **A (umgesetzt):** Entwurf wird kurz vor Ablauf von selbst abgegeben; 2 s Aufdecken, 3 s Glücksrad.
 - **B:** Nur „Fertig“ zählt; wer es vergisst, tut nichts. Strenger, aber am Handy leicht ein Versehen.
 - **C:** Wie A, aber das Aufgedeckte steht länger (4 s), falls drei Zeilen in 2 s nicht zu lesen sind. Jede Runde wird um 2 s länger.

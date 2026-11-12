@@ -162,6 +162,21 @@
   color: var(--text);
 }
 
+/* Kurzfassung derselben Angabe neben dem Namen: nur bei niedrigem Bildschirm (siehe unten) */
+.feld-short {
+  display: none;
+  align-items: center;
+  gap: calc(2 * var(--u));
+  font-size: calc(13.5 * var(--u));
+  font-weight: 800;
+  line-height: calc(16 * var(--u));
+  white-space: nowrap;
+}
+
+.feld-short .cost {
+  font-size: inherit;
+}
+
 /* ---------- Rüstzeit ---------- */
 
 .stock-row {
@@ -975,6 +990,24 @@ span.order-chip {
   color: var(--muted);
 }
 
+/* Speichern gescheitert: steht an der Stelle des Hinweises, damit das Blatt nicht wächst */
+.sheet.lobby .fav-failed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(10 * var(--u));
+  padding: calc(4 * var(--u)) calc(4 * var(--u)) calc(4 * var(--u)) calc(8 * var(--u));
+  line-height: 1.3;
+}
+
+.fav-failed .button {
+  flex: none;
+  min-height: calc(34 * var(--u));
+  padding: calc(2 * var(--u)) calc(12 * var(--u));
+  font-size: calc(13.5 * var(--u));
+  white-space: nowrap;
+}
+
 .fav-side {
   gap: calc(8 * var(--u));
 }
@@ -1038,8 +1071,17 @@ span.order-chip {
   .blatt-body {
     gap: calc(5 * var(--u));
   }
+  /* Die Zeile unter dem Namen entfällt, ihre Angabe steht kurz neben dem Namen */
+  .prep .feld {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: calc(6 * var(--u));
+  }
   .prep .feld-fact {
     display: none;
+  }
+  .prep .feld-short {
+    display: inline-flex;
   }
   .seg {
     min-height: calc(42 * var(--u));

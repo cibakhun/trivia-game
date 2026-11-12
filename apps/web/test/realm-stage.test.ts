@@ -15,7 +15,7 @@ import type { LocalQuestion, MatchScreenState } from '../src/match/match-model.t
 import { regionNames, seatNames } from '../src/match/match-text.ts';
 import { PreparePanel } from '../src/match/PreparePanel.tsx';
 import { RealmBlatt } from '../src/match/RealmBlatt.tsx';
-import { RealmLobby } from '../src/match/RealmLobby.tsx';
+import { RealmLobby, type RealmLobbyInitial } from '../src/match/RealmLobby.tsx';
 import {
   realmPlayOf,
   wheelPreview,
@@ -80,6 +80,7 @@ function buttonOf(html: string, label: string): string {
 }
 
 const noop = () => undefined;
+const accept = () => Promise.resolve(true);
 
 function playOf(view: MatchView): RealmPlay {
   const play = realmPlayOf(view);
@@ -334,6 +335,17 @@ describe('Blatt der Rüstzeit', () => {
     );
   }
   const stock = (html: string) => textOf(part(html, 'data-testid="prepare-stock"', '</div>'));
+  /**
+   * Zeile des gewählten Felds: `long` ist Name und Zeile darunter, `short` die Kurzfassung neben dem
+   * Namen. Zu sehen ist je nach Höhe des Bildschirms nur eine von beiden (realm.css).
+   */
+  const fieldOf = (html: string) => {
+    const field = part(html, 'data-testid="prepare-field"', '<div class="segs"');
+    const short = field.includes('data-testid="prepare-fact-short"')
+      ? part(field, 'data-testid="prepare-fact-short"', '<span class="feld-fact"')
+      : '';
+    return { long: textOf(field.replace(short, '')), short };
+  };
 
   it('zeigt zu Beginn Vorrat, Einkommen und den Hinweis, ein Feld anzutippen', () => {
     const html = prepare();
@@ -353,7 +365,7 @@ describe('Blatt der Rüstzeit', () => {
     const html = prepare({ selected: PLAIN });
     const field = part(html, 'data-testid="prepare-field"', '<div class="segs"');
     expect(field).toContain('data-region="7"');
-    expect(textOf(field)).toBe('Eisenhang Bergland, bringt 1 Baustoff je Runde');
+    expect(fieldOf(html).long).toBe('Eisenhang Bergland, bringt 1 Baustoff je Runde');
     expect(buttonOf(html, 'Bauen')).toContain('aria-pressed="true"');
     // Armeen entstehen nur in einer Burg
     expect(tagOf(html, 'data-tab="buy"')).toContain('disabled');
@@ -386,9 +398,7 @@ describe('Blatt der Rüstzeit', () => {
 
   it('kauft Armeen in der Burg bis zur Obergrenze des Felds', () => {
     const start = prepare({ selected: CASTLE, tab: 'buy' });
-    expect(textOf(part(start, 'data-testid="prepare-field"', '<div class="segs"'))).toBe(
-      'Burg Graufurt 3 Armeen, Platz für 6',
-    );
+    expect(fieldOf(start).long).toBe('Burg Graufurt 3 Armeen, Platz für 6');
     expect(textOf(part(start, '<div class="detail"', '</div>'))).toContain('Armeen je 2 Brot');
     expect(buttonOf(start, 'weniger')).toContain('disabled');
     expect(buttonOf(start, 'mehr')).not.toContain('disabled');
@@ -403,6 +413,37 @@ describe('Blatt der Rüstzeit', () => {
     expect(buttonOf(full, 'mehr')).toContain('disabled');
     expect(textOf(full)).toContain('Mehr als 6 Armeen passen nicht auf ein Feld.');
     expect(textOf(part(full, 'data-testid="prepare-orders"', '</ul>'))).toContain('+3');
+  });
+
+  it('nennt Ertrag oder Besatzung auch kurz neben dem Namen, für niedrige Bildschirme', () => {
+    // Freies Feld: sichtbar „+ 1 Baustoff“, vorgelesen derselbe Satz wie in der Zeile darunter
+    const plain = fieldOf(prepare({ selected: PLAIN })).short;
+    expect(plain).toContain('<span aria-hidden="true">+</span>');
+    expect(textOf(plain.replace(/<span aria-hidden="true">[^<]*<\/span>/g, ''))).toBe(
+      'Bergland, bringt 1 Baustoff je Runde',
+    );
+    // Burg: sichtbar „3/6“, vorgelesen als Satz
+    const castle = fieldOf(prepare({ selected: CASTLE, tab: 'buy' })).short;
+    expect(castle).toContain('<span aria-hidden="true">3/6</span>');
+    expect(textOf(castle.replace(/<span aria-hidden="true">[^<]*<\/span>/g, ''))).toBe(
+      '3 Armeen, Platz für 6',
+    );
+    // Geplante Käufe zählen gleich mit, wie in der Zeile darunter
+    const bought = prepare({
+      selected: CASTLE,
+      tab: 'buy',
+      orders: [{ kind: 'RECRUIT', region: CASTLE, count: 3 }],
+    });
+    expect(fieldOf(bought).short).toContain('<span aria-hidden="true">6/6</span>');
+    expect(fieldOf(bought).long).toBe('Burg Graufurt 6 Armeen, Platz für 6');
+    // Ein Zug sagt schon im Namen, worum es geht
+    const move = prepare({
+      selected: CASTLE,
+      tab: 'move',
+      moveTo: TOWN,
+      orders: [{ kind: 'MOVE', from: CASTLE, to: TOWN, count: 2 }],
+    });
+    expect(move).not.toContain('data-testid="prepare-fact-short"');
   });
 
   it('bittet beim Ziehen erst um ein Nachbarfeld und stellt dann die Zahl ein', () => {
@@ -858,16 +899,23 @@ function lobbyView(
 }
 
 describe('Lieblingskategorien vor dem Start', () => {
-  function lobby(view: MatchView): string {
+  interface LobbyExtra {
+    readonly busy?: boolean;
+    readonly error?: unknown;
+    /** Eigene Wahl im Browser, bevor der Server sie hat. */
+    readonly initial?: RealmLobbyInitial;
+  }
+  function lobby(view: MatchView, extra: LobbyExtra = {}): string {
     return renderToStaticMarkup(
       createElement(RealmLobby, {
         view,
-        busy: false,
-        error: null,
+        busy: extra.busy ?? false,
+        error: extra.error ?? null,
         onStart: noop,
         onLeave: noop,
         onSetBot: noop,
-        onSetFavorites: noop,
+        onSetFavorites: accept,
+        initial: extra.initial,
       }),
     );
   }
@@ -919,6 +967,83 @@ describe('Lieblingskategorien vor dem Start', () => {
     expect(rows[1]).toContain('Bot (leicht) wählt zufällig');
     const full = lobby(lobbyView(['HISTORY', 'LITERATURE', 'ARTS_CULTURE', 'NATURE_ANIMALS']));
     expect(textOf(full)).toContain('Anna (du) 4 gewählt');
+  });
+
+  describe('eigene Wahl, die der Server noch nicht hat', () => {
+    const FOUR: readonly QuestionCategory[] = [
+      'HISTORY',
+      'LITERATURE',
+      'ARTS_CULTURE',
+      'NATURE_ANIMALS',
+    ];
+    const mine = (html: string) => textOf(html.split('data-testid="fav-seat"')[1] ?? '');
+
+    it('steht als „wird gespeichert“ da, solange sie unterwegs ist', () => {
+      const html = lobby(lobbyView(null), { initial: { chosen: FOUR }, busy: true });
+      expect(mine(html)).toContain('Anna (du) wird gespeichert …');
+      expect(textOf(html)).not.toContain('Anna (du) 4 gewählt');
+      // Grün wird die Zahl erst mit der Bestätigung
+      expect(tagOf(html, 'data-testid="fav-count"')).not.toContain('full');
+      expect(html).not.toContain('data-testid="fav-retry"');
+      // Auch nach der Antwort des Servers, bis die Ansicht die Wahl zeigt
+      const sent = lobby(lobbyView(null), { initial: { chosen: FOUR } });
+      expect(mine(sent)).toContain('Anna (du) wird gespeichert …');
+    });
+
+    it('sagt, wenn das Speichern scheiterte, und bietet an, es noch einmal zu versuchen', () => {
+      const html = lobby(lobbyView(null), {
+        initial: { chosen: FOUR, failed: true },
+        error: new Error('Netz'),
+      });
+      expect(mine(html)).toContain('Anna (du) nicht gespeichert');
+      expect(textOf(html)).not.toContain('Anna (du) 4 gewählt');
+      const failed = part(html, 'data-testid="fav-failed"', '</div>');
+      expect(failed).toContain('role="alert"');
+      expect(textOf(failed)).toBe(
+        'Deine Wahl ist noch nicht gespeichert. Etwas ist schiefgelaufen. Bitte versuche es erneut. Erneut speichern',
+      );
+      expect(buttonOf(html, 'Erneut speichern')).toContain('data-testid="fav-retry"');
+      expect(buttonOf(html, 'Erneut speichern')).not.toContain('disabled');
+      // Der Fehler steht einmal da, an der Stelle des Hinweises
+      expect(count(html, 'role="alert"')).toBe(1);
+      expect(html).not.toContain('class="fav-note"');
+    });
+
+    it('bleibt ungespeichert, auch wenn die Fehlermeldung inzwischen weg ist', () => {
+      // Eine andere Aktion (etwa ein Bot auf dem zweiten Blatt) räumt die Meldung ab
+      const html = lobby(lobbyView(null), { initial: { chosen: FOUR, failed: true } });
+      expect(mine(html)).toContain('Anna (du) nicht gespeichert');
+      expect(textOf(part(html, 'data-testid="fav-failed"', '</div>'))).toBe(
+        'Deine Wahl ist noch nicht gespeichert. Erneut speichern',
+      );
+    });
+
+    it('gilt auch als ungespeichert, wenn der Server noch eine ältere Wahl hat', () => {
+      const older = lobbyView(['HISTORY', 'LITERATURE', 'ARTS_CULTURE', 'SPORTS']);
+      const html = lobby(older, { initial: { chosen: FOUR, failed: true } });
+      expect(mine(html)).toContain('nicht gespeichert');
+      expect(html).toContain('data-testid="fav-retry"');
+    });
+
+    it('hält einen Fehler aus anderem Grund nicht für ein gescheitertes Speichern', () => {
+      const saved = lobby(lobbyView(FOUR), { error: new Error('Start') });
+      expect(mine(saved)).toContain('Anna (du) 4 gewählt');
+      expect(saved).not.toContain('data-testid="fav-failed"');
+      expect(count(saved, 'role="alert"')).toBe(1);
+      expect(saved).toContain('class="fav-note"');
+      // Auch nicht, solange die eigene Wahl unterwegs ist
+      const underway = lobby(lobbyView(null), {
+        initial: { chosen: FOUR },
+        error: new Error('Start'),
+      });
+      expect(mine(underway)).toContain('wird gespeichert …');
+      expect(underway).not.toContain('data-testid="fav-failed"');
+      expect(count(underway, 'role="alert"')).toBe(1);
+      // Unvollständig ist nichts zu speichern
+      const partly = lobby(lobbyView(['HISTORY']), { error: new Error('Start') });
+      expect(mine(partly)).toContain('noch 3 wählen');
+      expect(partly).not.toContain('data-testid="fav-retry"');
+    });
   });
 
   it('unterscheidet bei anderen Menschen gewählt und wählt noch', () => {
@@ -977,7 +1102,7 @@ describe('Bühne der Partie mit Ausbau', () => {
         onStart: noop,
         onLeave: noop,
         onSetBot: noop,
-        onSetFavorites: noop,
+        onSetFavorites: accept,
         onSubmitOrders: () => Promise.resolve(true),
         ...(extra.initial ? { initial: extra.initial } : {}),
       }),

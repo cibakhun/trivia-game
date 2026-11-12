@@ -244,6 +244,17 @@ describe('Blatt der Phase rechts auf dem Meer', () => {
       expect(textOf(row(reloaded, 2))).toBe('Bot (schwer) überlegt');
     });
 
+    it('zählt eine abgeschickte Antwort nicht, wenn sie zu spät kam', () => {
+      // Die Zeit lief ab, während die Antwort unterwegs war: Das Blatt sagt „verpasst“
+      const late = { ...localOf(TRIVIA), status: 'MISSED' as const, sent: { optionToken: 'b' } };
+      const html = blatt(asked([]), 'missed', late);
+      expect(row(html, 1)).toContain('data-answered="false"');
+      expect(textOf(row(html, 1))).toBe('Du überlegst');
+      // Hat der Server sie doch noch angenommen, gilt sein Wort
+      const kept = blatt(asked([1], 'ANSWERED'), 'answered', late);
+      expect(textOf(row(kept, 1))).toBe('Du ✓ abgegeben');
+    });
+
     it('zählt eine eigene Antwort zu einer anderen Frage nicht', () => {
       const old = { ...localOf(TRIVIA), seq: 6, status: 'ANSWERED' as const };
       expect(textOf(row(blatt(asked([]), 'presenting', old), 1))).toBe('Du überlegst');

@@ -482,6 +482,38 @@ function FieldBody({
     );
   }
 
+  // Niedriger Bildschirm: Für die Zeile unter dem Namen ist kein Platz. Was das Feld bringt oder wie
+  // voll die Burg ist, steht dann kurz neben dem Namen (realm.css), für Screenreader als ganzer Satz.
+  const castle = start?.building === 'CASTLE';
+  const short =
+    move || (!castle && produce.bread === 0 && produce.material === 0) ? null : (
+      <span className="feld-short" data-testid="prepare-fact-short">
+        {castle ? (
+          <>
+            <MarkIcon kind="army" size={15} />
+            <span aria-hidden="true">
+              {field.armies}/{economy.armyCap}
+            </span>
+            <span className="visually-hidden">
+              {t('realm.prepare.castleFact', {
+                armies: tp('realm.armies', field.armies),
+                cap: economy.armyCap,
+              })}
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="visually-hidden">
+              {terrainName(play, field.region)}, {t('realm.prepare.yields')}{' '}
+            </span>
+            <span aria-hidden="true">+</span>
+            <CostView cost={produce} />
+            <span className="visually-hidden"> {t('realm.prepare.perRound')}</span>
+          </>
+        )}
+      </span>
+    );
+
   return (
     <>
       <div className="feld" data-testid="prepare-field" data-region={field.region}>
@@ -490,10 +522,11 @@ function FieldBody({
             ? t('realm.prepare.moveTitle', { from: name, to: region(move.to) })
             : placeName(start?.building ?? 'NONE', name)}
         </strong>
+        {short}
         <span className="feld-fact">
           {move ? (
             t('realm.prepare.moveFact')
-          ) : start?.building === 'CASTLE' ? (
+          ) : castle ? (
             t('realm.prepare.castleFact', {
               armies: tp('realm.armies', field.armies),
               cap: economy.armyCap,

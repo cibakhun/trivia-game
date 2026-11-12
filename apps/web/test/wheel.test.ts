@@ -133,6 +133,24 @@ describe('Rad als Zeichnung', () => {
     expect(html).not.toContain('seg-hit-ring');
   });
 
+  it('zeichnet ein Rad mit nur einer Kategorie als ganzen Kreis', () => {
+    // Alle anderen sind erschöpft: Das Feld reicht von 0 bis 360 Grad. Ein einzelner Bogen hätte
+    // denselben Anfangs- und Endpunkt und fiele in SVG weg; zwei Halbkreise zeichnen ihn.
+    const others = previewWheel()
+      .segments.map((s) => s.category)
+      .filter((category) => category !== 'HISTORY');
+    const html = draw({ exhausted: others });
+    expect(count(html, 'class="wheel-seg"')).toBe(1);
+    const free = (drawn: string) => /<path d="([^"]+)" class="seg-free"/.exec(drawn)?.[1] ?? '';
+    expect(count(free(html), 'A')).toBe(2);
+    // Kein Strich zur Mitte: Der Kreis hat keine Kanten
+    expect(free(html)).not.toContain('L');
+    // Auch der Rahmen um das getroffene Feld ist ein ganzer Kreis
+    expect(count(/<path d="([^"]+)" class="seg-hit-ring"/.exec(html)?.[1] ?? '', 'A')).toBe(2);
+    // Ein Rad mit mehreren Feldern bleibt bei einem Bogen je Feld
+    expect(count(free(draw()), 'A')).toBe(1);
+  });
+
   it('lässt erschöpfte Kategorien aus der Zeichnung', () => {
     expect(count(draw({ exhausted: ['LITERATURE', 'SPORTS'] }), 'class="wheel-seg"')).toBe(9);
   });

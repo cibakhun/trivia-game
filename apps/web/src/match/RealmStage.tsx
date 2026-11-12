@@ -36,7 +36,7 @@ import {
   realmBoardState,
   revealLayer,
 } from './realm-layer.ts';
-import { RealmLobby } from './RealmLobby.tsx';
+import { RealmLobby, type RealmLobbyInitial } from './RealmLobby.tsx';
 import {
   fieldOptions,
   prepareTab,
@@ -107,10 +107,13 @@ export interface RealmStageInitial {
   readonly trading?: boolean;
   readonly editing?: boolean;
   readonly target?: number | null;
+  /** Aufstellung: die eigene Wahl der Lieblingskategorien, bevor der Server sie hat. */
+  readonly favorites?: RealmLobbyInitial;
 }
 
 export interface RealmStageProps extends MatchStageProps {
-  readonly onSetFavorites: (categories: readonly QuestionCategory[]) => void;
+  /** Speichert die Lieblingskategorien; `true`, wenn der Server sie angenommen hat. */
+  readonly onSetFavorites: (categories: readonly QuestionCategory[]) => Promise<boolean>;
   /** Gibt die Befehle ab; `true`, wenn der Server sie angenommen hat. */
   readonly onSubmitOrders: (orders: readonly RealmOrderDto[]) => Promise<boolean>;
   readonly initial?: RealmStageInitial;
@@ -271,6 +274,7 @@ export function RealmStage({
               onLeave={onLeave}
               onSetBot={onSetBot}
               onSetFavorites={onSetFavorites}
+              initial={initial?.favorites}
             />
           ) : view && state === 'abandoned' ? (
             <AbandonedPanel view={view} events={events} />

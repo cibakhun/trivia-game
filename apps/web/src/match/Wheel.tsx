@@ -22,6 +22,13 @@ function polar(angle: number, r: number): [number, number] {
 const round = (n: number) => Math.round(n * 100) / 100;
 
 function slice(from: number, to: number, r: number): string {
+  // Ein ganzer Kreis (nur eine Kategorie übrig) hat denselben Anfangs- und Endpunkt; SVG ließe
+  // den Bogen dann weg. Zwei Halbkreise zeichnen ihn, ohne Strich zur Mitte.
+  if (to - from >= 360) {
+    const [ax, ay] = polar(from, r).map(round);
+    const [bx, by] = polar(from + 180, r).map(round);
+    return `M${ax} ${ay}A${r} ${r} 0 1 1 ${bx} ${by}A${r} ${r} 0 1 1 ${ax} ${ay}Z`;
+  }
   const [x1, y1] = polar(from, r);
   const [x2, y2] = polar(to, r);
   const large = to - from > 180 ? 1 : 0;

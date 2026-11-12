@@ -1,5 +1,5 @@
 import { matchMap, regionNeighbors } from '@rdw/game-core';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page, type Route } from '@playwright/test';
 import { closeAnswerDb } from './answers.ts';
 import { answerRight, matchIdOf, newPlayer, succeeds } from './match-kit.ts';
 
@@ -377,15 +377,30 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(await open.count()).toBeGreaterThanOrEqual(5);
   for (let i = 0; i < 3; i++) await open.nth(i).tap();
   await expect(count).toHaveText('3 von 4 gewählt');
-  const saved = accepted(page, matchId, 'favorites', 5_000);
+  // Scheitert das Speichern, steht die Wahl nicht als gewählt da und lässt sich noch einmal speichern
+  const mine = favorites.getByTestId('fav-seat');
+  const toFavorites = (url: URL) => url.pathname.endsWith(`/matches/${matchId}/favorites`);
+  const cut = (route: Route) => route.abort('connectionfailed');
+  await page.route(toFavorites, cut);
   await open.nth(3).tap();
   await expect(count).toHaveText('4 von 4 gewählt');
+  await expect(mine).toContainText('nicht gespeichert');
+  await expect(count).not.toHaveClass(/full/);
+  await expect(page.getByTestId('fav-failed')).toContainText(
+    'Deine Wahl ist noch nicht gespeichert.',
+  );
+  await page.unroute(toFavorites, cut);
+  const saved = accepted(page, matchId, 'favorites', 5_000);
+  await page.getByTestId('fav-retry').tap();
   expect(await saved).toBe(true);
+  await expect(page.getByTestId('fav-failed')).toHaveCount(0);
   // Mehr als vier gehen nicht; eine abwählen und eine andere nehmen geht
   await expect(open.nth(4)).toBeDisabled();
   await expect(favorites.locator('.fav.on')).toHaveCount(4);
-  await expect(favorites.getByTestId('fav-seat')).toHaveCount(1);
-  await expect(favorites).toContainText('4 gewählt');
+  await expect(mine).toHaveCount(1);
+  // „Gewählt“ steht beim eigenen Namen erst, wenn der Server die Wahl bestätigt hat
+  await expect(mine).toContainText('4 gewählt');
+  await expect(count).toHaveClass(/full/);
   // Zweites Blatt: Mitspieler, Einladungscode und Bots wie in der Partie ohne Ausbau
   await page.getByTestId('lobby-to-seats').tap();
   await expect(page.getByTestId('invite-code')).toHaveText(/^[A-HJ-NP-Z2-9]{6}$/);

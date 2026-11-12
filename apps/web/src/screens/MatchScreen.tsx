@@ -144,19 +144,23 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     });
   }
 
-  function setFavorites(categories: readonly QuestionCategory[]) {
-    void runAction(async () => {
-      const key = lobbyKey.current;
-      try {
-        await api.setMatchFavorites(matchId, categories, key.for({ favorites: categories }));
-        key.settle();
-      } catch (e) {
-        key.settle(e);
-        throw e;
-      } finally {
-        refresh();
-      }
-    });
+  /** Lieblingskategorien speichern; `true`, wenn der Server sie angenommen hat. */
+  async function setFavorites(categories: readonly QuestionCategory[]): Promise<boolean> {
+    const key = lobbyKey.current;
+    setBusy(true);
+    setActionError(null);
+    try {
+      await api.setMatchFavorites(matchId, categories, key.for({ favorites: categories }));
+      key.settle();
+      return true;
+    } catch (e) {
+      key.settle(e);
+      setActionError(e);
+      return false;
+    } finally {
+      setBusy(false);
+      refresh();
+    }
   }
 
   /** Befehle der Rüstzeit abgeben; `true`, wenn der Server sie angenommen hat. */

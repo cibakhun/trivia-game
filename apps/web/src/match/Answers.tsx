@@ -20,9 +20,12 @@ export function Answers({
 }) {
   const question = view.question;
   if (!question || question.seats.length === 0) return null;
+  // Eine abgeschickte, noch unbestätigte Antwort zählt nur, solange die Frage offen ist: Kam sie zu
+  // spät, steht „verpasst“ im Blatt und hier nicht „abgegeben“
   const mine =
     question.myStatus === 'ANSWERED' ||
-    (local?.seq === question.seq && (local.status === 'ANSWERED' || local.sent !== undefined));
+    (local?.seq === question.seq &&
+      (local.status === 'ANSWERED' || (local.status === 'OPEN' && local.sent !== undefined)));
   return (
     <div className="answers" data-testid="match-answers">
       <h3>{t('match.answers.title')}</h3>
