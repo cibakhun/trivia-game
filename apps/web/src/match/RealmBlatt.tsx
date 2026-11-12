@@ -24,9 +24,12 @@ import {
 } from './match-text.ts';
 import { NumPad } from './NumPad.tsx';
 import {
+  attackReach,
   favoriteChance,
   realmSeat,
   revealedOrders,
+  revealedRound,
+  skippedAttackers,
   wheelPreview,
   type RealmPlay,
 } from './realm-model.ts';
@@ -252,6 +255,7 @@ export function RealmBlatt({
   name,
   region,
   target,
+  refusedTarget = null,
   onEstimate,
   onAnswerEstimate,
   onAttack,
@@ -274,6 +278,8 @@ export function RealmBlatt({
   readonly region: RegionName;
   /** Angriffsziel, das der Spieler angetippt, aber noch nicht bestätigt hat. */
   readonly target: number | null;
+  /** Angetipptes Feld, das kein Ziel ist: Das Blatt sagt, warum nicht (ADR-064). */
+  readonly refusedTarget?: number | null;
   readonly onEstimate: (update: (current: string) => string) => void;
   readonly onAnswerEstimate: () => void;
   readonly onAttack: () => void;
@@ -335,6 +341,10 @@ export function RealmBlatt({
           aimed && target !== null && view.mySeat !== null
             ? wheelPreview(play, view.mySeat, target)
             : null;
+        const refusedReach =
+          refusedTarget !== null && view.mySeat !== null
+            ? attackReach(play, view.mySeat, refusedTarget)
+            : null;
         return sheet(
           'turn',
           'match-pick',
@@ -394,7 +404,29 @@ export function RealmBlatt({
                 </button>
               </>
             ) : (
-              <p className="blatt-hint">{t('realm.pick.hintTarget')}</p>
+              <>
+                {refusedReach === 'NO_ARMY' || refusedReach === 'FAR' ? (
+                  <p
+                    className="act-info act-refused"
+                    data-testid="match-target-refused"
+                    data-reach={refusedReach}
+                    role="status"
+                  >
+                    {t(`realm.pick.refused.${refusedReach}`, {
+                      region: region(refusedTarget ?? 0),
+                    })}
+                  </p>
+                ) : null}
+                <p className="blatt-hint">
+                  {t(
+                    economy.attackNeedsArmy === 'ALWAYS'
+                      ? 'realm.pick.hintTargetArmy'
+                      : economy.attackNeedsArmy === 'RIVALS'
+                        ? 'realm.pick.hintTargetRivals'
+                        : 'realm.pick.hintTarget',
+                  )}
+                </p>
+              </>
             )}
           </>,
         );
@@ -469,8 +501,18 @@ export function RealmBlatt({
       );
     }
     case 'orders': {
-      const rows = revealedOrders(events, step.round ?? 1);
-      const order = board.turns.map((turn) => short(turn.seat));
+      // Fielen alle Angriffe aus, ist der Schritt schon in der nächsten Runde (ADR-064)
+      const round = revealedRound(events) ?? step.round ?? 1;
+      const rows = revealedOrders(events, round);
+      const out = skippedAttackers(events, round);
+      const attacking =
+        step.kind === 'CAMPAIGN_TARGET' ||
+        step.kind === 'DUEL_WHEEL' ||
+        step.kind === 'DUEL_TRIVIA' ||
+        step.kind === 'DUEL_ESTIMATE'
+          ? board.turns.filter((turn) => !out.includes(turn.seat))
+          : [];
+      const order = attacking.map((turn) => short(turn.seat));
       return sheet(
         '',
         'match-orders',
@@ -506,6 +548,13 @@ export function RealmBlatt({
           </ul>
           {order.length > 0 ? (
             <p className="blatt-hint">{t('realm.orders.next', { names: order.join(', ') })}</p>
+          ) : out.length > 0 ? (
+            <p className="blatt-hint">{t('realm.orders.nobody')}</p>
+          ) : null}
+          {out.length > 0 ? (
+            <p className="blatt-hint aufdeck-out" data-testid="orders-skipped">
+              {t('realm.orders.skipped', { names: out.map((seat) => short(seat)).join(', ') })}
+            </p>
           ) : null}
           {phaseTimer(economy.timers.ordersRevealMs, true)}
         </>,

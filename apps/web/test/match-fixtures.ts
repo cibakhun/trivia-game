@@ -177,6 +177,13 @@ export const REALM_FAVORITES = [
   ['HISTORY', 'LITERATURE', 'ARTS_CULTURE', 'NATURE_ANIMALS'],
 ] as const;
 
+function realmEconomy(need: RealmViewOptions['attackNeedsArmy']): RealmView['economy'] {
+  if (need === undefined) return DEFAULT_MATCH_ECONOMY;
+  const { attackNeedsArmy, ...economy } = DEFAULT_MATCH_ECONOMY;
+  void attackNeedsArmy;
+  return need === null ? economy : { ...economy, attackNeedsArmy: need };
+}
+
 export function realmStep(partial: Partial<RealmStepView> = {}): RealmStepView {
   return {
     kind: 'PREPARE',
@@ -206,6 +213,11 @@ export interface RealmViewOptions {
   readonly turns?: RealmBoardView['turns'];
   readonly myOrders?: RealmView['myOrders'];
   readonly map?: string;
+  /**
+   * Angriff nur mit Armee (ADR-064): ohne Angabe die Vorgabe der Regeln (`ALWAYS`), `null` für eine
+   * Partie von vor ADR-064 ohne den Regelwert.
+   */
+  readonly attackNeedsArmy?: 'ALWAYS' | 'RIVALS' | null;
 }
 
 /**
@@ -281,7 +293,7 @@ export function realmViewOf(
       categories: [...QUESTION_CATEGORIES],
       favoritesCount: DEFAULT_MATCH_ECONOMY.favorites,
       campaignRounds: 5,
-      economy: DEFAULT_MATCH_ECONOMY,
+      economy: realmEconomy(options.attackNeedsArmy),
       board,
       myOrders: options.myOrders ?? null,
     },

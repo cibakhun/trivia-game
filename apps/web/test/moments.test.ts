@@ -236,6 +236,87 @@ describe('Große Momente der Partie mit Ausbau', () => {
     ).toEqual(['Rüstzeit']);
   });
 
+  it('ein ausgefallener Angriff bekommt ein Band in der Farbe des Reichs (ADR-064)', () => {
+    const skipped = (seq: number, attacker: number): ParsedMatchEvent => {
+      const event = parseMatchEvent({
+        seq,
+        at: '2026-11-10T20:00:00.000Z',
+        type: 'ATTACK_SKIPPED',
+        payload: { round: 2, attacker },
+      });
+      if (!event) throw new Error('Ereignis ungültig');
+      return event;
+    };
+    // Ich bin Sitz 0 (Anna)
+    const run = (
+      before: Partial<MomentSnapshot>,
+      next: Partial<MomentSnapshot>,
+      fresh: readonly ParsedMatchEvent[],
+    ) => momentsBetween(snap(before), snap(next), fresh, name, 5, true, 2, 0);
+    // Beim Aufdecken: erst die Ankündigung, dann wer aussetzt
+    const atReveal = run(
+      { state: 'prepared', kind: 'PREPARE', round: 2 },
+      { state: 'orders', kind: 'CAMPAIGN_TARGET', round: 2, lastSeq: 12 },
+      [skipped(11, 1)],
+    );
+    expect(atReveal.map((m) => m.title)).toEqual([
+      'Die Befehle werden aufgedeckt',
+      'Bot (schwer) setzt aus',
+    ]);
+    expect(atReveal[1]).toMatchObject({
+      key: 'skipped-11',
+      detail: 'Keine Armee neben einem Ziel',
+      tone: 'seat',
+      seat: 1,
+    });
+    // Der eigene Angriff in der Du-Form
+    expect(
+      run({ round: 2 }, { round: 2, lastSeq: 12 }, [skipped(11, 0)]).map((m) => m.title),
+    ).toEqual(['Dein Angriff fällt aus']);
+    // Über einer Auflösung erscheint nichts
+    expect(
+      run(
+        { state: 'question', kind: 'DUEL_TRIVIA', round: 2 },
+        { state: 'reveal', kind: 'CAMPAIGN_TARGET', round: 2, lastSeq: 12 },
+        [skipped(11, 1)],
+      ),
+    ).toEqual([]);
+    // Vor der nächsten Runde: erst wer aussetzte, dann die Rüstzeit
+    expect(
+      run(
+        { state: 'reveal', kind: 'DUEL_TRIVIA', round: 2 },
+        { state: 'prepare', kind: 'PREPARE', round: 3, lastSeq: 14 },
+        [skipped(11, 2)],
+      ).map((m) => m.title),
+    ).toEqual(['Bot (leicht) setzt aus', 'Rüstzeit']);
+    // Alle setzen aus: Das Aufgedeckte steht mit dem Schritt der nächsten Runde, deren Rüstzeit
+    // wird danach eigens angekündigt
+    expect(
+      run(
+        { state: 'prepared', kind: 'PREPARE', round: 2 },
+        { state: 'orders', kind: 'PREPARE', round: 2, lastSeq: 14 },
+        [skipped(11, 0), skipped(12, 1), skipped(13, 2)],
+      ).map((m) => m.title),
+    ).toEqual(['Die Befehle werden aufgedeckt', 'Angriffe fallen aus']);
+    // Mehrere Ausfälle zugleich: ein Band nennt alle, damit sie nicht bis in die Rüstzeit stehen
+    expect(run({ round: 2 }, { round: 2, lastSeq: 13 }, [skipped(11, 0), skipped(12, 1)])).toEqual([
+      {
+        key: 'skipped-11',
+        title: 'Angriffe fallen aus',
+        detail: 'Keine Armee neben einem Ziel: Du, Bot (schwer)',
+        tone: 'ink',
+        seat: null,
+      },
+    ]);
+    expect(
+      run(
+        { state: 'orders', kind: 'PREPARE', round: 2 },
+        { state: 'prepare', kind: 'PREPARE', round: 3 },
+        [],
+      ).map((m) => m.title),
+    ).toEqual(['Rüstzeit']);
+  });
+
   it('feiert ein fallendes Reich wie ohne Ausbau', () => {
     const [moment] = momentsBetween(
       snap({ state: 'reveal', lastSeq: 8 }),

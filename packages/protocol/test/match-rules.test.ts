@@ -171,6 +171,25 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
     expect(parse({ ...legacy, landGrabRounds: 1.5 })).toBe(false);
   });
 
+  it('Angriff nur mit Armee: ALWAYS als Standard, RIVALS erlaubt; Partien von vor ADR-064 haben den Wert nicht', () => {
+    const parse = (economy: unknown) =>
+      matchRulesSchema.safeParse({ ...DEFAULT_REALM_RULES, economy }).success;
+    expect(DEFAULT_MATCH_ECONOMY.attackNeedsArmy).toBe('ALWAYS');
+    expect(PLAYTEST_REALM_RULES.economy?.attackNeedsArmy).toBe('ALWAYS');
+    const legacy = { ...DEFAULT_MATCH_ECONOMY };
+    delete legacy.attackNeedsArmy;
+    expect(parse(legacy)).toBe(true);
+    // Der Wert wird nicht nachgetragen: Eine laufende Partie spielt mit den Regeln ihres Beginns
+    expect(matchRulesSchema.parse({ ...DEFAULT_REALM_RULES, economy: legacy }).economy).toEqual(
+      legacy,
+    );
+    expect(parse({ ...legacy, attackNeedsArmy: 'ALWAYS' })).toBe(true);
+    expect(parse({ ...legacy, attackNeedsArmy: 'RIVALS' })).toBe(true);
+    expect(parse({ ...legacy, attackNeedsArmy: 'NEVER' })).toBe(false);
+    expect(parse({ ...legacy, attackNeedsArmy: true })).toBe(false);
+    expect(parse({ ...legacy, attackNeedsArmy: null })).toBe(false);
+  });
+
   it('zu zweit bleibt der Ausbau erhalten', () => {
     const two = matchRulesForSeats(DEFAULT_REALM_RULES, 2);
     expect(matchRulesSchema.parse(two)).toEqual(two);

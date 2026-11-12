@@ -16,7 +16,16 @@ function shortName(view: MatchView, seat: number, name: SeatName): string {
  * hoch und bewegt sich nicht (keine Animation, auch nicht während einer Frage). Namen stehen nur
  * für Screenreader da: Die Wappen stehen direkt darüber im Spielstand.
  */
-export function TurnOrder({ view, name }: { readonly view: MatchView; readonly name: SeatName }) {
+export function TurnOrder({
+  view,
+  name,
+  skipped = [],
+}: {
+  readonly view: MatchView;
+  readonly name: SeatName;
+  /** Partie mit Ausbau: Reiche, deren Angriff in dieser Runde ausfiel (ADR-064). */
+  readonly skipped?: readonly number[];
+}) {
   // Mit Ausbau steht die Zugfolge im Brett der Partie mit Ausbau (`realm.board`)
   const board = view.board ?? view.realm?.board ?? null;
   if (!board || board.turns.length === 0) return null;
@@ -47,26 +56,32 @@ export function TurnOrder({ view, name }: { readonly view: MatchView; readonly n
         {label}
       </h2>
       <ol className={together ? 'together' : undefined}>
-        {board.turns.map((turn, i) => (
-          <li
-            key={i}
-            className={`turn-step turn-${turn.status.toLowerCase()} seat-${turn.seat}${
-              turn.seat === view.mySeat ? ' me' : ''
-            }`}
-            data-seat={turn.seat}
-            data-status={turn.status}
-          >
-            {together ? null : (
-              <span className="turn-index" aria-hidden="true">
-                {turn.status === 'DONE' ? '✓' : i + 1}
+        {board.turns.map((turn, i) => {
+          // Wer aussetzt, war nicht dran: ein Strich statt des Hakens
+          const out = turn.status === 'DONE' && skipped.includes(turn.seat);
+          return (
+            <li
+              key={i}
+              className={`turn-step turn-${turn.status.toLowerCase()} seat-${turn.seat}${
+                turn.seat === view.mySeat ? ' me' : ''
+              }${out ? ' turn-skipped' : ''}`}
+              data-seat={turn.seat}
+              data-status={turn.status}
+              data-skipped={out ? 'true' : undefined}
+            >
+              {together ? null : (
+                <span className="turn-index" aria-hidden="true">
+                  {out ? '–' : turn.status === 'DONE' ? '✓' : i + 1}
+                </span>
+              )}
+              <SeatCrest seat={turn.seat} size={18} />
+              <span className="visually-hidden">
+                {shortName(view, turn.seat, name)},{' '}
+                {out ? t('realm.turns.skipped') : statusText(turn.status)}
               </span>
-            )}
-            <SeatCrest seat={turn.seat} size={18} />
-            <span className="visually-hidden">
-              {shortName(view, turn.seat, name)}, {statusText(turn.status)}
-            </span>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ol>
     </section>
   );

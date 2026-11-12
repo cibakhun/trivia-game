@@ -321,6 +321,11 @@ html.match-playing body {
   color: var(--success);
 }
 
+/* Angriff fiel aus (ADR-064): ein Strich statt des Hakens */
+.turn-step.turn-skipped .turn-index {
+  color: var(--danger);
+}
+
 .turn-step.turn-now {
   background: var(--map-coin);
   border-color: var(--map-gold);

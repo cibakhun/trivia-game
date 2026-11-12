@@ -96,6 +96,8 @@ export function momentsBetween(
   realm = false,
   /** Runden der Landnahme, wenn sie begrenzt ist (ADR-062): Danach bleibt Land frei. */
   landRounds: number | null = null,
+  /** Eigener Sitz: Fällt der eigene Angriff aus, sagt das Band es in der Du-Form. */
+  mySeat: number | null = null,
 ): Moment[] {
   const moments: Moment[] = [];
   if (before) {
@@ -112,6 +114,47 @@ export function momentsBetween(
         seat: event.payload.by,
       });
     }
+    // Ausgefallene Angriffe (ADR-064) erst in einem ruhigen Zustand, nicht über einer Auflösung;
+    // beim Aufdecken hinter dessen Ankündigung, sonst vor der nächsten Runde. Fallen mehrere
+    // zugleich aus, nennt ein einziges Band alle: Sonst stünden Bänder bis in die Rüstzeit
+    const skips = isCalm(next.state)
+      ? fresh.filter((event) => event.type === 'ATTACK_SKIPPED')
+      : [];
+    const [only] = skips;
+    const skipped: Moment[] =
+      only === undefined
+        ? []
+        : skips.length === 1
+          ? [
+              {
+                key: `skipped-${only.seq}`,
+                title:
+                  only.payload.attacker === mySeat
+                    ? t('realm.moment.skippedMe')
+                    : t('realm.moment.skipped', { name: name(only.payload.attacker) }),
+                detail: t('realm.moment.skippedDetail'),
+                tone: 'seat',
+                seat: only.payload.attacker,
+              },
+            ]
+          : [
+              {
+                key: `skipped-${only.seq}`,
+                title: t('realm.moment.skippedMany'),
+                detail: t('realm.moment.skippedManyDetail', {
+                  names: skips
+                    .map((event) =>
+                      event.payload.attacker === mySeat
+                        ? t('match.youShort')
+                        : name(event.payload.attacker),
+                    )
+                    .join(', '),
+                }),
+                tone: 'ink',
+                seat: null,
+              },
+            ];
+    if (next.state !== 'orders') moments.push(...skipped);
     // Phasen und Runden erst ankündigen, wenn gewählt wird (nicht mitten in einer Auflösung)
     const calm = isCalm(next.state) && next.kind !== 'FINISHED';
     if (calm && LAND.includes(next.kind) && !LAND.includes(before.kind)) {
@@ -147,6 +190,7 @@ export function momentsBetween(
         });
       }
     }
+    if (next.state === 'orders') moments.push(...skipped);
   }
   const myTurnStarts =
     next.state === 'pick' &&

@@ -448,13 +448,39 @@ function touches(map: MatchMap, region: number, owned: ReadonlySet<number>): boo
 }
 
 /**
+ * Felder, die `seat` im Feldzug angreifen kann (aufsteigend): gegnerisch oder frei und am eigenen
+ * Gebiet. Mit `economy.attackNeedsArmy` (ADR-064) muss das Ziel dazu in Reichweite einer eigenen
+ * Armee liegen, also an ein eigenes Feld mit Armee grenzen: bei `ALWAYS` jedes Ziel, bei `RIVALS`
+ * nur ein gegnerisches. Leer heißt: Der Sitz setzt in dieser Runde aus.
+ *
+ * Ohne den Regelwert (Partien von vor ADR-064) genügt das eigene Gebiet; grenzt dort nichts
+ * Fremdes oder Freies ans eigene Gebiet, ist jede gegnerische Region ein Ziel.
+ */
+export function realmTargetsOf(state: RealmState, seat: number): number[] {
+  const map = realmMapOf(state);
+  const owned = new Set(realmRegionsOf(state, seat));
+  const adjacent = state.regions.flatMap((r, id) =>
+    r.owner !== seat && touches(map, id, owned) ? [id] : [],
+  );
+  const need = state.rules.economy.attackNeedsArmy;
+  if (need === undefined) {
+    if (adjacent.length > 0) return adjacent;
+    return state.regions.flatMap((r, id) => (r.owner !== null && r.owner !== seat ? [id] : []));
+  }
+  return adjacent.filter(
+    (id) =>
+      (need === 'RIVALS' && state.regions[id]?.owner === null) ||
+      armiesInRange(state, seat, id) > 0,
+  );
+}
+
+/**
  * Regionen, die im aktuellen Schritt wählbar sind (aufsteigend):
  * - Burg: frei und mindestens `capital.minDistance` Felder von jeder gewählten Burg;
  * - Startdorf: frei und mindestens `economy.villageMinDistance` Felder von jedem fremden Gebäude;
  * - Landnahme: frei und am eigenen Gebiet, gibt es keine solche, jede freie;
  * - Angriffsziel: gegnerisch oder frei und am eigenen Gebiet (ein freies Feld nimmt, wer die
- *   Wissensfrage allein richtig beantwortet, O-37); grenzt nichts davon ans eigene Gebiet, jede
- *   gegnerische.
+ *   Wissensfrage allein richtig beantwortet, O-37); siehe `realmTargetsOf`.
  * Gibt es für Burg oder Dorf keinen Platz mit Abstand, ist jede freie Region wählbar.
  */
 export function realmLegalRegions(state: RealmState): number[] {
@@ -487,16 +513,8 @@ export function realmLegalRegions(state: RealmState): number[] {
       const adjacent = free.filter((id) => touches(map, id, owned));
       return adjacent.length > 0 ? adjacent : free;
     }
-    case 'CAMPAIGN_TARGET': {
-      const owned = new Set(realmRegionsOf(state, step.attacker));
-      const adjacent = state.regions.flatMap((r, id) =>
-        r.owner !== step.attacker && touches(map, id, owned) ? [id] : [],
-      );
-      if (adjacent.length > 0) return adjacent;
-      return state.regions.flatMap((r, id) =>
-        r.owner !== null && r.owner !== step.attacker ? [id] : [],
-      );
-    }
+    case 'CAMPAIGN_TARGET':
+      return realmTargetsOf(state, step.attacker);
     case 'START_ESTIMATE':
     case 'LAND_ESTIMATE':
     case 'PREPARE':

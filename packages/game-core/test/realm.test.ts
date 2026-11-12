@@ -42,6 +42,7 @@ import {
   realmPendingQuestion,
   realmStandings,
   realmTargetGain,
+  realmTargetsOf,
   realmTurnOrder,
   realmWheel,
   realmWheelShares,
@@ -673,24 +674,28 @@ describe('Duell und seine Folgen', () => {
   });
 
   it('Dorf verschwindet, Stadt wird Dorf; das Feld bleibt beim Verteidiger', () => {
-    const village = ok(applyRealmInput(attack(campaign({ 8: { building: 'VILLAGE' } }), 8), win));
+    const village = ok(
+      applyRealmInput(attack(campaign({ 7: { armies: 1 }, 8: { building: 'VILLAGE' } }), 8), win),
+    );
     expect(resolved(village.events)).toMatchObject({
       effect: 'BUILDING_DAMAGED',
       building: 'NONE',
       armyLost: null,
     });
     expect(village.state.regions[8]).toMatchObject({ owner: 1, building: 'NONE' });
-    const town = ok(applyRealmInput(attack(campaign({ 8: { building: 'TOWN' } }), 8), win));
+    const town = ok(
+      applyRealmInput(attack(campaign({ 7: { armies: 1 }, 8: { building: 'TOWN' } }), 8), win),
+    );
     expect(town.state.regions[8]).toMatchObject({ owner: 1, building: 'VILLAGE' });
   });
 
   it('Burg verliert Leben; zerstört geht sie bei zweiter Burg nur als Feld an den Angreifer', () => {
-    const hit = ok(applyRealmInput(attack(campaign({ 8: { owner: 0 } }), 9), win));
+    const hit = ok(applyRealmInput(attack(campaign({ 8: { owner: 0, armies: 1 } }), 9), win));
     expect(resolved(hit.events)).toMatchObject({ effect: 'CASTLE_HIT', castleLivesLeft: 2 });
     expect(hit.state.regions[9]).toMatchObject({ owner: 1, castleHits: 1, building: 'CASTLE' });
 
     const second = campaign({
-      8: { owner: 0 },
+      8: { owner: 0, armies: 1 },
       9: { castleHits: 2, armies: 2 },
       3: { building: 'CASTLE' },
     });
@@ -714,7 +719,11 @@ describe('Duell und seine Folgen', () => {
 
   it('fällt die letzte Burg, geht das ganze Reich mit Gebäuden und Vorräten an den Angreifer', () => {
     const state = campaign(
-      { 8: { owner: 0 }, 9: { castleHits: 2, armies: 2 }, 14: { building: 'TOWN', armies: 3 } },
+      {
+        8: { owner: 0, armies: 1 },
+        9: { castleHits: 2, armies: 2 },
+        14: { building: 'TOWN', armies: 3 },
+      },
       undefined,
       [
         { bread: 1, material: 2 },
@@ -752,7 +761,7 @@ describe('Duell und seine Folgen', () => {
   });
 
   it('beide richtig: die Schätzfrage entscheidet, gleiche Kategorie bleibt im Ereignis', () => {
-    const state = attack(campaign(), 8, 'SPORTS');
+    const state = attack(campaign({ 7: { armies: 1 } }), 8, 'SPORTS');
     const both = apply(state, {
       kind: 'DUEL_TRIVIA',
       attackerCorrect: true,
@@ -790,15 +799,19 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
   const wrong = { kind: 'DUEL_TRIVIA', attackerCorrect: false, defenderCorrect: false } as const;
 
   it('Ziele: gegnerische und freie Felder am eigenen Land, kein freies Feld in der Ferne', () => {
-    // Fuchsmoor (4) liegt hinter dem Gegner, Kranichsee (8) an Immenau (7) und Quellheim (13)
-    const state = campaign({ 8: free, 4: free });
+    // Fuchsmoor (4) liegt hinter dem Gegner, Kranichsee (8) an Immenau (7) und Quellheim (13);
+    // je eine Armee in Birkental (1) und Quellheim (13) deckt alle drei Felder an der Grenze
+    const armed = { 1: { armies: 1 }, 13: { armies: 1 } };
+    const state = campaign({ 8: free, 4: free, ...armed });
     expect(realmLegalRegions(state)).toEqual([2, 8, 14]);
     expect(applyRealmInput(state, { kind: 'PICK_TARGET', seat: 0, region: 4 })).toEqual({
       ok: false,
       error: 'INVALID_REGION',
     });
     // Ringsum nur freies Land: Dann sind es die einzigen Ziele
-    expect(realmLegalRegions(campaign({ 2: free, 8: free, 14: free }))).toEqual([2, 8, 14]);
+    expect(realmLegalRegions(campaign({ 2: free, 8: free, 14: free, ...armed }))).toEqual([
+      2, 8, 14,
+    ]);
   });
 
   it('Rad ohne Verteidiger: nur die Lose des Angreifers und die freien', () => {
@@ -815,7 +828,7 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
   });
 
   it('nur der Angreifer wird gefragt', () => {
-    const state = attack(campaign({ 8: free }), 8, 'HISTORY');
+    const state = attack(campaign({ 8: free, 7: { armies: 1 } }), 8, 'HISTORY');
     expect(state.step).toMatchObject({ kind: 'DUEL_TRIVIA', attacker: 0, defender: null });
     expect(realmPendingQuestion(state)).toEqual({
       type: 'TRIVIA',
@@ -825,7 +838,7 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
   });
 
   it('richtige Antwort: Das Feld gehört dem Angreifer, ohne Schätzfrage und ohne Verluste', () => {
-    const state = attack(campaign({ 8: free, 7: { armies: 2 } }), 8);
+    const state = attack(campaign({ 8: free, 7: { armies: 2 }, 9: { armies: 1 } }), 8);
     // Der zweite Wert spielt keine Rolle: Es gibt keinen Verteidiger und kein Stechen
     const r = ok(
       applyRealmInput(state, { kind: 'DUEL_TRIVIA', attackerCorrect: true, defenderCorrect: true }),
@@ -857,7 +870,7 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
   });
 
   it('falsche Antwort: Das Feld bleibt frei, sonst geschieht nichts', () => {
-    const state = attack(campaign({ 8: free, 7: { armies: 2 } }), 8);
+    const state = attack(campaign({ 8: free, 7: { armies: 2 }, 9: { armies: 1 } }), 8);
     const r = ok(applyRealmInput(state, wrong));
     expect(resolved(r.events)).toMatchObject({
       defender: null,
@@ -875,7 +888,7 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
   });
 
   it('eine Schätzfrage gibt es für ein freies Feld nicht', () => {
-    const state = attack(campaign({ 8: free }), 8);
+    const state = attack(campaign({ 8: free, 7: { armies: 1 } }), 8);
     expect(
       applyRealmInput(state, {
         kind: 'DUEL_ESTIMATES',
@@ -886,7 +899,9 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
   });
 
   it('ein genommenes Feld lässt sich danach wie jedes andere angreifen und ausbauen', () => {
-    const taken = ok(applyRealmInput(attack(campaign({ 8: free }), 8), right)).state;
+    const taken = ok(
+      applyRealmInput(attack(campaign({ 8: free, 7: { armies: 1 }, 9: { armies: 1 } }), 8), right),
+    ).state;
     // Sitz 1 ist dran und greift Kranichsee an: jetzt ein Duell mit Verteidiger
     const picked = ok(applyRealmInput(taken, { kind: 'PICK_TARGET', seat: 1, region: 8 }));
     expect(picked.events[0]).toMatchObject({ kind: 'TARGET_CHOSEN', attacker: 1, defender: 0 });
@@ -916,9 +931,17 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
     const rng = () => createRng(new Uint8Array(16).fill(3));
     // Ein offenes Feld des Gegners zählt mehr, weil es ihm danach fehlt
     expect(REALM_RIVAL_GAIN_WEIGHT).toBeGreaterThan(1);
-    expect([2, 14]).toContain(chooseRegionForRealmBot(campaign({ 8: free }), rng()));
+    // Je eine Armee in Birkental (1) und Quellheim (13): Jedes der drei Ziele hat genau eine neben sich
+    const armed = { 1: { armies: 1 }, 13: { armies: 1 } };
+    expect(realmLegalRegions(campaign({ 8: free, ...armed }))).toEqual([2, 8, 14]);
+    expect([2, 14]).toContain(chooseRegionForRealmBot(campaign({ 8: free, ...armed }), rng()));
     // Stehen dort Dörfer (zwei Siege bis zur Eroberung), lohnt das freie Feld mehr
-    const guarded = campaign({ 8: free, 2: { building: 'VILLAGE' }, 14: { building: 'VILLAGE' } });
+    const guarded = campaign({
+      8: free,
+      2: { building: 'VILLAGE' },
+      14: { building: 'VILLAGE' },
+      ...armed,
+    });
     expect(chooseRegionForRealmBot(guarded, rng())).toBe(8);
   });
 
@@ -941,10 +964,147 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
   });
 });
 
+describe('Angriff nur mit Armee (ADR-064)', () => {
+  const free = { owner: null } as const;
+  const win = { kind: 'DUEL_TRIVIA', attackerCorrect: true, defenderCorrect: false } as const;
+
+  /** Derselbe Stand mit einem anderen Wert für `attackNeedsArmy`; ohne Wert wie vor ADR-064. */
+  function needing(state: RealmState, need: 'ALWAYS' | 'RIVALS' | null): RealmState {
+    const { attackNeedsArmy, ...economy } = state.rules.economy;
+    void attackNeedsArmy;
+    return {
+      ...state,
+      rules: {
+        ...state.rules,
+        economy: need === null ? economy : { ...economy, attackNeedsArmy: need },
+      },
+    };
+  }
+
+  it('Vorgabe: Jedes Ziel, auch ein freies Feld, grenzt an ein eigenes Feld mit Armee', () => {
+    expect(THREE.economy?.attackNeedsArmy).toBe('ALWAYS');
+    expect(TWO.economy?.attackNeedsArmy).toBe('ALWAYS');
+    // Immenau (7) grenzt an Dornach (2) und Kranichsee (8), Quellheim (13) an 8 und Nebelried (14)
+    expect(realmLegalRegions(campaign({ 8: free, 7: { armies: 1 } }))).toEqual([2, 8]);
+    expect(realmLegalRegions(campaign({ 8: free, 13: { armies: 2 } }))).toEqual([8, 14]);
+    expect(realmTargetsOf(campaign({ 7: { armies: 1 }, 13: { armies: 1 } }), 0)).toEqual([
+      2, 8, 14,
+    ]);
+    // Armeen in der Burg (6) hinter der Grenze reichen an kein fremdes Feld
+    expect(realmTargetsOf(campaign({ 6: { armies: 3 } }), 0)).toEqual([]);
+    // Armeen des Gegners zählen für ihn, nicht für mich
+    const rival = campaign({ 8: { armies: 2 } });
+    expect(realmTargetsOf(rival, 0)).toEqual([]);
+    expect(realmTargetsOf(rival, 1)).toEqual([7, 13]);
+  });
+
+  it('ein Feld ohne eigene Armee daneben lässt sich nicht wählen', () => {
+    const state = campaign({ 8: free, 7: { armies: 1 } });
+    expect(applyRealmInput(state, { kind: 'PICK_TARGET', seat: 0, region: 14 })).toEqual({
+      ok: false,
+      error: 'INVALID_REGION',
+    });
+    expect(applyRealmInput(state, { kind: 'PICK_TARGET', seat: 0, region: 2 })).toMatchObject({
+      ok: true,
+    });
+  });
+
+  it('nur gegen andere Reiche (RIVALS): Freies Land braucht keine Armee', () => {
+    const bare = needing(campaign({ 8: free }), 'RIVALS');
+    expect(realmTargetsOf(bare, 0)).toEqual([8]);
+    expect(realmTargetsOf(bare, 1)).toEqual([8]);
+    expect(realmTargetsOf(needing(campaign({ 8: free, 13: { armies: 1 } }), 'RIVALS'), 0)).toEqual([
+      8, 14,
+    ]);
+    // Kein freies Feld am eigenen Land und keine Armee: kein Ziel
+    expect(realmTargetsOf(needing(campaign(), 'RIVALS'), 0)).toEqual([]);
+  });
+
+  it('ohne den Regelwert (Partien von vor ADR-064) genügt die Grenze zum eigenen Land', () => {
+    const old = needing(campaign({ 8: free, 4: free }), null);
+    expect(realmLegalRegions(old)).toEqual([2, 8, 14]);
+    // Sitz 1 grenzt mit Dornach (2) an Birkental (1) und hat Fuchsmoor (4) im Rücken
+    expect(realmTargetsOf(old, 1)).toEqual([1, 4, 7, 8, 13]);
+    expect(realmTargetsOf(needing(old, 'ALWAYS'), 0)).toEqual([]);
+  });
+
+  it('wer kein Ziel hat, setzt aus: Der Nächste der Runde greift an', () => {
+    // Sitz 0 hat keine Armee, Sitz 1 eine in Kranichsee (8)
+    const state = prepare(campaign({ 8: { armies: 1 } }));
+    const closed = ok(applyRealmInput(state, { kind: 'CLOSE_PREPARE' }));
+    expect(closed.events.filter((e) => e.kind === 'ATTACK_SKIPPED')).toEqual([
+      { kind: 'ATTACK_SKIPPED', round: 1, attacker: 0 },
+    ]);
+    expect(closed.state.step).toEqual({
+      kind: 'CAMPAIGN_TARGET',
+      round: 1,
+      attacker: 1,
+      attackers: [0, 1],
+      queue: [],
+    });
+  });
+
+  it('nach einem Duell setzt der Nächste aus, wenn er keine Armee am Ziel hat', () => {
+    const r = ok(applyRealmInput(attack(campaign({ 7: { armies: 1 } }), 8), win));
+    const kinds = r.events.map((e) => e.kind);
+    expect(kinds.slice(0, 3)).toEqual(['DUEL_RESOLVED', 'ATTACK_SKIPPED', 'INCOME']);
+    expect(r.events[1]).toEqual({ kind: 'ATTACK_SKIPPED', round: 1, attacker: 1 });
+    expect(r.state.step).toMatchObject({ kind: 'PREPARE', round: 2 });
+  });
+
+  it('hat niemand ein Ziel, fällt die Runde aus; nach der letzten wird abgerechnet', () => {
+    const middle = ok(applyRealmInput(prepare(campaign(), 2), { kind: 'CLOSE_PREPARE' }));
+    expect(middle.events.filter((e) => e.kind === 'ATTACK_SKIPPED')).toHaveLength(2);
+    expect(middle.state.step).toMatchObject({ kind: 'PREPARE', round: 3 });
+    expect(middle.state.duels).toBe(0);
+
+    const last = ok(applyRealmInput(prepare(campaign(), 5), { kind: 'CLOSE_PREPARE' }));
+    expect(last.events.filter((e) => e.kind === 'ATTACK_SKIPPED')).toHaveLength(2);
+    expect(last.state.step).toMatchObject({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' });
+    expect(last.events.at(-1)).toMatchObject({ kind: 'MATCH_FINISHED' });
+  });
+
+  it('in der Rüstzeit an die Grenze gezogene Armeen zählen für den Angriff derselben Runde', () => {
+    const state = prepare(campaign({ 6: { armies: 2 } }));
+    expect(realmTargetsOf(state, 0)).toEqual([]);
+    const moved = ok(
+      applyRealmInput(
+        apply(state, {
+          kind: 'SUBMIT_ORDERS',
+          seat: 0,
+          orders: [{ kind: 'MOVE', from: 6, to: 7, count: 1 }],
+        }),
+        { kind: 'CLOSE_PREPARE' },
+      ),
+    );
+    expect(moved.events.some((e) => e.kind === 'ATTACK_SKIPPED' && e.attacker === 0)).toBe(false);
+    expect(moved.state.step).toMatchObject({ kind: 'CAMPAIGN_TARGET', attacker: 0 });
+    expect(realmLegalRegions(moved.state)).toEqual([2, 8]);
+  });
+
+  it('wer seine letzte Armee am Ziel verliert, hat dort danach kein Ziel mehr', () => {
+    const lose = { kind: 'DUEL_TRIVIA', attackerCorrect: false, defenderCorrect: true } as const;
+    const r = ok(
+      applyRealmInput(attack(campaign({ 7: { armies: 1 }, 9: { armies: 1 } }), 8), lose),
+    );
+    expect(r.state.regions[7]?.armies).toBe(0);
+    expect(realmTargetsOf(r.state, 0)).toEqual([]);
+  });
+
+  it('Bots wählen nur Ziele, die sie erreichen', () => {
+    const rng = createRng(new Uint8Array(16).fill(9));
+    for (let i = 0; i < 20; i += 1) {
+      expect([8, 14]).toContain(
+        chooseRegionForRealmBot(campaign({ 8: free, 13: { armies: 1 } }), rng),
+      );
+    }
+  });
+});
+
 describe('Reihenfolge und Ende', () => {
   it('in der letzten Runde greift zuerst an, wer vorn liegt', () => {
     // Sitz 1 hat mehr Punkte (zwei Befestigungen mehr)
-    const ahead = campaign({ 8: { value: 200, fortifications: 2 } });
+    const ahead = campaign({ 8: { value: 200, fortifications: 2, armies: 1 } });
     expect(realmAttackOrder(ahead, 1)).toEqual([0, 1]);
     expect(realmAttackOrder(ahead, 2)).toEqual([1, 0]);
     expect(realmAttackOrder(ahead, 5)).toEqual([1, 0]);
@@ -959,7 +1119,7 @@ describe('Reihenfolge und Ende', () => {
 
   it('nach der fünften Runde wird abgerechnet, sonst folgt Einkommen und Rüstzeit', () => {
     const last = campaign(
-      {},
+      { 7: { armies: 1 } },
       { kind: 'CAMPAIGN_TARGET', round: 5, attacker: 0, attackers: [1, 0], queue: [] },
     );
     const done = ok(
@@ -978,7 +1138,7 @@ describe('Reihenfolge und Ende', () => {
     expect(done.events.at(-1)).toMatchObject({ kind: 'MATCH_FINISHED', reason: 'ROUNDS_COMPLETE' });
 
     const early = campaign(
-      {},
+      { 7: { armies: 1 } },
       { kind: 'CAMPAIGN_TARGET', round: 2, attacker: 0, attackers: [1, 0], queue: [] },
     );
     const next = ok(

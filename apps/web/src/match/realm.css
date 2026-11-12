@@ -170,6 +170,11 @@
   color: var(--danger);
 }
 
+/* Warnung der Rüstzeit: So fiele der eigene Angriff aus (ADR-064) */
+.blatt-note.warn {
+  font-weight: 700;
+}
+
 .feld {
   display: grid;
   gap: calc(1 * var(--u));
@@ -583,6 +588,18 @@
   font-size: calc(12.5 * var(--u));
   line-height: calc(24 * var(--u));
   color: var(--muted);
+}
+
+/* Hinweis der Rüstzeit an der Stelle der Überschrift, gleich hoch wie sie: Folgebefehl mit
+   entfernt, oder der eigene Angriff fiele so aus (ADR-064) */
+.orders-note {
+  font-size: calc(12 * var(--u));
+  font-weight: 700;
+  line-height: calc(13 * var(--u));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--danger);
 }
 
 .order-chip {
@@ -1473,6 +1490,14 @@ span.order-chip {
   }
   .orders h3 {
     display: none;
+  }
+  /* Ohne Überschrift steht der Hinweis in der Zeile der Befehle, solange es keine gibt */
+  .orders.noted .orders-none,
+  .orders.noted.filled .orders-note {
+    display: none;
+  }
+  .orders-note {
+    line-height: calc(24 * var(--u));
   }
   .stage-realm .blatt-go {
     min-height: calc(38 * var(--u));

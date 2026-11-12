@@ -2,6 +2,7 @@ import type { MatchView, ParsedMatchEvent } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
 import { rulesOf, stepOf, type MatchScreenState } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
+import { revealedRound } from './realm-model.ts';
 import {
   enqueueMoments,
   isCalm,
@@ -26,6 +27,8 @@ export function useMoments(
   name: SeatName,
 ): Moment | null {
   const previous = useRef<MomentSnapshot | null>(null);
+  // Ausgefallene Angriffe, die während einer Auflösung kamen: Ihr Band folgt, sobald sie vorbei ist
+  const held = useRef<readonly ParsedMatchEvent[]>([]);
   const shown = useRef(new Set<string>());
   const [queue, setQueue] = useState<readonly Moment[]>([]);
   const lastSeq = events.at(-1)?.seq ?? 0;
@@ -42,15 +45,22 @@ export function useMoments(
     const next: MomentSnapshot = {
       state,
       kind: step?.kind ?? null,
-      round: step?.round ?? null,
+      // Beim Aufdecken zählt die aufgedeckte Runde: Fielen alle Angriffe aus, ist der Schritt
+      // schon in der nächsten (ADR-064), und deren Rüstzeit wird danach eigens angekündigt
+      round: (state === 'orders' ? revealedRound(events) : null) ?? step?.round ?? null,
       lastSeq,
     };
     const before = previous.current;
     // Phase und Runde gelten erst als gesehen, wenn angekündigt werden konnte (ruhiger Zustand)
     previous.current =
       before && !isCalm(state) ? { ...next, kind: before.kind, round: before.round } : next;
+    const arrived = before ? events.filter((e) => e.seq > before.lastSeq) : [];
+    const calm = isCalm(state);
+    const fresh = calm ? [...held.current, ...arrived] : arrived;
+    held.current = calm
+      ? []
+      : [...held.current, ...arrived.filter((e) => e.type === 'ATTACK_SKIPPED')];
     if (state === 'question') return;
-    const fresh = before ? events.filter((e) => e.seq > before.lastSeq) : [];
     const moments = momentsBetween(
       before,
       next,
@@ -59,6 +69,7 @@ export function useMoments(
       rounds,
       realm !== null,
       realm?.economy.landGrabRounds ?? null,
+      view?.mySeat ?? null,
     ).filter((m) => !shown.current.has(m.key));
     if (moments.length === 0) return;
     for (const m of moments) shown.current.add(m.key);

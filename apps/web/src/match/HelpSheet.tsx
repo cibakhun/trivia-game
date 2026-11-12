@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { MarkIcon } from '../art/RealmIcons.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
@@ -83,12 +83,15 @@ function Card({
 }
 
 export function HelpSheet({
+  attackNeedsArmy = null,
   rounds,
   castleLives,
   fieldValue,
   castleValue,
   onClose,
 }: {
+  /** Regel der Partie zum Angriff nur mit Armee (ADR-064); `null`: Die Grenze genügt. */
+  readonly attackNeedsArmy?: 'ALWAYS' | 'RIVALS' | null;
   /** Feldzugrunden der Partie. */
   readonly rounds: number;
   readonly castleLives: number;
@@ -96,13 +99,29 @@ export function HelpSheet({
   readonly castleValue: number;
   readonly onClose: () => void;
 }) {
+  const closeButton = useRef<HTMLButtonElement>(null);
+  // Die Bühne übergibt bei jeder Abfrage eine neue Funktion: Der Fokus soll dabei nicht springen
+  const close = useRef(onClose);
+  close.current = onClose;
   useEffect(() => {
+    // Der Fokus geht ins Blatt und bleibt dort; beim Schließen kehrt er zum Auslöser zurück (beim
+    // ersten Öffnen von selbst gibt es keinen)
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButton.current?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') close.current();
+      else if (event.key === 'Tab') {
+        // „Alles klar“ ist der einzige Knopf im Blatt: Tab wandert nicht auf die Bühne dahinter
+        event.preventDefault();
+        closeButton.current?.focus();
+      }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (opener?.isConnected) opener.focus();
+    };
+  }, []);
   return (
     <div
       className="stage-help"
@@ -115,6 +134,7 @@ export function HelpSheet({
         <header className="help-head">
           <h2 id="help-title">{t('realm.help.title')}</h2>
           <button
+            ref={closeButton}
             type="button"
             className="button button-primary help-close"
             data-testid="match-help-close"
@@ -167,7 +187,13 @@ export function HelpSheet({
               </>
             }
           >
-            {t('realm.help.attack.text')}
+            {t(
+              attackNeedsArmy === 'ALWAYS'
+                ? 'realm.help.attack.textArmy'
+                : attackNeedsArmy === 'RIVALS'
+                  ? 'realm.help.attack.textRivals'
+                  : 'realm.help.attack.text',
+            )}
           </Card>
           <Card
             step={4}

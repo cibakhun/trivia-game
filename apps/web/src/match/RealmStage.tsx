@@ -45,6 +45,8 @@ import {
   realmPlayOf,
   realmScreenStateOf,
   revealedOrders,
+  revealedRound,
+  skippedAttackers,
   roundFlow,
   settleOrders,
   tradesFirst,
@@ -110,6 +112,8 @@ export interface RealmStageInitial {
   readonly moving?: boolean;
   readonly refused?: number | null;
   readonly trading?: boolean;
+  /** Ein Befehl fiel beim Entfernen eines anderen mit heraus. */
+  readonly dropped?: boolean;
   readonly editing?: boolean;
   readonly target?: number | null;
   /** „So geht's“ ist offen. */
@@ -167,6 +171,7 @@ export function RealmStage({
   const helpSheet =
     help && !asking && view && rules ? (
       <HelpSheet
+        attackNeedsArmy={view.realm?.economy.attackNeedsArmy ?? null}
         rounds={view.realm?.campaignRounds ?? rules.campaign.rounds}
         castleLives={rules.capital.lives}
         fieldValue={rules.values.region}
@@ -205,6 +210,7 @@ export function RealmStage({
     moving: initial?.moving ?? false,
     refused: initial?.refused ?? null,
     trading: initial?.trading ?? false,
+    dropped: initial?.dropped ?? false,
   }));
   if (prep.round !== prepRound) {
     // Neue Rüstzeit oder ihr Ende: Der alte Entwurf gilt nicht mehr (Merken während des Renderns)
@@ -230,6 +236,8 @@ export function RealmStage({
   const [target, setTarget] = useState<number | null>(initial?.target ?? null);
   const aiming = state === 'pick' && step?.kind === 'CAMPAIGN_TARGET';
   const aimed = aiming && target !== null && view?.legalRegions.includes(target) ? target : null;
+  // Ein angetipptes Feld, das kein Ziel ist: Das Blatt sagt, warum nicht
+  const refusedTarget = aiming && target !== null && aimed === null ? target : null;
   useEffect(() => {
     if (!aiming && !initial) setTarget(null);
   }, [aiming, initial]);
@@ -342,14 +350,36 @@ export function RealmStage({
   } else if (state === 'prepared' && mySeat !== null) {
     layer = { regions, ...planLayer(play, mySeat, realm.myOrders ?? []), focusSeat: mySeat };
   } else if (state === 'orders') {
-    layer = { regions, ...revealLayer(revealedOrders(events, step.round ?? 1)) };
+    layer = {
+      regions,
+      ...revealLayer(revealedOrders(events, revealedRound(events) ?? step.round ?? 1)),
+    };
   } else if (aimed !== null) {
     layer = { regions, selected: aimed };
   } else if (state === 'reveal' && realmDuel) {
     layer = { regions, changes: [outcomeSign(realmDuel)], fresh: [realmDuel.payload.region] };
   }
-  // In der Rüstzeit lässt sich jedes Feld antippen: Fremde und freie sagen, warum dort nichts geht
-  const tappable = preparing ? board.regions.map((_, id) => id) : [];
+  // In der Rüstzeit lässt sich jedes Feld antippen: Fremde und freie sagen, warum dort nichts geht.
+  // Beim Angriff ebenso jedes fremde und freie Feld: Was kein Ziel ist, nennt den Grund (ADR-064)
+  const tappable = preparing
+    ? board.regions.map((_, id) => id)
+    : aiming
+      ? board.regions.flatMap((r, id) => (r.owner === mySeat ? [] : [id]))
+      : [];
+  const campaigning =
+    step.kind === 'CAMPAIGN_TARGET' ||
+    step.kind === 'DUEL_WHEEL' ||
+    step.kind === 'DUEL_TRIVIA' ||
+    step.kind === 'DUEL_ESTIMATE';
+  // Wessen Angriff ausfiel (ADR-064): beim Aufdecken in der aufgedeckten Runde, danach in der
+  // laufenden; steht die letzte Runde noch (Schritt FINISHED), in dieser
+  const skipRound =
+    state === 'orders'
+      ? revealedRound(events)
+      : campaigning || step.kind === 'FINISHED'
+        ? (step.round ?? null)
+        : null;
+  const skipped = skipRound === null ? [] : skippedAttackers(events, skipRound);
 
   const tapRegion = (id: number) => {
     if (preparing) {
@@ -432,7 +462,13 @@ export function RealmStage({
   } else if (state === 'abandoned') {
     sheet = <AbandonedPanel view={view} events={events} />;
   }
-  const label = stepLabel(view);
+  // Beim Aufdecken zählt die aufgedeckte Runde: Fielen alle Angriffe aus, ist der Schritt schon in
+  // der nächsten (ADR-064)
+  const shownRound = state === 'orders' ? revealedRound(events) : null;
+  const label =
+    shownRound === null
+      ? stepLabel(view)
+      : t('realm.step.ROUND', { round: shownRound, rounds: realm.campaignRounds });
   const flow = roundFlow(play, state);
   const closed = state === 'finished' || state === 'abandoned';
   const waiting = board.turns
@@ -470,7 +506,7 @@ export function RealmStage({
         ) : null}
         {flow ? <RoundFlow flow={flow} /> : null}
         <RealmSeatList view={view} play={play} name={name} />
-        <TurnOrder view={view} name={name} />
+        <TurnOrder view={view} name={name} skipped={skipped} />
         <div className="stage-tools three">
           <SoundToggle />
           <button
@@ -544,6 +580,7 @@ export function RealmStage({
             name={name}
             region={region}
             target={aimed}
+            refusedTarget={refusedTarget}
             onEstimate={onEstimate}
             onAnswerEstimate={() => {
               const rawInput = estimateToSend(estimate);

@@ -4,17 +4,20 @@ import { describe, expect, it } from 'vitest';
 import { screenStateOf } from '../src/match/match-model.ts';
 import { mapOfView } from '../src/match/match-text.ts';
 import {
-  bordersRealm,
+  attackReach,
   favoriteChance,
   fieldOptions,
   fieldRows,
   moveRefusal,
   planOrders,
   plannedRegion,
+  plannedTargets,
   realmPlayOf,
   realmScreenStateOf,
   revealedOrders,
+  revealedRound,
   roundFlow,
+  skippedAttackers,
   settleOrders,
   tradeOptions,
   tradesFirst,
@@ -493,18 +496,84 @@ describe('Ziel eines Zugs', () => {
     const full = from(2, { armies: { 6: 6 } });
     expect(moveRefusal(full.play, ME, full.field, 6)).toEqual({ kind: 'FULL', cap: 6 });
   });
+
+  it('ein Ziel ist auch voll, wenn ein schon geplanter Zug den letzten Platz belegt', () => {
+    // Dornfeld (6) hat 5 Armeen, aus der Burg Graufurt (2) mit 3 Armeen zieht schon eine hin
+    const play = playOf({ armies: { 6: 5 } });
+    const orders = withMove([], 2, 6, 1);
+    const field = fieldOptions(play, ME, orders, 2);
+    if (!field) throw new Error('kein eigenes Feld');
+    expect(field.movable).toBe(2);
+    expect(field.moves.find((move) => move.to === 6)).toMatchObject({ count: 1, max: 1 });
+    expect(moveRefusal(play, ME, field, 6)).toEqual({ kind: 'FULL', cap: 6 });
+    // Ein anderes Nachbarfeld mit Platz bleibt ein Ziel
+    expect(moveRefusal(play, ME, field, 7)).toBeNull();
+  });
 });
 
-describe('Grenze zum eigenen Land', () => {
-  it('ein Feld grenzt an ein Reich, wenn eines seiner Nachbarfelder dem Reich gehört', () => {
+describe('Angriff nur mit Armee (ADR-064)', () => {
+  it('Ziel ist, was ans eigene Land grenzt und eine eigene Armee daneben hat', () => {
     const play = playOf();
-    // Kranichsee (12) liegt an Dornfeld und Eisenhang, Tannenruh (20) weit weg
-    expect(bordersRealm(play, ME, 12)).toBe(true);
-    expect(bordersRealm(play, ME, 20)).toBe(false);
-    // Aus der Sicht von Sitz 0 liegt mein Birkental (5) an Ackerbrunn und Hagelstein
-    expect(bordersRealm(play, 0, 5)).toBe(true);
-    // Ein freies Nachbarfeld zählt nicht
-    expect(bordersRealm(playOf({ free: [6, 7] }), ME, 12)).toBe(false);
+    // Kranichsee (12) liegt an Dornfeld (2 Armeen) und Eisenhang (1 Armee)
+    expect(attackReach(play, ME, 12)).toBe('TARGET');
+    // Ackerbrunn (4) grenzt an Eschenhain und Birkental: Dort steht keine Armee
+    expect(attackReach(play, ME, 4)).toBe('NO_ARMY');
+    // Tannenruh (20) liegt weit weg, Dornfeld (6) gehört mir selbst
+    expect(attackReach(play, ME, 20)).toBe('FAR');
+    expect(attackReach(play, ME, 6)).toBe('OWN');
+    // Aus der Sicht von Sitz 0 liegt mein Birkental (5) neben seiner Burg und Immenau mit Armeen
+    expect(attackReach(play, 0, 5)).toBe('TARGET');
+    // Ein freies Feld braucht die Armee genauso; Armeen auf dem Ziel selbst zählen nicht
+    expect(attackReach(playOf({ free: [14] }), ME, 14)).toBe('NO_ARMY');
+    expect(attackReach(playOf({ free: [13] }), ME, 13)).toBe('TARGET');
+    // Ohne mein Land daneben ist auch ein freies Feld kein Ziel
+    expect(attackReach(playOf({ free: [6, 7] }), ME, 12)).toBe('FAR');
+  });
+
+  it('nur gegen andere Reiche oder gar nicht: Die Regeln der Partie entscheiden', () => {
+    const rivals = playOf({ attackNeedsArmy: 'RIVALS', free: [14] });
+    expect(attackReach(rivals, ME, 14)).toBe('TARGET');
+    expect(attackReach(rivals, ME, 4)).toBe('NO_ARMY');
+    // Partie von vor ADR-064: Die Grenze genügt
+    const old = playOf({ attackNeedsArmy: null });
+    expect(attackReach(old, ME, 4)).toBe('TARGET');
+    expect(attackReach(old, ME, 14)).toBe('TARGET');
+    expect(attackReach(old, ME, 20)).toBe('FAR');
+  });
+
+  it('Ziele nach dem Entwurf: Eine herangezogene Armee zählt, eine weggezogene fehlt', () => {
+    const play = playOf();
+    expect(plannedTargets(play, ME, [])).toEqual([11, 12, 13]);
+    // Eine Armee von Dornfeld (6) nach Birkental (5): Ackerbrunn (4) und Hagelstein (10) kommen dazu
+    expect(plannedTargets(play, ME, withMove([], 6, 5, 1))).toEqual([4, 10, 11, 12, 13]);
+    // Die einzige Armee aus Eisenhang (7) zurück in die Burg: Lindenhof (13) fällt weg
+    expect(plannedTargets(play, ME, withMove([], 7, 2, 1))).toEqual([11, 12]);
+    // Ein ungültiger Entwurf ändert nichts
+    expect(plannedTargets(play, ME, withMove([], 6, 5, 9))).toEqual([11, 12, 13]);
+  });
+
+  it('ohne Armee an der Grenze gibt es kein Ziel, bis eine herangezogen ist', () => {
+    // Nur die Burg Graufurt (2) hat Armeen, und sie liegt mitten im eigenen Land
+    const play = playOf({ armies: { 6: 0, 7: 0 } });
+    expect(plannedTargets(play, ME, [])).toEqual([]);
+    expect(plannedTargets(play, ME, withMove([], 2, 6, 1))).toEqual([11, 12]);
+    // Neu gekaufte Armeen stehen in der Burg und helfen in dieser Runde nicht
+    expect(plannedTargets(play, ME, withRecruit([], 2, 2))).toEqual([]);
+    // Ohne den Regelwert ist jedes Feld an der Grenze ein Ziel
+    expect(
+      plannedTargets(playOf({ armies: { 6: 0, 7: 0 }, attackNeedsArmy: null }), ME, []),
+    ).toEqual([4, 10, 11, 12, 13, 14]);
+  });
+
+  it('ausgefallene Angriffe einer Runde stehen in den Ereignissen', () => {
+    const events = [
+      event(50, 'ATTACK_SKIPPED', { round: 2, attacker: 1 }),
+      event(51, 'ATTACK_SKIPPED', { round: 3, attacker: 0 }),
+      event(52, 'ATTACK_SKIPPED', { round: 3, attacker: 2 }),
+    ];
+    expect(skippedAttackers(events, 2)).toEqual([1]);
+    expect(skippedAttackers(events, 3)).toEqual([0, 2]);
+    expect(skippedAttackers(events, 4)).toEqual([]);
   });
 });
 
@@ -611,6 +680,52 @@ describe('Bildschirm der Partie mit Ausbau', () => {
     expect(revealedOrders(revealed, 3)).toEqual([]);
     // Eine andere Ansage (etwa die Wahl eines Bots) bleibt eine Ansage
     expect(realmScreenStateOf(view, null, revealed.slice(0, 1))).toBe('announce');
+    expect(revealedRound(revealed)).toBe(2);
+    expect(revealedRound(revealed.slice(0, 1))).toBeNull();
+  });
+
+  it('das Aufgedeckte steht auch, wenn gleich danach Angriffe ausfallen (ADR-064)', () => {
+    const revealedAt = (seq: number) =>
+      event(seq, 'ORDERS_REVEALED', {
+        round: 2,
+        seat: 2,
+        orders: [],
+        summary: { built: [], recruited: 0, moved: 0, traded: 0 },
+        bread: 7,
+        material: 10,
+      });
+    const skipped = (seq: number, attacker: number) =>
+      event(seq, 'ATTACK_SKIPPED', { round: 2, attacker });
+    const announce = {
+      phase: { kind: 'ANNOUNCE', deadline: '2026-11-10T20:00:02.000Z', remainingMs: 2000 },
+    } as const;
+    // Der Erste setzt aus, der Zweite ist schon dran
+    const first = realmViewOf(
+      { step: { kind: 'CAMPAIGN_TARGET', round: 2, chooser: 0 } },
+      announce,
+    );
+    const one = [revealedAt(41), skipped(42, 2)];
+    expect(realmScreenStateOf(first, null, one)).toBe('orders');
+    expect(revealedRound(one)).toBe(2);
+    // Alle setzen aus: Der Schritt ist schon die Rüstzeit der nächsten Runde, das Einkommen ist da
+    const next = realmViewOf({ step: { kind: 'PREPARE', round: 3 } }, announce);
+    const all = [
+      revealedAt(41),
+      skipped(42, 2),
+      skipped(43, 0),
+      skipped(44, 1),
+      event(45, 'INCOME', { round: 3, income: [{ seat: 2, bread: 4, material: 5 }] }),
+    ];
+    expect(realmScreenStateOf(next, null, all)).toBe('orders');
+    expect(revealedRound(all)).toBe(2);
+    expect(revealedOrders(all, revealedRound(all) ?? 0)).toHaveLength(1);
+    // Sobald ein Ziel gewählt ist, steht nichts Aufgedecktes mehr
+    const chosen = [
+      ...one,
+      event(46, 'TARGET_CHOSEN', { round: 2, attacker: 0, defender: 2, region: 5 }),
+    ];
+    expect(revealedRound(chosen)).toBeNull();
+    expect(realmScreenStateOf(first, null, chosen)).toBe('announce');
   });
 
   it('zeigt das Glücksrad in der Ansage vor der Wissensfrage', () => {
@@ -675,6 +790,9 @@ describe('Ablaufzeile', () => {
     expect(flow('DUEL_WHEEL', 'wheel')).toEqual({ steps, now: 2 });
     expect(flow('DUEL_TRIVIA', 'question')).toEqual({ steps, now: 2 });
     expect(flow('DUEL_ESTIMATE', 'reveal')).toEqual({ steps, now: 2 });
+    // Fielen alle Angriffe aus (ADR-064), ist der Server schon in der nächsten Rüstzeit oder am Ende
+    expect(flow('PREPARE', 'orders')).toEqual({ steps, now: 1 });
+    expect(flow('FINISHED', 'orders')).toEqual({ steps, now: 1 });
   });
 
   it('steht nicht vor dem Start und nicht nach dem Ende', () => {

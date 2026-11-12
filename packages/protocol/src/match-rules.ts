@@ -53,6 +53,14 @@ export const matchEconomySchema = z
      * in Partien, die vor ADR-062 angelegt wurden; dort läuft die Landnahme, bis alles vergeben ist.
      */
     landGrabRounds: z.number().int().min(1).max(10).optional(),
+    /**
+     * Angreifen braucht eine Armee in Reichweite (ADR-064): `ALWAYS` = Jedes Ziel, auch ein freies
+     * Feld, muss an ein eigenes Feld mit Armee grenzen; `RIVALS` = nur Felder anderer Reiche, freie
+     * Felder nimmt man weiter von jedem eigenen Nachbarfeld aus. Wer kein Ziel hat, setzt in der
+     * Runde aus (`ATTACK_SKIPPED`). Fehlt in Partien, die vor ADR-064 angelegt wurden; dort genügt
+     * wie bisher, dass das Ziel ans eigene Land grenzt.
+     */
+    attackNeedsArmy: z.enum(['ALWAYS', 'RIVALS']).optional(),
     /** Ertrag je Feldzugrunde: Feld ohne Gebäude, mit Dorf, mit Stadt (in seinem Rohstoff); Burg in beiden. */
     yields: z
       .object({
@@ -275,6 +283,7 @@ export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
   startArmies: 3,
   villageMinDistance: 2,
   landGrabRounds: 2,
+  attackNeedsArmy: 'ALWAYS',
   yields: { plain: 1, village: 3, town: 4, castleBread: 2, castleMaterial: 2 },
   tradeRate: 3,
   costs: {
