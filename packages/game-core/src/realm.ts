@@ -39,8 +39,8 @@ import type { Rng } from './rng.ts';
  * `RealmInput` zurück. Die bisherige Partie bleibt unverändert, bis der Server umgestellt ist.
  *
  * Ablauf: Startfrage → Burgen in der Reihenfolge der Startfrage → Startdörfer rückwärts →
- * Landnahme → Feldzugrunden aus Einkommen, Rüstzeit (alle gleichzeitig), Aufdecken und Angriffen
- * mit Glücksrad → Abrechnung.
+ * Landnahme (höchstens `economy.landGrabRounds` Runden) → Feldzugrunden aus Einkommen, Rüstzeit
+ * (alle gleichzeitig), Aufdecken und Angriffen mit Glücksrad, auch auf freie Felder → Abrechnung.
  */
 
 export interface RealmSetup {
@@ -77,6 +77,7 @@ export type RealmInput =
   | {
       readonly kind: 'DUEL_TRIVIA';
       readonly attackerCorrect: boolean;
+      /** Bei einem freien Feld ohne Bedeutung: Dort antwortet nur der Angreifer. */
       readonly defenderCorrect: boolean;
     }
   | {
@@ -97,7 +98,11 @@ export type RealmDuelEffect =
   /** Die letzte Burg ist zerstört: Das ganze Reich geht an den Angreifer. */
   | 'TAKEOVER'
   /** Der Verteidiger hält; die Region ist mehr wert. */
-  | 'FORTIFIED';
+  | 'FORTIFIED'
+  /** Ein freies Feld gehört dem Angreifer: Er hat die Wissensfrage allein richtig beantwortet (O-37). */
+  | 'CLAIMED'
+  /** Das freie Feld bleibt frei: Die Antwort war falsch oder fehlte. Sonst geschieht nichts. */
+  | 'UNCLAIMED';
 
 export interface RealmRankingRow {
   readonly seat: number;
@@ -150,7 +155,8 @@ export type RealmEvent =
       readonly kind: 'TARGET_CHOSEN';
       readonly round: number;
       readonly attacker: number;
-      readonly defender: number;
+      /** `null` = freies Feld. */
+      readonly defender: number | null;
       readonly region: number;
       readonly wheel: RealmWheel;
     }
@@ -165,10 +171,12 @@ export type RealmEvent =
       readonly round: number;
       readonly duel: number;
       readonly attacker: number;
-      readonly defender: number;
+      /** `null` = freies Feld. */
+      readonly defender: number | null;
       readonly region: number;
       readonly category: QuestionCategory;
-      readonly winner: 'ATTACKER' | 'DEFENDER';
+      /** `NONE` nur bei einem freien Feld, das frei bleibt. */
+      readonly winner: 'ATTACKER' | 'DEFENDER' | 'NONE';
       readonly reason: MatchDuelReason;
       readonly effect: RealmDuelEffect;
       /** Gebäude auf dem Feld danach. */
@@ -541,7 +549,7 @@ export function applyRealmInput(state: RealmState, input: RealmInput): RealmResu
       if (!isRegionId(state, input.region) || !realmLegalRegions(state).includes(input.region)) {
         return fail('INVALID_REGION');
       }
-      const defender = state.regions[input.region]?.owner as number;
+      const defender = state.regions[input.region]?.owner ?? null;
       const wheel = realmWheel(state, step.attacker, input.region);
       const setup: RealmDuelSetup = {
         round: step.round,
@@ -583,6 +591,8 @@ export function applyRealmInput(state: RealmState, input: RealmInput): RealmResu
     case 'DUEL_TRIVIA': {
       if (step.kind !== 'DUEL_TRIVIA') return fail('WRONG_STEP');
       const counted = { ...state, questions: state.questions + 1 };
+      // Freies Feld (O-37): Der Angreifer antwortet allein, eine Schätzfrage gibt es nicht
+      if (step.defender === null) return finishClaim(counted, step, input.attackerCorrect);
       if (input.attackerCorrect && input.defenderCorrect) {
         return {
           ok: true,
@@ -592,11 +602,17 @@ export function applyRealmInput(state: RealmState, input: RealmInput): RealmResu
       }
       const reason: MatchDuelReason =
         input.attackerCorrect || input.defenderCorrect ? 'TRIVIA' : 'BOTH_WRONG';
-      return finishDuel(counted, step, input.attackerCorrect ? 'ATTACKER' : 'DEFENDER', reason);
+      return finishDuel(
+        counted,
+        step,
+        step.defender,
+        input.attackerCorrect ? 'ATTACKER' : 'DEFENDER',
+        reason,
+      );
     }
 
     case 'DUEL_ESTIMATES': {
-      if (step.kind !== 'DUEL_ESTIMATE') return fail('WRONG_STEP');
+      if (step.kind !== 'DUEL_ESTIMATE' || step.defender === null) return fail('WRONG_STEP');
       if (!isValidEstimate(input.attacker) || !isValidEstimate(input.defender)) {
         return fail('INVALID_ANSWERS');
       }
@@ -621,14 +637,19 @@ export function applyRealmInput(state: RealmState, input: RealmInput): RealmResu
         throw new Error(`Unerwarteter Duellausgang nach der Schätzfrage: ${reason}`);
       }
       const counted = { ...state, questions: state.questions + 1 };
-      return finishDuel(counted, step, outcome.winner, reason);
+      return finishDuel(counted, step, step.defender, outcome.winner, reason);
     }
   }
 }
 
-/** Nächste Landnahmerunde, oder der Feldzug, wenn alle Regionen vergeben sind. */
+/**
+ * Nächste Landnahmerunde, oder der Feldzug: wenn alle Regionen vergeben sind oder die Runden der
+ * Landnahme gespielt sind (`economy.landGrabRounds`, ADR-062). Was dann noch frei ist, bleibt es,
+ * bis ein Reich das Feld im Feldzug nimmt.
+ */
 function continueLandGrab(state: RealmState, round: number, events: RealmEvent[]): RealmResult {
-  if (realmFreeRegions(state).length > 0) {
+  const limit = state.rules.economy.landGrabRounds;
+  if (realmFreeRegions(state).length > 0 && (limit === undefined || round <= limit)) {
     return { ok: true, state: { ...state, step: { kind: 'LAND_ESTIMATE', round } }, events };
   }
   return startCampaignRound(state, 1, events);
@@ -728,16 +749,59 @@ function armyLossRegion(state: RealmState, seat: number, region: number): number
   return best;
 }
 
+/**
+ * Ausgang eines Angriffs auf ein freies Feld (O-37): Mit der richtigen Antwort gehört es dem
+ * Angreifer, mit seinem Grundwert; sonst bleibt es frei, und nichts geschieht, auch keine Armee
+ * geht verloren.
+ */
+function finishClaim(
+  state: RealmState,
+  setup: RealmDuelSetup & { readonly category: QuestionCategory },
+  correct: boolean,
+): RealmResult {
+  const draft = draftOf(state);
+  draft.duels += 1;
+  const { attacker, region, round, category } = setup;
+  if (correct) setRegion(draft, region, { owner: attacker, armies: 0 });
+  const after = draft.regions[region] as RealmRegionState;
+  const events: RealmEvent[] = [
+    {
+      kind: 'DUEL_RESOLVED',
+      round,
+      duel: draft.duels,
+      attacker,
+      defender: null,
+      region,
+      category,
+      winner: correct ? 'ATTACKER' : 'NONE',
+      reason: 'TRIVIA',
+      effect: correct ? 'CLAIMED' : 'UNCLAIMED',
+      building: after.building,
+      castleLivesLeft: null,
+      regionValue: after.value,
+      armyLost: null,
+    },
+  ];
+  return nextAttack(
+    withDraft(state, draft, state.step),
+    round,
+    setup.attackers,
+    setup.queue,
+    events,
+  );
+}
+
 function finishDuel(
   state: RealmState,
   setup: RealmDuelSetup & { readonly category: QuestionCategory },
+  defender: number,
   winner: 'ATTACKER' | 'DEFENDER',
   reason: MatchDuelReason,
 ): RealmResult {
   const draft = draftOf(state);
   draft.duels += 1;
   const duel = draft.duels;
-  const { attacker, defender, region, round, category } = setup;
+  const { attacker, region, round, category } = setup;
   const events: RealmEvent[] = [];
 
   // Wer verliert, verliert eine beteiligte Armee

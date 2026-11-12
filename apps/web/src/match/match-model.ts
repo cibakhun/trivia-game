@@ -195,7 +195,8 @@ export function shownPick(events: readonly ParsedMatchEvent[]): ShownPick | null
 /** Duell, das die Karte hervorhebt: Angreifer, Verteidiger und umkämpfte Region. */
 export interface DuelFocus {
   readonly attacker: number;
-  readonly defender: number;
+  /** `null` = Angriff auf ein freies Feld (Partie mit Ausbau, O-37): Niemand verteidigt. */
+  readonly defender: number | null;
   readonly region: number;
 }
 
@@ -217,7 +218,8 @@ export function duelResolved(reveal: Reveal | null): DuelResolved | null {
  */
 export function duelFocus(view: MatchView, reveal: Reveal | null): DuelFocus | null {
   const step = stepOf(view);
-  if (step && step.attacker !== null && step.defender !== null && step.region !== null) {
+  // Ein Ziel steht nur in den Schritten eines Duells; ohne Verteidiger ist es ein freies Feld
+  if (step && step.attacker !== null && step.region !== null) {
     return { attacker: step.attacker, defender: step.defender, region: step.region };
   }
   const resolved = duelResolved(reveal)?.payload;
@@ -245,8 +247,12 @@ export function duelEffect(effect: DuelResolved['payload']['effect']): DuelEffec
     case 'BUILDING_DAMAGED':
     case 'CASTLE_HIT':
       return 'CAPITAL_HIT';
+    // Ein freies Feld wird genommen wie ein erobertes; bleibt es frei, prallt der Angriff ab
     case 'CASTLE_DESTROYED':
+    case 'CLAIMED':
       return 'CONQUERED';
+    case 'UNCLAIMED':
+      return 'FORTIFIED';
     case 'CONQUERED':
     case 'CAPITAL_HIT':
     case 'TAKEOVER':
@@ -255,10 +261,21 @@ export function duelEffect(effect: DuelResolved['payload']['effect']): DuelEffec
   }
 }
 
+/** Sitz des Siegers; `null`, wenn ein freies Feld frei bleibt (niemand gewinnt). */
+export function duelWinner(payload: DuelResolved['payload']): number | null {
+  return payload.winner === 'ATTACKER'
+    ? payload.attacker
+    : payload.winner === 'DEFENDER'
+      ? payload.defender
+      : null;
+}
+
 export interface DuelStage extends DuelFocus {
   readonly scene: DuelScene;
-  /** Sieger und Wirkung, sobald das Duell entschieden ist. */
+  /** Sieger, sobald das Duell entschieden ist; `null` auch, wenn ein freies Feld frei bleibt. */
   readonly winner: number | null;
+  /** Entschieden, und der Angriff ist gescheitert: Der Verteidiger hält oder das Feld bleibt frei. */
+  readonly repelled: boolean;
   readonly effect: DuelEffect | null;
 }
 
@@ -281,7 +298,8 @@ export function duelStage(
       defender: resolved.defender,
       region: resolved.region,
       scene: outcomeBeat ? 'outcome' : 'settled',
-      winner: resolved.winner === 'ATTACKER' ? resolved.attacker : resolved.defender,
+      winner: duelWinner(resolved),
+      repelled: resolved.winner !== 'ATTACKER',
       effect: duelEffect(resolved.effect),
     };
   }
@@ -289,6 +307,7 @@ export function duelStage(
     ...focus,
     scene: state === 'announce' || state === 'wheel' ? 'announce' : 'duel',
     winner: null,
+    repelled: false,
     effect: null,
   };
 }

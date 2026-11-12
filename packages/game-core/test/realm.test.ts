@@ -19,6 +19,7 @@ import {
   buildRealmWheel,
   castlesOf,
   checkRealmOrders,
+  chooseRealmOrdersForBot,
   chooseRegionForRealmBot,
   createRealm,
   createRng,
@@ -32,11 +33,15 @@ import {
   REALM_BUILDINGS,
   REALM_FAVORITE_THETA_BONUS,
   REALM_RESOURCES,
+  REALM_RIVAL_GAIN_WEIGHT,
+  realmAttackChance,
   realmAttackOrder,
   realmFreeRegions,
   realmIncome,
   realmLegalRegions,
+  realmPendingQuestion,
   realmStandings,
+  realmTargetGain,
   realmTurnOrder,
   realmWheel,
   realmWheelShares,
@@ -263,8 +268,9 @@ describe('Partie mit Ausbau: Aufbau', () => {
     });
   });
 
-  it('nach der Landnahme: Einkommen, dann Rüstzeit', () => {
-    let state = createRealm(TWO, setupFor(2));
+  /** Spielt Startfrage, Burgen, Dörfer und Landnahme zu zweit bis zur ersten Rüstzeit. */
+  function playSetup(rules: RealmRules) {
+    let state = createRealm(rules, setupFor(2));
     const rng = createRng(new Uint8Array(16).fill(7));
     const events: RealmEvent[] = [];
     let guard = 0;
@@ -273,10 +279,9 @@ describe('Partie mit Ausbau: Aufbau', () => {
       const { step } = state;
       let input: RealmInput;
       if (step.kind === 'START_ESTIMATE' || step.kind === 'LAND_ESTIMATE') {
-        const seats = step.kind === 'START_ESTIMATE' ? [0, 1] : [0, 1];
         input = {
           kind: step.kind === 'START_ESTIMATE' ? 'START_ESTIMATES' : 'LAND_ESTIMATES',
-          answers: seats.map((seat) => ({ seat, ...answer(String(seat + 1)) })),
+          answers: [0, 1].map((seat) => ({ seat, ...answer(String(seat + 1)) })),
         };
       } else {
         const seat =
@@ -293,8 +298,16 @@ describe('Partie mit Ausbau: Aufbau', () => {
       state = r.state;
       events.push(...r.events);
     }
-    expect(events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(4);
-    expect(realmFreeRegions(state)).toHaveLength(0);
+    return { state, events };
+  }
+
+  it('die Landnahme endet nach zwei Runden: Einkommen, dann Rüstzeit, der Rest bleibt frei', () => {
+    expect(TWO.economy.landGrabRounds).toBe(2);
+    const { state, events } = playSetup(TWO);
+    expect(events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(2);
+    // Kernmark: 16 − 2 Burgen − 2 Dörfer = 12 frei, zwei Runden mit 2 + 1 Wahlen vergeben 6
+    expect(events.filter((e) => e.kind === 'REGION_CLAIMED')).toHaveLength(6);
+    expect(realmFreeRegions(state)).toHaveLength(6);
     const income = events.at(-1);
     expect(income?.kind).toBe('INCOME');
     for (const seat of [0, 1]) {
@@ -308,6 +321,22 @@ describe('Partie mit Ausbau: Aufbau', () => {
       { seat: 1, status: 'NOW' },
     ]);
   });
+
+  it('Runden der Landnahme sind einstellbar; ohne Angabe läuft sie, bis alles vergeben ist', () => {
+    const one = playSetup({ ...TWO, economy: { ...TWO.economy, landGrabRounds: 1 } });
+    expect(one.events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(1);
+    expect(realmFreeRegions(one.state)).toHaveLength(9);
+    // Partien von vor ADR-062 haben den Wert nicht: vier Runden, kein Feld bleibt frei
+    const economy = { ...TWO.economy };
+    delete economy.landGrabRounds;
+    const legacy = playSetup({ ...TWO, economy });
+    expect(legacy.events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(4);
+    expect(realmFreeRegions(legacy.state)).toHaveLength(0);
+    // Mehr Runden als Land: Schluss, sobald alles vergeben ist
+    const many = playSetup({ ...TWO, economy: { ...TWO.economy, landGrabRounds: 10 } });
+    expect(many.events.filter((e) => e.kind === 'LAND_RANKED')).toHaveLength(4);
+    expect(realmFreeRegions(many.state)).toHaveLength(0);
+  });
 });
 
 describe('Rohstoffe', () => {
@@ -319,12 +348,27 @@ describe('Rohstoffe', () => {
     expect(matchMap('KERNMARK')).toBe(KERNMARK);
   });
 
-  it('Ertrag: Feld 1, Dorf 2, Stadt 3 seines Rohstoffs, Burg 2 Brot und 2 Baustoff', () => {
+  it('Ertrag: Feld 1, Dorf 3, Stadt 4 seines Rohstoffs, Burg 2 Brot und 2 Baustoff', () => {
     // Sitz 0: Burg 6, Felder 0 (Brot), 1 (Baustoff), 5 (Brot), 7 (Brot), 11, 12 (Baustoff), 13 (Brot)
     const plain = campaign();
     expect(realmIncome(plain, 0)).toEqual({ bread: 2 + 4, material: 2 + 3 });
     const built = campaign({ 0: { building: 'VILLAGE' }, 1: { building: 'TOWN' } });
-    expect(realmIncome(built, 0)).toEqual({ bread: 2 + 4 + 1, material: 2 + 3 + 2 });
+    expect(realmIncome(built, 0)).toEqual({ bread: 2 + 4 + 2, material: 2 + 3 + 3 });
+  });
+
+  it('ein freies Feld bringt niemandem Einkommen und zählt für niemanden', () => {
+    const all = campaign();
+    const state = campaign({ 8: { owner: null } });
+    const sum = (s: RealmState, seat: number) => {
+      const income = realmIncome(s, seat);
+      return income.bread + income.material;
+    };
+    expect(sum(state, 0)).toBe(sum(all, 0));
+    expect(sum(state, 1)).toBe(sum(all, 1) - 1);
+    expect(realmStandings(state).map((s) => [s.seat, s.points, s.regions])).toEqual([
+      [0, 1000, 8],
+      [1, 900, 7],
+    ]);
   });
 });
 
@@ -737,6 +781,163 @@ describe('Duell und seine Folgen', () => {
       }),
     );
     expect(resolved(missed.events)).toMatchObject({ reason: 'ESTIMATE', winner: 'DEFENDER' });
+  });
+});
+
+describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
+  const free = { owner: null } as const;
+  const right = { kind: 'DUEL_TRIVIA', attackerCorrect: true, defenderCorrect: false } as const;
+  const wrong = { kind: 'DUEL_TRIVIA', attackerCorrect: false, defenderCorrect: false } as const;
+
+  it('Ziele: gegnerische und freie Felder am eigenen Land, kein freies Feld in der Ferne', () => {
+    // Fuchsmoor (4) liegt hinter dem Gegner, Kranichsee (8) an Immenau (7) und Quellheim (13)
+    const state = campaign({ 8: free, 4: free });
+    expect(realmLegalRegions(state)).toEqual([2, 8, 14]);
+    expect(applyRealmInput(state, { kind: 'PICK_TARGET', seat: 0, region: 4 })).toEqual({
+      ok: false,
+      error: 'INVALID_REGION',
+    });
+    // Ringsum nur freies Land: Dann sind es die einzigen Ziele
+    expect(realmLegalRegions(campaign({ 2: free, 8: free, 14: free }))).toEqual([2, 8, 14]);
+  });
+
+  it('Rad ohne Verteidiger: nur die Lose des Angreifers und die freien', () => {
+    // Die Armeen des Nachbarn in Lindenhof (9) zählen nicht: Das Feld gehört ihm nicht
+    const state = campaign({ 8: free, 7: { armies: 2 }, 13: { armies: 1 }, 9: { armies: 4 } });
+    const r = ok(applyRealmInput(state, { kind: 'PICK_TARGET', seat: 0, region: 8 }));
+    const chosen = r.events[0];
+    if (chosen?.kind !== 'TARGET_CHOSEN') throw new Error('Keine Ansage');
+    expect(chosen).toMatchObject({ round: 1, attacker: 0, defender: null, region: 8 });
+    expect(chosen.wheel).toMatchObject({ attackerLots: 3, defenderLots: 0, freeLots: 2 });
+    expect(realmWheelShares(chosen.wheel)).toEqual({ attacker: 0.6, defender: 0, free: 0.4 });
+    expect(chosen.wheel).toEqual(realmWheel(state, 0, 8));
+    expect(r.state.step).toMatchObject({ kind: 'DUEL_WHEEL', attacker: 0, defender: null });
+  });
+
+  it('nur der Angreifer wird gefragt', () => {
+    const state = attack(campaign({ 8: free }), 8, 'HISTORY');
+    expect(state.step).toMatchObject({ kind: 'DUEL_TRIVIA', attacker: 0, defender: null });
+    expect(realmPendingQuestion(state)).toEqual({
+      type: 'TRIVIA',
+      seats: [0],
+      category: 'HISTORY',
+    });
+  });
+
+  it('richtige Antwort: Das Feld gehört dem Angreifer, ohne Schätzfrage und ohne Verluste', () => {
+    const state = attack(campaign({ 8: free, 7: { armies: 2 } }), 8);
+    // Der zweite Wert spielt keine Rolle: Es gibt keinen Verteidiger und kein Stechen
+    const r = ok(
+      applyRealmInput(state, { kind: 'DUEL_TRIVIA', attackerCorrect: true, defenderCorrect: true }),
+    );
+    expect(resolved(r.events)).toMatchObject({
+      duel: 1,
+      attacker: 0,
+      defender: null,
+      region: 8,
+      winner: 'ATTACKER',
+      reason: 'TRIVIA',
+      effect: 'CLAIMED',
+      building: 'NONE',
+      castleLivesLeft: null,
+      regionValue: 100,
+      armyLost: null,
+    });
+    expect(r.state.regions[8]).toMatchObject({
+      owner: 0,
+      armies: 0,
+      value: 100,
+      fortifications: 0,
+    });
+    expect(r.state.regions[7]?.armies).toBe(2);
+    expect(r.state.questions).toBe(state.questions + 1);
+    expect(r.state.duels).toBe(1);
+    expect(r.state.step).toMatchObject({ kind: 'CAMPAIGN_TARGET', round: 1, attacker: 1 });
+    expect(ok(applyRealmInput(state, right)).state).toEqual(r.state);
+  });
+
+  it('falsche Antwort: Das Feld bleibt frei, sonst geschieht nichts', () => {
+    const state = attack(campaign({ 8: free, 7: { armies: 2 } }), 8);
+    const r = ok(applyRealmInput(state, wrong));
+    expect(resolved(r.events)).toMatchObject({
+      defender: null,
+      winner: 'NONE',
+      reason: 'TRIVIA',
+      effect: 'UNCLAIMED',
+      building: 'NONE',
+      regionValue: 100,
+      armyLost: null,
+    });
+    expect(r.state.regions).toEqual(state.regions);
+    expect(r.state.seats).toEqual(state.seats);
+    expect(r.state.duels).toBe(1);
+    expect(r.state.step).toMatchObject({ kind: 'CAMPAIGN_TARGET', round: 1, attacker: 1 });
+  });
+
+  it('eine Schätzfrage gibt es für ein freies Feld nicht', () => {
+    const state = attack(campaign({ 8: free }), 8);
+    expect(
+      applyRealmInput(state, {
+        kind: 'DUEL_ESTIMATES',
+        attacker: answer('1'),
+        defender: answer('2'),
+      }),
+    ).toEqual({ ok: false, error: 'WRONG_STEP' });
+  });
+
+  it('ein genommenes Feld lässt sich danach wie jedes andere angreifen und ausbauen', () => {
+    const taken = ok(applyRealmInput(attack(campaign({ 8: free }), 8), right)).state;
+    // Sitz 1 ist dran und greift Kranichsee an: jetzt ein Duell mit Verteidiger
+    const picked = ok(applyRealmInput(taken, { kind: 'PICK_TARGET', seat: 1, region: 8 }));
+    expect(picked.events[0]).toMatchObject({ kind: 'TARGET_CHOSEN', attacker: 1, defender: 0 });
+    const built = prepare({
+      ...taken,
+      seats: taken.seats.map((s) => ({ ...s, bread: 9, material: 9 })),
+    });
+    expect(orders(built, 0, [{ kind: 'BUILD', region: 8 }])).toMatchObject({
+      ok: true,
+    });
+  });
+
+  it('Bots: Ein freies Feld bringt seinen Wert, die Chance ist die eigene Trefferquote', () => {
+    const state = campaign({ 8: free });
+    expect(realmTargetGain(state, 8)).toBe(100);
+    // Ohne Armeen liegen nur freie Lose auf dem Rad: vier Lieblingskategorien zu 75 %, sonst 60 %
+    const n = CATEGORIES.length;
+    expect(realmAttackChance(state, 0, 8)).toBeCloseTo((4 * 0.75 + (n - 4) * 0.6) / n);
+    // Mit Armeen daneben dreht das Rad öfter auf eine Lieblingskategorie
+    expect(realmAttackChance(campaign({ 8: free, 7: { armies: 4 } }), 0, 8)).toBeGreaterThan(
+      realmAttackChance(state, 0, 8),
+    );
+    expect(realmAttackChance(state, 0, 6)).toBe(0);
+  });
+
+  it('Bots: wägen freies Land gegen Land des Gegners ab', () => {
+    const rng = () => createRng(new Uint8Array(16).fill(3));
+    // Ein offenes Feld des Gegners zählt mehr, weil es ihm danach fehlt
+    expect(REALM_RIVAL_GAIN_WEIGHT).toBeGreaterThan(1);
+    expect([2, 14]).toContain(chooseRegionForRealmBot(campaign({ 8: free }), rng()));
+    // Stehen dort Dörfer (zwei Siege bis zur Eroberung), lohnt das freie Feld mehr
+    const guarded = campaign({ 8: free, 2: { building: 'VILLAGE' }, 14: { building: 'VILLAGE' } });
+    expect(chooseRegionForRealmBot(guarded, rng())).toBe(8);
+  });
+
+  it('Bots: Ohne Grenze zu einem Gegner ziehen Armeen an den Rand zum freien Land', () => {
+    const state = prepare(
+      campaign({ 2: free, 8: free, 14: free, 6: { armies: 2 } }, undefined, [
+        { bread: 0, material: 0 },
+      ]),
+    );
+    const list = chooseRealmOrdersForBot(state, 0, createRng(new Uint8Array(16).fill(5)));
+    const moves = list.filter((o) => o.kind === 'MOVE');
+    expect(moves.length).toBeGreaterThan(0);
+    // Von der Burg (6) grenzen Birkental (1) und Immenau (7) an freies Land
+    for (const move of moves) {
+      if (move.kind !== 'MOVE') continue;
+      expect(move.from).toBe(6);
+      expect([1, 7]).toContain(move.to);
+    }
+    expect(orders(state, 0, list)).toMatchObject({ ok: true });
   });
 });
 

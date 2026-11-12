@@ -51,9 +51,15 @@ export function useMoments(
       before && !isCalm(state) ? { ...next, kind: before.kind, round: before.round } : next;
     if (state === 'question') return;
     const fresh = before ? events.filter((e) => e.seq > before.lastSeq) : [];
-    const moments = momentsBetween(before, next, fresh, name, rounds, realm !== null).filter(
-      (m) => !shown.current.has(m.key),
-    );
+    const moments = momentsBetween(
+      before,
+      next,
+      fresh,
+      name,
+      rounds,
+      realm !== null,
+      realm?.economy.landGrabRounds ?? null,
+    ).filter((m) => !shown.current.has(m.key));
     if (moments.length === 0) return;
     for (const m of moments) shown.current.add(m.key);
     setQueue((q) => enqueueMoments(q, moments));

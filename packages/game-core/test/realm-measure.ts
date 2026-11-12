@@ -8,11 +8,34 @@ import { simulateRealm } from './realm-sim.ts';
  *
  *   corepack pnpm exec tsx packages/game-core/test/realm-measure.ts [Partien] [Runden]
  *
+ * Gegenproben mit anderen Zahlen des Ausbaus: `REALM_ECONOMY` als JSON, das die Standardwerte
+ * überlagert, etwa `REALM_ECONOMY='{"costs":{"castle":{"bread":5,"material":10}}}'`; ebenso
+ * `REALM_PICKS='[2,1,1]'` für die Wahlen je Platz in der Landnahme zu dritt.
+ *
  * Keine Abnahme: Die Tests stehen in `realm-simulation.test.ts`.
  */
 
 const matches = Number(process.argv[2] ?? 2000);
 const rounds = process.argv[3] ? Number(process.argv[3]) : undefined;
+
+type Json = { readonly [key: string]: unknown };
+
+/** Legt `patch` über `base`: Objekte Schlüssel für Schlüssel, alles andere ersetzt. */
+function overlay<T>(base: T, patch: unknown): T {
+  if (typeof patch !== 'object' || patch === null || Array.isArray(patch)) return patch as T;
+  const out: Record<string, unknown> = { ...(base as Json) };
+  for (const [key, value] of Object.entries(patch as Json)) {
+    out[key] = overlay((base as Json | undefined)?.[key], value);
+  }
+  return out as T;
+}
+
+const economyPatch: unknown = process.env.REALM_ECONOMY
+  ? JSON.parse(process.env.REALM_ECONOMY)
+  : undefined;
+const picksPatch: unknown = process.env.REALM_PICKS
+  ? JSON.parse(process.env.REALM_PICKS)
+  : undefined;
 
 function pct(n: number, of: number): string {
   return `${((100 * n) / of).toFixed(1)} %`;
@@ -20,6 +43,11 @@ function pct(n: number, of: number): string {
 
 function measure(rules: RealmRules): void {
   let duels = 0;
+  let claims = 0;
+  let claimed = 0;
+  let freeLeft = 0;
+  let leftBread = 0;
+  let leftMaterial = 0;
   let attackerWins = 0;
   let conquered = 0;
   let falls = 0;
@@ -36,6 +64,13 @@ function measure(rules: RealmRules): void {
   let incomeMaterial = 0;
   let incomeRows = 0;
   let questions = 0;
+  let idle = 0;
+  let prepares = 0;
+  let startFields = 0;
+  let startFewest = 0;
+  let startMost = 0;
+  let winsOfLargest = 0;
+  const incomeByRound: number[] = Array.from({ length: rules.campaign.rounds }, () => 0);
   const full: number[] = [];
   const typical: number[] = [];
   const winsByPlace: number[] = Array.from({ length: rules.seats }, () => 0);
@@ -49,7 +84,19 @@ function measure(rules: RealmRules): void {
     questions += state.questions;
     // Partien, in denen mindestens ein Reich fällt (zu dritt können es zwei sein)
     if (events.some((e) => e.kind === 'KINGDOM_ELIMINATED')) falls += 1;
+    freeLeft += state.regions.filter((r) => r.owner === null).length;
+    for (const s of state.seats) {
+      leftBread += s.bread;
+      leftMaterial += s.material;
+    }
     for (const e of events) {
+      // Angriff auf ein freies Feld (O-37): eigene Zählung, kein Duell
+      if (e.kind === 'DUEL_RESOLVED' && e.defender === null) {
+        claims += 1;
+        if (e.effect === 'CLAIMED') claimed += 1;
+        continue;
+      }
+      if (e.kind === 'TARGET_CHOSEN' && e.defender === null) continue;
       if (e.kind === 'DUEL_RESOLVED') {
         duels += 1;
         if (e.winner === 'ATTACKER') attackerWins += 1;
@@ -64,6 +111,8 @@ function measure(rules: RealmRules): void {
         wheelFree += segments.reduce((s, x) => s + x.free, 0) / total;
       }
       if (e.kind === 'ORDERS_REVEALED') {
+        prepares += 1;
+        if (e.summary.built.length === 0 && e.summary.recruited === 0) idle += 1;
         for (const b of e.summary.built) {
           if (b.building === 'VILLAGE') villages += 1;
           if (b.building === 'TOWN') towns += 1;
@@ -76,6 +125,8 @@ function measure(rules: RealmRules): void {
           incomeBread += row.bread;
           incomeMaterial += row.material;
           incomeRows += 1;
+          incomeByRound[e.round - 1] =
+            (incomeByRound[e.round - 1] ?? 0) + (row.bread + row.material) / e.income.length;
         }
       }
     }
@@ -88,8 +139,20 @@ function measure(rules: RealmRules): void {
       ),
     );
     secondCastle += builtCastle.size;
+    // Felder je Reich zu Beginn des Feldzugs: Burg, Startdorf und Landnahme
+    const fields = Array.from({ length: seats }, () => 0);
+    for (const e of events) {
+      if (e.kind === 'CASTLE_CHOSEN' || e.kind === 'VILLAGE_CHOSEN' || e.kind === 'REGION_CLAIMED')
+        fields[e.seat] = (fields[e.seat] ?? 0) + 1;
+    }
+    startFields += fields.reduce((a, b) => a + b, 0) / seats;
+    startFewest += Math.min(...fields);
+    startMost += Math.max(...fields);
     const standings = realmStandings(state);
     const winners = standings.filter((s) => s.place === 1);
+    const largest = fields.flatMap((f, seat) => (f === Math.max(...fields) ? [seat] : []));
+    winsOfLargest +=
+      winners.filter((w) => largest.includes(w.seat)).length / winners.length / largest.length;
     for (const w of winners) {
       const place = state.order.indexOf(w.seat);
       winsByPlace[place] = (winsByPlace[place] ?? 0) + 1 / winners.length;
@@ -101,6 +164,12 @@ function measure(rules: RealmRules): void {
   const n = matches;
   console.log(`\n== ${seats} Spieler, ${rules.map}, ${rules.campaign.rounds} Runden, ${n} Partien`);
   console.log(`Fragen je Partie: ${(questions / n).toFixed(1)}`);
+  console.log(
+    `Angriffe auf freie Felder je Partie: ${(claims / n).toFixed(1)}, davon genommen ${claims > 0 ? pct(claimed, claims) : '–'}; frei am Ende: ${(freeLeft / n).toFixed(1)} Felder`,
+  );
+  console.log(
+    `Vorrat am Ende je Spieler, Brot / Baustoff: ${(leftBread / n / seats).toFixed(1)} / ${(leftMaterial / n / seats).toFixed(1)}`,
+  );
   console.log(
     `Duelle je Partie: ${(duels / n).toFixed(1)}, Eroberungen ${(conquered / n).toFixed(1)}`,
   );
@@ -119,6 +188,12 @@ function measure(rules: RealmRules): void {
   console.log(
     `Armeen gekauft je Spieler: ${(recruited / n / seats).toFixed(1)}; Rüstzeiten mit Tausch: ${pct(traded, n * seats * rules.campaign.rounds)}`,
   );
+  console.log(
+    `Einkommen je Reich nach Runde (Brot + Baustoff): ${incomeByRound.map((x) => (x / n).toFixed(1)).join(' / ')}; Rüstzeiten ohne Bau und ohne Kauf: ${pct(idle, prepares)}`,
+  );
+  console.log(
+    `Felder je Reich zu Beginn des Feldzugs: Mittel ${(startFields / n).toFixed(1)}, kleinstes ${(startFewest / n).toFixed(1)}, größtes ${(startMost / n).toFixed(1)}; ein Reich mit den meisten gewinnt zu ${pct(winsOfLargest, n)}`,
+  );
   console.log(`Partien, in denen ein Reich fällt: ${pct(falls, n)}`);
   console.log(
     `Dauer typisch: Mittel ${mean(typical).toFixed(1)} min (90 %: ${q(typical, 0.9).toFixed(1)}); ausgereizt: Mittel ${mean(full).toFixed(1)}, höchstens ${Math.max(...full).toFixed(1)} min`,
@@ -127,6 +202,10 @@ function measure(rules: RealmRules): void {
 }
 
 for (const seats of [3, 2] as const) {
-  const base = matchRulesForSeats(DEFAULT_REALM_RULES, seats);
+  let base = matchRulesForSeats(DEFAULT_REALM_RULES, seats);
+  if (economyPatch !== undefined) base = { ...base, economy: overlay(base.economy, economyPatch) };
+  if (picksPatch !== undefined && seats === 3) {
+    base = { ...base, landGrab: { picksByPlace: picksPatch as number[] } };
+  }
   measure(rounds ? { ...base, campaign: { rounds } } : base);
 }

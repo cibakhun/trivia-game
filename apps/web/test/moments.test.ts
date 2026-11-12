@@ -110,6 +110,29 @@ describe('Große Momente der Partie mit Ausbau', () => {
   const titles = (before: Partial<MomentSnapshot>, next: Partial<MomentSnapshot>) =>
     between(before, next).map((m) => m.title);
 
+  it('sagt zur Landnahme, wie viele Runden sie hat und was mit dem Rest geschieht (ADR-062)', () => {
+    const land = (rounds: number | null) =>
+      momentsBetween(
+        snap({ kind: 'VILLAGE_PICK', round: null }),
+        snap({ kind: 'LAND_ESTIMATE', round: 1 }),
+        [],
+        name,
+        5,
+        true,
+        rounds,
+      ).map((m) => [m.title, m.detail]);
+    expect(land(2)).toEqual([
+      ['Die Landnahme beginnt', '2 Runden. Was frei bleibt, holst du dir im Feldzug.'],
+    ]);
+    expect(land(1)).toEqual([
+      ['Die Landnahme beginnt', 'Eine Runde. Was frei bleibt, holst du dir im Feldzug.'],
+    ]);
+    // Partien von vor ADR-062: Die Landnahme läuft, bis alles vergeben ist
+    expect(land(null)).toEqual([
+      ['Die Landnahme beginnt', 'Wer am genauesten schätzt, wählt zuerst.'],
+    ]);
+  });
+
   it('kündigt Burgen und Startdörfer an, je einmal', () => {
     expect(
       titles(

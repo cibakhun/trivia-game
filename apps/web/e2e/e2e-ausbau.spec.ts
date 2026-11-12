@@ -8,8 +8,9 @@ import { answerRight, matchIdOf, newPlayer, succeeds } from './match-kit.ts';
  * quer gehaltenen Handy gegen zwei Bots, mit Spieltestzeiten. Der Spieler wählt seine
  * Lieblingskategorien, setzt Burg und Dorf, baut, kauft, zieht und tauscht in der Rüstzeit, greift
  * in zwei Schritten an (Ziel antippen, dann „Angreifen“) und antwortet richtig; die Lösung liest nur
- * der Test aus der Datenbank. Aufgedecktes, Glücksrad und Ausgang stehen nur kurz: Die Seite
- * schreibt selbst mit, was sie gezeigt hat.
+ * der Test aus der Datenbank. Die Landnahme endet nach zwei Runden; der erste eigene Angriff geht
+ * auf ein freies Feld (O-37, ADR-062), die weiteren auf fremde. Aufgedecktes, Glücksrad und Ausgang
+ * stehen nur kurz: Die Seite schreibt selbst mit, was sie gezeigt hat.
  */
 
 test.afterAll(async () => {
@@ -189,15 +190,20 @@ async function pickNear(
   return (await ok) && done ? choice : null;
 }
 
+/** Ein eigener Angriff: das Ziel, die Zeilen der Lose im Blatt und ob das Feld frei war. */
+interface Attack {
+  readonly target: string;
+  readonly lots: number;
+  readonly free: boolean;
+}
+
 /**
- * Greift ein markiertes Feld an, lieber eines ohne Burg, damit alle drei Reiche lange im Spiel
- * bleiben. Der erste Tipp zeigt nur das Ziel mit den Losen im Glücksrad; an den Server geht die
- * Wahl erst mit „Angreifen“.
+ * Greift ein markiertes Feld an: mit `free` ein freies, wenn eines am eigenen Land liegt, sonst
+ * ein fremdes, lieber eines ohne Burg, damit alle drei Reiche lange im Spiel bleiben. Der erste
+ * Tipp zeigt nur das Ziel mit den Losen im Glücksrad; an den Server geht die Wahl erst mit
+ * „Angreifen“.
  */
-async function attackFirst(
-  page: Page,
-  matchId: string,
-): Promise<{ target: string; lots: number } | null> {
+async function attackFirst(page: Page, matchId: string, free: boolean): Promise<Attack | null> {
   let sent = 0;
   const count = (request: { method(): string; url(): string }) => {
     if (request.method() === 'POST' && request.url().endsWith(`/matches/${matchId}/pick`)) {
@@ -207,20 +213,37 @@ async function attackFirst(
   page.on('request', count);
   try {
     const board = page.getByTestId('match-board');
-    const plain = board.locator('.board-region.legal:not(.capital)');
-    const field = (await plain.count()) > 0 ? plain.first() : board.getByRole('button').first();
+    const open = board.locator('.board-region.legal.free');
+    const plain = board.locator('.board-region.legal:not(.free):not(.capital)');
+    const owned = board.locator('.board-region.legal:not(.free)');
+    let field = board.getByRole('button').first();
+    for (const wanted of free ? [open, plain, owned] : [plain, owned]) {
+      if ((await wanted.count()) === 0) continue;
+      field = wanted.first();
+      break;
+    }
     const name = await field.getAttribute('aria-label', { timeout: 2_000 }).catch(() => null);
-    if (name === null || !(await succeeds(field.tap({ timeout: 2_000 })))) return null;
+    const unowned = await field
+      .evaluate((g) => g.classList.contains('free'), undefined, { timeout: 2_000 })
+      .catch(() => null);
+    if (name === null || unowned === null) return null;
+    if (!(await succeeds(field.tap({ timeout: 2_000 })))) return null;
     const target = page.getByTestId('match-target');
     if (!(await succeeds(target.waitFor({ timeout: 2_000 })))) return null;
     const shown = await target.locator('.feld-name').textContent();
     const lots = await page.getByTestId('match-lots').locator('.lot').count();
     expect(shown).toBe(name);
     expect(sent).toBe(0);
+    // Ein freies Feld steht als solches im Blatt: Niemand verteidigt es
+    expect((await target.getAttribute('data-free')) !== null).toBe(unowned);
+    if (unowned)
+      await expect(page.getByTestId('match-pick')).toContainText(
+        'Freies Feld, niemand verteidigt es',
+      );
     const ok = accepted(page, matchId, 'pick');
     const attack = page.getByTestId('match-pick').getByRole('button', { name: 'Angreifen' });
     if (!(await succeeds(attack.tap({ timeout: 2_000 }))) || !(await ok)) return null;
-    return { target: name, lots };
+    return { target: name, lots, free: unowned };
   } finally {
     page.off('request', count);
   }
@@ -436,18 +459,21 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   const answered = new Set<number>();
   let castleId: number | null = null;
   const picks = new Map<string, number>();
-  const attacks: { target: string; lots: number }[] = [];
+  const attacks: Attack[] = [];
+  const labels = new Set<string>();
   const prepared = new Map<number, Prepared>();
   const until = Date.now() + 270_000;
   for (;;) {
     if (Date.now() > until) throw new Error('Die Partie endet nicht rechtzeitig');
     const { state, step, seq, label } = await read();
+    labels.add(label);
     if (state === 'finished') break;
     if (state === 'abandoned') throw new Error('Die Partie wurde abgebrochen');
     if (state === 'question' && !answered.has(seq)) {
       if (await answerRight(page, matchId, seq, 'tap')) answered.add(seq);
     } else if (state === 'pick' && step === 'CAMPAIGN_TARGET') {
-      const attack = await attackFirst(page, matchId);
+      // Einmal ein freies Feld, danach fremde: So kommen beide Arten des Angriffs vor
+      const attack = await attackFirst(page, matchId, !attacks.some((a) => a.free));
       if (attack) attacks.push(attack);
     } else if (state === 'pick') {
       const picked = await pickNear(page, matchId, step === 'CASTLE_PICK' ? null : castleId);
@@ -469,6 +495,11 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(picks.get('CASTLE_PICK')).toBe(1);
   expect(picks.get('VILLAGE_PICK')).toBe(1);
   expect(picks.get('LAND_PICK') ?? 0).toBeGreaterThan(0);
+  // Die Landnahme endet nach zwei Runden (ADR-062): höchstens zwei Wahlen je Runde, und im Band
+  // steht, die wievielte Runde läuft
+  expect(picks.get('LAND_PICK') ?? 0).toBeLessThanOrEqual(4);
+  const land = [...labels].filter((l) => l.startsWith('Landnahme')).sort();
+  expect(land).toEqual(['Landnahme · 1 von 2', 'Landnahme · 2 von 2']);
   expect(answered.size).toBeGreaterThan(5);
 
   // Jede Runde beginnt mit einer Rüstzeit; der Server hat jede Abgabe angenommen. Fünf Runden sind
@@ -502,9 +533,12 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(seen.orders['Runde 2 von 5']?.mine).toContain('1 mal getauscht');
   expect(seen.orders['Runde 3 von 5']?.mine).toContain('rüstet nicht');
 
-  // Angriff in zwei Schritten: Vor „Angreifen“ standen das Ziel und die Lose beider Seiten
+  // Angriff in zwei Schritten: Vor „Angreifen“ standen das Ziel und die Lose im Rad, gegen ein
+  // Reich die beider Seiten und die freien, gegen ein freies Feld nur die eigenen und die freien
   expect(attacks.length).toBeGreaterThan(0);
-  expect(attacks.every((a) => a.lots === 3)).toBe(true);
+  expect(attacks.every((a) => a.lots === (a.free ? 2 : 3))).toBe(true);
+  // Nach zwei Runden Landnahme ist die halbe Karte frei: Ein freies Feld liegt am eigenen Land
+  expect(attacks.filter((a) => a.free)).toHaveLength(1);
 
   // Glücksrad vor jeder Wissensfrage eines Duells: die Scheibe mitten auf der Karte, im Blatt die
   // Lose und am Ende die Kategorie
@@ -517,17 +551,22 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(seen.outcomes.length).toBeGreaterThanOrEqual(attacks.length);
   for (const outcome of seen.outcomes) {
     expect(outcome.effect).toMatch(
-      /^(CONQUERED|BUILDING_DAMAGED|CASTLE_HIT|CASTLE_DESTROYED|TAKEOVER|FORTIFIED)$/,
+      /^(CONQUERED|BUILDING_DAMAGED|CASTLE_HIT|CASTLE_DESTROYED|TAKEOVER|FORTIFIED|CLAIMED|UNCLAIMED)$/,
     );
     expect(outcome.text.length).toBeGreaterThan(20);
     expect(outcome.sign).toBe(true);
   }
   // Wer richtig antwortet, gewinnt als Angreifer mindestens ein Duell
-  expect(seen.outcomes.some((o) => o.effect !== 'FORTIFIED')).toBe(true);
+  expect(seen.outcomes.some((o) => !['FORTIFIED', 'UNCLAIMED'].includes(o.effect))).toBe(true);
+  // Das freie Feld: allein gefragt, richtig geantwortet, genommen
+  const claimed = seen.outcomes.filter((o) => o.effect === 'CLAIMED');
+  expect(claimed.some((o) => o.text.includes('Feld genommen'))).toBe(true);
 
-  // Wer schon geantwortet hat: je Sitz der Frage eine Zeile; die eigene Antwort zählt sofort
+  // Wer schon geantwortet hat: je Sitz der Frage eine Zeile, bei einem freien Feld nur die des
+  // Angreifers; die eigene Antwort zählt sofort
   expect(seen.answers.length).toBeGreaterThan(0);
-  expect(seen.answers.every((a) => a.rows >= 2 && a.rows <= 3)).toBe(true);
+  expect(seen.answers.every((a) => a.rows >= 1 && a.rows <= 3)).toBe(true);
+  expect(seen.answers.some((a) => a.rows === 1)).toBe(true);
   expect(seen.answers.some((a) => a.mine)).toBe(true);
   expect(seen.answers.some((a) => !a.mine)).toBe(true);
 

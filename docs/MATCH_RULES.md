@@ -161,7 +161,7 @@ Kartengröße zu zweit (je 4 000 Partien gleich starker Bots, 2026-11-11): Der V
 
 Bezug: Wunsch des Product Owners vom 2026-11-11, die Partie mit einem Aufbau-Minispiel zu verbinden (Rohstoffe aus dem Gebiet, Gebäude mit mehr Leben, Armeen, die die Kategorien im Duell verschieben, 10 bis 15 Minuten je Partie), seine zwei handschriftlichen Zettel vom selben Tag und das daraus erarbeitete Spielkonzept, das er am 2026-11-11 mit allen Empfehlungen freigegeben hat ([O-25] bis [O-35], ADR-057). Vorbild sind nur allgemeine Mechaniken; Namen, Begriffe und Bilder sind eigene **[V, PO 2026-11-11]**.
 
-**Stand:** Regeln, Bots und Simulation stehen im Spielkern, der Server spielt ganze Partien mit Ausbau (ADR-058, §11.11), und der Browser zeigt und bedient sie auf derselben Bühne im Querformat wie die Partie aus §1 bis §10 (ADR-060, [ART_DIRECTION.md §4](ART_DIRECTION.md#4-karte-der-partie)). Eine Partie spielt den Ausbau, wenn sie in der Spielart `REALM` angelegt wurde; ihre Regeln haben dann den Abschnitt `economy` (`DEFAULT_REALM_RULES`). Ohne ihn gilt alles wie bisher. In Produktion ist die Spielart gesperrt, bis der Spieltest sie freigibt **[E]**.
+**Stand:** Regeln, Bots und Simulation stehen im Spielkern, der Server spielt ganze Partien mit Ausbau (ADR-058, §11.11), und der Browser zeigt und bedient sie auf derselben Bühne im Querformat wie die Partie aus §1 bis §10 (ADR-060, [ART_DIRECTION.md §4](ART_DIRECTION.md#4-karte-der-partie)). Eine Partie spielt den Ausbau, wenn sie in der Spielart `REALM` angelegt wurde; ihre Regeln haben dann den Abschnitt `economy` (`DEFAULT_REALM_RULES`). Ohne ihn gilt alles wie bisher. In Produktion ist die Spielart gesperrt, bis der Spieltest sie freigibt **[E]**. Seit ADR-062 (Rückmeldung des Product Owners nach dem ersten Spieltest am 2026-11-12) endet die Landnahme nach zwei Runden; die übrigen Felder bleiben frei und werden im Feldzug mit einer Wissensfrage genommen ([O-37], Auswahl A), und Dorf und Stadt bringen mehr Ertrag ([O-41], offen).
 
 Code: `packages/game-core/src/realm.ts` (Zustandsmaschine `createRealm`, `applyRealmInput`), `realm-state.ts` (Zustand und Abfragen), `realm-orders.ts` (Rüstzeit), `realm-wheel.ts` (Glücksrad), `realm-resources.ts` (Rohstoff je Region), `realm-bots.ts` (Bots); Regelwerte in `packages/protocol/src/match-rules.ts` (`matchEconomySchema`, `DEFAULT_MATCH_ECONOMY`, `DEFAULT_REALM_RULES`, `PLAYTEST_REALM_RULES`). Die bisherige Zustandsmaschine `match.ts` bleibt unverändert. Die Regeln der Rüstzeit (`planRealmOrders`) und der Lose (`realmWheelOn`) brauchen nur einen Ausschnitt des Bretts: Der Server prüft damit seinen Zustand (`checkRealmOrders`, `realmWheel`), der Browser plant damit auf seiner Ansicht (`apps/web/src/match/realm-model.ts`), ohne die Regeln zu wiederholen. Wie dort liegen Zeit und Zufall beim Aufrufer: Die Zustandsmaschine würfelt nie, auch das Glücksrad dreht der Aufrufer (`spinRealmWheel`, Strom `match`) und meldet die Kategorie als Eingabe.
 
@@ -171,8 +171,8 @@ Code: `packages/game-core/src/realm.ts` (Zustandsmaschine `createRealm`, `applyR
 2. **Startfrage** (`START_ESTIMATE`): eine Schätzfrage an alle; ihre Rangfolge ist die Reihenfolge der Partie (`order`): Abstand, dann effektive Antwortzeit, bei völligem Gleichstand die geloste Sitznummer **[V, Zettel; Gleichstand E]**. Sie ersetzt die geloste Reihenfolge der Sitze für Burgen, Dörfer und Runden.
 3. **Burgen setzen** (`CASTLE_PICK`): in der Reihenfolge der Startfrage je eine Burg auf ein freies Feld, mindestens `capital.minDistance` = 2 Felder von jeder anderen Burg. Die Startburg ist 300 wert wie die Hauptstadt und beginnt mit `economy.startArmies` = 3 Armeen **[V, [O-26]]**.
 4. **Dörfer setzen** (`VILLAGE_PICK`): in umgekehrter Reihenfolge je ein Dorf auf ein weiteres freies Feld, mindestens `economy.villageMinDistance` = 2 Felder von fremden Gebäuden **[V, Zettel]**. Wer bei der Burg zuletzt wählen durfte, setzt das Dorf zuerst. Gibt es für Burg oder Dorf keinen Platz mit Abstand, ist jedes freie Feld wählbar.
-5. **Landnahme** wie §3 **[V, [O-30]]**; wählbar ist ein freies Feld am eigenen Land, also auch an Burg und Dorf. Zu dritt bleiben 18 freie Felder (sechs Runden), zu zweit 12 (vier Runden).
-6. **Feldzug**, `campaign.rounds` = 5 Runden **[V, [O-31]]**. Jede Runde: **Einkommen** (§11.2) → **Rüstzeit** (§11.4) → **Aufdecken** → **Angriffe**: jedes lebende Reich einmal, in der Reihenfolge der Runde (§1); nur in der letzten Runde greift zuerst an, wer nach Punkten vorn liegt, wer hinten liegt, zuletzt, bei gleichen Punkten in der Reihenfolge der Runde (`realmAttackOrder`) **[V, [O-35]]**. Die Reihenfolge der Angreifer steht zu Beginn der Angriffe fest. Ein Angriff: Ziel wählen (eine gegnerische Region am eigenen Land, gibt es keine, jede gegnerische), Glücksrad (§11.5), Wissensfrage, bei Gleichstand die Schätzfrage, Auflösung (§11.7).
+5. **Landnahme** wie §3 **[V, [O-30]]**, aber nur `economy.landGrabRounds` = 2 Runden **[V, PO 2026-11-12: „nur für 2 Runden, damit es noch genug neutrale Felder gibt“]**; wählbar ist ein freies Feld am eigenen Land, also auch an Burg und Dorf. Nach Burgen und Startdörfern sind zu dritt 18 Felder frei, zu zweit 12; jede Runde vergibt drei. Zu Beginn des Feldzugs sind damit zu dritt 12 von 24 Feldern frei, zu zweit 6 von 16, und ein Reich hält im Mittel 4 Felder (zu zweit 5). Fehlt `landGrabRounds` in den Regeln einer Partie (vor ADR-062 angelegt), läuft die Landnahme wie bisher, bis alles vergeben ist.
+6. **Feldzug**, `campaign.rounds` = 5 Runden **[V, [O-31]]**. Jede Runde: **Einkommen** (§11.2) → **Rüstzeit** (§11.4) → **Aufdecken** → **Angriffe**: jedes lebende Reich einmal, in der Reihenfolge der Runde (§1); nur in der letzten Runde greift zuerst an, wer nach Punkten vorn liegt, wer hinten liegt, zuletzt, bei gleichen Punkten in der Reihenfolge der Runde (`realmAttackOrder`) **[V, [O-35]]**. Die Reihenfolge der Angreifer steht zu Beginn der Angriffe fest. Ein Angriff: Ziel wählen (ein gegnerisches oder freies Feld am eigenen Land; grenzt keines davon ans eigene Land, jedes gegnerische), Glücksrad (§11.5), Wissensfrage, bei Gleichstand die Schätzfrage, Auflösung (§11.7). Ein freies Feld greift man wie ein gegnerisches mit dem Angriff der Runde an; die Wissensfrage beantwortet der Angreifer dann allein, eine Schätzfrage gibt es nicht (§11.7) **[V, [O-37] A]**.
 7. **Abrechnung** nach der fünften Runde oder sobald nur noch ein Reich lebt (§11.7).
 
 Zeiten: Wahl, Fragen, Auflösung und gezeigte Wahl wie §5. Die Ansage eines Duells dauert hier `economy.timers.wheelMs` = 3 s statt `announceMs`, weil sich in ihr das Glücksrad dreht. Die Rüstzeit dauert höchstens `economy.timers.prepareMs` = 40 s, das Aufdecken `economy.timers.ordersRevealMs` = 2 s **[V, [O-32]; Längen E]**. Die Abfrage `realmStepTimeLimitMs` liefert das Zeitlimit jedes Schritts, `realmTurnOrder` die Zugfolge für die Anzeige wie §3.
@@ -186,11 +186,11 @@ Zu Beginn jeder Feldzugrunde bekommt jedes lebende Reich das Einkommen aller eig
 | Feld | Ertrag je Runde |
 |---|---|
 | ohne Gebäude | 1 seines Rohstoffs |
-| mit Dorf | 2 seines Rohstoffs |
-| mit Stadt | 3 seines Rohstoffs |
+| mit Dorf | 3 seines Rohstoffs |
+| mit Stadt | 4 seines Rohstoffs |
 | mit Burg | 2 Brot und 2 Baustoff, gleich welche Landschaft |
 
-Vorräte bleiben für spätere Runden. In der Rüstzeit gibt es für `economy.tradeRate` = 3 eines Rohstoffs 1 vom anderen **[E]**.
+Ein freies Feld bringt niemandem etwas. Bis ADR-062 brachten Dorf und Stadt 2 und 3: Ein Dorf kostet 4 Rohstoffe und trug sie mit 1 mehr je Runde in fünf Runden kaum wieder ein, und mit zwei Runden Landnahme beginnt jedes Reich mit halb so vielen Feldern. Mit 3 und 4 hat sich ein Dorf nach zwei Runden bezahlt. Die Zahlen gelten als Standardannahme, bis der Product Owner entscheidet ([O-41], Messwerte in §11.9). Vorräte bleiben für spätere Runden. In der Rüstzeit gibt es für `economy.tradeRate` = 3 eines Rohstoffs 1 vom anderen **[E]**.
 
 ### 11.3 Gebäude
 
@@ -230,6 +230,7 @@ Vor der Wissensfrage jedes Duells bestimmt ein Glücksrad ihre Kategorie (`realm
 - **Angreifer:** 1 Los je eigene Armee in Reichweite des angegriffenen Felds.
 - **Verteidiger:** 1 Los je eigene Armee in Reichweite, dazu das Gebäude auf dem Feld (`economy.lots`: Dorf 2, Stadt 3, Burg 4).
 - **Frei:** `economy.lots.free` = 2 Lose.
+- **Angriff auf ein freies Feld:** Der Angreifer bringt seine Lose wie sonst mit, einen Verteidiger gibt es nicht (`defenderLots` = 0); dazu kommen die freien Lose. Mit 3 Armeen in Reichweite kommt die Frage zu 60 % aus den Lieblingskategorien des Angreifers und zu 40 % frei.
 
 Die Lose einer Seite verteilen sich gleich auf ihre Lieblingskategorien, die freien auf alle Kategorien des Rads. Lieblingskategorien, die nicht auf dem Rad stehen, zählen nicht; hat eine Seite keine auf dem Rad, werden ihre Lose frei. Gibt es gar keine Lose, sind alle Kategorien gleich wahrscheinlich. Die Gewichte sind ganze Zahlen (ein Los = Kategorien · Lieblingskategorien des Angreifers · Lieblingskategorien des Verteidigers Teile, gekürzt), damit Server und Browser ohne Rundung dasselbe Rad zeigen. Beispiel: Der Angreifer hat 3 Armeen an der Grenze, der Verteidiger ein Dorf und eine Armee: Die Frage kommt zu 37,5 % aus den Lieblingskategorien des Angreifers, zu 37,5 % aus denen des Verteidigers und zu 25 % frei. Die Schätzfrage im Stechen, die Startfrage und die Fragen der Landnahme haben keine Kategorie vom Rad.
 
@@ -245,48 +246,72 @@ Das Duell selbst ist §4: Wissensfrage, bei zwei richtigen Antworten die Schätz
 
 | Ziel | Angreifer gewinnt | Verteidiger gewinnt |
 |---|---|---|
+| freies Feld (kein Verteidiger) | Der Angreifer beantwortet die Wissensfrage richtig: Das Feld gehört ihm mit seinem Wert, ohne Gebäude und ohne Armeen (`CLAIMED`) | Falsch oder nicht beantwortet: Das Feld bleibt frei, niemand verliert etwas (`UNCLAIMED`, Sieger `NONE`) |
 | Feld ohne Gebäude | erobert mit seinem Wert, die Armeen darauf sind verloren (`CONQUERED`) | befestigt, +50 (`FORTIFIED`) |
 | Dorf, Stadt | fällt eine Stufe zurück, das Feld bleibt beim Verteidiger (`BUILDING_DAMAGED`) | befestigt, +50 |
 | Burg mit mehr als einem Leben | verliert ein Leben (`CASTLE_HIT`), Leben kehren nicht zurück | befestigt, +50 |
 | Burg mit letztem Leben, das Reich hat noch eine | zerstört: Das Feld geht ohne Gebäude und ohne Armeen an den Angreifer und behält seinen Wert (`CASTLE_DESTROYED`) | befestigt, +50 |
 | letzte Burg mit letztem Leben | Das ganze Reich geht an den Angreifer, mit allen Gebäuden und Vorräten; seine Armeen lösen sich auf, es scheidet aus (`TAKEOVER`, Ereignis `KINGDOM_ELIMINATED`) | befestigt, +50 |
 
-Dazu verliert der Verlierer eine Armee (§11.4). **Wertung** wie §6, nur aus Land: jedes Feld 100, die Startburg 300, jede gehaltene Verteidigung +50; Vorräte, Gebäude und Armeen zählen nicht **[V, [O-28]]**. Rangfolge: Punkte; ein gefallenes Reich hinter jedem lebenden, ein später gefallenes vor einem früher gefallenen; dann mehr Felder, dann mehr Burgleben; sonst geteilter Platz (`realmStandings`). Die Partie endet sofort, wenn nur noch ein Reich lebt (`LAST_KINGDOM`), sonst nach der letzten Runde (`ROUNDS_COMPLETE`).
+Dazu verliert der Verlierer eine Armee (§11.4). **Freies Feld** **[V, [O-37] A; Einzelheiten E]**: Der Angriff ist der Angriff der Runde und zählt als Duell der Partie (Glücksrad, Kategorie, Bot-Zuschlag wie sonst). Gefragt wird nur der Angreifer; es gibt keine Schätzfrage, keine Befestigung und keinen Armeeverlust, auch nicht bei falscher Antwort. Ein genommenes Feld ist danach ein Feld wie jedes andere: Es bringt ab der nächsten Runde Ertrag, lässt sich bebauen und angreifen. Was am Ende frei ist, zählt für niemanden. **Wertung** wie §6, nur aus Land: jedes Feld 100, die Startburg 300, jede gehaltene Verteidigung +50; Vorräte, Gebäude und Armeen zählen nicht **[V, [O-28]]**. Rangfolge: Punkte; ein gefallenes Reich hinter jedem lebenden, ein später gefallenes vor einem früher gefallenen; dann mehr Felder, dann mehr Burgleben; sonst geteilter Platz (`realmStandings`). Die Partie endet sofort, wenn nur noch ein Reich lebt (`LAST_KINGDOM`), sonst nach der letzten Runde (`ROUNDS_COMPLETE`).
 
 ### 11.8 Bots
 
 Wie §7 antworten Bots über das NPC-Modell ihrer Stärke; bei einer Wissensfrage aus ihren Lieblingskategorien eine Stufe besser (`REALM_FAVORITE_THETA_BONUS` = 0,7, ein mittlerer Bot trifft eine mittelschwere Frage dort zu rund 75 % statt 60 %) **[E]**. Die Schätzfrage im Stechen hat keine Kategorie vom Rad und bekommt den Zuschlag nicht; beide Antworten eines Duells stehen wie im PvE vorab fest (`generateRealmBotAnswer`, Ziehungsfolge wie `generateNpcAnswer`). Ihre Regeln (`realm-bots.ts`) **[E]**:
 
-- **Wahlen:** Burg möglichst weit weg von den anderen Burgen (bis 3 Felder zählt), dann viele Nachbarn; Dorf etwa zwei Felder von der eigenen Burg, dann viele freie Nachbarn; Landnahme wie §7; Angriffsziel mit dem größten erwarteten Gewinn: Siegchance aus dem Glücksrad mal Punkte je nötigem Sieg (eine Burg mit letztem Leben bringt als letzte das ganze Reich).
-- **Rüstzeit:** erst Armeen hinter der Grenze ein Feld Richtung Grenze; dann ein Ausbau je Runde, die höchste erreichbare Stufe (Burg vor Stadt vor Dorf) auf dem Feld mit den wenigsten gegnerischen Nachbarn, wenn nötig nach einem Tausch; mit dem übrigen Brot Armeen in der Burg mit den wenigsten.
+- **Wahlen:** Burg möglichst weit weg von den anderen Burgen (bis 3 Felder zählt), dann viele Nachbarn; Dorf etwa zwei Felder von der eigenen Burg, dann viele freie Nachbarn; Landnahme wie §7; Angriffsziel mit dem größten erwarteten Gewinn: Siegchance aus dem Glücksrad mal Punkte je nötigem Sieg (eine Burg mit letztem Leben bringt als letzte das ganze Reich). Bei einem freien Feld ist die Siegchance die eigene Trefferquote in der gezogenen Kategorie und der Gewinn der Wert des Felds; was einem Gegner abgenommen wird, zählt 1,6-fach (`REALM_RIVAL_GAIN_WEIGHT`), weil es dem Gegner zugleich fehlt. Gemessen gehen so gut die Hälfte der Angriffe auf freie Felder.
+- **Rüstzeit:** erst Armeen hinter der Grenze ein Feld Richtung Grenze (grenzt das Reich an keinen Gegner, zählt der Rand zum freien Land); dann ein Ausbau je Runde, die höchste erreichbare Stufe (Burg vor Stadt vor Dorf) auf dem Feld mit den wenigsten gegnerischen Nachbarn, wenn nötig nach einem Tausch; mit dem übrigen Brot Armeen in der Burg mit den wenigsten.
 
 Gleichstände entscheidet der Strom `match`. Die Stärke wirkt nur auf die Antworten.
 
 ### 11.9 Simulation und Messwerte
 
-Unit-Tests je Regel (`packages/game-core/test/realm.test.ts`, `packages/protocol/test/match-rules.test.ts`) und eine Simulation von je 1 000 Partien zu dritt (Wendelmark) und zu zweit (Kernmark) mit Bots gemischter Stärke, Sitz 0 verpasst 15 % der Schätzfragen, Wahlen, Rüstzeiten und Duelle, ein verpasstes Duell mit beiden Fragen wie in `match-simulation.test.ts` (`realm-simulation.test.ts`, Partien aus `realm-sim.ts`). Nach jedem Schritt gilt: Besitzer gültig, im Feldzug hat jedes Feld einen; Armeen zwischen 0 und 6 und nur auf besetzten Feldern; Vorräte nie negativ; höchstens zwei Burgen je Reich, jedes lebende Reich hat ab der Landnahme mindestens eine; gefallene Reiche besitzen nichts und haben keine Vorräte; jeder Regionswert ist Grundwert plus Befestigungen. Jede Partie endet, die Punkte ergeben die Summe aller Regionswerte, die Wiederholung mit denselben Strömen ist bitgleich, stärkere Bots gewinnen öfter. Bänder für die Spielbalance aus je 400 Partien gleich starker Bots: zweite Burg bei 30 bis 80 % der Spieler, ein Reich fällt in weniger als 5 % der Partien, der Angreifer gewinnt 35 bis 55 % der Duelle, typische Dauer im Mittel höchstens 15,5 Minuten (zu zweit 11,5), zu zweit gewinnt der Erste der Startfrage seltener als 60 %.
+Unit-Tests je Regel (`packages/game-core/test/realm.test.ts`, `packages/protocol/test/match-rules.test.ts`) und eine Simulation von je 1 000 Partien zu dritt (Wendelmark) und zu zweit (Kernmark) mit Bots gemischter Stärke, Sitz 0 verpasst 15 % der Schätzfragen, Wahlen, Rüstzeiten und Duelle, ein verpasstes Duell mit beiden Fragen wie in `match-simulation.test.ts` (`realm-simulation.test.ts`, Partien aus `realm-sim.ts`); dazu 200 Partien zu dritt nach den Regeln vor ADR-062 (ohne `landGrabRounds`), damit gespeicherte Partien spielbar bleiben. Nach jedem Schritt gilt: Besitzer gültig; ein freies Feld hat weder Gebäude noch Armeen noch Befestigung; Armeen zwischen 0 und 6 und nur auf besetzten Feldern; Vorräte nie negativ; höchstens zwei Burgen je Reich, jedes lebende Reich hat ab der Landnahme mindestens eine; gefallene Reiche besitzen nichts und haben keine Vorräte; jeder Regionswert ist Grundwert plus Befestigungen. Jede Partie endet; die Landnahme vergibt genau sechs Felder, und am Ende ist frei, was danach niemand genommen hat; die Punkte ergeben die Summe der Werte aller vergebenen Felder; die Wiederholung mit denselben Strömen ist bitgleich, stärkere Bots gewinnen öfter. Bänder für die Spielbalance aus je 400 Partien gleich starker Bots: zweite Burg bei 30 bis 80 % der Spieler, ein Reich fällt in weniger als 5 % der Partien, der Angreifer gewinnt 35 bis 55 % der Duelle gegen ein Reich, 33 bis 75 % der Angriffe gehen auf freie Felder und 60 bis 85 % davon gelingen, im Mittel bleibt mehr als ein Feld frei, typische Dauer im Mittel höchstens 12 Minuten (zu zweit 9,5), zu zweit gewinnt der Erste der Startfrage seltener als 60 %.
 
-Rechnerische Obergrenze, wenn jede Zeit ganz ausläuft und jedes Duell bis zur Schätzfrage geht: zu dritt 26,0 Minuten und 37 Fragen, zu zweit 18,7 Minuten und 25 Fragen (der Test prüft sie). Messwerte über je 2 000 Partien gleich starker mittlerer Bots ohne verpasste Fragen (2026-11-11, `corepack pnpm exec tsx packages/game-core/test/realm-measure.ts`; „typisch“ mit den Annahmen Wahl 5 s, Wissensfrage 8 s, Schätzfrage 11 s, Rüstzeit 25 s, die Pausen voll):
+Rechnerische Obergrenze, wenn jede Zeit ganz ausläuft und jedes Duell bis zur Schätzfrage geht: zu dritt 22,0 Minuten und 33 Fragen, zu zweit 16,7 Minuten und 23 Fragen (der Test prüft sie). Messwerte über je 2 000 Partien gleich starker mittlerer Bots ohne verpasste Fragen (2026-11-12, `corepack pnpm exec tsx packages/game-core/test/realm-measure.ts 2000`; „typisch“ mit den Annahmen Wahl 5 s, Wissensfrage 8 s, Schätzfrage 11 s, Rüstzeit 25 s, die Pausen voll). Daneben die Werte der Regeln vor ADR-062 (Landnahme, bis alles vergeben ist; Dorf 2, Stadt 3), neu gemessen mit demselben Werkzeug:
 
-| Messwert | zu dritt (Wendelmark) | zu zweit (Kernmark) |
-|---|---|---|
-| Fragen je Partie | 29,7 | 20,1 |
-| Duelle, davon Eroberungen | 15,0, davon 6,4 | 10,0, davon 4,2 |
-| Angreifer gewinnt ein Duell | 44 % | 44 % |
-| Duelle, die die Schätzfrage entscheidet | 51 % | 51 % |
-| Frage aus Lieblingskategorien Angreifer / Verteidiger / frei | 39 / 28 / 33 % | 34 / 40 / 26 % |
-| Einkommen je Runde und Reich, Brot / Baustoff | 6,7 / 7,3 | 7,5 / 6,5 |
-| je Spieler gebaut: Dörfer / Städte | 2,0 / 2,4 | 2,0 / 2,6 |
-| Spieler, die eine zweite Burg bauen | 60 % | 40 % |
-| Armeen gekauft je Spieler | 8,9 | 10,7 |
-| Rüstzeiten mit Tausch | 12 % | 15 % |
-| Partien, in denen ein Reich fällt | 1,3 % (gemischte Bots 6,7 %) | 1,4 % (gemischte Bots 3,8 %) |
-| Dauer typisch, Mittel (90 % der Partien kürzer als) | 14,4 min (15,0) | 10,4 min (11,0) |
-| Dauer, wenn jeder jede Zeit ausreizt: Mittel, höchstens | 22,8 min, 25,6 min | 16,5 min, 18,7 min |
-| Sieg nach Platz der Startfrage | 34 / 36 / 30 % | 57 / 43 % |
-| Siegquote nach Stärke (gemischt) | leicht 5 %, mittel 27 %, schwer 69 % | leicht 21 %, mittel 48 %, schwer 82 % |
+| Messwert | zu dritt (Wendelmark) | zu zweit (Kernmark) | vor ADR-062, zu dritt / zu zweit |
+|---|---|---|---|
+| Felder je Reich zu Beginn des Feldzugs, Mittel (kleinstes bis größtes) | 4,0 (2,8 bis 5,2) | 5,0 (4,5 bis 5,5) | 8,0 / 8,0 |
+| Fragen je Partie | 21,5 | 15,5 | 29,7 / 20,1 |
+| Angriffe auf freie Felder, davon genommen | 8,1, davon 72 % | 5,2, davon 71 % | – |
+| freie Felder am Ende | 6,2 von 24 | 2,3 von 16 | 0 |
+| Duelle gegen ein Reich, davon Eroberungen | 6,9, davon 2,9 | 4,8, davon 2,0 | 15,0, davon 6,4 / 10,0, davon 4,2 |
+| Angreifer gewinnt ein Duell gegen ein Reich | 44 % | 44 % | 44 % / 44 % |
+| Duelle, die die Schätzfrage entscheidet | 51 % | 51 % | 51 % / 51 % |
+| Frage aus Lieblingskategorien Angreifer / Verteidiger / frei (Duelle gegen ein Reich) | 39 / 39 / 22 % | 34 / 46 / 20 % | 39 / 28 / 33 % und 34 / 40 / 26 % |
+| Einkommen je Reich nach Runde (Brot + Baustoff) | 9,0 / 10,9 / 12,9 / 14,3 / 16,3 | 10,0 / 12,1 / 14,1 / 15,5 / 17,6 | 12 / 13 / 14 / 15 / 16 |
+| Einkommen je Runde und Reich im Mittel, Brot / Baustoff | 6,1 / 6,6 | 6,7 / 7,1 | 6,7 / 7,3 und 7,5 / 6,5 |
+| je Spieler gebaut: Dörfer / Städte | 1,9 / 2,4 | 2,0 / 2,3 | 2,0 / 2,4 und 2,0 / 2,6 |
+| Spieler, die eine zweite Burg bauen | 39 % | 65 % | 60 % / 40 % |
+| Armeen gekauft je Spieler | 8,0 | 9,5 | 8,9 / 10,7 |
+| Rüstzeiten mit Tausch | 19 % | 11 % | 12 % / 15 % |
+| Vorrat am Ende je Spieler, Brot / Baustoff | 1,6 / 6,0 | 1,7 / 4,5 | 2,6 / 6,1 und 3,6 / 4,6 |
+| Das Reich mit den meisten Feldern zu Beginn gewinnt | 49 % | 61 % | 54 % / 61 % |
+| Partien, in denen ein Reich fällt | 0,3 % (gemischte Bots 1,2 %) | 0,1 % (gemischte Bots 0,8 %) | 1,3 % / 1,4 % |
+| Dauer typisch, Mittel (90 % der Partien kürzer als) | 10,8 min (11,5) | 8,5 min (9,2) | 14,4 min / 10,4 min |
+| Dauer, wenn jeder jede Zeit ausreizt: Mittel, höchstens | 17,1 min, 20,7 min | 13,4 min, 15,8 min | 22,8 min, 25,6 min / 16,5 min, 18,7 min |
+| Sieg nach Platz der Startfrage | 36 / 34 / 30 % | 55 / 45 % | 34 / 35 / 30 % und 57 / 43 % |
+| Siegquote nach Stärke (gemischt, ohne den Sitz, der Fragen verpasst) | leicht 12 %, mittel 38 %, schwer 71 % | leicht 36 %, mittel 62 %, schwer 88 % | leicht 5 %, mittel 27 %, schwer 69 % und leicht 21 %, mittel 48 %, schwer 82 % (Stand 2026-11-11) |
 
-Gegenproben mit 4 und 6 Runden (je 2 000 Partien): Die zweite Burg bauen dann zu dritt 26 und 74 %, zu zweit 9 und 61 % der Spieler; typisch dauert die Partie zu dritt 12,4 und 16,4 Minuten, zu zweit 9,0 und 11,9. Fünf Runden treffen das Ziel des Konzepts („etwa jeder Zweite schafft die zweite Burg“) zu dritt knapp darüber, zu zweit knapp darunter. Das Startdorf in umgekehrter Reihenfolge senkt den Vorteil des Ersten zu zweit von rund 60 zu 39 (§9) auf 57 zu 43.
+**Was die Zahlen sagen.** Die Partie wird zu dritt rund dreieinhalb Minuten kürzer, zu zweit knapp zwei; unter dem Ziel des Konzepts von 10 bis 15 Minuten liegt nur die Partie zu zweit (8,5 Minuten). Gut die Hälfte der Angriffe geht auf freie Felder, und am Ende ist noch Land frei. Es gibt deshalb nur noch halb so viele Duelle gegen ein Reich, und Stärke entscheidet etwas weniger: Leichte Bots gewinnen öfter als zuvor. Der Vorteil des Ersten der Startfrage bleibt zu zweit bei 55 zu 45.
+
+**Vorräte.** Ziel aus dem Plan nach dem Spieltest: Das Einkommen einer Runde reicht für ein Gebäude oder zwei Armeen, nicht für beides, und wer eine zweite Burg will, muss dafür spürbar auf anderes verzichten. Gegenproben mit je 2 000 Partien (zweite Burg zu dritt / zu zweit; Armeen je Spieler zu dritt):
+
+| Zahlen | zweite Burg | Armeen | Vorrat am Ende, Brot / Baustoff (zu dritt) |
+|---|---|---|---|
+| alte Erträge (Dorf 2, Stadt 3), alte Preise | 7 % / 10 % | 7,0 | 1,2 / 6,2 |
+| **Dorf 3, Stadt 4, alte Preise (umgesetzt)** | 39 % / 65 % | 8,0 | 1,6 / 6,0 |
+| wie umgesetzt, Armee 3 Brot | 41 % / 61 % | 5,3 | 1,4 / 5,9 |
+| wie umgesetzt, Dorf 2 + 2, Stadt 4 + 4, Burg 10 + 14 | 50 % / 76 % | 5,9 | 1,2 / 7,8 |
+| alte Erträge, Burg 6 + 12 | 39 % / 62 % | 6,6 | 1,1 / 3,7 |
+| wie umgesetzt, Burg 10 + 20 | 9 % / 11 % | 8,5 | 2,0 / 10,2 |
+
+Mit den umgesetzten Zahlen reicht das Einkommen der ersten Runde (im Mittel gut 4 Brot und knapp 5 Baustoff) für ein Dorf und eine Armee oder für zwei Armeen; ab der dritten Runde reicht es für ein Gebäude und zwei Armeen, wenn man nicht auf die zweite Burg spart. Das Ziel ist damit am Anfang getroffen, später nur zum Teil: Gebäude kosten fast nur Baustoff, Armeen nur Brot, beide stehen sich kaum im Weg. Die zweite Burg (24 Rohstoffe, rund zwei Runden Einkommen) baut zu dritt gut jeder Dritte, zu zweit zwei von drei. Die Bots sparen nicht gezielt auf die Burg; Menschen können es. Welche Zahlen gelten sollen, entscheidet der Product Owner ([O-41]).
+
+**Wahlen der Landnahme zu dritt.** Mit 2, 1 und 0 Wahlen je Runde (wie §3) kann ein Reich nach zwei Runden mit 2 Feldern dastehen und ein anderes mit 6. Gegenprobe mit 2, 1 und 1 (`REALM_PICKS='[2,1,1]'`): Felder zu Beginn 4,7 (4,0 bis 5,3), zu Beginn des Feldzugs sind 10 statt 12 Felder frei, das größte Reich gewinnt zu 41 statt 49 %, die zweite Burg bauen 51 %, die Partie dauert 11,3 Minuten. Umgesetzt ist 2, 1, 0; die Wahl gehört zu [O-41].
+
+**Sechs Runden** (Gegenprobe, je 2 000 Partien): zu dritt 12,7 Minuten und zweite Burg bei 63 %, zu zweit 9,9 Minuten und 82 %; frei bleiben am Ende 5,7 und 2,0 Felder. Es bleibt bei fünf Runden **[V, [O-31]]**.
 
 ### 11.10 Parametertabelle
 
@@ -295,7 +320,8 @@ Gegenproben mit 4 und 6 Runden (je 2 000 Partien): Die zweite Burg bauen dann zu
 | `favorites` | 4 | Lieblingskategorien je Spieler |
 | `startArmies` | 3 | Armeen jeder Startburg |
 | `villageMinDistance` | 2 | Mindestabstand des Startdorfs zu fremden Gebäuden |
-| `yields.plain` / `village` / `town` | 1 / 2 / 3 | Ertrag je Runde im Rohstoff des Felds |
+| `landGrabRounds` | 2 **[V, PO 2026-11-12]** | Runden der Landnahme, 1 bis 10; fehlt der Wert (Partien vor ADR-062), läuft sie, bis alles vergeben ist |
+| `yields.plain` / `village` / `town` | 1 / 3 / 4 ([O-41]) | Ertrag je Runde im Rohstoff des Felds |
 | `yields.castleBread` / `castleMaterial` | 2 / 2 | Ertrag einer Burg |
 | `tradeRate` | 3 | so viel eines Rohstoffs kostet 1 vom anderen |
 | `costs.village` / `town` / `castle` / `army` | 1 + 3 / 2 + 6 / 8 + 16 / 2 + 0 | Brot + Baustoff |
@@ -313,6 +339,7 @@ Seit ADR-058 spielt der Server die Partie mit Ausbau als eigene Spielart (`match
 - **Lieblingskategorien:** wählbar in der Aufstellung, genau vier verschiedene vom Rad. Das Konto merkt sich die letzte Wahl und bringt sie in die nächste Aufstellung mit. Beim Start gilt eine Wahl nur, wenn sie dann noch auf dem Rad steht; sonst und für Bots lost der Server vier (Strom `match`).
 - **Zeiten:** Jede Wahl (Burg, Startdorf, Landnahme) bleibt wie §5 `pickShowMs` stehen, außer derselbe Sitz wählt gleich noch einmal (letzte Burg und erstes Startdorf). Ein Angriffsziel führt sofort zum Glücksrad: Ziel, Rad und Kategorie stehen `wheelMs` lang, dann kommt die Wissensfrage. Das Aufgedeckte steht `ordersRevealMs` lang.
 - **Rüstzeit:** Bots geben zu Beginn ab, Menschen bis `prepareMs` plus Latenzpuffer. Wer fertig ist, wartet auf die anderen; sobald alle abgegeben haben, wird aufgedeckt, eine Partie allein gegen Bots also mit der eigenen Abgabe. Bis dahin sieht jeder nur die eigenen Befehle und wer fertig ist.
+- **Freies Feld:** Die Wissensfrage geht an einen einzigen Sitz (`match_questions.seats` mit einem Eintrag, nur für `DUEL_TRIVIA` erlaubt, Migration 0015). Mit der Antwort des Angreifers oder dem Ablauf seiner Frist ist sie entschieden; ein Bot antwortet sofort. Die anderen Reiche sehen währenddessen, wer welches freie Feld angreift, und die Frage wie bei jedem fremden Duell erst in der Auflösung ([O-38]).
 - **Glücksrad:** dreht der Server, Kategorien ohne ungestellte Frage ausgenommen (§11.6). Das Rad und die gezogene Kategorie stehen im Protokoll, mit Zufallsnachweis wie jede Ziehung.
 - **Bots** antworten in der Wissensfrage eines Duells aus ihren Lieblingskategorien besser (§11.8); maßgeblich ist die Kategorie vom Rad.
 - **Letzte Auflösung** und Wiederanlauf wie §5: Auch hier bleibt die letzte Auflösung stehen, bevor abgerechnet wird, und nach einem Neustart macht der Server in jedem Abschnitt weiter, auch mitten in der Rüstzeit.
@@ -320,6 +347,9 @@ Seit ADR-058 spielt der Server die Partie mit Ausbau als eigene Spielart (`match
 
 ### 11.12 Offen
 
-- Spieltest mit dem Product Owner am Handy steht aus; erst danach wird die Spielart in Produktion freigegeben. Im Browser gilt bis dahin: Ein offener Entwurf der Rüstzeit wird kurz vor Fristende von selbst abgegeben, und das Aufgedeckte steht 2 s ([O-36]).
-- Fragen: Das Rad lässt sich erst sinnvoll spielen, wenn jede wählbare Kategorie genug Fragen hat (§11.6).
-- Alle Zahlen sind Standardannahmen **[E]** bis zum ersten Spieltest; besonders Burgpreis, Rundenzahl und Länge der Rüstzeit.
+- Erster Spieltest mit dem Product Owner am 2026-11-12; die Rückmeldung wird in Schritten umgesetzt (ADR-061, ADR-062, danach Rüstzeit und Verständlichkeit, Zuschauer, Gestaltung). Erst danach wird die Spielart in Produktion freigegeben. Im Browser gilt bis dahin: Ein offener Entwurf der Rüstzeit wird kurz vor Fristende von selbst abgegeben, und das Aufgedeckte steht 2 s ([O-36]).
+- Zahlen der Vorräte und Wahlen der Landnahme zu dritt: Standardannahme, bis der Product Owner entscheidet ([O-41]).
+- Zuschauer: Wer nicht gefragt wird, sieht die Frage erst in der Auflösung; bei Angriffen auf freie Felder betrifft das alle außer dem Angreifer ([O-38]).
+- Die Partie zu zweit dauert typisch 8,5 Minuten und liegt damit unter den 10 bis 15 Minuten des Konzepts ([O-41]).
+- Fragen: Das Rad lässt sich erst sinnvoll spielen, wenn jede wählbare Kategorie genug Fragen hat (§11.6). Mit freien Feldern bleibt es bei höchstens 15 Wissensfragen aus dem Rad je Partie.
+- Alle Zahlen sind Standardannahmen **[E]**; besonders Burgpreis, Rundenzahl und Länge der Rüstzeit.

@@ -47,6 +47,12 @@ export const matchEconomySchema = z
     startArmies: z.number().int().min(0).max(20),
     /** Mindestabstand des Startdorfs zu fremden Gebäuden in Feldern. */
     villageMinDistance: z.number().int().min(1).max(5),
+    /**
+     * Runden der Landnahme (ADR-062): Danach beginnt der Feldzug, auch wenn noch Felder frei sind;
+     * freie Felder am eigenen Land lassen sich dann mit einer Wissensfrage angreifen (O-37). Fehlt
+     * in Partien, die vor ADR-062 angelegt wurden; dort läuft die Landnahme, bis alles vergeben ist.
+     */
+    landGrabRounds: z.number().int().min(1).max(10).optional(),
     /** Ertrag je Feldzugrunde: Feld ohne Gebäude, mit Dorf, mit Stadt (in seinem Rohstoff); Burg in beiden. */
     yields: z
       .object({
@@ -260,13 +266,16 @@ export function isRealmRules(rules: MatchRules): rules is RealmRules {
 
 /**
  * Standardwerte des Ausbaus aus dem Konzept vom 2026-11-11, vom Product Owner mit allen
- * Empfehlungen freigegeben (O-25 bis O-35). Zahlen [E] bis zum Spieltest.
+ * Empfehlungen freigegeben (O-25 bis O-35). Nach dem ersten Spieltest (ADR-062): Landnahme nur
+ * zwei Runden, Dorf und Stadt bringen 3 und 4 statt 2 und 3. Zahlen [E] bis zur Entscheidung des
+ * Product Owners (O-41).
  */
 export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
   favorites: 4,
   startArmies: 3,
   villageMinDistance: 2,
-  yields: { plain: 1, village: 2, town: 3, castleBread: 2, castleMaterial: 2 },
+  landGrabRounds: 2,
+  yields: { plain: 1, village: 3, town: 4, castleBread: 2, castleMaterial: 2 },
   tradeRate: 3,
   costs: {
     village: { bread: 1, material: 3 },

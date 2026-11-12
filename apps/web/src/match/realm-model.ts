@@ -408,11 +408,12 @@ export function tradeOptions(
 
 /**
  * Rad, das ein Angriff von `attacker` auf `region` nach heutigem Stand bekäme: die Vorschau, bevor
- * das Ziel feststeht. `null`, wenn das Feld kein Ziel ist (eigenes oder freies Feld).
+ * das Ziel feststeht. Ein freies Feld hat keinen Verteidiger: Dann liegen nur die eigenen und die
+ * freien Lose auf dem Rad (O-37). `null`, wenn das Feld kein Ziel ist (das eigene).
  */
 export function wheelPreview(play: RealmPlay, attacker: number, region: number): RealmWheel | null {
   const target = play.board.regions[region];
-  if (!target || target.owner === null || target.owner === attacker) return null;
+  if (!target || target.owner === attacker) return null;
   const favorites: QuestionCategory[][] = [];
   for (const seat of play.board.seats) favorites[seat.seat] = seat.favorites;
   return realmWheelOn(

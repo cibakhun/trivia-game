@@ -26,7 +26,10 @@ export function buildingLevel(building: RealmBuilding): number {
 }
 
 export interface RealmRegionState {
-  /** Besitzender Sitz, `null` = frei (nur vor dem Ende der Landnahme). */
+  /**
+   * Besitzender Sitz, `null` = frei. Mit `economy.landGrabRounds` bleiben nach der Landnahme Felder
+   * frei; im Feldzug nimmt sie, wer sie angreift und die Wissensfrage richtig beantwortet (O-37).
+   */
   readonly owner: number | null;
   /** Punktwert: Grundwert (Feld 100, Startburg 300) plus Befestigungen. */
   readonly value: number;
@@ -86,7 +89,8 @@ export interface RealmWheel {
 export interface RealmDuelSetup {
   readonly round: number;
   readonly attacker: number;
-  readonly defender: number;
+  /** Besitzer des angegriffenen Felds; `null` = freies Feld, der Angreifer antwortet allein (O-37). */
+  readonly defender: number | null;
   readonly region: number;
   /** Angreifer der Runde in ihrer Reihenfolge, fest ab dem ersten Angriff der Runde. */
   readonly attackers: readonly number[];
@@ -383,6 +387,11 @@ export function realmTurnOrder(state: RealmState): MatchTurn[] {
   }
 }
 
+/** Sitze, die die Frage eines Angriffs beantworten: bei einem freien Feld nur der Angreifer. */
+function duelSeats(setup: RealmDuelSetup): number[] {
+  return setup.defender === null ? [setup.attacker] : [setup.attacker, setup.defender];
+}
+
 /** Frage, die jetzt gestellt wird, mit Kategorie bei der Wissensfrage; sonst `null`. */
 export function realmPendingQuestion(state: RealmState): {
   readonly type: 'TRIVIA' | 'ESTIMATE';
@@ -396,9 +405,9 @@ export function realmPendingQuestion(state: RealmState): {
     case 'LAND_ESTIMATE':
       return { type: 'ESTIMATE', seats: realmRoundOrder(state, step.round), category: null };
     case 'DUEL_TRIVIA':
-      return { type: 'TRIVIA', seats: [step.attacker, step.defender], category: step.category };
+      return { type: 'TRIVIA', seats: duelSeats(step), category: step.category };
     case 'DUEL_ESTIMATE':
-      return { type: 'ESTIMATE', seats: [step.attacker, step.defender], category: null };
+      return { type: 'ESTIMATE', seats: duelSeats(step), category: null };
     case 'CASTLE_PICK':
     case 'VILLAGE_PICK':
     case 'LAND_PICK':
@@ -443,7 +452,9 @@ function touches(map: MatchMap, region: number, owned: ReadonlySet<number>): boo
  * - Burg: frei und mindestens `capital.minDistance` Felder von jeder gewählten Burg;
  * - Startdorf: frei und mindestens `economy.villageMinDistance` Felder von jedem fremden Gebäude;
  * - Landnahme: frei und am eigenen Gebiet, gibt es keine solche, jede freie;
- * - Angriffsziel: gegnerisch und am eigenen Gebiet, gibt es keine solche, jede gegnerische.
+ * - Angriffsziel: gegnerisch oder frei und am eigenen Gebiet (ein freies Feld nimmt, wer die
+ *   Wissensfrage allein richtig beantwortet, O-37); grenzt nichts davon ans eigene Gebiet, jede
+ *   gegnerische.
  * Gibt es für Burg oder Dorf keinen Platz mit Abstand, ist jede freie Region wählbar.
  */
 export function realmLegalRegions(state: RealmState): number[] {
@@ -478,11 +489,13 @@ export function realmLegalRegions(state: RealmState): number[] {
     }
     case 'CAMPAIGN_TARGET': {
       const owned = new Set(realmRegionsOf(state, step.attacker));
-      const enemy = state.regions.flatMap((r, id) =>
+      const adjacent = state.regions.flatMap((r, id) =>
+        r.owner !== step.attacker && touches(map, id, owned) ? [id] : [],
+      );
+      if (adjacent.length > 0) return adjacent;
+      return state.regions.flatMap((r, id) =>
         r.owner !== null && r.owner !== step.attacker ? [id] : [],
       );
-      const adjacent = enemy.filter((id) => touches(map, id, owned));
-      return adjacent.length > 0 ? adjacent : enemy;
     }
     case 'START_ESTIMATE':
     case 'LAND_ESTIMATE':

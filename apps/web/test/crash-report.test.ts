@@ -64,6 +64,15 @@ describe('Meldung des Auffangschirms (ADR-061)', () => {
     expect(report.match(/not a child of this node/g)).toHaveLength(1);
   });
 
+  it('behält den Stapel, wenn der Fehler keine Meldung hat', () => {
+    const error = new Error('');
+    Object.defineProperty(error, 'stack', {
+      value: ['Error', '    at eins (a.js:1:1)', '    at zwei (b.js:2:2)'].join('\n'),
+    });
+    const lines = crashReport(error, null, ENV).split('\n');
+    expect(lines.slice(4)).toEqual(['Stelle:', '  at eins (a.js:1:1)', '  at zwei (b.js:2:2)']);
+  });
+
   it('hängt den Weg durch die Bauteile an, sobald React ihn mitgibt', () => {
     const parts =
       '\n    at RealmStage (https://beispiel.example/assets/index-abc.js:1:2)\n    at MatchScreen\n    at App';

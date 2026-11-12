@@ -70,8 +70,12 @@ export function crashReport(error: unknown, componentStack: string | null, env: 
   const stack =
     typeof error === 'object' && error !== null ? (error as { stack?: unknown }).stack : null;
   if (typeof stack === 'string') {
-    // Manche Browser wiederholen in der ersten Zeile des Stapels die Meldung
-    const where = firstLines(stack, (line) => line === headline || line.endsWith(message));
+    // Manche Browser wiederholen in der ersten Zeile des Stapels die Meldung. Ohne Meldung steht dort
+    // nur der Name; am Ende vergleichen hieße dann, jede Zeile zu streichen
+    const where = firstLines(
+      stack,
+      (line) => line === headline || (message === '' ? line === name : line.endsWith(message)),
+    );
     if (where.length > 0) lines.push(`${t('crash.report.stack')}:`, ...where.map((l) => `  ${l}`));
   }
   if (componentStack) {

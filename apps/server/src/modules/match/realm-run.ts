@@ -352,10 +352,12 @@ export class RealmRun extends MatchRun {
         this.apply({
           kind: 'DUEL_TRIVIA',
           attackerCorrect: answers.correct(step.attacker),
-          defenderCorrect: answers.correct(step.defender),
+          // Freies Feld (O-37): Nur der Angreifer antwortet
+          defenderCorrect: step.defender !== null && answers.correct(step.defender),
         });
         return;
       case 'DUEL_ESTIMATE':
+        if (step.defender === null) throw new Error('Schätzfrage ohne Verteidiger');
         this.apply({
           kind: 'DUEL_ESTIMATES',
           attacker: answers.estimate(step.attacker),

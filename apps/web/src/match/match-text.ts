@@ -73,8 +73,13 @@ export function stepLabel(view: MatchView): string | null {
     case 'VILLAGE_PICK':
       return t('realm.step.VILLAGE_PICK');
     case 'LAND_ESTIMATE':
-    case 'LAND_PICK':
-      return t('match.step.LAND', { round: step.round ?? 1 });
+    case 'LAND_PICK': {
+      // Mit Ausbau endet die Landnahme nach festen Runden (ADR-062): Das Band zählt sie mit
+      const rounds = view.realm?.economy.landGrabRounds;
+      return rounds === undefined
+        ? t('match.step.LAND', { round: step.round ?? 1 })
+        : t('realm.step.LAND', { round: step.round ?? 1, rounds });
+    }
     case 'PREPARE':
     case 'CAMPAIGN_TARGET':
     case 'DUEL_WHEEL':
@@ -132,13 +137,18 @@ export function questionContext(
     case 'LAND_ESTIMATE':
       return t('match.question.land', { round: step.round ?? 1 });
     case 'DUEL_TRIVIA':
-      return step.attacker !== null && step.defender !== null && step.region !== null
-        ? t('match.question.duel', {
+      if (step.attacker === null || step.region === null) return null;
+      // Freies Feld (O-37): Nur der Angreifer wird gefragt
+      return step.defender === null
+        ? t('realm.question.claim', {
+            region: region(step.region),
+            attacker: name(step.attacker),
+          })
+        : t('match.question.duel', {
             region: region(step.region),
             attacker: name(step.attacker),
             defender: name(step.defender),
-          })
-        : null;
+          });
     case 'DUEL_ESTIMATE':
       return step.region !== null
         ? t('match.question.duelEstimate', { region: region(step.region) })
@@ -190,6 +200,15 @@ export function outcomeTexts(
       );
     case 'REALM_DUEL_RESOLVED': {
       const p = outcome.payload;
+      if (p.defender === null || p.effect === 'CLAIMED' || p.effect === 'UNCLAIMED') {
+        // Freies Feld (O-37): Die Antwort des Angreifers allein entscheidet
+        const claimed = p.effect === 'CLAIMED';
+        const claim = { attacker: name(p.attacker), region: region(p.region) };
+        return [
+          t(claimed ? 'realm.duel.reason.CLAIMED' : 'realm.duel.reason.UNCLAIMED', claim),
+          t(claimed ? 'realm.duel.CLAIMED' : 'realm.duel.UNCLAIMED', claim),
+        ];
+      }
       const params = {
         attacker: name(p.attacker),
         defender: name(p.defender),
@@ -248,11 +267,16 @@ export function logText(
         region: region(event.payload.region),
       });
     case 'TARGET_CHOSEN':
-      return t('match.log.TARGET_CHOSEN', {
-        attacker: name(event.payload.attacker),
-        defender: name(event.payload.defender),
-        region: region(event.payload.region),
-      });
+      return event.payload.defender === null
+        ? t('realm.log.TARGET_FREE', {
+            attacker: name(event.payload.attacker),
+            region: region(event.payload.region),
+          })
+        : t('match.log.TARGET_CHOSEN', {
+            attacker: name(event.payload.attacker),
+            defender: name(event.payload.defender),
+            region: region(event.payload.region),
+          });
     case 'DUEL_RESOLVED':
     case 'REALM_DUEL_RESOLVED':
     case 'KINGDOM_ELIMINATED':

@@ -626,6 +626,12 @@ span.order-chip {
   width: calc(22 * var(--u));
 }
 
+/* Angriff auf ein freies Feld: Statt eines Gegners steht dort „freies Feld“ */
+.duel-who.duel-free {
+  color: var(--muted);
+  font-style: italic;
+}
+
 .duel-what {
   font-size: calc(12.5 * var(--u));
   line-height: 1.25;

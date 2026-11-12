@@ -142,11 +142,14 @@ export const matchEventPayloadSchemas = {
     ),
   }),
   REGION_CLAIMED: z.object({ round, seat, region }),
-  /** Mit Ausbau samt Glücksrad dieses Angriffs. */
+  /**
+   * Mit Ausbau samt Glücksrad dieses Angriffs; `defender` ist dort `null`, wenn das Ziel ein freies
+   * Feld ist (O-37).
+   */
   TARGET_CHOSEN: z.object({
     round,
     attacker: seat,
-    defender: seat,
+    defender: seat.nullable(),
     region,
     wheel: realmWheelSchema.optional(),
   }),
@@ -218,14 +221,18 @@ export const matchEventPayloadSchemas = {
     category: questionCategorySchema,
     exhausted: z.array(questionCategorySchema).default([]),
   }),
+  /**
+   * Ausgang eines Angriffs. Bei einem freien Feld (O-37) ist `defender` `null`, die Folge `CLAIMED`
+   * oder `UNCLAIMED` und der Sieger `ATTACKER` oder `NONE`.
+   */
   REALM_DUEL_RESOLVED: z.object({
     round,
     duel: z.number().int().min(1),
     attacker: seat,
-    defender: seat,
+    defender: seat.nullable(),
     region,
     category: questionCategorySchema,
-    winner: z.enum(['ATTACKER', 'DEFENDER']),
+    winner: z.enum(['ATTACKER', 'DEFENDER', 'NONE']),
     reason: z.enum(MATCH_DUEL_REASONS),
     effect: z.enum(REALM_DUEL_EFFECTS),
     /** Gebäude auf dem Feld danach. */

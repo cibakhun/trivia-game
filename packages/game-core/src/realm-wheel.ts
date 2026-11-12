@@ -113,18 +113,32 @@ export interface RealmWheelBoard {
   readonly favorites: readonly (readonly QuestionCategory[])[];
 }
 
-/** Rad eines Angriffs von `attacker` auf `region` auf einem beliebigen Brett. */
+/**
+ * Rad eines Angriffs von `attacker` auf `region` auf einem beliebigen Brett. Ein freies Feld hat
+ * keinen Verteidiger: Auf dem Rad liegen dann nur die Lose des Angreifers und die freien (O-37).
+ */
 export function realmWheelOn(board: RealmWheelBoard, attacker: number, region: number): RealmWheel {
   const target = board.regions[region];
-  if (!target || target.owner === null || target.owner === attacker) {
+  if (!target || target.owner === attacker) {
     throw new RangeError(`Region ${region} ist kein Ziel für Sitz ${attacker}`);
   }
   const defender = target.owner;
+  const attackerLots = armiesInRangeOn(board.map, board.regions, attacker, region);
+  if (defender === null) {
+    return buildRealmWheel(
+      board.categories,
+      board.favorites[attacker] ?? [],
+      [],
+      attackerLots,
+      0,
+      board.economy.lots.free,
+    );
+  }
   return buildRealmWheel(
     board.categories,
     board.favorites[attacker] ?? [],
     board.favorites[defender] ?? [],
-    armiesInRangeOn(board.map, board.regions, attacker, region),
+    attackerLots,
     armiesInRangeOn(board.map, board.regions, defender, region) +
       buildingLotsOf(board.economy.lots, target.building),
     board.economy.lots.free,

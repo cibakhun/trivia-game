@@ -126,32 +126,46 @@ const ASSUMED_OTHER = 0.6;
 /** Annahme: Sind beide richtig, gewinnt der Angreifer die Schätzfrage knapp seltener. */
 const ASSUMED_ESTIMATE_WIN = 0.48;
 
-/** Geschätzte Siegchance eines Angriffs aus dem Glücksrad. */
+/**
+ * Geschätzte Siegchance eines Angriffs aus dem Glücksrad. Bei einem freien Feld antwortet nur der
+ * Angreifer: Seine Chance ist die Trefferquote in der gezogenen Kategorie.
+ */
 export function realmAttackChance(state: RealmState, attacker: number, region: number): number {
-  const defender = state.regions[region]?.owner;
-  if (defender === null || defender === undefined) return 0;
+  const target = state.regions[region];
+  if (!target || target.owner === attacker) return 0;
+  const defender = target.owner;
   const wheel = realmWheel(state, attacker, region);
   const favA = state.seats[attacker]?.favorites ?? [];
-  const favD = state.seats[defender]?.favorites ?? [];
+  const favD = defender === null ? null : (state.seats[defender]?.favorites ?? []);
   let chance = 0;
   for (const segment of wheel.segments) {
     const pa = favA.includes(segment.category) ? ASSUMED_FAVORITE : ASSUMED_OTHER;
-    const pd = favD.includes(segment.category) ? ASSUMED_FAVORITE : ASSUMED_OTHER;
-    const win = pa * (1 - pd) + pa * pd * ASSUMED_ESTIMATE_WIN;
+    let win = pa;
+    if (favD !== null) {
+      const pd = favD.includes(segment.category) ? ASSUMED_FAVORITE : ASSUMED_OTHER;
+      win = pa * (1 - pd) + pa * pd * ASSUMED_ESTIMATE_WIN;
+    }
     chance += (segment.weight / wheel.total) * win;
   }
   return chance;
 }
 
 /**
+ * So viel zählt für einen Bot ein Punkt, den er einem Gegner abnimmt, gegenüber einem Punkt aus
+ * freiem Land [E]: Ein erobertes Feld fehlt dem Gegner auch, ein freies Feld fehlt niemandem.
+ */
+export const REALM_RIVAL_GAIN_WEIGHT = 1.6;
+
+/**
  * Was ein Sieg auf einem Feld unmittelbar bringt, in Punkten je nötigem Sieg: ein Feld ohne Gebäude
  * seinen Wert; Dorf und Stadt ihren Wert geteilt durch die Siege bis zur Eroberung; eine Burg mit
  * letztem Leben das ganze Reich (letzte Burg) oder ihr Feld, sonst ihren Wert geteilt durch ihre
- * Leben.
+ * Leben. Ein freies Feld bringt seinen Wert.
  */
 export function realmTargetGain(state: RealmState, region: number): number {
   const target = state.regions[region];
-  if (!target || target.owner === null) return 0;
+  if (!target) return 0;
+  if (target.owner === null) return target.value;
   if (target.building === 'CASTLE') {
     const lives = castleLivesLeft(state, region);
     if (lives <= 1) {
@@ -169,7 +183,8 @@ export function realmTargetGain(state: RealmState, region: number): number {
  * - Burg: möglichst weit weg von den anderen Burgen (bis 3 Felder zählt), dann viele Nachbarn;
  * - Startdorf: etwa zwei Felder von der eigenen Burg, dann viele freie Nachbarn;
  * - Landnahme: viele eigene, dann viele freie Nachbarn;
- * - Angriffsziel: größter erwarteter Gewinn (Siegchance aus dem Glücksrad mal Gewinn).
+ * - Angriffsziel: größter erwarteter Gewinn (Siegchance aus dem Glücksrad mal Gewinn); was einem
+ *   Gegner abgenommen wird, zählt dabei mehr als freies Land (`REALM_RIVAL_GAIN_WEIGHT`).
  */
 export function chooseRegionForRealmBot(state: RealmState, rng: Rng): number {
   const map = realmMapOf(state);
@@ -217,7 +232,9 @@ export function chooseRegionForRealmBot(state: RealmState, rng: Rng): number {
       return pickBest(
         options,
         (region) =>
-          realmAttackChance(state, step.attacker, region) * realmTargetGain(state, region),
+          realmAttackChance(state, step.attacker, region) *
+          realmTargetGain(state, region) *
+          (state.regions[region]?.owner === null ? 1 : REALM_RIVAL_GAIN_WEIGHT),
         rng,
       );
     case 'START_ESTIMATE':
@@ -234,7 +251,8 @@ export function chooseRegionForRealmBot(state: RealmState, rng: Rng): number {
 /**
  * Befehle eines Bots in der Rüstzeit, in dieser Reihenfolge:
  * 1. Armeen hinter der Grenze ziehen ein Feld Richtung Grenze (nächstes eigenes Feld mit
- *    gegnerischem Nachbarn), soweit dort Platz ist.
+ *    gegnerischem Nachbarn; grenzt das Reich an keinen Gegner, zählt der Rand zum freien Land),
+ *    soweit dort Platz ist.
  * 2. Ein Ausbau je Runde: die höchste erreichbare Stufe (Burg vor Stadt vor Dorf), auf dem Feld mit
  *    den wenigsten gegnerischen Nachbarn; fehlt ein Rohstoff, wird 3 zu 1 getauscht, wenn der andere
  *    reicht.
@@ -256,7 +274,11 @@ export function chooseRealmOrdersForBot(state: RealmState, seat: number, rng: Rn
     }).length;
 
   // 1. Ziehen: Abstand jedes eigenen Felds zur Grenze, nur durch eigenes Land
-  const front = own.filter((id) => enemyNeighbors(id) > 0);
+  const rivals = own.filter((id) => enemyNeighbors(id) > 0);
+  const front =
+    rivals.length > 0
+      ? rivals
+      : own.filter((id) => regionNeighbors(map, id).some((n) => state.regions[n]?.owner === null));
   const distance = new Map(front.map((id) => [id, 0]));
   const queue = [...front];
   for (let i = 0; i < queue.length; i++) {

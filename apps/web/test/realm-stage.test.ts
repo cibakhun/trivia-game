@@ -149,6 +149,38 @@ function duelView(
   );
 }
 
+/** Freies Feld Ackerbrunn (4) neben Eschenhain und Birkental; dort stehen zwei meiner Armeen. */
+const FREE = 4;
+const FREE_BOARD = { free: [FREE], armies: { 5: 2 } } as const;
+
+/** Angriff von `attacker` auf das freie Feld Ackerbrunn (O-37): ohne Verteidiger. */
+function claimView(
+  phase: Phase,
+  attacker: number,
+  category: QuestionCategory = 'HISTORY',
+  overrides: Partial<MatchView> = {},
+): MatchView {
+  const wheel = realmWheelSchema.parse(
+    wheelPreview(playOf(realmViewOf(FREE_BOARD)), attacker, FREE),
+  );
+  return realmViewOf(
+    {
+      ...FREE_BOARD,
+      step: {
+        kind: 'DUEL_TRIVIA',
+        round: 2,
+        attacker,
+        defender: null,
+        region: FREE,
+        category,
+        wheel,
+      },
+      turns: attacker === ME ? MY_ATTACK : THEIR_ATTACK,
+    },
+    { phase: phaseOf(phase), ...overrides },
+  );
+}
+
 const base = { matchId: ID, seq: 12, presentedAt: AT };
 const TRIVIA: MatchPresentedQuestion = {
   ...base,
@@ -605,7 +637,7 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
   it('bittet beim Angriff erst um ein Ziel', () => {
     const html = blatt(targetView(ME), 'pick');
     expect(textOf(html)).toContain('Dein Angriff');
-    expect(textOf(html)).toContain('Tippe ein markiertes Feld an.');
+    expect(textOf(html)).toContain('Tippe ein markiertes Feld an, auch ein freies.');
     expect(html).not.toContain('data-testid="match-target"');
     expect(count(html, '<button')).toBe(0);
   });
@@ -622,6 +654,31 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
       'Ein Sieg zerstört das Dorf, das Feld bleibt noch bei Bot (schwer).',
     );
     expect(buttonOf(html, 'Angreifen')).not.toContain('disabled');
+  });
+
+  it('zeigt ein freies Feld als Ziel: nur die eigenen und die freien Lose, niemand verteidigt', () => {
+    const view = realmViewOf(
+      {
+        ...FREE_BOARD,
+        step: { kind: 'CAMPAIGN_TARGET', round: 2, chooser: ME, attacker: ME },
+        turns: MY_ATTACK,
+      },
+      { phase: phaseOf('PICK'), legalRegions: [FREE, 9, 12, 13, 18] },
+    );
+    const html = blatt(view, 'pick', { target: FREE });
+    const target = part(html, 'data-testid="match-target"', '</div>');
+    expect(target).toContain('data-region="4"');
+    expect(target).toContain('data-free=""');
+    expect(textOf(target)).toBe('Ackerbrunn Freies Feld, niemand verteidigt es');
+    const lots = part(html, 'data-testid="match-lots"', '</ul>');
+    expect(count(lots, '<li')).toBe(2);
+    expect(textOf(lots)).toMatch(/Du 2 .*frei 2/);
+    expect(textOf(html)).toContain(
+      'Nur du wirst gefragt. Richtig: Das Feld gehört dir. Falsch: Es bleibt frei, und du verlierst nichts.',
+    );
+    expect(buttonOf(html, 'Angreifen')).not.toContain('disabled');
+    // Ein Ziel mit Besitzer trägt die Markierung nicht
+    expect(blatt(targetView(ME), 'pick', { target: TARGET })).not.toContain('data-free');
   });
 
   it('sagt bei einer Burg als Ziel, dass ein Sieg ein Leben kostet', () => {
@@ -695,6 +752,154 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     expect(blatt(attacked, 'wheel')).toContain('class="blatt attacked"');
     // Als Zuschauer ohne Farbe
     expect(blatt(view, 'wheel')).toContain('class="blatt"');
+  });
+
+  describe('Angriff auf ein freies Feld (O-37)', () => {
+    it('zeigt am Glücksrad nur den Angreifer und sagt, dass er allein gefragt wird', () => {
+      const html = blatt(claimView('ANNOUNCE', ME), 'wheel');
+      expect(html).toContain('class="blatt turn"');
+      const box = part(html, 'data-testid="match-duel"', '</div>');
+      expect(textOf(box)).toContain('Du freies Feld');
+      expect(textOf(box)).toContain('Angriff auf das freie Feld Ackerbrunn');
+      const lots = part(html, 'data-testid="match-lots"', '</ul>');
+      expect(count(lots, '<li')).toBe(2);
+      expect(textOf(lots)).toMatch(/Du 2 .*frei 2/);
+      expect(textOf(html)).toContain('Freies Feld: Nur der Angreifer wird gefragt.');
+      expect(textOf(part(html, 'data-testid="wheel-result"', '</p>'))).toBe('Geschichte liegt dir');
+      expect(
+        textOf(
+          part(
+            blatt(claimView('ANNOUNCE', ME, 'SPORTS'), 'wheel'),
+            'data-testid="wheel-result"',
+            '</p>',
+          ),
+        ),
+      ).toBe('Sport keine deiner Lieblingskategorien');
+    });
+
+    it('färbt das Blatt für niemanden als angegriffen, auch nicht für Zuschauer ohne Sitz', () => {
+      const view = claimView('ANNOUNCE', 0);
+      expect(blatt(view, 'wheel')).toContain('class="blatt"');
+      expect(blatt({ ...view, mySeat: null }, 'wheel')).toContain('class="blatt"');
+      expect(textOf(part(blatt(view, 'wheel'), 'data-testid="wheel-result"', '</p>'))).toBe(
+        'Geschichte liegt Bot (leicht)',
+      );
+    });
+
+    it('fragt nur den Angreifer und sagt ihm die Regel', () => {
+      const view = claimView('QUESTION', ME, 'HISTORY', {
+        question: info('TRIVIA', 'DUEL_TRIVIA', 'PRESENTED', [ME], []),
+      });
+      const html = blatt(view, 'question', { local: localOf(TRIVIA) });
+      expect(html).toContain('class="blatt turn"');
+      expect(textOf(html)).toContain('Dein Angriff');
+      expect(textOf(html)).toContain('um das freie Feld Ackerbrunn');
+      const answers = part(html, 'data-testid="match-answers"', '</ul>');
+      expect(count(answers, '<li')).toBe(1);
+      expect(textOf(answers)).toContain('Du überlegst');
+      expect(textOf(html)).toContain(
+        'Richtig: Das Feld gehört dir. Falsch: Es bleibt frei, und du verlierst nichts.',
+      );
+      expect(textOf(html)).not.toContain('Verteidiger');
+    });
+
+    it('lässt den Angreifer nach der Antwort nicht auf andere warten', () => {
+      const view = claimView('QUESTION', ME, 'HISTORY', {
+        question: info('TRIVIA', 'DUEL_TRIVIA', 'ANSWERED', [ME], [ME]),
+      });
+      const html = blatt(view, 'answered', {
+        local: localOf(TRIVIA, 'ANSWERED', { optionToken: 'b' }),
+      });
+      expect(textOf(html)).toContain(
+        'Deine Antwort ist gespeichert. Gleich siehst du, ob das Feld dir gehört.',
+      );
+      expect(textOf(html)).not.toContain('Warte auf die anderen');
+      // Im Duell gegen ein Reich bleibt es beim Warten auf den Gegner
+      const duel = blatt(
+        duelView('QUESTION', 'DUEL_TRIVIA', ME, {
+          question: info('TRIVIA', 'DUEL_TRIVIA', 'ANSWERED', [ME, 1], [ME]),
+        }),
+        'answered',
+        { local: localOf(TRIVIA, 'ANSWERED', { optionToken: 'b' }) },
+      );
+      expect(textOf(duel)).toContain('Warte auf die anderen');
+    });
+
+    it('zeigt den anderen, wer das freie Feld angreift', () => {
+      const view = claimView('QUESTION', 0, 'HISTORY', {
+        question: info('TRIVIA', 'DUEL_TRIVIA', 'NOT_PARTICIPATING', [0], []),
+      });
+      const html = blatt(view, 'spectating');
+      expect(html).toContain('class="blatt"');
+      expect(textOf(html)).toContain('Angriff auf ein freies Feld');
+      expect(textOf(html)).toContain('Du schaust zu.');
+      const answers = part(html, 'data-testid="match-answers"', '</ul>');
+      expect(count(answers, '<li')).toBe(1);
+      expect(textOf(answers)).toContain('Bot (leicht) überlegt');
+    });
+
+    const after = (mySeat: number | null = ME): MatchView => ({
+      ...realmViewOf(
+        {
+          ...FREE_BOARD,
+          step: { kind: 'CAMPAIGN_TARGET', round: 2, chooser: 0, attacker: 0 },
+          turns: THEIR_ATTACK,
+        },
+        { phase: phaseOf('REVEAL') },
+      ),
+      mySeat,
+    });
+    const claimed = (partial: Record<string, unknown> = {}) =>
+      realmDuel({
+        defender: null,
+        region: FREE,
+        effect: 'CLAIMED',
+        armyLost: null,
+        ...partial,
+      });
+
+    it('sagt dem Angreifer, dass das Feld jetzt ihm gehört', () => {
+      const html = blatt(after(), 'reveal', { outcome: claimed() });
+      expect(html).toContain('data-effect="CLAIMED"');
+      expect(html).toContain('class="blatt outcome seat-2"');
+      expect(textOf(html)).toContain('Feld genommen');
+      expect(textOf(html)).toContain('Richtig: Ackerbrunn gehört jetzt dir.');
+      expect(textOf(part(html, 'class="outcome-list"', '</ul>'))).toBe(
+        'Das Feld gehört jetzt dir Es ist 100 Punkte wert und bringt ab jetzt Ertrag',
+      );
+      expect(textOf(part(html, 'class="next"', '</div>'))).toBe(
+        'Als Nächstes Bot (leicht) greift an',
+      );
+    });
+
+    it('sagt nach einer falschen Antwort, dass das Feld frei bleibt und nichts verloren geht', () => {
+      const html = blatt(after(), 'reveal', {
+        outcome: claimed({ winner: 'NONE', effect: 'UNCLAIMED' }),
+      });
+      expect(html).toContain('data-effect="UNCLAIMED"');
+      // Niemand gewinnt: Das Blatt trägt keine Farbe eines Reichs
+      expect(html).toContain('class="blatt outcome outcome-none"');
+      expect(textOf(html)).toContain('Das Feld bleibt frei');
+      expect(textOf(html)).toContain('Deine Antwort war nicht richtig: Ackerbrunn bleibt frei.');
+      expect(textOf(part(html, 'class="outcome-list"', '</ul>'))).toBe('Keine Armee geht verloren');
+      expect(textOf(html)).not.toContain('verlierst');
+    });
+
+    it('erzählt den anderen den Ausgang mit Namen, auch Zuschauern ohne Sitz', () => {
+      const other = claimed({ attacker: 0 });
+      const html = blatt(after(), 'reveal', { outcome: other });
+      expect(html).toContain('class="blatt outcome seat-0"');
+      expect(textOf(html)).toContain('Bot (leicht) nimmt ein Feld');
+      expect(textOf(html)).toContain('Bot (leicht) lag richtig und nimmt Ackerbrunn.');
+      expect(textOf(part(html, 'class="outcome-list"', '</ul>'))).toContain(
+        'Das Feld gehört jetzt Bot (leicht)',
+      );
+      const missed = blatt(after(null), 'reveal', {
+        outcome: claimed({ attacker: 0, winner: 'NONE', effect: 'UNCLAIMED' }),
+      });
+      expect(missed).toContain('class="blatt outcome outcome-none"');
+      expect(textOf(missed)).toContain('Bot (leicht) lag nicht richtig: Ackerbrunn bleibt frei.');
+    });
   });
 
   it('zeigt während der Wissensfrage, wer schon geantwortet hat', () => {
@@ -1192,6 +1397,24 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(disc).toContain('class="wheel spinning"');
     expect(count(disc, 'class="wheel-seg"')).toBe(10);
     expect(tagOf(html, 'data-testid="wheel-result"')).toContain('data-category="HISTORY"');
+  });
+
+  it('dreht das Glücksrad auch für ein freies Feld, ohne Anteile eines Verteidigers', () => {
+    const html = stage(claimView('ANNOUNCE', ME), {
+      events: [
+        event(28, 'WHEEL_SPUN', { round: 2, region: FREE, category: 'HISTORY', exhausted: [] }),
+      ],
+    });
+    expect(main(html)).toContain('data-state="wheel"');
+    const disc = part(html, 'data-testid="match-wheel-disc"', '</svg>');
+    expect(count(disc, 'class="wheel-seg"')).toBe(11);
+    // Nur meine vier Lieblingskategorien tragen Farbe
+    expect(count(disc, 'class="seg-side"')).toBe(4);
+    expect(disc).not.toContain('var(--seat-null)');
+    expect(html).not.toContain('var(--seat-null)');
+    // Auf der Karte steht nur das Wappen des Angreifers
+    expect(count(html, 'duel-token attacker')).toBe(1);
+    expect(count(html, 'duel-token defender')).toBe(0);
   });
 
   it('legt die Fragekarte mit der Kategorie auf die Karte', () => {

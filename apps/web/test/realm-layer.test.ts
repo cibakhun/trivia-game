@@ -171,4 +171,15 @@ describe('Schild über einem entschiedenen Duell', () => {
       'Stadt wird Dorf',
     );
   });
+
+  it('freies Feld (O-37): genommen in der Farbe des Angreifers, sonst ohne Farbe', () => {
+    const claimed = duel({ defender: null, effect: 'CLAIMED' });
+    expect(outcomeSignKey(claimed)).toBe('CLAIMED');
+    expect(outcomeSign(claimed)).toEqual({ region: 12, text: 'genommen', seat: 2 });
+    expect(outcomeSign(duel({ defender: null, winner: 'NONE', effect: 'UNCLAIMED' }))).toEqual({
+      region: 12,
+      text: 'bleibt frei',
+      seat: null,
+    });
+  });
 });

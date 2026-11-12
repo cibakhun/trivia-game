@@ -244,12 +244,13 @@ export function simulateRealm(
           };
         };
         const attacker = answer(step.attacker);
-        const defender = answer(step.defender);
-        sealed = { attacker: attacker.estimate, defender: defender.estimate };
+        // Freies Feld (O-37): Der Angreifer antwortet allein
+        const defender = step.defender === null ? null : answer(step.defender);
+        sealed = defender && { attacker: attacker.estimate, defender: defender.estimate };
         input = {
           kind: 'DUEL_TRIVIA',
           attackerCorrect: attacker.correct,
-          defenderCorrect: defender.correct,
+          defenderCorrect: defender?.correct ?? false,
         };
         full += timers.triviaMs + timers.revealMs;
         typical += TYPICAL_MS.trivia + timers.revealMs;

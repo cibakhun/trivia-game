@@ -192,23 +192,33 @@ export function revealedParts(
 export function targetWinKey(
   play: RealmPlay,
   target: RealmRegionView,
-): 'NONE' | 'VILLAGE' | 'TOWN' | 'CASTLE_HIT' | 'CASTLE_DESTROYED' | 'TAKEOVER' {
+): 'FREE' | 'NONE' | 'VILLAGE' | 'TOWN' | 'CASTLE_HIT' | 'CASTLE_DESTROYED' | 'TAKEOVER' {
+  if (target.owner === null) return 'FREE';
   if (target.building !== 'CASTLE') return target.building;
   if (target.castleLivesLeft > 1) return 'CASTLE_HIT';
   const castles = play.board.seats.find((s) => s.seat === target.owner)?.castles ?? 1;
   return castles > 1 ? 'CASTLE_DESTROYED' : 'TAKEOVER';
 }
 
-/** Wessen Lieblingskategorie das Rad gezogen hat, aus der Sicht dieses Sitzes. */
+/**
+ * Wessen Lieblingskategorie das Rad gezogen hat, aus der Sicht dieses Sitzes. Ohne Verteidiger
+ * (freies Feld) zählt nur der Angreifer.
+ */
 export function wheelFits(
   category: QuestionCategory,
   favorites: (seat: number) => readonly QuestionCategory[],
   attacker: number,
-  defender: number,
+  defender: number | null,
   mySeat: number | null,
   name: SeatName,
 ): string {
   const a = favorites(attacker).includes(category);
+  if (defender === null) {
+    if (attacker === mySeat) return t(a ? 'realm.wheel.fits.mine' : 'realm.wheel.fits.notMine');
+    return t(a ? 'realm.wheel.fits.theirs' : 'realm.wheel.fits.notTheirs', {
+      name: name(attacker),
+    });
+  }
   const d = favorites(defender).includes(category);
   if (!a && !d) return t('realm.wheel.fits.none');
   const mine = mySeat === attacker || mySeat === defender;

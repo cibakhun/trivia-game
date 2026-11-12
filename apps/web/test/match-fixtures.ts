@@ -198,6 +198,8 @@ export interface RealmViewOptions {
   /** Gebäude und Armeen, die vom Grundbild abweichen. */
   readonly buildings?: Readonly<Record<number, RealmBuildingCode>>;
   readonly armies?: Readonly<Record<number, number>>;
+  /** Felder, die niemandem gehören (ADR-062): ohne Gebäude und ohne Armeen. */
+  readonly free?: readonly number[];
   readonly eliminated?: readonly number[];
   readonly step?: Partial<RealmStepView>;
   /** Zugfolge links; ohne Angabe sind Sitz 0 und 1 fertig und ich (Sitz 2) rüste noch. */
@@ -222,19 +224,22 @@ export function realmViewOf(
     2: { bread: 7, material: 10 },
     ...options.stock,
   };
+  const free = new Set(options.free ?? []);
   const buildingAt = (id: number): RealmBuildingCode =>
-    options.buildings?.[id] ??
-    (REALM_CASTLES[id] !== undefined ? 'CASTLE' : (REALM_BUILDINGS_AT[id] ?? 'NONE'));
+    free.has(id)
+      ? 'NONE'
+      : (options.buildings?.[id] ??
+        (REALM_CASTLES[id] !== undefined ? 'CASTLE' : (REALM_BUILDINGS_AT[id] ?? 'NONE')));
   const board: RealmBoardView = {
     map: options.map ?? 'WENDELMARK',
-    regions: REALM_OWNER.map((owner, id) => ({
-      owner,
+    regions: REALM_OWNER.map((seat, id) => ({
+      owner: free.has(id) ? null : seat,
       value: REALM_CASTLES[id] !== undefined ? 300 : 100,
       fortifications: 0,
       building: buildingAt(id),
       castleLivesLeft: buildingAt(id) === 'CASTLE' ? 3 : 0,
       startCastleOf: REALM_CASTLES[id] ?? null,
-      armies: options.armies?.[id] ?? REALM_ARMIES_AT[id] ?? 0,
+      armies: free.has(id) ? 0 : (options.armies?.[id] ?? REALM_ARMIES_AT[id] ?? 0),
     })),
     seats: [0, 1, 2].map((seat) => ({
       seat,
@@ -250,7 +255,7 @@ export function realmViewOf(
       castleLivesLeft: 3,
       eliminated: options.eliminated?.includes(seat) ?? false,
       points: 1000,
-      regions: REALM_OWNER.filter((owner) => owner === seat).length,
+      regions: REALM_OWNER.filter((owner, id) => owner === seat && !free.has(id)).length,
     })),
     order: [2, 0, 1],
     step: realmStep(options.step),

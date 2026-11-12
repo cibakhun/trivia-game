@@ -1,6 +1,13 @@
-import { realmWheelSchema, type RealmOrderDto } from '@rdw/protocol';
+import { realmWheelSchema, type MatchEventOf, type RealmOrderDto } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
-import { regionNames, seatNames } from '../src/match/match-text.ts';
+import {
+  logText,
+  outcomeTexts,
+  questionContext,
+  regionNames,
+  seatNames,
+  stepLabel,
+} from '../src/match/match-text.ts';
 import { realmPlayOf, wheelPreview, type RealmPlay } from '../src/match/realm-model.ts';
 import {
   buildingMark,
@@ -58,8 +65,8 @@ describe('Ertrag eines Felds', () => {
   it('folgt dem Rohstoff des Felds und der Stufe des Gebäudes', () => {
     // Eisenhang bringt Baustoff, Dornfeld Brot
     expect(fieldYield(play, 7, 'NONE')).toEqual({ bread: 0, material: 1 });
-    expect(fieldYield(play, 7, 'VILLAGE')).toEqual({ bread: 0, material: 2 });
-    expect(fieldYield(play, 6, 'TOWN')).toEqual({ bread: 3, material: 0 });
+    expect(fieldYield(play, 7, 'VILLAGE')).toEqual({ bread: 0, material: 3 });
+    expect(fieldYield(play, 6, 'TOWN')).toEqual({ bread: 4, material: 0 });
   });
 
   it('gibt bei einer Burg beides', () => {
@@ -174,6 +181,11 @@ describe('Was ein Sieg am Ziel bewirkt', () => {
     expect(targetWinKey(play, target(play, 13))).toBe('TOWN');
   });
 
+  it('nennt ein freies Feld beim Namen: Dort wird nur der Angreifer gefragt', () => {
+    const free = playOf({ free: [4] });
+    expect(targetWinKey(free, target(free, 4))).toBe('FREE');
+  });
+
   it('unterscheidet bei der Burg Treffer, Zerstörung und Übernahme', () => {
     expect(targetWinKey(play, target(play, 18))).toBe('CASTLE_HIT');
     const last = { ...target(play, 18), castleLivesLeft: 1 };
@@ -202,9 +214,85 @@ describe('Wem die gezogene Kategorie liegt', () => {
     expect(wheelFits('SPORTS', favorites, 0, 1, null, name)).toBe('liegt Bot (leicht)');
   });
 
+  it('kennt beim freien Feld nur den Angreifer', () => {
+    expect(wheelFits('LITERATURE', favorites, 2, null, 2, name)).toBe('liegt dir');
+    expect(wheelFits('TECHNOLOGY', favorites, 2, null, 2, name)).toBe(
+      'keine deiner Lieblingskategorien',
+    );
+    expect(wheelFits('SPORTS', favorites, 0, null, 2, name)).toBe('liegt Bot (leicht)');
+    expect(wheelFits('TECHNOLOGY', favorites, 0, null, null, name)).toBe(
+      'keine Lieblingskategorie von Bot (leicht)',
+    );
+  });
+
   it('passt zur Vorschau des Rads: Meine Lieblingskategorien tragen meine Lose', () => {
     const wheel = realmWheelSchema.parse(wheelPreview(play, 2, 12));
     const mine = wheel.segments.filter((s) => s.attacker > 0).map((s) => s.category);
     expect(mine.sort()).toEqual([...favorites(2)].sort());
+  });
+});
+
+describe('Angriff auf ein freies Feld in Worten (O-37)', () => {
+  const claimView = realmViewOf({
+    free: [4],
+    step: { kind: 'DUEL_TRIVIA', round: 2, attacker: 0, defender: null, region: 4 },
+  });
+  const claim = (partial: Record<string, unknown> = {}): MatchEventOf<'REALM_DUEL_RESOLVED'> => {
+    const parsed = event(60, 'REALM_DUEL_RESOLVED', {
+      round: 2,
+      duel: 3,
+      attacker: 0,
+      defender: null,
+      region: 4,
+      category: 'HISTORY',
+      winner: 'ATTACKER',
+      reason: 'TRIVIA',
+      effect: 'CLAIMED',
+      building: 'NONE',
+      castleLivesLeft: null,
+      regionValue: 100,
+      armyLost: null,
+      ...partial,
+    });
+    if (parsed.type !== 'REALM_DUEL_RESOLVED') throw new Error('falsches Ereignis');
+    return parsed;
+  };
+
+  it('sagt zur Frage, wer das Feld angreift und was die richtige Antwort bringt', () => {
+    expect(questionContext(claimView, name, region)).toBe(
+      'Bot (leicht) greift das freie Feld Ackerbrunn an: Mit der richtigen Antwort gehört es ihm.',
+    );
+  });
+
+  it('nennt im Verlauf die Ansage und den Ausgang ohne Verteidiger', () => {
+    const chosen = event(58, 'TARGET_CHOSEN', {
+      round: 2,
+      attacker: 0,
+      defender: null,
+      region: 4,
+      wheel: realmWheelSchema.parse(wheelPreview(playOf({ free: [4] }), 0, 4)),
+    });
+    expect(logText(chosen, name, region)).toBe('Bot (leicht) greift das freie Feld Ackerbrunn an.');
+    expect(outcomeTexts(claim(), name, region)).toEqual([
+      'Bot (leicht) lag bei der Wissensfrage richtig.',
+      'Bot (leicht) nimmt das freie Feld Ackerbrunn.',
+    ]);
+    const missed = claim({ winner: 'NONE', effect: 'UNCLAIMED' });
+    expect(outcomeTexts(missed, name, region)).toEqual([
+      'Bot (leicht) lag bei der Wissensfrage nicht richtig.',
+      'Ackerbrunn bleibt frei.',
+    ]);
+    expect(logText(missed, name, region)).toBe('Ackerbrunn bleibt frei.');
+  });
+
+  it('zählt im Band die Runden der Landnahme mit', () => {
+    const land = realmViewOf({ step: { kind: 'LAND_ESTIMATE', round: 1 } });
+    expect(stepLabel(land)).toBe('Landnahme · 1 von 2');
+    // Partien von vor ADR-062 haben keine feste Zahl
+    const realm = land.realm;
+    if (!realm) throw new Error('Ansicht ohne Ausbau');
+    const economy = { ...realm.economy };
+    delete economy.landGrabRounds;
+    expect(stepLabel({ ...land, realm: { ...realm, economy } })).toBe('Landnahme · Runde 1');
   });
 });
