@@ -309,7 +309,7 @@ Rechnerische Obergrenze, wenn jede Zeit ganz ausläuft und jedes Duell bis zur S
 
 Mit den umgesetzten Zahlen reicht das Einkommen der ersten Runde (im Mittel gut 4 Brot und knapp 5 Baustoff) für ein Dorf und eine Armee oder für zwei Armeen; ab der dritten Runde reicht es für ein Gebäude und zwei Armeen, wenn man nicht auf die zweite Burg spart. Das Ziel ist damit am Anfang getroffen, später nur zum Teil: Gebäude kosten fast nur Baustoff, Armeen nur Brot, beide stehen sich kaum im Weg. Die zweite Burg (24 Rohstoffe, rund zwei Runden Einkommen) baut zu dritt gut jeder Dritte, zu zweit zwei von drei. Die Bots sparen nicht gezielt auf die Burg; Menschen können es. Welche Zahlen gelten sollen, entscheidet der Product Owner ([O-41]).
 
-**Wahlen der Landnahme zu dritt.** Mit 2, 1 und 0 Wahlen je Runde (wie §3) kann ein Reich nach zwei Runden mit 2 Feldern dastehen und ein anderes mit 6. Gegenprobe mit 2, 1 und 1 (`REALM_PICKS='[2,1,1]'`): Felder zu Beginn 4,7 (4,0 bis 5,3), zu Beginn des Feldzugs sind 10 statt 12 Felder frei, das größte Reich gewinnt zu 41 statt 49 %, die zweite Burg bauen 51 %, die Partie dauert 11,3 Minuten. Umgesetzt ist 2, 1, 0; die Wahl gehört zu [O-41].
+**Wahlen der Landnahme zu dritt.** Mit 2, 1 und 0 Wahlen je Runde (wie §3) kann ein Reich nach zwei Runden mit 2 Feldern dastehen und ein anderes mit 6. Gegenprobe mit 2, 1 und 1 (`REALM_PICKS='[2,1,1]'`): Felder zu Beginn 4,7 (4,0 bis 5,3), zu Beginn des Feldzugs sind 10 statt 12 Felder frei, das größte Reich gewinnt zu 41 statt 49 %, die zweite Burg bauen 51 %, die Partie dauert 11,3 Minuten. Es bleibt bei 2, 1, 0 **[V, PO 2026-11-12, [O-41] Teil 2]**.
 
 **Sechs Runden** (Gegenprobe, je 2 000 Partien): zu dritt 12,7 Minuten und zweite Burg bei 63 %, zu zweit 9,9 Minuten und 82 %; frei bleiben am Ende 5,7 und 2,0 Felder. Es bleibt bei fünf Runden **[V, [O-31]]**.
 
@@ -348,7 +348,7 @@ Seit ADR-058 spielt der Server die Partie mit Ausbau als eigene Spielart (`match
 ### 11.12 Offen
 
 - Erster Spieltest mit dem Product Owner am 2026-11-12; die Rückmeldung wird in Schritten umgesetzt (ADR-061, ADR-062, danach Rüstzeit und Verständlichkeit, Zuschauer, Gestaltung). Erst danach wird die Spielart in Produktion freigegeben. Im Browser gilt bis dahin: Ein offener Entwurf der Rüstzeit wird kurz vor Fristende von selbst abgegeben, und das Aufgedeckte steht 2 s ([O-36]).
-- Zahlen der Vorräte und Wahlen der Landnahme zu dritt: Standardannahme, bis der Product Owner entscheidet ([O-41]).
+- Zahlen der Vorräte: Standardannahme, bis der Product Owner entscheidet ([O-41] Teil 1). Die Wahlen der Landnahme zu dritt bleiben 2, 1, 0 (entschieden 2026-11-12).
 - Zuschauer: Wer nicht gefragt wird, sieht die Frage erst in der Auflösung; bei Angriffen auf freie Felder betrifft das alle außer dem Angreifer ([O-38]).
 - Die Partie zu zweit dauert typisch 8,5 Minuten und liegt damit unter den 10 bis 15 Minuten des Konzepts ([O-41]).
 - Fragen: Das Rad lässt sich erst sinnvoll spielen, wenn jede wählbare Kategorie genug Fragen hat (§11.6). Mit freien Feldern bleibt es bei höchstens 15 Wissensfragen aus dem Rad je Partie.

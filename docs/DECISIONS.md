@@ -464,13 +464,13 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 - **C:** Alte Erträge, dafür die Burg billiger (6 + 12). Zweite Burg 39 % / 62 %, 6,6 Armeen. Kleinste Änderung, aber Bauen trägt seine Kosten weiter kaum ein.
 - Dazu gemessen: wie A mit Armee 3 Brot (zweite Burg 41 % / 61 %, 5,3 Armeen).
 
-**Teil 2, Wahlen der Landnahme zu dritt:**
-- **A (umgesetzt):** 2, 1 und 0 Wahlen je Runde wie bisher. Nach zwei Runden hat ein Reich 2 bis 6 Felder (Mittel 4,0); das größte gewinnt zu 49 %.
-- **B:** 2, 1 und 1. 4 bis 5 Felder je Reich (Mittel 4,7), 10 statt 12 Felder bleiben frei, das größte Reich gewinnt zu 41 %; die Partie dauert 11,3 statt 10,8 Minuten.
+**Teil 2, Wahlen der Landnahme zu dritt** (entschieden vom Product Owner am 2026-11-12: **A**, es bleibt bei 2, 1 und 0; auf die Frage, ob auch der Dritte ein Feld wählen soll: „Nein“):
+- **A (umgesetzt, entschieden):** 2, 1 und 0 Wahlen je Runde wie bisher. Nach zwei Runden hat ein Reich 2 bis 6 Felder (Mittel 4,0); das größte gewinnt zu 49 %.
+- **B (verworfen):** 2, 1 und 1. 4 bis 5 Felder je Reich (Mittel 4,7), 10 statt 12 Felder bleiben frei, das größte Reich gewinnt zu 41 %; die Partie dauert 11,3 statt 10,8 Minuten.
 
 **Teil 3, Dauer zu zweit:** Die Partie zu zweit dauert typisch 8,5 Minuten und liegt unter den 10 bis 15 Minuten des Konzepts. Mit sechs Runden dauert sie 9,9 Minuten, die zweite Burg bauen dann aber 82 % (zu dritt: 12,7 Minuten, 63 %).
 
-**Empfehlung:** Teil 1 A für den nächsten Spieltest, danach nach Gefühl B oder C; Teil 2 B, weil niemand mit zwei Feldern in den Feldzug gehen sollte; Teil 3 so lassen, bis ein Spieltest zu zweit zeigt, dass es zu kurz ist. Alle Zahlen sind Regelwerte, eine Änderung braucht keine Migration.
+**Empfehlung:** Teil 1 A für den nächsten Spieltest, danach nach Gefühl B oder C; Teil 3 so lassen, bis ein Spieltest zu zweit zeigt, dass es zu kurz ist. Für Teil 2 war B empfohlen, weil ein Reich mit zwei Feldern in den Feldzug gehen kann; der Product Owner hat sich für A entschieden. Offen sind damit noch Teil 1 und Teil 3. Alle Zahlen sind Regelwerte, eine Änderung braucht keine Migration.
 
 ## Änderungsprotokoll
 
@@ -517,3 +517,4 @@ Priorisiert nach Dringlichkeit (P1 = vor/in Phase 1–2, P2 = vor Phase 3–4 bz
 | 2026-11-12 | ADR-060 angenommen (Bildentwürfe am 2026-11-11 vom Product Owner freigegeben): Der Browser spielt die Partie mit Ausbau auf derselben Bühne im Querformat, mit Lieblingskategorien in der Aufstellung, Rüstzeit (Bauen, Kaufen, Ziehen, Tauschen als Entwurf im Browser), Aufdecken, Angriff in zwei Schritten, Glücksrad und Ausgang; die Ansicht nennt in beiden Spielarten, wer schon geantwortet hat (`question.answered`); O-36 erfasst (A3) |
 | 2026-11-12 | ADR-061 angenommen (erster Spieltest mit Ausbau durch den Product Owner; Rückmeldung: Die Seite blieb stehen, als eine Armee eine Runde später weiterziehen sollte): Auffangschirm statt leerer Seite, mit Meldung zum Kopieren und „Neu laden“; die Seite bittet den Browser, sie nicht zu übersetzen (nachgestellte Ursache, für den Spieltest nicht bestätigt); O-40 erfasst. Aus demselben Spieltest hat der Product Owner entschieden, dass freie Felder im Feldzug mit einer Frage angegriffen werden (O-37, Auswahl A); O-37 bis O-39 und die Regeln dazu folgen mit dem nächsten Schritt |
 | 2026-11-12 | ADR-062 angenommen (Rückmeldung des Product Owners nach dem ersten Spieltest; O-37 entschieden: A): Landnahme nur zwei Runden (`economy.landGrabRounds`), freie Felder werden im Feldzug mit einer Wissensfrage an den Angreifer allein genommen (Effekte `CLAIMED`, `UNCLAIMED`, Verteidiger darf fehlen), Bots kennen die Regel, Dorf und Stadt bringen 3 und 4; Migration 0015 (eine Frage an einen einzelnen Sitz); Messwerte neu erhoben. O-37 bis O-39 nachgetragen, O-41 (Zahlen der Vorräte, Wahlen der Landnahme zu dritt, Dauer zu zweit) neu erfasst |
+| 2026-11-12 | O-41 Teil 2 entschieden (Product Owner): Die Wahlen der Landnahme zu dritt bleiben 2, 1 und 0; die Gegenprobe mit 2, 1 und 1 ist verworfen. Teil 1 (Zahlen der Vorräte) und Teil 3 (Dauer zu zweit) bleiben offen |
