@@ -1,43 +1,90 @@
 import type { RealmOrderDto } from '@rdw/protocol';
-import type { ReactNode } from 'react';
-import { Amount, MarkIcon } from '../art/RealmIcons.tsx';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { Amount, MarkIcon, type Mark } from '../art/RealmIcons.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import type { RegionName } from './match-text.ts';
 import {
+  bordersRealm,
   fieldOptions,
+  fieldRows,
   planOrders,
   realmSeat,
   settleOrders,
-  tabsOf,
   tradeOptions,
   tradesFirst,
   withBuild,
-  withMove,
   withRecruit,
   withTrade,
   type Cost,
+  type FieldBlock,
   type FieldOptions,
-  type PrepareTab,
+  type MoveRefusal,
   type RealmPlay,
 } from './realm-model.ts';
-import { buildingMark, fieldYield, orderChips, placeName, terrainName } from './realm-text.ts';
+import {
+  blockText,
+  buildingMark,
+  fieldYield,
+  orderChips,
+  placeName,
+  refusalText,
+  terrainName,
+} from './realm-text.ts';
 
 /**
  * Blatt der Rüstzeit (MATCH_RULES §11.3, §11.4): oben der Vorrat, wie er nach den geplanten
  * Befehlen bliebe, mit dem Tausch daneben; in der Mitte das gewählte Feld mit immer denselben drei
- * Knöpfen (Bauen, Kaufen, Ziehen) und dem, was dort gerade geht; darunter die eigenen Befehle als
- * Plättchen zum Zurücknehmen und „Fertig“. Gerechnet wird mit den Regeln des Servers
- * (`realm-model`); abgegeben ist erst, was „Fertig“ schickt. Das Blatt ist immer gleich groß.
+ * Zeilen (Ausbauen, Armeen kaufen, Armeen ziehen), jede mit Preis und eigenem Knopf oder mit dem
+ * Grund, aus dem sie gerade nichts anbietet; darunter die eigenen Befehle als Plättchen zum
+ * Zurücknehmen und „Fertig“. Gerechnet wird mit den Regeln des Servers (`realm-model`); abgegeben
+ * ist erst, was „Fertig“ schickt. Das Blatt ist immer gleich groß.
  */
 
 function noop() {
   // Ablauf der Rüstzeit: Den nächsten Schritt bringt die Abfrage
 }
 
-/** Ab so vielen Befehlen zeigen Bauten nur noch ihr Zeichen, damit alle in zwei Zeilen passen. */
-const DENSE_FROM = 4;
+/** Über so vielen Befehlen zeigen Bauten nur noch ihr Zeichen, damit mehr in die eine Zeile passen. */
+const DENSE_FROM = 3;
+
+/**
+ * Die Befehle stehen in einer einzigen Zeile, damit das Blatt nie wächst. Passen nicht alle hinein,
+ * lässt sich die Zeile seitlich schieben: Ein neuer Befehl rückt von selbst ins Bild, und die Ränder
+ * blenden aus, wo noch etwas folgt.
+ */
+function useOrderStrip(count: number) {
+  const ref = useRef<HTMLUListElement>(null);
+  // Am Ende angeheftet, bis der Spieler die Zeile selbst zurückschiebt
+  const pinned = useRef(true);
+  const [edge, setEdge] = useState({ left: false, right: false });
+  const measure = () => {
+    const el = ref.current;
+    if (!el) return;
+    const left = el.scrollLeft > 1;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    pinned.current = !right;
+    setEdge((now) => (now.left === left && now.right === right ? now : { left, right }));
+  };
+  const toEnd = () => {
+    const el = ref.current;
+    if (el) el.scrollLeft = el.scrollWidth;
+    measure();
+  };
+  useLayoutEffect(toEnd, [count]);
+  // Die Maße der Bühne stehen erst nach dem ersten Bild fest und ändern sich beim Drehen
+  const empty = count === 0;
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => (pinned.current ? toEnd() : measure()));
+    observer.observe(el);
+    return () => observer.disconnect();
+    // Die Liste gibt es nur mit Befehlen: neu beobachten, wenn sie entsteht
+  }, [empty]);
+  return { ref, edge, measure };
+}
 
 function CostView({ cost }: { readonly cost: Cost }) {
   return (
@@ -99,8 +146,8 @@ export function PreparePanel({
   orders,
   done,
   selected,
-  tab,
-  moveTo,
+  moving,
+  refused,
   trading,
   dropped,
   waiting,
@@ -108,8 +155,9 @@ export function PreparePanel({
   busy,
   error,
   region,
+  name,
   onOrders,
-  onTab,
+  onMoving,
   onTrading,
   onSubmit,
   onEdit,
@@ -121,10 +169,10 @@ export function PreparePanel({
   /** Abgegeben: Das Blatt zeigt die Befehle und wartet auf die anderen. */
   readonly done: boolean;
   readonly selected: number | null;
-  /** Reiter, der für das gewählte Feld gilt (`prepareTab`). */
-  readonly tab: PrepareTab;
-  /** Ziel des Zugs, den das Blatt gerade einstellt. */
-  readonly moveTo: number | null;
+  /** „Ziehen“ ist offen: Der nächste Tipp auf ein leuchtendes Feld ist das Ziel des Zugs. */
+  readonly moving: boolean;
+  /** Der letzte Tipp bei offenem „Ziehen“ war kein Ziel: warum nicht. */
+  readonly refused: MoveRefusal | null;
   readonly trading: boolean;
   /** Mit dem letzten Zurücknehmen fiel ein späterer Befehl mit heraus. */
   readonly dropped: boolean;
@@ -134,8 +182,9 @@ export function PreparePanel({
   readonly busy: boolean;
   readonly error: unknown;
   readonly region: RegionName;
+  readonly name: (seat: number) => string;
   readonly onOrders: (orders: RealmOrderDto[], dropped: boolean) => void;
-  readonly onTab: (tab: PrepareTab) => void;
+  readonly onMoving: (open: boolean) => void;
   readonly onTrading: (open: boolean) => void;
   readonly onSubmit: () => void;
   readonly onEdit: () => void;
@@ -147,6 +196,7 @@ export function PreparePanel({
     ? { bread: plan.bread, material: plan.material }
     : { bread: stock?.bread ?? 0, material: stock?.material ?? 0 };
   const chips = orderChips(play, orders, region);
+  const strip = useOrderStrip(chips.length);
   const field = selected === null || done ? null : fieldOptions(play, seat, orders, selected);
   // Jede Änderung geht durch die Regeln: Was danach nicht mehr geht, fällt mit heraus
   const change = (next: readonly RealmOrderDto[]) => {
@@ -200,38 +250,76 @@ export function PreparePanel({
     body = (
       <FieldBody
         play={play}
+        seat={seat}
         orders={orders}
         field={field}
-        tab={tab}
-        moveTo={moveTo}
+        moving={moving}
+        refused={refused}
         busy={busy}
         region={region}
+        name={name}
         onChange={change}
-        onTab={onTab}
+        onMoving={onMoving}
       />
     );
-  } else {
+  } else if (selected !== null && !done && play.board.regions[selected]) {
+    // Fremdes oder freies Feld: In der Rüstzeit geht dort nichts, das Blatt sagt warum
+    const owner = play.board.regions[selected]?.owner ?? null;
+    const near = bordersRealm(play, seat, selected);
     body = (
       <>
-        {stock ? (
-          <p className="income">
-            <span>{t('realm.prepare.income')}</span>
-            <span className="income-plus">
-              +
-              <Amount kind="bread" value={stock.income.bread} label={t('realm.bread')} size={15} />
+        <div className="feld" data-testid="prepare-field" data-region={selected}>
+          <strong className="feld-name">
+            {placeName(play.board.regions[selected]?.building ?? 'NONE', region(selected))}
+          </strong>
+          <span className="feld-fact">
+            {owner === null
+              ? t('realm.prepare.foreign.free')
+              : t('realm.prepare.foreign.owner', { owner: name(owner) })}
+          </span>
+        </div>
+        <p className="act-info" data-testid="prepare-foreign" data-near={near ? 'true' : 'false'}>
+          {t('realm.prepare.foreign.now')}{' '}
+          {t(near ? 'realm.prepare.foreign.near' : 'realm.prepare.foreign.far')}
+        </p>
+      </>
+    );
+  } else {
+    // Kein Feld gewählt: dieselben drei Zeilen an derselben Stelle, hier sagen sie, wozu sie gut sind
+    body = (
+      <>
+        <div className="feld idle" data-testid="prepare-idle">
+          <strong className="feld-name">{t('realm.prepare.idle.title')}</strong>
+          {stock ? (
+            <span className="feld-fact">
+              {t('realm.prepare.income')} <CostView cost={stock.income} />{' '}
+              {t('realm.prepare.perRound')}
             </span>
-            <span className="income-plus">
-              +
-              <Amount
-                kind="material"
-                value={stock.income.material}
-                label={t('realm.material')}
-                size={15}
-              />
-            </span>
-          </p>
-        ) : null}
-        <p className="blatt-hint">{t('realm.prepare.hint')}</p>
+          ) : null}
+        </div>
+        <ul className="acts" data-testid="prepare-acts">
+          <Act
+            act="build"
+            state="info"
+            icon="village"
+            title={t('realm.prepare.row.build')}
+            sub={t('realm.prepare.idle.build')}
+          />
+          <Act
+            act="buy"
+            state="info"
+            icon="army"
+            title={t('realm.prepare.row.buy')}
+            sub={t('realm.prepare.idle.buy')}
+          />
+          <Act
+            act="move"
+            state="info"
+            icon="move"
+            title={t('realm.prepare.row.move')}
+            sub={t('realm.prepare.idle.move')}
+          />
+        </ul>
       </>
     );
   }
@@ -279,8 +367,12 @@ export function PreparePanel({
           <p className="orders-none">{t('realm.prepare.none')}</p>
         ) : (
           <ul
+            ref={strip.ref}
             data-testid="prepare-orders"
             className={chips.length > DENSE_FROM ? 'dense' : undefined}
+            data-left={strip.edge.left ? 'true' : undefined}
+            data-right={strip.edge.right ? 'true' : undefined}
+            onScroll={strip.measure}
           >
             {chips.map((chip) => {
               const inner = (
@@ -334,159 +426,266 @@ export function PreparePanel({
   );
 }
 
-/** Das gewählte Feld: Name, was es ist, die drei Knöpfe und was der gewählte gerade anbietet. */
+/** Grund einer Zeile als Text; was im Vorrat fehlt, steht als Zeichen mit Zahl da. */
+function BlockView({ block }: { readonly block: FieldBlock }) {
+  if (block.kind !== 'MISSING') return <>{blockText(block)}</>;
+  return (
+    <span className="act-missing">
+      <span aria-hidden="true">{t('realm.prepare.block.missingShort')}</span>
+      <span aria-hidden="true">
+        <CostView cost={block} />
+      </span>
+      <span className="visually-hidden">{blockText(block)}</span>
+    </span>
+  );
+}
+
+/**
+ * Eine der drei festen Zeilen: Zeichen, Titel mit dem, was sie bringt, darunter Preis oder Grund,
+ * rechts ihr Knopf. `off`: Die Zeile bietet gerade nichts an und sagt warum; `set`: Sie ist schon
+ * befohlen; `info`: Kein Feld ist gewählt, die Zeile sagt nur, wozu sie gut ist.
+ */
+function Act({
+  act,
+  state,
+  icon,
+  title,
+  aside,
+  sub,
+  children,
+  ...data
+}: {
+  readonly act: 'build' | 'buy' | 'move';
+  readonly state?: 'off' | 'set' | 'info' | undefined;
+  readonly icon: Mark;
+  readonly title: ReactNode;
+  /** Rechts in der Titelzeile, wenn kein Knopf dort steht (Preis einer Stufe, die noch nicht geht). */
+  readonly aside?: ReactNode;
+  readonly sub: ReactNode;
+  readonly children?: ReactNode;
+  readonly [data: `data-${string}`]: string | number | undefined;
+}) {
+  return (
+    <li className={`act${state ? ` ${state}` : ''}`} data-act={act} {...data}>
+      <MarkIcon kind={icon} size={18} />
+      <span className="act-what">
+        <span className="act-title">
+          <strong>{title}</strong>
+          {aside}
+        </span>
+        <span className="act-sub">{sub}</span>
+      </span>
+      {children}
+    </li>
+  );
+}
+
+/**
+ * Das gewählte Feld: Name, was es ist, und darunter immer dieselben drei Zeilen. Jede Zeile nennt,
+ * was sie kostet und was sie bringt, und trägt ihren eigenen Knopf; geht sie gerade nicht, steht an
+ * seiner Stelle der Grund in Worten.
+ */
 function FieldBody({
   play,
+  seat,
   orders,
   field,
-  tab,
-  moveTo,
+  moving,
+  refused,
   busy,
   region,
+  name,
   onChange,
-  onTab,
+  onMoving,
 }: {
   readonly play: RealmPlay;
+  readonly seat: number;
   readonly orders: readonly RealmOrderDto[];
   readonly field: FieldOptions;
-  readonly tab: PrepareTab;
-  readonly moveTo: number | null;
+  readonly moving: boolean;
+  readonly refused: MoveRefusal | null;
   readonly busy: boolean;
   readonly region: RegionName;
+  readonly name: (seat: number) => string;
   readonly onChange: (orders: readonly RealmOrderDto[]) => void;
-  readonly onTab: (tab: PrepareTab) => void;
+  readonly onMoving: (open: boolean) => void;
 }) {
   const { economy } = play.realm;
   const start = play.board.regions[field.region];
-  const open = tabsOf(field);
-  const name = region(field.region);
-  const move = tab === 'move' ? (field.moves.find((m) => m.to === moveTo) ?? null) : null;
-  const produce = fieldYield(play, field.region, start?.building ?? 'NONE');
+  const rows = fieldRows(play, seat, orders, field);
+  const fieldName = region(field.region);
+  const now = start?.building ?? 'NONE';
+  const produce = fieldYield(play, field.region, now);
 
-  const seg = (id: PrepareTab, icon: Parameters<typeof MarkIcon>[0]['kind'], label: string) => (
-    <button
-      type="button"
-      className={`seg${tab === id ? ' on' : ''}`}
-      disabled={busy || !open[id]}
-      aria-pressed={tab === id}
-      data-tab={id}
-      onClick={() => onTab(id)}
-    >
-      <MarkIcon kind={icon} size={21} />
-      {label}
-    </button>
-  );
-
-  let detail: ReactNode;
-  let note: string | null = null;
-  if (tab === 'build') {
-    const build = field.build;
-    if (!build) {
-      detail = <p className="detail-none">{t('realm.prepare.maxLevel')}</p>;
-    } else {
-      const blocked = build.ordered ? null : build.blocked;
-      note =
-        blocked === null
-          ? null
-          : blocked === 'TOO_EXPENSIVE'
-            ? t('realm.prepare.blocked.TOO_EXPENSIVE')
-            : blocked === 'CASTLE_LIMIT'
-              ? t('realm.prepare.blocked.CASTLE_LIMIT', { max: economy.maxCastles })
-              : t('realm.prepare.blocked.OTHER');
-      detail = (
-        <div className="detail">
-          <span className="detail-what">
-            <strong>{t(`realm.building.${build.building}`)}</strong>
-            {build.ordered ? (
-              <span className="act-note">{t('realm.prepare.built')}</span>
-            ) : (
-              <CostView cost={build.cost} />
-            )}
+  // ---- Ausbauen ----
+  const build = field.build;
+  let buildRow: ReactNode;
+  if (!build) {
+    buildRow = (
+      <Act
+        act="build"
+        state="off"
+        icon="castle"
+        title={t('realm.prepare.row.build')}
+        sub={rows.build ? <BlockView block={rows.build} /> : null}
+      />
+    );
+  } else {
+    const next = fieldYield(play, field.region, build.building);
+    const gain = {
+      bread: Math.max(0, next.bread - produce.bread),
+      material: Math.max(0, next.material - produce.material),
+    };
+    const blocked = build.ordered ? null : rows.build;
+    const title = (
+      <>
+        {t(`realm.building.${build.building}`)}
+        {build.ordered ? null : build.building === 'CASTLE' ? (
+          <span className="act-gain">
+            <span aria-hidden="true">+</span>
+            <MarkIcon kind="army" size={13} />
+            <span className="visually-hidden">{t('realm.prepare.gain.castle')}</span>
           </span>
-          {build.ordered ? (
-            <button
-              type="button"
-              className="button detail-go"
-              disabled={busy}
-              onClick={() => onChange(withBuild(orders, field.region, false))}
-            >
-              {t('realm.prepare.unbuild')}
-            </button>
+        ) : gain.bread + gain.material > 0 ? (
+          <span className="act-gain">
+            <span className="visually-hidden">{t('realm.prepare.gain.more')} </span>
+            <span aria-hidden="true">+</span>
+            <CostView cost={gain} />
+          </span>
+        ) : null}
+      </>
+    );
+    buildRow = (
+      <Act
+        act="build"
+        state={build.ordered ? 'set' : blocked ? 'off' : undefined}
+        icon={buildingMark(build.building)}
+        title={title}
+        aside={blocked ? <CostView cost={build.cost} /> : null}
+        sub={
+          build.ordered ? (
+            <span className="act-planned">{t('realm.prepare.built')}</span>
+          ) : blocked ? (
+            <BlockView block={blocked} />
           ) : (
-            <button
-              type="button"
-              className="button button-primary detail-go"
-              disabled={busy || blocked !== null}
-              onClick={() => onChange(withBuild(orders, field.region, true))}
-            >
-              {t('realm.prepare.build')}
-            </button>
-          )}
-        </div>
-      );
-    }
-  } else if (tab === 'buy') {
-    const recruit = field.recruit;
-    if (!recruit) {
-      detail = <p className="detail-none">{t('realm.prepare.buyOnlyCastle')}</p>;
-    } else {
-      if (recruit.max === recruit.count) {
-        note =
-          field.armies >= economy.armyCap
-            ? t('realm.prepare.blocked.ARMY_CAP', { cap: economy.armyCap })
-            : t('realm.prepare.blocked.TOO_EXPENSIVE');
-      }
-      detail = (
-        <div className="detail">
-          <span className="detail-what">
-            <strong>{t('realm.prepare.armiesTitle')}</strong>
-            <span className="cost">
-              {t('realm.prepare.each')} <CostView cost={recruit.cost} />
-            </span>
-          </span>
+            <CostView cost={build.cost} />
+          )
+        }
+        data-ordered={build.ordered ? 'true' : undefined}
+      >
+        {build.ordered ? (
+          <button
+            type="button"
+            className="button act-go"
+            disabled={busy}
+            onClick={() => onChange(withBuild(orders, field.region, false))}
+          >
+            {t('realm.prepare.unbuild')}
+          </button>
+        ) : blocked ? null : (
+          <button
+            type="button"
+            className="button button-primary act-go"
+            disabled={busy}
+            onClick={() => onChange(withBuild(orders, field.region, true))}
+          >
+            {t('realm.prepare.build')}
+          </button>
+        )}
+      </Act>
+    );
+  }
+
+  // ---- Armeen kaufen: erst ein Knopf wie in den anderen Zeilen, danach der Zähler ----
+  const recruit = field.recruit;
+  let buyRow: ReactNode;
+  if (!recruit || (rows.buy && recruit.count === 0)) {
+    buyRow = (
+      <Act
+        act="buy"
+        state="off"
+        icon="army"
+        title={t('realm.prepare.row.buy')}
+        aside={recruit ? <CostView cost={recruit.cost} /> : null}
+        sub={rows.buy ? <BlockView block={rows.buy} /> : null}
+      />
+    );
+  } else {
+    const price = (
+      <>
+        {t('realm.prepare.each')} <CostView cost={recruit.cost} />
+      </>
+    );
+    buyRow =
+      recruit.count === 0 ? (
+        <Act act="buy" icon="army" title={t('realm.prepare.row.buyShort')} sub={price}>
+          <button
+            type="button"
+            className="button button-primary act-go"
+            disabled={busy}
+            onClick={() => onChange(withRecruit(orders, field.region, 1))}
+          >
+            {t('realm.prepare.buy')}
+          </button>
+        </Act>
+      ) : (
+        <Act
+          act="buy"
+          state="set"
+          icon="army"
+          title={t('realm.prepare.row.buyShort')}
+          sub={price}
+          data-count={recruit.count}
+        >
           <Stepper
             value={recruit.count}
             max={recruit.max}
-            label={t('realm.prepare.buy')}
+            label={t('realm.prepare.row.buy')}
             disabled={busy}
             onChange={(count) => onChange(withRecruit(orders, field.region, count))}
           />
-        </div>
+        </Act>
       );
-    }
-  } else if (move) {
-    detail = (
-      <div className="detail">
-        <span className="detail-what">
-          <strong>{t('realm.prepare.armiesTitle')}</strong>
-          <span className="act-note">{tp('realm.prepare.ready', move.max)}</span>
-        </span>
-        <Stepper
-          value={move.count}
-          max={move.max}
-          label={t('realm.prepare.move')}
-          disabled={busy}
-          onChange={(count) => onChange(withMove(orders, field.region, move.to, count))}
-        />
-      </div>
+  }
+
+  // ---- Armeen ziehen: „Ziehen“, dann ein leuchtendes Feld; jeder Zug nimmt eine Armee mit ----
+  let moveRow: ReactNode;
+  if (rows.move) {
+    moveRow = (
+      <Act
+        act="move"
+        state="off"
+        icon="move"
+        title={t('realm.prepare.row.move')}
+        sub={<BlockView block={rows.move} />}
+      />
     );
   } else {
-    detail = (
-      <p className="detail-none">
-        {open.move
-          ? t('realm.prepare.moveHint')
-          : field.moves.length === 0
-            ? t('realm.prepare.moveNoTarget')
-            : t('realm.prepare.moveNone')}
-      </p>
+    moveRow = (
+      <Act
+        act="move"
+        icon="move"
+        title={t('realm.prepare.row.moveShort')}
+        sub={tp('realm.prepare.ready', field.movable)}
+        data-movable={field.movable}
+      >
+        <button
+          type="button"
+          className="button button-primary act-go"
+          disabled={busy}
+          onClick={() => onMoving(true)}
+        >
+          {t('realm.prepare.move')}
+        </button>
+      </Act>
     );
   }
 
   // Niedriger Bildschirm: Für die Zeile unter dem Namen ist kein Platz. Was das Feld bringt oder wie
   // voll die Burg ist, steht dann kurz neben dem Namen (realm.css), für Screenreader als ganzer Satz.
-  const castle = start?.building === 'CASTLE';
+  const castle = now === 'CASTLE';
   const short =
-    move || (!castle && produce.bread === 0 && produce.material === 0) ? null : (
+    !castle && produce.bread === 0 && produce.material === 0 ? null : (
       <span className="feld-short" data-testid="prepare-fact-short">
         {castle ? (
           <>
@@ -517,16 +716,10 @@ function FieldBody({
   return (
     <>
       <div className="feld" data-testid="prepare-field" data-region={field.region}>
-        <strong className="feld-name">
-          {move
-            ? t('realm.prepare.moveTitle', { from: name, to: region(move.to) })
-            : placeName(start?.building ?? 'NONE', name)}
-        </strong>
+        <strong className="feld-name">{placeName(now, fieldName)}</strong>
         {short}
         <span className="feld-fact">
-          {move ? (
-            t('realm.prepare.moveFact')
-          ) : castle ? (
+          {castle ? (
             t('realm.prepare.castleFact', {
               armies: tp('realm.armies', field.armies),
               cap: economy.armyCap,
@@ -539,13 +732,39 @@ function FieldBody({
           )}
         </span>
       </div>
-      <div className="segs">
-        {seg('build', buildingMark(field.build?.building ?? 'CASTLE'), t('realm.prepare.build'))}
-        {seg('buy', 'army', t('realm.prepare.buy'))}
-        {seg('move', 'move', t('realm.prepare.move'))}
-      </div>
-      {detail}
-      {note ? <p className="detail-note">{note}</p> : null}
+      {moving ? (
+        // „Ziehen“ ist offen: Der nächste Tipp gehört der Karte, die drei Zeilen machen so lange Platz
+        <div
+          className="act-move"
+          data-testid="prepare-moving"
+          data-act="move"
+          data-moving="true"
+          data-refused={refused?.kind}
+        >
+          <div className="act-move-head">
+            <MarkIcon kind="move" size={18} />
+            <strong>{t('realm.prepare.moveWhere')}</strong>
+            <button
+              type="button"
+              className="button act-go"
+              disabled={busy}
+              onClick={() => onMoving(false)}
+            >
+              {t('realm.prepare.moveCancel')}
+            </button>
+          </div>
+          <p className={`act-move-text${refused ? ' act-refused' : ''}`} aria-live="polite">
+            {refused ? refusalText(refused, name) : t('realm.prepare.moveHint')}
+          </p>
+          <p className="act-move-ready">{tp('realm.prepare.readyLong', field.movable)}</p>
+        </div>
+      ) : (
+        <ul className="acts" data-testid="prepare-acts">
+          {buildRow}
+          {buyRow}
+          {moveRow}
+        </ul>
+      )}
     </>
   );
 }

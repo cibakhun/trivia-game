@@ -353,22 +353,114 @@ export function fieldOptions(
   };
 }
 
-/** Was das Blatt der Rüstzeit zu einem Feld zeigt: bauen, Armeen kaufen oder ziehen. */
-export type PrepareTab = 'build' | 'buy' | 'move';
+/**
+ * Grund, aus dem eine der drei Zeilen eines Felds (Bauen, Armeen kaufen, Ziehen) gerade nichts
+ * anbietet. Das Blatt nennt ihn in Worten, statt die Zeile nur auszugrauen.
+ */
+export type FieldBlock =
+  /** So viel fehlt im Vorrat, der nach dem Entwurf bliebe. */
+  | { readonly kind: 'MISSING'; readonly bread: number; readonly material: number }
+  | { readonly kind: 'MAX_LEVEL' }
+  | { readonly kind: 'CASTLE_LIMIT'; readonly max: number }
+  | { readonly kind: 'NO_CASTLE' }
+  | { readonly kind: 'ARMY_CAP'; readonly cap: number }
+  | { readonly kind: 'NO_ARMY' }
+  /** Die Armeen hier sind in dieser Rüstzeit angekommen oder gekauft: Sie ziehen erst nächste Runde. */
+  | { readonly kind: 'NEXT_ROUND' }
+  | { readonly kind: 'ALL_MOVED' }
+  | { readonly kind: 'NO_NEIGHBOR' }
+  /** Auf keinem eigenen Nachbarfeld ist noch Platz. */
+  | { readonly kind: 'TARGETS_FULL'; readonly cap: number }
+  | { readonly kind: 'OTHER' };
 
-export function tabsOf(field: FieldOptions): Readonly<Record<PrepareTab, boolean>> {
-  return {
-    build: field.build !== null,
-    buy: field.recruit !== null,
-    move: field.moves.some((move) => move.max > 0),
-  };
+export interface FieldRows {
+  /** `null`: Der Ausbau geht oder ist schon befohlen. */
+  readonly build: FieldBlock | null;
+  /** `null`: Eine weitere Armee lässt sich kaufen. */
+  readonly buy: FieldBlock | null;
+  /** `null`: Von hier kann noch eine Armee auf ein eigenes Nachbarfeld ziehen. */
+  readonly move: FieldBlock | null;
 }
 
-/** Gewünschter Reiter, wenn er auf dem Feld geht; sonst der erste, der geht. */
-export function prepareTab(field: FieldOptions, wanted: PrepareTab): PrepareTab {
-  const open = tabsOf(field);
-  if (open[wanted]) return wanted;
-  return open.build ? 'build' : open.buy ? 'buy' : open.move ? 'move' : 'build';
+function missing(cost: Cost, left: Cost): FieldBlock {
+  const bread = Math.max(0, cost.bread - left.bread);
+  const material = Math.max(0, cost.material - left.material);
+  return bread + material > 0 ? { kind: 'MISSING', bread, material } : { kind: 'OTHER' };
+}
+
+/** Was die drei Zeilen des Felds gerade anbieten und, wenn nicht, warum nicht. */
+export function fieldRows(
+  play: RealmPlay,
+  seat: number,
+  orders: readonly RealmOrderDto[],
+  field: FieldOptions,
+): FieldRows {
+  const { economy } = play.realm;
+  const stock = realmSeat(play, seat);
+  const plan = planOrders(play, seat, orders);
+  const left: Cost = plan.ok
+    ? { bread: plan.bread, material: plan.material }
+    : { bread: stock?.bread ?? 0, material: stock?.material ?? 0 };
+
+  let build: FieldBlock | null = null;
+  if (!field.build) build = { kind: 'MAX_LEVEL' };
+  else if (!field.build.ordered && field.build.blocked !== null) {
+    build =
+      field.build.blocked === 'TOO_EXPENSIVE'
+        ? missing(field.build.cost, left)
+        : field.build.blocked === 'CASTLE_LIMIT'
+          ? { kind: 'CASTLE_LIMIT', max: economy.maxCastles }
+          : { kind: 'OTHER' };
+  }
+
+  let buy: FieldBlock | null = null;
+  if (!field.recruit) buy = { kind: 'NO_CASTLE' };
+  else if (field.recruit.max <= field.recruit.count) {
+    buy =
+      field.armies >= economy.armyCap
+        ? { kind: 'ARMY_CAP', cap: economy.armyCap }
+        : missing(field.recruit.cost, left);
+  }
+
+  let move: FieldBlock | null = null;
+  const atStart = play.board.regions[field.region]?.armies ?? 0;
+  if (atStart === 0) move = field.armies > 0 ? { kind: 'NEXT_ROUND' } : { kind: 'NO_ARMY' };
+  else if (field.moves.length === 0) move = { kind: 'NO_NEIGHBOR' };
+  else if (field.movable === 0) move = { kind: 'ALL_MOVED' };
+  else if (!field.moves.some((option) => option.max > option.count)) {
+    move = { kind: 'TARGETS_FULL', cap: economy.armyCap };
+  }
+  return { build, buy, move };
+}
+
+/** Grenzt das Feld an Land dieses Reichs? Nur solche Felder kann es im Feldzug angreifen (§11.1). */
+export function bordersRealm(play: RealmPlay, seat: number, region: number): boolean {
+  return regionNeighbors(play.map, region).some((id) => play.board.regions[id]?.owner === seat);
+}
+
+/**
+ * Warum ein Tipp auf `region` kein Ziel des Zugs ist, den das Blatt gerade einstellt: fremdes oder
+ * freies Feld, zu weit weg oder voll. `null`: Das Feld ist ein Ziel (oder das Startfeld selbst).
+ */
+export type MoveRefusal =
+  | { readonly kind: 'FOREIGN'; readonly owner: number }
+  | { readonly kind: 'FREE' }
+  | { readonly kind: 'TOO_FAR' }
+  | { readonly kind: 'FULL'; readonly cap: number };
+
+export function moveRefusal(
+  play: RealmPlay,
+  seat: number,
+  field: FieldOptions,
+  region: number,
+): MoveRefusal | null {
+  if (region === field.region) return null;
+  const owner = play.board.regions[region]?.owner ?? null;
+  if (owner === null) return { kind: 'FREE' };
+  if (owner !== seat) return { kind: 'FOREIGN', owner };
+  const option = field.moves.find((move) => move.to === region);
+  if (!option) return { kind: 'TOO_FAR' };
+  return option.max > 0 ? null : { kind: 'FULL', cap: play.realm.economy.armyCap };
 }
 
 export interface TradeOption {
@@ -429,6 +521,22 @@ export function wheelPreview(play: RealmPlay, attacker: number, region: number):
   );
 }
 
+/**
+ * Mit welcher Chance (ganze Prozent) das Rad eine dieser Lieblingskategorien zieht: die Teile ihrer
+ * Felder am ganzen Rad, die freien und die des Gegners in diesen Kategorien mitgezählt.
+ */
+export function favoriteChance(
+  wheel: Pick<RealmWheel, 'segments' | 'total'>,
+  favorites: readonly QuestionCategory[],
+): number {
+  if (wheel.total <= 0) return 0;
+  const mine = wheel.segments.reduce(
+    (total, segment) => total + (favorites.includes(segment.category) ? segment.weight : 0),
+    0,
+  );
+  return Math.round((mine / wheel.total) * 100);
+}
+
 // ---------------------------------------------------------------------------------------------
 // Bildschirm
 // ---------------------------------------------------------------------------------------------
@@ -472,4 +580,49 @@ export function revealedOrders(
     (e): e is MatchEventOf<'ORDERS_REVEALED'> =>
       e.type === 'ORDERS_REVEALED' && e.payload.round === round,
   );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Ablauf: wo die Partie gerade steht und was danach kommt
+// ---------------------------------------------------------------------------------------------
+
+/** Abschnitt im Ablauf, wie ihn die Zeile links unter dem Band nennt. */
+export type FlowStep = 'CASTLE' | 'VILLAGE' | 'LAND' | 'PREPARE' | 'ORDERS' | 'ATTACK';
+
+export interface RoundFlowView {
+  readonly steps: readonly FlowStep[];
+  /** Stelle des laufenden Abschnitts; -1, bevor der erste beginnt (Startfrage). */
+  readonly now: number;
+}
+
+const FLOW_OPENING: readonly FlowStep[] = ['CASTLE', 'VILLAGE', 'LAND'];
+const FLOW_ROUND: readonly FlowStep[] = ['PREPARE', 'ORDERS', 'ATTACK'];
+
+/**
+ * Die drei Abschnitte, zwischen denen die Partie gerade läuft: in der Eröffnung Burg, Dorf und
+ * Landnahme, im Feldzug jede Runde Rüsten, Aufdecken und Angriffe. `null`, wenn nichts läuft.
+ */
+export function roundFlow(play: RealmPlay, state: RealmScreenState): RoundFlowView | null {
+  if (state === 'finished' || state === 'abandoned' || state === 'lobby') return null;
+  switch (play.board.step.kind) {
+    case 'START_ESTIMATE':
+      return { steps: FLOW_OPENING, now: -1 };
+    case 'CASTLE_PICK':
+      return { steps: FLOW_OPENING, now: 0 };
+    case 'VILLAGE_PICK':
+      return { steps: FLOW_OPENING, now: 1 };
+    case 'LAND_ESTIMATE':
+    case 'LAND_PICK':
+      return { steps: FLOW_OPENING, now: 2 };
+    case 'PREPARE':
+      return { steps: FLOW_ROUND, now: 0 };
+    case 'CAMPAIGN_TARGET':
+    case 'DUEL_WHEEL':
+    case 'DUEL_TRIVIA':
+    case 'DUEL_ESTIMATE':
+      // Das Aufgedeckte steht noch kurz, während der Server schon beim ersten Angriff ist
+      return { steps: FLOW_ROUND, now: state === 'orders' ? 1 : 2 };
+    case 'FINISHED':
+      return null;
+  }
 }

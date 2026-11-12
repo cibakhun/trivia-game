@@ -60,6 +60,42 @@
   white-space: nowrap;
 }
 
+/* ---------- Links: Ablauf unter dem Band ---------- */
+
+.flow {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: calc(17 * var(--u));
+  padding: 0 calc(6 * var(--u));
+  font-size: calc(10.5 * var(--u));
+  font-weight: 600;
+  line-height: 1;
+  color: var(--muted);
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  border: 1px solid var(--border);
+  border-radius: calc(9 * var(--u));
+}
+
+.flow li {
+  display: inline-flex;
+  align-items: center;
+}
+
+.flow li + li::before {
+  content: '›';
+  margin: 0 calc(4 * var(--u));
+  font-weight: 800;
+  color: var(--border-strong);
+}
+
+.flow li.now span {
+  font-weight: 800;
+  color: var(--text);
+  box-shadow: 0 calc(2 * var(--u)) 0 var(--map-gold);
+}
+
 /* ---------- Links: Tafeln der Reiche ---------- */
 
 /* Wie ohne Ausbau stehen die Leben neben den Punkten; im Fuß der Vorrat und der Stand der Rüstzeit */
@@ -128,8 +164,7 @@
   color: var(--success);
 }
 
-.blatt-note,
-.detail-note {
+.blatt-note {
   font-size: calc(12 * var(--u));
   line-height: 1.25;
   color: var(--danger);
@@ -221,64 +256,200 @@
   cursor: default;
 }
 
-.income {
-  display: flex;
-  align-items: center;
-  gap: calc(9 * var(--u));
-  font-size: calc(13 * var(--u));
+/* Die drei festen Zeilen eines Felds: Ausbauen, Armeen kaufen, Armeen ziehen. Jede ist gleich hoch,
+   ob sie etwas anbietet oder nur sagt, warum gerade nicht: Das Blatt springt nie. */
+.acts {
+  display: grid;
+  gap: calc(4 * var(--u));
 }
 
-.income > span:first-child {
+.act {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: calc(6 * var(--u));
+  height: var(--act-h, calc(38 * var(--u)));
+  padding: 0 calc(4 * var(--u)) 0 calc(7 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: calc(8 * var(--u));
+}
+
+.act > .glyph {
+  flex: none;
+}
+
+.act-what {
+  display: grid;
+  gap: calc(1 * var(--u));
+  min-width: 0;
+}
+
+.act-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(5 * var(--u));
+  font-size: calc(13.5 * var(--u));
+  line-height: calc(16 * var(--u));
+  white-space: nowrap;
+}
+
+.act-title strong {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  min-width: 0;
+  font-weight: 800;
+}
+
+.act-title > .cost {
+  font-size: calc(12 * var(--u));
   color: var(--muted);
 }
 
-.income-plus {
+/* Was der Ausbau bringt: mehr Ertrag je Runde oder, bei der Burg, Armeen */
+.act-gain {
   display: inline-flex;
   align-items: center;
   gap: calc(1 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  color: var(--success);
+}
+
+.act-gain .cost {
+  font-size: inherit;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.act-sub {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  min-width: 0;
+  font-size: calc(12 * var(--u));
+  line-height: calc(15 * var(--u));
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.act-sub .cost {
+  font-size: inherit;
+  color: var(--text);
+}
+
+/* Geht gerade nicht: gestrichelt und blass, der Grund steht in Worten da */
+.act.off {
+  background: transparent;
+  border-style: dashed;
+}
+
+.act.off > .glyph {
+  opacity: 0.45;
+}
+
+.act.off .act-title strong {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.act-missing {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  color: var(--danger);
+}
+
+.act-sub .act-missing .cost {
+  color: var(--danger);
+}
+
+/* Kein Feld gewählt: Die Zeile erklärt nur */
+.act.info {
+  background: transparent;
+}
+
+.act.info .act-title strong {
+  font-weight: 700;
+}
+
+/* Schon befohlen */
+.act.set {
+  border-color: color-mix(in srgb, var(--success) 55%, var(--border));
+  background: color-mix(in srgb, var(--success) 9%, var(--surface-2));
+}
+
+.act-planned {
   font-weight: 800;
   color: var(--success);
 }
 
-.income-plus .amount {
-  color: var(--text);
+.stage .act-go {
+  flex: none;
+  min-width: calc(62 * var(--u));
+  min-height: calc(30 * var(--u));
+  padding: calc(2 * var(--u)) calc(8 * var(--u));
+  font-size: calc(13 * var(--u));
 }
 
-.segs {
+.act .stepper {
+  gap: calc(3 * var(--u));
+}
+
+.act .step-btn {
+  width: calc(30 * var(--u));
+  height: calc(30 * var(--u));
+}
+
+.act .step-value {
+  min-width: calc(16 * var(--u));
+  font-size: calc(19 * var(--u));
+}
+
+/* „Ziehen“ ist offen: so hoch wie die drei Zeilen, an deren Stelle es steht */
+.act-move {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: calc(5 * var(--u));
-}
-
-.seg {
-  display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: calc(1 * var(--u));
-  min-height: calc(46 * var(--u));
-  padding: calc(4 * var(--u)) calc(2 * var(--u)) calc(3 * var(--u));
-  font: inherit;
-  font-size: calc(12.5 * var(--u));
-  font-weight: 700;
-  color: var(--text);
-  background: linear-gradient(var(--surface), var(--surface-2));
-  border: 1px solid var(--border-strong);
-  border-radius: calc(8 * var(--u));
-  box-shadow: 0 1px calc(2 * var(--u)) rgb(70 45 15 / 0.18);
-  cursor: pointer;
-}
-
-.seg.on {
+  align-content: start;
+  gap: calc(4 * var(--u));
+  height: calc(3 * var(--act-h, calc(38 * var(--u))) + 8 * var(--u));
+  padding: calc(5 * var(--u)) calc(6 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u));
+  overflow: hidden;
   background: var(--map-coin);
   border: calc(2 * var(--u)) solid var(--map-gold);
-  padding: calc(3 * var(--u)) calc(1 * var(--u)) calc(2 * var(--u));
+  border-radius: calc(8 * var(--u));
   box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 30%, transparent);
 }
 
-.seg:disabled {
-  opacity: 0.42;
-  box-shadow: none;
-  cursor: default;
+.act-move-head {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+}
+
+.act-move-head strong {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: calc(16 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.act-move-text,
+.act-move-ready,
+.act-info {
+  font-size: calc(12.5 * var(--u));
+  line-height: calc(16 * var(--u));
+}
+
+.act-move-ready,
+.act-info {
+  color: var(--muted);
+}
+
+.act-refused {
+  font-weight: 700;
+  color: var(--danger);
 }
 
 .detail {
@@ -330,31 +501,6 @@
   color: var(--muted);
 }
 
-.stage .detail-go {
-  flex: none;
-  min-height: calc(34 * var(--u));
-  padding: calc(3 * var(--u)) calc(12 * var(--u));
-}
-
-.detail-none {
-  display: grid;
-  align-items: center;
-  min-height: calc(40 * var(--u));
-  padding: calc(4 * var(--u)) calc(9 * var(--u));
-  font-size: calc(12.5 * var(--u));
-  line-height: 1.25;
-  color: var(--muted);
-  background: var(--surface-2);
-  border: 1px dashed var(--border);
-  border-radius: calc(8 * var(--u));
-}
-
-.act-note {
-  font-size: calc(12 * var(--u));
-  font-weight: 500;
-  color: var(--muted);
-}
-
 .cost {
   display: inline-flex;
   align-items: center;
@@ -398,13 +544,39 @@
   gap: calc(3 * var(--u));
 }
 
+/* Eine einzige Zeile, damit das Blatt nie wächst: Was nicht hineinpasst, lässt sich seitlich
+   schieben, und der Rand blendet aus, wo noch etwas folgt (PreparePanel, `useOrderStrip`) */
 .orders ul {
+  --fade-left: 0px;
+  --fade-right: 0px;
   display: flex;
-  flex-wrap: wrap;
   gap: calc(4 * var(--u));
-  /* Höchstens drei Zeilen: Darüber rollt nur diese Liste, „Fertig“ bleibt an seinem Platz */
-  max-height: calc(80 * var(--u));
-  overflow-y: auto;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--fade-left),
+    #000 calc(100% - var(--fade-right)),
+    transparent
+  );
+}
+
+.orders ul::-webkit-scrollbar {
+  display: none;
+}
+
+.orders ul[data-left] {
+  --fade-left: calc(18 * var(--u));
+}
+
+.orders ul[data-right] {
+  --fade-right: calc(18 * var(--u));
+}
+
+.orders li {
+  flex: none;
 }
 
 .orders-none {
@@ -458,7 +630,6 @@ span.order-chip {
 }
 
 .stage .trade:focus-visible,
-.stage .seg:focus-visible,
 .stage .step-btn:focus-visible,
 .stage .order-chip:focus-visible,
 .stage .fav:focus-visible {
@@ -586,6 +757,12 @@ span.order-chip {
   font-size: calc(11.5 * var(--u));
   line-height: 1.25;
   color: var(--muted);
+}
+
+.lots-note strong {
+  font-size: calc(13 * var(--u));
+  font-weight: 800;
+  color: var(--text);
 }
 
 /* ---------- Wer gegen wen ---------- */
@@ -1060,6 +1237,201 @@ span.order-chip {
   color: var(--muted);
 }
 
+/* ---------- „So geht's“: vier Bilder über der ganzen Bühne ---------- */
+
+.stage-help {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: calc(8 * var(--u)) max(var(--safe-r), calc(10 * var(--u)))
+    max(var(--safe-b), calc(8 * var(--u))) max(var(--safe-l), calc(10 * var(--u)));
+  background: color-mix(in srgb, var(--map-veil) 62%, transparent);
+}
+
+.sheet.help {
+  width: min(100%, calc(720 * var(--u)));
+  display: grid;
+  gap: calc(9 * var(--u));
+  padding: calc(11 * var(--u)) calc(14 * var(--u)) calc(13 * var(--u));
+}
+
+.help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(10 * var(--u));
+}
+
+.help-head h2 {
+  font-family: var(--font-display);
+  font-size: calc(21 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stage .help-close {
+  min-height: calc(34 * var(--u));
+  padding: calc(3 * var(--u)) calc(16 * var(--u));
+}
+
+.help-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(8 * var(--u));
+}
+
+.help-card {
+  display: grid;
+  align-content: start;
+  gap: calc(5 * var(--u));
+  padding: calc(7 * var(--u)) calc(8 * var(--u)) calc(9 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: calc(9 * var(--u));
+}
+
+.help-art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(7 * var(--u));
+  height: calc(54 * var(--u));
+  background: color-mix(in srgb, var(--map-coin) 55%, transparent);
+  border-radius: calc(7 * var(--u));
+}
+
+.help-card h3 {
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(15.5 * var(--u));
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.help-step {
+  display: inline-grid;
+  place-items: center;
+  width: calc(19 * var(--u));
+  height: calc(19 * var(--u));
+  font-family: var(--font-body, inherit);
+  font-size: calc(12 * var(--u));
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  border-radius: 50%;
+}
+
+.help-card p {
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.32;
+  color: var(--text);
+}
+
+.help-coin {
+  display: inline-grid;
+  place-items: center;
+  min-width: calc(27 * var(--u));
+  height: calc(27 * var(--u));
+  padding: 0 calc(3 * var(--u));
+  font-size: calc(11 * var(--u));
+  font-weight: 800;
+  background: var(--map-coin);
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  border-radius: calc(14 * var(--u));
+}
+
+.help-castle {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--u));
+}
+
+.help-arrow {
+  font-size: calc(17 * var(--u));
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.help-wheel {
+  width: calc(46 * var(--u));
+  height: calc(50 * var(--u));
+}
+
+.help-wheel-rim {
+  fill: var(--map-gold);
+}
+
+.help-wheel-mine {
+  fill: var(--seat-2);
+  stroke: var(--surface);
+  stroke-width: 1;
+}
+
+.help-wheel-free {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+
+.help-wheel-hub {
+  fill: var(--map-gold);
+}
+
+.help-wheel-pointer {
+  fill: var(--text);
+}
+
+/*
+ * „?“ links unten und der Knopf in der Aufstellung. Mit drei Knöpfen wird die Zeile so breit wie
+ * die Schilder darüber: Ton und „?“ rund, „Verlassen“ nimmt den Rest.
+ */
+.stage-tools.three {
+  gap: calc(5 * var(--u));
+}
+
+.stage-tools.three .sound-toggle,
+.stage-tools.three .tool-help {
+  flex: none;
+  width: calc(34 * var(--u));
+}
+
+.stage-tools.three .tool-leave {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  font-size: calc(12 * var(--u));
+}
+
+.stage .tool.tool-help {
+  padding: 0;
+  font-size: calc(17 * var(--u));
+  font-weight: 800;
+}
+
+.stage .tool:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.fav-foot {
+  display: flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+}
+
+.fav-foot .fav-note {
+  flex: 1;
+}
+
+.stage .fav-help {
+  flex: none;
+  min-height: calc(34 * var(--u));
+  padding: calc(3 * var(--u)) calc(12 * var(--u));
+}
+
 /* ---------- Niedriger Bildschirm (Leiste des Browsers sichtbar): das Blatt rückt zusammen ---------- */
 
 @media (min-aspect-ratio: 844 / 360) {
@@ -1086,22 +1458,27 @@ span.order-chip {
   .prep .feld-fact {
     display: none;
   }
+  /* Ohne gewähltes Feld gibt es keine Kurzfassung: Das Einkommen behält seine Zeile */
+  .prep .feld.idle {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .prep .feld.idle .feld-fact {
+    display: inline-flex;
+  }
   .prep .feld-short {
     display: inline-flex;
   }
-  .seg {
-    min-height: calc(42 * var(--u));
+  .prep {
+    --act-h: calc(36 * var(--u));
   }
   .orders h3 {
     display: none;
   }
-  .orders ul {
-    max-height: calc(52 * var(--u));
-  }
   .stage-realm .blatt-go {
     min-height: calc(38 * var(--u));
   }
-  .lots-note,
+  /* Die Chance bleibt stehen, nur der Zusatz dahinter entfällt */
+  .lots-more,
   .wheel-hint {
     display: none;
   }

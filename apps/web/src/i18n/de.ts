@@ -709,6 +709,16 @@ export const de = {
       LAND: 'Landnahme · {round} von {rounds}',
       ROUND: 'Runde {round} von {rounds}',
     },
+    // Ablauf unter dem Band: drei Abschnitte, der laufende ist hervorgehoben
+    flow: {
+      label: 'Ablauf',
+      CASTLE: 'Burg',
+      VILLAGE: 'Dorf',
+      LAND: 'Landnahme',
+      PREPARE: 'Rüsten',
+      ORDERS: 'Aufdecken',
+      ATTACK: 'Angriffe',
+    },
     turns: {
       START_ESTIMATE: 'Alle schätzen',
       CASTLE_PICK: 'Burg setzen',
@@ -752,7 +762,10 @@ export const de = {
         FREE: 'Freies Feld, niemand verteidigt es',
       },
       lots: 'Lose im Glücksrad',
-      lotsNote: 'Mehr Lose, öfter Fragen aus den eigenen Lieblingskategorien.',
+      // Die Zahl steht fett davor: „46 % für deine Lieblingskategorien“
+      chance: '{percent} %',
+      chanceFor: 'für deine Lieblingskategorien.',
+      lotsNote: 'Jede Armee am Ziel bringt ein Los mehr.',
       free: 'frei',
       freeField: 'freies Feld',
       win: {
@@ -775,7 +788,13 @@ export const de = {
       tradeGive: { BREAD: 'Brot gegen Baustoff', MATERIAL: 'Baustoff gegen Brot' },
       tradeFor: 'für',
       income: 'Einkommen',
-      hint: 'Tippe ein eigenes Feld an. Dort kannst du bauen, Armeen kaufen oder ziehen.',
+      // Kein Feld gewählt: Die drei Zeilen sagen, wozu sie gut sind
+      idle: {
+        title: 'Tippe ein Feld an',
+        build: 'mehr Ertrag je Runde',
+        buy: 'mehr Lose am Glücksrad',
+        move: 'je Runde ein Feld weit',
+      },
       build: 'Bauen',
       buy: 'Kaufen',
       move: 'Ziehen',
@@ -785,20 +804,53 @@ export const de = {
       yields: 'bringt',
       perRound: 'je Runde',
       castleFact: '{armies}, Platz für {cap}',
-      armiesTitle: 'Armeen',
       ready: { one: '{count} bereit', other: '{count} bereit' },
-      moveTitle: '{from} nach {to}',
-      moveFact: 'Armeen ziehen ein Feld weit',
-      moveHint: 'Tippe ein markiertes Nachbarfeld an.',
-      moveNone: 'Hier steht keine Armee, die noch ziehen darf.',
-      moveNoTarget: 'Kein eigenes Nachbarfeld.',
-      buyOnlyCastle: 'Armeen entstehen nur in einer Burg.',
-      maxLevel: 'Die Burg ist die höchste Stufe.',
-      blocked: {
-        TOO_EXPENSIVE: 'Dafür reicht der Vorrat nicht.',
-        CASTLE_LIMIT: 'Mehr als {max} Burgen hat kein Reich.',
-        ARMY_CAP: 'Mehr als {cap} Armeen passen nicht auf ein Feld.',
-        OTHER: 'Das geht in dieser Runde nicht.',
+      readyLong: {
+        one: '{count} Armee kann noch ziehen.',
+        other: '{count} Armeen können noch ziehen.',
+      },
+      // Die drei festen Zeilen eines Felds
+      row: {
+        build: 'Ausbauen',
+        buy: 'Armeen kaufen',
+        buyShort: 'Armeen',
+        move: 'Armeen ziehen',
+        moveShort: 'Ziehen',
+      },
+      gain: { castle: 'Hier lassen sich Armeen kaufen', more: 'bringt mehr:' },
+      moveWhere: 'Wohin?',
+      moveHint: 'Tippe ein leuchtendes Nachbarfeld an. Eine Armee zieht dorthin.',
+      moveCancel: 'Abbrechen',
+      // Warum eine Zeile gerade nichts anbietet: kurz, damit es in eine Zeile passt
+      block: {
+        missingShort: 'Es fehlen',
+        MISSING: 'Es fehlen {what}.',
+        and: ' und ',
+        MAX_LEVEL: 'Höchste Stufe erreicht',
+        CASTLE_LIMIT: 'Höchstens {max} Burgen je Reich',
+        NO_CASTLE: 'Nur in einer Burg',
+        ARMY_CAP: 'Voll: {cap} Armeen je Feld',
+        NO_ARMY: 'Keine Armee hier',
+        NEXT_ROUND: 'Erst nächste Runde',
+        ALL_MOVED: 'Alle sind schon verplant',
+        NO_NEIGHBOR: 'Kein eigenes Nachbarfeld',
+        TARGETS_FULL: 'Nachbarfelder sind voll',
+        OTHER: 'Geht in dieser Runde nicht',
+      },
+      // Tipp auf ein Feld, das kein Ziel des offenen Zugs ist
+      refused: {
+        FOREIGN: 'Das Feld gehört {owner}. Armeen ziehen nur auf eigene Felder.',
+        FREE: 'Das Feld ist frei. Armeen ziehen nur auf eigene Felder.',
+        TOO_FAR: 'Zu weit: Armeen ziehen ein Feld weit.',
+        FULL: 'Dort stehen schon {cap} Armeen.',
+      },
+      // Fremdes oder freies Feld angetippt
+      foreign: {
+        free: 'Freies Feld',
+        owner: 'Reich von {owner}',
+        now: 'In der Rüstzeit geht hier nichts.',
+        near: 'Das Feld grenzt an dein Land: Im Feldzug danach kannst du es angreifen.',
+        far: 'Es grenzt nicht an dein Land, angreifen kannst du es deshalb noch nicht.',
       },
       less: 'weniger',
       more: 'mehr',
@@ -990,6 +1042,10 @@ export const de = {
       title: 'Deine Lieblingskategorien',
       count: '{chosen} von {count} gewählt',
       note: 'Je mehr Armeen und Gebäude du an einem Kampf beteiligst, desto öfter kommt die Frage aus deinen Lieblingskategorien.',
+      goal: {
+        one: 'Ziel: nach {count} Runde die meisten Punkte. Punkte bringt nur Land.',
+        other: 'Ziel: nach {count} Runden die meisten Punkte. Punkte bringt nur Land.',
+      },
       side: 'Partie mit Ausbau',
       chosen: 'hat gewählt',
       chosenMe: '{count} gewählt',
@@ -1006,6 +1062,36 @@ export const de = {
       startHint: 'Wer nicht alle {count} wählt, bekommt beim Start zufällige.',
     },
     result: { livesColumn: 'Burgen' },
+    // „So geht's“: vier Bilder, die Ziel und Ablauf erklären
+    help: {
+      open: 'So geht’s',
+      title: 'So geht’s',
+      close: 'Alles klar',
+      goal: {
+        title: 'Das Ziel',
+        text: {
+          one: 'Wer nach {count} Runde die meisten Punkte hat, gewinnt. Punkte bringt nur Land: jedes Feld {field}, deine erste Burg {castle}.',
+          other:
+            'Wer nach {count} Runden die meisten Punkte hat, gewinnt. Punkte bringt nur Land: jedes Feld {field}, deine erste Burg {castle}.',
+        },
+      },
+      prepare: {
+        title: 'Rüsten',
+        text: 'Jede Runde bringt dein Land Brot und Baustoff. Damit baust du aus, kaufst Armeen und ziehst sie. Alle planen zugleich und verdeckt.',
+      },
+      attack: {
+        title: 'Angreifen',
+        text: 'Dann greift jedes Reich ein Feld an seinem Land an. Das Glücksrad zieht die Kategorie: Mit mehr Armeen am Ziel kommt eher eine deiner liebsten.',
+      },
+      duel: {
+        title: 'Das Duell',
+        text: {
+          one: 'Wer die Frage besser beantwortet, gewinnt. Ein leeres Feld ist sofort erobert, Dorf und Stadt halten länger, eine Burg hat {count} Leben.',
+          other:
+            'Wer die Frage besser beantwortet, gewinnt. Ein leeres Feld ist sofort erobert, Dorf und Stadt halten länger, eine Burg hat {count} Leben.',
+        },
+      },
+    },
   },
   errors: {
     generic: 'Etwas ist schiefgelaufen. Bitte versuche es erneut.',

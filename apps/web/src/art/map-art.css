@@ -830,6 +830,16 @@
   }
 }
 
+@keyframes plan-hint {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 @keyframes march {
   to {
     stroke-dashoffset: -28;
@@ -922,6 +932,7 @@
   .map-art .life-off.breaking,
   .map-art .legal-ring,
   .map-art .legal-glow,
+  .map-art .plan-hint,
   .map-art .spot-ring.draw,
   .map-art .duel-stage *,
   .map-art .region-label.arriving {
@@ -996,6 +1007,15 @@
   stroke-width: 3.5;
   stroke-dasharray: 8 6;
   stroke-linejoin: round;
+}
+/* Rüstzeit, noch nichts gewählt: Die eigenen Felder leuchten zweimal auf und sind dann wieder still */
+.map-art .plan-hint {
+  fill: var(--map-coin);
+  stroke: var(--map-gold);
+  stroke-width: 6;
+  stroke-linejoin: round;
+  opacity: 0;
+  animation: plan-hint 1.1s ease-in-out 0.25s 2;
 }
 .map-art .plan-selected {
   fill: none;

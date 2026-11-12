@@ -15,6 +15,7 @@ import { SoundToggle } from '../components/SoundToggle.tsx';
 import { t } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
 import { estimateToSend } from './estimate-input.ts';
+import { HelpSheet, helpSeen, markHelpSeen } from './HelpSheet.tsx';
 import { MatchBoard } from './MatchBoard.tsx';
 import {
   duelResolved,
@@ -22,6 +23,7 @@ import {
   lastOf,
   outcomeBeatMs,
   revealFor,
+  rulesOf,
   shownPick,
 } from './match-model.ts';
 import { AbandonedPanel, MomentBanner, type MatchStageProps } from './MatchStage.tsx';
@@ -39,19 +41,20 @@ import {
 import { RealmLobby, type RealmLobbyInitial } from './RealmLobby.tsx';
 import {
   fieldOptions,
-  prepareTab,
+  moveRefusal,
   realmPlayOf,
   realmScreenStateOf,
   revealedOrders,
+  roundFlow,
   settleOrders,
   tradesFirst,
   withMove,
-  type PrepareTab,
 } from './realm-model.ts';
 import { RealmSeatList } from './RealmSeatList.tsx';
 import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
+import { RoundFlow } from './RoundFlow.tsx';
 import { StageQuestion } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
@@ -82,8 +85,10 @@ interface PrepState {
   readonly round: number | null;
   readonly orders: readonly RealmOrderDto[];
   readonly selected: number | null;
-  readonly tab: PrepareTab;
-  readonly moveTo: number | null;
+  /** „Ziehen“ ist offen: Der nächste Tipp auf ein leuchtendes Feld ist das Ziel, dann ist es zu. */
+  readonly moving: boolean;
+  /** Bei offenem „Ziehen“ zuletzt angetipptes Feld, das kein Ziel ist; das Blatt sagt warum. */
+  readonly refused: number | null;
   readonly trading: boolean;
   readonly dropped: boolean;
 }
@@ -92,8 +97,8 @@ const NO_PREP: PrepState = {
   round: null,
   orders: [],
   selected: null,
-  tab: 'build',
-  moveTo: null,
+  moving: false,
+  refused: null,
   trading: false,
   dropped: false,
 };
@@ -102,11 +107,13 @@ const NO_PREP: PrepState = {
 export interface RealmStageInitial {
   readonly orders?: readonly RealmOrderDto[];
   readonly selected?: number | null;
-  readonly tab?: PrepareTab;
-  readonly moveTo?: number | null;
+  readonly moving?: boolean;
+  readonly refused?: number | null;
   readonly trading?: boolean;
   readonly editing?: boolean;
   readonly target?: number | null;
+  /** „So geht's“ ist offen. */
+  readonly help?: boolean;
   /** Aufstellung: die eigene Wahl der Lieblingskategorien, bevor der Server sie hat. */
   readonly favorites?: RealmLobbyInitial;
 }
@@ -147,6 +154,27 @@ export function RealmStage({
   const mySeat = view?.mySeat ?? null;
   const step = play?.board.step ?? null;
 
+  // ---- „So geht's“: vor der ersten Partie von selbst, sonst über „?“; nie über einer Frage ----
+  const [help, setHelp] = useState(initial?.help ?? false);
+  const asking = state === 'question';
+  if (help && asking) setHelp(false);
+  useEffect(() => {
+    if (state !== 'lobby' || initial || helpSeen()) return;
+    markHelpSeen();
+    setHelp(true);
+  }, [state, initial]);
+  const rules = view ? rulesOf(view.match.rulesPreset) : null;
+  const helpSheet =
+    help && !asking && view && rules ? (
+      <HelpSheet
+        rounds={view.realm?.campaignRounds ?? rules.campaign.rounds}
+        castleLives={rules.capital.lives}
+        fieldValue={rules.values.region}
+        castleValue={rules.values.capital}
+        onClose={() => setHelp(false)}
+      />
+    ) : null;
+
   const name = useMemo(() => (view ? seatNames(view) : () => ''), [view]);
   const region = useMemo(() => (play ? regionNames(play.map) : () => ''), [play]);
   const moment = useMoments(view, state, events, name);
@@ -174,8 +202,8 @@ export function RealmStage({
     round: prepRound,
     orders: initial?.orders ?? play?.realm.myOrders ?? [],
     selected: initial?.selected ?? null,
-    tab: initial?.tab ?? 'build',
-    moveTo: initial?.moveTo ?? null,
+    moving: initial?.moving ?? false,
+    refused: initial?.refused ?? null,
     trading: initial?.trading ?? false,
   }));
   if (prep.round !== prepRound) {
@@ -188,11 +216,15 @@ export function RealmStage({
     preparing && prep.selected !== null
       ? fieldOptions(play, mySeat, prep.orders, prep.selected)
       : null;
-  const tab = field ? prepareTab(field, prep.tab) : prep.tab;
-  const moveTargets =
-    field && tab === 'move' && !prep.trading
-      ? field.moves.filter((move) => move.max > 0).map((move) => move.to)
-      : [];
+  // „Ziehen“ gilt nur, solange von dem Feld noch eine Armee ziehen kann
+  const moving = field !== null && prep.moving && !prep.trading && field.movable > 0;
+  const moveTargets = moving
+    ? field.moves.filter((move) => move.max > move.count).map((move) => move.to)
+    : [];
+  const refused =
+    moving && mySeat !== null && play && prep.refused !== null
+      ? moveRefusal(play, mySeat, field, prep.refused)
+      : null;
 
   // ---- Feldzug: Das Ziel wird erst angetippt, dann mit „Angreifen“ bestätigt ----
   const [target, setTarget] = useState<number | null>(initial?.target ?? null);
@@ -274,6 +306,7 @@ export function RealmStage({
               onLeave={onLeave}
               onSetBot={onSetBot}
               onSetFavorites={onSetFavorites}
+              onHelp={() => setHelp(true)}
               initial={initial?.favorites}
             />
           ) : view && state === 'abandoned' ? (
@@ -282,6 +315,7 @@ export function RealmStage({
             <p className="sheet plain-sheet">{t('app.loading')}</p>
           )}
         </div>
+        {helpSheet}
         {toast}
         <RotateHint />
       </main>
@@ -299,6 +333,10 @@ export function RealmStage({
       ...planLayer(play, mySeat, prep.orders),
       selected: prep.trading ? null : prep.selected,
       targets: moveTargets,
+      hint:
+        prep.selected === null && !prep.trading
+          ? board.regions.flatMap((r, id) => (r.owner === mySeat ? [id] : []))
+          : [],
       focusSeat: mySeat,
     };
   } else if (state === 'prepared' && mySeat !== null) {
@@ -310,25 +348,29 @@ export function RealmStage({
   } else if (state === 'reveal' && realmDuel) {
     layer = { regions, changes: [outcomeSign(realmDuel)], fresh: [realmDuel.payload.region] };
   }
-  const own = preparing ? board.regions.flatMap((r, id) => (r.owner === mySeat ? [id] : [])) : [];
+  // In der Rüstzeit lässt sich jedes Feld antippen: Fremde und freie sagen, warum dort nichts geht
+  const tappable = preparing ? board.regions.map((_, id) => id) : [];
 
   const tapRegion = (id: number) => {
     if (preparing) {
-      const move = moveTargets.includes(id) && id !== prep.selected && prep.selected !== null;
-      if (move) {
-        // Ziel eines Zugs: Die erste Armee zieht gleich mit, die Zahl stellt das Blatt ein
-        const known = field?.moves.find((m) => m.to === id);
-        const orders =
-          known && known.count === 0
-            ? settleOrders(
-                play,
-                mySeat,
-                tradesFirst(withMove(prep.orders, prep.selected ?? id, id, 1)),
-              ).orders
-            : prep.orders;
-        setPrep({ ...prep, orders, moveTo: id, trading: false, dropped: false });
+      if (moving && prep.selected !== null) {
+        const known = field.moves.find((m) => m.to === id);
+        if (id === prep.selected) {
+          // Tipp auf das Startfeld: doch nicht ziehen
+          setPrep({ ...prep, moving: false, refused: null });
+        } else if (known && moveTargets.includes(id)) {
+          // Ziel des Zugs: Eine Armee zieht, und „Ziehen“ ist wieder zu
+          const orders = settleOrders(
+            play,
+            mySeat,
+            tradesFirst(withMove(prep.orders, prep.selected, id, known.count + 1)),
+          ).orders;
+          setPrep({ ...prep, orders, moving: false, refused: null, dropped: false });
+        } else {
+          setPrep({ ...prep, refused: id });
+        }
       } else if (id !== prep.selected || prep.trading) {
-        setPrep({ ...prep, selected: id, tab: 'build', moveTo: null, trading: false });
+        setPrep({ ...prep, selected: id, moving: false, refused: null, trading: false });
       }
       return;
     }
@@ -391,6 +433,7 @@ export function RealmStage({
     sheet = <AbandonedPanel view={view} events={events} />;
   }
   const label = stepLabel(view);
+  const flow = roundFlow(play, state);
   const closed = state === 'finished' || state === 'abandoned';
   const waiting = board.turns
     .filter((turn) => turn.status !== 'DONE' && turn.seat !== mySeat)
@@ -408,7 +451,7 @@ export function RealmStage({
           board={realmBoardState(board)}
           name={name}
           legal={state === 'pick' ? view.legalRegions : []}
-          selectable={own}
+          selectable={tappable}
           realm={layer}
           duel={duel}
           spot={spot}
@@ -425,11 +468,27 @@ export function RealmStage({
             {label}
           </p>
         ) : null}
+        {flow ? <RoundFlow flow={flow} /> : null}
         <RealmSeatList view={view} play={play} name={name} />
         <TurnOrder view={view} name={name} />
-        <div className="stage-tools">
+        <div className="stage-tools three">
           <SoundToggle />
-          <button type="button" className="tool" onClick={() => navigate({ name: 'start' })}>
+          <button
+            type="button"
+            className="tool tool-help"
+            data-testid="match-help-open"
+            aria-label={t('realm.help.open')}
+            title={t('realm.help.open')}
+            disabled={asking}
+            onClick={() => setHelp(true)}
+          >
+            ?
+          </button>
+          <button
+            type="button"
+            className="tool tool-leave"
+            onClick={() => navigate({ name: 'start' })}
+          >
             {t('match.stage.leave')}
           </button>
         </div>
@@ -443,8 +502,8 @@ export function RealmStage({
             orders={state === 'prepared' ? (realm.myOrders ?? []) : prep.orders}
             done={state === 'prepared'}
             selected={prep.selected}
-            tab={tab}
-            moveTo={prep.moveTo}
+            moving={moving}
+            refused={refused}
             trading={prep.trading}
             dropped={prep.dropped}
             waiting={waiting}
@@ -452,9 +511,12 @@ export function RealmStage({
             busy={busy}
             error={actionError}
             region={region}
+            name={name}
             onOrders={(orders, dropped) => setPrep((p) => ({ ...p, orders, dropped }))}
-            onTab={(next) => setPrep((p) => ({ ...p, tab: next, moveTo: null }))}
-            onTrading={(open) => setPrep((p) => ({ ...p, trading: open }))}
+            onMoving={(open) => setPrep((p) => ({ ...p, moving: open, refused: null }))}
+            onTrading={(open) =>
+              setPrep((p) => ({ ...p, trading: open, moving: false, refused: null }))
+            }
             onSubmit={() => {
               void onSubmitOrders(prep.orders).then((accepted) => {
                 if (accepted) setEditing(false);
@@ -501,6 +563,7 @@ export function RealmStage({
       {sheet ? (
         <div className={`stage-centre${closed ? ' wide' : ''}${disc ? ' disc' : ''}`}>{sheet}</div>
       ) : null}
+      {helpSheet}
       {toast}
       <RotateHint />
     </main>

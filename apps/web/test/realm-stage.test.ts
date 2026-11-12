@@ -17,14 +17,23 @@ import { PreparePanel } from '../src/match/PreparePanel.tsx';
 import { RealmBlatt } from '../src/match/RealmBlatt.tsx';
 import { RealmLobby, type RealmLobbyInitial } from '../src/match/RealmLobby.tsx';
 import {
+  favoriteChance,
+  fieldOptions,
+  moveRefusal,
   realmPlayOf,
   wheelPreview,
-  type PrepareTab,
   type RealmPlay,
 } from '../src/match/realm-model.ts';
 import { RealmSeatList } from '../src/match/RealmSeatList.tsx';
 import { RealmStage, type RealmStageInitial } from '../src/match/RealmStage.tsx';
-import { AT, event, ID, realmViewOf, type RealmViewOptions } from './match-fixtures.ts';
+import {
+  AT,
+  event,
+  ID,
+  REALM_FAVORITES,
+  realmViewOf,
+  type RealmViewOptions,
+} from './match-fixtures.ts';
 
 /**
  * Die Partie mit Ausbau als fertiges HTML (ADR-060): Spielstand mit Vorräten, das Blatt der
@@ -332,8 +341,10 @@ describe('Blatt der Rüstzeit', () => {
     readonly orders?: readonly RealmOrderDto[];
     readonly done?: boolean;
     readonly selected?: number | null;
-    readonly tab?: PrepareTab;
-    readonly moveTo?: number | null;
+    /** „Ziehen“ ist offen: Der nächste Tipp auf die Karte ist das Ziel. */
+    readonly moving?: boolean;
+    /** Feld, das bei offenem „Ziehen“ zuletzt angetippt wurde. */
+    readonly tapped?: number;
     readonly trading?: boolean;
     readonly dropped?: boolean;
     readonly busy?: boolean;
@@ -342,15 +353,19 @@ describe('Blatt der Rüstzeit', () => {
   function prepare(props: Prep = {}): string {
     const view = props.view ?? prepView();
     const play = playOf(view);
+    const orders = props.orders ?? [];
+    const selected = props.selected ?? null;
+    const field = selected === null ? null : fieldOptions(play, ME, orders, selected);
     return renderToStaticMarkup(
       createElement(PreparePanel, {
         play,
         seat: ME,
-        orders: props.orders ?? [],
+        orders,
         done: props.done ?? false,
-        selected: props.selected ?? null,
-        tab: props.tab ?? 'build',
-        moveTo: props.moveTo ?? null,
+        selected,
+        moving: props.moving ?? false,
+        refused:
+          field && props.tapped !== undefined ? moveRefusal(play, ME, field, props.tapped) : null,
         trading: props.trading ?? false,
         dropped: props.dropped ?? false,
         waiting: ['Bot (schwer)'],
@@ -358,8 +373,9 @@ describe('Blatt der Rüstzeit', () => {
         busy: props.busy ?? false,
         error: null,
         region: regionNames(play.map),
+        name: seatNames(view),
         onOrders: noop,
-        onTab: noop,
+        onMoving: noop,
         onTrading: noop,
         onSubmit: noop,
         onEdit: noop,
@@ -367,95 +383,146 @@ describe('Blatt der Rüstzeit', () => {
     );
   }
   const stock = (html: string) => textOf(part(html, 'data-testid="prepare-stock"', '</div>'));
+  /** Eine der drei Zeilen: ihr Text und ihr öffnendes Tag (Zustand, Zahl). */
+  const row = (html: string, act: 'build' | 'buy' | 'move') => {
+    const acts = part(html, 'data-testid="prepare-acts"', '</ul>');
+    const li = part(acts, `data-act="${act}"`, '</li>');
+    return { html: li, text: textOf(li), tag: tagOf(li, `data-act="${act}"`) };
+  };
   /**
-   * Zeile des gewählten Felds: `long` ist Name und Zeile darunter, `short` die Kurzfassung neben dem
+   * Kopf des gewählten Felds: `long` ist Name und Zeile darunter, `short` die Kurzfassung neben dem
    * Namen. Zu sehen ist je nach Höhe des Bildschirms nur eine von beiden (realm.css).
    */
   const fieldOf = (html: string) => {
-    const field = part(html, 'data-testid="prepare-field"', '<div class="segs"');
+    const field = part(html, 'data-testid="prepare-field"', '</div>');
     const short = field.includes('data-testid="prepare-fact-short"')
       ? part(field, 'data-testid="prepare-fact-short"', '<span class="feld-fact"')
       : '';
     return { long: textOf(field.replace(short, '')), short };
   };
 
-  it('zeigt zu Beginn Vorrat, Einkommen und den Hinweis, ein Feld anzutippen', () => {
+  it('zeigt zu Beginn Vorrat, Einkommen und wozu die drei Zeilen gut sind', () => {
     const html = prepare();
     expect(html).toContain('data-testid="match-prepare"');
     expect(html).not.toContain('data-done');
     expect(textOf(html)).toContain('Rüstzeit');
     expect(stock(html)).toContain('Vorrat 7 Brot 10 Baustoff');
-    expect(textOf(html)).toContain('Einkommen + 4 Brot + 5 Baustoff');
-    expect(textOf(html)).toContain('Tippe ein eigenes Feld an.');
+    const idle = part(html, 'data-testid="prepare-idle"', '</div>');
+    expect(textOf(idle)).toBe('Tippe ein Feld an Einkommen 4 Brot 5 Baustoff je Runde');
+    // Dieselben drei Zeilen wie zu einem Feld, hier ohne Knopf: Sie sagen, was sie bringen
+    expect(row(html, 'build').text).toBe('Ausbauen mehr Ertrag je Runde');
+    expect(row(html, 'buy').text).toBe('Armeen kaufen mehr Lose am Glücksrad');
+    expect(row(html, 'move').text).toBe('Armeen ziehen je Runde ein Feld weit');
+    expect(count(part(html, 'data-testid="prepare-acts"', '</ul>'), 'class="act info"')).toBe(3);
+    expect(part(html, 'data-testid="prepare-acts"', '</ul>')).not.toContain('<button');
     expect(textOf(html)).toContain('Noch keine Befehle');
     expect(buttonOf(html, 'Tauschen, 3 zu 1')).toContain('aria-pressed="false"');
     // Auch ohne Befehle darf man fertig sein
     expect(buttonOf(html, 'Fertig')).not.toContain('disabled');
   });
 
-  it('bietet auf einem freien Feld das Dorf mit seinen Kosten an', () => {
+  it('zeigt zu jedem eigenen Feld dieselben drei Zeilen, mit Knopf oder mit dem Grund', () => {
     const html = prepare({ selected: PLAIN });
-    const field = part(html, 'data-testid="prepare-field"', '<div class="segs"');
-    expect(field).toContain('data-region="7"');
+    expect(tagOf(html, 'data-testid="prepare-field"')).toContain('data-region="7"');
     expect(fieldOf(html).long).toBe('Eisenhang Bergland, bringt 1 Baustoff je Runde');
-    expect(buttonOf(html, 'Bauen')).toContain('aria-pressed="true"');
-    // Armeen entstehen nur in einer Burg
-    expect(tagOf(html, 'data-tab="buy"')).toContain('disabled');
-    expect(tagOf(html, 'data-tab="move"')).not.toContain('disabled');
-    const detail = part(html, '<div class="detail"', '</div>');
-    expect(textOf(detail)).toBe('Dorf 1 Brot 3 Baustoff Bauen');
-    expect(detail).not.toContain('disabled');
+    // Ausbauen: was entsteht, was es mehr bringt, was es kostet
+    expect(row(html, 'build').text).toBe('Dorf bringt mehr: + 2 Baustoff 1 Brot 3 Baustoff Bauen');
+    expect(row(html, 'build').html).not.toContain('disabled');
+    // Armeen entstehen nur in einer Burg: Die Zeile bleibt stehen und sagt das
+    expect(row(html, 'buy').text).toBe('Armeen kaufen Nur in einer Burg');
+    expect(row(html, 'buy').tag).toContain('class="act off"');
+    expect(row(html, 'buy').html).not.toContain('<button');
+    // Ziehen: eine Armee steht bereit
+    expect(row(html, 'move').text).toBe('Ziehen 1 bereit Ziehen');
+    expect(row(html, 'move').tag).toContain('data-movable="1"');
   });
 
   it('rechnet einen geplanten Bau in den Vorrat ein und lässt ihn streichen', () => {
     const html = prepare({ selected: PLAIN, orders: [{ kind: 'BUILD', region: PLAIN }] });
     expect(stock(html)).toContain('6 Brot 7 Baustoff');
-    expect(textOf(part(html, '<div class="detail"', '</div>'))).toBe('Dorf Geplant Streichen');
+    expect(row(html, 'build').text).toBe('Dorf Geplant Streichen');
+    expect(row(html, 'build').tag).toContain('class="act set"');
+    expect(row(html, 'build').tag).toContain('data-ordered="true"');
     const chips = part(html, 'data-testid="prepare-orders"', '</ul>');
     expect(count(chips, '<li')).toBe(1);
     expect(chips).toContain('aria-label="Dorf in Eisenhang zurücknehmen"');
     expect(textOf(chips)).toContain('Dorf ×');
   });
 
-  it('sagt, warum die nächste Stufe gerade nicht geht', () => {
+  it('sagt, was für die nächste Stufe fehlt, statt einen Knopf zu zeigen, der nichts tut', () => {
     const html = prepare({ selected: TOWN });
-    expect(textOf(part(html, 'data-testid="prepare-field"', '<div class="segs"'))).toContain(
-      'Stadt Dornfeld',
+    expect(fieldOf(html).long).toContain('Stadt Dornfeld');
+    const build = row(html, 'build');
+    expect(build.tag).toContain('class="act off"');
+    expect(build.html).not.toContain('<button');
+    // Preis der Burg in der Titelzeile, darunter, was im Vorrat fehlt (7 Brot, 10 Baustoff da)
+    // (sichtbar als Zeichen mit Zahl, vorgelesen als Satz)
+    expect(build.text).toBe(
+      'Burg + Hier lassen sich Armeen kaufen 8 Brot 16 Baustoff Es fehlen 1 Brot 6 Baustoff Es fehlen 1 Brot und 6 Baustoff.',
     );
-    const detail = part(html, '<div class="detail"', '</div>');
-    expect(textOf(detail)).toBe('Burg 8 Brot 16 Baustoff Bauen');
-    expect(detail).toContain('disabled');
-    expect(textOf(html)).toContain('Dafür reicht der Vorrat nicht.');
   });
 
-  it('kauft Armeen in der Burg bis zur Obergrenze des Felds', () => {
-    const start = prepare({ selected: CASTLE, tab: 'buy' });
+  it('nennt die Grenze der Burgen und die höchste Stufe', () => {
+    const two = prepView({
+      buildings: { 5: 'CASTLE' },
+      stock: { [ME]: { bread: 30, material: 40 } },
+    });
+    expect(row(prepare({ view: two, selected: TOWN }), 'build').text).toContain(
+      'Höchstens 2 Burgen je Reich',
+    );
+    const castle = row(prepare({ selected: CASTLE }), 'build');
+    expect(castle.text).toBe('Ausbauen Höchste Stufe erreicht');
+    expect(castle.tag).toContain('class="act off"');
+  });
+
+  it('kauft Armeen in der Burg erst mit einem Knopf, dann mit Minus und Plus', () => {
+    const start = prepare({ selected: CASTLE });
     expect(fieldOf(start).long).toBe('Burg Graufurt 3 Armeen, Platz für 6');
-    expect(textOf(part(start, '<div class="detail"', '</div>'))).toContain('Armeen je 2 Brot');
-    expect(buttonOf(start, 'weniger')).toContain('disabled');
-    expect(buttonOf(start, 'mehr')).not.toContain('disabled');
-    expect(start).not.toContain('detail-note');
+    expect(row(start, 'buy').text).toBe('Armeen je 2 Brot Kaufen');
+    expect(row(start, 'buy').html).not.toContain('class="stepper"');
+
+    const one = prepare({
+      selected: CASTLE,
+      orders: [{ kind: 'RECRUIT', region: CASTLE, count: 1 }],
+    });
+    expect(row(one, 'buy').tag).toContain('class="act set"');
+    expect(row(one, 'buy').tag).toContain('data-count="1"');
+    expect(buttonOf(row(one, 'buy').html, 'weniger')).not.toContain('disabled');
+    expect(buttonOf(row(one, 'buy').html, 'mehr')).not.toContain('disabled');
+    expect(stock(one)).toContain('5 Brot 10 Baustoff');
 
     const full = prepare({
       selected: CASTLE,
-      tab: 'buy',
       orders: [{ kind: 'RECRUIT', region: CASTLE, count: 3 }],
     });
     expect(stock(full)).toContain('1 Brot 10 Baustoff');
-    expect(buttonOf(full, 'mehr')).toContain('disabled');
-    expect(textOf(full)).toContain('Mehr als 6 Armeen passen nicht auf ein Feld.');
+    expect(fieldOf(full).long).toBe('Burg Graufurt 6 Armeen, Platz für 6');
+    expect(buttonOf(row(full, 'buy').html, 'mehr')).toContain('disabled');
     expect(textOf(part(full, 'data-testid="prepare-orders"', '</ul>'))).toContain('+3');
   });
 
+  it('sagt, warum sich in der Burg keine Armee kaufen lässt', () => {
+    const crowded = prepare({ view: prepView({ armies: { [CASTLE]: 6 } }), selected: CASTLE });
+    expect(row(crowded, 'buy').tag).toContain('class="act off"');
+    expect(row(crowded, 'buy').text).toContain('Armeen kaufen');
+    expect(row(crowded, 'buy').text).toContain('6');
+    const poor = prepare({
+      view: prepView({ stock: { [ME]: { bread: 1, material: 10 } } }),
+      selected: CASTLE,
+    });
+    expect(row(poor, 'buy').text).toContain('Es fehlen 1 Brot');
+    expect(row(poor, 'buy').html).not.toContain('<button');
+  });
+
   it('nennt Ertrag oder Besatzung auch kurz neben dem Namen, für niedrige Bildschirme', () => {
-    // Freies Feld: sichtbar „+ 1 Baustoff“, vorgelesen derselbe Satz wie in der Zeile darunter
+    // Feld ohne Gebäude: sichtbar „+ 1 Baustoff“, vorgelesen derselbe Satz wie in der Zeile darunter
     const plain = fieldOf(prepare({ selected: PLAIN })).short;
     expect(plain).toContain('<span aria-hidden="true">+</span>');
     expect(textOf(plain.replace(/<span aria-hidden="true">[^<]*<\/span>/g, ''))).toBe(
       'Bergland, bringt 1 Baustoff je Runde',
     );
     // Burg: sichtbar „3/6“, vorgelesen als Satz
-    const castle = fieldOf(prepare({ selected: CASTLE, tab: 'buy' })).short;
+    const castle = fieldOf(prepare({ selected: CASTLE })).short;
     expect(castle).toContain('<span aria-hidden="true">3/6</span>');
     expect(textOf(castle.replace(/<span aria-hidden="true">[^<]*<\/span>/g, ''))).toBe(
       '3 Armeen, Platz für 6',
@@ -463,40 +530,89 @@ describe('Blatt der Rüstzeit', () => {
     // Geplante Käufe zählen gleich mit, wie in der Zeile darunter
     const bought = prepare({
       selected: CASTLE,
-      tab: 'buy',
       orders: [{ kind: 'RECRUIT', region: CASTLE, count: 3 }],
     });
     expect(fieldOf(bought).short).toContain('<span aria-hidden="true">6/6</span>');
-    expect(fieldOf(bought).long).toBe('Burg Graufurt 6 Armeen, Platz für 6');
-    // Ein Zug sagt schon im Namen, worum es geht
-    const move = prepare({
-      selected: CASTLE,
-      tab: 'move',
-      moveTo: TOWN,
-      orders: [{ kind: 'MOVE', from: CASTLE, to: TOWN, count: 2 }],
-    });
-    expect(move).not.toContain('data-testid="prepare-fact-short"');
   });
 
-  it('bittet beim Ziehen erst um ein Nachbarfeld und stellt dann die Zahl ein', () => {
-    const ask = prepare({ selected: CASTLE, tab: 'move' });
-    expect(textOf(ask)).toContain('Tippe ein markiertes Nachbarfeld an.');
-
-    const html = prepare({
-      selected: CASTLE,
-      tab: 'move',
-      moveTo: TOWN,
-      orders: [{ kind: 'MOVE', from: CASTLE, to: TOWN, count: 2 }],
+  it('Ziehen: Die Zeile nennt, wie viele Armeen bereitstehen, oder warum keine zieht', () => {
+    expect(row(prepare({ selected: CASTLE }), 'move').text).toBe('Ziehen 3 bereit Ziehen');
+    // Dorf ohne Armee
+    expect(row(prepare({ selected: 5 }), 'move').text).toBe('Armeen ziehen Keine Armee hier');
+    // Die eine Armee auf Eisenhang ist schon unterwegs
+    const gone = prepare({
+      selected: PLAIN,
+      orders: [{ kind: 'MOVE', from: PLAIN, to: TOWN, count: 1 }],
     });
-    expect(textOf(part(html, 'data-testid="prepare-field"', '<div class="segs"'))).toBe(
-      'Graufurt nach Dornfeld Armeen ziehen ein Feld weit',
+    expect(row(gone, 'move').tag).toContain('class="act off"');
+    expect(row(gone, 'move').html).not.toContain('<button');
+    // Falkenwacht (1) hat erst durch den Zug eine Armee: Sie zieht erst nächste Runde weiter
+    const arrived = prepare({
+      selected: 1,
+      orders: [{ kind: 'MOVE', from: CASTLE, to: 1, count: 1 }],
+    });
+    expect(row(arrived, 'move').text).toBe('Armeen ziehen Erst nächste Runde');
+  });
+
+  it('fragt bei offenem „Ziehen“ nach dem Ziel und lässt abbrechen', () => {
+    const html = prepare({ selected: CASTLE, moving: true });
+    // Die drei Zeilen machen so lange Platz
+    expect(html).not.toContain('data-testid="prepare-acts"');
+    const card = part(html, 'data-testid="prepare-moving"', '</div></div>');
+    expect(tagOf(html, 'data-testid="prepare-moving"')).not.toContain('data-refused');
+    expect(textOf(card)).toBe(
+      'Wohin? Abbrechen Tippe ein leuchtendes Nachbarfeld an. Eine Armee zieht dorthin. 3 Armeen können noch ziehen.',
     );
-    const detail = part(html, '<div class="detail"', '</div>');
-    expect(textOf(detail)).toContain('Armeen 3 bereit');
-    expect(part(detail, 'class="step-value"', '</strong>')).toContain('>2');
-    expect(part(html, 'data-testid="prepare-orders"', '</ul>')).toContain(
-      'aria-label="2 Armeen von Graufurt nach Dornfeld ziehen zurücknehmen"',
+    expect(buttonOf(html, 'Abbrechen')).not.toContain('disabled');
+    // Der Kopf des Felds bleibt stehen: Man sieht, von wo gezogen wird
+    expect(fieldOf(html).long).toBe('Burg Graufurt 3 Armeen, Platz für 6');
+  });
+
+  it('nennt bei offenem „Ziehen“ den Grund, wenn das angetippte Feld kein Ziel ist', () => {
+    const foreign = prepare({ selected: CASTLE, moving: true, tapped: TARGET });
+    expect(tagOf(foreign, 'data-testid="prepare-moving"')).toContain('data-refused="FOREIGN"');
+    expect(textOf(foreign)).toContain(
+      'Das Feld gehört Bot (schwer). Armeen ziehen nur auf eigene Felder.',
     );
+    expect(textOf(foreign)).not.toContain('Tippe ein leuchtendes Nachbarfeld an.');
+    const far = prepare({ selected: CASTLE, moving: true, tapped: 5 });
+    expect(tagOf(far, 'data-testid="prepare-moving"')).toContain('data-refused="TOO_FAR"');
+    const free = prepare({
+      view: prepView({ free: [3] }),
+      selected: CASTLE,
+      moving: true,
+      tapped: 3,
+    });
+    expect(tagOf(free, 'data-testid="prepare-moving"')).toContain('data-refused="FREE"');
+    const full = prepare({
+      view: prepView({ armies: { [TOWN]: 6 } }),
+      selected: CASTLE,
+      moving: true,
+      tapped: TOWN,
+    });
+    expect(tagOf(full, 'data-testid="prepare-moving"')).toContain('data-refused="FULL"');
+    // Ein Ziel ist kein Fehler
+    const fine = prepare({ selected: CASTLE, moving: true, tapped: TOWN });
+    expect(tagOf(fine, 'data-testid="prepare-moving"')).not.toContain('data-refused');
+  });
+
+  it('erklärt fremde und freie Felder, statt stumm zu bleiben', () => {
+    const foreign = prepare({ selected: TARGET });
+    expect(fieldOf(foreign).long).toBe('Dorf Kranichsee Reich von Bot (schwer)');
+    expect(tagOf(foreign, 'data-testid="prepare-foreign"')).toContain('data-near="true"');
+    expect(textOf(part(foreign, 'data-testid="prepare-foreign"', '</p>'))).toBe(
+      'In der Rüstzeit geht hier nichts. Das Feld grenzt an dein Land: Im Feldzug danach kannst du es angreifen.',
+    );
+    expect(foreign).not.toContain('data-testid="prepare-acts"');
+    // Tannenruh (20) liegt nicht am eigenen Land
+    const far = prepare({ selected: 20 });
+    expect(tagOf(far, 'data-testid="prepare-foreign"')).toContain('data-near="false"');
+    expect(textOf(part(far, 'data-testid="prepare-foreign"', '</p>'))).toBe(
+      'In der Rüstzeit geht hier nichts. Es grenzt nicht an dein Land, angreifen kannst du es deshalb noch nicht.',
+    );
+    const free = prepare({ view: prepView({ free: [3] }), selected: 3 });
+    expect(fieldOf(free).long).toBe('Hirschgrund Freies Feld');
+    expect(tagOf(free, 'data-testid="prepare-foreign"')).toContain('data-near="true"');
   });
 
   it('tauscht in beide Richtungen und zeigt gleich den neuen Vorrat', () => {
@@ -535,18 +651,20 @@ describe('Blatt der Rüstzeit', () => {
     );
   });
 
-  it('rückt viele Befehle zusammen', () => {
-    const four: RealmOrderDto[] = [
+  it('rückt viele Befehle zusammen: eine Zeile, Bauten nur noch als Zeichen', () => {
+    const three: RealmOrderDto[] = [
       { kind: 'BUILD', region: PLAIN },
       { kind: 'BUILD', region: 0 },
       { kind: 'RECRUIT', region: CASTLE, count: 1 },
-      { kind: 'MOVE', from: CASTLE, to: TOWN, count: 1 },
     ];
     const view = prepView({ stock: { [ME]: { bread: 30, material: 40 } } });
-    expect(prepare({ view, orders: four })).not.toContain('class="dense"');
-    const five = prepare({ view, orders: [...four, { kind: 'BUILD', region: 1 }] });
-    expect(five).toContain('class="dense"');
-    expect(count(part(five, 'data-testid="prepare-orders"', '</ul>'), '<li')).toBe(5);
+    expect(prepare({ view, orders: three })).not.toContain('class="dense"');
+    const four = prepare({
+      view,
+      orders: [...three, { kind: 'MOVE', from: CASTLE, to: TOWN, count: 1 }],
+    });
+    expect(four).toContain('class="dense"');
+    expect(count(part(four, 'data-testid="prepare-orders"', '</ul>'), '<li')).toBe(4);
   });
 
   it('meldet, wenn mit einem Befehl ein späterer herausfiel', () => {
@@ -566,19 +684,8 @@ describe('Blatt der Rüstzeit', () => {
   it('sperrt alles, solange eine Aktion läuft', () => {
     const html = prepare({ selected: PLAIN, busy: true, orders: [{ kind: 'BUILD', region: 0 }] });
     expect(count(html, '<button')).toBe(count(html, 'disabled=""'));
-  });
-
-  it('sperrt die Knöpfe, die auf dem Feld nicht gehen', () => {
-    const open = (id: number) => {
-      const html = prepare({ selected: id });
-      return (['build', 'buy', 'move'] as const).map(
-        (name) => !tagOf(html, `data-tab="${name}"`).includes('disabled'),
-      );
-    };
-    // Burg: höchste Stufe, also kein Bau, aber Kauf und Zug
-    expect(open(CASTLE)).toEqual([false, true, true]);
-    // Dorf ohne Armee: nur Bau
-    expect(open(5)).toEqual([true, false, false]);
+    const moving = prepare({ selected: CASTLE, moving: true, busy: true });
+    expect(count(moving, '<button')).toBe(count(moving, 'disabled=""'));
   });
 });
 
@@ -1120,6 +1227,7 @@ describe('Lieblingskategorien vor dem Start', () => {
         onLeave: noop,
         onSetBot: noop,
         onSetFavorites: accept,
+        onHelp: noop,
         initial: extra.initial,
       }),
     );
@@ -1264,6 +1372,21 @@ describe('Lieblingskategorien vor dem Start', () => {
     const rows = lobby(people).split('data-testid="fav-seat"').slice(1).map(textOf);
     expect(rows[1]).toContain('hat gewählt');
     expect(rows[2]).toContain('wählt noch');
+  });
+
+  it('nennt das Ziel in einem Satz und bietet „So geht’s“ an', () => {
+    const html = lobby(lobbyView(null));
+    const foot = part(html, 'class="fav-foot"', '</div>');
+    expect(textOf(part(foot, '<strong', '</strong>'))).toBe(
+      'Ziel: nach 5 Runden die meisten Punkte. Punkte bringt nur Land.',
+    );
+    expect(buttonOf(foot, 'So geht’s')).toContain('data-testid="lobby-help"');
+    expect(buttonOf(foot, 'So geht’s')).not.toContain('disabled');
+    // Scheitert das Speichern, steht an dieser Stelle die Meldung dazu
+    const failed = lobby(lobbyView(null), {
+      initial: { chosen: ['HISTORY', 'LITERATURE', 'ARTS_CULTURE', 'SPORTS'], failed: true },
+    });
+    expect(failed).not.toContain('data-testid="lobby-help"');
   });
 
   it('lässt den Gastgeber starten und die anderen auf ihn warten', () => {
@@ -1429,6 +1552,165 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(textOf(card)).toContain('In welchem Jahr fiel die Berliner Mauer?');
     expect(count(card, '<button')).toBe(4);
     expect(html).toContain('data-testid="match-answers"');
+  });
+
+  describe('Ablaufzeile unter dem Band', () => {
+    const flow = (html: string) => part(html, 'data-testid="match-flow"', '</ol>');
+    const steps = (html: string) =>
+      flow(html)
+        .split('<li')
+        .slice(1)
+        .map((li) => ({ text: textOf(`<li${li}`), tag: li.slice(0, li.indexOf('>')) }));
+
+    it('nennt in der Rüstzeit die drei Schritte der Runde und hebt „Rüsten“ hervor', () => {
+      const html = stage(prepView());
+      expect(tagOf(html, 'data-testid="match-flow"')).toContain('aria-label="Ablauf"');
+      expect(steps(html).map((s) => s.text)).toEqual(['Rüsten', 'Aufdecken', 'Angriffe']);
+      expect(steps(html)[0]?.tag).toContain('class="now"');
+      expect(steps(html)[0]?.tag).toContain('aria-current="step"');
+      expect(count(flow(html), 'aria-current')).toBe(1);
+      expect(flow(html)).not.toContain('class="done"');
+    });
+
+    it('rückt beim Angriff weiter: Was vorbei ist, gilt als erledigt', () => {
+      const html = stage(targetView(ME));
+      const tags = steps(html).map((s) => s.tag);
+      expect(tags[0]).toContain('class="done"');
+      expect(tags[1]).toContain('class="done"');
+      expect(tags[2]).toContain('class="now"');
+      expect(tags[2]).toContain('aria-current="step"');
+      // Auch während der Frage eines Duells bleibt die Zeile stehen
+      const asked = stage(
+        duelView('QUESTION', 'DUEL_TRIVIA', ME, {
+          question: info('TRIVIA', 'DUEL_TRIVIA', 'PRESENTED', [ME, 1], []),
+        }),
+        { local: localOf(TRIVIA) },
+      );
+      expect(steps(asked).map((s) => s.text)).toEqual(['Rüsten', 'Aufdecken', 'Angriffe']);
+      expect(steps(asked)[2]?.tag).toContain('class="now"');
+    });
+
+    it('fehlt vor dem Start und in der Abrechnung', () => {
+      expect(stage(lobbyView(null))).not.toContain('data-testid="match-flow"');
+      const view = realmViewOf({ step: { kind: 'FINISHED', round: null } }, { phase: null });
+      const done = stage({ ...view, match: { ...view.match, status: 'FINISHED' } });
+      expect(done).not.toContain('data-testid="match-flow"');
+    });
+  });
+
+  describe('„So geht’s“', () => {
+    const asking = () =>
+      duelView('QUESTION', 'DUEL_TRIVIA', ME, {
+        question: info('TRIVIA', 'DUEL_TRIVIA', 'PRESENTED', [ME, 1], []),
+      });
+
+    it('liegt hinter „?“ neben Ton und Verlassen und ist zu, bis man es öffnet', () => {
+      const html = stage(prepView());
+      const tools = part(html, 'class="stage-tools three"', '</div>');
+      expect(count(tools, '<button')).toBe(3);
+      const open = tagOf(tools, 'data-testid="match-help-open"');
+      expect(open).toContain('aria-label="So geht’s"');
+      expect(open).not.toContain('disabled');
+      expect(html).not.toContain('data-testid="match-help"');
+    });
+
+    it('erklärt Ziel, Rüsten, Angreifen und Duell mit den Zahlen der Partie', () => {
+      const html = stage(prepView(), { initial: { help: true } });
+      const sheet = part(html, 'data-testid="match-help"');
+      expect(tagOf(html, 'data-testid="match-help"')).toContain('role="dialog"');
+      expect(tagOf(html, 'data-testid="match-help"')).toContain('aria-modal="true"');
+      expect(count(sheet, 'class="help-card"')).toBe(4);
+      const titles = sheet
+        .split('<h3>')
+        .slice(1)
+        .map((h) => textOf(h.slice(0, h.indexOf('</h3>'))));
+      expect(titles).toEqual(['1 Das Ziel', '2 Rüsten', '3 Angreifen', '4 Das Duell']);
+      const text = textOf(sheet);
+      expect(text).toContain(
+        'Wer nach 5 Runden die meisten Punkte hat, gewinnt. Punkte bringt nur Land: jedes Feld 100, deine erste Burg 300.',
+      );
+      expect(text).toContain('Alle planen zugleich und verdeckt.');
+      expect(text).toContain('Mit mehr Armeen am Ziel kommt eher eine deiner liebsten.');
+      expect(text).toContain('eine Burg hat 3 Leben.');
+      expect(buttonOf(sheet, 'Alles klar')).toContain('data-testid="match-help-close"');
+      // Die Bühne darunter bleibt, wie sie ist
+      expect(main(html)).toContain('data-state="prepare"');
+      expect(html).toContain('data-testid="match-prepare"');
+    });
+
+    it('lässt sich auch vor dem Start öffnen', () => {
+      const html = stage(lobbyView(null), { initial: { help: true } });
+      expect(main(html)).toContain('data-state="lobby"');
+      expect(count(part(html, 'data-testid="match-help"'), 'class="help-card"')).toBe(4);
+    });
+
+    it('bleibt während einer Frage zu, und „?“ ist gesperrt', () => {
+      const html = stage(asking(), { local: localOf(TRIVIA), initial: { help: true } });
+      expect(main(html)).toContain('data-state="question"');
+      expect(html).not.toContain('data-testid="match-help"');
+      expect(tagOf(html, 'data-testid="match-help-open"')).toContain('disabled');
+      expect(html).toContain('data-testid="match-question"');
+    });
+  });
+
+  describe('Rüstzeit auf der Karte', () => {
+    const hints = (html: string) => count(html, 'class="plan-hint"');
+    const targets = (html: string) => count(html, 'class="plan-target"');
+
+    it('lässt zu Beginn die eigenen Felder aufleuchten, bis eines gewählt ist', () => {
+      // Acht Felder gehören mir (0, 1, 2, 3, 5, 6, 7, 8)
+      expect(hints(stage(prepView()))).toBe(8);
+      expect(hints(stage(prepView(), { initial: { selected: PLAIN } }))).toBe(0);
+      expect(hints(stage(prepView(), { initial: { trading: true } }))).toBe(0);
+      // Nach der Abgabe und außerhalb der Rüstzeit leuchtet nichts
+      expect(hints(stage(prepView({ myOrders: [] })))).toBe(0);
+      expect(hints(stage(targetView(ME)))).toBe(0);
+    });
+
+    it('zeigt nach „Armeen ziehen“ die Nachbarfelder als Ziele und fragt „Wohin?“', () => {
+      const html = stage(prepView(), { initial: { selected: CASTLE, moving: true } });
+      const card = part(html, 'data-testid="prepare-moving"', '</div></div>');
+      expect(textOf(card)).toContain('Wohin?');
+      expect(textOf(card)).toContain('Tippe ein leuchtendes Nachbarfeld an.');
+      expect(tagOf(html, 'data-testid="prepare-moving"')).not.toContain('data-refused');
+      // Graufurt (2) grenzt an vier eigene Felder: 1, 3, 6 und 7
+      expect(targets(html)).toBe(4);
+      expect(hints(html)).toBe(0);
+      // Ohne „Ziehen“ leuchtet kein Ziel
+      expect(targets(stage(prepView(), { initial: { selected: CASTLE } }))).toBe(0);
+    });
+
+    it('sagt bei einem falschen Feld den Grund und lässt die Ziele stehen', () => {
+      const html = stage(prepView(), {
+        initial: { selected: CASTLE, moving: true, refused: TARGET },
+      });
+      expect(tagOf(html, 'data-testid="prepare-moving"')).toContain('data-refused="FOREIGN"');
+      const text = part(html, 'class="act-move-text act-refused"', '</p>');
+      expect(tagOf(text, 'act-move-text')).toContain('aria-live="polite"');
+      expect(textOf(text)).toContain('Bot (schwer)');
+      expect(targets(html)).toBe(4);
+    });
+
+    it('öffnet „Ziehen“ nicht, wenn von dem Feld keine Armee ziehen kann', () => {
+      // Auf Birkental (5) steht keine Armee
+      const html = stage(prepView(), { initial: { selected: 5, moving: true } });
+      expect(html).not.toContain('data-testid="prepare-moving"');
+      expect(html).toContain('data-testid="prepare-acts"');
+      expect(targets(html)).toBe(0);
+    });
+  });
+
+  it('nennt am Angriffsziel die Chance auf eine Lieblingskategorie', () => {
+    const html = stage(targetView(ME), { initial: { target: TARGET } });
+    const play = playOf(targetView(ME));
+    const wheel = wheelPreview(play, ME, TARGET);
+    if (!wheel) throw new Error('kein Rad');
+    const percent = favoriteChance(wheel, REALM_FAVORITES[ME] ?? []);
+    expect(percent).toBeGreaterThan(0);
+    expect(percent).toBeLessThan(100);
+    expect(textOf(part(html, 'data-testid="match-lots-chance"', '</p>'))).toBe(
+      `${percent} % für deine Lieblingskategorien. Jede Armee am Ziel bringt ein Los mehr.`,
+    );
   });
 
   it('zeigt am Ende die Abrechnung', () => {

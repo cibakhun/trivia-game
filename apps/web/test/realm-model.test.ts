@@ -4,15 +4,18 @@ import { describe, expect, it } from 'vitest';
 import { screenStateOf } from '../src/match/match-model.ts';
 import { mapOfView } from '../src/match/match-text.ts';
 import {
+  bordersRealm,
+  favoriteChance,
   fieldOptions,
+  fieldRows,
+  moveRefusal,
   planOrders,
   plannedRegion,
-  prepareTab,
   realmPlayOf,
   realmScreenStateOf,
   revealedOrders,
+  roundFlow,
   settleOrders,
-  tabsOf,
   tradeOptions,
   tradesFirst,
   wheelPreview,
@@ -389,27 +392,119 @@ describe('Reihenfolge im Entwurf', () => {
   });
 });
 
-describe('Reiter des Blatts zu einem Feld', () => {
-  const field = (id: number, options: RealmViewOptions = {}) => {
-    const found = fieldOptions(playOf(options), ME, [], id);
+describe('Die drei Zeilen des Blatts zu einem Feld', () => {
+  const rows = (id: number, options: RealmViewOptions = {}, orders: RealmOrderDto[] = []) => {
+    const play = playOf(options);
+    const found = fieldOptions(play, ME, orders, id);
     if (!found) throw new Error('kein eigenes Feld');
-    return found;
+    return fieldRows(play, ME, orders, found);
   };
 
-  it('öffnet nur, was auf dem Feld geht', () => {
-    // Burg: höchste Stufe, also kein Bau, aber Kauf und Zug
-    expect(tabsOf(field(2))).toEqual({ build: false, buy: true, move: true });
-    // Dorf ohne Armee: nur Bau
-    expect(tabsOf(field(5))).toEqual({ build: true, buy: false, move: false });
-    // Freies Feld mit einer Armee: Bau und Zug
-    expect(tabsOf(field(7))).toEqual({ build: true, buy: false, move: true });
+  it('bietet an, was auf dem Feld geht, und nennt sonst den Grund', () => {
+    // Burg: höchste Stufe, aber Kauf und Zug
+    expect(rows(2)).toEqual({ build: { kind: 'MAX_LEVEL' }, buy: null, move: null });
+    // Dorf ohne Armee: nur der Ausbau zur Stadt
+    expect(rows(5)).toEqual({ build: null, buy: { kind: 'NO_CASTLE' }, move: { kind: 'NO_ARMY' } });
+    // Feld ohne Gebäude mit einer Armee: Bau und Zug
+    expect(rows(7)).toEqual({ build: null, buy: { kind: 'NO_CASTLE' }, move: null });
   });
 
-  it('bleibt beim gewünschten Reiter, wenn er geht, sonst beim ersten, der geht', () => {
-    expect(prepareTab(field(7), 'move')).toBe('move');
-    expect(prepareTab(field(7), 'buy')).toBe('build');
-    expect(prepareTab(field(2), 'build')).toBe('buy');
-    expect(prepareTab(field(5), 'move')).toBe('build');
+  it('nennt, wie viel für den Ausbau fehlt, gemessen am Vorrat nach dem Entwurf', () => {
+    // Stadt Dornfeld, die Burg kostet 8 Brot und 16 Baustoff
+    const poor = { stock: { 2: { bread: 1, material: 3 } } };
+    expect(rows(6, poor).build).toEqual({ kind: 'MISSING', bread: 7, material: 13 });
+    // 7 Brot und 10 Baustoff; ein Dorf auf Eisenhang (1 + 3) ist schon befohlen
+    expect(rows(6, {}, withBuild([], 7, true)).build).toEqual({
+      kind: 'MISSING',
+      bread: 2,
+      material: 9,
+    });
+    // Ein schon befohlener Ausbau ist kein Hindernis, auch wenn danach nichts mehr übrig ist
+    expect(rows(7, { stock: { 2: { bread: 1, material: 3 } } }, withBuild([], 7, true)).build).toBe(
+      null,
+    );
+  });
+
+  it('nennt die Grenze der Burgen', () => {
+    const play = playOf({ buildings: { 5: 'CASTLE' }, stock: { 2: { bread: 30, material: 40 } } });
+    const found = fieldOptions(play, ME, [], 6);
+    if (!found) throw new Error('kein eigenes Feld');
+    expect(fieldRows(play, ME, [], found).build).toEqual({
+      kind: 'CASTLE_LIMIT',
+      max: play.realm.economy.maxCastles,
+    });
+  });
+
+  it('Armeen kaufen: volle Burg oder zu wenig Brot', () => {
+    expect(rows(2, { armies: { 2: 6 } }).buy).toEqual({ kind: 'ARMY_CAP', cap: 6 });
+    expect(rows(2, { stock: { 2: { bread: 1, material: 10 } } }).buy).toEqual({
+      kind: 'MISSING',
+      bread: 1,
+      material: 0,
+    });
+    // 5 Brot, zwei Armeen sind schon gekauft: Für die dritte fehlt 1 Brot
+    const bought = withRecruit([], 2, 2);
+    expect(rows(2, { stock: { 2: { bread: 5, material: 10 } } }, bought).buy).toEqual({
+      kind: 'MISSING',
+      bread: 1,
+      material: 0,
+    });
+    // Mit drei gekauften stehen sechs in der Burg: voll
+    expect(rows(2, {}, withRecruit([], 2, 3)).buy).toEqual({ kind: 'ARMY_CAP', cap: 6 });
+  });
+
+  it('Armeen ziehen: angekommen, alle gezogen, kein Nachbar, kein Platz', () => {
+    // Falkenwacht (1) hat erst nach dem Zug eine Armee: Sie zieht erst nächste Runde weiter
+    expect(rows(1, {}, withMove([], 2, 1, 1)).move).toEqual({ kind: 'NEXT_ROUND' });
+    // Die eine Armee auf Eisenhang ist schon unterwegs
+    expect(rows(7, {}, withMove([], 7, 6, 1)).move).toEqual({ kind: 'ALL_MOVED' });
+    // Alle Nachbarn von Eisenhang gehören niemandem
+    expect(rows(7, { free: [2, 3, 6, 8] }).move).toEqual({ kind: 'NO_NEIGHBOR' });
+    // Auf jedem eigenen Nachbarfeld stehen schon sechs Armeen
+    expect(rows(7, { armies: { 2: 6, 3: 6, 6: 6, 8: 6 } }).move).toEqual({
+      kind: 'TARGETS_FULL',
+      cap: 6,
+    });
+  });
+});
+
+describe('Ziel eines Zugs', () => {
+  const from = (id: number, options: RealmViewOptions = {}) => {
+    const play = playOf(options);
+    const found = fieldOptions(play, ME, [], id);
+    if (!found) throw new Error('kein eigenes Feld');
+    return { play, field: found };
+  };
+
+  it('ein eigenes Nachbarfeld mit Platz ist ein Ziel, das Startfeld selbst kein Fehler', () => {
+    const { play, field } = from(2);
+    expect(moveRefusal(play, ME, field, 6)).toBeNull();
+    expect(moveRefusal(play, ME, field, 2)).toBeNull();
+  });
+
+  it('nennt den Grund für jedes andere Feld', () => {
+    const { play, field } = from(2);
+    // Kranichsee gehört Sitz 1
+    expect(moveRefusal(play, ME, field, 12)).toEqual({ kind: 'FOREIGN', owner: 1 });
+    // Birkental ist ein eigenes Feld, liegt aber nicht an Graufurt
+    expect(moveRefusal(play, ME, field, 5)).toEqual({ kind: 'TOO_FAR' });
+    const free = from(2, { free: [3] });
+    expect(moveRefusal(free.play, ME, free.field, 3)).toEqual({ kind: 'FREE' });
+    const full = from(2, { armies: { 6: 6 } });
+    expect(moveRefusal(full.play, ME, full.field, 6)).toEqual({ kind: 'FULL', cap: 6 });
+  });
+});
+
+describe('Grenze zum eigenen Land', () => {
+  it('ein Feld grenzt an ein Reich, wenn eines seiner Nachbarfelder dem Reich gehört', () => {
+    const play = playOf();
+    // Kranichsee (12) liegt an Dornfeld und Eisenhang, Tannenruh (20) weit weg
+    expect(bordersRealm(play, ME, 12)).toBe(true);
+    expect(bordersRealm(play, ME, 20)).toBe(false);
+    // Aus der Sicht von Sitz 0 liegt mein Birkental (5) an Ackerbrunn und Hagelstein
+    expect(bordersRealm(play, 0, 5)).toBe(true);
+    // Ein freies Nachbarfeld zählt nicht
+    expect(bordersRealm(playOf({ free: [6, 7] }), ME, 12)).toBe(false);
   });
 });
 
@@ -448,6 +543,27 @@ describe('Vorschau des Glücksrads', () => {
     expect(wheel).toMatchObject({ attackerLots: 2, defenderLots: 0, freeLots: 2 });
     expect(wheel?.segments.every((s) => s.defender === 0)).toBe(true);
     expect(realmWheelSchema.parse(wheel)).toEqual(wheel);
+  });
+
+  it('Chance der Lieblingskategorien: ihr Anteil am ganzen Rad in ganzen Prozent', () => {
+    const wheel = wheelPreview(playOf(), ME, 12);
+    if (!wheel) throw new Error('kein Rad');
+    const mine = wheel.segments
+      .filter((s) => (REALM_FAVORITES[2] as readonly string[]).includes(s.category))
+      .reduce((total, s) => total + s.weight, 0);
+    const chance = favoriteChance(wheel, REALM_FAVORITES[2]);
+    expect(chance).toBe(Math.round((mine / wheel.total) * 100));
+    expect(chance).toBeGreaterThan(0);
+    expect(chance).toBeLessThan(100);
+    // Mehr eigene Armeen am Ziel, mehr eigene Lose: Die Chance steigt
+    const more = wheelPreview(playOf({ armies: { 6: 6 } }), ME, 12);
+    if (!more) throw new Error('kein Rad');
+    expect(favoriteChance(more, REALM_FAVORITES[2])).toBeGreaterThan(chance);
+    // Ohne Lieblingskategorie und ohne Lose: 0
+    expect(favoriteChance(wheel, [])).toBe(0);
+    expect(favoriteChance({ segments: [], total: 0 }, REALM_FAVORITES[2])).toBe(0);
+    // Alle Kategorien zusammen sind das ganze Rad
+    expect(favoriteChance(wheel, QUESTION_CATEGORIES)).toBe(100);
   });
 });
 
@@ -533,5 +649,38 @@ describe('Bildschirm der Partie mit Ausbau', () => {
         none,
       ),
     ).toBe('finished');
+  });
+});
+
+describe('Ablaufzeile', () => {
+  const flow = (kind: RealmPlay['board']['step']['kind'], state: Parameters<typeof roundFlow>[1]) =>
+    roundFlow(playOf({ step: { kind } }), state);
+
+  it('Eröffnung: Burg, Dorf, Landnahme; vor der ersten Wahl läuft noch nichts davon', () => {
+    const steps = ['CASTLE', 'VILLAGE', 'LAND'];
+    expect(flow('START_ESTIMATE', 'question')).toEqual({ steps, now: -1 });
+    expect(flow('CASTLE_PICK', 'pick')).toEqual({ steps, now: 0 });
+    expect(flow('VILLAGE_PICK', 'waiting-pick')).toEqual({ steps, now: 1 });
+    expect(flow('LAND_ESTIMATE', 'question')).toEqual({ steps, now: 2 });
+    expect(flow('LAND_PICK', 'pick')).toEqual({ steps, now: 2 });
+  });
+
+  it('Feldzug: Rüsten, Aufdecken, Angriffe', () => {
+    const steps = ['PREPARE', 'ORDERS', 'ATTACK'];
+    expect(flow('PREPARE', 'prepare')).toEqual({ steps, now: 0 });
+    expect(flow('PREPARE', 'prepared')).toEqual({ steps, now: 0 });
+    // Das Aufgedeckte steht noch, während der Server schon beim ersten Angriff ist
+    expect(flow('CAMPAIGN_TARGET', 'orders')).toEqual({ steps, now: 1 });
+    expect(flow('CAMPAIGN_TARGET', 'pick')).toEqual({ steps, now: 2 });
+    expect(flow('DUEL_WHEEL', 'wheel')).toEqual({ steps, now: 2 });
+    expect(flow('DUEL_TRIVIA', 'question')).toEqual({ steps, now: 2 });
+    expect(flow('DUEL_ESTIMATE', 'reveal')).toEqual({ steps, now: 2 });
+  });
+
+  it('steht nicht vor dem Start und nicht nach dem Ende', () => {
+    expect(flow('PREPARE', 'lobby')).toBeNull();
+    expect(flow('CAMPAIGN_TARGET', 'finished')).toBeNull();
+    expect(flow('CAMPAIGN_TARGET', 'abandoned')).toBeNull();
+    expect(flow('FINISHED', 'reveal')).toBeNull();
   });
 });

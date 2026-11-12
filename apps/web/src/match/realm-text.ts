@@ -10,7 +10,7 @@ import { terrainOf } from '../art/terrain.ts';
 import { t, tp } from '../i18n/i18n.ts';
 import type { RegionName, SeatName } from './match-text.ts';
 import type { RealmBuilt } from './RealmBoardArt.tsx';
-import type { Cost, RealmPlay, RealmRegionView } from './realm-model.ts';
+import type { Cost, FieldBlock, MoveRefusal, RealmPlay, RealmRegionView } from './realm-model.ts';
 
 /**
  * Texte der Partie mit Ausbau (MATCH_RULES §11): Namen der Kategorien und Felder, die Befehle der
@@ -145,6 +145,50 @@ export function orderChips(
 
 function nextBuilding(building: RealmBuildingCode): RealmBuilt {
   return building === 'NONE' ? 'VILLAGE' : building === 'VILLAGE' ? 'TOWN' : 'CASTLE';
+}
+
+// ---------------------------------------------------------------------------------------------
+// Rüstzeit: warum eine Zeile nichts anbietet, warum ein Feld kein Ziel ist
+// ---------------------------------------------------------------------------------------------
+
+/** Grund, aus dem eine der drei Zeilen eines Felds gerade nichts anbietet, in Worten. */
+export function blockText(block: FieldBlock): string {
+  switch (block.kind) {
+    case 'MISSING': {
+      const parts = [
+        block.bread > 0 ? `${block.bread} ${t('realm.bread')}` : null,
+        block.material > 0 ? `${block.material} ${t('realm.material')}` : null,
+      ].filter((part): part is string => part !== null);
+      return t('realm.prepare.block.MISSING', { what: parts.join(t('realm.prepare.block.and')) });
+    }
+    case 'CASTLE_LIMIT':
+      return t('realm.prepare.block.CASTLE_LIMIT', { max: block.max });
+    case 'ARMY_CAP':
+      return t('realm.prepare.block.ARMY_CAP', { cap: block.cap });
+    case 'TARGETS_FULL':
+      return t('realm.prepare.block.TARGETS_FULL', { cap: block.cap });
+    case 'ALL_MOVED':
+    case 'MAX_LEVEL':
+    case 'NEXT_ROUND':
+    case 'NO_ARMY':
+    case 'NO_CASTLE':
+    case 'NO_NEIGHBOR':
+    case 'OTHER':
+      return t(`realm.prepare.block.${block.kind}`);
+  }
+}
+
+/** Warum das angetippte Feld kein Ziel des offenen Zugs ist, als ganzer Satz. */
+export function refusalText(refusal: MoveRefusal, name: SeatName): string {
+  switch (refusal.kind) {
+    case 'FOREIGN':
+      return t('realm.prepare.refused.FOREIGN', { owner: name(refusal.owner) });
+    case 'FULL':
+      return t('realm.prepare.refused.FULL', { cap: refusal.cap });
+    case 'FREE':
+    case 'TOO_FAR':
+      return t(`realm.prepare.refused.${refusal.kind}`);
+  }
 }
 
 // ---------------------------------------------------------------------------------------------

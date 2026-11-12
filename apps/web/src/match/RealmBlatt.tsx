@@ -23,7 +23,13 @@ import {
   type SeatName,
 } from './match-text.ts';
 import { NumPad } from './NumPad.tsx';
-import { revealedOrders, wheelPreview, type RealmPlay } from './realm-model.ts';
+import {
+  favoriteChance,
+  realmSeat,
+  revealedOrders,
+  wheelPreview,
+  type RealmPlay,
+} from './realm-model.ts';
 import { categoryName, placeName, revealedParts, targetWinKey, wheelFits } from './realm-text.ts';
 import { latestLine } from './StageBlatt.tsx';
 
@@ -360,7 +366,18 @@ export function RealmBlatt({
                 <div className="lots-box">
                   <h3>{t('realm.target.lots')}</h3>
                   <Lots wheel={wheel} attacker={view.mySeat} defender={aimed.owner} short={short} />
-                  <p className="lots-note">{t('realm.target.lotsNote')}</p>
+                  <p className="lots-note" data-testid="match-lots-chance">
+                    <strong>
+                      {t('realm.target.chance', {
+                        percent: favoriteChance(
+                          wheel,
+                          realmSeat(play, view.mySeat)?.favorites ?? [],
+                        ),
+                      })}
+                    </strong>{' '}
+                    {t('realm.target.chanceFor')}
+                    <span className="lots-more"> {t('realm.target.lotsNote')}</span>
+                  </p>
                 </div>
                 <p className="blatt-hint">
                   {t(`realm.target.win.${targetWinKey(play, aimed)}`, {
