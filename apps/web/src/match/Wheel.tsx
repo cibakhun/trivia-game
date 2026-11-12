@@ -91,7 +91,8 @@ export function Wheel({
 }: {
   readonly wheel: RealmWheelDto;
   readonly attacker: number;
-  readonly defender: number;
+  /** `null` = freies Feld: Das Rad hat keine Anteile eines Verteidigers. */
+  readonly defender: number | null;
   /** Gezogene Kategorie; `null` zeigt das Rad ohne Treffer. */
   readonly landed: QuestionCategory | null;
   readonly exhausted?: readonly QuestionCategory[];
@@ -135,7 +136,7 @@ export function Wheel({
                   style={{ fill: `var(--seat-${attacker})` }}
                 />
               ) : null}
-              {p.defender > 0 ? (
+              {p.defender > 0 && defender !== null ? (
                 <path
                   d={slice(p.from + p.attacker, p.from + p.attacker + p.defender, R)}
                   className="seg-side"

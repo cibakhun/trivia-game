@@ -419,7 +419,6 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     const board = boardOf(final);
     expect(board.step).toMatchObject({ kind: 'FINISHED' });
     expect(board.turns).toEqual([]);
-    expect(board.regions.every((r) => r.owner !== null)).toBe(true);
 
     // Jedes Ereignis passt zum Schema des Clients
     expect(await unreadableEvents(matchId)).toEqual([]);
@@ -435,8 +434,9 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(count('START_RANKED')).toBe(1);
     expect(count('CASTLE_CHOSEN')).toBe(3);
     expect(count('VILLAGE_CHOSEN')).toBe(3);
-    // 24 Felder, 6 für Burgen und Startdörfer: 18 in der Landnahme
-    expect(count('REGION_CLAIMED')).toBe(18);
+    // 24 Felder, 6 für Burgen und Startdörfer; zwei Runden Landnahme vergeben 6, 12 bleiben frei
+    expect(count('LAND_RANKED')).toBe(2);
+    expect(count('REGION_CLAIMED')).toBe(6);
 
     // Reihenfolge: Burgen wie die Startfrage, Startdörfer rückwärts (MATCH_RULES §11.1)
     const order = eventsOf(all, 'START_RANKED')[0]?.payload.ranking.map((r) => r.seat) ?? [];
@@ -480,6 +480,31 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
       (e) => e.payload.purpose === 'DUEL_TRIVIA',
     );
     expect(trivia.length).toBe(targets.length);
+    // Freie Felder (O-37): ohne Verteidiger, nur der Angreifer wird gefragt, kein Stechen. Frei
+    // bleibt am Ende, was niemand genommen hat
+    const estimates = eventsOf(all, 'QUESTION_OPENED').filter(
+      (e) => e.payload.purpose === 'DUEL_ESTIMATE',
+    );
+    let taken = 0;
+    for (const [i, duel] of duels.entries()) {
+      const target = targets[i]?.payload;
+      const opened = trivia[i];
+      if (!target || !opened) throw new Error('Duell unvollständig');
+      const question = opened.payload;
+      expect(duel.payload.defender).toBe(target.defender);
+      if (target.defender === null) {
+        expect(target.wheel?.defenderLots).toBe(0);
+        expect(question.seats).toEqual([target.attacker]);
+        expect(['CLAIMED', 'UNCLAIMED']).toContain(duel.payload.effect);
+        expect(duel.payload).toMatchObject({ reason: 'TRIVIA', armyLost: null });
+        expect(estimates.some((e) => e.seq > opened.seq && e.seq < duel.seq)).toBe(false);
+        if (duel.payload.effect === 'CLAIMED') taken += 1;
+      } else {
+        expect([...question.seats].sort()).toEqual([target.attacker, target.defender].sort());
+        expect(['CLAIMED', 'UNCLAIMED']).not.toContain(duel.payload.effect);
+      }
+    }
+    expect(board.regions.filter((r) => r.owner === null)).toHaveLength(12 - taken);
     const asked = await server.db
       .selectFrom('match_questions as mq')
       .innerJoin('question_versions as v', 'v.id', 'mq.version_id')
@@ -575,8 +600,9 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(board.regions).toHaveLength(16);
     expect(await unreadableEvents(matchId)).toEqual([]);
     const types = await eventTypes(matchId);
-    // 16 Felder, 4 für Burgen und Startdörfer: 12 in der Landnahme
-    expect(types.filter((t) => t === 'REGION_CLAIMED')).toHaveLength(12);
+    // 16 Felder, 4 für Burgen und Startdörfer; zwei Runden Landnahme vergeben 6, 6 bleiben frei
+    expect(types.filter((t) => t === 'LAND_RANKED')).toHaveLength(2);
+    expect(types.filter((t) => t === 'REGION_CLAIMED')).toHaveLength(6);
     // Die letzte Auflösung steht noch, während die Zustandsmaschine schon fertig ist
     const last = closing as MatchView | null;
     expect(last?.phase?.kind).toBe('REVEAL');
@@ -584,6 +610,158 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(turns.length).toBeGreaterThan(0);
     expect(turns.every((turn) => turn.status === 'DONE')).toBe(true);
     expect(last?.question).toMatchObject({ resolved: true });
+  });
+});
+
+describe('Angriff auf ein freies Feld (O-37, ADR-062)', () => {
+  const myAttack = (current: MatchView) =>
+    current.phase?.kind === 'PICK' &&
+    current.realm?.board?.step.kind === 'CAMPAIGN_TARGET' &&
+    current.legalRegions.length > 0;
+
+  /**
+   * Spielt bis zu einem eigenen Angriff, bei dem ein freies Feld am eigenen Land liegt, greift es
+   * an und beantwortet die Wissensfrage richtig oder falsch. Zurück kommt der Stand in der
+   * Auflösung. Wo die Felder liegen, lost die Partie aus: Liegt in fünf Angriffen keines am eigenen
+   * Land, beginnt eine neue Partie (höchstens drei), damit der Test nicht am Zufall scheitert. In
+   * 300 Probepartien kam das nicht ein Mal vor.
+   */
+  async function claim(correct: boolean) {
+    for (let match = 0; match < 3; match++) {
+      const found = await claimIn(correct);
+      if (found) return found;
+    }
+    throw new Error('In drei Partien lag bei keinem Angriff ein freies Feld am eigenen Land');
+  }
+
+  async function claimIn(correct: boolean) {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['EASY']);
+    for (let attack = 0; attack < 5; attack++) {
+      const turn = await play(matchId, [{ human }], myAttack);
+      const mySeat = turn.mySeat ?? -1;
+      const before = boardOf(turn);
+      const target = turn.legalRegions.find((id) => before.regions[id]?.owner === null);
+      if (target === undefined) {
+        // Kein freies Feld am eigenen Land: gewöhnlich angreifen und beim nächsten Mal schauen
+        const response = await pick(human, matchId, turn.legalRegions[0] ?? -1);
+        expect(response.statusCode, response.body).toBe(200);
+        continue;
+      }
+      expect((await pick(human, matchId, target)).statusCode).toBe(200);
+      const asked = await play(
+        matchId,
+        [{ human }],
+        (current) => current.phase?.kind === 'QUESTION' && current.question !== null,
+      );
+      const seq = asked.question?.seq ?? -1;
+      expect((await present(human, matchId, seq)).statusCode).toBe(200);
+      const answered = await answer(
+        human,
+        matchId,
+        seq,
+        await answerPayload(matchId, seq, correct),
+      );
+      expect(answered.statusCode, answered.body).toBe(200);
+      const after = await view(human, matchId);
+      return { human, matchId, mySeat, target, before, asked, after, all: await events(matchId) };
+    }
+    return null;
+  }
+
+  it('die Wissensfrage geht an den Angreifer allein; richtig beantwortet gehört das Feld ihm', async () => {
+    const { matchId, mySeat, target, before, asked, after, all } = await claim(true);
+    // Ansage: kein Verteidiger, das Rad trägt nur die eigenen und die freien Lose
+    const chosen = eventsOf(all, 'TARGET_CHOSEN').at(-1)?.payload;
+    expect(chosen).toMatchObject({ attacker: mySeat, defender: null, region: target });
+    expect(chosen?.wheel).toMatchObject({ defenderLots: 0, freeLots: ECONOMY.lots.free });
+    expect(chosen?.wheel?.segments.every((s) => s.defender === 0)).toBe(true);
+    // Frage: nur mein Sitz, der Schritt nennt keinen Verteidiger
+    expect(asked.question).toMatchObject({
+      kind: 'TRIVIA',
+      purpose: 'DUEL_TRIVIA',
+      seats: [mySeat],
+      myStatus: 'NOT_PRESENTED',
+    });
+    expect(boardOf(asked).step).toMatchObject({
+      kind: 'DUEL_TRIVIA',
+      attacker: mySeat,
+      defender: null,
+      region: target,
+    });
+    const row = await server.db
+      .selectFrom('match_questions')
+      .select(['seats', 'purpose'])
+      .where('match_id', '=', matchId)
+      .where('seq', '=', asked.question?.seq ?? -1)
+      .executeTakeFirstOrThrow();
+    expect(row).toEqual({ seats: [mySeat], purpose: 'DUEL_TRIVIA' });
+    // Mit der Antwort ist die Frage entschieden: Niemand sonst muss antworten
+    expect(after.phase?.kind).toBe('REVEAL');
+    const duel = eventsOf(all, 'REALM_DUEL_RESOLVED').at(-1)?.payload;
+    expect(duel).toMatchObject({
+      attacker: mySeat,
+      defender: null,
+      region: target,
+      winner: 'ATTACKER',
+      reason: 'TRIVIA',
+      effect: 'CLAIMED',
+      building: 'NONE',
+      castleLivesLeft: null,
+      regionValue: 100,
+      armyLost: null,
+    });
+    expect(boardOf(after).regions[target]).toMatchObject({
+      owner: mySeat,
+      building: 'NONE',
+      armies: 0,
+      value: 100,
+    });
+    const me = (board: RealmBoard) => board.seats[mySeat];
+    expect(me(boardOf(after))?.regions).toBe((me(before)?.regions ?? 0) + 1);
+    expect(me(boardOf(after))?.points).toBe((me(before)?.points ?? 0) + 100);
+    // Kein Stechen: Nach der Auflösung geht es mit dem nächsten Angriff oder der nächsten Runde weiter
+    expect(await unreadableEvents(matchId)).toEqual([]);
+  });
+
+  it('falsch beantwortet bleibt das Feld frei, und niemand verliert etwas', async () => {
+    const { human, matchId, mySeat, target, before, after, all } = await claim(false);
+    const duel = eventsOf(all, 'REALM_DUEL_RESOLVED').at(-1)?.payload;
+    expect(duel).toMatchObject({
+      attacker: mySeat,
+      defender: null,
+      region: target,
+      winner: 'NONE',
+      reason: 'TRIVIA',
+      effect: 'UNCLAIMED',
+      regionValue: 100,
+      armyLost: null,
+    });
+    const board = boardOf(after);
+    expect(board.regions[target]).toEqual(before.regions[target]);
+    expect(board.regions.map((r) => [r.owner, r.armies, r.value])).toEqual(
+      before.regions.map((r) => [r.owner, r.armies, r.value]),
+    );
+    expect(board.seats[mySeat]).toMatchObject({
+      regions: before.seats[mySeat]?.regions,
+      points: before.seats[mySeat]?.points,
+    });
+    // Die Partie läuft danach regulär zu Ende
+    const final = await play(matchId, [{ human }]);
+    expect(final.match.status).toBe('FINISHED');
+    expect(await unreadableEvents(matchId)).toEqual([]);
+  });
+
+  it('eine Frage an einen einzelnen Sitz lässt die Datenbank nur als Wissensfrage eines Duells zu', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['EASY']);
+    const single = server.db
+      .updateTable('match_questions')
+      .set({ seats: [0] })
+      .where('match_id', '=', matchId)
+      .where('purpose', '=', 'START')
+      .execute();
+    await expect(single).rejects.toThrow(/match_questions_seats_check/);
   });
 });
 
@@ -694,7 +872,7 @@ describe('Rüstzeit', () => {
       material: income.material,
     });
     expect(me.income).toEqual({ bread: income.bread, material: income.material });
-    expect(me.bread + me.material).toBe(2 + 2 + 2 + (me.regions - 2));
+    expect(me.bread + me.material).toBe(2 + 2 + ECONOMY.yields.village + (me.regions - 2));
     const castle = me.startCastle ?? -1;
     expect(before.regions[castle]).toMatchObject({
       owner: mySeat,

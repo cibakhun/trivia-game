@@ -137,10 +137,10 @@ describe('Klänge der Partie', () => {
         round: 2,
         duel: 3,
         attacker: 0,
-        defender: 1,
+        defender: effect === 'CLAIMED' || effect === 'UNCLAIMED' ? null : 1,
         region: 12,
         category: 'HISTORY',
-        winner: effect === 'FORTIFIED' ? 'DEFENDER' : 'ATTACKER',
+        winner: effect === 'FORTIFIED' ? 'DEFENDER' : effect === 'UNCLAIMED' ? 'NONE' : 'ATTACKER',
         reason: 'TRIVIA',
         effect,
         building: effect === 'CASTLE_HIT' ? 'CASTLE' : 'NONE',
@@ -167,6 +167,25 @@ describe('Klänge der Partie', () => {
       expect(cue('BUILDING_DAMAGED')).toBe('capitalHit');
       expect(cue('CASTLE_HIT')).toBe('capitalHit');
       expect(cue('TAKEOVER')).toBe('capitalHit');
+    });
+
+    it('freies Feld (O-37): genommen klingt wie erobert; bleibt es frei, klingt nur die Antwort', () => {
+      const cues = (effect: string, correct: boolean) =>
+        cuesFor(
+          at('answered', 6),
+          at('reveal', 8),
+          [resolved(7, correct), realmDuel(8, effect)],
+          0,
+        );
+      expect(cues('CLAIMED', true)).toEqual([
+        { cue: 'correct', delayMs: 0 },
+        { cue: 'conquer', delayMs: 550 },
+      ]);
+      expect(cues('UNCLAIMED', false)).toEqual([{ cue: 'wrong', delayMs: 0 }]);
+      // Zuschauer hören nur, dass ein Feld genommen wurde
+      expect(cuesFor(at('spectating', 6), at('reveal', 8), [realmDuel(8, 'UNCLAIMED')], 2)).toEqual(
+        [],
+      );
     });
 
     it('folgt die Wirkung des Duells auf die eigene Antwort', () => {

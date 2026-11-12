@@ -1,6 +1,7 @@
 import type { MatchEventOf, RealmBoard, RealmOrderDto } from '@rdw/protocol';
 import { t } from '../i18n/i18n.ts';
 import type { BoardState } from './MatchBoard.tsx';
+import { duelWinner } from './match-model.ts';
 import type {
   RealmBuilt,
   RealmChange,
@@ -104,18 +105,22 @@ export function outcomeSignKey(
   | 'CASTLE_HIT'
   | 'CASTLE_DESTROYED'
   | 'TAKEOVER'
-  | 'FORTIFIED' {
+  | 'FORTIFIED'
+  | 'CLAIMED'
+  | 'UNCLAIMED' {
   const { effect, building } = duel.payload;
   if (effect !== 'BUILDING_DAMAGED') return effect;
   return building === 'VILLAGE' ? 'TOWN_DOWN' : 'VILLAGE_GONE';
 }
 
-/** Schild auf der Karte über dem Feld eines eben entschiedenen Duells, in der Farbe des Siegers. */
+/**
+ * Schild auf der Karte über dem Feld eines eben entschiedenen Duells, in der Farbe des Siegers;
+ * ohne Farbe, wenn ein freies Feld frei bleibt.
+ */
 export function outcomeSign(duel: RealmDuel): RealmChange {
-  const p = duel.payload;
   return {
-    region: p.region,
+    region: duel.payload.region,
     text: t(`realm.outcome.sign.${outcomeSignKey(duel)}`),
-    seat: p.winner === 'ATTACKER' ? p.attacker : p.defender,
+    seat: duelWinner(duel.payload),
   };
 }

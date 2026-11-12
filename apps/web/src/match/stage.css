@@ -438,6 +438,11 @@ html.match-playing body {
   --tone: var(--seat-2);
 }
 
+/* Ein freies Feld bleibt frei: Niemand gewinnt, das Blatt bleibt ohne Farbe eines Reichs */
+.blatt.outcome.outcome-none {
+  --tone: var(--border-strong);
+}
+
 .blatt-title,
 .blatt .announce-title,
 .blatt .outcome-title {

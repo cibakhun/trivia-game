@@ -209,7 +209,10 @@ export function MatchBoard({
         : region === contested
           ? castle
             ? 'name'
-            : 'all'
+            : // Auf einem freien Feld steht kein Wappen: Name und Münze bleiben
+              duel?.defender === null
+              ? null
+              : 'all'
           : null;
   // Fällt ein Reich, läuft die Farbe des Siegers von der Hauptstadt aus Region um Region weiter
   const wave = (region: number): CSSProperties | undefined => {
@@ -752,8 +755,15 @@ function DuelStageArt({
   const impact = layout ? strike + layout.radius : 0;
   const style: CSSProperties = {
     ['--attacker' as string]: `var(--seat-${duel.attacker})`,
-    ['--defender' as string]: `var(--seat-${duel.defender})`,
-    ['--winner' as string]: duel.winner === null ? undefined : `var(--seat-${duel.winner})`,
+    // Freies Feld: kein Verteidiger; bleibt es frei, hat der Rand die Farbe der Tinte
+    ['--defender' as string]:
+      duel.defender === null ? 'var(--map-ink)' : `var(--seat-${duel.defender})`,
+    ['--winner' as string]:
+      duel.winner !== null
+        ? `var(--seat-${duel.winner})`
+        : duel.repelled
+          ? 'var(--map-ink)'
+          : undefined,
     ...(layout
       ? {
           ['--ux' as string]: layout.dir.x.toFixed(3),
@@ -767,7 +777,7 @@ function DuelStageArt({
         }
       : {}),
   };
-  const won = duel.winner === null ? '' : duel.winner === duel.attacker ? ' attack-won' : ' held';
+  const won = duel.winner === duel.attacker ? ' attack-won' : duel.repelled ? ' held' : '';
   const classes = `duel-stage scene-${duel.scene}${won}${enter && duel.scene === 'announce' ? ' enter' : ''}`;
   return (
     <g className={classes} style={style} aria-hidden="true">
@@ -809,7 +819,7 @@ function DuelStageArt({
                 />
               </g>
             ) : null
-          ) : (
+          ) : duel.defender === null ? null : (
             <DuelToken
               prefix={prefix}
               role="defender"

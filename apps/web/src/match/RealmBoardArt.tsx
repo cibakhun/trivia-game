@@ -30,7 +30,8 @@ export interface RealmMove {
 export interface RealmChange {
   readonly region: number;
   readonly text: string;
-  readonly seat: number;
+  /** Farbe des Rands; `null` = ohne Sieger (ein freies Feld bleibt frei). */
+  readonly seat: number | null;
 }
 
 /** Was die Karte über die klassische Partie hinaus zeigt. */
@@ -215,7 +216,10 @@ export function RealmPlanArt({
             <g
               key={`${change.region}:${change.text}`}
               className="plan-change"
-              style={{ ['--flag' as string]: `var(--seat-${change.seat})` }}
+              style={{
+                ['--flag' as string]:
+                  change.seat === null ? 'var(--map-stone)' : `var(--seat-${change.seat})`,
+              }}
             >
               <rect
                 x={r.cx - w / 2}

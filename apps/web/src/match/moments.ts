@@ -1,5 +1,5 @@
 import type { ParsedMatchEvent } from '@rdw/protocol';
-import { t } from '../i18n/i18n.ts';
+import { t, tp } from '../i18n/i18n.ts';
 import type { AnyStep, MatchScreenState } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 
@@ -94,6 +94,8 @@ export function momentsBetween(
   campaignRounds: number,
   /** Partie mit Ausbau: Jede Runde beginnt mit der Rüstzeit, sie kündigt die Runde an. */
   realm = false,
+  /** Runden der Landnahme, wenn sie begrenzt ist (ADR-062): Danach bleibt Land frei. */
+  landRounds: number | null = null,
 ): Moment[] {
   const moments: Moment[] = [];
   if (before) {
@@ -116,7 +118,10 @@ export function momentsBetween(
       moments.push({
         key: `land-${next.round ?? 1}`,
         title: t('match.moment.land'),
-        detail: t('match.moment.landDetail'),
+        detail:
+          landRounds === null
+            ? t('match.moment.landDetail')
+            : tp('realm.moment.landDetail', landRounds),
         tone: 'ink',
         seat: null,
       });

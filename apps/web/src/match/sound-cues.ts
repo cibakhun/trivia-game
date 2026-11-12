@@ -26,13 +26,19 @@ export interface Placed {
 
 type RealmEffect = MatchEventOf<'REALM_DUEL_RESOLVED'>['payload']['effect'];
 
-/** Mit Ausbau klingt ein Duell wie ohne: gehalten, erobert oder ein Treffer auf ein Gebäude. */
-function realmDuelCue(effect: RealmEffect): SoundCue {
+/**
+ * Mit Ausbau klingt ein Duell wie ohne: gehalten, erobert oder ein Treffer auf ein Gebäude. Ein
+ * freies Feld klingt genommen wie erobert; bleibt es frei, klingt nichts (niemand hat gehalten).
+ */
+function realmDuelCue(effect: RealmEffect): SoundCue | null {
   switch (effect) {
     case 'FORTIFIED':
       return 'defend';
+    case 'UNCLAIMED':
+      return null;
     case 'CONQUERED':
     case 'CASTLE_DESTROYED':
+    case 'CLAIMED':
       return 'conquer';
     case 'BUILDING_DAMAGED':
     case 'CASTLE_HIT':
@@ -96,10 +102,14 @@ export function cuesFor(
       case 'LAND_RANKED':
       case 'TARGET_CHOSEN':
         break;
-      case 'REALM_DUEL_RESOLVED':
-        cues.push({ cue: realmDuelCue(event.payload.effect), delayMs: delay });
-        delay += EFFECT_DELAY_MS;
+      case 'REALM_DUEL_RESOLVED': {
+        const cue = realmDuelCue(event.payload.effect);
+        if (cue) {
+          cues.push({ cue, delayMs: delay });
+          delay += EFFECT_DELAY_MS;
+        }
         break;
+      }
       // Partie mit Ausbau (MATCH_RULES §11): ohne eigenen Klang
       case 'START_RANKED':
       case 'INCOME':

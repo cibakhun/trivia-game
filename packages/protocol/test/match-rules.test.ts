@@ -118,12 +118,14 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
     expect(DEFAULT_MATCH_RULES.economy).toBeUndefined();
   });
 
-  it('entspricht dem freigegebenen Konzept (O-25 bis O-35)', () => {
+  it('entspricht dem freigegebenen Konzept (O-25 bis O-35), Landnahme und Erträge nach ADR-062', () => {
     const e = DEFAULT_MATCH_ECONOMY;
     expect(DEFAULT_REALM_RULES.campaign.rounds).toBe(5);
     expect(e.favorites).toBe(4);
     expect(e.startArmies).toBe(3);
-    expect(e.yields).toEqual({ plain: 1, village: 2, town: 3, castleBread: 2, castleMaterial: 2 });
+    // Zwei Runden Landnahme; Dorf und Stadt bringen seitdem 3 und 4 statt 2 und 3 (O-41)
+    expect(e.landGrabRounds).toBe(2);
+    expect(e.yields).toEqual({ plain: 1, village: 3, town: 4, castleBread: 2, castleMaterial: 2 });
     expect(e.costs).toEqual({
       village: { bread: 1, material: 3 },
       town: { bread: 2, material: 6 },
@@ -151,6 +153,22 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
       timers: DEFAULT_REALM_RULES.timers,
       economy: { ...PLAYTEST_REALM_RULES.economy, timers: DEFAULT_MATCH_ECONOMY.timers },
     }).toEqual(DEFAULT_REALM_RULES);
+  });
+
+  it('Runden der Landnahme: 1 bis 10; Partien von vor ADR-062 haben den Wert nicht', () => {
+    const parse = (economy: unknown) =>
+      matchRulesSchema.safeParse({ ...DEFAULT_REALM_RULES, economy }).success;
+    const legacy = { ...DEFAULT_MATCH_ECONOMY };
+    delete legacy.landGrabRounds;
+    expect(parse(legacy)).toBe(true);
+    expect(matchRulesSchema.parse({ ...DEFAULT_REALM_RULES, economy: legacy }).economy).toEqual(
+      legacy,
+    );
+    expect(parse({ ...legacy, landGrabRounds: 1 })).toBe(true);
+    expect(parse({ ...legacy, landGrabRounds: 10 })).toBe(true);
+    expect(parse({ ...legacy, landGrabRounds: 0 })).toBe(false);
+    expect(parse({ ...legacy, landGrabRounds: 11 })).toBe(false);
+    expect(parse({ ...legacy, landGrabRounds: 1.5 })).toBe(false);
   });
 
   it('zu zweit bleibt der Ausbau erhalten', () => {

@@ -181,7 +181,14 @@ describe('Zustand des Bildschirms', () => {
     expect(duelResolved(null)).toBeNull();
 
     // Bühne auf der Karte: Aufmarsch in der Ansage, stehendes Bild, solange gefragt wird
-    const fight = { attacker: 2, defender: 1, region: 9, winner: null, effect: null };
+    const fight = {
+      attacker: 2,
+      defender: 1,
+      region: 9,
+      winner: null,
+      repelled: false,
+      effect: null,
+    };
     expect(duelStage(duel, 'announce', null, false)).toEqual({ ...fight, scene: 'announce' });
     for (const state of ['presenting', 'question', 'answered', 'missed', 'spectating'] as const) {
       expect(duelStage(duel, state, null, false)).toEqual({ ...fight, scene: 'duel' });
@@ -192,7 +199,14 @@ describe('Zustand des Bildschirms', () => {
       scene: 'duel',
     });
     // Entschieden: erst der Ausgang auf der Karte, danach nur noch der Rand des Siegers
-    const won = { attacker: 2, defender: 1, region: 9, winner: 2, effect: 'CONQUERED' };
+    const won = {
+      attacker: 2,
+      defender: 1,
+      region: 9,
+      winner: 2,
+      repelled: false,
+      effect: 'CONQUERED',
+    };
     expect(duelStage(next, 'reveal', revealFor(events, 5), true)).toEqual({
       ...won,
       scene: 'outcome',
@@ -218,6 +232,7 @@ describe('Zustand des Bildschirms', () => {
     ];
     expect(duelStage(next, 'reveal', revealFor(held, 5), true)).toMatchObject({
       winner: 1,
+      repelled: true,
       effect: 'FORTIFIED',
       scene: 'outcome',
     });

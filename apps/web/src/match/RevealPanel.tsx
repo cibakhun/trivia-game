@@ -2,7 +2,7 @@ import type { MatchEventOf } from '@rdw/protocol';
 import type { ReactNode } from 'react';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatDecimal, formatNumber, t, tp } from '../i18n/i18n.ts';
-import { duelResolved, type Reveal } from './match-model.ts';
+import { duelResolved, duelWinner, type Reveal } from './match-model.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
 
@@ -65,11 +65,7 @@ export function RevealPanel({
         : opened?.payload.purpose === 'DUEL_TRIVIA'
           ? t('match.reveal.bothCorrect')
           : null);
-  const winner = duel
-    ? duel.payload.winner === 'ATTACKER'
-      ? duel.payload.attacker
-      : duel.payload.defender
-    : null;
+  const winner = duel ? duelWinner(duel.payload) : null;
 
   return (
     <section

@@ -364,7 +364,7 @@ export function RealmStage({
         onAnswerTrivia={(optionToken) => onAnswer(asked, { optionToken })}
       />
     );
-  } else if (state === 'wheel' && step.wheel && step.attacker !== null && step.defender !== null) {
+  } else if (state === 'wheel' && step.wheel && step.attacker !== null) {
     disc = true;
     sheet = (
       <div className="wheel-sheet" data-testid="match-wheel-disc">

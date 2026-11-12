@@ -433,10 +433,21 @@ describe('Vorschau des Glücksrads', () => {
     expect(wheelPreview(play, ME, 11)).toMatchObject({ attackerLots: 4, defenderLots: 7 });
   });
 
-  it('gibt es nur für fremde Felder', () => {
+  it('gibt es nicht für eigene Felder', () => {
     const play = playOf();
     expect(wheelPreview(play, ME, 6)).toBeNull();
     expect(wheelPreview(play, ME, 99)).toBeNull();
+  });
+
+  it('freies Feld (O-37): nur meine Lose und die freien, niemand hält dagegen', () => {
+    // Ackerbrunn (4) frei, daneben meine Felder Eschenhain (0) und Birkental (5) mit 2 Armeen;
+    // die 2 Armeen in der Burg Hagelstein (10) des Nachbarn zählen nicht
+    const play = playOf({ free: [4], armies: { 5: 2 } });
+    const wheel = wheelPreview(play, ME, 4);
+    expect(wheel).toEqual(buildRealmWheel(QUESTION_CATEGORIES, REALM_FAVORITES[2], [], 2, 0, 2));
+    expect(wheel).toMatchObject({ attackerLots: 2, defenderLots: 0, freeLots: 2 });
+    expect(wheel?.segments.every((s) => s.defender === 0)).toBe(true);
+    expect(realmWheelSchema.parse(wheel)).toEqual(wheel);
   });
 });
 

@@ -673,12 +673,14 @@ export const de = {
       VILLAGE: 'um das Dorf {region}',
       TOWN: 'um die Stadt {region}',
       CASTLE: 'um die Burg {region}',
+      FREE: 'um das freie Feld {region}',
     },
     attackOn: {
       NONE: 'Angriff auf {region}',
       VILLAGE: 'Angriff auf das Dorf {region}',
       TOWN: 'Angriff auf die Stadt {region}',
       CASTLE: 'Angriff auf die Burg {region}',
+      FREE: 'Angriff auf das freie Feld {region}',
     },
     armies: { one: '{count} Armee', other: '{count} Armeen' },
     terrain: {
@@ -704,6 +706,7 @@ export const de = {
       START: 'Startfrage',
       CASTLE_PICK: 'Burgen setzen',
       VILLAGE_PICK: 'Dörfer setzen',
+      LAND: 'Landnahme · {round} von {rounds}',
       ROUND: 'Runde {round} von {rounds}',
     },
     turns: {
@@ -734,10 +737,10 @@ export const de = {
       hintCastle:
         'Deine Burg hat {lives} und beginnt mit {armies}. Zu jeder anderen Burg bleibt ein Feld Abstand. Läuft die Zeit ab, wählt der Server zufällig.',
       hintVillage:
-        'Ein Dorf bringt doppelten Ertrag und hält einen Angriff aus. Läuft die Zeit ab, wählt der Server zufällig.',
+        'Ein Dorf bringt je Runde {village} statt {plain} von seinem Rohstoff und hält einen Angriff aus. Läuft die Zeit ab, wählt der Server zufällig.',
       hintLand: 'Markierte Felder sind wählbar. Läuft die Zeit ab, wählt der Server zufällig.',
       hintTarget:
-        'Tippe ein markiertes Feld an. Du siehst dann die Lose im Glücksrad und greifst mit „Angreifen“ an.',
+        'Tippe ein markiertes Feld an, auch ein freies. Du siehst dann die Lose im Glücksrad und greifst mit „Angreifen“ an.',
       attack: 'Angreifen',
     },
     target: {
@@ -746,11 +749,14 @@ export const de = {
         VILLAGE: 'Dorf von {owner}',
         TOWN: 'Stadt von {owner}',
         CASTLE: 'Burg von {owner}',
+        FREE: 'Freies Feld, niemand verteidigt es',
       },
       lots: 'Lose im Glücksrad',
       lotsNote: 'Mehr Lose, öfter Fragen aus den eigenen Lieblingskategorien.',
       free: 'frei',
+      freeField: 'freies Feld',
       win: {
+        FREE: 'Nur du wirst gefragt. Richtig: Das Feld gehört dir. Falsch: Es bleibt frei, und du verlierst nichts.',
         NONE: 'Ein Sieg erobert das Feld.',
         VILLAGE: 'Ein Sieg zerstört das Dorf, das Feld bleibt noch bei {owner}.',
         TOWN: 'Ein Sieg macht die Stadt zum Dorf, das Feld bleibt bei {owner}.',
@@ -830,12 +836,16 @@ export const de = {
       title: 'Glücksrad',
       lots: 'Lose im Rad',
       hint: 'Die Farbe zeigt, wessen Lieblingskategorie ein Feld ist.',
+      hintFree:
+        'Freies Feld: Nur der Angreifer wird gefragt. Die Farbe zeigt seine Lieblingskategorien.',
       fits: {
         both: 'liegt euch beiden',
         mine: 'liegt dir',
         theirs: 'liegt {name}',
         bothOthers: 'liegt beiden',
         none: 'liegt keinem von beiden',
+        notMine: 'keine deiner Lieblingskategorien',
+        notTheirs: 'keine Lieblingskategorie von {name}',
       },
     },
     question: {
@@ -843,6 +853,11 @@ export const de = {
       startRule: 'Wer am genauesten schätzt, setzt seine Burg zuerst.',
       startContext: 'Startfrage: Wer am genauesten schätzt, setzt seine Burg zuerst.',
       attacked: 'Du wirst angegriffen',
+      claim:
+        '{attacker} greift das freie Feld {region} an: Mit der richtigen Antwort gehört es ihm.',
+      claimWatching: 'Angriff auf ein freies Feld',
+      claimRule: 'Richtig: Das Feld gehört dir. Falsch: Es bleibt frei, und du verlierst nichts.',
+      claimAnswered: 'Deine Antwort ist gespeichert. Gleich siehst du, ob das Feld dir gehört.',
     },
     reveal: {
       startTitle: 'Startfrage: Wer am genauesten schätzt, setzt seine Burg zuerst.',
@@ -851,7 +866,14 @@ export const de = {
       later: 'setzt als {place}.',
     },
     outcome: {
-      title: { won: 'Du gewinnst', lost: 'Du verlierst', other: '{name} gewinnt' },
+      title: {
+        won: 'Du gewinnst',
+        lost: 'Du verlierst',
+        other: '{name} gewinnt',
+        claimed: 'Feld genommen',
+        claimedOther: '{name} nimmt ein Feld',
+        unclaimed: 'Das Feld bleibt frei',
+      },
       attacker: {
         CONQUERED: 'Du eroberst {region}.',
         BUILDING_DAMAGED: 'Dein Angriff auf {region} gelingt.',
@@ -859,6 +881,8 @@ export const de = {
         CASTLE_DESTROYED: 'Du zerstörst die Burg {region}.',
         TAKEOVER: 'Du nimmst die letzte Burg von {defender} ein!',
         FORTIFIED: 'Dein Angriff auf {region} scheitert.',
+        CLAIMED: 'Richtig: {region} gehört jetzt dir.',
+        UNCLAIMED: 'Deine Antwort war nicht richtig: {region} bleibt frei.',
       },
       defender: {
         CONQUERED: 'Du verlierst {region}.',
@@ -875,6 +899,8 @@ export const de = {
         CASTLE_DESTROYED: '{attacker} zerstört die Burg {region}.',
         TAKEOVER: '{attacker} nimmt die letzte Burg von {defender} ein.',
         FORTIFIED: '{defender} hält {region}.',
+        CLAIMED: '{attacker} lag richtig und nimmt {region}.',
+        UNCLAIMED: '{attacker} lag nicht richtig: {region} bleibt frei.',
       },
       /** Was sich auf dem Feld geändert hat, als kurze Zeilen. */
       fact: {
@@ -891,6 +917,8 @@ export const de = {
         takeover: 'Das ganze Reich geht an {attacker}',
         takeoverMe: 'Das ganze Reich geht an dich',
         fortified: 'Das Feld ist jetzt {value} Punkte wert',
+        worth: 'Es ist {value} Punkte wert und bringt ab jetzt Ertrag',
+        noLoss: 'Keine Armee geht verloren',
         armyLost: '{name} verliert eine Armee',
         armyLostMe: 'Du verlierst eine Armee',
       },
@@ -903,6 +931,8 @@ export const de = {
         CASTLE_DESTROYED: 'Burg zerstört',
         TAKEOVER: 'Reich fällt',
         FORTIFIED: 'gehalten',
+        CLAIMED: 'genommen',
+        UNCLAIMED: 'bleibt frei',
       },
       stays: 'Das Feld bleibt bei {defender}. Ein weiterer Sieg erobert es.',
       staysBuilt: 'Das Feld bleibt bei {defender}.',
@@ -929,8 +959,15 @@ export const de = {
       TAKEOVER:
         '{attacker} nimmt die letzte Burg von {defender} ein und übernimmt das ganze Reich.',
       FORTIFIED: '{defender} hält {region}. Das Feld ist jetzt {value} Punkte wert.',
+      CLAIMED: '{attacker} nimmt das freie Feld {region}.',
+      UNCLAIMED: '{region} bleibt frei.',
+      reason: {
+        CLAIMED: '{attacker} lag bei der Wissensfrage richtig.',
+        UNCLAIMED: '{attacker} lag bei der Wissensfrage nicht richtig.',
+      },
     },
     log: {
+      TARGET_FREE: '{attacker} greift das freie Feld {region} an.',
       START_RANKED: '{name} hat am genauesten geschätzt und setzt zuerst.',
       CASTLE_CHOSEN: '{name} setzt die Burg nach {region}.',
       VILLAGE_CHOSEN: '{name} setzt ein Dorf nach {region}.',
@@ -944,6 +981,10 @@ export const de = {
       villages: 'Jetzt die Dörfer',
       prepare: 'Rüstzeit',
       orders: 'Die Befehle werden aufgedeckt',
+      landDetail: {
+        one: 'Eine Runde. Was frei bleibt, holst du dir im Feldzug.',
+        other: '{count} Runden. Was frei bleibt, holst du dir im Feldzug.',
+      },
     },
     favorites: {
       title: 'Deine Lieblingskategorien',

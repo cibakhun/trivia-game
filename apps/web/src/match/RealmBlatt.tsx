@@ -9,6 +9,7 @@ import { Countdown } from '../quiz/Countdown.tsx';
 import { AnnouncePanel } from './AnnouncePanel.tsx';
 import { Answers } from './Answers.tsx';
 import {
+  duelWinner,
   shownPick,
   type LocalQuestion,
   type MatchScreenState,
@@ -41,7 +42,7 @@ function noop() {
   // Ablauf einer Anzeige: Den nächsten Schritt bringt die Abfrage
 }
 
-/** Wer gegen wen und worum, oben im Blatt. */
+/** Wer gegen wen und worum, oben im Blatt; ohne Verteidiger steht dort „freies Feld“ (O-37). */
 function DuelBox({
   attacker,
   defender,
@@ -50,7 +51,7 @@ function DuelBox({
   sentence,
 }: {
   readonly attacker: number;
-  readonly defender: number;
+  readonly defender: number | null;
   readonly what: string;
   readonly short: SeatName;
   /** Ganzer Satz für Screenreader. */
@@ -65,10 +66,16 @@ function DuelBox({
           <strong>{short(attacker)}</strong>
         </span>
         <Swords size={20} />
-        <span className="duel-who">
-          <SeatCrest seat={defender} size={22} />
-          <strong>{short(defender)}</strong>
-        </span>
+        {defender === null ? (
+          <span className="duel-who duel-free">
+            <strong>{t('realm.target.freeField')}</strong>
+          </span>
+        ) : (
+          <span className="duel-who">
+            <SeatCrest seat={defender} size={22} />
+            <strong>{short(defender)}</strong>
+          </span>
+        )}
       </p>
       <p className="duel-what">{what}</p>
     </div>
@@ -94,7 +101,8 @@ function Lots({
 }: {
   readonly wheel: Pick<RealmWheelDto, 'attackerLots' | 'defenderLots' | 'freeLots'>;
   readonly attacker: number;
-  readonly defender: number;
+  /** `null` = freies Feld: Niemand bringt Lose dagegen mit. */
+  readonly defender: number | null;
   readonly short: SeatName;
 }) {
   const side = (seat: number, count: number) => (
@@ -109,7 +117,7 @@ function Lots({
   return (
     <ul className="lots" data-testid="match-lots">
       {side(attacker, wheel.attackerLots)}
-      {side(defender, wheel.defenderLots)}
+      {defender === null ? null : side(defender, wheel.defenderLots)}
       <li className="lot lot-free">
         <span className="lot-who">{t('realm.target.free')}</span>
         <Pips count={wheel.freeLots} seat={null} />
@@ -173,6 +181,20 @@ function outcomeFacts(duel: RealmDuel, mySeat: number | null, name: SeatName): F
         icon: 'coin',
         text: t('realm.outcome.fact.fortified', { value: p.regionValue }),
       });
+      break;
+    case 'CLAIMED':
+      facts.push(
+        {
+          icon: 'army',
+          text: mine
+            ? t('realm.outcome.fact.conqueredMe')
+            : t('realm.outcome.fact.conquered', { attacker }),
+        },
+        { icon: 'coin', text: t('realm.outcome.fact.worth', { value: p.regionValue }) },
+      );
+      break;
+    case 'UNCLAIMED':
+      facts.push({ icon: 'army', text: t('realm.outcome.fact.noLoss') });
       break;
   }
   if (p.armyLost) {
@@ -271,14 +293,19 @@ export function RealmBlatt({
       {note}
     </section>
   );
+  // Ohne Verteidiger (freies Feld) und für Zuschauer ohne Sitz wird niemand hier angegriffen
+  const attacked = step.defender !== null && step.defender === view.mySeat;
   const place = (id: number) => placeName(board.regions[id]?.building ?? 'NONE', region(id));
   const building = (id: number) => board.regions[id]?.building ?? 'NONE';
+  // Ein Ziel steht nur in den Schritten eines Duells; ohne Verteidiger ist es ein freies Feld
   const duelBox = (key: 'about' | 'attackOn') =>
-    step.attacker !== null && step.defender !== null && step.region !== null ? (
+    step.attacker !== null && step.region !== null ? (
       <DuelBox
         attacker={step.attacker}
         defender={step.defender}
-        what={t(`realm.${key}.${building(step.region)}`, { region: region(step.region) })}
+        what={t(`realm.${key}.${step.defender === null ? 'FREE' : building(step.region)}`, {
+          region: region(step.region),
+        })}
         short={short}
         sentence={questionContext(view, name, region)}
       />
@@ -289,11 +316,10 @@ export function RealmBlatt({
     if (step.kind === 'LAND_ESTIMATE') return t('match.stage.role.land');
     if (step.kind === 'DUEL_ESTIMATE') return t('match.stage.role.tiebreak');
     if (step.attacker === view.mySeat) return t('match.stage.role.attacker');
-    if (step.defender === view.mySeat) return t('realm.question.attacked');
-    return t('match.stage.role.watching');
+    if (attacked) return t('realm.question.attacked');
+    return t(step.defender === null ? 'realm.question.claimWatching' : 'match.stage.role.watching');
   };
-  const questionTone = () =>
-    step.kind === 'DUEL_TRIVIA' && step.defender === view.mySeat ? 'attacked' : 'turn';
+  const questionTone = () => (step.kind === 'DUEL_TRIVIA' && attacked ? 'attacked' : 'turn');
 
   switch (state) {
     case 'pick': {
@@ -311,13 +337,24 @@ export function RealmBlatt({
             <h2 className="blatt-title">{t('realm.pick.CAMPAIGN_TARGET')}</h2>
             <p className="visually-hidden">{pickText(view, name)}</p>
             {phaseTimer(timers.pickMs)}
-            {aimed && wheel && target !== null && aimed.owner !== null && view.mySeat !== null ? (
+            {aimed && wheel && target !== null && view.mySeat !== null ? (
               <>
-                <div className="feld" data-testid="match-target" data-region={target}>
+                <div
+                  className="feld"
+                  data-testid="match-target"
+                  data-region={target}
+                  data-free={aimed.owner === null ? '' : undefined}
+                >
                   <strong className="feld-name">{region(target)}</strong>
                   <span className="feld-fact">
-                    {t(`realm.target.fact.${aimed.building}`, { owner: name(aimed.owner) })},{' '}
-                    {tp('realm.armies', aimed.armies)}
+                    {aimed.owner === null ? (
+                      t('realm.target.fact.FREE')
+                    ) : (
+                      <>
+                        {t(`realm.target.fact.${aimed.building}`, { owner: name(aimed.owner) })},{' '}
+                        {tp('realm.armies', aimed.armies)}
+                      </>
+                    )}
                   </span>
                 </div>
                 <div className="lots-box">
@@ -327,7 +364,7 @@ export function RealmBlatt({
                 </div>
                 <p className="blatt-hint">
                   {t(`realm.target.win.${targetWinKey(play, aimed)}`, {
-                    owner: name(aimed.owner),
+                    owner: aimed.owner === null ? '' : name(aimed.owner),
                   })}
                 </p>
                 <button
@@ -362,7 +399,10 @@ export function RealmBlatt({
                   armies: tp('realm.armies', economy.startArmies),
                 })
               : kind === 'VILLAGE_PICK'
-                ? t('realm.pick.hintVillage')
+                ? t('realm.pick.hintVillage', {
+                    village: economy.yields.village,
+                    plain: economy.yields.plain,
+                  })
                 : t('realm.pick.hintLand')}
           </p>
         </>,
@@ -456,10 +496,9 @@ export function RealmBlatt({
     }
     case 'wheel': {
       const { wheel, category } = step;
-      if (!wheel || step.attacker === null || step.defender === null) return null;
+      if (!wheel || step.attacker === null) return null;
       const favorites = (seat: number) => board.seats.find((s) => s.seat === seat)?.favorites ?? [];
-      const tone =
-        step.defender === view.mySeat ? 'attacked' : step.attacker === view.mySeat ? 'turn' : '';
+      const tone = attacked ? 'attacked' : step.attacker === view.mySeat ? 'turn' : '';
       return sheet(
         tone,
         'match-wheel',
@@ -471,7 +510,9 @@ export function RealmBlatt({
             <h3>{t('realm.wheel.lots')}</h3>
             <Lots wheel={wheel} attacker={step.attacker} defender={step.defender} short={short} />
           </div>
-          <p className="blatt-hint wheel-hint">{t('realm.wheel.hint')}</p>
+          <p className="blatt-hint wheel-hint">
+            {t(step.defender === null ? 'realm.wheel.hintFree' : 'realm.wheel.hint')}
+          </p>
           {category ? (
             <p className="wheel-result" data-testid="wheel-result" data-category={category}>
               <CategoryIcon category={category} size={34} />
@@ -515,7 +556,9 @@ export function RealmBlatt({
             <>
               {duelBox('about')}
               <Answers view={view} local={local} short={short} />
-              <p className="blatt-hint">{t('match.stage.triviaRule')}</p>
+              <p className="blatt-hint">
+                {t(step.defender === null ? 'realm.question.claimRule' : 'match.stage.triviaRule')}
+              </p>
             </>
           )}
         </>,
@@ -529,7 +572,12 @@ export function RealmBlatt({
         state === 'presenting'
           ? t('match.question.presenting')
           : state === 'answered'
-            ? t('match.question.answered')
+            ? // Allein gefragt (freies Feld, O-37): Es gibt niemanden, auf den zu warten wäre
+              t(
+                view.question?.seats.length === 1
+                  ? 'realm.question.claimAnswered'
+                  : 'match.question.answered',
+              )
             : state === 'missed'
               ? t('match.question.missed')
               : t('match.question.spectating');
@@ -666,38 +714,51 @@ function OutcomeBlatt({
 }) {
   const p = duel.payload;
   const mySeat = view.mySeat;
-  const role = p.attacker === mySeat ? 'attacker' : p.defender === mySeat ? 'defender' : 'other';
-  const winner = p.winner === 'ATTACKER' ? p.attacker : p.defender;
-  const title =
-    role === 'other'
-      ? t('realm.outcome.title.other', { name: name(winner) })
+  const defender = p.defender === null ? '' : name(p.defender);
+  const role =
+    p.attacker === mySeat
+      ? 'attacker'
+      : p.defender !== null && p.defender === mySeat
+        ? 'defender'
+        : 'other';
+  // Freies Feld (O-37): Es gibt keinen Verteidiger, und bleibt es frei, gewinnt niemand
+  const claim = p.effect === 'CLAIMED' || p.effect === 'UNCLAIMED' ? p.effect : null;
+  const winner = duelWinner(p);
+  const title = claim
+    ? claim === 'UNCLAIMED'
+      ? t('realm.outcome.title.unclaimed')
+      : role === 'attacker'
+        ? t('realm.outcome.title.claimed')
+        : t('realm.outcome.title.claimedOther', { name: name(p.attacker) })
+    : role === 'other'
+      ? t('realm.outcome.title.other', { name: winner === null ? '' : name(winner) })
       : t(winner === mySeat ? 'realm.outcome.title.won' : 'realm.outcome.title.lost');
+  const params = { attacker: name(p.attacker), defender, region: region(p.region) };
+  const main =
+    p.effect === 'CLAIMED' || p.effect === 'UNCLAIMED'
+      ? t(`realm.outcome.${role === 'attacker' ? 'attacker' : 'other'}.${p.effect}`, params)
+      : t(`realm.outcome.${role}.${p.effect}`, params);
   const next = nextUp(view, play, name);
   const stays =
     p.effect !== 'BUILDING_DAMAGED'
       ? null
-      : p.defender === mySeat
+      : role === 'defender'
         ? t(p.building === 'NONE' ? 'realm.outcome.staysMe' : 'realm.outcome.staysBuiltMe')
         : t(p.building === 'NONE' ? 'realm.outcome.stays' : 'realm.outcome.staysBuilt', {
-            defender: name(p.defender),
+            defender,
           });
   return (
     <section
-      className={`blatt outcome seat-${winner}`}
+      className={`blatt outcome${winner === null ? ' outcome-none' : ` seat-${winner}`}`}
       data-testid="match-outcome"
       data-effect={p.effect}
       aria-live="polite"
     >
       <h2 className="blatt-title">{title}</h2>
       <p className="outcome-main">
-        <SeatCrest seat={winner} size={30} />
-        <span>
-          {t(`realm.outcome.${role}.${p.effect}`, {
-            attacker: name(p.attacker),
-            defender: name(p.defender),
-            region: region(p.region),
-          })}
-        </span>
+        {/* Bleibt ein freies Feld frei, steht das Wappen dessen da, der es versucht hat */}
+        <SeatCrest seat={winner ?? p.attacker} size={30} />
+        <span>{main}</span>
       </p>
       <ul className="outcome-list">
         {outcomeFacts(duel, mySeat, name).map((fact, i) => (

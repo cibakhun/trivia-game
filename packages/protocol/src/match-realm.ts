@@ -49,6 +49,9 @@ export const REALM_DUEL_EFFECTS = [
   'CASTLE_DESTROYED',
   'TAKEOVER',
   'FORTIFIED',
+  // Angriff auf ein freies Feld (O-37): genommen, oder es bleibt frei
+  'CLAIMED',
+  'UNCLAIMED',
 ] as const;
 
 /** Gründe, aus denen Befehle der Rüstzeit abgelehnt werden (`RealmOrderError` in game-core). */
