@@ -41,6 +41,8 @@ export interface RealmLayer {
   readonly selected?: number | null;
   /** Rüstzeit, Ziehen: Felder, auf die gezogen werden kann. */
   readonly targets?: readonly number[];
+  /** Rüstzeit, noch kein Feld gewählt: die eigenen Felder leuchten zweimal kurz auf. */
+  readonly hint?: readonly number[];
   /** Geplanter Ausbau je Feld: die Stufe, die dort entsteht. */
   readonly planned?: Readonly<Record<number, RealmBuilt>>;
   /** Geplante Käufe je Feld. */
@@ -197,6 +199,10 @@ export function RealmPlanArt({
               .filter((r) => owners[r.id] !== layer.focusSeat)
               .map((r) => <path key={r.id} d={r.d} className="plan-dim" />)
           : null}
+        {(layer.hint ?? []).map((id) => {
+          const r = at(id);
+          return r ? <path key={id} d={r.d} className="plan-hint" /> : null;
+        })}
         {(layer.targets ?? []).map((id) => {
           const r = at(id);
           return r ? <path key={id} d={r.d} className="plan-target" /> : null;

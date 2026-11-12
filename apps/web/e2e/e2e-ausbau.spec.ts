@@ -5,10 +5,11 @@ import { answerRight, matchIdOf, newPlayer, succeeds } from './match-kit.ts';
 
 /**
  * Partie mit Ausbau im Browser (MATCH_RULES §11, ADR-060, TEST_PLAN §5): eine ganze Testpartie am
- * quer gehaltenen Handy gegen zwei Bots, mit Spieltestzeiten. Der Spieler wählt seine
- * Lieblingskategorien, setzt Burg und Dorf, baut, kauft, zieht und tauscht in der Rüstzeit, greift
- * in zwei Schritten an (Ziel antippen, dann „Angreifen“) und antwortet richtig; die Lösung liest nur
- * der Test aus der Datenbank. Die Landnahme endet nach zwei Runden; der erste eigene Angriff geht
+ * quer gehaltenen Handy gegen zwei Bots, mit Spieltestzeiten. „So geht's“ öffnet sich vor der ersten
+ * Partie von selbst. Der Spieler wählt seine Lieblingskategorien, setzt Burg und Dorf, baut, kauft,
+ * zieht und tauscht in der Rüstzeit über die drei festen Zeilen des Blatts (ADR-063), greift in zwei
+ * Schritten an (Ziel antippen, dann „Angreifen“) und antwortet richtig; die Lösung liest nur der
+ * Test aus der Datenbank. Die Landnahme endet nach zwei Runden; der erste eigene Angriff geht
  * auf ein freies Feld (O-37, ADR-062), die weiteren auf fremde. Aufgedecktes, Glücksrad und Ausgang
  * stehen nur kurz: Die Seite schreibt selbst mit, was sie gezeigt hat.
  */
@@ -232,8 +233,11 @@ async function attackFirst(page: Page, matchId: string, free: boolean): Promise<
     if (!(await succeeds(target.waitFor({ timeout: 2_000 })))) return null;
     const shown = await target.locator('.feld-name').textContent();
     const lots = await page.getByTestId('match-lots').locator('.lot').count();
+    const chance = await page.getByTestId('match-lots-chance').textContent();
     expect(shown).toBe(name);
     expect(sent).toBe(0);
+    // Unter den Losen steht, wie wahrscheinlich die Frage aus den eigenen Lieblingskategorien kommt
+    expect(chance).toMatch(/^\d+ % für deine Lieblingskategorien\./);
     // Ein freies Feld steht als solches im Blatt: Niemand verteidigt es
     expect((await target.getAttribute('data-free')) !== null).toBe(unowned);
     if (unowned)
@@ -264,7 +268,9 @@ interface Prepared {
 /**
  * Eine Rüstzeit: Runde 1 baut auf einem freien eigenen Feld (einmal gestrichen und neu befohlen)
  * und kauft eine Armee in der Burg; Runde 2 tauscht und zieht eine Armee aus der Burg auf ein
- * eigenes Nachbarfeld; Runde 3 gibt nichts ab außer „Fertig“; danach wird gebaut, was geht.
+ * eigenes Nachbarfeld (erst ein falsches Feld, dann das richtige); Runde 3 tippt ein Feld an, das
+ * nicht zum eigenen Reich gehört, öffnet „So geht's“ und gibt nichts ab außer „Fertig“; danach wird
+ * gebaut, was geht.
  */
 async function prepare(
   page: Page,
@@ -283,25 +289,46 @@ async function prepare(
   let traded = false;
 
   const castle = board.locator(`.board-region[data-region="${castleId}"]`);
+  // In der Rüstzeit lässt sich jedes Feld antippen; die eigenen tragen die Farbe der eigenen Burg
+  const mine = await castle.evaluate(
+    (g) => [...g.classList].find((name) => name.startsWith('seat-')) ?? '',
+  );
+  expect(mine).toMatch(/^seat-\d$/);
+  const own = board.locator(`.board-region.${mine}`);
+  // Die drei festen Zeilen des Blatts: Jede trägt ihren Knopf, oder sie nennt den Grund
+  const act = (kind: 'build' | 'buy' | 'move', label: string) =>
+    blatt.locator(`[data-act="${kind}"]`).getByRole('button', { name: label, exact: true });
   const build = async () => {
     // Bauen geht auf jedem eigenen Feld unter der höchsten Stufe, solange der Vorrat reicht
-    const plain = board.getByRole('button', { name: /, kein Gebäude, / });
+    const plain = board.locator(`.board-region.${mine}[aria-label*=", kein Gebäude, "]`);
     for (let i = 0; i < Math.min(await plain.count(), 4) && built === null; i++) {
       const name = ((await plain.nth(i).getAttribute('aria-label')) ?? '').split(':')[0] ?? '';
       await plain.nth(i).tap(quick);
       await expect(field).toContainText(name, quick);
-      const go = blatt.getByRole('button', { name: 'Bauen', exact: true }).last();
-      if (!(await go.isEnabled())) continue;
+      await expect(page.getByTestId('prepare-acts').getByRole('listitem')).toHaveCount(3, quick);
+      const go = act('build', 'Bauen');
+      // Reicht der Vorrat nicht, steht statt des Knopfs der Grund da
+      if ((await go.count()) === 0) continue;
       await go.tap(quick);
-      await expect(blatt.getByRole('button', { name: 'Streichen' })).toBeVisible(quick);
+      await expect(act('build', 'Streichen')).toBeVisible(quick);
       built = name;
     }
   };
 
   if (round === 1) {
     // Vor dem ersten Tipp steht, was die Runde einbringt
-    await expect(blatt).toContainText('Einkommen', quick);
+    await expect(page.getByTestId('prepare-idle')).toContainText('Einkommen', quick);
     await expect(blatt).toContainText('Noch keine Befehle', quick);
+    // Auch ohne gewähltes Feld stehen die drei Zeilen da, und die eigenen Felder leuchten auf
+    await expect(page.getByTestId('prepare-acts').getByRole('listitem')).toHaveCount(3, quick);
+    await expect(board.locator('.plan-hint')).toHaveCount(await own.count(), quick);
+    // Unter dem Band steht, was läuft und was danach kommt
+    const flow = page.getByTestId('match-flow').getByRole('listitem');
+    await expect(flow).toHaveText(['Rüsten', 'Aufdecken', 'Angriffe'], quick);
+    await expect(page.getByTestId('match-flow').locator('[aria-current="step"]')).toHaveText(
+      'Rüsten',
+      quick,
+    );
     const stock = page.getByTestId('prepare-stock');
     const before = await stock.textContent();
     await build();
@@ -310,22 +337,26 @@ async function prepare(
       await expect(chips).toHaveCount(1, quick);
       await expect(stock).not.toHaveText(before ?? '', quick);
       await expect(board.locator('.building.ghost')).toHaveCount(1, quick);
+      // Ein Feld ist gewählt: Das Aufleuchten ist vorbei
+      await expect(board.locator('.plan-hint')).toHaveCount(0, quick);
       // Streichen nimmt den Befehl zurück, der Vorrat ist wieder voll
-      await blatt.getByRole('button', { name: 'Streichen' }).tap(quick);
+      await act('build', 'Streichen').tap(quick);
       await expect(blatt).toContainText('Noch keine Befehle', quick);
       await expect(stock).toHaveText(before ?? '', quick);
       await expect(board.locator('.building.ghost')).toHaveCount(0, quick);
-      await blatt.getByRole('button', { name: 'Bauen', exact: true }).last().tap(quick);
+      await act('build', 'Bauen').tap(quick);
       await expect(chips).toHaveCount(1, quick);
     }
-    // Armeen entstehen nur in der Burg
+    // Armeen entstehen nur in der Burg: erst „Kaufen“, danach steht dort der Zähler
     await castle.tap(quick);
     await expect(field).toContainText('Burg', quick);
-    await blatt.locator('[data-tab="buy"]').tap(quick);
-    const more = blatt.getByRole('group', { name: 'Kaufen' }).getByRole('button', { name: 'mehr' });
-    if (await more.isEnabled()) {
-      await more.tap(quick);
+    const buy = act('buy', 'Kaufen');
+    if ((await buy.count()) > 0) {
+      await buy.tap(quick);
       bought = true;
+      await expect(
+        blatt.locator('[data-act="buy"]').getByRole('group', { name: 'Armeen kaufen' }),
+      ).toBeVisible(quick);
       await expect(chips).toHaveCount(built === null ? 1 : 2, quick);
       await expect(board.locator('.army-plus')).toHaveCount(1, quick);
     }
@@ -342,22 +373,50 @@ async function prepare(
       await expect(chips.first()).toContainText('→', quick);
     }
     await trade.tap(quick);
-    // Ziehen: Burg antippen, „Ziehen“, dann ein markiertes eigenes Nachbarfeld
-    const own = await board
-      .getByRole('button')
-      .evaluateAll((all) => all.map((g) => Number(g.getAttribute('data-region'))));
-    const to = regionNeighbors(MAP, castleId).find((id) => own.includes(id));
+    // Ziehen in zwei Tipps: Burg antippen, „Ziehen“, dann ein leuchtendes eigenes Nachbarfeld
+    const owned = await own.evaluateAll((all) =>
+      all.map((g) => Number(g.getAttribute('data-region'))),
+    );
+    const near = regionNeighbors(MAP, castleId);
+    const to = near.find((id) => owned.includes(id));
     await castle.tap(quick);
-    const segment = blatt.locator('[data-tab="move"]');
-    if (to !== undefined && (await segment.isEnabled())) {
-      await segment.tap(quick);
-      await expect(blatt).toContainText('Tippe ein markiertes Nachbarfeld an.', quick);
+    await expect(field).toContainText('Burg', quick);
+    const go = act('move', 'Ziehen');
+    if (to !== undefined && (await go.count()) > 0) {
+      await go.tap(quick);
+      const where = page.getByTestId('prepare-moving');
+      await expect(where).toContainText('Wohin?', quick);
+      await expect(where).toContainText('Tippe ein leuchtendes Nachbarfeld an.', quick);
       await expect(board.locator('.plan-target').first()).toBeAttached(quick);
+      // Ein Feld, das nicht an der Burg liegt, ist kein Ziel: Das Blatt sagt warum, nichts zieht
+      const far = MAP.regions.map((r) => r.id).find((id) => id !== castleId && !near.includes(id));
+      if (far !== undefined) {
+        await board.locator(`.board-region[data-region="${far}"]`).tap(quick);
+        await expect(where).toHaveAttribute('data-refused', /^(FOREIGN|FREE|TOO_FAR)$/, quick);
+        await expect(chips).toHaveCount(traded ? 1 : 0, quick);
+      }
       await board.locator(`.board-region[data-region="${to}"]`).tap(quick);
-      await expect(field).toContainText(' nach ', quick);
+      // Eine Armee ist gezogen, „Ziehen“ ist wieder zu, und der Befehl steht in der Zeile unten
+      await expect(where).toHaveCount(0, quick);
       await expect(chips).toHaveCount(traded ? 2 : 1, quick);
+      await expect(
+        page.getByTestId('prepare-orders').getByRole('button', { name: / nach .+ ziehen/ }),
+      ).toHaveCount(1, quick);
       moved = true;
     }
+  } else if (round === 3) {
+    // Ein Feld, das mir nicht gehört, sagt, dass hier jetzt nichts geht und was später geht
+    const other = board.locator(`.board-region:not(.${mine})`).first();
+    await other.tap(quick);
+    await expect(page.getByTestId('prepare-foreign')).toContainText(
+      'In der Rüstzeit geht hier nichts.',
+      quick,
+    );
+    // „?“ öffnet „So geht's“ auch während der Rüstzeit; an der Tastatur schließt es Escape
+    await page.getByTestId('match-help-open').tap(quick);
+    await expect(page.getByTestId('match-help').locator('.help-card')).toHaveCount(4, quick);
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('match-help')).toHaveCount(0, quick);
   } else if (round > 3) {
     await build();
   }
@@ -391,9 +450,23 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   await expect(screen).toHaveAttribute('data-mode', 'REALM');
   await expect(screen).toHaveAttribute('data-state', 'lobby');
 
+  // Vor der ersten Partie öffnet sich „So geht's“ von selbst: vier Bilder, „Alles klar“ schließt es
+  const help = page.getByTestId('match-help');
+  await expect(help).toBeVisible();
+  await expect(help.locator('.help-card')).toHaveCount(4);
+  await expect(help).toContainText('Wer nach 5 Runden die meisten Punkte hat, gewinnt.');
+  await page.getByTestId('match-help-close').tap();
+  await expect(help).toHaveCount(0);
+
   // Aufstellung: erst die Lieblingskategorien; die Wahl gilt, sobald alle vier stehen
   const favorites = page.getByTestId('match-favorites');
   await expect(favorites).toContainText('Deine Lieblingskategorien');
+  // Darunter das Ziel in einem Satz; der Knopf daneben holt „So geht's“ zurück
+  await expect(favorites).toContainText('Ziel: nach 5 Runden die meisten Punkte.');
+  await page.getByTestId('lobby-help').tap();
+  await expect(help).toBeVisible();
+  await page.getByTestId('match-help-close').tap();
+  await expect(help).toHaveCount(0);
   const count = page.getByTestId('fav-count');
   await expect(count).toHaveText('0 von 4 gewählt');
   const open = favorites.locator('.fav[data-available="true"]');
@@ -443,6 +516,14 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   await expect(seats).toContainText('Bot (leicht)');
   await expect(seats).toContainText('Bot (schwer)');
   await expect(page.getByTestId('match-step')).toHaveText('Startfrage');
+  // Unter dem Band steht der Ablauf der Eröffnung
+  await expect(page.getByTestId('match-flow').getByRole('listitem')).toHaveText([
+    'Burg',
+    'Dorf',
+    'Landnahme',
+  ]);
+  // Ein zweites Mal öffnet sich „So geht's“ auf diesem Gerät nicht von selbst
+  expect(await page.evaluate(() => localStorage.getItem('rdw.help.realm'))).toBe('seen');
 
   /** Bühne in einem Zug gelesen, damit Zustand, Schritt und Frage zusammenpassen. */
   const read = () =>

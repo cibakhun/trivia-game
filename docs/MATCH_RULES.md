@@ -347,7 +347,7 @@ Seit ADR-058 spielt der Server die Partie mit Ausbau als eigene Spielart (`match
 
 ### 11.12 Offen
 
-- Erster Spieltest mit dem Product Owner am 2026-11-12; die Rückmeldung wird in Schritten umgesetzt (ADR-061, ADR-062, danach Rüstzeit und Verständlichkeit, Zuschauer, Gestaltung). Erst danach wird die Spielart in Produktion freigegeben. Im Browser gilt bis dahin: Ein offener Entwurf der Rüstzeit wird kurz vor Fristende von selbst abgegeben, und das Aufgedeckte steht 2 s ([O-36]).
+- Erster Spieltest mit dem Product Owner am 2026-11-12; die Rückmeldung wird in Schritten umgesetzt (ADR-061, ADR-062, ADR-063 für Rüstzeit und Verständlichkeit, danach Zuschauer und Gestaltung). Erst danach wird die Spielart in Produktion freigegeben. Im Browser gilt bis dahin: Ein offener Entwurf der Rüstzeit wird kurz vor Fristende von selbst abgegeben, und das Aufgedeckte steht 2 s ([O-36]).
 - Zahlen der Vorräte: Standardannahme, bis der Product Owner entscheidet ([O-41] Teil 1). Die Wahlen der Landnahme zu dritt bleiben 2, 1, 0 (entschieden 2026-11-12).
 - Zuschauer: Wer nicht gefragt wird, sieht die Frage erst in der Auflösung; bei Angriffen auf freie Felder betrifft das alle außer dem Angreifer ([O-38]).
 - Die Partie zu zweit dauert typisch 8,5 Minuten und liegt damit unter den 10 bis 15 Minuten des Konzepts ([O-41]).

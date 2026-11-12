@@ -7,7 +7,7 @@ import {
 import { useState } from 'react';
 import { CategoryIcon } from '../art/RealmIcons.tsx';
 import { describeError, ErrorNote } from '../components/ErrorNote.tsx';
-import { t } from '../i18n/i18n.ts';
+import { t, tp } from '../i18n/i18n.ts';
 import { LobbyPanel, PlayerShield } from './LobbyPanel.tsx';
 import { categoryName } from './realm-text.ts';
 
@@ -50,6 +50,7 @@ export function RealmLobby({
   onLeave,
   onSetBot,
   onSetFavorites,
+  onHelp,
   initial,
 }: {
   readonly view: MatchView;
@@ -58,6 +59,8 @@ export function RealmLobby({
   readonly onStart: () => void;
   readonly onLeave: () => void;
   readonly onSetBot: (joinOrder: number, strength: MatchBotStrengthCode | null) => void;
+  /** Öffnet „So geht's“. */
+  readonly onHelp: () => void;
   /** Speichert die Wahl; `true`, wenn der Server sie angenommen hat. */
   readonly onSetFavorites: (categories: readonly QuestionCategory[]) => Promise<boolean>;
   readonly initial?: RealmLobbyInitial | undefined;
@@ -203,9 +206,20 @@ export function RealmLobby({
             </button>
           </div>
         ) : (
-          <p className="fav-note">
-            {t('realm.favorites.note')} {t('realm.favorites.startHint', { count })}
-          </p>
+          <div className="fav-foot">
+            <p className="fav-note">
+              {t('realm.favorites.note')} {t('realm.favorites.startHint', { count })}{' '}
+              <strong>{tp('realm.favorites.goal', view.realm?.campaignRounds ?? 0)}</strong>
+            </p>
+            <button
+              type="button"
+              className="button fav-help"
+              data-testid="lobby-help"
+              onClick={onHelp}
+            >
+              {t('realm.help.open')}
+            </button>
+          </div>
         )}
       </div>
       <div className="lobby-side fav-side">

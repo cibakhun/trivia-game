@@ -10,11 +10,13 @@ import {
 } from '../src/match/match-text.ts';
 import { realmPlayOf, wheelPreview, type RealmPlay } from '../src/match/realm-model.ts';
 import {
+  blockText,
   buildingMark,
   categoryName,
   fieldYield,
   orderChips,
   placeName,
+  refusalText,
   revealedParts,
   targetWinKey,
   terrainName,
@@ -119,6 +121,58 @@ describe('Befehle als Plättchen', () => {
     expect(chips[4]?.label).toBe('1 Armee in Graufurt kaufen');
     expect(chips[5]).toMatchObject({ icon: 'move', text: '2' });
     expect(chips[5]?.label).toBe('2 Armeen von Graufurt nach Dornfeld ziehen');
+  });
+});
+
+describe('Warum in der Rüstzeit etwas nicht geht (ADR-063)', () => {
+  it('nennt, was im Vorrat fehlt, mit Zahl und Rohstoff', () => {
+    expect(blockText({ kind: 'MISSING', bread: 1, material: 6 })).toBe(
+      'Es fehlen 1 Brot und 6 Baustoff.',
+    );
+    expect(blockText({ kind: 'MISSING', bread: 2, material: 0 })).toBe('Es fehlen 2 Brot.');
+    expect(blockText({ kind: 'MISSING', bread: 0, material: 3 })).toBe('Es fehlen 3 Baustoff.');
+  });
+
+  it('nennt Grenzen mit der Zahl aus den Regeln', () => {
+    expect(blockText({ kind: 'CASTLE_LIMIT', max: 2 })).toBe('Höchstens 2 Burgen je Reich');
+    expect(blockText({ kind: 'ARMY_CAP', cap: 6 })).toBe('Voll: 6 Armeen je Feld');
+    expect(blockText({ kind: 'TARGETS_FULL', cap: 6 })).toBe('Nachbarfelder sind voll');
+  });
+
+  it('hat für jeden weiteren Grund einen eigenen kurzen Satz', () => {
+    const texts = (
+      [
+        'MAX_LEVEL',
+        'NO_CASTLE',
+        'NO_ARMY',
+        'NEXT_ROUND',
+        'ALL_MOVED',
+        'NO_NEIGHBOR',
+        'OTHER',
+      ] as const
+    ).map((kind) => blockText({ kind }));
+    expect(texts).toEqual([
+      'Höchste Stufe erreicht',
+      'Nur in einer Burg',
+      'Keine Armee hier',
+      'Erst nächste Runde',
+      'Alle sind schon verplant',
+      'Kein eigenes Nachbarfeld',
+      'Geht in dieser Runde nicht',
+    ]);
+    // Kurz genug für eine Zeile im Blatt
+    expect(texts.every((text) => text.length <= 26)).toBe(true);
+  });
+
+  it('sagt zu einem Feld, das kein Ziel des Zugs ist, den Grund als ganzen Satz', () => {
+    expect(refusalText({ kind: 'FOREIGN', owner: 1 }, name)).toBe(
+      'Das Feld gehört Bot (schwer). Armeen ziehen nur auf eigene Felder.',
+    );
+    expect(refusalText({ kind: 'FREE' }, name)).toBe(
+      'Das Feld ist frei. Armeen ziehen nur auf eigene Felder.',
+    );
+    expect(refusalText({ kind: 'TOO_FAR' }, name)).toBe('Zu weit: Armeen ziehen ein Feld weit.');
+    expect(refusalText({ kind: 'FULL', cap: 6 }, name)).toBe('Dort stehen schon 6 Armeen.');
   });
 });
 

@@ -37,6 +37,7 @@ Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext;
 | Tuschezeichen der Partie mit Ausbau: Brot, Baustoff, Armee, Dorf, Stadt, Burg, Tausch, Zug und je eines für die elf Kategorien des Glücksrads (Geschichte, Erdkunde, Naturwissenschaft, Technik, Mathematik, Literatur, Kunst und Kultur, Sport, Politik, Natur und Tiere, Allgemeinwissen) | `apps/web/src/art/RealmIcons.tsx` | eigene Zeichnungen aus Grundformen (ADR-060) |
 | Glücksrad (Scheibe mit Feldern je Kategorie, Zeiger, Nabe) | `apps/web/src/match/Wheel.tsx` | eigene Zeichnung, aus den Losen des Duells errechnet |
 | Auf der Karte der Partie mit Ausbau: goldenes Plus am geplanten Bau, Pfeile der Züge, Schildchen am Feld eines Duells, Striche der Lose | `apps/web/src/match/RealmBoardArt.tsx`, `match/RealmBlatt.tsx` | eigene Zeichnungen, Grundformen |
+| „So geht's“: kleines Glücksrad mit sechs Feldern und Zeiger, Münzen mit dem Wert eines Felds; die übrigen Bilder sind aus den Tuschezeichen, Wappen und Schwertern zusammengesetzt | `apps/web/src/match/HelpSheet.tsx` | eigene Zeichnung aus Grundformen (ADR-063) |
 | Zierzeichen ❦ ❧ ✓ | Unicode-Zeichen aus der Schrift | Teil der Schriften bzw. Systemschrift |
 
 ## Klänge
