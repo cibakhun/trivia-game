@@ -25,7 +25,7 @@ Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext;
 | Asset | Datei | Herkunft |
 |---|---|---|
 | Landkarten der Wendelmark und der Kernmark (Grenzen, Küste, Fluss, Meer bis an den Bildschirmrand) | `apps/web/src/art/map-art.ts`, `match/MatchBoard.tsx` | eigenes Verfahren, aus den Feldern der Regeln erzeugt |
-| Motive Baum, Tanne, Berg, Hügel, Feld, Gras, Schilf, See, Haus, Turm, Wellen, Burg, Schild | `apps/web/src/art/ArtDefs.tsx` | eigene Zeichnungen |
+| Motive Baum, Tanne, Berg, Hügel, Feld, Gras, Schilf, See, Haus, Turm, Wellen, Burg, Schild, dazu für die Partie mit Ausbau Dorf, Stadt und Banner der Armeen | `apps/web/src/art/ArtDefs.tsx` | eigene Zeichnungen |
 | Wappenbilder ◆ ● ▲ und Wappenmuster | `apps/web/src/art/ArtDefs.tsx`, `art/SeatCrest.tsx` | eigene Zeichnungen, Grundformen |
 | Spielwappen (Schild, Buch, Krone) | `apps/web/src/art/Emblem.tsx` | eigene Zeichnung |
 | Lorbeerkranz der Siegerseite | `apps/web/src/match/ResultPanel.tsx` | eigene Zeichnung |
@@ -34,6 +34,9 @@ Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext;
 | Tuschezeichen Banner, Schlüssel, Übungsscheibe, Schriftrolle | `apps/web/src/art/Icons.tsx` | eigene Zeichnungen |
 | Schilde der Plätze in der Aufstellung, Lautsprecher am Ton-Schalter | `apps/web/src/match/LobbyPanel.tsx`, `components/SoundToggle.tsx` | eigene Zeichnungen |
 | Münze am Punktestand, Rücktaste des Ziffernfelds, gedrehtes Handy im Hinweis fürs Hochformat | `apps/web/src/match/SeatList.tsx`, `match/NumPad.tsx`, `match/RotateHint.tsx` | eigene Zeichnungen, Grundformen |
+| Tuschezeichen der Partie mit Ausbau: Brot, Baustoff, Armee, Dorf, Stadt, Burg, Tausch, Zug und je eines für die elf Kategorien des Glücksrads (Geschichte, Erdkunde, Naturwissenschaft, Technik, Mathematik, Literatur, Kunst und Kultur, Sport, Politik, Natur und Tiere, Allgemeinwissen) | `apps/web/src/art/RealmIcons.tsx` | eigene Zeichnungen aus Grundformen (ADR-060) |
+| Glücksrad (Scheibe mit Feldern je Kategorie, Zeiger, Nabe) | `apps/web/src/match/Wheel.tsx` | eigene Zeichnung, aus den Losen des Duells errechnet |
+| Auf der Karte der Partie mit Ausbau: goldenes Plus am geplanten Bau, Pfeile der Züge, Schildchen am Feld eines Duells, Striche der Lose | `apps/web/src/match/RealmBoardArt.tsx`, `match/RealmBlatt.tsx` | eigene Zeichnungen, Grundformen |
 | Zierzeichen ❦ ❧ ✓ | Unicode-Zeichen aus der Schrift | Teil der Schriften bzw. Systemschrift |
 
 ## Klänge
@@ -43,12 +46,12 @@ Alle Klänge entstehen beim Spielen im Browser (Web Audio: Oszillatoren, gefilte
 | Klang | Anlass |
 |---|---|
 | Horn (zwei Töne) | Du bist dran |
-| Federstrich | Eine Region oder Hauptstadt wird gewählt |
+| Federstrich | Eine Region oder Hauptstadt wird gewählt (mit Ausbau auch: Burg oder Dorf gesetzt, Befehle aufgedeckt) |
 | Holzklick | Eigene Antwort abgegeben |
 | Glocke (Dreiklang) / dumpfer Schlag | Eigene Antwort richtig / falsch |
-| Trommel mit steigendem Dreiklang | Region erobert |
+| Trommel mit steigendem Dreiklang | Region erobert (mit Ausbau auch: Burg zerstört) |
 | Schildklang | Region gehalten (befestigt) |
-| Donner | Treffer auf eine Hauptstadt |
+| Donner | Treffer auf eine Hauptstadt (mit Ausbau: Treffer auf Dorf, Stadt oder Burg, auch wenn damit ein Reich fällt) |
 | fallende Moll-Folge | Ein Reich fällt |
 | Fanfare / leise fallende Folge | Sieg / anderer Platz |
 

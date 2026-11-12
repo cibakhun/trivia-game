@@ -1,13 +1,6 @@
-import {
-  expect,
-  test,
-  type Browser,
-  type BrowserContextOptions,
-  type Locator,
-  type Page,
-} from '@playwright/test';
-import { showEstimate } from '../src/match/estimate-input.ts';
-import { closeAnswerDb, matchSolution, testDb } from './answers.ts';
+import { expect, test, type Page } from '@playwright/test';
+import { closeAnswerDb, testDb } from './answers.ts';
+import { answerRight, matchIdOf, newPlayer, pickFirst } from './match-kit.ts';
 
 /**
  * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots,
@@ -22,119 +15,6 @@ import { closeAnswerDb, matchSolution, testDb } from './answers.ts';
 test.afterAll(async () => {
   await closeAnswerDb();
 });
-
-/** Gast anlegen und zur Partie-Übersicht gehen. */
-async function newPlayer(browser: Browser, context: BrowserContextOptions = {}): Promise<Page> {
-  const page = await (await browser.newContext(context)).newPage();
-  await page.goto('/');
-  await page.getByRole('button', { name: 'Als Gast spielen' }).click();
-  await page.getByRole('button', { name: 'Partie spielen' }).click();
-  await expect(page).toHaveURL(/\/partie$/);
-  return page;
-}
-
-function matchIdOf(page: Page): string {
-  return new URL(page.url()).pathname.split('/').at(-1) ?? '';
-}
-
-/** `true`, wenn die Aktion gelang; ein Fehlschlag heißt hier: der Schritt war schon vorbei. */
-async function succeeds(action: Promise<unknown>): Promise<boolean> {
-  return action.then(
-    () => true,
-    () => false,
-  );
-}
-
-/**
- * Wählt die erste markierte Region. Zählt nur, wenn die Wahl beim Server ankommt: Liegt etwas über
- * der Region und schluckt den Tipp, wählt der Server nach Ablauf der Zeit zufällig.
- */
-async function pickFirst(page: Page, matchId: string, how: 'click' | 'tap'): Promise<boolean> {
-  const region = page.getByTestId('match-board').getByRole('button').first();
-  const accepted = page
-    .waitForResponse(
-      (r) => r.request().method() === 'POST' && r.url().endsWith(`/matches/${matchId}/pick`),
-      { timeout: 2_000 },
-    )
-    .then(
-      (r) => r.ok(),
-      () => false,
-    );
-  // Kommt die Abfrage dazwischen, ist die Wahl vielleicht schon vorbei: dann neu lesen
-  const done = await succeeds(
-    how === 'tap' ? region.tap({ timeout: 2_000 }) : region.click({ timeout: 2_000 }),
-  );
-  return (await accepted) && done;
-}
-
-/**
- * Ob der Server die Antwort auf Frage `seq` annimmt. Vor dem Tipp aufrufen: Ein gelungener Tipp
- * allein heißt nicht, dass die Antwort zählt.
- */
-function answerAccepted(page: Page, matchId: string, seq: number): Promise<boolean> {
-  return page
-    .waitForResponse(
-      (r) =>
-        r.request().method() === 'POST' &&
-        r.url().endsWith(`/matches/${matchId}/questions/${seq}/answer`),
-      { timeout: 10_000 },
-    )
-    .then(
-      (r) => r.ok(),
-      () => false,
-    );
-}
-
-/**
- * Beantwortet die Frage `seq` richtig. `false` heißt: Die Frage war inzwischen vorbei. Eine
- * Schätzung steht in der Fragekarte auf der Karte; getippt wird am Handy auf dem Ziffernfeld im
- * Blatt, am Rechner mit der Tastatur (ADR-059).
- */
-async function answerRight(
-  page: Page,
-  matchId: string,
-  seq: number,
-  how: 'click' | 'tap' = 'click',
-): Promise<boolean> {
-  const solution = await matchSolution(matchId, seq);
-  const press = (button: Locator) =>
-    how === 'tap' ? button.tap({ timeout: 5_000 }) : button.click({ timeout: 5_000 });
-  if (solution.kind === 'TRIVIA') {
-    const accepted = answerAccepted(page, matchId, seq);
-    const chosen = await succeeds(
-      press(
-        page
-          .getByTestId('match-question')
-          .getByRole('button', { name: solution.optionText, exact: true }),
-      ),
-    );
-    return chosen && (await accepted);
-  }
-  const pad = page.getByTestId('match-answering');
-  const value = page.getByTestId('estimate-value');
-  const key = (name: string) => press(pad.getByRole('button', { name, exact: true }));
-  const typed = await succeeds(
-    (async () => {
-      // Steht von einem abgebrochenen Versuch noch etwas da, erst leeren
-      const before = (await value.textContent({ timeout: 5_000 })) ?? '';
-      const left = before.replace(/[^\d,]/g, '').length;
-      for (let i = 0; i < left; i++) await key('Letzte Ziffer löschen');
-      if (how === 'tap') {
-        for (const char of solution.input) await key(char === ',' ? 'Komma' : char);
-      } else {
-        await page.keyboard.type(solution.input);
-      }
-    })(),
-  );
-  if (!typed) return false;
-  // Keine Ziffer darf verloren gehen: Die Karte zeigt genau die getippte Zahl
-  const text = await value.textContent({ timeout: 1_000 }).catch(() => null);
-  if (text !== null && text !== showEstimate(solution.input)) {
-    throw new Error(`Die Fragekarte zeigt „${text}“ statt „${showEstimate(solution.input)}“`);
-  }
-  const accepted = answerAccepted(page, matchId, seq);
-  return (await succeeds(key('Antwort abgeben'))) && (await accepted);
-}
 
 /** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054, ADR-055). */
 interface Shown {

@@ -89,6 +89,27 @@ Der erste Takt gehört zur Auflösung des Servers und verlängert die Partie nic
 
 **Aufstellung** (`match/LobbyPanel.tsx`): ein Blatt in zwei Spalten. Links die Plätze untereinander (Wappen und Name, beim Gastgeber auf freien Plätzen „Bot dazu“, bei Bots die Stärke und „Entfernen“) und die Hinweise zu Bots, zur Karte je Spielerzahl und zu den Zeiten; rechts der Einladungscode als Plättchen mit „Link kopieren“ (darf der Browser nicht kopieren, steht der Link zum Markieren da), darunter „Partie starten“ und „Partie absagen“. Das Blatt passt ohne Scrollen auf ein quer gehaltenes Handy. Die Seite hinter dem Link (`screens/JoinScreen.tsx`) zeigt denselben Code und einen einzigen großen Knopf; sie und die Übersicht der Partien bleiben hochkant bedienbar und sind nie breiter als der Bildschirm (geprüft von 320 bis 430 px).
 
+**Partie mit Ausbau** (`match/RealmStage.tsx`, `match/realm.css`, ADR-060, [MATCH_RULES.md §11](MATCH_RULES.md#11-ausbau-burgen-dörfer-armeen); nach den am 2026-11-11 freigegebenen Bildentwürfen). Die Bühne ist dieselbe wie ohne Ausbau: Karte im Vollbild, links die Reiche, rechts das Blatt, Fragen mitten auf der Karte. Neu ist, was darauf steht:
+
+| Ort | Inhalt |
+|---|---|
+| Karte (`match/RealmBoardArt.tsx`) | Dorf und Stadt als Zeichnung mit Fahne in der Farbe des Reichs, die Burg wie bisher die Hauptstadt mit einem Schild je Leben, Armeen als Banner mit Zahl. In der Rüstzeit treten fremde Felder zurück, das gewählte Feld trägt einen goldenen Rand, mögliche Ziele eines Zugs einen gestrichelten; ein geplanter Bau steht blass mit goldenem Plus, ein geplanter Kauf als goldenes „+2“ am Banner, ein Zug als Pfeil mit Zahl. Nach einem Duell steht am Feld ein Schildchen mit dem, was sich geändert hat |
+| Links (`match/RealmSeatList.tsx`) | je Reich eine Tafel: Wappen, Name, Punkte als Münze mit Zahl, daneben die Leben der Burgen als Schilde (ab vier Leben ein Schild mit Zahl), darunter Brot und Baustoff als Zeichen mit Zahl. In der Rüstzeit steht im Fuß „✓ fertig“ oder „rüstet“, bei einer Wahl „am Zug“ mit goldenem Rand |
+| Rechts, Rüstzeit (`match/PreparePanel.tsx`) | oben der Vorrat, wie er nach den geplanten Befehlen bliebe, daneben der Tausch („3:1“); in der Mitte das angetippte Feld mit Name, Ertrag und immer denselben drei Knöpfen **Bauen, Kaufen, Ziehen** (was auf dem Feld nicht geht, ist ausgegraut) und darunter, was der gewählte Knopf anbietet, mit Preis; unten die eigenen Befehle als Plättchen (ein Tipp nimmt einen zurück) und „Fertig“. Nach der Abgabe stehen die Befehle fest da mit „Befehle ändern“ |
+| Rechts, übrige Phasen (`match/RealmBlatt.tsx`) | Burg, Dorf oder Feld setzen mit Restzeit; **Angriff in zwei Schritten**: Ein Tipp auf ein markiertes Feld zeigt das Ziel, die Lose beider Seiten im Glücksrad und was ein Sieg bewirkt, erst „Angreifen“ schickt die Wahl; „Aufgedeckt“ mit einer Zeile je Reich; Glücksrad mit beiden Seiten, ihren Losen und am Ende der Kategorie; während einer Frage, wer gegen wen kämpft und **wer schon geantwortet hat**; Ausgang des Duells mit den Folgen als Liste und dem, was als Nächstes kommt |
+| Mitten auf der Karte | Glücksrad als runde Scheibe (`match/Wheel.tsx`), Fragekarte mit Zeichen und Name der Kategorie, Auflösung, Abrechnung mit der Spalte „Burgen“ |
+| Vor dem Start (`match/RealmLobby.tsx`) | erst das Blatt „Deine Lieblingskategorien“ (Kacheln mit Zeichen, Zähler „3 von 4 gewählt“, Kategorien ohne genug Fragen ausgegraut; daneben die Mitspieler mit „hat gewählt“ oder „wählt noch“ und „Partie starten“), dahinter das Blatt mit Plätzen, Einladungslink und Bots wie ohne Ausbau |
+
+Regeln des Ausbaus:
+
+- **Zeichen statt Wörter, wo der Platz knapp ist** (`art/RealmIcons.tsx`, eigene Tuschezeichnungen, [ASSETS.md](ASSETS.md)): Brot, Baustoff, Armee, Dorf, Stadt, Burg, Tausch, Zug und je Kategorie des Glücksrads eines. Jedes Zeichen hat für Vorleseprogramme einen Namen; der Vorrat heißt dort „Vorrat“, sichtbar stehen nur Zeichen und Zahl, damit zweistellige Vorräte in die Zeile passen.
+- **Das Glücksrad** zeigt jede Kategorie als Feld, so breit wie ihre Chance; die Farbe am Rand eines Felds zeigt, wessen Lieblingskategorie es ist (Angreifer, Verteidiger, beide), der Rest ist frei. Kategorien ohne ungestellte Frage fehlen. Was gezogen wurde, sagt immer auch das Blatt in Worten, samt „liegt dir“, „liegt euch beiden“ oder „liegt keinem von beiden“.
+- **Geplant ist blass, beschlossen ist kräftig.** Was der Spieler in der Rüstzeit einstellt, steht sofort als Vorschau auf der Karte und im Vorrat; gerechnet wird mit den Regeln des Servers (`planRealmOrders`), entschieden wird erst dort. Fällt mit einem zurückgenommenen Befehl ein späterer weg, sagt das Blatt es in einem Satz.
+- **Alle Blätter rechts sind gleich groß**, auch das der Rüstzeit: Ab fünf Befehlen zeigen Bauten nur noch ihr Zeichen, damit alle in zwei Zeilen passen. Die Karte rückt in keiner Phase.
+- **Tipps:** In der Rüstzeit sind nur eigene Felder antippbar, beim Angriff nur die markierten Ziele. Gebäude, Banner, Pläne, Pfeile und das Rad nehmen keine Tipps an.
+
+Abweichungen von den Bildentwürfen, alle aus Platzgründen bei 844 × 340: Das Wort „Vorrat“ entfällt sichtbar; Burgleben stehen neben den Punkten und der Stand der Rüstzeit im Fuß der Tafel; der Tausch steht als Plättchen „6 → 2“; „Streichen“ statt „Zurücknehmen“; die Aufstellung hat zwei Blätter statt einem. Geprüft mit Bildern aller 28 Phasen bei 844 × 340, 844 × 390 und 667 × 375, Tag- und Nachtkarte.
+
 ## 5. Bewegung
 
 | Anlass | Bewegung |
@@ -108,6 +129,9 @@ Der erste Takt gehört zur Auflösung des Servers und verlängert die Partie nic
 | Gezeigte Wahl (Ansage) | Ein Ring in der Farbe des Sitzes zieht sich um die gewählte Region (0,5 s) und bleibt stehen, bis es weitergeht |
 | Auflösung | Das Blatt erscheint mitten auf der Karte (0,3 s), die richtige Antwort ist grün mit Haken; der Ausgang im Blatt rechts stempelt sich ein |
 | Sieg | Lorbeerkranz mit Krone und kreisendem Strahlenkranz |
+| Glücksrad (mit Ausbau) | Die Scheibe dreht drei Umdrehungen und läuft unter dem Zeiger aus; das dauert 65 % der Ansage (`wheelMs`), danach steht sie mit goldenem Rand um das gezogene Feld, und das Blatt nennt die Kategorie. Wird die Seite mitten in der Ansage geladen, läuft das Rad von der Stelle weiter, an der es wäre |
+| Aufgedeckt (mit Ausbau) | Ohne Bewegung: Was eben gebaut, gekauft oder gezogen wurde, trägt einen goldenen Schein, Züge stehen als Pfeil mit Zahl, solange das Blatt „Aufgedeckt“ steht |
+| Ausgang mit Ausbau | Wie ohne Ausbau; dazu steht am Feld ein Schildchen in der Farbe des Siegers („erobert“, „Dorf zerstört“, „Stadt wird Dorf“, „Burg getroffen“, „Burg zerstört“, „Reich fällt“, „gehalten“) |
 
 Regeln:
 
@@ -147,6 +171,9 @@ Elf kurze Klänge, im Browser erzeugt (Web Audio, keine Dateien, `apps/web/src/a
 | `apps/web/src/match/AnnouncePanel.tsx`, `RevealPanel.tsx`, `SeatChip.tsx` | Ansage (gezeigte Wahl, Duell), Auflösung mit den Antworten aller Sitze, Sitz als Plättchen |
 | `apps/web/src/match/TurnOrder.tsx` | Zugfolge unter dem Spielstand |
 | `apps/web/src/audio/sound.ts`, `match/sound-cues.ts`, `components/SoundToggle.tsx` | Klänge, ihre Anlässe, Ton-Schalter |
+| `apps/web/src/match/RealmStage.tsx`, `realm.css`, `realm-model.ts`, `realm-text.ts`, `realm-layer.ts` | Bühne der Partie mit Ausbau, ihr Aussehen, Ableitungen aus den Regeln (was auf einem Feld geht, Entwurf der Befehle), Texte, Ebene der Karte (ADR-060) |
+| `apps/web/src/match/PreparePanel.tsx`, `RealmBlatt.tsx`, `RealmSeatList.tsx`, `RealmLobby.tsx`, `Wheel.tsx`, `RealmBoardArt.tsx` | Blatt der Rüstzeit, Blatt der übrigen Phasen, Tafeln mit Vorrat, Aufstellung mit Lieblingskategorien, Glücksrad, Gebäude, Armeen und Pläne auf der Karte |
+| `apps/web/src/art/RealmIcons.tsx`, `match/Answers.tsx` | Zeichen des Ausbaus (Rohstoffe, Gebäude, Armee, Tausch, Zug, Kategorien); Liste, wer schon geantwortet hat (beide Spielarten) |
 | `apps/web/src/art/Icons.tsx`, `match/LobbyPanel.tsx` | Tuschezeichen der Partie-Seite, Aufstellung mit Code-Plättchen und Platzzeilen, Bots setzen |
 
 Neue Grafik entsteht als SVG im Code oder als Datei mit Eintrag in [ASSETS.md](ASSETS.md). Farben nur über Tokens, Bewegungen mit Abschaltung bei „Bewegung reduzieren“.
