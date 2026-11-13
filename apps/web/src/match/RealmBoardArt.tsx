@@ -1,5 +1,5 @@
 import type { RealmBuildingCode } from '@rdw/protocol';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { symbolRef, type SymbolId } from '../art/ArtDefs.tsx';
 import type { ArtRegion, MapArt } from '../art/map-art.ts';
 
@@ -36,6 +36,56 @@ export interface RealmChange {
   readonly seat: number | null;
 }
 
+/**
+ * Was sich auf einem Feld eben getan hat (ADR-067). Die Karte zeigt immer schon den neuen Stand;
+ * hieraus spielt sie einmal ab, wie es dazu kam.
+ */
+export interface RealmFieldMotion {
+  /** Aufdecken: Hier wurde gebaut, das Gebäude wächst aus dem Boden. */
+  readonly built?: boolean;
+  /** Ausgang: Gebäude, das hier eben eine Stufe fiel oder einstürzte (was vorher stand). */
+  readonly fell?: RealmBuilt;
+  /** Ausgang: Sitz, dem die eingestürzte Burg gehörte; das Feld gehört schon dem Sieger. */
+  readonly fellOf?: number;
+  /** Aufdecken: neue Armeen, sie treten aus der Burg. */
+  readonly recruited?: number;
+  /** Aufdecken: Armeen, die hierher zogen. */
+  readonly arrived?: number;
+  /** Aufdecken: Armeen, die von hier fortzogen. */
+  readonly left?: number;
+  /** Ausgang: Sitz, der hier eben eine Armee verlor. */
+  readonly lost?: number;
+}
+
+export interface RealmMotion {
+  readonly kind: 'orders' | 'outcome';
+  readonly fields: Readonly<Record<number, RealmFieldMotion>>;
+}
+
+/** Armeen auf einem Feld, bevor sich dort etwas bewegte. */
+export function armiesBefore(armies: number, motion: RealmFieldMotion | null): number {
+  if (!motion) return armies;
+  return (
+    armies -
+    (motion.recruited ?? 0) -
+    (motion.arrived ?? 0) +
+    (motion.left ?? 0) +
+    (motion.lost === undefined ? 0 : 1)
+  );
+}
+
+/**
+ * Wann die Zahl auf der Fahne wechselt: wenn die neue Armee aus der Burg tritt, wenn ein Zug
+ * ankommt, wenn er aufbricht oder wenn der Schlag sitzt. Die Zeiten dazu stehen in `map-art.css`.
+ */
+export type ArmySwitch = 'recruit' | 'in' | 'out' | 'loss';
+
+export function armySwitch(motion: RealmFieldMotion): ArmySwitch {
+  if (motion.lost !== undefined) return 'loss';
+  if ((motion.recruited ?? 0) > 0) return 'recruit';
+  return (motion.arrived ?? 0) > 0 ? 'in' : 'out';
+}
+
 /** Was die Karte über die klassische Partie hinaus zeigt. */
 export interface RealmLayer {
   readonly regions: readonly RealmRegionLayer[];
@@ -56,6 +106,11 @@ export interface RealmLayer {
   readonly focusSeat?: number | null;
   /** Felder, deren Stand sich eben geändert hat (Aufdecken, Ausgang). */
   readonly fresh?: readonly number[];
+  /**
+   * Der Wechsel zu diesem Stand wurde miterlebt: Die Karte spielt ihn einmal ab. Ohne das steht
+   * sofort das Endbild (Seite mitten im Aufdecken geladen).
+   */
+  readonly motion?: RealmMotion | null;
 }
 
 const SYMBOL: Readonly<Record<RealmBuilt, SymbolId>> = {
@@ -71,6 +126,19 @@ export function hasBuilding(layer: RealmLayer, region: number): boolean {
   );
 }
 
+/**
+ * Maße der Burg mit Ausbau in Sechseckgrößen, um die Mitte des Felds: neben einem Bannerträger
+ * nach links gerückt, darunter die Lebensschilde.
+ */
+export const REALM_CASTLE = {
+  beside: -0.28,
+  y: -0.02,
+  size: 0.8,
+  livesY: 0.54,
+  livesGap: 0.24,
+  life: 0.22,
+} as const;
+
 /** Größe des Bannerträgers in Sechseckgrößen: neben einer Burg etwas größer. */
 export const BEARER = { castle: 0.76, field: 0.7 } as const;
 
@@ -81,6 +149,33 @@ function bannerAt(region: ArtRegion, castle: boolean, s: number): { x: number; y
     : { x: region.cx - 0.04 * s, y: region.cy + 0.47 * s };
 }
 
+/** Tor einer Burg, neben der ein Bannerträger steht: Von hier treten neue Armeen heraus. */
+function gateAt(region: ArtRegion, s: number): { x: number; y: number } {
+  return { x: region.cx - 0.28 * s, y: region.cy + 0.16 * s };
+}
+
+/** Bannerträger mit der Zahl auf der Fahne, um den Punkt (x, y). */
+function Bearer({
+  prefix,
+  x,
+  y,
+  size: b,
+  children,
+}: {
+  readonly prefix: string;
+  readonly x: number;
+  readonly y: number;
+  readonly size: number;
+  readonly children?: ReactNode;
+}) {
+  return (
+    <>
+      <use href={symbolRef(prefix, 'bearer')} x={x - b / 2} y={y - b / 2} width={b} height={b} />
+      {children}
+    </>
+  );
+}
+
 /** Gebäude und Armeen eines Felds; ersetzt das Besitzerschild der Partie ohne Ausbau. */
 export function RealmRegionArt({
   prefix,
@@ -89,6 +184,7 @@ export function RealmRegionArt({
   castle,
   size: s,
   layer,
+  armiesSeen,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
@@ -97,6 +193,8 @@ export function RealmRegionArt({
   readonly castle: boolean;
   readonly size: number;
   readonly layer: RealmLayer;
+  /** Armeen hier vor dem Ausgang, soweit die Karte sie gesehen hat (ein genommenes Feld verliert alle). */
+  readonly armiesSeen?: number | undefined;
 }) {
   const { cx, cy } = region;
   const state = layer.regions[region.id];
@@ -105,26 +203,72 @@ export function RealmRegionArt({
   const planned = layer.planned?.[region.id] ?? null;
   const building = planned ?? (state.building === 'NONE' ? null : state.building);
   const plus = layer.recruits?.[region.id] ?? 0;
+  const motion = layer.motion?.fields[region.id] ?? null;
   const banner = bannerAt(region, castle, s);
   const b = (castle ? BEARER.castle : BEARER.field) * s;
   const fresh = layer.fresh?.includes(region.id) ?? false;
   // Eine stehende Burg zeichnet die Karte; hier nur Dorf, Stadt und jeder geplante Bau
   const drawn = building !== null && (planned !== null || !castle);
+  // Eine eingestürzte Burg zeichnet `RealmRuinArt`, mit ihrem Bannerträger
+  const ruin = motion?.fell === 'CASTLE';
+  const fell = motion?.fell === undefined || ruin ? null : motion.fell;
+  const rising = motion?.built === true && planned === null;
+  // Wer ein Feld verliert, verliert alle Armeen darauf, das Ereignis nennt nur eine
+  const was =
+    motion?.lost !== undefined && state.armies === 0
+      ? Math.max(1, armiesSeen ?? 1)
+      : armiesBefore(state.armies, motion);
+  const standing = owner !== null && (state.armies > 0 || plus > 0);
+  const moved = motion !== null && was !== state.armies;
+  // Ist bekannt, was sich bewegt hat, trägt nur das den Schein; sonst alles auf dem Feld
+  const known = layer.motion !== undefined && layer.motion !== null;
+  const glowBuilding = fresh && (known ? rising || fell !== null : drawn);
+  const glowArmy = fresh && (!known || moved);
+  const count = (x: number, y: number, size: number, value: number, extra = '') => (
+    <text x={x + 0.22 * size} y={y - 0.25 * size} className={`army-count${extra}`}>
+      {value}
+    </text>
+  );
+  const house = (kind: RealmBuilt) => (
+    <use
+      href={symbolRef(prefix, SYMBOL[kind])}
+      x={cx - 0.37 * s}
+      y={cy - 0.85 * s}
+      width={0.74 * s}
+      height={0.74 * s}
+    />
+  );
   return (
     <>
+      {glowBuilding ? (
+        <circle
+          key="glow"
+          cx={cx}
+          cy={cy - 0.46 * s}
+          r={0.5 * s}
+          className="fresh-glow"
+          fill={`url(#${prefix}-glow)`}
+        />
+      ) : null}
+      {fell !== null ? (
+        // Was hier stand, bricht zusammen; im Endbild ist es fort
+        <g key="fall" className="building falling" style={flag} data-fell={fell}>
+          <g className="ruin">{house(fell)}</g>
+          <g className="dust">
+            <circle cx={cx - 0.2 * s} cy={cy - 0.2 * s} r={0.09 * s} />
+            <circle cx={cx + 0.02 * s} cy={cy - 0.17 * s} r={0.11 * s} />
+            <circle cx={cx + 0.22 * s} cy={cy - 0.2 * s} r={0.08 * s} />
+          </g>
+        </g>
+      ) : null}
       {drawn ? (
         <g
-          className={`building${planned ? ' ghost' : ''}${fresh ? ' fresh' : ''}`}
+          key="building"
+          className={`building${planned ? ' ghost' : ''}${fresh ? ' fresh' : ''}${rising ? ' rising' : ''}${fell !== null ? ' settling' : ''}`}
           style={flag}
           data-building={building}
         >
-          <use
-            href={symbolRef(prefix, SYMBOL[building])}
-            x={cx - 0.37 * s}
-            y={cy - 0.85 * s}
-            width={0.74 * s}
-            height={0.74 * s}
-          />
+          {house(building)}
           {planned ? (
             <g className="ghost-plus">
               <circle cx={cx + 0.36 * s} cy={cy - 0.66 * s} r={0.12 * s} />
@@ -135,23 +279,118 @@ export function RealmRegionArt({
           ) : null}
         </g>
       ) : null}
-      {owner !== null && (state.armies > 0 || plus > 0) ? (
+      {standing ? (
         <g
           key={`army-${state.armies}`}
-          className={`army seat-${owner}${fresh ? ' fresh' : ''}`}
+          className={`army seat-${owner}${fresh ? ' fresh' : ''}${moved ? (was > 0 ? ' counting' : ' arriving') : ''}`}
           style={flag}
           data-armies={state.armies}
+          data-switch={moved && motion ? armySwitch(motion) : undefined}
         >
+          {glowArmy ? (
+            <circle
+              cx={banner.x}
+              cy={banner.y}
+              r={0.42 * s}
+              className="fresh-glow"
+              fill={`url(#${prefix}-glow)`}
+            />
+          ) : null}
+          <g className="army-body">
+            <Bearer prefix={prefix} x={banner.x} y={banner.y} size={b}>
+              {moved && was > 0 ? count(banner.x, banner.y, b, was, ' was') : null}
+              {count(banner.x, banner.y, b, state.armies, moved && was > 0 ? ' now' : '')}
+            </Bearer>
+          </g>
+        </g>
+      ) : moved && motion && was > 0 && !ruin ? (
+        // Hier steht keine Armee mehr: Sie bricht auf oder fällt, im Endbild ist sie fort
+        <g
+          key="army-gone"
+          className={`army gone seat-${motion.lost ?? owner ?? 0}`}
+          style={{ ['--flag' as string]: `var(--seat-${motion.lost ?? owner ?? 0})` }}
+          data-switch={armySwitch(motion)}
+        >
+          <g className="army-body">
+            <Bearer prefix={prefix} x={banner.x} y={banner.y} size={b}>
+              {count(banner.x, banner.y, b, was)}
+            </Bearer>
+          </g>
+        </g>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Eine eben genommene Burg stürzt ein, wo sie stand, mit ihren Lebensschilden und dem
+ * Bannerträger daneben. Sie liegt außerhalb der Beschriftung des Felds: Die wartet, bis das
+ * Wappen des Siegers geht, die Burg fällt unter ihm.
+ */
+export function RealmRuinArt({
+  prefix,
+  region,
+  size: s,
+  motion,
+  lives,
+  armiesSeen,
+}: {
+  readonly prefix: string;
+  readonly region: ArtRegion;
+  readonly size: number;
+  readonly motion: RealmFieldMotion;
+  /** Lebensschilde einer Burg nach den Regeln; hier sind alle gebrochen. */
+  readonly lives: number;
+  readonly armiesSeen?: number | undefined;
+}) {
+  const { cx, cy } = region;
+  const seat = motion.fellOf ?? motion.lost ?? 0;
+  const flag: CSSProperties = { ['--flag' as string]: `var(--seat-${seat})` };
+  // Neben einem Bannerträger stand die Burg nach links gerückt
+  const guarded = motion.lost !== undefined;
+  const x = cx + (guarded ? REALM_CASTLE.beside : 0) * s;
+  const tower = REALM_CASTLE.size * s;
+  const shield = REALM_CASTLE.life * s;
+  const banner = bannerAt(region, true, s);
+  const b = BEARER.castle * s;
+  return (
+    <>
+      <g className="castle falling" style={flag}>
+        <g className="ruin">
           <use
-            href={symbolRef(prefix, 'bearer')}
-            x={banner.x - b / 2}
-            y={banner.y - b / 2}
-            width={b}
-            height={b}
+            href={symbolRef(prefix, 'castle')}
+            x={x - tower / 2}
+            y={cy + REALM_CASTLE.y * s - tower / 2}
+            width={tower}
+            height={tower}
           />
-          <text x={banner.x + 0.22 * b} y={banner.y - 0.25 * b} className="army-count">
-            {state.armies}
-          </text>
+          {Array.from({ length: lives }, (_, i) => (
+            <g key={i} className="life life-off">
+              <use
+                href={symbolRef(prefix, 'shield')}
+                x={x + (i - (lives - 1) / 2) * REALM_CASTLE.livesGap * s - shield / 2}
+                y={cy + REALM_CASTLE.livesY * s - shield / 2}
+                width={shield}
+                height={shield}
+              />
+            </g>
+          ))}
+        </g>
+        <g className="dust">
+          <circle cx={x - 0.24 * s} cy={cy + 0.24 * s} r={0.1 * s} />
+          <circle cx={x + 0.02 * s} cy={cy + 0.28 * s} r={0.12 * s} />
+          <circle cx={x + 0.26 * s} cy={cy + 0.24 * s} r={0.09 * s} />
+        </g>
+      </g>
+      {guarded ? (
+        <g className={`army gone seat-${seat}`} style={flag} data-switch="ruin">
+          <g className="army-body">
+            <Bearer prefix={prefix} x={banner.x} y={banner.y} size={b}>
+              <text x={banner.x + 0.22 * b} y={banner.y - 0.25 * b} className="army-count">
+                {Math.max(1, armiesSeen ?? 1)}
+              </text>
+            </Bearer>
+          </g>
         </g>
       ) : null}
     </>
@@ -176,12 +415,14 @@ const round = (n: number) => Math.round(n * 10) / 10;
 
 /** Ebene der Pläne: Auswahl und mögliche Ziele unter, Pfeile und Schilder über der Beschriftung. */
 export function RealmPlanArt({
+  prefix,
   art,
   layer,
   owners,
   size: s,
   level,
 }: {
+  readonly prefix: string;
   readonly art: MapArt;
   readonly layer: RealmLayer;
   /** Besitzer je Feld, für das Zurücktreten fremder Felder. */
@@ -223,10 +464,13 @@ export function RealmPlanArt({
           const r = at(change.region);
           if (!r) return null;
           const w = (change.text.length * 0.165 + 0.36) * s;
+          // Mit Bewegung kommt das Schild erst, wenn der Schlag sitzt; fällt ein Gebäude, danach
+          const late = layer.motion?.kind === 'outcome';
+          const fell = layer.motion?.fields[change.region]?.fell !== undefined;
           return (
             <g
               key={`${change.region}:${change.text}`}
-              className="plan-change"
+              className={`plan-change${late ? ' late' : ''}${fell ? ' after-fall' : ''}`}
               style={{
                 ['--flag' as string]:
                   change.seat === null ? 'var(--map-stone)' : `var(--seat-${change.seat})`,
@@ -272,6 +516,7 @@ export function RealmPlanArt({
         const a = at(move.from);
         const b = at(move.to);
         if (!a || !b) return null;
+        const live = layer.motion?.kind === 'orders';
         const dx = b.cx - a.cx;
         const dy = b.cy - a.cy;
         const len = Math.hypot(dx, dy) || 1;
@@ -290,19 +535,89 @@ export function RealmPlanArt({
         return (
           <g
             key={`${move.seat}:${move.from}:${move.to}`}
-            className="plan-move"
+            className={`plan-move${live ? ' drawn' : ''}`}
             style={{ ['--flag' as string]: `var(--seat-${move.seat})` }}
           >
-            <path d={curve} className="move-halo" />
-            <path d={curve} className="move-line" />
+            <path d={curve} className="move-halo" pathLength={live ? 1 : undefined} />
+            <path d={curve} className="move-line" pathLength={live ? 1 : undefined} />
             <path d={tip(mx, my, x2, y2, 0.26 * s)} className="move-tip" />
-            <circle cx={midX} cy={midY} r={0.19 * s} className="move-disc" />
-            <text x={midX} y={midY} className="move-count">
-              {move.count}
-            </text>
+            <g className="move-badge">
+              <circle cx={midX} cy={midY} r={0.19 * s} className="move-disc" />
+              <text x={midX} y={midY} className="move-count">
+                {move.count}
+              </text>
+            </g>
           </g>
         );
       })}
+      {layer.motion?.kind === 'orders'
+        ? (layer.moves ?? []).map((move) => {
+            const a = at(move.from);
+            const b = at(move.to);
+            if (!a || !b) return null;
+            // Der Zug marschiert von Fahne zu Fahne, mit dem Bogen des Pfeils
+            const from = bannerAt(a, (layer.regions[a.id]?.building ?? 'NONE') === 'CASTLE', s);
+            const to = bannerAt(b, (layer.regions[b.id]?.building ?? 'NONE') === 'CASTLE', s);
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const len = Math.hypot(dx, dy) || 1;
+            const size = BEARER.field * s;
+            return (
+              <g
+                key={`march:${move.seat}:${move.from}:${move.to}`}
+                className={`marcher seat-${move.seat}`}
+                style={{
+                  ['--flag' as string]: `var(--seat-${move.seat})`,
+                  ['--dx' as string]: `${round(dx)}px`,
+                  ['--dy' as string]: `${round(dy)}px`,
+                  ['--mx' as string]: `${round(dx / 2 - (dy / len) * 0.16 * s)}px`,
+                  ['--my' as string]: `${round(dy / 2 + (dx / len) * 0.16 * s)}px`,
+                }}
+              >
+                <g className="marcher-hop">
+                  <Bearer prefix={prefix} x={from.x} y={from.y} size={size}>
+                    <text x={from.x + 0.22 * size} y={from.y - 0.25 * size} className="army-count">
+                      {move.count}
+                    </text>
+                  </Bearer>
+                </g>
+              </g>
+            );
+          })
+        : null}
+      {layer.motion?.kind === 'orders'
+        ? Object.entries(layer.motion.fields).map(([key, field]) => {
+            const r = at(Number(key));
+            const recruited = field.recruited ?? 0;
+            if (!r || recruited <= 0) return null;
+            // Neue Armeen treten aus dem Tor und stellen sich zur Fahne
+            const gate = gateAt(r, s);
+            const size = BEARER.castle * s;
+            // Sie bleiben links neben dem Träger stehen: So liegt ihre Zahl nicht auf seiner
+            const flagAt = bannerAt(r, true, s);
+            const to = { x: flagAt.x - 0.3 * size, y: flagAt.y };
+            const seat = owners[r.id] ?? 0;
+            return (
+              <g
+                key={`recruit:${key}`}
+                className={`marcher recruit seat-${seat}`}
+                style={{
+                  ['--flag' as string]: `var(--seat-${seat})`,
+                  ['--dx' as string]: `${round(to.x - gate.x)}px`,
+                  ['--dy' as string]: `${round(to.y - gate.y)}px`,
+                }}
+              >
+                <g className="marcher-hop">
+                  <Bearer prefix={prefix} x={gate.x} y={gate.y} size={size}>
+                    <text x={gate.x + 0.22 * size} y={gate.y - 0.25 * size} className="army-count">
+                      +{recruited}
+                    </text>
+                  </Bearer>
+                </g>
+              </g>
+            );
+          })
+        : null}
     </g>
   );
 }

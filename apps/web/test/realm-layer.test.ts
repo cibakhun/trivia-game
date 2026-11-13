@@ -2,11 +2,13 @@ import type { MatchEventOf, RealmOrderDto } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   layerRegions,
+  outcomeMotion,
   outcomeSign,
   outcomeSignKey,
   planLayer,
   realmBoardState,
   revealLayer,
+  revealMotion,
 } from '../src/match/realm-layer.ts';
 import { realmPlayOf, type RealmPlay } from '../src/match/realm-model.ts';
 import { event, realmViewOf, type RealmViewOptions } from './match-fixtures.ts';
@@ -127,6 +129,39 @@ describe('Aufgedecktes auf der Karte', () => {
     expect(layer.moves).toEqual([{ from: 11, to: 15, count: 2, seat: 0 }]);
     expect([...layer.fresh].sort((a, b) => a - b)).toEqual([2, 7, 15]);
   });
+
+  it('nennt als Bewegung je Feld, was gebaut wurde und wie viele Armeen kamen und gingen (ADR-067)', () => {
+    const motion = revealMotion([
+      revealed(
+        2,
+        41,
+        [
+          { kind: 'BUILD', region: 7 },
+          { kind: 'RECRUIT', region: 2, count: 2 },
+          { kind: 'RECRUIT', region: 2, count: 1 },
+          { kind: 'MOVE', from: 2, to: 6, count: 1 },
+          { kind: 'TRADE', give: 'BREAD', count: 1 },
+        ],
+        [{ region: 7, building: 'VILLAGE' }],
+      ),
+      revealed(0, 42, [
+        { kind: 'MOVE', from: 11, to: 15, count: 1 },
+        { kind: 'MOVE', from: 11, to: 15, count: 1 },
+      ]),
+    ]);
+    expect(motion.kind).toBe('orders');
+    expect(motion.fields).toEqual({
+      7: { built: true },
+      2: { recruited: 3, left: 1 },
+      6: { arrived: 1 },
+      11: { left: 2 },
+      15: { arrived: 2 },
+    });
+  });
+
+  it('kennt keine Bewegung, wenn niemand etwas tat', () => {
+    expect(revealMotion([revealed(0, 41, [])])).toEqual({ kind: 'orders', fields: {} });
+  });
 });
 
 describe('Schild über einem entschiedenen Duell', () => {
@@ -170,6 +205,35 @@ describe('Schild über einem entschiedenen Duell', () => {
     expect(outcomeSign(duel({ effect: 'BUILDING_DAMAGED', building: 'VILLAGE' })).text).toBe(
       'Stadt wird Dorf',
     );
+  });
+
+  it('lässt als Bewegung ein beschädigtes Gebäude fallen: was vorher stand (ADR-067)', () => {
+    expect(outcomeMotion(duel({ effect: 'BUILDING_DAMAGED', building: 'VILLAGE' })).fields).toEqual(
+      { 12: { fell: 'TOWN' } },
+    );
+    expect(outcomeMotion(duel({ effect: 'BUILDING_DAMAGED', building: 'NONE' })).fields).toEqual({
+      12: { fell: 'VILLAGE' },
+    });
+  });
+
+  it('lässt eine genommene Burg in der Farbe dessen einstürzen, der sie verlor', () => {
+    for (const effect of ['CASTLE_DESTROYED', 'TAKEOVER']) {
+      const motion = outcomeMotion(
+        duel({ effect, castleLivesLeft: 0, armyLost: { seat: 1, region: 12 } }),
+      );
+      expect(motion.kind).toBe('outcome');
+      expect(motion.fields).toEqual({ 12: { fell: 'CASTLE', fellOf: 1, lost: 1 } });
+    }
+  });
+
+  it('zeigt die verlorene Armee dort, wo sie stand, auch neben dem umkämpften Feld', () => {
+    const held = outcomeMotion(
+      duel({ winner: 'DEFENDER', effect: 'FORTIFIED', armyLost: { seat: 2, region: 7 } }),
+    );
+    expect(held.fields).toEqual({ 7: { lost: 2 } });
+    // Eine Burg, die nur getroffen wird, bleibt stehen; ohne Verlust bewegt sich nichts
+    expect(outcomeMotion(duel({ effect: 'CASTLE_HIT', castleLivesLeft: 2 })).fields).toEqual({});
+    expect(outcomeMotion(duel({})).fields).toEqual({});
   });
 
   it('freies Feld (O-37): genommen in der Farbe des Angreifers, sonst ohne Farbe', () => {

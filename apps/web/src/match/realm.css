@@ -158,6 +158,20 @@
   color: var(--success);
 }
 
+/* Das Einkommen kommt an: Die Zeichen im eigenen Vorrat federn einmal */
+.plaque.receiving .amount .glyph {
+  animation: amount-pop 0.45s var(--receive-at, 0s) ease-out both;
+}
+@keyframes amount-pop {
+  0%,
+  100% {
+    transform: none;
+  }
+  40% {
+    transform: scale(1.4);
+  }
+}
+
 .plaque.realm .plaque-lives.many {
   font-size: calc(13 * var(--u));
   font-weight: 800;
@@ -1052,9 +1066,22 @@ span.order-chip {
   stroke-linejoin: round;
 }
 
-/* Das Rad läuft aus und bleibt auf der gezogenen Kategorie stehen; erst dann leuchtet ihr Feld */
+/* Unsichtbare Marke: Hier steht das Zeichen des gezogenen Felds, wenn das Rad steht */
+.wheel-mark {
+  fill: none;
+  stroke: none;
+}
+
+/* Das Rad rollt aus, läuft ein Stück über die gezogene Kategorie hinaus und federt zurück; erst
+   dann leuchtet ihr Feld. Der Zeiger lehnt sich mit dem Rad und schwingt mit ihm aus (ADR-067) */
 .wheel.spinning .wheel-disc {
-  animation: wheel-spin var(--spin, 2s) cubic-bezier(0.13, 0.58, 0.12, 1) var(--spun, 0ms) both;
+  animation: wheel-spin var(--spin, 2s) linear var(--spun, 0ms) both;
+}
+.wheel-arm {
+  transform-origin: 0 -112px;
+}
+.wheel.spinning .wheel-arm {
+  animation: wheel-arm var(--spin, 2s) linear var(--spun, 0ms) both;
 }
 
 .wheel.spinning .seg-hit-ring {
@@ -1062,11 +1089,49 @@ span.order-chip {
 }
 
 @keyframes wheel-spin {
-  from {
+  0% {
     transform: rotate(var(--turn-from, -1080deg));
+    animation-timing-function: cubic-bezier(0.13, 0.58, 0.12, 1);
   }
-  to {
+  80% {
+    transform: rotate(var(--turn-over, 0deg));
+    animation-timing-function: ease-in-out;
+  }
+  91% {
+    transform: rotate(var(--turn-back, 0deg));
+    animation-timing-function: ease-in-out;
+  }
+  100% {
     transform: rotate(var(--turn, 0deg));
+  }
+}
+@keyframes wheel-arm {
+  0% {
+    transform: none;
+    animation-timing-function: ease-out;
+  }
+  5% {
+    transform: rotate(-17deg);
+    animation-timing-function: ease-in;
+  }
+  55% {
+    transform: rotate(-11deg);
+    animation-timing-function: ease-in-out;
+  }
+  80% {
+    transform: rotate(-2deg);
+    animation-timing-function: ease-in-out;
+  }
+  88% {
+    transform: rotate(5deg);
+    animation-timing-function: ease-in-out;
+  }
+  95% {
+    transform: rotate(-2deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
   }
 }
 
@@ -1116,6 +1181,24 @@ span.order-chip {
 .stage[data-state='wheel'] .wheel-result {
   animation: wheel-result-in 260ms ease-out calc(var(--wheel-spin, 0ms) + var(--wheel-spun, 0ms))
     both;
+}
+/* Das Zeichen der Kategorie springt vom Rad ins Blatt: Dort erscheint es, wenn es ankommt */
+.stage[data-state='wheel'] .wheel-result.catching .glyph {
+  animation: wheel-catch 320ms cubic-bezier(0.2, 1.5, 0.4, 1)
+    calc(var(--wheel-spin, 0ms) + var(--wheel-spun, 0ms) + var(--wheel-fly, 0ms)) both;
+}
+@keyframes wheel-catch {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @keyframes wheel-result-in {
@@ -1603,8 +1686,13 @@ span.order-chip {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .flight,
+  .flight-arc,
+  .plaque.receiving .amount .glyph,
   .wheel.spinning .wheel-disc,
+  .wheel.spinning .wheel-arm,
   .wheel.spinning .seg-hit-ring,
+  .stage[data-state='wheel'] .wheel-result.catching .glyph,
   .stage[data-state='wheel'] .wheel-result {
     animation: none;
   }

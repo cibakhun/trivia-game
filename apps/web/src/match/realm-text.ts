@@ -48,6 +48,28 @@ export function fieldYield(play: RealmPlay, region: number, building: RealmBuild
     : { bread: 0, material: amount };
 }
 
+/** Ein Feld, das einem Reich Brot oder Baustoff bringt. */
+export interface IncomeSource {
+  readonly region: number;
+  readonly kind: 'bread' | 'material';
+  readonly amount: number;
+}
+
+/**
+ * Woher das Einkommen eines Reichs kommt: je Feld, was es bringt. Eine Burg bringt beides und
+ * steht deshalb zweimal da.
+ */
+export function incomeSources(play: RealmPlay, seat: number): IncomeSource[] {
+  return play.board.regions.flatMap((field, region) => {
+    if (field.owner !== seat) return [];
+    const { bread, material } = fieldYield(play, region, field.building);
+    return [
+      ...(bread > 0 ? [{ region, kind: 'bread' as const, amount: bread }] : []),
+      ...(material > 0 ? [{ region, kind: 'material' as const, amount: material }] : []),
+    ];
+  });
+}
+
 /** Landschaft eines Felds als Wort: „Hügelland“. */
 export function terrainName(play: RealmPlay, region: number): string {
   return t(`realm.terrain.${terrainOf(play.map.regions[region]?.name ?? '')}`);

@@ -218,7 +218,8 @@ export function Amount({
   size = 18,
 }: {
   readonly kind: 'bread' | 'material';
-  readonly value: number | string;
+  /** Zahl oder Text; ein Zähler, wo der Vorrat sichtbar wächst. */
+  readonly value: ReactNode;
   readonly label: string;
   readonly size?: number;
 }) {

@@ -252,6 +252,7 @@ export function RealmBlatt({
   reveal,
   outcome,
   outcomeBeat,
+  catching = false,
   error,
   name,
   region,
@@ -276,6 +277,8 @@ export function RealmBlatt({
   readonly outcome: RealmDuel | null;
   /** Erster Takt der Auflösung: Die Karte zeigt den Ausgang, die Antworten folgen. */
   readonly outcomeBeat: boolean;
+  /** Glücksrad: Das Zeichen der Kategorie fliegt gerade vom Rad her und erscheint erst mit der Ankunft. */
+  readonly catching?: boolean;
   readonly error: unknown;
   readonly name: SeatName;
   readonly region: RegionName;
@@ -583,7 +586,11 @@ export function RealmBlatt({
             {t(step.defender === null ? 'realm.wheel.hintFree' : 'realm.wheel.hint')}
           </p>
           {category ? (
-            <p className="wheel-result" data-testid="wheel-result" data-category={category}>
+            <p
+              className={`wheel-result${catching ? ' catching' : ''}`}
+              data-testid="wheel-result"
+              data-category={category}
+            >
               <CategoryIcon category={category} size={34} />
               <span>
                 <strong>{categoryName(category)}</strong>

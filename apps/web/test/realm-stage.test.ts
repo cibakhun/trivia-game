@@ -297,6 +297,24 @@ describe('Spielstand der Partie mit Ausbau', () => {
     expect(count(mine, 'life-on')).toBe(3);
   });
 
+  it('lässt den eigenen Vorrat erst hochzählen, wenn das Einkommen ankommt (ADR-067)', () => {
+    const view = prepView();
+    const html = renderToStaticMarkup(
+      createElement(RealmSeatList, {
+        view,
+        play: playOf(view),
+        name: seatNames(view),
+        receiving: { delayMs: 990, durationMs: 760 },
+      }),
+    );
+    const mine = tagOf(html, 'plaque realm seat-2 me');
+    expect(mine).toContain('plaque realm seat-2 me receiving');
+    expect(mine).toContain('--receive-at:990ms');
+    expect(count(html, ' receiving')).toBe(1);
+    // Ohne Einkommen unterwegs trägt keine Tafel die Marke
+    expect(seats(view)).not.toContain('receiving');
+  });
+
   it('sagt in der Rüstzeit, wer fertig ist und wer noch rüstet', () => {
     const html = seats(prepView());
     expect(plaque(html, 0)).toContain('data-status="ready"');
@@ -804,6 +822,7 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     readonly events?: readonly ParsedMatchEvent[];
     readonly outcome?: MatchEventOf<'REALM_DUEL_RESOLVED'> | null;
     readonly outcomeBeat?: boolean;
+    readonly catching?: boolean;
     readonly target?: number | null;
     readonly refusedTarget?: number | null;
     readonly estimate?: string;
@@ -824,6 +843,7 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
         reveal: null,
         outcome: extra.outcome ?? null,
         outcomeBeat: extra.outcomeBeat ?? false,
+        catching: extra.catching ?? false,
         error: null,
         name: seatNames(view),
         region: regionNames(play.map),
@@ -1039,6 +1059,13 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     const result = part(html, 'data-testid="wheel-result"', '</p>');
     expect(result).toContain('data-category="HISTORY"');
     expect(textOf(result)).toBe('Geschichte liegt dir');
+    // Ohne Flug vom Rad her steht das Zeichen der Kategorie sofort da
+    expect(result).toContain('class="wheel-result"');
+  });
+
+  it('hält am Glücksrad das Zeichen der Kategorie zurück, bis es vom Rad her ankommt (ADR-067)', () => {
+    const html = blatt(duelView('ANNOUNCE', 'DUEL_TRIVIA', ME), 'wheel', { catching: true });
+    expect(tagOf(html, 'data-testid="wheel-result"')).toContain('class="wheel-result catching"');
   });
 
   it('färbt das Blatt am Glücksrad für den Angegriffenen', () => {

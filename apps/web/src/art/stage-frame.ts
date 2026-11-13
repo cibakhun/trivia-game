@@ -61,3 +61,31 @@ export function stageFrame(
     scale,
   };
 }
+
+/** Kreis in Karteneinheiten, an dem die Tiefe des Meers hängt. */
+export interface SeaDepth {
+  readonly cx: number;
+  readonly cy: number;
+  readonly r: number;
+}
+
+/**
+ * Tiefe des Meers für einen Ausschnitt der Karte: ein Kreis um die Mitte des sichtbaren Bilds, der
+ * bis in dessen Ecken reicht. Das Meer wird so zum Bildrand hin dunkler, gleich wie groß der
+ * Bildschirm ist. `null`, wenn der Ausschnitt nicht zu lesen ist.
+ */
+export function seaDepth(viewBox: string): SeaDepth | null {
+  const [x, y, w, h] = viewBox.split(/\s+/).map(Number);
+  if (
+    x === undefined ||
+    y === undefined ||
+    w === undefined ||
+    h === undefined ||
+    ![x, y, w, h].every(Number.isFinite) ||
+    !(w > 0 && h > 0)
+  ) {
+    return null;
+  }
+  const round = (n: number) => Math.round(n * 100) / 100;
+  return { cx: round(x + w / 2), cy: round(y + h / 2), r: round(Math.hypot(w, h) / 2) };
+}

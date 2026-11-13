@@ -14,6 +14,7 @@ import {
   buildingMark,
   categoryName,
   fieldYield,
+  incomeSources,
   orderChips,
   placeName,
   refusalText,
@@ -73,6 +74,42 @@ describe('Ertrag eines Felds', () => {
 
   it('gibt bei einer Burg beides', () => {
     expect(fieldYield(play, 2, 'CASTLE')).toEqual({ bread: 2, material: 2 });
+  });
+});
+
+describe('Woher das Einkommen kommt (ADR-067)', () => {
+  const sources = incomeSources(play, 2);
+
+  it('nennt jedes eigene Feld mit dem, was es bringt, die Burg mit beidem', () => {
+    expect(sources.filter((s) => s.region === 2)).toEqual([
+      { region: 2, kind: 'bread', amount: 2 },
+      { region: 2, kind: 'material', amount: 2 },
+    ]);
+    expect(sources.filter((s) => s.region === 6)).toEqual([
+      { region: 6, kind: 'bread', amount: 4 },
+    ]);
+    expect(sources.filter((s) => s.region === 7)).toEqual([
+      { region: 7, kind: 'material', amount: 1 },
+    ]);
+  });
+
+  it('ergibt zusammen den Ertrag aller eigenen Felder', () => {
+    const total = { bread: 0, material: 0 };
+    play.board.regions.forEach((field, region) => {
+      if (field.owner !== 2) return;
+      const { bread, material } = fieldYield(play, region, field.building);
+      total.bread += bread;
+      total.material += material;
+    });
+    const sum = (kind: 'bread' | 'material') =>
+      sources.filter((s) => s.kind === kind).reduce((all, s) => all + s.amount, 0);
+    expect({ bread: sum('bread'), material: sum('material') }).toEqual(total);
+    expect(total.bread).toBeGreaterThan(0);
+  });
+
+  it('nennt nur Felder dieses Reichs und nichts für ein gefallenes', () => {
+    expect(sources.every((s) => play.board.regions[s.region]?.owner === 2)).toBe(true);
+    expect(incomeSources(play, 7)).toEqual([]);
   });
 });
 
