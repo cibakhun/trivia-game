@@ -5,6 +5,7 @@ import {
   matchListResponseSchema,
   matchPresentResponseSchema,
   matchViewSchema,
+  matchWatchResponseSchema,
   type MatchView,
 } from '@rdw/protocol';
 import { sql } from 'kysely';
@@ -466,6 +467,157 @@ describe('Wer schon geantwortet hat (API.md §2.6)', () => {
     expect(later.question?.answered).toEqual(bots.map((bot) => bot.seat));
     expect(later.question?.answered).not.toContain(opened.mySeat);
   });
+});
+
+describe('Zuschauer lesen die laufende Frage mit (ADR-065)', () => {
+  /**
+   * Zwei Menschen und ein Bot: Greift der Bot einen Menschen an, schaut der andere zu. Spielt, bis
+   * ein Mensch einer offenen Frage zuschaut, und sieht vor jedem Zug bei beiden nach: Antwortete
+   * der Gefragte zuerst, wäre die Frage schon aufgelöst.
+   */
+  async function playUntilWatching(matchId: string, humans: readonly [Human, Human]) {
+    const ctx = driverContext();
+    for (let i = 0; i < 1000; i++) {
+      const views = [await view(humans[0], matchId), await view(humans[1], matchId)] as const;
+      const w = views.findIndex(
+        (v) =>
+          v.phase?.kind === 'QUESTION' &&
+          v.question?.myStatus === 'NOT_PARTICIPATING' &&
+          !v.question.resolved,
+      );
+      const watching = views[w]?.question;
+      if (watching) {
+        const watcher = humans[w];
+        const asked = humans[1 - w];
+        if (!watcher || !asked) throw new Error('Sitz fehlt');
+        return {
+          watcher,
+          asked,
+          seq: watching.seq,
+          seats: watching.seats,
+          mySeat: views[w]?.mySeat,
+        };
+      }
+      if (views[0].match.status !== 'RUNNING') throw new Error('Partie endet ohne Zuschauer');
+      let acted = false;
+      for (const human of humans) {
+        const current = await view(human, matchId);
+        if (current.phase?.kind === 'PICK' && current.legalRegions.length > 0) {
+          const response = await pick(human, matchId, current.legalRegions[0] ?? -1);
+          expect(response.statusCode, response.body).toBe(200);
+          acted = true;
+        } else if (
+          current.phase?.kind === 'QUESTION' &&
+          current.question?.myStatus === 'NOT_PRESENTED'
+        ) {
+          const { seq } = current.question;
+          expect((await present(human, matchId, seq)).statusCode).toBe(200);
+          const answered = await answer(human, matchId, seq, await answerPayload(matchId, seq));
+          expect(answered.statusCode, answered.body).toBe(200);
+          acted = true;
+        }
+      }
+      if (!acted) {
+        const current = await view(humans[0], matchId);
+        await advanceGameClock(server.database.pool, (current.phase?.remainingMs ?? 0) + 1);
+        await runMatchDriverOnce(server.db, ctx);
+      }
+    }
+    throw new Error('Niemand schaut zu');
+  }
+
+  it('Frage und Antworten für alle, die nicht gefragt sind; nie die Lösung, nie eine Wahl, keine Spur', async () => {
+    const a = await newHuman();
+    const b = await newHuman();
+    const matchId = await createMatch(a, { kind: 'STANDARD', rules: 'PLAYTEST' });
+    const code = (await view(a, matchId)).match.inviteCode ?? '';
+    expect((await joinMatch(b, code)).statusCode).toBe(200);
+    expect((await setBot(a, matchId, 2, 'MEDIUM')).statusCode).toBe(200);
+    expect((await startMatch(a, matchId)).statusCode).toBe(200);
+    // Die erste Frage geht an alle: Wer gefragt ist, liest nicht mit, und seine Zeit läuft nicht an
+    const first = await pastAnnounceUntilQuestion(a, b, matchId);
+    const early = await a.client.get(`/matches/${matchId}/questions/${first}/watch`);
+    expect(errorOf(early)).toMatchObject({ status: 409, code: 'STEP_NOT_AVAILABLE' });
+    expect((await view(a, matchId)).question?.myStatus).toBe('NOT_PRESENTED');
+
+    const { watcher, asked, seq, seats, mySeat } = await playUntilWatching(matchId, [a, b]);
+    const url = `/matches/${matchId}/questions/${seq}/watch`;
+    expect(seats).toHaveLength(2);
+    expect(seats).not.toContain(mySeat);
+
+    const watched = await watcher.client.get(url);
+    expect(watched.statusCode, watched.body).toBe(200);
+    expect(watched.body).not.toMatch(/correct|answerValue|answer_value|"key"|optionKey|distance/i);
+    const { question } = matchWatchResponseSchema.parse(watched.json());
+    expect(question).toMatchObject({ matchId, seq, kind: 'TRIVIA' });
+    // Kein eigener Zeitlauf: der Rest des Zeitlimits ab dem Öffnen der Frage
+    expect(question.remainingMs).toBeGreaterThan(0);
+    expect(question.remainingMs).toBeLessThanOrEqual(question.timeLimitMs);
+
+    // Keine Spur: keine Zeile für den Zuschauer, die Ansicht bleibt, und es ist wiederholbar
+    const rows = await server.db
+      .selectFrom('match_answers')
+      .select(['seat'])
+      .where('match_id', '=', matchId)
+      .where('seq', '=', seq)
+      .execute();
+    expect(rows.map((r) => r.seat)).not.toContain(mySeat);
+    const still = await view(watcher, matchId);
+    expect(still.question).toMatchObject({ seq, myStatus: 'NOT_PARTICIPATING', resolved: false });
+    expect((await watcher.client.get(url)).statusCode).toBe(200);
+
+    // Abholen bleibt den Gefragten, Mitlesen den anderen; der Gefragte sieht dieselbe Frage
+    expect(errorOf(await present(watcher, matchId, seq))).toMatchObject({
+      status: 409,
+      code: 'STEP_NOT_AVAILABLE',
+    });
+    // Die mitgelesenen Token taugen dem Zuschauer zu nichts: Antworten darf nur, wer gefragt ist
+    const token = 'options' in question ? question.options[0]?.token : undefined;
+    expect(
+      errorOf(await answer(watcher, matchId, seq, { optionToken: token, clientElapsedMs: 900 })),
+    ).toMatchObject({ status: 409, code: 'STEP_NOT_AVAILABLE' });
+    expect((await view(watcher, matchId)).question?.answered).not.toContain(mySeat);
+    expect(errorOf(await asked.client.get(url))).toMatchObject({
+      status: 409,
+      code: 'STEP_NOT_AVAILABLE',
+    });
+    const mine = matchPresentResponseSchema.parse(
+      (await present(asked, matchId, seq)).json(),
+    ).question;
+    expect(question.prompt).toBe(mine.prompt);
+    expect('options' in question ? question.options : null).toEqual(
+      'options' in mine ? mine.options : null,
+    );
+
+    // Wer nicht zur Partie gehört, und Fragen, die es nicht gibt
+    const outsider = await newHuman();
+    expect(errorOf(await outsider.client.get(url))).toMatchObject({ status: 404 });
+    const unknown = await watcher.client.get(`/matches/${matchId}/questions/${seq + 50}/watch`);
+    expect(errorOf(unknown)).toMatchObject({ status: 404 });
+
+    // Nach der Auflösung steht alles im Ereignis: Mitlesen ist vorbei
+    const answered = await answer(asked, matchId, seq, await answerPayload(matchId, seq));
+    expect(answered.statusCode, answered.body).toBe(200);
+    expect((await view(watcher, matchId)).phase?.kind).toBe('REVEAL');
+    expect(errorOf(await watcher.client.get(url))).toMatchObject({
+      status: 409,
+      code: 'STEP_EXPIRED',
+    });
+  });
+
+  /** Beide wählen ihre Hauptstadt, bis die erste Frage offen ist; liefert deren Nummer. */
+  async function pastAnnounceUntilQuestion(a: Human, b: Human, matchId: string): Promise<number> {
+    for (let i = 0; i < 12; i++) {
+      for (const human of [a, b]) {
+        const current = await pastAnnounce(human, matchId);
+        if (current.phase?.kind === 'QUESTION' && current.question) return current.question.seq;
+        if (current.phase?.kind === 'PICK' && current.legalRegions.length > 0) {
+          expect((await pick(human, matchId, current.legalRegions[0] ?? -1)).statusCode).toBe(200);
+        }
+      }
+    }
+    throw new Error('Keine Frage');
+  }
 });
 
 describe('Partie zu zweit', () => {

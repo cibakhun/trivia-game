@@ -53,6 +53,18 @@ export interface LocalQuestion {
   readonly sent?: LocalAnswer | undefined;
 }
 
+/**
+ * Die laufende Frage, wie ein Zuschauer sie mitliest (ADR-065): Frage und Antworten, ohne eigene
+ * Antwortzeit. Was die Gefragten wählen, zeigt erst die Auflösung.
+ */
+export interface WatchedQuestion {
+  readonly seq: number;
+  /** `null`, wenn das Mitlesen scheiterte (Frage schon geschlossen, Server kennt es noch nicht). */
+  readonly question: MatchPresentedQuestion | null;
+  /** Ende des Zeitlimits der Frage als `performance.now()`-Wert. */
+  readonly deadline: number;
+}
+
 /** Was dieser Browser geantwortet hat: die gewählte Option oder die geschriebene Zahl. */
 export interface LocalAnswer {
   readonly optionToken?: string;
@@ -122,6 +134,34 @@ export function needsPresent(view: MatchView, local: LocalQuestion | null): bool
     (question.myStatus === 'NOT_PRESENTED' || question.myStatus === 'PRESENTED') &&
     local?.seq !== question.seq
   );
+}
+
+/** Muss dieser Browser die laufende Frage zum Mitlesen holen (ADR-065)? */
+export function needsWatch(view: MatchView, watched: WatchedQuestion | null): boolean {
+  const question = view.question;
+  return (
+    view.match.status === 'RUNNING' &&
+    view.phase?.kind === 'QUESTION' &&
+    question !== null &&
+    !question.resolved &&
+    question.myStatus === 'NOT_PARTICIPATING' &&
+    watched?.seq !== question.seq
+  );
+}
+
+/** Die mitgelesene Frage, solange dieser Sitz der laufenden Frage zuschaut; sonst `null`. */
+export function watchedFor(
+  state: MatchScreenState,
+  seq: number | null,
+  watched: WatchedQuestion | null,
+): {
+  readonly seq: number;
+  readonly question: MatchPresentedQuestion;
+  readonly deadline: number;
+} | null {
+  return state === 'spectating' && watched?.question && watched.seq === seq
+    ? { seq: watched.seq, question: watched.question, deadline: watched.deadline }
+    : null;
 }
 
 export function screenStateOf(

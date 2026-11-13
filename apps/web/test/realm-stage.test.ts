@@ -11,7 +11,7 @@ import {
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { LocalQuestion, MatchScreenState } from '../src/match/match-model.ts';
+import type { LocalQuestion, MatchScreenState, WatchedQuestion } from '../src/match/match-model.ts';
 import { regionNames, seatNames } from '../src/match/match-text.ts';
 import { PreparePanel } from '../src/match/PreparePanel.tsx';
 import { RealmBlatt } from '../src/match/RealmBlatt.tsx';
@@ -1576,6 +1576,7 @@ describe('Bühne der Partie mit Ausbau', () => {
   interface StageExtra {
     readonly events?: readonly ParsedMatchEvent[];
     readonly local?: LocalQuestion | null;
+    readonly watched?: WatchedQuestion | null;
     readonly initial?: RealmStageInitial;
     readonly estimate?: string;
   }
@@ -1586,6 +1587,7 @@ describe('Bühne der Partie mit Ausbau', () => {
         view,
         events: extra.events ?? [],
         local: extra.local ?? null,
+        watched: extra.watched ?? null,
         phaseDeadline: null,
         feedError: null,
         actionError: null,
@@ -1783,6 +1785,44 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(textOf(card)).toContain('In welchem Jahr fiel die Berliner Mauer?');
     expect(count(card, '<button')).toBe(4);
     expect(html).toContain('data-testid="match-answers"');
+  });
+
+  it('legt die Frage anderer zum Mitlesen auf die Karte, ohne etwas zum Antippen (ADR-065)', () => {
+    const view = duelView('QUESTION', 'DUEL_TRIVIA', 0, {
+      question: info('TRIVIA', 'DUEL_TRIVIA', 'NOT_PARTICIPATING', [0, 1], [0]),
+    });
+    const watched = { seq: 12, question: TRIVIA, deadline: 9000 };
+    const html = stage(view, { watched });
+    expect(main(html)).toContain('data-state="spectating"');
+    const card = part(html, 'data-testid="match-question-watched"', '</section>');
+    expect(textOf(card)).toContain('Geschichte');
+    expect(textOf(card)).toContain('Du schaust zu');
+    expect(textOf(card)).toContain('In welchem Jahr fiel die Berliner Mauer?');
+    expect(count(card, 'class="option-read"')).toBe(4);
+    expect(count(card, '<button')).toBe(0);
+    expect(html).not.toContain('data-testid="match-question"');
+    // Das Blatt rechts nennt weiter nur, wer schon geantwortet hat, nie was
+    const waiting = part(html, 'data-testid="match-waiting"', '</section>');
+    expect(textOf(waiting)).toContain('Bot (leicht) ✓ hat geantwortet');
+    expect(textOf(waiting)).toContain('Wer was gewählt hat, zeigt die Auflösung.');
+
+    // Ohne mitgelesene Frage, bei gescheitertem Mitlesen oder für eine andere Frage: nur das Blatt
+    const plain = stage(view);
+    expect(plain).not.toContain('match-question-watched');
+    expect(textOf(plain)).toContain('Du schaust zu. Gleich geht es weiter.');
+    expect(stage(view, { watched: { ...watched, question: null } })).not.toContain(
+      'match-question-watched',
+    );
+    expect(stage(view, { watched: { ...watched, seq: 11 } })).not.toContain(
+      'match-question-watched',
+    );
+    // Wer selbst gefragt ist, sieht seine eigene Karte, nie die zum Mitlesen
+    const mine = duelView('QUESTION', 'DUEL_TRIVIA', ME, {
+      question: info('TRIVIA', 'DUEL_TRIVIA', 'PRESENTED', [ME, 1], []),
+    });
+    const asked = stage(mine, { local: localOf(TRIVIA), watched });
+    expect(asked).toContain('data-testid="match-question"');
+    expect(asked).not.toContain('match-question-watched');
   });
 
   describe('Ablaufzeile unter dem Band', () => {

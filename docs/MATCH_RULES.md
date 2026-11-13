@@ -354,10 +354,10 @@ Seit ADR-058 spielt der Server die Partie mit Ausbau als eigene Spielart (`match
 
 ### 11.12 Offen
 
-- Erster Spieltest mit dem Product Owner am 2026-11-12; die Rückmeldung wird in Schritten umgesetzt (ADR-061, ADR-062, ADR-063 für Rüstzeit und Verständlichkeit, ADR-064 für den Angriff nur mit Armee, danach Zuschauer und Gestaltung). Erst danach wird die Spielart in Produktion freigegeben. Im Browser gilt bis dahin: Ein offener Entwurf der Rüstzeit wird kurz vor Fristende von selbst abgegeben, und das Aufgedeckte steht 2 s ([O-36]).
+- Erster Spieltest mit dem Product Owner am 2026-11-12; die Rückmeldung wird in Schritten umgesetzt (ADR-061, ADR-062, ADR-063 für Rüstzeit und Verständlichkeit, ADR-064 für den Angriff nur mit Armee, ADR-065 für die Zuschauer, danach die Gestaltung). Erst danach wird die Spielart in Produktion freigegeben. Im Browser gilt bis dahin: Ein offener Entwurf der Rüstzeit wird kurz vor Fristende von selbst abgegeben, und das Aufgedeckte steht 2 s ([O-36]).
 - Zahlen der Vorräte: Standardannahme, bis der Product Owner entscheidet ([O-41] Teil 1). Die Wahlen der Landnahme zu dritt bleiben 2, 1, 0 (entschieden 2026-11-12).
 - Angriff nur mit Armee ([O-42], entschieden: `ALWAYS`): Offen bleibt, ob Menschen zu oft aussetzen; das zeigt der nächste Spieltest. Der Wert ist ein Regelwert, ein Wechsel zu `RIVALS` braucht keine Migration.
-- Zuschauer: Wer nicht gefragt wird, sieht die Frage erst in der Auflösung; bei Angriffen auf freie Felder betrifft das alle außer dem Angreifer ([O-38]).
+- Zuschauer ([O-38], entschieden: A, ADR-065): Wer nicht gefragt wird, liest die Frage mit und sieht, wer schon geantwortet hat; was jemand gewählt hat, zeigt erst die Auflösung, dort in den Farben der Spieler. Das ändert keine Regel und keine Wertung. Offen bleibt: Eine Frage, an der nur Bots gefragt sind, löst der Server sofort auf, dort gibt es nichts mitzulesen ([O-43]).
 - Die Partie zu zweit dauert typisch 8,5 Minuten und liegt damit unter den 10 bis 15 Minuten des Konzepts ([O-41]).
 - Fragen: Das Rad lässt sich erst sinnvoll spielen, wenn jede wählbare Kategorie genug Fragen hat (§11.6). Mit freien Feldern bleibt es bei höchstens 15 Wissensfragen aus dem Rad je Partie.
 - Alle Zahlen sind Standardannahmen **[E]**; besonders Burgpreis, Rundenzahl und Länge der Rüstzeit.

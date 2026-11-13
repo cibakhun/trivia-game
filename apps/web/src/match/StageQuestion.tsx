@@ -10,7 +10,8 @@ import { showEstimate } from './estimate-input.ts';
  * Zahl, die das Ziffernfeld im Blatt schreibt. In der Partie mit Ausbau nennt das Band die
  * Kategorie, die das Glücksrad gezogen hat. Nach der eigenen Antwort bleibt die Karte stehen,
  * die gewählte Antwort ist markiert: So springt nichts, bis die Auflösung kommt. Ohne Bewegung,
- * weil die Fragezeit läuft (ARCHITECTURE §15).
+ * weil die Fragezeit läuft (ARCHITECTURE §15). Wer nicht gefragt ist, liest dieselbe Karte mit
+ * (`WatchedQuestionCard`, ADR-065).
  */
 
 const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
@@ -25,6 +26,104 @@ function density(question: MatchPresentedQuestion): string {
 
 function noop() {
   // Nach der eigenen Antwort läuft die Zeit nur noch zur Anzeige
+}
+
+/** Band oben links: die Kategorie aus dem Glücksrad, sonst die Art der Frage. */
+function QuestionKind({
+  question,
+  category,
+}: {
+  readonly question: MatchPresentedQuestion;
+  readonly category: QuestionCategory | null;
+}) {
+  return (
+    <p className="sheet-kind" data-category={category ?? undefined}>
+      {category ? (
+        <>
+          <CategoryIcon category={category} size={18} />
+          {t(`realm.category.${category}`)}
+        </>
+      ) : question.kind === 'TRIVIA' ? (
+        t('quiz.trivia')
+      ) : (
+        t('quiz.estimate')
+      )}
+    </p>
+  );
+}
+
+/** Wie genau die Zahl einer Schätzfrage sein soll. */
+function estimateNote(question: MatchPresentedQuestion & { readonly kind: 'ESTIMATE' }): string {
+  return question.answerPrecision === 0
+    ? t('quiz.estimateWhole')
+    : tp('quiz.estimatePrecision', question.answerPrecision);
+}
+
+/**
+ * Die Frage anderer zum Mitlesen (ADR-065, O-38): dieselbe Karte an derselben Stelle, aber nichts
+ * daran lässt sich antippen, und sie zeigt nie, was die Gefragten wählen; das füllt erst die
+ * Auflösung in ihren Farben. Die Lunte läuft das Zeitlimit der Frage ab ihrem Öffnen herunter.
+ */
+export function WatchedQuestionCard({
+  question,
+  deadline,
+  category = null,
+}: {
+  readonly question: MatchPresentedQuestion;
+  /** Ende des Zeitlimits der Frage als `performance.now()`-Wert. */
+  readonly deadline: number;
+  readonly category?: QuestionCategory | null;
+}) {
+  return (
+    <section
+      className={`sheet question-sheet watching${density(question)}`}
+      aria-labelledby="question-prompt"
+      data-testid="match-question-watched"
+      data-kind={question.kind}
+    >
+      <header className="sheet-head">
+        <QuestionKind question={question} category={category} />
+        <span className="sheet-tag">{t('match.watch.tag')}</span>
+      </header>
+      <Countdown deadline={deadline} totalMs={question.timeLimitMs} onExpire={noop} brief />
+      <h2 id="question-prompt" className="sheet-prompt">
+        {question.prompt}
+      </h2>
+      {question.kind === 'TRIVIA' ? (
+        <ul className="sheet-options">
+          {question.options.map((option, i) => (
+            <li key={option.token}>
+              <span className="option-read">
+                <span className="option-key" aria-hidden="true">
+                  {OPTION_KEYS[i] ?? ''}
+                </span>
+                <span className="option-text">{option.text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <>
+          <p className="estimate-entry watch">
+            <span className="estimate-value">
+              <span aria-hidden="true">?</span>
+              <span className="visually-hidden">
+                {question.unitLabel
+                  ? t('match.watch.estimateUnit', { unit: question.unitLabel })
+                  : t('match.watch.estimate')}
+              </span>
+            </span>
+            {question.unitLabel ? (
+              <span className="estimate-unit" aria-hidden="true">
+                {question.unitLabel}
+              </span>
+            ) : null}
+          </p>
+          <p className="estimate-note">{estimateNote(question)}</p>
+        </>
+      )}
+    </section>
+  );
 }
 
 export function StageQuestion({
@@ -64,18 +163,7 @@ export function StageQuestion({
       data-kind={question.kind}
     >
       <header className="sheet-head">
-        <p className="sheet-kind" data-category={category ?? undefined}>
-          {category ? (
-            <>
-              <CategoryIcon category={category} size={18} />
-              {t(`realm.category.${category}`)}
-            </>
-          ) : question.kind === 'TRIVIA' ? (
-            t('quiz.trivia')
-          ) : (
-            t('quiz.estimate')
-          )}
-        </p>
+        <QuestionKind question={question} category={category} />
       </header>
       <Countdown
         deadline={deadline}
@@ -126,11 +214,7 @@ export function StageQuestion({
               </span>
             ) : null}
           </p>
-          <p className="estimate-note">
-            {question.answerPrecision === 0
-              ? t('quiz.estimateWhole')
-              : tp('quiz.estimatePrecision', question.answerPrecision)}
-          </p>
+          <p className="estimate-note">{estimateNote(question)}</p>
         </>
       )}
     </section>

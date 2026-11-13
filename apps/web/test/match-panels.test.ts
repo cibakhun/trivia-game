@@ -32,6 +32,13 @@ function chipsIn(html: string): number[] {
   return [...html.matchAll(/class="seat-chip seat-(\d)"/g)].map((m) => Number(m[1]));
 }
 
+/** Sitze, deren Farbe ein Antwortfeld ausmalt, von links nach rechts (ADR-065). */
+function fillOf(row: string): number[] {
+  const fill =
+    /<span class="reveal-fill" aria-hidden="true">([\s\S]*?)<\/span>/.exec(row)?.[1] ?? '';
+  return [...fill.matchAll(/<i class="seat-(\d)"><\/i>/g)].map((m) => Number(m[1]));
+}
+
 /** Zeilen der Antworten (Optionen oder Rangfolge), jede als eigenes Stück HTML. */
 function rowsOf(html: string): string[] {
   return html.match(/<li [\s\S]*?<\/li>/g) ?? [];
@@ -127,14 +134,25 @@ describe('Auflösung: wer was geantwortet hat', () => {
     );
     const rows = rowsOf(html);
     expect(rows.map((row) => chipsIn(row))).toEqual([[], [2], [], [1]]);
-    expect(rows.map((row) => /class="reveal-option( \w+)?"/.exec(row)?.[1]?.trim())).toEqual([
-      undefined,
-      'correct',
-      undefined,
-      'wrong',
+    expect(rows.map((row) => /class="reveal-option([^"]*)"/.exec(row)?.[1]?.trim())).toEqual([
+      '',
+      'correct chosen',
+      '',
+      'wrong chosen',
     ]);
     expect(textOf(rows[1] ?? '')).toBe('✓ Blau (richtig) Bot (schwer)');
     expect(textOf(rows[3] ?? '')).toMatch(/^✗ Gelb Anna \(du\)/);
+    // Jedes gewählte Feld trägt die Farbe dessen, der es wählte (ADR-065); die übrigen behalten
+    // den Buchstaben aus der Frage und bleiben leer
+    expect(rows.map(fillOf)).toEqual([[], [2], [], [1]]);
+    expect(rows.map((row) => /data-chosen-by="([^"]*)"/.exec(row)?.[1])).toEqual([
+      '',
+      '2',
+      '',
+      '1',
+    ]);
+    expect(textOf(rows[0] ?? '')).toBe('A Grün');
+    expect(textOf(rows[2] ?? '')).toBe('C Rot');
     // Oben steht groß die Wirkung, klein der Grund; das Wappen gehört dem Sieger
     expect(html).toContain('class="reveal-verdict seat-2"');
     const verdict = textOf(html.split('<p class="reveal-prompt"')[0] ?? '');
@@ -157,6 +175,9 @@ describe('Auflösung: wer was geantwortet hat', () => {
       5,
     );
     expect(rowsOf(both).map((row) => chipsIn(row))).toEqual([[], [2, 1], [], []]);
+    // Beide teilen sich das Feld zu gleichen Teilen, der Angreifer links wie im Kopf des Duells
+    expect(rowsOf(both).map(fillOf)).toEqual([[], [2, 1], [], []]);
+    expect(rowsOf(both)[1]).toContain('data-chosen-by="2 1"');
     // Noch kein Ausgang: Das Stechen folgt
     expect(textOf(both)).toContain('Beide lagen richtig: Eine Schätzfrage entscheidet das Duell.');
     expect(both).toContain('class="reveal-verdict"');
@@ -173,6 +194,10 @@ describe('Auflösung: wer was geantwortet hat', () => {
       5,
     );
     expect(rowsOf(silent).map((row) => chipsIn(row))).toEqual([[], [], [2], []]);
+    // Die richtige Antwort wählte niemand: Sie bleibt ohne Farbe, ist aber als richtig markiert
+    expect(rowsOf(silent).map(fillOf)).toEqual([[], [], [2], []]);
+    expect(rowsOf(silent)[1]).toContain('class="reveal-option correct"');
+    expect(textOf(rowsOf(silent)[1] ?? '')).toBe('✓ Blau (richtig)');
     const tail = silent.split('<p class="reveal-silent">')[1] ?? '';
     expect(textOf(tail)).toMatch(/^Keine Antwort: Anna \(du\)/);
     expect(chipsIn(tail)).toEqual([1]);

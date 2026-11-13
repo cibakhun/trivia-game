@@ -89,6 +89,7 @@ export function StageBlatt({
   view,
   state,
   local,
+  watching = false,
   phaseDeadline,
   estimate,
   busy,
@@ -105,6 +106,8 @@ export function StageBlatt({
   readonly view: MatchView;
   readonly state: MatchScreenState;
   readonly local: LocalQuestion | null;
+  /** Die Frage anderer steht zum Mitlesen auf der Karte (ADR-065). */
+  readonly watching?: boolean;
   readonly phaseDeadline: number | null;
   readonly estimate: string;
   readonly busy: boolean;
@@ -245,7 +248,7 @@ export function StageBlatt({
             ? t('match.question.answered')
             : state === 'missed'
               ? t('match.question.missed')
-              : t('match.question.spectating');
+              : t(watching ? 'match.question.watching' : 'match.question.spectating');
       return sheet(
         '',
         'match-waiting',

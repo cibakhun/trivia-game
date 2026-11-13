@@ -16,6 +16,7 @@ import {
   matchAnswerResponseSchema,
   matchListResponseSchema,
   matchPresentResponseSchema,
+  matchWatchResponseSchema,
   matchViewSchema,
   meResponseSchema,
   playerNameSuggestionsSchema,
@@ -251,6 +252,9 @@ export const api = {
   // Wie `present` der Herausforderung ohne Schlüssel: Eine Wiederholung liefert dieselbe Frage
   presentMatchQuestion: (matchId: string, seq: number) =>
     request('POST', `/matches/${matchId}/questions/${seq}/present`, matchPresentResponseSchema),
+  // Mitlesen als Zuschauer (ADR-065): ändert nichts am Server
+  watchMatchQuestion: (matchId: string, seq: number) =>
+    request('GET', `/matches/${matchId}/questions/${seq}/watch`, matchWatchResponseSchema),
   answerMatchQuestion: (
     matchId: string,
     seq: number,

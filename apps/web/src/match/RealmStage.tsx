@@ -25,6 +25,7 @@ import {
   revealFor,
   rulesOf,
   shownPick,
+  watchedFor,
 } from './match-model.ts';
 import { AbandonedPanel, MomentBanner, type MatchStageProps } from './MatchStage.tsx';
 import { regionNames, seatNames, stepLabel } from './match-text.ts';
@@ -57,7 +58,7 @@ import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { RoundFlow } from './RoundFlow.tsx';
-import { StageQuestion } from './StageQuestion.tsx';
+import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
 import { useMoments } from './useMoments.ts';
@@ -134,6 +135,7 @@ export function RealmStage({
   view,
   events,
   local,
+  watched = null,
   phaseDeadline,
   feedError,
   actionError,
@@ -418,6 +420,8 @@ export function RealmStage({
     (state === 'question' || state === 'answered' || state === 'missed')
       ? { ...local, question: local.question }
       : null;
+  // Wer nicht gefragt ist, liest die Frage an derselben Stelle mit (ADR-065)
+  const watching = watchedFor(state, seq, watched);
   let sheet: ReactNode = null;
   let disc = false;
   if (asked) {
@@ -434,6 +438,15 @@ export function RealmStage({
         category={step.kind === 'DUEL_TRIVIA' ? step.category : null}
         onExpire={onExpire}
         onAnswerTrivia={(optionToken) => onAnswer(asked, { optionToken })}
+      />
+    );
+  } else if (watching) {
+    sheet = (
+      <WatchedQuestionCard
+        key={watching.seq}
+        question={watching.question}
+        deadline={watching.deadline}
+        category={step.kind === 'DUEL_TRIVIA' ? step.category : null}
       />
     );
   } else if (state === 'wheel' && step.wheel && step.attacker !== null) {
@@ -569,6 +582,7 @@ export function RealmStage({
             play={play}
             state={state}
             local={local}
+            watching={watching !== null}
             phaseDeadline={phaseDeadline}
             estimate={estimate}
             busy={busy}
