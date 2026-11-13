@@ -5,10 +5,10 @@ import type { SeatName } from './match-text.ts';
 import { revealedRound } from './realm-model.ts';
 import {
   enqueueMoments,
+  holdSkips,
   isCalm,
   momentsBetween,
   pruneMoments,
-  showsSkips,
   type Moment,
   type MomentSnapshot,
 } from './moments.ts';
@@ -29,7 +29,7 @@ export function useMoments(
 ): Moment | null {
   const previous = useRef<MomentSnapshot | null>(null);
   // Ausgefallene Angriffe, die während einer Auflösung kamen: Ihr Band folgt, sobald sie vorbei
-  // ist, nach dem letzten Duell der Partie über der Abrechnung
+  // ist, nach dem letzten Duell der Partie über der Abrechnung; vor einer Frage verfallen sie
   const held = useRef<readonly ParsedMatchEvent[]>([]);
   const shown = useRef(new Set<string>());
   const [queue, setQueue] = useState<readonly Moment[]>([]);
@@ -57,11 +57,8 @@ export function useMoments(
     previous.current =
       before && !isCalm(state) ? { ...next, kind: before.kind, round: before.round } : next;
     const arrived = before ? events.filter((e) => e.seq > before.lastSeq) : [];
-    const release = showsSkips(state);
-    const fresh = release ? [...held.current, ...arrived] : arrived;
-    held.current = release
-      ? []
-      : [...held.current, ...arrived.filter((e) => e.type === 'ATTACK_SKIPPED')];
+    const { fresh, held: waiting } = holdSkips(held.current, arrived, state);
+    held.current = waiting;
     if (state === 'question') return;
     const moments = momentsBetween(
       before,
