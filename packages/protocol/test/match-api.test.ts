@@ -14,6 +14,7 @@ import {
   matchOrdersRequestSchema,
   matchRealmViewSchema,
   matchSeatBotRequestSchema,
+  matchWatchResponseSchema,
   parseMatchEvent,
   QUESTION_CATEGORIES,
 } from '../src/index.ts';
@@ -93,6 +94,48 @@ describe('Partie-Anfragen (API.md §2.6)', () => {
       matchBoardSchema.safeParse({ ...board, turns: [{ seat: 1, status: 'SPÄTER' }] }).success,
     ).toBe(false);
     expect(matchBoardSchema.safeParse({ ...board, turns: undefined }).success).toBe(false);
+  });
+});
+
+describe('Mitlesen für Zuschauer (ADR-065)', () => {
+  const base = {
+    matchId: '0a3b5c7d-1e2f-4a6b-8c9d-0e1f2a3b4c5d',
+    seq: 7,
+    prompt: 'Welche Stadt liegt an der Donau?',
+    timeLimitMs: 20_000,
+    remainingMs: 12_500,
+    presentedAt: '2026-11-13T00:00:00.000Z',
+  };
+  const serverTime = '2026-11-13T00:00:07.500Z';
+  const trivia = {
+    ...base,
+    kind: 'TRIVIA',
+    options: [
+      { token: 't1', text: 'Wien' },
+      { token: 't2', text: 'Prag' },
+    ],
+  };
+
+  it('dieselbe Form wie nach dem Abholen: Frage, Antworten, Restzeit', () => {
+    expect(matchWatchResponseSchema.parse({ question: trivia, serverTime }).question).toEqual(
+      trivia,
+    );
+    const estimate = { ...base, kind: 'ESTIMATE', unitLabel: 'km', answerPrecision: 0 };
+    expect(matchWatchResponseSchema.safeParse({ question: estimate, serverTime }).success).toBe(
+      true,
+    );
+  });
+
+  it('nichts darüber hinaus: keine Lösung, keine Wahl eines Sitzes', () => {
+    const parses = (question: Record<string, unknown>, extra: Record<string, unknown> = {}) =>
+      matchWatchResponseSchema.safeParse({ question, serverTime, ...extra }).success;
+    expect(parses({ ...trivia, correctToken: 't1' })).toBe(false);
+    expect(parses({ ...trivia, answers: [{ seat: 0, token: 't2' }] })).toBe(false);
+    expect(parses({ ...trivia, options: [{ token: 't1', text: 'Wien', correct: true }] })).toBe(
+      false,
+    );
+    expect(parses(trivia, { answers: [] })).toBe(false);
+    expect(parses({ ...trivia, remainingMs: -1 })).toBe(false);
   });
 });
 

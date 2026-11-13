@@ -244,6 +244,7 @@ export function RealmBlatt({
   play,
   state,
   local,
+  watching = false,
   phaseDeadline,
   estimate,
   busy,
@@ -264,6 +265,8 @@ export function RealmBlatt({
   readonly play: RealmPlay;
   readonly state: MatchScreenState;
   readonly local: LocalQuestion | null;
+  /** Die Frage anderer steht zum Mitlesen auf der Karte (ADR-065). */
+  readonly watching?: boolean;
   readonly phaseDeadline: number | null;
   readonly estimate: string;
   readonly busy: boolean;
@@ -646,7 +649,7 @@ export function RealmBlatt({
               )
             : state === 'missed'
               ? t('match.question.missed')
-              : t('match.question.spectating');
+              : t(watching ? 'match.question.watching' : 'match.question.spectating');
       return sheet(
         '',
         'match-waiting',

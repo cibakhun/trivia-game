@@ -9,12 +9,15 @@ import {
   duelStage,
   lastOf,
   needsPresent,
+  needsWatch,
   outcomeBeatMs,
   pollDelay,
   revealFor,
   screenStateOf,
   shownPick,
+  watchedFor,
   type LocalQuestion,
+  type WatchedQuestion,
 } from '../src/match/match-model.ts';
 import {
   logText,
@@ -103,6 +106,40 @@ describe('Zustand des Bildschirms', () => {
     });
     expect(needsPresent(watching, null)).toBe(false);
     expect(screenStateOf(watching, null)).toBe('spectating');
+  });
+
+  it('Zuschauer: Die Frage anderer wird zum Mitlesen geholt, einmal je Frage (ADR-065)', () => {
+    const phase = { kind: 'QUESTION' as const, deadline: AT, remainingMs: 12000 };
+    const at = (question: MatchView['question'], kind: 'QUESTION' | 'REVEAL' = 'QUESTION') =>
+      viewOf({ phase: { ...phase, kind }, legalRegions: [], question });
+    const watching = at(questionInfo('NOT_PARTICIPATING'));
+    const got: WatchedQuestion = { seq: 4, question: presented, deadline: 9000 };
+    expect(needsWatch(watching, null)).toBe(true);
+    expect(needsWatch(watching, got)).toBe(false);
+    // Auch ein gescheitertes Mitlesen wird nicht wiederholt, eine alte Frage zählt aber nicht
+    expect(needsWatch(watching, { seq: 4, question: null, deadline: 0 })).toBe(false);
+    expect(needsWatch(watching, { ...got, seq: 3 })).toBe(true);
+    // Wer gefragt ist, holt die Frage mit `present`: Sonst läse er sie, ehe seine Zeit läuft
+    for (const status of ['NOT_PRESENTED', 'PRESENTED', 'ANSWERED', 'MISSED'] as const) {
+      expect(needsWatch(at(questionInfo(status)), null), status).toBe(false);
+    }
+    // Aufgelöst oder schon in der Auflösung: Frage und Antworten stehen dann im Ereignis
+    const resolved = { ...questionInfo('NOT_PARTICIPATING'), resolved: true };
+    expect(needsWatch(at(resolved as MatchView['question']), null)).toBe(false);
+    expect(needsWatch(at(questionInfo('NOT_PARTICIPATING'), 'REVEAL'), null)).toBe(false);
+    expect(needsWatch(at(null), null)).toBe(false);
+
+    // Gezeigt wird sie nur, solange dieser Sitz genau dieser Frage zuschaut
+    expect(watchedFor('spectating', 4, got)).toEqual({
+      seq: 4,
+      question: presented,
+      deadline: 9000,
+    });
+    expect(watchedFor('spectating', 5, got)).toBeNull();
+    expect(watchedFor('reveal', 4, got)).toBeNull();
+    expect(watchedFor('answered', 4, got)).toBeNull();
+    expect(watchedFor('spectating', 4, { seq: 4, question: null, deadline: 0 })).toBeNull();
+    expect(watchedFor('spectating', 4, null)).toBeNull();
   });
 
   it('Ansage: nichts zu tun, gezeigt wird die letzte Wahl', () => {

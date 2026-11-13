@@ -18,8 +18,10 @@ import {
   revealFor,
   screenStateOf,
   shownPick,
+  watchedFor,
   type LocalAnswer,
   type LocalQuestion,
+  type WatchedQuestion,
 } from './match-model.ts';
 import { mapOfView, regionNames, seatNames, stepLabel } from './match-text.ts';
 import type { Moment } from './moments.ts';
@@ -28,7 +30,7 @@ import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { SeatList } from './SeatList.tsx';
 import { StageBlatt } from './StageBlatt.tsx';
-import { StageQuestion } from './StageQuestion.tsx';
+import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
 import { useMoments } from './useMoments.ts';
@@ -48,6 +50,8 @@ export interface MatchStageProps {
   readonly events: readonly ParsedMatchEvent[];
   /** Die eigene Frage, wie dieser Browser sie abgeholt hat. */
   readonly local: LocalQuestion | null;
+  /** Die Frage anderer zum Mitlesen (ADR-065); fehlt sie, bleibt es beim Blatt rechts. */
+  readonly watched?: WatchedQuestion | null;
   /** Ende der laufenden Phase als `performance.now()`-Wert. */
   readonly phaseDeadline: number | null;
   /** Fehler der Abfrage (Netz) und der letzten eigenen Aktion. */
@@ -71,6 +75,7 @@ export function MatchStage({
   view,
   events,
   local,
+  watched = null,
   phaseDeadline,
   feedError,
   actionError,
@@ -171,6 +176,8 @@ export function MatchStage({
     (state === 'question' || state === 'answered' || state === 'missed')
       ? { ...local, question: local.question }
       : null;
+  // Wer nicht gefragt ist, liest die Frage an derselben Stelle mit (ADR-065)
+  const watching = watchedFor(state, seq, watched);
   let sheet: ReactNode = null;
   if (asked) {
     sheet = (
@@ -185,6 +192,14 @@ export function MatchStage({
         sent={asked.sent ?? null}
         onExpire={onExpire}
         onAnswerTrivia={(optionToken) => onAnswer(asked, { optionToken })}
+      />
+    );
+  } else if (watching) {
+    sheet = (
+      <WatchedQuestionCard
+        key={watching.seq}
+        question={watching.question}
+        deadline={watching.deadline}
       />
     );
   } else if (state === 'reveal' && reveal && !outcomeBeat) {
@@ -236,6 +251,7 @@ export function MatchStage({
           view={view}
           state={state}
           local={local}
+          watching={watching !== null}
           phaseDeadline={phaseDeadline}
           estimate={estimate}
           busy={busy}

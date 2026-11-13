@@ -6,6 +6,7 @@ import {
   type MatchAnswerResponse,
   type MatchPresentedQuestion,
   type MatchPresentResponse,
+  type MatchWatchResponse,
 } from '@rdw/protocol';
 import { readGameNow } from '../../infra/clock.ts';
 import { ApiError } from '../../infra/errors.ts';
@@ -13,13 +14,15 @@ import { loadQuestionContent, recordExposure, type QuestionContent } from '../qu
 import type { MatchContext } from './context.ts';
 import { readPresentation, type MatchRun } from './engine.ts';
 import { lockMatchFor } from './runs.ts';
+import { loadMatch, loadPlayers } from './store.ts';
 
 /**
  * Fragen der Partie abholen und beantworten, je Sitz wie bei Herausforderungen (QUIZ_ENGINE §6–7):
  * Das erste Abholen hält `presented_at` fest und setzt die eigene Frist (Zeitlimit + Latenzpuffer,
  * höchstens bis `closes_at`); ein erneutes Abholen liefert dieselbe Frage mit derselben Frist und
  * zählt als Reload. Die Antwort nennt weder Lösung noch Richtigkeit; beides steht erst in der
- * Auflösung, die alle Sitze zugleich sehen.
+ * Auflösung, die alle Sitze zugleich sehen. Wer nicht gefragt ist, liest die laufende Frage mit
+ * (`watchMatchQuestion`, ADR-065), ohne eigenen Zeitlauf und ohne Spur in `match_answers`.
  */
 
 const INT32_MAX = 2_147_483_647;
@@ -31,6 +34,7 @@ interface QuestionRow {
   readonly seats: number[];
   readonly presentation: unknown;
   readonly time_limit_ms: number;
+  readonly opened_at: Date;
   readonly closes_at: Date;
   readonly resolved_at: Date | null;
 }
@@ -45,7 +49,7 @@ interface SeatAnswerRow {
   readonly idempotency_key: string | null;
 }
 
-async function loadQuestion(tx: Tx, matchId: string, seq: number): Promise<QuestionRow> {
+async function loadQuestion(tx: Db | Tx, matchId: string, seq: number): Promise<QuestionRow> {
   const row = await tx
     .selectFrom('match_questions')
     .select([
@@ -55,6 +59,7 @@ async function loadQuestion(tx: Tx, matchId: string, seq: number): Promise<Quest
       'seats',
       'presentation',
       'time_limit_ms',
+      'opened_at',
       'closes_at',
       'resolved_at',
     ])
@@ -97,22 +102,22 @@ function seatAt(run: MatchRun, userId: string, question: QuestionRow): number {
   return seat;
 }
 
-function toQuestion(
+/** Frage, wie sie ein Sitz sieht: `since` ist der Beginn seiner Zeit, `until` ihr Ende. */
+function questionFor(
   matchId: string,
   question: QuestionRow,
-  answer: SeatAnswerRow,
   content: QuestionContent,
+  since: Date,
+  until: Date,
   now: Date,
 ): MatchPresentedQuestion {
-  if (!answer.presented_at || !answer.answer_deadline_at)
-    throw new Error('Frage ohne Präsentation');
   const base = {
     matchId,
     seq: question.seq,
     prompt: content.prompt,
     timeLimitMs: question.time_limit_ms,
-    remainingMs: Math.max(0, answer.answer_deadline_at.getTime() - now.getTime()),
-    presentedAt: answer.presented_at.toISOString(),
+    remainingMs: Math.max(0, until.getTime() - now.getTime()),
+    presentedAt: since.toISOString(),
   };
   if (content.kind === 'TRIVIA') {
     const texts = new Map(content.options.map((o) => [o.key, o.text]));
@@ -131,6 +136,25 @@ function toQuestion(
     unitLabel: content.estimate?.unitLabel ?? null,
     answerPrecision: content.estimate?.answerPrecision ?? 0,
   };
+}
+
+function toQuestion(
+  matchId: string,
+  question: QuestionRow,
+  answer: SeatAnswerRow,
+  content: QuestionContent,
+  now: Date,
+): MatchPresentedQuestion {
+  if (!answer.presented_at || !answer.answer_deadline_at)
+    throw new Error('Frage ohne Präsentation');
+  return questionFor(
+    matchId,
+    question,
+    content,
+    answer.presented_at,
+    answer.answer_deadline_at,
+    now,
+  );
 }
 
 /** Fällige Fristen zuerst abarbeiten, damit eine abgelaufene Frage nicht mehr angenommen wird. */
@@ -200,6 +224,46 @@ export async function presentMatchQuestion(
       serverTime: now.toISOString(),
     };
   });
+}
+
+/**
+ * Die laufende Frage zum Mitlesen (ADR-065, O-38): für jedes Mitglied der Partie, das an dieser
+ * Frage nicht gefragt ist, also auch für ein gefallenes Reich. Geliefert werden Frage und
+ * Antworten in der Reihenfolge der Partie, nie die Wahl eines Sitzes und nichts zur Lösung. Es
+ * entsteht keine Zeile in `match_answers` und kein eigener Zeitlauf: Die Restzeit ist das
+ * Zeitlimit ab dem Öffnen; sind nur Bots gefragt, endet die Frage mit ihrer Bedenkzeit (O-43),
+ * und die Restzeit reicht nur bis dahin. Wer selbst gefragt ist, bekommt die Frage hier nicht,
+ * sonst läse er sie, ehe seine Zeit läuft. Nur die laufende Frage: Nach der Auflösung steht alles
+ * im Ereignis.
+ */
+export async function watchMatchQuestion(
+  db: Db,
+  params: { readonly userId: string; readonly matchId: string; readonly seq: number },
+): Promise<MatchWatchResponse> {
+  const match = await loadMatch(db, params.matchId);
+  const players = match ? await loadPlayers(db, params.matchId) : [];
+  const me = players.find((p) => p.userId === params.userId);
+  if (!match || !me) throw new ApiError(404, 'NOT_FOUND', 'Partie nicht gefunden');
+  const question = await loadQuestion(db, params.matchId, params.seq);
+  if (me.seat !== null && question.seats.includes(me.seat)) {
+    throw new ApiError(409, 'STEP_NOT_AVAILABLE', 'Diese Frage geht an dich');
+  }
+  if (
+    match.status !== 'RUNNING' ||
+    match.questionSeq !== question.seq ||
+    question.resolved_at !== null
+  ) {
+    throw new ApiError(409, 'STEP_EXPIRED', 'Die Frage ist geschlossen');
+  }
+  const content = await loadQuestionContent(db, question.version_id);
+  const now = await readGameNow(db);
+  // Die Frist der Phase liegt nur dann vor dem Zeitlimit, wenn kein Mensch gefragt ist
+  const limit = question.opened_at.getTime() + question.time_limit_ms;
+  const until = new Date(Math.min(limit, match.phaseDeadlineAt?.getTime() ?? limit));
+  return {
+    question: questionFor(params.matchId, question, content, question.opened_at, until, now),
+    serverTime: now.toISOString(),
+  };
 }
 
 interface Scored {

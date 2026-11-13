@@ -37,6 +37,14 @@ interface Seen {
   readonly outcomes: { effect: string; text: string; sign: boolean }[];
   /** Liste, wer schon geantwortet hat: Zeilen, und ob die eigene als beantwortet markiert war. */
   readonly answers: { rows: number; mine: boolean }[];
+  /** Fragen anderer zum Mitlesen (ADR-065, O-43): je Frage die Karte und der Satz im Blatt. */
+  readonly watched: {
+    kind: string;
+    text: string;
+    options: number;
+    buttons: number;
+    sheet: string;
+  }[];
 }
 
 /** Lässt die Seite mitschreiben, was sie zeigt; für eine Abfrage von außen steht manches zu kurz. */
@@ -50,10 +58,12 @@ async function recordSeen(page: Page): Promise<void> {
       wheels: [],
       outcomes: [],
       answers: [],
+      watched: [],
     };
     (window as unknown as { seen: Seen }).seen = seen;
     let key = '';
     let outcomeSeq = '';
+    let watchedSeq = '';
     const text = (selector: string) =>
       (document.querySelector(selector)?.textContent ?? '').replace(/\s+/g, ' ').trim();
     const note = () => {
@@ -112,6 +122,18 @@ async function recordSeen(page: Page): Promise<void> {
             sign: document.querySelector('[data-testid="match-board"] .plan-change') !== null,
           });
         }
+      }
+      const card = document.querySelector('[data-testid="match-question-watched"]');
+      const cardSeq = screen.getAttribute('data-seq') ?? '';
+      if (card && cardSeq !== watchedSeq) {
+        watchedSeq = cardSeq;
+        seen.watched.push({
+          kind: card.getAttribute('data-kind') ?? '',
+          text: text('[data-testid="match-question-watched"]'),
+          options: card.querySelectorAll('.option-read').length,
+          buttons: card.querySelectorAll('button').length,
+          sheet: text('[data-testid="match-waiting"]'),
+        });
       }
       const list = document.querySelector('[data-testid="match-answers"]');
       if (list) {
@@ -698,6 +720,16 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(seen.answers.some((a) => a.rows === 1)).toBe(true);
   expect(seen.answers.some((a) => a.mine)).toBe(true);
   expect(seen.answers.some((a) => !a.mine)).toBe(true);
+
+  // Fragen, an denen nur Bots gefragt sind, stehen für ihre Bedenkzeit offen (O-43): Wer zuschaut,
+  // liest sie mit, ohne etwas antippen zu können
+  expect(seen.watched.length).toBeGreaterThan(0);
+  for (const card of seen.watched) {
+    expect(card.text).toContain('Du schaust zu');
+    expect(card.buttons).toBe(0);
+    expect(card.options).toBe(card.kind === 'TRIVIA' ? 4 : 0);
+    expect(card.sheet).toContain('Wer was gewählt hat, zeigt die Auflösung.');
+  }
 
   // Jede Phase kam vor, in der Reihenfolge der Regeln
   const states = seen.states.map((s) => s.split(':')[0]);

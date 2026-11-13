@@ -61,6 +61,24 @@ export function showsSkips(state: MatchScreenState): boolean {
   return isCalm(state) || state === 'finished';
 }
 
+/**
+ * Ausgefallene Angriffe, die während einer Auflösung kamen, warten auf den nächsten Zustand, der
+ * ihr Band zeigen darf (`showsSkips`); dort kommen sie vor dem, was gerade eintraf. Beginnt vorher
+ * eine Frage, verfallen sie wie die Bänder in der Warteschlange (`pruneMoments`): Sonst stünde ihr
+ * Band ein Duell später über dem Angriff eines anderen. Das gilt auch für eine Frage, der dieser
+ * Sitz nur zuschaut; für ihn hat das nächste Duell genauso begonnen.
+ */
+export function holdSkips(
+  held: readonly ParsedMatchEvent[],
+  arrived: readonly ParsedMatchEvent[],
+  state: MatchScreenState,
+): { readonly fresh: readonly ParsedMatchEvent[]; readonly held: readonly ParsedMatchEvent[] } {
+  if (showsSkips(state)) return { fresh: [...held, ...arrived], held: [] };
+  if (state === 'question' || state === 'spectating') return { fresh: arrived, held: [] };
+  const skips = arrived.filter((event) => event.type === 'ATTACK_SKIPPED');
+  return { fresh: arrived, held: skips.length === 0 ? held : [...held, ...skips] };
+}
+
 /** „Du bist dran“ gilt nur, solange die eigene Wahl offen ist. */
 function isTurn(moment: Moment): boolean {
   return moment.key.startsWith('turn-');

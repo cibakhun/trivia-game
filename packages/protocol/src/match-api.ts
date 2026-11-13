@@ -355,7 +355,10 @@ export const MATCH_ANSWER_STATUSES = [
   'MISSED',
 ] as const;
 
-/** Laufende oder zuletzt aufgelöste Frage, ohne Inhalt (den liefert `present`). */
+/**
+ * Laufende oder zuletzt aufgelöste Frage, ohne Inhalt: Den liefert `present` den gefragten Sitzen
+ * und `watch` allen anderen (ADR-065).
+ */
 export const matchQuestionInfoSchema = z
   .object({
     seq: z.number().int().min(1),
@@ -504,6 +507,17 @@ export const matchPresentResponseSchema = z
   .object({ question: matchPresentedQuestionSchema, serverTime: timestampSchema })
   .strict();
 export type MatchPresentResponse = z.infer<typeof matchPresentResponseSchema>;
+
+/**
+ * `GET /matches/:matchId/questions/:seq/watch`: die laufende Frage zum Mitlesen für alle, die nicht
+ * gefragt sind (ADR-065, O-38). Dieselbe Form wie nach `present`, aber ohne eigenen Zeitlauf:
+ * `presentedAt` ist das Öffnen der Frage, `remainingMs` der Rest ihres Zeitlimits von da an. Was
+ * ein Sitz gewählt hat und was richtig ist, steht erst in der Auflösung.
+ */
+export const matchWatchResponseSchema = z
+  .object({ question: matchPresentedQuestionSchema, serverTime: timestampSchema })
+  .strict();
+export type MatchWatchResponse = z.infer<typeof matchWatchResponseSchema>;
 
 export const matchAnswerResponseSchema = z
   .object({

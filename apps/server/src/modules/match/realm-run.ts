@@ -204,7 +204,7 @@ export class RealmRun extends MatchRun {
           if (shown !== null && this.announce(timers.pickShowMs)) return;
           const opened = await this.openQuestion();
           if (opened !== 'RESOLVE_NOW') return;
-          // Nur Bots an der Frage: sofort auflösen, die Auflösung bleibt trotzdem stehen
+          // Kein Mensch in der Partie: sofort auflösen, die Auflösung bleibt trotzdem stehen
           await this.resolveQuestion();
           return;
         }

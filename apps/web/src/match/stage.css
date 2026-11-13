@@ -946,6 +946,20 @@ html.match-playing body {
   clip-path: polygon(0 0, 100% 0, calc(100% - (9 * var(--u))) 50%, 100% 100%, 0 100%);
 }
 
+/* Fragekarte zum Mitlesen (ADR-065): Schild neben dem Band, damit niemand auf die Antworten tippt */
+.sheet-tag {
+  margin-left: calc(8 * var(--u));
+  padding: calc(1 * var(--u)) calc(8 * var(--u));
+  font-size: calc(11.5 * var(--u));
+  font-weight: 700;
+  line-height: calc(16 * var(--u));
+  white-space: nowrap;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
 .question-sheet {
   display: grid;
   gap: calc(8 * var(--u));
@@ -1013,6 +1027,23 @@ html.match-playing body {
   box-shadow: 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.2);
 }
 
+/* Antworten zum Mitlesen: dasselbe Feld wie die Schaltfläche, aber nichts zum Antippen */
+.sheet-options .option-read {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-height: calc(50 * var(--u));
+  padding: calc(5 * var(--u)) calc(9 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u));
+  gap: calc(9 * var(--u));
+  font-size: calc(17 * var(--u));
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-radius: calc(9 * var(--u));
+}
+
 .sheet-options .option-key {
   width: calc(30 * var(--u));
   height: calc(30 * var(--u));
@@ -1024,11 +1055,13 @@ html.match-playing body {
   overflow-wrap: break-word;
 }
 
-.options-mid .sheet-options .option {
+.options-mid .sheet-options .option,
+.options-mid .sheet-options .option-read {
   font-size: calc(14.5 * var(--u));
 }
 
-.options-long .sheet-options .option {
+.options-long .sheet-options .option,
+.options-long .sheet-options .option-read {
   font-size: calc(12.5 * var(--u));
 }
 
@@ -1066,6 +1099,17 @@ html.match-playing body {
   border: calc(2 * var(--u)) solid var(--primary-edge);
   border-radius: calc(10 * var(--u));
   box-shadow: inset 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.25);
+}
+
+/* Zum Mitlesen: Hier schreibt niemand, das Feld sagt nur, dass eine Zahl gesucht ist */
+.estimate-entry.watch {
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  box-shadow: none;
+}
+
+.estimate-entry.watch .estimate-value {
+  color: var(--muted);
 }
 
 .estimate-entry.sent {
@@ -1162,8 +1206,86 @@ html.match-playing body {
   opacity: 0.7;
 }
 
+/*
+ * Antwortfelder in den Farben der Spieler (ADR-065): Wer ein Feld gewählt hat, malt es aus;
+ * mehrere teilen es sich zu gleichen Teilen, mit einer Naht in Papierfarbe dazwischen. Die Farbe
+ * ist mit dem Papier gemischt, damit die Schrift in beiden Farbschemen mindestens 7:1 hält.
+ */
+.stage .reveal-option {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.stage .reveal-option.chosen {
+  font-weight: 700;
+  border-color: var(--border-strong);
+}
+
+.stage .reveal-option.correct {
+  border-color: var(--success);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) var(--success);
+}
+
+.stage .reveal-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  gap: calc(1.5 * var(--u));
+  background: var(--surface);
+  transform-origin: left center;
+  animation: reveal-fill 0.5s 0.25s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+
+.stage .reveal-fill i {
+  --tone: var(--border-strong);
+  flex: 1;
+  background: color-mix(in srgb, var(--tone) 42%, var(--surface));
+}
+
+.stage .reveal-fill .seat-0 {
+  --tone: var(--seat-0);
+}
+
+.stage .reveal-fill .seat-1 {
+  --tone: var(--seat-1);
+}
+
+.stage .reveal-fill .seat-2 {
+  --tone: var(--seat-2);
+}
+
+.stage .reveal-option.chosen .reveal-chips {
+  animation: reveal-chip 0.25s 0.6s ease-out both;
+}
+
+/* Kreis an der Stelle des Buchstabens aus der Frage: richtig, falsch gewählt oder der Buchstabe */
 .stage .reveal-mark {
-  width: calc(13 * var(--u));
+  display: grid;
+  place-items: center;
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(11.5 * var(--u));
+  font-weight: 800;
+  line-height: 1;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.stage .reveal-option.correct .reveal-mark {
+  color: var(--surface);
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.stage .reveal-option.wrong .reveal-mark {
+  color: var(--surface);
+  background: var(--danger);
+  border-color: var(--danger);
 }
 
 .stage .reveal-option-text {
@@ -1209,6 +1331,19 @@ html.match-playing body {
   from {
     opacity: 0;
     transform: translateY(6px) scale(0.985);
+  }
+}
+
+@keyframes reveal-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes reveal-chip {
+  from {
+    opacity: 0;
+    transform: translateY(calc(2 * var(--u)));
   }
 }
 
@@ -1577,5 +1712,11 @@ html.match-playing body {
 @media (prefers-reduced-motion: reduce) {
   .turn-banner {
     display: none;
+  }
+
+  /* Die Farbe steht sofort im Feld: ohne das stünde sie erst nach der Wartezeit der Bewegung da */
+  .stage .reveal-fill,
+  .stage .reveal-option.chosen .reveal-chips {
+    animation: none;
   }
 }

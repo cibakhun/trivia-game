@@ -11,6 +11,7 @@ import {
   type MatchAnswerResponse,
   type MatchListResponse,
   type MatchPresentResponse,
+  type MatchWatchResponse,
   type MatchView,
 } from '@rdw/protocol';
 import type { Tx } from '@rdw/db';
@@ -21,7 +22,7 @@ import { readGameNow } from '../../infra/clock.ts';
 import { idempotencyKey, runIdempotent, type IdempotentOutcome } from '../../infra/idempotency.ts';
 import { parseInput } from '../../infra/validation.ts';
 import { requireAuth } from '../identity/auth-hook.ts';
-import { answerMatchQuestion, presentMatchQuestion } from './answers.ts';
+import { answerMatchQuestion, presentMatchQuestion, watchMatchQuestion } from './answers.ts';
 import { matchContextFrom } from './context.ts';
 import {
   createLobby,
@@ -251,6 +252,16 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
       const auth = requireAuth(request);
       const { matchId, seq } = parseInput(questionParams, request.params);
       return presentMatchQuestion(ctx.db, match, { userId: auth.userId, matchId, seq });
+    },
+  );
+
+  // Mitlesen für alle, die nicht gefragt sind (ADR-065): ändert nichts, daher GET ohne Schlüssel
+  app.get(
+    '/matches/:matchId/questions/:seq/watch',
+    async (request): Promise<MatchWatchResponse> => {
+      const auth = requireAuth(request);
+      const { matchId, seq } = parseInput(questionParams, request.params);
+      return watchMatchQuestion(ctx.db, { userId: auth.userId, matchId, seq });
     },
   );
 

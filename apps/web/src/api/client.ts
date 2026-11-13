@@ -16,6 +16,7 @@ import {
   matchAnswerResponseSchema,
   matchListResponseSchema,
   matchPresentResponseSchema,
+  matchWatchResponseSchema,
   matchViewSchema,
   meResponseSchema,
   playerNameSuggestionsSchema,
@@ -67,6 +68,16 @@ export class NetworkError extends Error {
   }
 }
 
+/**
+ * Fehler, nach denen derselbe lesende Aufruf später gelingen kann: kein Netz, Überlast (429) oder
+ * ein Fehler des Servers oder eines Zwischenrechners (5xx). Alles andere ist eine Antwort, die
+ * bleibt.
+ */
+export function isTransientError(error: unknown): boolean {
+  if (error instanceof NetworkError) return true;
+  return error instanceof ApiRequestError && (error.status === 429 || error.status >= 500);
+}
+
 interface RequestOptions {
   readonly body?: unknown;
   /** Schlüssel des Kommandos (alle POST außer den Ausnahmen in API.md §1). */
@@ -114,7 +125,13 @@ async function request<S extends z.ZodType>(
   options: RequestOptions = {},
 ): Promise<z.output<S>> {
   const response = await send(method, path, options);
-  const text = await response.text();
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (error) {
+    // Die Verbindung riss, während die Antwort kam: Ob sie gilt, weiß der Browser nicht
+    throw new NetworkError(error);
+  }
   if (!response.ok) {
     // Fehlerseiten von Proxys sind kein JSON; dann zählt nur der Status
     let json: unknown;
@@ -251,6 +268,9 @@ export const api = {
   // Wie `present` der Herausforderung ohne Schlüssel: Eine Wiederholung liefert dieselbe Frage
   presentMatchQuestion: (matchId: string, seq: number) =>
     request('POST', `/matches/${matchId}/questions/${seq}/present`, matchPresentResponseSchema),
+  // Mitlesen als Zuschauer (ADR-065): ändert nichts am Server
+  watchMatchQuestion: (matchId: string, seq: number) =>
+    request('GET', `/matches/${matchId}/questions/${seq}/watch`, matchWatchResponseSchema),
   answerMatchQuestion: (
     matchId: string,
     seq: number,

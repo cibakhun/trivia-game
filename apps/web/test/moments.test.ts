@@ -5,6 +5,7 @@ import { attackSource, duelLayout, duelScale, inUpperHalf } from '../src/art/att
 import { mapArt } from '../src/art/map-art.ts';
 import {
   enqueueMoments,
+  holdSkips,
   momentsBetween,
   pruneMoments,
   type MomentSnapshot,
@@ -16,6 +17,17 @@ const name = (seat: number) => ['Anna (du)', 'Bot (schwer)', 'Bot (leicht)'][sea
 
 function snap(partial: Partial<MomentSnapshot>): MomentSnapshot {
   return { state: 'waiting-pick', kind: 'CAMPAIGN_TARGET', round: 1, lastSeq: 10, ...partial };
+}
+
+function skippedAttack(seq: number, attacker: number): ParsedMatchEvent {
+  const event = parseMatchEvent({
+    seq,
+    at: '2026-11-10T20:00:00.000Z',
+    type: 'ATTACK_SKIPPED',
+    payload: { round: 2, attacker },
+  });
+  if (!event) throw new Error('Ereignis ungültig');
+  return event;
 }
 
 function eliminated(seq: number, seat: number, by: number): ParsedMatchEvent {
@@ -378,6 +390,34 @@ describe('Warteschlange der Bänder', () => {
 
   it('während einer Frage bleibt nur ein gefallenes Reich', () => {
     expect(pruneMoments([turn(30), campaign, fallen], 'question')).toEqual([fallen]);
+  });
+
+  it('ein ausgefallener Angriff wartet die Auflösung ab und verfällt vor einer Frage (ADR-064)', () => {
+    const skip = skippedAttack(11, 1);
+    const later = skippedAttack(14, 2);
+    const fall = eliminated(12, 2, 0);
+    // Während der Auflösung: Das gefallene Reich geht gleich weiter, der Ausfall wartet
+    const during = holdSkips([], [skip, fall], 'reveal');
+    expect(during.fresh).toEqual([skip, fall]);
+    expect(during.held).toEqual([skip]);
+    // Kommt nichts dazu, bleibt es dieselbe Liste
+    expect(holdSkips(during.held, [], 'reveal').held).toBe(during.held);
+    // Ruhiger Zustand oder Ende der Partie: Wartendes kommt vor dem, was gerade eintraf
+    for (const state of ['announce', 'waiting-pick', 'prepare', 'finished'] as const) {
+      expect(holdSkips(during.held, [later], state), state).toEqual({
+        fresh: [skip, later],
+        held: [],
+      });
+    }
+    // Eine Frage beginnt, ohne dass ein ruhiger Zustand gesehen wurde: Der Ausfall ist überholt,
+    // auch einer, der erst mit der Frage eintrifft
+    expect(holdSkips(during.held, [later], 'question')).toEqual({ fresh: [later], held: [] });
+    expect(holdSkips([], [], 'question').held).toEqual([]);
+    // Dasselbe für den, der der Frage nur zuschaut: Sonst käme das Band ein Duell zu spät
+    expect(holdSkips(during.held, [later], 'spectating')).toEqual({ fresh: [later], held: [] });
+    const next = holdSkips(during.held, [], 'spectating');
+    expect(holdSkips(next.held, [], 'reveal').held).toEqual([]);
+    expect(holdSkips(next.held, [], 'announce')).toEqual({ fresh: [], held: [] });
   });
 
   it('ein zweites „Du bist dran“ stellt sich nicht hinter das erste', () => {
