@@ -1,6 +1,6 @@
 import { areNeighbors, KERNMARK, WENDELMARK } from '@rdw/game-core';
 import { describe, expect, it } from 'vitest';
-import { mapArt, pointInPolygon } from '../src/art/map-art.ts';
+import { frontiers, mapArt, pointInPolygon } from '../src/art/map-art.ts';
 import { TERRAINS, terrainOf } from '../src/art/terrain.ts';
 
 /** Gezeichnete Karte der Partie (docs/ART_DIRECTION.md): Form frei, Nachbarschaft wie die Regeln. */
@@ -96,6 +96,94 @@ describe('Karte der Partie (Landkarte)', () => {
     // Dieselbe Region sieht auf beiden Karten gleich aus (gleiche Landschaft)
     const big = new Map(art.regions.map((r) => [r.name, r.terrain]));
     for (const region of small.regions) expect(big.get(region.name)).toBe(region.terrain);
+  });
+
+  it('zeichnet je Landschaft eine Szene über dem Namen und Motive an Ecken und Spitzen', () => {
+    for (const region of art.regions) {
+      const slots = (slot: string) => region.decor.filter((d) => d.slot === slot);
+      // Die Szene steht über der Mitte, gespiegelt oder nicht, aber als Ganzes
+      const scene = slots('top');
+      expect(scene.length).toBeGreaterThanOrEqual(3);
+      expect(scene.every((d) => d.y < region.cy)).toBe(true);
+      expect(new Set(scene.map((d) => d.flip)).size).toBe(1);
+      // Je zwei Motive an den unteren Ecken und an den seitlichen Spitzen, links und rechts
+      for (const slot of ['side', 'ground']) {
+        const pair = slots(slot);
+        expect(pair).toHaveLength(2);
+        expect(pair.filter((d) => d.x < region.cx)).toHaveLength(1);
+      }
+      expect(slots('side').every((d) => d.y > region.cy)).toBe(true);
+    }
+    // Gleiche Landschaft, gleiche Motive: Wälder zeigen Bäume, Gebirge Gipfel
+    const kinds = (terrain: string) =>
+      new Set(
+        art.regions
+          .filter((r) => r.terrain === terrain)
+          .flatMap((r) => r.decor.filter((d) => d.slot === 'top').map((d) => d.kind)),
+      );
+    expect([...kinds('forest')]).toEqual(['tree']);
+    expect([...kinds('mountains')]).toEqual(['mountain']);
+  });
+
+  describe('Außengrenze eines Reichs', () => {
+    const segments = (d: string) =>
+      [...d.matchAll(/M(-?[\d.]+) (-?[\d.]+)L(-?[\d.]+) (-?[\d.]+)/g)].map((m) => [
+        { x: Number(m[1]), y: Number(m[2]) },
+        { x: Number(m[3]), y: Number(m[4]) },
+      ]);
+    const edgeKeys = (id: number) => {
+      const outline = art.regions[id]?.outline ?? [];
+      return outline.map((a, i) => {
+        const b = outline[(i + 1) % outline.length] ?? a;
+        return [key(a), key(b)].sort().join('|');
+      });
+    };
+    const keysOf = (d: string) => segments(d).map(([a, b]) => [key(a!), key(b!)].sort().join('|'));
+    const [first, second] = WENDELMARK.regions.filter((a) =>
+      WENDELMARK.regions.some((b) => a.id < b.id && areNeighbors(a.cell, b.cell)),
+    );
+    if (!first || !second) throw new Error('Karte ohne Nachbarn');
+    const neighbour = WENDELMARK.regions.find(
+      (b) => b.id !== first.id && areNeighbors(first.cell, b.cell),
+    );
+    const far = WENDELMARK.regions.find(
+      (b) => b.id !== first.id && !areNeighbors(first.cell, b.cell),
+    );
+    if (!neighbour || !far) throw new Error('Karte zu klein');
+    const owners = (entries: Record<number, number>) =>
+      WENDELMARK.regions.map((r) => entries[r.id] ?? null);
+
+    it('umfasst bei einem einzelnen Feld den ganzen Umriss', () => {
+      const [realm] = frontiers(art, owners({ [first.id]: 1 }));
+      expect(realm?.seat).toBe(1);
+      expect(realm?.regions).toEqual([first.id]);
+      expect(new Set(keysOf(realm?.d ?? ''))).toEqual(new Set(edgeKeys(first.id)));
+    });
+
+    it('lässt die Grenze zwischen zwei Feldern desselben Reichs weg', () => {
+      const [realm] = frontiers(art, owners({ [first.id]: 0, [neighbour.id]: 0 }));
+      const a = new Set(edgeKeys(first.id));
+      const b = new Set(edgeKeys(neighbour.id));
+      const shared = [...a].filter((k) => b.has(k));
+      expect(shared.length).toBeGreaterThan(0);
+      const drawn = new Set(keysOf(realm?.d ?? ''));
+      for (const k of shared) expect(drawn.has(k)).toBe(false);
+      expect(drawn.size).toBe(a.size + b.size - 2 * shared.length);
+    });
+
+    it('zeichnet ein zerrissenes Reich als ein Reich mit beiden Umrissen', () => {
+      const realms = frontiers(art, owners({ [first.id]: 2, [far.id]: 2, [neighbour.id]: 0 }));
+      expect(realms.map((r) => r.seat)).toEqual([0, 2]);
+      const torn = realms[1];
+      expect(torn?.regions).toEqual([first.id, far.id].sort((x, y) => x - y));
+      expect(new Set(keysOf(torn?.d ?? ''))).toEqual(
+        new Set([...edgeKeys(first.id), ...edgeKeys(far.id)]),
+      );
+    });
+
+    it('zeichnet nichts, solange niemandem ein Feld gehört', () => {
+      expect(frontiers(art, owners({}))).toEqual([]);
+    });
   });
 
   it('kennt für jede Region eine Landschaft, auch für neue Namen', () => {

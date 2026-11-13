@@ -40,9 +40,9 @@ describe('Brett für die Karte', () => {
 
   it('gibt Gebäude, Armeen und Burgleben je Feld weiter', () => {
     const regions = layerRegions(play.board);
-    expect(regions[2]).toEqual({ building: 'CASTLE', armies: 3, castleLives: 3 });
-    expect(regions[6]).toEqual({ building: 'TOWN', armies: 2, castleLives: 0 });
-    expect(regions[0]).toEqual({ building: 'NONE', armies: 0, castleLives: 0 });
+    expect(regions[2]).toEqual({ building: 'CASTLE', armies: 3, castleLives: 3, held: 0 });
+    expect(regions[6]).toEqual({ building: 'TOWN', armies: 2, castleLives: 0, held: 0 });
+    expect(regions[0]).toEqual({ building: 'NONE', armies: 0, castleLives: 0, held: 0 });
   });
 });
 

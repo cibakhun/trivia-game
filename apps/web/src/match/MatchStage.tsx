@@ -221,6 +221,7 @@ export function MatchStage({
           board={board}
           name={name}
           legal={state === 'pick' ? view.legalRegions : []}
+          home={view.mySeat}
           duel={duel}
           spot={spot}
           busy={busy}

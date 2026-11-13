@@ -78,6 +78,9 @@
 .art-flag {
   fill: var(--flag, var(--map-roof));
 }
+.art-steel {
+  fill: var(--map-steel);
+}
 
 .map-art .pattern-line {
   stroke: var(--map-pattern);
@@ -106,23 +109,117 @@
   stroke-width: 11;
   opacity: 0.45;
 }
+/* Schraffur vor der Küste: kurze Striche quer zur Küstenlinie, wie in einem alten Stich. Die
+   innere Hälfte des Strichs liegt unter dem Land */
+.map-art .coast-hatch {
+  fill: none;
+  stroke: var(--map-sea-ink);
+  stroke-width: 15;
+  stroke-dasharray: 0.9 3.4;
+  opacity: 0.55;
+}
+/* Tiefe: Das Meer wird zum Bildrand hin dunkler */
+.map-art .sea-depth {
+  pointer-events: none;
+}
+.map-art .depth-near {
+  stop-color: var(--map-sea-deep);
+  stop-opacity: 0;
+}
+.map-art .depth-far {
+  stop-color: var(--map-sea-deep);
+  stop-opacity: 0.34;
+}
 
 .map-art .land {
-  fill: var(--map-land);
-  stroke: var(--map-land);
+  --tint: var(--map-land);
+  fill: color-mix(in srgb, var(--tint) 26%, var(--map-land));
+  stroke: color-mix(in srgb, var(--tint) 26%, var(--map-land));
   stroke-width: 0.6;
+}
+/* Ein Hauch Farbe je Landschaft, wie lasiert: Wald und Wiese grünlich, Gebirge grau, Äcker
+   strohgelb, Moor und Ufer bläulich. Die Farbe der Reiche liegt kräftig darüber */
+.map-art .land:is(.terrain-forest, .terrain-pines, .terrain-hills) {
+  --tint: var(--map-pine);
+}
+.map-art .land.terrain-meadow {
+  --tint: var(--map-leaf);
+}
+.map-art .land.terrain-mountains {
+  --tint: var(--map-rock);
+}
+.map-art .land:is(.terrain-fields, .terrain-village) {
+  --tint: var(--map-wheat);
+}
+.map-art .land:is(.terrain-marsh, .terrain-lake, .terrain-river) {
+  --tint: var(--map-water);
 }
 
 .map-art .wash-fill {
-  opacity: 0.5;
+  opacity: 0.44;
 }
 .map-art .wash-pattern {
-  opacity: 0.55;
+  opacity: 0.3;
 }
 .map-art .wash-edge {
   fill: none;
-  stroke-width: 9;
-  opacity: 0.55;
+  stroke-width: 5;
+  opacity: 0.22;
+}
+
+/* Relief: Das Land wird zur Küste hin dunkler, wie mit Tusche lasiert */
+.map-art .coast-shade {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 22;
+  stroke-linejoin: round;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* Außengrenze eines Reichs: ein kräftiges Farbband nach innen und eine feste Linie, wie auf alten
+   politischen Karten. Das eigene Reich trägt dazu eine goldene Linie */
+.map-art .frontiers {
+  pointer-events: none;
+}
+.map-art .frontier-band {
+  fill: none;
+  stroke: var(--realm);
+  stroke-width: 22;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.5;
+}
+.map-art .frontier-line {
+  fill: none;
+  stroke: color-mix(in srgb, var(--realm) 72%, var(--map-ink));
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.map-art .frontier.seat-0 {
+  --realm: var(--seat-0);
+}
+.map-art .frontier.seat-1 {
+  --realm: var(--seat-1);
+}
+.map-art .frontier.seat-2 {
+  --realm: var(--seat-2);
+}
+.map-art .frontier.home .frontier-band {
+  opacity: 0.62;
+}
+.map-art .frontier-casing {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 5.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+.map-art .frontier.home .frontier-line {
+  stroke: var(--map-glow);
+  stroke-width: 3.2;
 }
 
 .map-art .seat-0 .wash-fill,
@@ -263,10 +360,15 @@
   outline: none;
 }
 .map-art .legal-glow {
-  fill: var(--map-gold);
+  fill: var(--map-glow);
   opacity: 0.16;
   animation: legal-pulse 1.8s ease-in-out infinite;
   pointer-events: none;
+}
+/* Ein wählbares Ziel, das schon jemandem gehört, hellt in seiner eigenen Farbe auf: Man sieht, wen
+   man angreift. Cremeweiß über Blau ergäbe Grau */
+.map-art .board-region:not(.free) .legal-glow {
+  fill: var(--map-lift);
 }
 .map-art .legal-ring {
   fill: none;
@@ -823,10 +925,10 @@
 @keyframes legal-pulse {
   0%,
   100% {
-    opacity: 0.08;
+    opacity: 0.14;
   }
   50% {
-    opacity: 0.3;
+    opacity: 0.44;
   }
 }
 
@@ -987,7 +1089,7 @@
   font-variant-numeric: tabular-nums;
 }
 .map-art .army-count {
-  font-size: 19px;
+  font-size: 17px;
   fill: #fff;
 }
 .map-art .army-plus text {
@@ -998,7 +1100,7 @@
 /* Rüstzeit: Felder anderer Reiche treten zurück, mögliche Ziele eines Zugs sind gestrichelt */
 .map-art .plan-dim {
   fill: var(--map-veil);
-  opacity: 0.3;
+  opacity: 0.17;
 }
 .map-art .plan-target {
   fill: var(--map-gold);

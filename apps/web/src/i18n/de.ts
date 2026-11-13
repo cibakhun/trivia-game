@@ -739,6 +739,7 @@ export const de = {
       ready: '✓ fertig',
       busy: 'rüstet',
       castleLives: { one: '{count} Burgleben', other: '{count} Burgleben' },
+      income: 'Einkommen je Runde: {bread} Brot, {material} Baustoff',
     },
     board: {
       region: '{name}: {owner}, {building}, {armies}, {value} Punkte',

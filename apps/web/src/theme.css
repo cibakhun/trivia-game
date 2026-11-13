@@ -37,10 +37,25 @@
   --shadow-raised: 0 6px 18px rgb(70 45 15 / 0.2);
   --shadow-map: 0 8px 28px rgb(60 38 12 / 0.28), 0 0 0 1px rgb(60 38 12 / 0.45);
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.25 0 0 0 0 0.12 0 0 0 0.5 -0.1'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Gealtertes Papier: zum Rand hin etwas dunkler. Liegt über dem Papierkorn der Tafeln und Blätter */
+  --paper-age: radial-gradient(
+    ellipse 130% 100% at 50% 42%,
+    transparent 52%,
+    rgb(120 84 36 / 0.17) 100%
+  );
+  /* Mit Tinte gezogene Linie: läuft an beiden Enden aus */
+  --ink-rule: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--map-ink) 40%, transparent) 10%,
+    color-mix(in srgb, var(--map-ink) 40%, transparent) 90%,
+    transparent
+  );
 
   /* Karte */
   --map-sea: #c7d6cd;
   --map-sea-ink: #6f8e8f;
+  --map-sea-deep: #6f9aa0;
   --map-ripple: #7c9b9b;
   --map-land: #f2e6c6;
   --map-ink: #3d2b1a;
@@ -48,6 +63,7 @@
   --map-leaf: #adc086;
   --map-pine: #7f9b6b;
   --map-stone: #ddd1b6;
+  --map-rock: #a59a8a;
   --map-shade: rgb(61 43 26 / 0.26);
   --map-snow: #fdfaf2;
   --map-wheat: #e5c77c;
@@ -59,6 +75,8 @@
   --map-steel: #e1e0d8;
   --map-gold: #c4902c;
   --map-coin: #fbf3dc;
+  --map-glow: #fff3c4;
+  --map-lift: #ffffff;
   --map-label-halo: rgb(246 236 210 / 0.92);
   --map-pattern: rgb(45 28 12 / 0.4);
   --map-focus: #1f5fbf;
@@ -102,6 +120,7 @@
 
     --map-sea: #16252b;
     --map-sea-ink: #4f7078;
+    --map-sea-deep: #05151b;
     --map-ripple: #3f6067;
     --map-land: #3b3327;
     --map-ink: #ecdcbc;
@@ -109,6 +128,7 @@
     --map-leaf: #5f7046;
     --map-pine: #4b603d;
     --map-stone: #6d6250;
+    --map-rock: #7b7468;
     --map-shade: rgb(0 0 0 / 0.32);
     --map-snow: #ddd5c4;
     --map-wheat: #8f7a40;
@@ -120,6 +140,13 @@
     --map-steel: #b3b2aa;
     --map-gold: #e0b155;
     --map-coin: #2c251b;
+    --map-glow: #ffe6a6;
+    --paper-age: radial-gradient(
+      ellipse 130% 100% at 50% 42%,
+      transparent 50%,
+      rgb(0 0 0 / 0.34) 100%
+    );
+    --map-lift: #ffffff;
     --map-label-halo: rgb(50 43 32 / 0.92);
     --map-pattern: rgb(255 240 210 / 0.26);
     --map-focus: #8ab8ff;

@@ -16,14 +16,17 @@ export type SymbolId =
   | 'grass'
   | 'reeds'
   | 'lake'
-  | 'house'
-  | 'tower'
   | 'waves'
+  | 'bush'
+  | 'rocks'
+  | 'flowers'
+  | 'hay'
   | 'sea'
   | 'castle'
   | 'village'
   | 'town'
   | 'pennant'
+  | 'bearer'
   | 'shield'
   | 'emblem-0'
   | 'emblem-1'
@@ -183,32 +186,64 @@ export function ArtDefs({ prefix }: { readonly prefix: string }) {
           strokeWidth="3"
         />
       </symbol>
-      <symbol id={id('house')} viewBox={BOX}>
-        <path d="M-22 2V36H22V2Z" className="art-ink art-land" strokeWidth="5" />
-        <path
-          d="M-30 6L0-30L30 6Z"
-          className="art-ink art-roof"
-          strokeWidth="5"
-          strokeLinejoin="round"
-        />
-        <path d="M-6 36V18H6V36" className="art-ink" strokeWidth="4" />
-      </symbol>
-      <symbol id={id('tower')} viewBox={BOX}>
-        <path d="M-14-22V42H14V-22Z" className="art-ink art-stone" strokeWidth="5" />
-        <path
-          d="M-19-22V-36H-11V-29H-4V-36H4V-29H11V-36H19V-22Z"
-          className="art-ink art-stone"
-          strokeWidth="4.5"
-          strokeLinejoin="round"
-        />
-        <path d="M-4 0V-10H4V0" className="art-ink" strokeWidth="4" />
-        <path d="M0-36V-50L14-45L0-40" className="art-ink art-roof" strokeWidth="3.5" />
-      </symbol>
       <symbol id={id('waves')} viewBox={BOX}>
         <path
           d="M-44-6C-30-18-16 6 0-6S30-18 44-6M-44 14C-30 2-16 26 0 14S30 2 44 14"
           className="art-water-ink"
           strokeWidth="5"
+        />
+      </symbol>
+      {/* Bodenmotive: Busch, Felsen, Blumen, Heuschober */}
+      <symbol id={id('bush')} viewBox={BOX}>
+        <path
+          d="M-36 24C-48 10-36-10-20-8C-16-26 12-28 18-10C36-12 46 8 36 24Z"
+          className="art-ink art-leaf"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M-8 4C-2 8 8 8 14 2M-22 12C-18 15-12 15-8 12"
+          className="art-ink"
+          strokeWidth="3.5"
+        />
+      </symbol>
+      <symbol id={id('rocks')} viewBox={BOX}>
+        <path
+          d="M-42 26L-28-8L-6-14L10 26Z"
+          className="art-ink art-stone"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+        <path d="M-6-14L10 26H-6L-12 0Z" className="art-shade" />
+        <path
+          d="M6 26L18 2L34 6L44 26Z"
+          className="art-ink art-stone"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+      </symbol>
+      <symbol id={id('flowers')} viewBox={BOX}>
+        <path
+          d="M-24 30C-24 14-28 6-32-4M0 30C0 12 2 0 6-12M24 30C24 18 28 10 34 4M-12 30C-12 24-14 20-18 16M12 30C12 24 14 20 18 18"
+          className="art-ink"
+          strokeWidth="4"
+        />
+        <circle cx="-32" cy="-8" r="8" className="art-ink art-snow" strokeWidth="3.5" />
+        <circle cx="6" cy="-16" r="9" className="art-ink art-wheat" strokeWidth="3.5" />
+        <circle cx="34" cy="0" r="8" className="art-ink art-roof" strokeWidth="3.5" />
+      </symbol>
+      <symbol id={id('hay')} viewBox={BOX}>
+        <path d="M0-30V-44" className="art-ink" strokeWidth="4.5" />
+        <path
+          d="M-34 30C-34-2-20-30 0-30C20-30 34-2 34 30Z"
+          className="art-ink art-wheat"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M-14 30C-12 10-8-6 0-18M10 30C10 14 8 2 4-8M-24 30C-22 18-20 10-16 2M22 30C22 20 20 12 16 4"
+          className="art-ink"
+          strokeWidth="3"
         />
       </symbol>
       <symbol id={id('sea')} viewBox={BOX}>
@@ -244,27 +279,39 @@ export function ArtDefs({ prefix }: { readonly prefix: string }) {
       </symbol>
       {/* Partie mit Ausbau: Dorf (zwei Häuser) und Stadt (Mauer, Dächer, Turm), Fahne in Sitzfarbe */}
       <symbol id={id('village')} viewBox={BOX}>
+        <path d="M-4-22V-50" className="art-ink" strokeWidth="4" />
         <path
-          d="M-6-14V-50L26-40L-6-30"
+          d="M-4-50L26-41L-4-32Z"
           className="art-ink art-flag"
           strokeWidth="4"
           strokeLinejoin="round"
         />
-        <path d="M-40 10V38H-8V10Z" className="art-ink art-land" strokeWidth="4.5" />
+        <path d="M-16-4V22H12V-4Z" className="art-ink art-land" strokeWidth="4.5" />
         <path
-          d="M-47 13L-24-14L-1 13Z"
+          d="M-23-2L-2-26L19-2Z"
           className="art-ink art-roof"
           strokeWidth="4.5"
           strokeLinejoin="round"
         />
-        <path d="M2 18V38H36V18Z" className="art-ink art-land" strokeWidth="4.5" />
+        <path d="M-44 16V40H-12V16Z" className="art-ink art-land" strokeWidth="4.5" />
         <path
-          d="M-5 21L19-4L43 21Z"
+          d="M-51 18L-28-8L-5 18Z"
           className="art-ink art-roof"
           strokeWidth="4.5"
           strokeLinejoin="round"
         />
-        <path d="M14 38V27H24V38M-28 38V28H-20V38" className="art-ink" strokeWidth="3.5" />
+        <path d="M6 22V40H40V22Z" className="art-ink art-land" strokeWidth="4.5" />
+        <path
+          d="M-1 24L23-2L47 24Z"
+          className="art-ink art-roof"
+          strokeWidth="4.5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M18 40V30H28V40M-32 40V30H-24V40M-5 6H1V12H-5Z"
+          className="art-ink"
+          strokeWidth="3.5"
+        />
       </symbol>
       <symbol id={id('town')} viewBox={BOX}>
         <path
@@ -287,7 +334,7 @@ export function ArtDefs({ prefix }: { readonly prefix: string }) {
           strokeLinejoin="round"
         />
         <path d="M-9 40V28C-9 18 9 18 9 28V40" className="art-ink art-gate" strokeWidth="4" />
-        <path d="M-2-6V2" className="art-ink" strokeWidth="3.5" />
+        <path d="M-2-6V2M-34 22V30M34 22V30M-24-2V4M24-2V4" className="art-ink" strokeWidth="3.5" />
       </symbol>
       {/* Banner: Armeen auf einem Feld, Tuch in Sitzfarbe, die Zahl steht darauf */}
       <symbol id={id('pennant')} viewBox={BOX}>
@@ -298,6 +345,24 @@ export function ArtDefs({ prefix }: { readonly prefix: string }) {
           strokeLinejoin="round"
         />
         <path d="M-40-38H40" className="art-ink" strokeWidth="10" />
+      </symbol>
+      {/* Bannerträger: eine Armee als Figur mit Fahne, Tuch und Rock in Sitzfarbe, die Zahl steht auf dem Tuch */}
+      <symbol id={id('bearer')} viewBox={BOX}>
+        <path d="M-4-48V46" className="art-ink" strokeWidth="6" />
+        <path
+          d="M-4-44H46V6L21-8L-4 6Z"
+          className="art-ink art-flag"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M-46 46V32C-46 16-8 16-8 32V46Z"
+          className="art-ink art-flag"
+          strokeWidth="5"
+          strokeLinejoin="round"
+        />
+        <circle cx="-27" cy="2" r="12" className="art-ink art-steel" strokeWidth="5" />
+        <path d="M-37 1H-17" className="art-ink" strokeWidth="3.5" />
       </symbol>
       <symbol id={id('shield')} viewBox={BOX}>
         <path
