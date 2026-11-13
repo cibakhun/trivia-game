@@ -17,6 +17,8 @@ export interface RealmRegionLayer {
   readonly armies: number;
   /** Leben der Burg auf diesem Feld; 0 ohne Burg. */
   readonly castleLives: number;
+  /** Gehaltene Verteidigungen: Jede macht das Feld mehr wert als üblich (MATCH_RULES §11.7). */
+  readonly held: number;
 }
 
 export interface RealmMove {
@@ -69,11 +71,14 @@ export function hasBuilding(layer: RealmLayer, region: number): boolean {
   );
 }
 
-/** Wo das Banner der Armeen steht: neben der Münze, bei einer Burg rechts neben dem Turm. */
+/** Größe des Bannerträgers in Sechseckgrößen: neben einer Burg etwas größer. */
+export const BEARER = { castle: 0.76, field: 0.7 } as const;
+
+/** Wo der Bannerträger steht: unter dem Namen, bei einer Burg rechts neben dem Turm. */
 function bannerAt(region: ArtRegion, castle: boolean, s: number): { x: number; y: number } {
   return castle
-    ? { x: region.cx + 0.52 * s, y: region.cy + 0.1 * s }
-    : { x: region.cx - 0.21 * s, y: region.cy + 0.3 * s };
+    ? { x: region.cx + 0.47 * s, y: region.cy + 0.02 * s }
+    : { x: region.cx - 0.04 * s, y: region.cy + 0.47 * s };
 }
 
 /** Gebäude und Armeen eines Felds; ersetzt das Besitzerschild der Partie ohne Ausbau. */
@@ -101,7 +106,7 @@ export function RealmRegionArt({
   const building = planned ?? (state.building === 'NONE' ? null : state.building);
   const plus = layer.recruits?.[region.id] ?? 0;
   const banner = bannerAt(region, castle, s);
-  const b = 0.56 * s;
+  const b = (castle ? BEARER.castle : BEARER.field) * s;
   const fresh = layer.fresh?.includes(region.id) ?? false;
   // Eine stehende Burg zeichnet die Karte; hier nur Dorf, Stadt und jeder geplante Bau
   const drawn = building !== null && (planned !== null || !castle);
@@ -115,16 +120,16 @@ export function RealmRegionArt({
         >
           <use
             href={symbolRef(prefix, SYMBOL[building])}
-            x={cx - 0.3 * s}
-            y={cy - 0.78 * s}
-            width={0.6 * s}
-            height={0.6 * s}
+            x={cx - 0.37 * s}
+            y={cy - 0.85 * s}
+            width={0.74 * s}
+            height={0.74 * s}
           />
           {planned ? (
             <g className="ghost-plus">
-              <circle cx={cx + 0.27 * s} cy={cy - 0.62 * s} r={0.11 * s} />
+              <circle cx={cx + 0.36 * s} cy={cy - 0.66 * s} r={0.12 * s} />
               <path
-                d={`M${cx + 0.21 * s} ${cy - 0.62 * s}h${0.12 * s}M${cx + 0.27 * s} ${cy - 0.68 * s}v${0.12 * s}`}
+                d={`M${cx + 0.3 * s} ${cy - 0.66 * s}h${0.12 * s}M${cx + 0.36 * s} ${cy - 0.72 * s}v${0.12 * s}`}
               />
             </g>
           ) : null}
@@ -138,13 +143,13 @@ export function RealmRegionArt({
           data-armies={state.armies}
         >
           <use
-            href={symbolRef(prefix, 'pennant')}
+            href={symbolRef(prefix, 'bearer')}
             x={banner.x - b / 2}
             y={banner.y - b / 2}
             width={b}
             height={b}
           />
-          <text x={banner.x} y={banner.y - 0.045 * s} className="army-count">
+          <text x={banner.x + 0.22 * b} y={banner.y - 0.25 * b} className="army-count">
             {state.armies}
           </text>
         </g>
@@ -250,10 +255,14 @@ export function RealmPlanArt({
         if (!r || plus <= 0) return null;
         const castle = (layer.regions[r.id]?.building ?? 'NONE') === 'CASTLE';
         const banner = bannerAt(r, castle, s);
+        // Unter dem Tuch, neben dem Träger: Dort bleibt das Plättchen im eigenen Feld
+        const b = (castle ? BEARER.castle : BEARER.field) * s;
+        const px = banner.x + 0.24 * b;
+        const py = banner.y + 0.3 * b;
         return (
           <g key={key} className="army-plus">
-            <circle cx={banner.x + 0.04 * s} cy={banner.y + 0.4 * s} r={0.17 * s} />
-            <text x={banner.x + 0.04 * s} y={banner.y + 0.405 * s}>
+            <circle cx={px} cy={py} r={0.16 * s} />
+            <text x={px} y={py + 0.005 * s}>
               +{plus}
             </text>
           </g>

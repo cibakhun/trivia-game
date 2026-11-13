@@ -34,6 +34,7 @@ export function layerRegions(board: RealmBoard): RealmRegionLayer[] {
     building: r.building,
     armies: r.armies,
     castleLives: r.castleLivesLeft,
+    held: r.fortifications,
   }));
 }
 

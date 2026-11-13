@@ -502,6 +502,7 @@ export function RealmStage({
           legal={state === 'pick' ? view.legalRegions : []}
           selectable={tappable}
           realm={layer}
+          home={mySeat}
           duel={duel}
           spot={spot}
           busy={busy}

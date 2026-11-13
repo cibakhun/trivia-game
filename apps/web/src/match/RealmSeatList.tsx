@@ -10,8 +10,9 @@ import type { RealmPlay } from './realm-model.ts';
 /**
  * Spielstand der Partie mit Ausbau links auf dem Meer (MATCH_RULES §11): je Reich eine Tafel mit
  * Wappen, Name und Punkten, darunter die Leben seiner Burgen und die Vorräte an Brot und Baustoff.
- * In der Rüstzeit steht daneben, wer schon fertig ist und wer noch rüstet; wer gerade wählt, trägt
- * einen goldenen Rand und „am Zug“.
+ * In der Rüstzeit steht bei den anderen daneben, wer schon fertig ist und wer noch rüstet; wer
+ * gerade wählt, trägt einen goldenen Rand und „am Zug“. Das eigene Reich ist getönt und nennt an
+ * dieser Stelle, was die nächste Runde bringt: Den eigenen Rüststand zeigt schon das Blatt rechts.
  */
 
 /** Ab so vielen Leben steht statt einzelner Schilde eine Zahl (zwei Burgen). */
@@ -47,6 +48,10 @@ export function RealmSeatList({
           const status = statusOf(s.seat);
           const maxLives = s.castles * play.castleLives;
           const lives = tp('realm.seats.castleLives', s.castleLivesLeft);
+          const mine = s.seat === view.mySeat;
+          // „am Zug“ steht rechts im Fuß, wo am eigenen Reich sonst das Einkommen steht
+          const income = mine && status !== 'turn';
+          const pill = status !== null && (status === 'turn' || !mine);
           return (
             <li
               key={s.seat}
@@ -55,7 +60,7 @@ export function RealmSeatList({
                 'realm',
                 `seat-${s.seat}`,
                 status === 'turn' ? 'turn' : '',
-                s.seat === view.mySeat ? 'me' : '',
+                mine ? 'me' : '',
                 s.eliminated ? 'eliminated' : '',
               ]
                 .filter(Boolean)
@@ -90,20 +95,37 @@ export function RealmSeatList({
                 ) : (
                   <>
                     <Amount kind="bread" value={s.bread} label={t('realm.bread')} size={15} />
+                    {/* Was die nächste Runde bringt, steht nur am eigenen Reich */}
+                    {income ? (
+                      <span className="plaque-plus" aria-hidden="true">
+                        +{s.income.bread}
+                      </span>
+                    ) : null}
                     <Amount
                       kind="material"
                       value={s.material}
                       label={t('realm.material')}
                       size={15}
                     />
+                    {income ? (
+                      <span className="plaque-plus">
+                        <span aria-hidden="true">+{s.income.material}</span>
+                        <span className="visually-hidden">
+                          {t('realm.seats.income', {
+                            bread: s.income.bread,
+                            material: s.income.material,
+                          })}
+                        </span>
+                      </span>
+                    ) : null}
                   </>
                 )}
-                {status ? (
-                  <span className={`plaque-state ${status}`}>
-                    {status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
-                  </span>
-                ) : null}
               </span>
+              {pill ? (
+                <span className={`plaque-state ${status}`}>
+                  {status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
+                </span>
+              ) : null}
             </li>
           );
         })}

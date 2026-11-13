@@ -80,6 +80,17 @@ html.match-playing body {
   box-shadow: none;
 }
 
+/* Papier: feines Korn über Land und Meer. Ein fertiges Kachelbild ohne Mischmodus, es kostet beim
+   Zeichnen nichts und nimmt keine Tipps an */
+.stage-map .board-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--paper-grain);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 /* Liegt ein Blatt auf der Karte, tritt sie leicht zurück, bleibt aber sichtbar */
 .stage-veil {
   position: absolute;
@@ -143,7 +154,7 @@ html.match-playing body {
   align-items: center;
   padding: calc(4 * var(--u)) calc(8 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
   background: var(--surface);
-  background-image: var(--paper-grain);
+  background-image: var(--paper-age), var(--paper-grain);
   border: 1px solid var(--border-strong);
   border-left: calc(5 * var(--u)) solid var(--seat);
   border-radius: calc(8 * var(--u));
@@ -242,7 +253,8 @@ html.match-playing body {
   height: calc(20 * var(--u));
   margin-top: calc(3 * var(--u));
   padding-top: calc(2 * var(--u));
-  border-top: 1px solid var(--border);
+  border-top: 1px solid transparent;
+  border-image: var(--ink-rule) 1;
   font-size: calc(12 * var(--u));
   line-height: calc(16 * var(--u));
   color: var(--muted);
@@ -403,7 +415,7 @@ html.match-playing body {
   gap: calc(7 * var(--u));
   padding: calc(9 * var(--u)) calc(10 * var(--u)) calc(10 * var(--u));
   background: var(--surface);
-  background-image: var(--paper-grain);
+  background-image: var(--paper-age), var(--paper-grain);
   border: 1px solid var(--border-strong);
   border-radius: calc(10 * var(--u));
   box-shadow:
@@ -511,7 +523,8 @@ html.match-playing body {
 
 .blatt-last {
   padding-top: calc(6 * var(--u));
-  border-top: 1px solid var(--border);
+  border-top: 1px solid transparent;
+  border-image: var(--ink-rule) 1;
 }
 
 .blatt-lead {
@@ -622,7 +635,8 @@ html.match-playing body {
   gap: calc(4 * var(--u));
   padding: 0 0 calc(7 * var(--u));
   border: 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid transparent;
+  border-image: var(--ink-rule) 1;
   border-radius: 0;
   background: none;
 }
@@ -915,7 +929,7 @@ html.match-playing body {
   overflow: hidden auto;
   padding: calc(11 * var(--u)) calc(14 * var(--u)) calc(13 * var(--u));
   background: var(--surface);
-  background-image: var(--paper-grain);
+  background-image: var(--paper-age), var(--paper-grain);
   border: 1px solid var(--border-strong);
   border-radius: calc(12 * var(--u));
   box-shadow:

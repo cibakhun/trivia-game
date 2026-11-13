@@ -98,12 +98,64 @@
 
 /* ---------- Links: Tafeln der Reiche ---------- */
 
-/* Wie ohne Ausbau stehen die Leben neben den Punkten; im Fuß der Vorrat und der Stand der Rüstzeit */
+/* Je Reich: oben der Name, darunter groß die Punkte und daneben die Burgleben, im Fuß klein der
+   Vorrat und der Stand der Rüstzeit. Die Punkte stehen bei allen an derselben Stelle untereinander,
+   so vergleicht man sie mit einem Blick */
+.plaque.realm .plaque-points {
+  font-family: var(--font-display);
+  font-size: calc(16 * var(--u));
+  gap: calc(3 * var(--u));
+}
+
+.plaque.realm .points-coin {
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
+}
+
 .plaque.realm .plaque-lives {
   display: inline-flex;
   align-items: center;
   justify-self: end;
   gap: calc(3 * var(--u));
+}
+
+.plaque.realm .seat-lives {
+  gap: calc(1.5 * var(--u));
+}
+
+.plaque.realm .seat-lives span {
+  width: calc(9 * var(--u));
+  height: calc(11 * var(--u));
+}
+
+/* Der Stand liegt rechts im Fuß; am eigenen Reich steht dort, was die nächste Runde bringt */
+.plaque.realm .plaque-state {
+  grid-area: foot;
+  justify-self: end;
+  align-self: end;
+  margin-bottom: calc(2 * var(--u));
+}
+
+/* Das eigene Reich: getönt in seiner Farbe, mit breiterem Balken und einem Rahmen */
+.plaque.realm.me {
+  background-color: color-mix(in srgb, var(--seat) 13%, var(--surface));
+  border-color: color-mix(in srgb, var(--seat) 55%, var(--border-strong));
+  border-left-color: var(--seat);
+  box-shadow:
+    0 0 0 calc(1.5 * var(--u)) color-mix(in srgb, var(--seat) 60%, transparent),
+    0 calc(2 * var(--u)) calc(7 * var(--u)) rgb(40 25 8 / 0.3);
+}
+
+.plaque.realm:not(.me) .plaque-foot {
+  color: var(--muted);
+}
+
+.plaque-plus {
+  margin-left: calc(-5 * var(--u));
+  font-size: calc(10.5 * var(--u));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--success);
 }
 
 .plaque.realm .plaque-lives.many {
@@ -117,10 +169,6 @@
   gap: calc(9 * var(--u));
   font-size: calc(12.5 * var(--u));
   color: var(--text);
-}
-
-.plaque.realm .plaque-state {
-  margin-left: auto;
 }
 
 .plaque-state.ready {
@@ -224,7 +272,8 @@
   align-items: center;
   gap: calc(10 * var(--u));
   padding: calc(5 * var(--u)) 0;
-  border-block: 1px solid var(--border);
+  border-block: 1px solid transparent;
+  border-image: var(--ink-rule) 1;
   font-size: calc(17 * var(--u));
 }
 
@@ -788,7 +837,8 @@ span.order-chip {
   display: grid;
   gap: calc(3 * var(--u));
   padding-bottom: calc(7 * var(--u));
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid transparent;
+  border-image: var(--ink-rule) 1;
 }
 
 .duel-box-sides {
@@ -877,7 +927,8 @@ span.order-chip {
   display: grid;
   gap: calc(3 * var(--u));
   padding-top: calc(7 * var(--u));
-  border-top: 1px solid var(--border);
+  border-top: 1px solid transparent;
+  border-image: var(--ink-rule) 1;
 }
 
 .next p {

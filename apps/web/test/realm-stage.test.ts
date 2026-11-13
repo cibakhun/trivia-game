@@ -302,8 +302,27 @@ describe('Spielstand der Partie mit Ausbau', () => {
     expect(plaque(html, 0)).toContain('data-status="ready"');
     expect(textOf(plaque(html, 0))).toContain('✓ fertig');
     expect(plaque(html, 1)).toContain('data-status="busy"');
-    expect(textOf(plaque(html, ME))).toContain('rüstet');
+    expect(textOf(plaque(html, 1))).toContain('rüstet');
     expect(html).not.toContain('am Zug');
+  });
+
+  it('nennt am eigenen Reich statt des Rüststands, was die nächste Runde bringt', () => {
+    const html = seats(prepView());
+    const mine = plaque(html, ME);
+    expect(mine).toContain('data-status="busy"');
+    expect(mine).not.toContain('plaque-state');
+    expect(count(mine, 'class="plaque-plus"')).toBe(2);
+    expect(textOf(mine)).toContain('+4');
+    expect(textOf(mine)).toContain('+5');
+    expect(textOf(mine)).toContain('Einkommen je Runde: 4 Brot, 5 Baustoff');
+    expect(count(html, 'class="plaque-plus"')).toBe(2);
+  });
+
+  it('zeigt am eigenen Reich „am Zug“ an der Stelle des Einkommens', () => {
+    const mine = plaque(seats(targetView(ME)), ME);
+    expect(mine).toContain('plaque realm seat-2 turn me');
+    expect(textOf(mine)).toContain('am Zug');
+    expect(mine).not.toContain('plaque-plus');
   });
 
   it('hebt hervor, wer gerade sein Ziel wählt, und zeigt dann keinen Rüststand', () => {
