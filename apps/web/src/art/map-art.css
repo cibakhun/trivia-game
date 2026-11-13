@@ -1072,10 +1072,18 @@
   stroke-linecap: round;
 }
 
-/* Eben geändert (Aufdecken, Ausgang): goldener Schein, ohne Bewegung */
-.map-art .building.fresh,
-.map-art .army.fresh {
-  filter: drop-shadow(0 0 3px var(--map-gold)) drop-shadow(0 0 2px var(--map-gold));
+/* Eben geändert (Aufdecken, Ausgang): goldener Schein dahinter. Eine eigene Form statt eines
+   Filters: Gebäude und Armeen bewegen sich hier, und Filter auf bewegten Gruppen ruckeln in WebKit */
+.map-art .glow-in {
+  stop-color: var(--map-gold);
+  stop-opacity: 0.8;
+}
+.map-art .glow-out {
+  stop-color: var(--map-gold);
+  stop-opacity: 0;
+}
+.map-art .fresh-glow {
+  pointer-events: none;
 }
 
 .map-art .army-count,
@@ -1166,4 +1174,341 @@
 .map-art .plan-change text {
   font-size: 19px;
   fill: var(--map-coin);
+}
+
+/*
+ * ---------- Bewegung beim Aufdecken und im Ausgang (ADR-067) ----------
+ * Die Karte zeigt schon den neuen Stand; die Bewegung spielt einmal ab, wie es dazu kam. Die
+ * Grundwerte sind immer das Endbild: Ohne Animation (laufende Frage, „Bewegung reduzieren“,
+ * Seite mitten darin geladen) steht es sofort da. Reihenfolge beim Aufdecken: Gebäude wachsen,
+ * neue Armeen treten aus der Burg, dann marschieren die Züge.
+ */
+.map-art {
+  --rise-at: 0.1s;
+  --recruit-at: 0.3s;
+  --recruit-ms: 0.55s;
+  --march-at: 0.6s;
+  --march-ms: 0.95s;
+  /* Ausgang: Der Schlag sitzt nach etwa 0,35 s; die Beschriftungen der beiden Felder kehren nach
+     0,9 s zurück, erst dann sieht man dort eine Armee fallen */
+  --fall-at: 0.35s;
+  --loss-at: 1.05s;
+  --sign-at: 0.7s;
+}
+
+/* Gebäude wächst aus dem Boden und federt nach */
+.map-art .building.rising,
+.map-art .castle.rising {
+  transform-box: fill-box;
+  transform-origin: 50% 92%;
+  animation: building-rise 0.6s var(--rise-at) cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes building-rise {
+  0% {
+    transform: scale(0.7, 0.04);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  62% {
+    transform: scale(1.04, 1.14);
+  }
+  82% {
+    transform: scale(0.99, 0.95);
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Beschädigtes Gebäude: Es wankt und sackt in sich zusammen, Staub steigt auf, dann steht die
+   kleinere Stufe da (oder nichts mehr) */
+.map-art .falling .ruin {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 92%;
+  animation: building-fall 0.75s var(--fall-at) ease-in both;
+}
+/* Damit man es fallen sieht, steht das Feld im Ausgang sofort wieder da; nur der Name wartet,
+   bis das Wappen des Verteidigers fort ist */
+.map-art .region-label.prompt {
+  transition-delay: 0s;
+  transition-duration: 0.15s;
+}
+.map-art .region-label.prompt .board-name {
+  animation: duel-fade-in 0.25s 0.6s ease-out both;
+}
+@keyframes building-fall {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  12% {
+    transform: translateX(-3px) rotate(-3deg);
+  }
+  24% {
+    transform: translateX(3px) rotate(3deg);
+  }
+  36% {
+    transform: translateX(-2px) rotate(-2deg);
+  }
+  48% {
+    transform: translateX(1px) rotate(1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(5px) scale(1.05, 0.1);
+    opacity: 0;
+  }
+}
+.map-art .building.settling {
+  animation: duel-fade-in 0.3s calc(var(--fall-at) + 0.5s) ease-out both;
+}
+.map-art .dust circle {
+  fill: var(--map-rock);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dust-puff 0.6s calc(var(--fall-at) + 0.4s) ease-out both;
+}
+.map-art .dust circle:nth-child(2) {
+  animation-delay: calc(var(--fall-at) + 0.47s);
+}
+.map-art .dust circle:nth-child(3) {
+  animation-delay: calc(var(--fall-at) + 0.55s);
+}
+/* Das Schild über dem Feld kommt erst, wenn der Schlag sitzt; fällt ein Gebäude, danach */
+.map-art .plan-change.late {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sign-in 0.28s var(--sign-at) cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.map-art .plan-change.late.after-fall {
+  --sign-at: calc(var(--fall-at) + 0.75s);
+}
+@keyframes sign-in {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes dust-puff {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(-8px) scale(1.7);
+    opacity: 0;
+  }
+}
+
+/* Zahl auf der Fahne: Die alte steht, bis sich dort etwas tut, dann die neue */
+.map-art .army[data-switch='recruit'] {
+  --switch-at: calc(var(--recruit-at) + var(--recruit-ms) - 0.06s);
+}
+.map-art .army[data-switch='in'] {
+  --switch-at: calc(var(--march-at) + var(--march-ms) - 0.08s);
+}
+.map-art .army[data-switch='out'] {
+  --switch-at: var(--march-at);
+}
+.map-art .army[data-switch='loss'] {
+  --switch-at: var(--loss-at);
+}
+.map-art .army-count.was {
+  opacity: 0;
+  animation: count-out 1ms var(--switch-at, 0s) linear both;
+}
+.map-art .army-count.now {
+  animation: count-in 1ms var(--switch-at, 0s) linear both;
+}
+@keyframes count-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes count-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.map-art .army-body {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+}
+/* Verstärkung angekommen: Der Träger reckt sich kurz */
+.map-art .army.counting:is([data-switch='recruit'], [data-switch='in']) .army-body {
+  animation: army-pop 0.4s var(--switch-at) ease-out both;
+}
+/* Erste Armee auf dem Feld: Sie steht erst da, wenn der Zug ankommt, mit ihrem Schein */
+.map-art .army.arriving .army-body {
+  animation: army-arrive 0.3s var(--switch-at) ease-out both;
+}
+.map-art .army.arriving .fresh-glow {
+  animation: duel-fade-in 0.3s var(--switch-at) ease-out both;
+}
+/* Armee verloren: Der Träger wankt; war es die letzte, fällt er */
+.map-art .army.counting[data-switch='loss'] .army-body {
+  animation: castle-hit 0.5s var(--switch-at) ease-out both;
+}
+.map-art .army.gone .army-body {
+  opacity: 0;
+}
+.map-art .army.gone[data-switch='out'] .army-body {
+  animation: count-out 0.12s var(--switch-at) linear both;
+}
+.map-art .army.gone[data-switch='loss'] .army-body,
+.map-art .army.gone[data-switch='ruin'] .army-body {
+  animation: army-fall 0.65s var(--switch-at) ease-in both;
+}
+/* Neben einer einstürzenden Burg fällt der Bannerträger mit ihr */
+.map-art .army.gone[data-switch='ruin'] {
+  --switch-at: calc(var(--fall-at) + 0.25s);
+}
+@keyframes army-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.24);
+  }
+}
+@keyframes army-arrive {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes army-fall {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+  30% {
+    transform: rotate(-12deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(5px) rotate(80deg);
+    opacity: 0;
+  }
+}
+
+/* Zug: Der Pfeil zieht sich vom Start zum Ziel, dann marschiert der Träger von Fahne zu Fahne.
+   Ohne Rückwirkung: Bis zum Aufbruch ist er unsichtbar, sonst stünde er doppelt da */
+.map-art .plan-move.drawn :is(.move-halo, .move-line) {
+  stroke-dasharray: 1;
+  animation: move-draw 0.35s 0.15s ease-out both;
+}
+.map-art .plan-move.drawn :is(.move-tip, .move-badge) {
+  animation: duel-fade-in 0.2s 0.45s ease-out both;
+}
+@keyframes move-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.map-art .marcher {
+  opacity: 0;
+  pointer-events: none;
+  animation: army-march var(--march-ms) var(--march-at) linear forwards;
+}
+.map-art .marcher-hop {
+  animation: march-hop calc(var(--march-ms) / 5) var(--march-at) ease-in-out 5;
+}
+@keyframes army-march {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  50% {
+    transform: translate(var(--mx), var(--my));
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy));
+    opacity: 0;
+  }
+}
+@keyframes march-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3.5px);
+  }
+}
+/* Neue Armeen treten aus dem Tor der Burg und stellen sich zur Fahne */
+.map-art .marcher.recruit {
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+  animation: army-step-out var(--recruit-ms) var(--recruit-at) ease-out forwards;
+}
+.map-art .marcher.recruit .marcher-hop {
+  animation: march-hop calc(var(--recruit-ms) / 3) var(--recruit-at) ease-in-out 3;
+}
+@keyframes army-step-out {
+  0% {
+    transform: translate(0, 0) scale(0.45);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-art .building.rising,
+  .map-art .castle.rising,
+  .map-art .building.settling,
+  .map-art .falling .ruin,
+  .map-art .dust circle,
+  .map-art .plan-change.late,
+  .map-art .region-label.prompt .board-name,
+  .map-art .army-count,
+  .map-art .army-body,
+  .map-art .army .fresh-glow,
+  .map-art .marcher,
+  .map-art .marcher-hop,
+  .map-art .plan-move.drawn * {
+    animation: none !important;
+  }
 }

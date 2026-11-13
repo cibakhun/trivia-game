@@ -1,7 +1,7 @@
 import { KERNMARK, WENDELMARK } from '@rdw/game-core';
 import { describe, expect, it } from 'vitest';
 import { mapArt } from '../src/art/map-art.ts';
-import { stageFrame, type StageArea } from '../src/art/stage-frame.ts';
+import { seaDepth, stageFrame, type StageArea } from '../src/art/stage-frame.ts';
 
 /**
  * Ausschnitt der Karte auf der Bühne (ADR-059): Die Karte füllt den Bildschirm, das Land liegt
@@ -66,5 +66,32 @@ describe('Ausschnitt der Karte auf der Bühne', () => {
     expect(stageFrame('0 0 400 300', PHONE, 0, 0)).toBeNull();
     expect(stageFrame('kaputt', PHONE, 844, 340)).toBeNull();
     expect(stageFrame('0 0 0 300', PHONE, 844, 340)).toBeNull();
+  });
+});
+
+describe('Tiefe des Meers', () => {
+  it('liegt um die Mitte des sichtbaren Bilds und reicht bis in dessen Ecken', () => {
+    const depth = seaDepth('-206 51 1235 571');
+    expect(depth).toEqual({ cx: 411.5, cy: 336.5, r: 680.31 });
+    if (!depth) throw new Error('keine Tiefe');
+    // Die Ecke des Bilds liegt genau auf dem Rand des Kreises: Dort ist das Meer am dunkelsten
+    expect(Math.hypot(-206 - depth.cx, 51 - depth.cy)).toBeCloseTo(depth.r, 1);
+  });
+
+  it('bleibt im sichtbaren Bild: Schon am linken und rechten Rand dunkelt das Meer nach', () => {
+    const frame = stageFrame(mapArt(WENDELMARK).tightViewBox, PHONE, 844, 340);
+    if (!frame) throw new Error('kein Ausschnitt');
+    const depth = seaDepth(frame.viewBox);
+    if (!depth) throw new Error('keine Tiefe');
+    const [, , width = 0] = frame.viewBox.split(' ').map(Number);
+    // Der Verlauf beginnt bei der Hälfte des Radius: Der Rand des Bilds liegt dahinter
+    expect(width / 2).toBeGreaterThan(depth.r / 2);
+    expect(width / 2).toBeLessThan(depth.r);
+  });
+
+  it('liefert nichts für einen Ausschnitt, der nicht zu lesen ist', () => {
+    expect(seaDepth('kaputt')).toBeNull();
+    expect(seaDepth('0 0 0 300')).toBeNull();
+    expect(seaDepth('0 0 400')).toBeNull();
   });
 });

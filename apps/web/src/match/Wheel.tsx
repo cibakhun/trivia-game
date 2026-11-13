@@ -6,8 +6,9 @@ import { CATEGORY_GLYPH } from '../art/RealmIcons.tsx';
  * Glücksrad eines Duells (MATCH_RULES §11.5, docs/ART_DIRECTION.md §4): Jede Kategorie ist ein
  * Feld, so breit wie ihre Chance. Die Farbe zeigt, wessen Lieblingskategorie ein Feld ist: der
  * Anteil des Angreifers und des Verteidigers in ihren Farben, der Rest ist frei. Kategorien ohne
- * ungestellte Frage fehlen. Das Rad dreht, bis die gezogene Kategorie unter dem Zeiger liegt; mit
- * „Bewegung reduzieren“ steht es sofort dort. Nur Zierde: Was gezogen wurde, sagt das Blatt.
+ * ungestellte Frage fehlen. Das Rad rollt aus, läuft ein Stück über die gezogene Kategorie hinaus
+ * und federt zurück, der Zeiger lehnt sich dabei mit (ADR-067); mit „Bewegung reduzieren“ steht es
+ * sofort dort. Nur Zierde: Was gezogen wurde, sagt das Blatt.
  */
 
 const R = 88;
@@ -74,11 +75,28 @@ export function wheelParts(
   });
 }
 
+/** Wo im gezogenen Feld der Zeiger stehen bleibt, als Anteil seiner Breite. */
+const REST = 0.62;
+/** Mitte des Zeichens eines Felds, als Anteil des Halbmessers. */
+const GLYPH_AT = 0.66;
+
 /** Drehung, bei der `landed` unter dem Zeiger oben liegt; 0 ohne Treffer. */
 export function wheelTurn(parts: readonly WheelPart[], landed: QuestionCategory | null): number {
   const hit = parts.find((p) => p.category === landed);
-  return hit ? -(hit.from + hit.span * 0.62) : 0;
+  return hit ? -(hit.from + hit.span * REST) : 0;
 }
+
+/**
+ * So weit läuft das Rad über sein Ziel hinaus, bevor es zurückfedert, in Grad: höchstens 7 und
+ * nie mehr als 40 % des Wegs bis zum Rand des gezogenen Felds. Der Zeiger verlässt das Feld also
+ * nie, auch ein schmales nicht.
+ */
+export function wheelOvershoot(span: number): number {
+  return Math.max(0, Math.min(7, span * REST * 0.4));
+}
+
+/** Anteil des Ausschlags, um den das Rad danach zur anderen Seite schwingt. */
+export const WHEEL_SWING_BACK = 0.35;
 
 export function Wheel({
   wheel,
@@ -105,9 +123,14 @@ export function Wheel({
   const hit = parts.find((p) => p.category === landed) ?? null;
   const turn = wheelTurn(parts, landed);
   const spinning = spinMs > 0 && hit !== null;
+  const over = hit ? wheelOvershoot(hit.span) : 0;
+  // Wo das Zeichen des gezogenen Felds steht, wenn das Rad steht: Von dort springt es ins Blatt
+  const [markX, markY] = hit ? polar(hit.span * (0.5 - REST), R * GLYPH_AT) : [0, 0];
   const style: CSSProperties = {
     ['--turn' as string]: `${round(turn)}deg`,
     ['--turn-from' as string]: `${round(turn - TURNS * 360)}deg`,
+    ['--turn-over' as string]: `${round(turn + over)}deg`,
+    ['--turn-back' as string]: `${round(turn - over * WHEEL_SWING_BACK)}deg`,
     ['--spin' as string]: `${spinMs}ms`,
     ['--spun' as string]: `${-Math.max(0, Math.round(elapsedMs))}ms`,
   };
@@ -160,7 +183,12 @@ export function Wheel({
       </g>
       <circle r="14" className="wheel-hub" />
       <path d="M0-5L5 0L0 5L-5 0Z" className="wheel-hub-mark" />
-      <path d={`M-14 ${-R - 24}H14L0 ${-R + 10}Z`} className="wheel-pointer" />
+      {hit ? (
+        <circle cx={round(markX)} cy={round(markY)} r="15" className="wheel-mark" data-wheel-mark />
+      ) : null}
+      <g className="wheel-arm">
+        <path d={`M-14 ${-R - 24}H14L0 ${-R + 10}Z`} className="wheel-pointer" />
+      </g>
     </svg>
   );
 }

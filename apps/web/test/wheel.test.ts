@@ -3,7 +3,13 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { realmPlayOf, wheelPreview } from '../src/match/realm-model.ts';
-import { Wheel, wheelParts, wheelTurn } from '../src/match/Wheel.tsx';
+import {
+  Wheel,
+  WHEEL_SWING_BACK,
+  wheelOvershoot,
+  wheelParts,
+  wheelTurn,
+} from '../src/match/Wheel.tsx';
 import { realmViewOf } from './match-fixtures.ts';
 
 /**
@@ -92,6 +98,26 @@ describe('Drehung des Rads', () => {
     const parts = wheelParts(SMALL);
     expect(wheelTurn(parts, null)).toBe(0);
     expect(wheelTurn(parts, 'LITERATURE')).toBe(0);
+  });
+
+  it('läuft höchstens 7 Grad über das Ziel hinaus und federt zurück (ADR-067)', () => {
+    expect(wheelOvershoot(180)).toBe(7);
+    expect(wheelOvershoot(90)).toBe(7);
+    expect(wheelOvershoot(10)).toBeCloseTo(2.48, 6);
+    expect(wheelOvershoot(0)).toBe(0);
+  });
+
+  it('lässt den Zeiger dabei nie das gezogene Feld verlassen, auch ein schmales nicht', () => {
+    for (const wheel of [SMALL, previewWheel()]) {
+      const parts = wheelParts(wheel);
+      for (const part of parts) {
+        const rest = -wheelTurn(parts, part.category);
+        const over = wheelOvershoot(part.span);
+        // Über das Ziel hinaus wandert der Zeiger zum Anfang des Felds, zurück zum Ende
+        expect(rest - over).toBeGreaterThan(part.from);
+        expect(rest + over * WHEEL_SWING_BACK).toBeLessThan(part.to);
+      }
+    }
   });
 });
 

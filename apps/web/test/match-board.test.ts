@@ -3,7 +3,13 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { MatchBoard, type BoardState } from '../src/match/MatchBoard.tsx';
-import type { RealmLayer } from '../src/match/RealmBoardArt.tsx';
+import {
+  armiesBefore,
+  armySwitch,
+  type RealmLayer,
+  type RealmMotion,
+  type RealmMove,
+} from '../src/match/RealmBoardArt.tsx';
 
 /**
  * Karte der Partie als Markup (docs/ART_DIRECTION.md, „Karte und Übersicht“): Reiche mit Farbband,
@@ -103,6 +109,18 @@ describe('Karte der Partie: Reiche', () => {
   });
 });
 
+describe('Karte der Partie: Meer', () => {
+  it('misst die Tiefe des Meers in Karteneinheiten am sichtbaren Bild', () => {
+    const html = render();
+    const gradient = /<radialGradient[^>]*-depth"[^>]*>/.exec(html)?.[0] ?? '';
+    expect(gradient).toContain('gradientUnits="userSpaceOnUse"');
+    // Ohne das wäre der Kreis so groß wie das Rechteck des Meers und im Bild nie zu sehen
+    const r = Number(/ r="([\d.]+)"/.exec(gradient)?.[1]);
+    expect(r).toBeGreaterThan(100);
+    expect(r).toBeLessThan(1000);
+  });
+});
+
 describe('Karte der Partie: Wert und Armeen', () => {
   it('zeigt ohne Ausbau auf jedem Feld die Münze mit dem Wert', () => {
     expect(count(render(), 'class="coin')).toBe(WENDELMARK.regions.length);
@@ -125,5 +143,163 @@ describe('Karte der Partie: Wert und Armeen', () => {
     expect(count(html, 'class="army seat-')).toBe(2);
     expect(html.match(/<use[^>]*-bearer"/g)).toHaveLength(2);
     expect(html).toContain('class="army-count">3<');
+  });
+});
+
+describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', () => {
+  interface Layer {
+    readonly armies?: Readonly<Record<number, number>>;
+    readonly buildings?: Readonly<Record<number, 'VILLAGE' | 'TOWN' | 'CASTLE'>>;
+    readonly moves?: readonly RealmMove[];
+    readonly fresh?: readonly number[];
+    readonly motion?: RealmMotion | null;
+  }
+  const layer = (options: Layer): RealmLayer => ({
+    regions: WENDELMARK.regions.map((r) => ({
+      building: options.buildings?.[r.id] ?? ('NONE' as const),
+      armies: options.armies?.[r.id] ?? 0,
+      castleLives: 0,
+      held: 0,
+    })),
+    moves: options.moves ?? [],
+    fresh: options.fresh ?? [],
+    motion: options.motion ?? null,
+  });
+  const MOVING = ['rising', 'falling', 'counting', 'arriving', 'army gone', 'marcher', 'drawn'];
+
+  it('rechnet aus der Bewegung zurück, wie viele Armeen vorher auf dem Feld standen', () => {
+    expect(armiesBefore(3, null)).toBe(3);
+    expect(armiesBefore(3, { recruited: 2 })).toBe(1);
+    expect(armiesBefore(2, { arrived: 2 })).toBe(0);
+    expect(armiesBefore(0, { left: 1 })).toBe(1);
+    expect(armiesBefore(4, { recruited: 2, left: 1, arrived: 1 })).toBe(2);
+    // `lost` nennt den Sitz, verloren geht genau eine Armee
+    expect(armiesBefore(1, { lost: 2 })).toBe(2);
+  });
+
+  it('wechselt die Zahl auf der Fahne mit dem, was dort geschah', () => {
+    expect(armySwitch({ recruited: 1, left: 1 })).toBe('recruit');
+    expect(armySwitch({ arrived: 1, left: 1 })).toBe('in');
+    expect(armySwitch({ left: 1 })).toBe('out');
+    expect(armySwitch({ lost: 0, arrived: 1 })).toBe('loss');
+  });
+
+  it('steht ohne miterlebten Wechsel sofort im Endbild', () => {
+    const html = render({
+      realm: layer({
+        armies: { 0: 2 },
+        buildings: { 1: 'VILLAGE' },
+        moves: [{ from: 1, to: 0, count: 1, seat: 0 }],
+        fresh: [0, 1],
+      }),
+    });
+    for (const word of MOVING) expect(html).not.toContain(word);
+    expect(html).toContain('class="building fresh"');
+    expect(html).toContain('class="army seat-0 fresh"');
+  });
+
+  it('lässt ein eben gebautes Gebäude aus dem Boden wachsen', () => {
+    const html = render({
+      realm: layer({
+        buildings: { 1: 'VILLAGE' },
+        fresh: [1],
+        motion: { kind: 'orders', fields: { 1: { built: true } } },
+      }),
+    });
+    expect(html).toContain('class="building fresh rising"');
+    expect(count(html, ' rising"')).toBe(1);
+  });
+
+  it('zählt die Fahne um, wenn neue Armeen aus der Burg treten, und lässt sie herauslaufen', () => {
+    const html = render({
+      realm: layer({
+        armies: { 0: 3 },
+        buildings: { 0: 'CASTLE' },
+        fresh: [0],
+        motion: { kind: 'orders', fields: { 0: { recruited: 2 } } },
+      }),
+    });
+    expect(html).toContain('class="army seat-0 fresh counting"');
+    expect(html).toContain('data-switch="recruit"');
+    expect(html).toContain('class="army-count was">1<');
+    expect(html).toContain('class="army-count now">3<');
+    expect(count(html, 'class="marcher recruit seat-0"')).toBe(1);
+    expect(html).toContain('class="army-count">+2<');
+  });
+
+  it('lässt einen Zug vom Banner zum Banner marschieren: Aufbruch, Weg, Ankunft', () => {
+    const html = render({
+      realm: layer({
+        armies: { 0: 1, 1: 2 },
+        moves: [{ from: 0, to: 1, count: 2, seat: 0 }],
+        fresh: [1],
+        motion: { kind: 'orders', fields: { 0: { left: 2 }, 1: { arrived: 2 } } },
+      }),
+    });
+    expect(html).toContain('class="plan-move drawn"');
+    expect(count(html, 'class="marcher seat-0"')).toBe(1);
+    // Am Start bleibt eine Armee: Die Fahne zählt von 3 auf 1, sobald der Zug aufbricht
+    expect(html).toContain('data-switch="out"');
+    expect(html).toContain('class="army-count was">3<');
+    // Am Ziel stand vorher niemand: Der Bannerträger erscheint mit der Ankunft
+    expect(html).toContain('class="army seat-0 fresh arriving"');
+    expect(html).toContain('data-switch="in"');
+  });
+
+  it('zeigt den Bannerträger eines geräumten Felds noch, bis er aufbricht', () => {
+    const html = render({
+      realm: layer({
+        armies: { 1: 1 },
+        moves: [{ from: 0, to: 1, count: 1, seat: 0 }],
+        motion: { kind: 'orders', fields: { 0: { left: 1 }, 1: { arrived: 1 } } },
+      }),
+    });
+    expect(count(html, 'class="army gone seat-0"')).toBe(1);
+  });
+
+  it('lässt ein beschädigtes Gebäude fallen und holt die Beschriftung sofort zurück', () => {
+    const html = render({
+      realm: layer({
+        buildings: { 1: 'VILLAGE' },
+        fresh: [1],
+        motion: { kind: 'outcome', fields: { 1: { fell: 'TOWN' } } },
+      }),
+    });
+    expect(html).toContain('class="building falling"');
+    expect(html).toContain('data-fell="TOWN"');
+    expect(html.match(/class="ruin"><use[^>]*-town"/g)).toHaveLength(1);
+    expect(html).toContain('class="building fresh settling"');
+    expect(count(html, ' prompt"')).toBe(1);
+  });
+
+  it('lässt eine genommene Burg mit ihren Schilden und ihrem Bannerträger einstürzen', () => {
+    // Feld 5 gehört nach dem Sieg mir (Sitz 2); die Burg dort verlor Sitz 0
+    const html = render({
+      home: ME,
+      realm: layer({
+        motion: { kind: 'outcome', fields: { 5: { fell: 'CASTLE', fellOf: 0, lost: 0 } } },
+      }),
+    });
+    expect(count(html, 'class="castle falling"')).toBe(1);
+    expect(html.match(/class="ruin"><use[^>]*-castle"/g)).toHaveLength(1);
+    expect(count(html, 'class="life life-off"')).toBe(3);
+    expect(html).toContain('class="army gone seat-0" style="--flag:var(--seat-0)"');
+    expect(html).toContain('data-switch="ruin"');
+    // Die Beschriftung des Felds wartet wie bei jeder Eroberung
+    expect(html).not.toContain(' prompt"');
+  });
+
+  it('lässt die verlorene Armee des Verlierers fallen, wo sie stand', () => {
+    const html = render({
+      realm: layer({
+        armies: { 0: 1 },
+        motion: { kind: 'outcome', fields: { 0: { lost: 0 }, 5: { lost: 2 } } },
+      }),
+    });
+    // Feld 0 behält eine von zwei Armeen, Feld 5 verliert seine letzte
+    expect(html).toContain('class="army seat-0 counting"');
+    expect(html).toContain('class="army-count was">2<');
+    expect(html).toContain(`class="army gone seat-${ME}"`);
+    expect(count(html, 'data-switch="loss"')).toBe(2);
   });
 });

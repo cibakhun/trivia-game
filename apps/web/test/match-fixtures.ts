@@ -207,8 +207,12 @@ export interface RealmViewOptions {
   readonly armies?: Readonly<Record<number, number>>;
   /** Felder, die niemandem gehören (ADR-062): ohne Gebäude und ohne Armeen. */
   readonly free?: readonly number[];
+  /** Felder, die einem anderen Sitz gehören als im Grundbild (eben erobert). */
+  readonly owners?: Readonly<Record<number, number>>;
   /** Gehaltene Verteidigungen je Feld: Jede hebt den Wert um 50 (MATCH_RULES §11.7). */
   readonly held?: Readonly<Record<number, number>>;
+  /** Leben einer Burg, wenn sie schon getroffen ist; ohne Angabe drei. */
+  readonly castleLives?: Readonly<Record<number, number>>;
   readonly eliminated?: readonly number[];
   readonly step?: Partial<RealmStepView>;
   /** Zugfolge links; ohne Angabe sind Sitz 0 und 1 fertig und ich (Sitz 2) rüste noch. */
@@ -247,11 +251,11 @@ export function realmViewOf(
   const board: RealmBoardView = {
     map: options.map ?? 'WENDELMARK',
     regions: REALM_OWNER.map((seat, id) => ({
-      owner: free.has(id) ? null : seat,
+      owner: free.has(id) ? null : (options.owners?.[id] ?? seat),
       value: (REALM_CASTLES[id] !== undefined ? 300 : 100) + 50 * (options.held?.[id] ?? 0),
       fortifications: options.held?.[id] ?? 0,
       building: buildingAt(id),
-      castleLivesLeft: buildingAt(id) === 'CASTLE' ? 3 : 0,
+      castleLivesLeft: buildingAt(id) === 'CASTLE' ? (options.castleLives?.[id] ?? 3) : 0,
       startCastleOf: REALM_CASTLES[id] ?? null,
       armies: free.has(id) ? 0 : (options.armies?.[id] ?? REALM_ARMIES_AT[id] ?? 0),
     })),

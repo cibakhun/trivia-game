@@ -13,7 +13,12 @@ import type { RealmPlay } from './realm-model.ts';
  * In der Rüstzeit steht bei den anderen daneben, wer schon fertig ist und wer noch rüstet; wer
  * gerade wählt, trägt einen goldenen Rand und „am Zug“. Das eigene Reich ist getönt und nennt an
  * dieser Stelle, was die nächste Runde bringt: Den eigenen Rüststand zeigt schon das Blatt rechts.
+ * Vorräte zählen sichtbar hoch und herunter, wenn sie sich ändern; das Einkommen einer Runde zeigen
+ * sie erst, wenn deren Rüstzeit beginnt (ADR-067).
  */
+
+/** So lange zählt ein Vorrat, wenn er sich ändert. */
+const STOCK_COUNT_MS = 500;
 
 /** Ab so vielen Leben steht statt einzelner Schilde eine Zahl (zwei Burgen). */
 const SHIELDS_MAX = 3;
@@ -24,10 +29,28 @@ export function RealmSeatList({
   view,
   play,
   name,
+  receiving = null,
+  pending = null,
 }: {
   readonly view: MatchView;
   readonly play: RealmPlay;
   readonly name: SeatName;
+  /**
+   * Das Einkommen wandert gerade von den eigenen Feldern in den eigenen Vorrat: Dort zählen die
+   * Zahlen erst hoch, wenn es ankommt.
+   */
+  readonly receiving?: { readonly delayMs: number; readonly durationMs: number } | null;
+  /**
+   * Einkommen, das der Server schon verbucht hat, das aber erst mit der Rüstzeit gezeigt wird (es
+   * kommt mit dem Ende der Runde davor): Bis dahin steht in den Vorräten noch der Stand davor.
+   */
+  readonly pending?:
+    | readonly {
+        readonly seat: number;
+        readonly bread: number;
+        readonly material: number;
+      }[]
+    | null;
 }) {
   const { board } = play;
   const preparing = view.phase?.kind === 'PREPARE';
@@ -52,6 +75,17 @@ export function RealmSeatList({
           // „am Zug“ steht rechts im Fuß, wo am eigenen Reich sonst das Einkommen steht
           const income = mine && status !== 'turn';
           const pill = status !== null && (status === 'turn' || !mine);
+          const arriving = mine ? receiving : null;
+          const wait = pending?.find((entry) => entry.seat === s.seat);
+          const stock = (value: number) => (
+            <CountUp
+              value={value}
+              render={String}
+              durationMs={arriving?.durationMs ?? STOCK_COUNT_MS}
+              delayMs={arriving?.delayMs ?? 0}
+              steady={arriving !== null}
+            />
+          );
           return (
             <li
               key={s.seat}
@@ -61,10 +95,12 @@ export function RealmSeatList({
                 `seat-${s.seat}`,
                 status === 'turn' ? 'turn' : '',
                 mine ? 'me' : '',
+                arriving ? 'receiving' : '',
                 s.eliminated ? 'eliminated' : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
+              style={arriving ? { ['--receive-at' as string]: `${arriving.delayMs}ms` } : undefined}
               data-seat={s.seat}
               data-status={status ?? undefined}
             >
@@ -94,7 +130,12 @@ export function RealmSeatList({
                   <span className="plaque-out">{t('match.seats.eliminated')}</span>
                 ) : (
                   <>
-                    <Amount kind="bread" value={s.bread} label={t('realm.bread')} size={15} />
+                    <Amount
+                      kind="bread"
+                      value={stock(Math.max(0, s.bread - (wait?.bread ?? 0)))}
+                      label={t('realm.bread')}
+                      size={15}
+                    />
                     {/* Was die nächste Runde bringt, steht nur am eigenen Reich */}
                     {income ? (
                       <span className="plaque-plus" aria-hidden="true">
@@ -103,7 +144,7 @@ export function RealmSeatList({
                     ) : null}
                     <Amount
                       kind="material"
-                      value={s.material}
+                      value={stock(Math.max(0, s.material - (wait?.material ?? 0)))}
                       label={t('realm.material')}
                       size={15}
                     />
