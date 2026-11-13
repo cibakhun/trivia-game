@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { botThinkMs } from '../src/modules/match/view.ts';
+import { botThinkMs } from '../src/modules/match/bot-think.ts';
 
 /**
  * Bedenkzeit, nach der ein Bot bei einer Wissensfrage als fertig angezeigt wird (API.md §2.6,

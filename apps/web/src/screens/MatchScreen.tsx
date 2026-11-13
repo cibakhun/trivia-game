@@ -1,6 +1,13 @@
 import type { MatchBotStrengthCode, QuestionCategory, RealmOrderDto } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
-import { ActionKey, ApiRequestError, NetworkError, api, newActionKey } from '../api/client.ts';
+import {
+  ActionKey,
+  ApiRequestError,
+  NetworkError,
+  api,
+  isTransientError,
+  newActionKey,
+} from '../api/client.ts';
 import { playSound } from '../audio/sound.ts';
 import {
   countedAnswer,
@@ -100,6 +107,8 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     api
       .watchMatchQuestion(matchId, questionSeq)
       .then((res) => {
+        // Kommt die Antwort erst, wenn schon die nächste Frage geholt wird, zählt sie nicht mehr
+        if (watching.current !== questionSeq) return;
         setWatched({
           seq: questionSeq,
           question: res.question,
@@ -107,8 +116,9 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
         });
       })
       .catch((e: unknown) => {
-        if (e instanceof NetworkError) {
-          // Nächste Abfrage versucht es erneut
+        if (watching.current !== questionSeq) return;
+        if (isTransientError(e)) {
+          // Kein Netz oder der Server stolpert: Die nächste Abfrage versucht es erneut
           watching.current = null;
           return;
         }

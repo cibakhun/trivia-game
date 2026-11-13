@@ -80,6 +80,8 @@ function measure(rules: RealmRules): void {
   const incomeByRound: number[] = Array.from({ length: rules.campaign.rounds }, () => 0);
   const full: number[] = [];
   const typical: number[] = [];
+  const solo: number[] = [];
+  const soloInstant: number[] = [];
   const winsByPlace: number[] = Array.from({ length: rules.seats }, () => 0);
   const seats = rules.seats;
 
@@ -88,6 +90,8 @@ function measure(rules: RealmRules): void {
     const { state, events } = run;
     full.push(run.durationMs.full / 60_000);
     typical.push(run.durationMs.typical / 60_000);
+    solo.push(run.durationMs.solo / 60_000);
+    soloInstant.push(run.durationMs.soloInstant / 60_000);
     questions += state.questions;
     // Partien, in denen mindestens ein Reich fällt (zu dritt können es zwei sein)
     if (events.some((e) => e.kind === 'KINGDOM_ELIMINATED')) falls += 1;
@@ -214,6 +218,9 @@ function measure(rules: RealmRules): void {
   console.log(`Partien, in denen ein Reich fällt: ${pct(falls, n)}`);
   console.log(
     `Dauer typisch: Mittel ${mean(typical).toFixed(1)} min (90 %: ${q(typical, 0.9).toFixed(1)}); ausgereizt: Mittel ${mean(full).toFixed(1)}, höchstens ${Math.max(...full).toFixed(1)} min`,
+  );
+  console.log(
+    `Dauer allein gegen Bots (nur Sitz 0 ein Mensch): Mittel ${mean(solo).toFixed(1)} min (90 %: ${q(solo, 0.9).toFixed(1)}); wenn Fragen nur an Bots sofort aufgelöst würden: ${mean(soloInstant).toFixed(1)} min`,
   );
   console.log(`Sieg nach Platz der Startfrage: ${winsByPlace.map((w) => pct(w, n)).join(' / ')}`);
 }

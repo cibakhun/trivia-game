@@ -68,6 +68,16 @@ export class NetworkError extends Error {
   }
 }
 
+/**
+ * Fehler, nach denen derselbe lesende Aufruf später gelingen kann: kein Netz, Überlast (429) oder
+ * ein Fehler des Servers oder eines Zwischenrechners (5xx). Alles andere ist eine Antwort, die
+ * bleibt.
+ */
+export function isTransientError(error: unknown): boolean {
+  if (error instanceof NetworkError) return true;
+  return error instanceof ApiRequestError && (error.status === 429 || error.status >= 500);
+}
+
 interface RequestOptions {
   readonly body?: unknown;
   /** Schlüssel des Kommandos (alle POST außer den Ausnahmen in API.md §1). */

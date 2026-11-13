@@ -13,7 +13,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { buildApp, runMatchDriverOnce } from '../src/index.ts';
 import { createLobby } from '../src/modules/match/lobby.ts';
-import { botThinkMs } from '../src/modules/match/view.ts';
+import { botThinkMs } from '../src/modules/match/bot-think.ts';
 import { ApiError } from '../src/infra/errors.ts';
 import {
   TestClient,
@@ -435,10 +435,14 @@ describe('Wer schon geantwortet hat (API.md §2.6)', () => {
       botStrengths: ['MEDIUM', 'MEDIUM'],
     });
     expect((await startMatch(human, matchId)).statusCode).toBe(200);
+    // Eine Frage an den Menschen: Eine nur an Bots endet mit deren Bedenkzeit (O-43)
     const opened = await playToEnd(
       matchId,
       [{ human, mode: 'ACTIVE' }],
-      (current) => current.phase?.kind === 'QUESTION' && current.question?.kind === 'TRIVIA',
+      (current) =>
+        current.phase?.kind === 'QUESTION' &&
+        current.question?.kind === 'TRIVIA' &&
+        current.question.myStatus !== 'NOT_PARTICIPATING',
     );
     const question = opened.question;
     if (!question) throw new Error('Keine Wissensfrage erreicht');

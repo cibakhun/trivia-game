@@ -413,6 +413,11 @@ describe('Warteschlange der Bänder', () => {
     // auch einer, der erst mit der Frage eintrifft
     expect(holdSkips(during.held, [later], 'question')).toEqual({ fresh: [later], held: [] });
     expect(holdSkips([], [], 'question').held).toEqual([]);
+    // Dasselbe für den, der der Frage nur zuschaut: Sonst käme das Band ein Duell zu spät
+    expect(holdSkips(during.held, [later], 'spectating')).toEqual({ fresh: [later], held: [] });
+    const next = holdSkips(during.held, [], 'spectating');
+    expect(holdSkips(next.held, [], 'reveal').held).toEqual([]);
+    expect(holdSkips(next.held, [], 'announce')).toEqual({ fresh: [], held: [] });
   });
 
   it('ein zweites „Du bist dran“ stellt sich nicht hinter das erste', () => {

@@ -231,8 +231,10 @@ export async function presentMatchQuestion(
  * Frage nicht gefragt ist, also auch für ein gefallenes Reich. Geliefert werden Frage und
  * Antworten in der Reihenfolge der Partie, nie die Wahl eines Sitzes und nichts zur Lösung. Es
  * entsteht keine Zeile in `match_answers` und kein eigener Zeitlauf: Die Restzeit ist das
- * Zeitlimit ab dem Öffnen. Wer selbst gefragt ist, bekommt die Frage hier nicht, sonst läse er
- * sie, ehe seine Zeit läuft. Nur die laufende Frage: Nach der Auflösung steht alles im Ereignis.
+ * Zeitlimit ab dem Öffnen; sind nur Bots gefragt, endet die Frage mit ihrer Bedenkzeit (O-43),
+ * und die Restzeit reicht nur bis dahin. Wer selbst gefragt ist, bekommt die Frage hier nicht,
+ * sonst läse er sie, ehe seine Zeit läuft. Nur die laufende Frage: Nach der Auflösung steht alles
+ * im Ereignis.
  */
 export async function watchMatchQuestion(
   db: Db,
@@ -255,7 +257,9 @@ export async function watchMatchQuestion(
   }
   const content = await loadQuestionContent(db, question.version_id);
   const now = await readGameNow(db);
-  const until = new Date(question.opened_at.getTime() + question.time_limit_ms);
+  // Die Frist der Phase liegt nur dann vor dem Zeitlimit, wenn kein Mensch gefragt ist
+  const limit = question.opened_at.getTime() + question.time_limit_ms;
+  const until = new Date(Math.min(limit, match.phaseDeadlineAt?.getTime() ?? limit));
   return {
     question: questionFor(params.matchId, question, content, question.opened_at, until, now),
     serverTime: now.toISOString(),
