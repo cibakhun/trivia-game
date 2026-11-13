@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { ActionKey, ApiRequestError, NetworkError, isTransientError } from '../src/api/client.ts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  ActionKey,
+  ApiRequestError,
+  NetworkError,
+  api,
+  isTransientError,
+} from '../src/api/client.ts';
 
 describe('ActionKey', () => {
   it('behält den Schlüssel nach einem Netzfehler für dieselbe Eingabe', () => {
@@ -46,5 +52,38 @@ describe('isTransientError', () => {
     expect(isTransientError(new ApiRequestError(404, 'NOT_FOUND'))).toBe(false);
     // Eine Antwort, die nicht zum Protokoll passt, wird durch Wiederholen nicht besser
     expect(isTransientError(new Error('Antwort ungültig'))).toBe(false);
+  });
+});
+
+describe('Antwort lesen', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('meldet eine Antwort, die beim Lesen abreißt, als Netzfehler', async () => {
+    vi.stubGlobal('fetch', () =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        text: () => Promise.reject(new TypeError('terminated')),
+      }),
+    );
+    const failed = await api.watchMatchQuestion('partie', 3).catch((e: unknown) => e);
+    expect(failed).toBeInstanceOf(NetworkError);
+    expect(isTransientError(failed)).toBe(true);
+  });
+
+  it('nimmt eine Antwort, die nicht zum Protokoll passt, als endgültig', async () => {
+    vi.stubGlobal('fetch', () => Promise.resolve(new Response('{"frage":1}', { status: 200 })));
+    const failed = await api.watchMatchQuestion('partie', 3).catch((e: unknown) => e);
+    expect(failed).toBeInstanceOf(Error);
+    expect(isTransientError(failed)).toBe(false);
+  });
+
+  it('nimmt die Fehlerseite eines Zwischenrechners als vorübergehend', async () => {
+    vi.stubGlobal('fetch', () => Promise.resolve(new Response('<html>', { status: 502 })));
+    const failed = await api.watchMatchQuestion('partie', 3).catch((e: unknown) => e);
+    expect(failed).toBeInstanceOf(ApiRequestError);
+    expect(isTransientError(failed)).toBe(true);
   });
 });

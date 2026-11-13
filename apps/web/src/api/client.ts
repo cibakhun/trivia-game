@@ -125,7 +125,13 @@ async function request<S extends z.ZodType>(
   options: RequestOptions = {},
 ): Promise<z.output<S>> {
   const response = await send(method, path, options);
-  const text = await response.text();
+  let text: string;
+  try {
+    text = await response.text();
+  } catch (error) {
+    // Die Verbindung riss, während die Antwort kam: Ob sie gilt, weiß der Browser nicht
+    throw new NetworkError(error);
+  }
   if (!response.ok) {
     // Fehlerseiten von Proxys sind kein JSON; dann zählt nur der Status
     let json: unknown;
