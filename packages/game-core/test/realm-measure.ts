@@ -20,12 +20,16 @@ const rounds = process.argv[3] ? Number(process.argv[3]) : undefined;
 
 type Json = { readonly [key: string]: unknown };
 
-/** Legt `patch` über `base`: Objekte Schlüssel für Schlüssel, alles andere ersetzt. */
+/**
+ * Legt `patch` über `base`: Objekte Schlüssel für Schlüssel, alles andere ersetzt. `null` nimmt
+ * einen Schlüssel heraus, etwa `{"attackNeedsArmy":null}` für die Regeln von vor ADR-064.
+ */
 function overlay<T>(base: T, patch: unknown): T {
   if (typeof patch !== 'object' || patch === null || Array.isArray(patch)) return patch as T;
   const out: Record<string, unknown> = { ...(base as Json) };
   for (const [key, value] of Object.entries(patch as Json)) {
-    out[key] = overlay((base as Json | undefined)?.[key], value);
+    if (value === null) delete out[key];
+    else out[key] = overlay((base as Json | undefined)?.[key], value);
   }
   return out as T;
 }
@@ -70,6 +74,9 @@ function measure(rules: RealmRules): void {
   let startFewest = 0;
   let startMost = 0;
   let winsOfLargest = 0;
+  let skipped = 0;
+  let skippedMatches = 0;
+  const skippedByRound: number[] = Array.from({ length: rules.campaign.rounds }, () => 0);
   const incomeByRound: number[] = Array.from({ length: rules.campaign.rounds }, () => 0);
   const full: number[] = [];
   const typical: number[] = [];
@@ -89,7 +96,14 @@ function measure(rules: RealmRules): void {
       leftBread += s.bread;
       leftMaterial += s.material;
     }
+    // Angriffe, die ausfielen, weil keine eigene Armee an einem Ziel stand (ADR-064)
+    if (events.some((e) => e.kind === 'ATTACK_SKIPPED')) skippedMatches += 1;
     for (const e of events) {
+      if (e.kind === 'ATTACK_SKIPPED') {
+        skipped += 1;
+        skippedByRound[e.round - 1] = (skippedByRound[e.round - 1] ?? 0) + 1;
+        continue;
+      }
       // Angriff auf ein freies Feld (O-37): eigene Zählung, kein Duell
       if (e.kind === 'DUEL_RESOLVED' && e.defender === null) {
         claims += 1;
@@ -166,6 +180,9 @@ function measure(rules: RealmRules): void {
   console.log(`Fragen je Partie: ${(questions / n).toFixed(1)}`);
   console.log(
     `Angriffe auf freie Felder je Partie: ${(claims / n).toFixed(1)}, davon genommen ${claims > 0 ? pct(claimed, claims) : '–'}; frei am Ende: ${(freeLeft / n).toFixed(1)} Felder`,
+  );
+  console.log(
+    `Ausgefallene Angriffe je Partie (keine Armee am Ziel): ${(skipped / n).toFixed(2)} von ${(seats * rules.campaign.rounds).toFixed(0)}, je Runde ${skippedByRound.map((x) => (x / n).toFixed(2)).join(' / ')}; Partien mit mindestens einem: ${pct(skippedMatches, n)}`,
   );
   console.log(
     `Vorrat am Ende je Spieler, Brot / Baustoff: ${(leftBread / n / seats).toFixed(1)} / ${(leftMaterial / n / seats).toFixed(1)}`,

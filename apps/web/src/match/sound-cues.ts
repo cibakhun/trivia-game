@@ -115,6 +115,7 @@ export function cuesFor(
       case 'INCOME':
       case 'ORDERS_SUBMITTED':
       case 'PREPARE_CLOSED':
+      case 'ATTACK_SKIPPED':
       case 'WHEEL_SPUN':
       case 'REALM_MATCH_FINISHED':
         break;

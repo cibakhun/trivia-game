@@ -724,6 +724,8 @@ export const de = {
       CASTLE_PICK: 'Burg setzen',
       VILLAGE_PICK: 'Dorf setzen',
       PREPARE: 'Rüstzeit',
+      // Der Angriff dieses Reichs fiel in dieser Runde aus (ADR-064)
+      skipped: 'setzt aus',
     },
     seats: {
       ready: '✓ fertig',
@@ -751,6 +753,16 @@ export const de = {
       hintLand: 'Markierte Felder sind wählbar. Läuft die Zeit ab, wählt der Server zufällig.',
       hintTarget:
         'Tippe ein markiertes Feld an, auch ein freies. Du siehst dann die Lose im Glücksrad und greifst mit „Angreifen“ an.',
+      // Angriff nur mit Armee (ADR-064): Markiert ist nur, was neben einer eigenen Armee liegt
+      hintTargetArmy:
+        'Markiert ist, was neben einer deiner Armeen liegt, auch freie Felder. Tippe eines an: Du siehst die Lose im Glücksrad und greifst mit „Angreifen“ an.',
+      hintTargetRivals:
+        'Markiert sind freie Felder an deinem Land und fremde Felder neben einer deiner Armeen. Tippe eines an: Du siehst die Lose im Glücksrad und greifst mit „Angreifen“ an.',
+      // Tipp auf ein Feld, das kein Ziel ist
+      refused: {
+        NO_ARMY: 'Kein Ziel: Neben {region} steht keine deiner Armeen.',
+        FAR: 'Kein Ziel: {region} grenzt nicht an dein Land.',
+      },
       attack: 'Angreifen',
     },
     target: {
@@ -850,8 +862,16 @@ export const de = {
         owner: 'Reich von {owner}',
         now: 'In der Rüstzeit geht hier nichts.',
         near: 'Das Feld grenzt an dein Land: Im Feldzug danach kannst du es angreifen.',
+        // Angriff nur mit Armee (ADR-064), gemessen am Entwurf
+        reach: 'Eine deiner Armeen steht daneben: Im Feldzug danach kannst du es angreifen.',
+        noArmy:
+          'Daneben steht keine deiner Armeen. Zieh eine auf ein Nachbarfeld, dann kannst du es angreifen.',
         far: 'Es grenzt nicht an dein Land, angreifen kannst du es deshalb noch nicht.',
       },
+      // Nach dem Entwurf stünde keine Armee neben einem Ziel (ADR-064)
+      noTarget: 'Ohne Armee an der Grenze fällt dein Angriff aus.',
+      noTargetShort: 'Keine Armee an der Grenze',
+      doneNoAttack: 'Fertig ohne Angriff',
       less: 'weniger',
       more: 'mehr',
       orders: 'Deine Befehle',
@@ -868,6 +888,7 @@ export const de = {
         TRADE_LONG: '{give} gegen {get} tauschen',
       },
       dropped: 'Ohne diesen Befehl ging ein späterer nicht mehr. Er ist mit herausgefallen.',
+      droppedShort: 'Folgebefehl mit entfernt',
       done: 'Fertig',
       change: 'Befehle ändern',
       submitted: 'Abgegeben.',
@@ -883,6 +904,8 @@ export const de = {
       traded: '{count} mal getauscht',
       nothing: 'rüstet nicht',
       next: 'Gleich greift ihr der Reihe nach an: {names}.',
+      skipped: 'Kein Angriff, weil keine Armee neben einem Ziel steht: {names}.',
+      nobody: 'In dieser Runde greift niemand an.',
     },
     wheel: {
       title: 'Glücksrad',
@@ -1026,6 +1049,7 @@ export const de = {
       INCOME: 'Runde {round}: Das Einkommen ist da.',
       ORDERS_SUBMITTED: '{name} ist fertig.',
       ORDERS_REVEALED: 'Die Befehle sind aufgedeckt.',
+      ATTACK_SKIPPED: '{name} setzt aus: keine Armee neben einem Ziel.',
       WHEEL_SPUN: 'Das Glücksrad zeigt {category}.',
     },
     moment: {
@@ -1033,6 +1057,11 @@ export const de = {
       villages: 'Jetzt die Dörfer',
       prepare: 'Rüstzeit',
       orders: 'Die Befehle werden aufgedeckt',
+      skipped: '{name} setzt aus',
+      skippedMe: 'Dein Angriff fällt aus',
+      skippedDetail: 'Keine Armee neben einem Ziel',
+      skippedMany: 'Angriffe fallen aus',
+      skippedManyDetail: 'Keine Armee neben einem Ziel: {names}',
       landDetail: {
         one: 'Eine Runde. Was frei bleibt, holst du dir im Feldzug.',
         other: '{count} Runden. Was frei bleibt, holst du dir im Feldzug.',
@@ -1082,6 +1111,11 @@ export const de = {
       attack: {
         title: 'Angreifen',
         text: 'Dann greift jedes Reich ein Feld an seinem Land an. Das Glücksrad zieht die Kategorie: Mit mehr Armeen am Ziel kommt eher eine deiner liebsten.',
+        // Angriff nur mit Armee (ADR-064)
+        textArmy:
+          'Dann greift jedes Reich ein Feld neben einer eigenen Armee an; ohne Armee an der Grenze fällt sein Angriff aus. Das Glücksrad zieht die Kategorie: Mehr Armeen am Ziel bringen eher eine deiner liebsten.',
+        textRivals:
+          'Dann greift jedes Reich ein Feld an seinem Land an, ein fremdes Reich nur neben einer eigenen Armee. Das Glücksrad zieht die Kategorie: Mehr Armeen am Ziel bringen eher eine deiner liebsten.',
       },
       duel: {
         title: 'Das Duell',

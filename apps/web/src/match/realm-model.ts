@@ -1,4 +1,5 @@
 import {
+  armiesInRangeOn,
   buildingLevel,
   planRealmOrders,
   REALM_BUILDINGS,
@@ -433,9 +434,60 @@ export function fieldRows(
   return { build, buy, move };
 }
 
-/** Grenzt das Feld an Land dieses Reichs? Nur solche Felder kann es im Feldzug angreifen (§11.1). */
-export function bordersRealm(play: RealmPlay, seat: number, region: number): boolean {
-  return regionNeighbors(play.map, region).some((id) => play.board.regions[id]?.owner === seat);
+/**
+ * Ob ein Reich ein Feld im Feldzug angreifen kann (MATCH_RULES §11.1, ADR-064): Das Ziel grenzt ans
+ * eigene Land, und wo die Regeln es verlangen (`economy.attackNeedsArmy`), steht eine eigene Armee
+ * daneben.
+ */
+export type AttackReach =
+  /** Das Feld gehört dem Reich selbst. */
+  | 'OWN'
+  /** Es grenzt nicht ans eigene Land. */
+  | 'FAR'
+  /** Es grenzt ans eigene Land, aber auf keinem eigenen Nachbarfeld steht eine Armee. */
+  | 'NO_ARMY'
+  | 'TARGET';
+
+/** Wie `attackReach`, gemessen an einem beliebigen Stand der Felder (etwa nach dem Entwurf). */
+export function attackReachOn(
+  play: RealmPlay,
+  regions: readonly RealmRegionView[],
+  seat: number,
+  region: number,
+): AttackReach {
+  const target = regions[region];
+  if (!target || target.owner === seat) return 'OWN';
+  if (!regionNeighbors(play.map, region).some((id) => regions[id]?.owner === seat)) return 'FAR';
+  const need = play.realm.economy.attackNeedsArmy;
+  if (need === undefined || (need === 'RIVALS' && target.owner === null)) return 'TARGET';
+  return armiesInRangeOn(play.map, regions, seat, region) > 0 ? 'TARGET' : 'NO_ARMY';
+}
+
+/** Ob `seat` das Feld nach heutigem Stand angreifen kann. */
+export function attackReach(play: RealmPlay, seat: number, region: number): AttackReach {
+  return attackReachOn(play, play.board.regions, seat, region);
+}
+
+/** Alle Felder, wie sie nach dem Entwurf stünden. */
+export function plannedRegions(play: RealmPlay, plan: OrdersPlan): readonly RealmRegionView[] {
+  if (!plan.ok) return play.board.regions;
+  return play.board.regions.map((now, id) => plan.regions.get(id) ?? now);
+}
+
+/**
+ * Felder, die `seat` nach seinem Entwurf im Feldzug dieser Runde angreifen könnte. Leer heißt: So
+ * fiele sein Angriff aus (ADR-064). Was die anderen Reiche in derselben Rüstzeit befehlen und was
+ * vor dem eigenen Angriff geschieht, ist hier nicht bekannt.
+ */
+export function plannedTargets(
+  play: RealmPlay,
+  seat: number,
+  orders: readonly RealmOrderDto[],
+): number[] {
+  const regions = plannedRegions(play, planOrders(play, seat, orders));
+  return regions.flatMap((_, id) =>
+    attackReachOn(play, regions, seat, id) === 'TARGET' ? [id] : [],
+  );
 }
 
 /**
@@ -460,7 +512,8 @@ export function moveRefusal(
   if (owner !== seat) return { kind: 'FOREIGN', owner };
   const option = field.moves.find((move) => move.to === region);
   if (!option) return { kind: 'TOO_FAR' };
-  return option.max > 0 ? null : { kind: 'FULL', cap: play.realm.economy.armyCap };
+  // Voll ist das Ziel auch, wenn schon geplante Züge seinen letzten Platz belegen
+  return option.max > option.count ? null : { kind: 'FULL', cap: play.realm.economy.armyCap };
 }
 
 export interface TradeOption {
@@ -566,9 +619,38 @@ export function realmScreenStateOf(
   if (view.phase?.kind === 'ANNOUNCE') {
     // Das Rad steht nur in der Ansage vor der Wissensfrage im Schritt
     if (play.board.step.kind === 'DUEL_TRIVIA' && play.board.step.wheel) return 'wheel';
-    if (events.at(-1)?.type === 'ORDERS_REVEALED') return 'orders';
+    if (revealedRound(events) !== null) return 'orders';
   }
   return base;
+}
+
+/**
+ * Runde, deren Befehle eben aufgedeckt wurden; `null`, wenn seither schon etwas anderes geschah.
+ * Hinter dem Aufdecken können Angriffe stehen, die sofort ausfielen (ADR-064), und wenn alle
+ * ausfielen, auch schon das Einkommen der nächsten Runde oder das Ende der Partie: Der Schritt des
+ * Bretts ist dann schon weiter, das Aufgedeckte steht trotzdem noch.
+ */
+export function revealedRound(events: readonly ParsedMatchEvent[]): number | null {
+  for (let i = events.length - 1; i >= 0; i -= 1) {
+    const event = events[i];
+    if (!event) return null;
+    if (event.type === 'ORDERS_REVEALED') return event.payload.round;
+    if (
+      event.type !== 'ATTACK_SKIPPED' &&
+      event.type !== 'INCOME' &&
+      event.type !== 'REALM_MATCH_FINISHED'
+    ) {
+      return null;
+    }
+  }
+  return null;
+}
+
+/** Reiche, deren Angriff in dieser Runde ausfiel, in der Reihenfolge der Runde (ADR-064). */
+export function skippedAttackers(events: readonly ParsedMatchEvent[], round: number): number[] {
+  return events.flatMap((e) =>
+    e.type === 'ATTACK_SKIPPED' && e.payload.round === round ? [e.payload.attacker] : [],
+  );
 }
 
 /** Aufgedeckte Befehle einer Feldzugrunde, je Reich in der Reihenfolge des Aufdeckens. */
@@ -604,6 +686,9 @@ const FLOW_ROUND: readonly FlowStep[] = ['PREPARE', 'ORDERS', 'ATTACK'];
  */
 export function roundFlow(play: RealmPlay, state: RealmScreenState): RoundFlowView | null {
   if (state === 'finished' || state === 'abandoned' || state === 'lobby') return null;
+  // Das Aufgedeckte steht noch kurz, während der Server schon weiter ist: beim ersten Angriff
+  // oder, wenn alle Angriffe ausfielen (ADR-064), in der nächsten Rüstzeit oder am Ende
+  if (state === 'orders') return { steps: FLOW_ROUND, now: 1 };
   switch (play.board.step.kind) {
     case 'START_ESTIMATE':
       return { steps: FLOW_OPENING, now: -1 };
@@ -620,8 +705,7 @@ export function roundFlow(play: RealmPlay, state: RealmScreenState): RoundFlowVi
     case 'DUEL_WHEEL':
     case 'DUEL_TRIVIA':
     case 'DUEL_ESTIMATE':
-      // Das Aufgedeckte steht noch kurz, während der Server schon beim ersten Angriff ist
-      return { steps: FLOW_ROUND, now: state === 'orders' ? 1 : 2 };
+      return { steps: FLOW_ROUND, now: 2 };
     case 'FINISHED':
       return null;
   }

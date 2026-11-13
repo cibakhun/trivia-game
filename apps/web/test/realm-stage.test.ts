@@ -600,8 +600,9 @@ describe('Blatt der Rüstzeit', () => {
     const foreign = prepare({ selected: TARGET });
     expect(fieldOf(foreign).long).toBe('Dorf Kranichsee Reich von Bot (schwer)');
     expect(tagOf(foreign, 'data-testid="prepare-foreign"')).toContain('data-near="true"');
+    expect(tagOf(foreign, 'data-testid="prepare-foreign"')).toContain('data-reach="TARGET"');
     expect(textOf(part(foreign, 'data-testid="prepare-foreign"', '</p>'))).toBe(
-      'In der Rüstzeit geht hier nichts. Das Feld grenzt an dein Land: Im Feldzug danach kannst du es angreifen.',
+      'In der Rüstzeit geht hier nichts. Eine deiner Armeen steht daneben: Im Feldzug danach kannst du es angreifen.',
     );
     expect(foreign).not.toContain('data-testid="prepare-acts"');
     // Tannenruh (20) liegt nicht am eigenen Land
@@ -613,6 +614,74 @@ describe('Blatt der Rüstzeit', () => {
     const free = prepare({ view: prepView({ free: [3] }), selected: 3 });
     expect(fieldOf(free).long).toBe('Hirschgrund Freies Feld');
     expect(tagOf(free, 'data-testid="prepare-foreign"')).toContain('data-near="true"');
+  });
+
+  it('sagt an einem Feld an der Grenze, ob eine Armee daneben steht (ADR-064)', () => {
+    // Ackerbrunn (4) grenzt an Eschenhain und Birkental: Dort steht keine meiner Armeen
+    const bare = prepare({ selected: 4 });
+    expect(tagOf(bare, 'data-testid="prepare-foreign"')).toContain('data-reach="NO_ARMY"');
+    expect(tagOf(bare, 'data-testid="prepare-foreign"')).toContain('data-near="false"');
+    expect(textOf(part(bare, 'data-testid="prepare-foreign"', '</p>'))).toBe(
+      'In der Rüstzeit geht hier nichts. Daneben steht keine deiner Armeen. Zieh eine auf ein Nachbarfeld, dann kannst du es angreifen.',
+    );
+    // Der Entwurf zählt schon: Eine Armee zieht von Dornfeld nach Birkental
+    const moved = prepare({ selected: 4, orders: [{ kind: 'MOVE', from: TOWN, to: 5, count: 1 }] });
+    expect(tagOf(moved, 'data-testid="prepare-foreign"')).toContain('data-reach="TARGET"');
+    expect(textOf(part(moved, 'data-testid="prepare-foreign"', '</p>'))).toContain(
+      'Eine deiner Armeen steht daneben',
+    );
+    // Partie von vor ADR-064: Die Grenze genügt
+    const old = prepare({ view: prepView({ attackNeedsArmy: null }), selected: 4 });
+    expect(textOf(part(old, 'data-testid="prepare-foreign"', '</p>'))).toBe(
+      'In der Rüstzeit geht hier nichts. Das Feld grenzt an dein Land: Im Feldzug danach kannst du es angreifen.',
+    );
+    // Nur gegen andere Reiche: Ein freies Feld an der Grenze braucht keine Armee
+    const rivals = prepView({ attackNeedsArmy: 'RIVALS', free: [4] });
+    expect(
+      textOf(part(prepare({ view: rivals, selected: 4 }), 'data-testid="prepare-foreign"', '</p>')),
+    ).toContain('Das Feld grenzt an dein Land');
+  });
+
+  it('warnt, wenn nach dem Entwurf keine Armee neben einem Ziel stünde (ADR-064)', () => {
+    const warning = 'Ohne Armee an der Grenze fällt dein Angriff aus.';
+    const calm = prepare();
+    expect(calm).not.toContain('data-testid="prepare-no-target"');
+    expect(calm).toContain('<h3>Deine Befehle</h3>');
+    expect(buttonOf(calm, 'Fertig')).not.toContain('data-no-attack');
+    // Armeen nur in der Burg mitten im eigenen Land
+    const inland = prepView({ armies: { [TOWN]: 0, [PLAIN]: 0 } });
+    const bare = prepare({ view: inland });
+    // Kurz in der Zeile der Überschrift, damit das Blatt nicht wächst; der ganze Satz für Screenreader
+    const note = part(bare, 'data-testid="prepare-no-target"', '</p>');
+    expect(tagOf(bare, 'data-testid="prepare-no-target"')).toContain('class="orders-note"');
+    expect(tagOf(bare, 'data-testid="prepare-no-target"')).toContain('role="status"');
+    expect(note).toContain('<span aria-hidden="true">Keine Armee an der Grenze</span>');
+    expect(note).toContain(`<span class="visually-hidden">${warning}</span>`);
+    expect(bare).not.toContain('<h3>Deine Befehle</h3>');
+    expect(bare).toContain('class="orders noted" data-note="NO_TARGET"');
+    // Der Knopf sagt, was die Abgabe so bedeutet
+    expect(buttonOf(bare, 'Fertig ohne Angriff')).toContain('data-no-attack="true"');
+    // Mit Befehlen bleibt der Hinweis über ihnen stehen
+    const built = prepare({ view: inland, orders: [{ kind: 'BUILD', region: PLAIN }] });
+    expect(built).toContain('class="orders noted filled" data-note="NO_TARGET"');
+    expect(buttonOf(built, 'Fertig ohne Angriff')).toContain('data-no-attack="true"');
+    // Eine Armee an die Grenze gezogen: Die Warnung ist weg
+    const moved = prepare({
+      view: inland,
+      orders: [{ kind: 'MOVE', from: CASTLE, to: TOWN, count: 1 }],
+    });
+    expect(moved).not.toContain('data-testid="prepare-no-target"');
+    expect(buttonOf(moved, 'Fertig')).not.toContain('data-no-attack');
+    // Nach der Abgabe steht der ganze Satz, solange sich die Befehle noch ändern lassen
+    const done = prepare({ view: inland, done: true });
+    expect(textOf(part(done, 'data-testid="prepare-no-target"', '</p>'))).toBe(warning);
+    expect(tagOf(done, 'data-testid="prepare-no-target"')).toContain('class="blatt-note warn"');
+    // Ohne den Regelwert fällt kein Angriff aus
+    const old = prepare({
+      view: prepView({ armies: { [TOWN]: 0, [PLAIN]: 0 }, attackNeedsArmy: null }),
+    });
+    expect(old).not.toContain('data-testid="prepare-no-target"');
+    expect(buttonOf(old, 'Fertig')).not.toContain('data-no-attack');
   });
 
   it('tauscht in beide Richtungen und zeigt gleich den neuen Vorrat', () => {
@@ -668,10 +737,27 @@ describe('Blatt der Rüstzeit', () => {
   });
 
   it('meldet, wenn mit einem Befehl ein späterer herausfiel', () => {
-    expect(prepare()).not.toContain('blatt-note');
-    expect(textOf(prepare({ dropped: true }))).toContain(
-      'Ohne diesen Befehl ging ein späterer nicht mehr.',
+    expect(prepare()).not.toContain('orders-note');
+    const html = prepare({ dropped: true });
+    // Kurz in der Zeile der Überschrift; der ganze Satz für Screenreader
+    const note = part(html, 'data-testid="prepare-dropped"', '</p>');
+    expect(note).toContain('<span aria-hidden="true">Folgebefehl mit entfernt</span>');
+    expect(textOf(note)).toContain('Ohne diesen Befehl ging ein späterer nicht mehr.');
+    // Die Art des Hinweises steht am Block: Bei geringer Höhe teilt sich nur dieser die Zeile mit
+    // den übrigen Befehlen (erst der Hinweis, dann die Befehle), die Warnung trägt dort der Knopf
+    expect(html).toContain('class="orders noted" data-note="DROPPED"');
+    expect(prepare({ dropped: true, orders: [{ kind: 'BUILD', region: PLAIN }] })).toContain(
+      'class="orders noted filled" data-note="DROPPED"',
     );
+    expect(prepare()).not.toContain('data-note=');
+    // Dieser Hinweis geht vor: Die Warnung zum Angriff steht dann nur am Knopf
+    const both = prepare({
+      view: prepView({ armies: { [TOWN]: 0, [PLAIN]: 0 } }),
+      dropped: true,
+    });
+    expect(both).toContain('data-testid="prepare-dropped"');
+    expect(both).not.toContain('data-testid="prepare-no-target"');
+    expect(buttonOf(both, 'Fertig ohne Angriff')).toContain('data-no-attack="true"');
   });
 
   it('gibt einen Entwurf, der nicht geht, nicht ab', () => {
@@ -700,6 +786,7 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     readonly outcome?: MatchEventOf<'REALM_DUEL_RESOLVED'> | null;
     readonly outcomeBeat?: boolean;
     readonly target?: number | null;
+    readonly refusedTarget?: number | null;
     readonly estimate?: string;
   }
 
@@ -722,6 +809,7 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
         name: seatNames(view),
         region: regionNames(play.map),
         target: extra.target ?? null,
+        refusedTarget: extra.refusedTarget ?? null,
         onEstimate: noop,
         onAnswerEstimate: noop,
         onAttack: noop,
@@ -744,9 +832,51 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
   it('bittet beim Angriff erst um ein Ziel', () => {
     const html = blatt(targetView(ME), 'pick');
     expect(textOf(html)).toContain('Dein Angriff');
-    expect(textOf(html)).toContain('Tippe ein markiertes Feld an, auch ein freies.');
+    expect(textOf(html)).toContain(
+      'Markiert ist, was neben einer deiner Armeen liegt, auch freie Felder.',
+    );
     expect(html).not.toContain('data-testid="match-target"');
+    expect(html).not.toContain('data-testid="match-target-refused"');
     expect(count(html, '<button')).toBe(0);
+    // Die Regeln der Partie bestimmen den Satz
+    const withNeed = (need: 'RIVALS' | null) => {
+      const view = targetView(ME);
+      const realm = view.realm;
+      if (!realm) throw new Error('Ansicht ohne Ausbau');
+      const { attackNeedsArmy, ...economy } = realm.economy;
+      void attackNeedsArmy;
+      return {
+        ...view,
+        realm: {
+          ...realm,
+          economy: need === null ? economy : { ...economy, attackNeedsArmy: need },
+        },
+      };
+    };
+    expect(textOf(blatt(withNeed(null), 'pick'))).toContain(
+      'Tippe ein markiertes Feld an, auch ein freies.',
+    );
+    expect(textOf(blatt(withNeed('RIVALS'), 'pick'))).toContain(
+      'Markiert sind freie Felder an deinem Land und fremde Felder neben einer deiner Armeen.',
+    );
+  });
+
+  it('sagt zu einem angetippten Feld, das kein Ziel ist, warum nicht (ADR-064)', () => {
+    const view = targetView(ME, [11, 12, 13]);
+    const bare = blatt(view, 'pick', { refusedTarget: 4 });
+    expect(tagOf(bare, 'data-testid="match-target-refused"')).toContain('data-reach="NO_ARMY"');
+    expect(textOf(part(bare, 'data-testid="match-target-refused"', '</p>'))).toBe(
+      'Kein Ziel: Neben Ackerbrunn steht keine deiner Armeen.',
+    );
+    expect(count(bare, '<button')).toBe(0);
+    const far = blatt(view, 'pick', { refusedTarget: 20 });
+    expect(textOf(part(far, 'data-testid="match-target-refused"', '</p>'))).toBe(
+      'Kein Ziel: Tannenruh grenzt nicht an dein Land.',
+    );
+    // Ein gewähltes Ziel verdrängt den Satz
+    expect(blatt(view, 'pick', { target: TARGET })).not.toContain(
+      'data-testid="match-target-refused"',
+    );
   });
 
   it('zeigt zum angetippten Ziel die Lose, die Folge eines Siegs und „Angreifen“', () => {
@@ -837,6 +967,45 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     expect(textOf(part(html, 'data-seat="1"', '</li>'))).toContain('Bot (schwer) rüstet nicht');
     expect(textOf(html)).toContain(
       'Gleich greift ihr der Reihe nach an: Du, Bot (leicht), Bot (schwer).',
+    );
+    expect(html).not.toContain('data-testid="orders-skipped"');
+  });
+
+  it('nennt beim Aufdecken, wessen Angriff ausfällt (ADR-064)', () => {
+    const skipped = (seq: number, attacker: number) =>
+      event(seq, 'ATTACK_SKIPPED', { round: 2, attacker });
+    // Ich setze aus, der Nächste ist schon dran
+    const view = realmViewOf(
+      { step: { kind: 'CAMPAIGN_TARGET', round: 2, chooser: 0, attacker: 0 }, turns: THEIR_ATTACK },
+      { phase: phaseOf('ANNOUNCE') },
+    );
+    const rows = [revealed(ME, 41, []), revealed(0, 42, []), revealed(1, 43, [])];
+    const one = blatt(view, 'orders', { events: [...rows, skipped(44, ME)] });
+    expect(textOf(one)).toContain(
+      'Gleich greift ihr der Reihe nach an: Bot (leicht), Bot (schwer).',
+    );
+    expect(textOf(part(one, 'data-testid="orders-skipped"', '</p>'))).toBe(
+      'Kein Angriff, weil keine Armee neben einem Ziel steht: Du.',
+    );
+    // Alle setzen aus: Der Schritt ist schon die Rüstzeit der nächsten Runde
+    const next = realmViewOf(
+      { step: { kind: 'PREPARE', round: 3 }, turns: PREP_TURNS },
+      { phase: phaseOf('ANNOUNCE') },
+    );
+    const all = blatt(next, 'orders', {
+      events: [
+        ...rows,
+        skipped(44, ME),
+        skipped(45, 0),
+        skipped(46, 1),
+        event(47, 'INCOME', { round: 3, income: [{ seat: 2, bread: 4, material: 5 }] }),
+      ],
+    });
+    expect(count(all, 'class="aufdeck-row')).toBe(3);
+    expect(textOf(all)).toContain('In dieser Runde greift niemand an.');
+    expect(textOf(all)).not.toContain('Gleich greift ihr');
+    expect(textOf(part(all, 'data-testid="orders-skipped"', '</p>'))).toBe(
+      'Kein Angriff, weil keine Armee neben einem Ziel steht: Du, Bot (leicht), Bot (schwer).',
     );
   });
 
@@ -1501,6 +1670,68 @@ describe('Bühne der Partie mit Ausbau', () => {
     );
   });
 
+  it('beim Angriff antwortet auch ein Feld, das kein Ziel ist (ADR-064)', () => {
+    const view = targetView(ME, [11, 12, 13]);
+    const html = stage(view, { initial: { target: 4 } });
+    expect(html).not.toContain('data-testid="match-target"');
+    expect(tagOf(html, 'data-testid="match-target-refused"')).toContain('data-reach="NO_ARMY"');
+    expect(textOf(html)).toContain('Kein Ziel: Neben Ackerbrunn steht keine deiner Armeen.');
+    // Fremde und freie Felder lassen sich antippen, eigene nicht; markiert sind nur die Ziele
+    expect(tagOf(html, 'data-region="4"')).toContain('role="button"');
+    expect(tagOf(html, 'data-region="4"')).not.toContain('legal');
+    expect(tagOf(html, 'data-region="12"')).toContain('legal');
+    expect(tagOf(html, 'data-region="6"')).toContain('role="img"');
+    // Wer nicht dran ist, tippt nichts an
+    expect(tagOf(stage(targetView(0)), 'data-region="4"')).toContain('role="img"');
+  });
+
+  it('zeigt in der Zugfolge, wessen Angriff ausfiel (ADR-064)', () => {
+    const skipped = (round: number) => [event(44, 'ATTACK_SKIPPED', { round, attacker: ME })];
+    const turnsOf = (html: string) => part(html, 'data-testid="match-turns"', '</section>');
+    const turns = turnsOf(stage(targetView(0), { events: skipped(2) }));
+    expect(tagOf(turns, 'data-seat="2"')).toContain('data-skipped="true"');
+    expect(tagOf(turns, 'data-seat="2"')).toContain('turn-skipped');
+    const mine = textOf(part(turns, 'data-seat="2"', '</li>'));
+    expect(mine).toContain('–');
+    expect(mine).toContain('Du, setzt aus');
+    expect(turns).not.toContain('✓');
+    expect(tagOf(turns, 'data-seat="0"')).not.toContain('data-skipped');
+    // Ein Ausfall aus einer früheren Runde zählt nicht mehr: Ich war in dieser Runde dran
+    const earlier = turnsOf(stage(targetView(0), { events: skipped(1) }));
+    expect(earlier).not.toContain('data-skipped');
+    expect(textOf(part(earlier, 'data-seat="2"', '</li>'))).toContain('✓');
+  });
+
+  it('fielen alle Angriffe aus, zeigt das Aufdecken noch die aufgedeckte Runde (ADR-064)', () => {
+    // Der Server ist schon in der Rüstzeit der dritten Runde, die Ansage zeigt die zweite
+    const view = realmViewOf(
+      { step: { kind: 'PREPARE', round: 3 } },
+      { phase: { kind: 'ANNOUNCE', deadline: AT, remainingMs: 2000 } },
+    );
+    const html = stage(view, {
+      events: [
+        event(40, 'ORDERS_REVEALED', {
+          round: 2,
+          seat: ME,
+          orders: [],
+          summary: { built: [], recruited: 0, moved: 0, traded: 0 },
+          bread: 3,
+          material: 4,
+        }),
+        event(41, 'ATTACK_SKIPPED', { round: 2, attacker: ME }),
+        event(42, 'ATTACK_SKIPPED', { round: 2, attacker: 0 }),
+        event(43, 'ATTACK_SKIPPED', { round: 2, attacker: 1 }),
+        event(44, 'INCOME', { round: 3, income: [] }),
+      ],
+    });
+    expect(main(html)).toContain('data-state="orders"');
+    expect(textOf(part(html, 'data-testid="match-step"', '</p>'))).toBe('Runde 2 von 5');
+    expect(part(html, 'data-testid="match-flow"', '</ol>')).toContain(
+      '<li class="now" aria-current="step"><span>Aufdecken</span></li>',
+    );
+    expect(textOf(html)).toContain('In dieser Runde greift niemand an.');
+  });
+
   it('legt das Glücksrad mitten auf die Karte und das Ergebnis ins Blatt', () => {
     const html = stage(duelView('ANNOUNCE', 'DUEL_TRIVIA', ME), {
       events: [
@@ -1630,8 +1861,20 @@ describe('Bühne der Partie mit Ausbau', () => {
         'Wer nach 5 Runden die meisten Punkte hat, gewinnt. Punkte bringt nur Land: jedes Feld 100, deine erste Burg 300.',
       );
       expect(text).toContain('Alle planen zugleich und verdeckt.');
-      expect(text).toContain('Mit mehr Armeen am Ziel kommt eher eine deiner liebsten.');
+      expect(text).toContain(
+        'Dann greift jedes Reich ein Feld neben einer eigenen Armee an; ohne Armee an der Grenze fällt sein Angriff aus.',
+      );
+      expect(text).toContain('Mehr Armeen am Ziel bringen eher eine deiner liebsten.');
       expect(text).toContain('eine Burg hat 3 Leben.');
+      // Partie von vor ADR-064: Die Grenze genügt
+      const old = textOf(
+        part(
+          stage(prepView({ attackNeedsArmy: null }), { initial: { help: true } }),
+          'data-testid="match-help"',
+        ),
+      );
+      expect(old).toContain('Dann greift jedes Reich ein Feld an seinem Land an.');
+      expect(old).not.toContain('fällt sein Angriff aus');
       expect(buttonOf(sheet, 'Alles klar')).toContain('data-testid="match-help-close"');
       // Die Bühne darunter bleibt, wie sie ist
       expect(main(html)).toContain('data-state="prepare"');

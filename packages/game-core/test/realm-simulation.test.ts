@@ -1,6 +1,7 @@
 import { DEFAULT_REALM_RULES, matchRulesForSeats, type RealmRules } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
+  armiesInRange,
   castlesOf,
   matchMap,
   realmPhase,
@@ -17,7 +18,8 @@ import { simulateRealm, type RealmSimulated } from './realm-sim.ts';
  * Mensch. Nach jedem Schritt gelten die Invarianten, jede Partie endet in der geplanten Länge.
  * Dazu Bänder für die Spielbalance aus Partien gleich starker Bots; die genauen Messwerte liefert
  * `realm-measure.ts`. Seit ADR-062 endet die Landnahme nach zwei Runden, die übrigen Felder bleiben
- * frei und lassen sich im Feldzug mit einer Wissensfrage angreifen (O-37).
+ * frei und lassen sich im Feldzug mit einer Wissensfrage angreifen (O-37). Seit ADR-064 braucht
+ * jedes Angriffsziel eine eigene Armee daneben; wer keines hat, setzt in der Runde aus.
  */
 
 const MATCHES = 1000;
@@ -55,10 +57,11 @@ const PLANS: readonly Plan[] = [
     landRounds: 2,
     freeAfterLandGrab: 6,
   },
-  // Partien von vor ADR-062 ohne `landGrabRounds`: Die Landnahme läuft, bis alles vergeben ist
+  // Partien von vor ADR-062 ohne `landGrabRounds` und ohne `attackNeedsArmy`: Die Landnahme läuft,
+  // bis alles vergeben ist, und ein Ziel muss nur ans eigene Land grenzen
   {
     label: '3 Spielern nach den Regeln vor ADR-062',
-    rules: withoutLandGrabLimit(DEFAULT_REALM_RULES),
+    rules: beforeAdr062(DEFAULT_REALM_RULES),
     matches: LEGACY_MATCHES,
     balance: false,
     landRounds: 6,
@@ -66,9 +69,10 @@ const PLANS: readonly Plan[] = [
   },
 ];
 
-function withoutLandGrabLimit(rules: RealmRules): RealmRules {
+function beforeAdr062(rules: RealmRules): RealmRules {
   const economy = { ...rules.economy };
   delete economy.landGrabRounds;
+  delete economy.attackNeedsArmy;
   return { ...rules, economy };
 }
 
@@ -130,6 +134,15 @@ function checkInvariants(state: RealmState): void {
       fail(`Sitz ${seat} ohne Burg`);
     }
   });
+  // ADR-064: Wer angreift, hat eine eigene Armee neben dem Ziel
+  const { step } = state;
+  if (
+    economy.attackNeedsArmy === 'ALWAYS' &&
+    step.kind === 'DUEL_WHEEL' &&
+    armiesInRange(state, step.attacker, step.region) === 0
+  ) {
+    fail(`Angriff von Sitz ${step.attacker} auf ${step.region} ohne Armee`);
+  }
 }
 
 function count(events: readonly RealmEvent[], test: (e: RealmEvent) => boolean): number {
@@ -157,7 +170,15 @@ for (const plan of PLANS) {
       for (const { state, events, durationMs } of runs) {
         expect(state.step.kind).toBe('FINISHED');
         expect(state.questions).toBeLessThanOrEqual(maxQuestions(plan));
-        expect(state.duels).toBeLessThanOrEqual(plan.rules.campaign.rounds * seats);
+        // Jeder Angriff einer Runde ist ein Duell oder fällt aus (ADR-064); nach den Regeln davor
+        // fällt keiner aus
+        const skipped = count(events, (e) => e.kind === 'ATTACK_SKIPPED');
+        expect(state.duels + skipped).toBeLessThanOrEqual(plan.rules.campaign.rounds * seats);
+        // Fällt kein Reich, kommt jedes in jeder Runde genau einmal an die Reihe
+        if (!events.some((e) => e.kind === 'KINGDOM_ELIMINATED')) {
+          expect(state.duels + skipped).toBe(plan.rules.campaign.rounds * seats);
+        }
+        if (plan.rules.economy.attackNeedsArmy === undefined) expect(skipped).toBe(0);
         expect(durationMs.full).toBeLessThanOrEqual(bound);
         expect(count(events, (e) => e.kind === 'LAND_RANKED')).toBe(plan.landRounds);
         // Nach der Landnahme bleibt frei, was die Runden nicht vergeben haben; im Feldzug wird ein
@@ -290,6 +311,15 @@ for (const plan of PLANS) {
         expect(taken / claims).toBeGreaterThan(0.6);
         expect(taken / claims).toBeLessThan(0.85);
         expect(freeLeft / BALANCE_MATCHES).toBeGreaterThan(1);
+      });
+
+      it('Angriffe fallen selten aus: Die Bots halten Armeen an der Grenze (ADR-064)', () => {
+        const attacks = BALANCE_MATCHES * plan.rules.campaign.rounds * seats;
+        const skipped = runs.reduce(
+          (n, r) => n + count(r.events, (e) => e.kind === 'ATTACK_SKIPPED'),
+          0,
+        );
+        expect(skipped / attacks).toBeLessThan(0.02);
       });
 
       it('dauert typisch gut zehn Minuten (zu zweit knapp neun)', () => {

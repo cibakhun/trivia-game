@@ -311,6 +311,8 @@ export function logText(
       return t('realm.log.ORDERS_SUBMITTED', { name: name(event.payload.seat) });
     case 'ORDERS_REVEALED':
       return t('realm.log.ORDERS_REVEALED');
+    case 'ATTACK_SKIPPED':
+      return t('realm.log.ATTACK_SKIPPED', { name: name(event.payload.attacker) });
     case 'WHEEL_SPUN':
       return t('realm.log.WHEEL_SPUN', {
         category: t(`realm.category.${event.payload.category}`),

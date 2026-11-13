@@ -58,6 +58,7 @@ function eventType(event: RealmEvent): string {
     case 'REGION_CLAIMED':
     case 'INCOME':
     case 'ORDERS_REVEALED':
+    case 'ATTACK_SKIPPED':
     case 'TARGET_CHOSEN':
     case 'WHEEL_SPUN':
     case 'KINGDOM_ELIMINATED':
@@ -221,18 +222,28 @@ export class RealmRun extends MatchRun {
     const { round } = start;
     for (const seat of realmRoundOrder(this.state, round)) {
       const state = this.state;
-      if (state.step.kind !== 'PREPARE') break;
+      if (state.step.kind !== 'PREPARE' || state.step.round !== round) break;
       const waiting = state.step.orders[seat] === null;
       if (this.playerAt(seat).botStrength === null || !waiting) continue;
       const { rng } = await this.drawRng('orders');
       this.submit(round, seat, chooseRealmOrdersForBot(state, seat, rng));
     }
-    if (this.state.step.kind !== 'PREPARE') return false;
+    if (this.revealed(round)) return false;
     this.match.phase = 'PREPARE';
     this.match.phaseDeadlineAt = new Date(
       this.now.getTime() + this.economy.timers.prepareMs + this.rules.timers.latencyAllowanceCapMs,
     );
     return true;
+  }
+
+  /**
+   * Die Rüstzeit dieser Runde ist aufgedeckt. Fallen danach alle Angriffe aus (ADR-064), steht die
+   * Zustandsmaschine schon in der Rüstzeit der nächsten Runde: Deshalb zählt die Runde mit, nicht
+   * nur die Art des Schritts.
+   */
+  private revealed(round: number): boolean {
+    const { step } = this.state;
+    return step.kind !== 'PREPARE' || step.round !== round;
   }
 
   /** Befehle eines Sitzes eintragen; das Ereignis nennt nur, dass er fertig ist. */
@@ -262,7 +273,7 @@ export class RealmRun extends MatchRun {
     }
     this.submit(step.round, seat, orders);
     // Der Letzte hat abgegeben: Die Zustandsmaschine hat aufgedeckt
-    if (this.state.step.kind !== 'PREPARE') await this.afterReveal();
+    if (this.revealed(step.round)) await this.afterReveal();
   }
 
   protected override async closePrepare(): Promise<void> {

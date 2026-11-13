@@ -19,6 +19,7 @@ import {
   realmRegionsOf,
   realmRoundOrder,
   realmStandings,
+  realmTargetsOf,
   type RealmBuilding,
   type RealmDuelSetup,
   type RealmOrder,
@@ -151,6 +152,8 @@ export type RealmEvent =
       readonly bread: number;
       readonly material: number;
     }
+  /** Der Sitz hat kein Ziel in Reichweite einer eigenen Armee und setzt in dieser Runde aus (ADR-064). */
+  | { readonly kind: 'ATTACK_SKIPPED'; readonly round: number; readonly attacker: number }
   | {
       readonly kind: 'TARGET_CHOSEN';
       readonly round: number;
@@ -721,6 +724,13 @@ function nextAttack(
       return finish(state, 'ROUNDS_COMPLETE', round, attackers, events);
     }
     return startCampaignRound(state, round + 1, events);
+  }
+  // Kein Ziel in Reichweite einer eigenen Armee (ADR-064): Der Angriff dieser Runde fällt aus
+  if (realmTargetsOf(state, attacker).length === 0) {
+    return nextAttack(state, round, attackers, rest, [
+      ...events,
+      { kind: 'ATTACK_SKIPPED', round, attacker },
+    ]);
   }
   return {
     ok: true,

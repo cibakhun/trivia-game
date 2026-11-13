@@ -6,9 +6,11 @@ import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import type { RegionName } from './match-text.ts';
 import {
-  bordersRealm,
+  attackReachOn,
   fieldOptions,
   fieldRows,
+  plannedRegions,
+  plannedTargets,
   planOrders,
   realmSeat,
   settleOrders,
@@ -198,6 +200,25 @@ export function PreparePanel({
   const chips = orderChips(play, orders, region);
   const strip = useOrderStrip(chips.length);
   const field = selected === null || done ? null : fieldOptions(play, seat, orders, selected);
+  // Angriff nur mit Armee (ADR-064): Stünde nach dem Entwurf keine neben einem Ziel, fiele er aus
+  const noTarget =
+    economy.attackNeedsArmy !== undefined && plannedTargets(play, seat, orders).length === 0;
+  // Ein Hinweis zur Zeit, kurz in der Zeile über den Befehlen; der ganze Satz für Screenreader
+  const note = done
+    ? null
+    : dropped
+      ? {
+          kind: 'DROPPED' as const,
+          short: t('realm.prepare.droppedShort'),
+          text: t('realm.prepare.dropped'),
+        }
+      : noTarget
+        ? {
+            kind: 'NO_TARGET' as const,
+            short: t('realm.prepare.noTargetShort'),
+            text: t('realm.prepare.noTarget'),
+          }
+        : null;
   // Jede Änderung geht durch die Regeln: Was danach nicht mehr geht, fällt mit heraus
   const change = (next: readonly RealmOrderDto[]) => {
     const settled = settleOrders(play, seat, tradesFirst(next));
@@ -265,7 +286,17 @@ export function PreparePanel({
   } else if (selected !== null && !done && play.board.regions[selected]) {
     // Fremdes oder freies Feld: In der Rüstzeit geht dort nichts, das Blatt sagt warum
     const owner = play.board.regions[selected]?.owner ?? null;
-    const near = bordersRealm(play, seat, selected);
+    // Gemessen am Entwurf: Eine Armee, die gerade herangezogen wird, zählt schon
+    const reach = attackReachOn(play, plannedRegions(play, plan), seat, selected);
+    const needsArmy = economy.attackNeedsArmy !== undefined;
+    const reachKey =
+      reach === 'TARGET'
+        ? needsArmy && !(economy.attackNeedsArmy === 'RIVALS' && owner === null)
+          ? 'reach'
+          : 'near'
+        : reach === 'NO_ARMY'
+          ? 'noArmy'
+          : 'far';
     body = (
       <>
         <div className="feld" data-testid="prepare-field" data-region={selected}>
@@ -278,9 +309,13 @@ export function PreparePanel({
               : t('realm.prepare.foreign.owner', { owner: name(owner) })}
           </span>
         </div>
-        <p className="act-info" data-testid="prepare-foreign" data-near={near ? 'true' : 'false'}>
-          {t('realm.prepare.foreign.now')}{' '}
-          {t(near ? 'realm.prepare.foreign.near' : 'realm.prepare.foreign.far')}
+        <p
+          className="act-info"
+          data-testid="prepare-foreign"
+          data-near={reach === 'TARGET' ? 'true' : 'false'}
+          data-reach={reach}
+        >
+          {t('realm.prepare.foreign.now')} {t(`realm.prepare.foreign.${reachKey}`)}
         </p>
       </>
     );
@@ -359,10 +394,29 @@ export function PreparePanel({
         )}
       </div>
       <div className="blatt-body">{body}</div>
-      {dropped && !done ? <p className="blatt-note">{t('realm.prepare.dropped')}</p> : null}
+      {done && noTarget ? (
+        <p className="blatt-note warn" data-testid="prepare-no-target" role="status">
+          {t('realm.prepare.noTarget')}
+        </p>
+      ) : null}
       {error ? <ErrorNote error={error} /> : null}
-      <div className="orders">
-        <h3>{t('realm.prepare.orders')}</h3>
+      <div
+        className={`orders${note ? ' noted' : ''}${chips.length > 0 ? ' filled' : ''}`}
+        data-note={note?.kind}
+      >
+        {/* Der Hinweis steht in der Zeile der Überschrift: So wächst das Blatt nie */}
+        {note ? (
+          <p
+            className="orders-note"
+            data-testid={note.kind === 'NO_TARGET' ? 'prepare-no-target' : 'prepare-dropped'}
+            role="status"
+          >
+            <span aria-hidden="true">{note.short}</span>
+            <span className="visually-hidden">{note.text}</span>
+          </p>
+        ) : (
+          <h3>{t('realm.prepare.orders')}</h3>
+        )}
         {chips.length === 0 ? (
           <p className="orders-none">{t('realm.prepare.none')}</p>
         ) : (
@@ -417,9 +471,10 @@ export function PreparePanel({
           type="button"
           className="button button-primary blatt-go"
           disabled={busy || !plan.ok}
+          data-no-attack={noTarget ? 'true' : undefined}
           onClick={onSubmit}
         >
-          {t('realm.prepare.done')}
+          {noTarget ? t('realm.prepare.doneNoAttack') : t('realm.prepare.done')}
         </button>
       )}
     </section>

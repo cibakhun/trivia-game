@@ -1,10 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import { advanceGameClock } from '@rdw/db/testing';
-import { MATCH_BOT_PROFILES, REALM_FAVORITE_THETA_BONUS } from '@rdw/game-core';
+import {
+  MATCH_BOT_PROFILES,
+  REALM_FAVORITE_THETA_BONUS,
+  matchMap,
+  regionNeighbors,
+} from '@rdw/game-core';
 import {
   matchListResponseSchema,
   parseMatchEvent,
   PLAYTEST_REALM_RULES,
+  type MatchMapId,
   type MatchView,
   type ParsedMatchEvent,
   type QuestionCategory,
@@ -613,32 +619,66 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
   });
 });
 
-describe('Angriff auf ein freies Feld (O-37, ADR-062)', () => {
-  const myAttack = (current: MatchView) =>
-    current.phase?.kind === 'PICK' &&
-    current.realm?.board?.step.kind === 'CAMPAIGN_TARGET' &&
-    current.legalRegions.length > 0;
+const myAttack = (current: MatchView) =>
+  current.phase?.kind === 'PICK' &&
+  current.realm?.board?.step.kind === 'CAMPAIGN_TARGET' &&
+  current.legalRegions.length > 0;
 
+/** Nachbarfelder auf der Karte der Partie. */
+function neighborsOf(board: RealmBoard, region: number): readonly number[] {
+  return regionNeighbors(matchMap(board.map as MatchMapId), region);
+}
+
+/**
+ * Befehle für die Rüstzeit: Von jedem eigenen Feld mit mehr als einer Armee zieht je eine auf jedes
+ * eigene Nachbarfeld ohne Armee, das an fremdes oder freies Land grenzt. So steht nach ein, zwei
+ * Runden an jeder Grenze eine Armee, und dort lässt sich angreifen (ADR-064).
+ */
+function toTheBorder(current: MatchView): RealmOrderDto[] {
+  const board = boardOf(current);
+  const mySeat = current.mySeat ?? -1;
+  const left = board.regions.map((r) => (r.owner === mySeat ? r.armies : 0));
+  const arriving = new Set<number>();
+  const orders: RealmOrderDto[] = [];
+  board.regions.forEach((from, id) => {
+    if (from.owner !== mySeat) return;
+    for (const to of neighborsOf(board, id)) {
+      const target = board.regions[to];
+      if ((left[id] ?? 0) < 2) break;
+      if (!target || target.owner !== mySeat || target.armies > 0 || arriving.has(to)) continue;
+      if (!neighborsOf(board, to).some((n) => board.regions[n]?.owner !== mySeat)) continue;
+      orders.push({ kind: 'MOVE', from: id, to, count: 1 });
+      left[id] = (left[id] ?? 0) - 1;
+      arriving.add(to);
+    }
+  });
+  return orders;
+}
+
+describe('Angriff auf ein freies Feld (O-37, ADR-062)', () => {
   /**
    * Spielt bis zu einem eigenen Angriff, bei dem ein freies Feld am eigenen Land liegt, greift es
    * an und beantwortet die Wissensfrage richtig oder falsch. Zurück kommt der Stand in der
-   * Auflösung. Wo die Felder liegen, lost die Partie aus: Liegt in fünf Angriffen keines am eigenen
-   * Land, beginnt eine neue Partie (höchstens drei), damit der Test nicht am Zufall scheitert. In
-   * 300 Probepartien kam das nicht ein Mal vor.
+   * Auflösung. Seit ADR-064 muss eine eigene Armee neben dem Ziel stehen: Der Spieler zieht seine
+   * Armeen deshalb in jeder Rüstzeit an die Grenze (`toTheBorder`). Wo die Felder liegen, lost die
+   * Partie aus: Liegt in fünf Angriffen kein freies Feld in Reichweite, beginnt eine neue Partie
+   * (höchstens drei), damit der Test nicht am Zufall scheitert.
    */
   async function claim(correct: boolean) {
     for (let match = 0; match < 3; match++) {
       const found = await claimIn(correct);
       if (found) return found;
     }
-    throw new Error('In drei Partien lag bei keinem Angriff ein freies Feld am eigenen Land');
+    throw new Error('In drei Partien lag bei keinem Angriff ein freies Feld in Reichweite');
   }
 
   async function claimIn(correct: boolean) {
     const human = await newHuman();
     const matchId = await startRealmTest(human, ['EASY']);
     for (let attack = 0; attack < 5; attack++) {
-      const turn = await play(matchId, [{ human }], myAttack);
+      const turn = await play(matchId, [{ human, orders: toTheBorder }], myAttack);
+      // Die Partie ist vorbei, bevor ein freies Feld in Reichweite lag (ein Angriff fiel aus)
+      if (turn.match.status !== 'RUNNING') return null;
       const mySeat = turn.mySeat ?? -1;
       const before = boardOf(turn);
       const target = turn.legalRegions.find((id) => before.regions[id]?.owner === null);
@@ -762,6 +802,223 @@ describe('Angriff auf ein freies Feld (O-37, ADR-062)', () => {
       .where('purpose', '=', 'START')
       .execute();
     await expect(single).rejects.toThrow(/match_questions_seats_check/);
+  });
+});
+
+describe('Angriff nur mit Armee (ADR-064)', () => {
+  interface StoredState {
+    readonly regions: readonly { readonly owner: number | null; readonly armies: number }[];
+    readonly step: { readonly orders?: readonly (readonly unknown[] | null)[] };
+  }
+
+  /**
+   * Stellt die Armeen direkt im gespeicherten Zustand um, mitten in der Rüstzeit: `armiesAt` nennt
+   * je eigenes Feld der genannten Sitze die neue Zahl, alle anderen Felder dieser Sitze haben
+   * danach keine. Schon abgegebene Befehle dieser Sitze (die der Bots) werden geleert, damit keiner
+   * Armeen zieht, die es nicht mehr gibt.
+   */
+  async function setArmies(
+    matchId: string,
+    seats: readonly number[],
+    armiesAt: Readonly<Record<number, number>> = {},
+  ): Promise<void> {
+    const row = await server.db
+      .selectFrom('matches')
+      .select('state')
+      .where('id', '=', matchId)
+      .executeTakeFirstOrThrow();
+    const state = row.state as unknown as StoredState;
+    const regions = state.regions.map((r, id) =>
+      r.owner !== null && seats.includes(r.owner) ? { ...r, armies: armiesAt[id] ?? 0 } : r,
+    );
+    const orders = state.step.orders?.map((list, seat) =>
+      list !== null && seats.includes(seat) ? [] : list,
+    );
+    const step = orders ? { ...state.step, orders } : state.step;
+    await server.db
+      .updateTable('matches')
+      .set({ state: JSON.stringify({ ...state, regions, step }) })
+      .where('id', '=', matchId)
+      .execute();
+  }
+
+  it('wählbar ist nur, was neben einer eigenen Armee liegt; ein anderes Feld an der Grenze lehnt der Server ab', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['MEDIUM']);
+    const prepare = await play(matchId, [{ human }], inPrepare(1));
+    const mySeat = prepare.mySeat ?? -1;
+    const start = boardOf(prepare);
+    const mine = (id: number) => start.regions[id]?.owner === mySeat;
+    const border = start.regions.flatMap((r, id) =>
+      r.owner !== mySeat && neighborsOf(start, id).some(mine) ? [id] : [],
+    );
+    // Eine einzige Armee auf ein eigenes Feld an der Grenze; möglichst eines, das nicht die ganze
+    // Grenze erreicht, damit ein Feld an der Grenze ohne Armee daneben bleibt
+    const posts = start.regions.flatMap((r, id) =>
+      r.owner === mySeat && neighborsOf(start, id).some((n) => !mine(n)) ? [id] : [],
+    );
+    const reachOf = (post: number) => border.filter((id) => neighborsOf(start, id).includes(post));
+    const post = posts.find((id) => reachOf(id).length < border.length) ?? posts[0] ?? -1;
+    await setArmies(matchId, [mySeat], { [post]: 1 });
+
+    const turn = await play(matchId, [{ human }], myAttack);
+    expect(boardOf(turn).step).toMatchObject({ kind: 'CAMPAIGN_TARGET', round: 1 });
+    const now = boardOf(turn);
+    // Der Bot kann davor ein Feld genommen oder erobert haben: gemessen am Stand von jetzt
+    const reach = now.regions.flatMap((r, id) =>
+      r.owner !== mySeat && neighborsOf(now, id).includes(post) ? [id] : [],
+    );
+    expect(now.regions[post]).toMatchObject({ owner: mySeat, armies: 1 });
+    expect([...turn.legalRegions].sort((a, b) => a - b)).toEqual(reach);
+    const unreached = now.regions.findIndex(
+      (r, id) =>
+        r.owner !== mySeat &&
+        !reach.includes(id) &&
+        neighborsOf(now, id).some((n) => now.regions[n]?.owner === mySeat),
+    );
+    // Ohne ein solches Feld prüfte der Test die Ablehnung nicht: Dann soll er scheitern statt bestehen
+    expect(unreached, 'Feld an der Grenze ohne eigene Armee daneben').toBeGreaterThanOrEqual(0);
+    const refused = await pick(human, matchId, unreached);
+    expect(refused.statusCode, refused.body).toBe(422);
+    expect(errorOf(refused).code).toBe('INVALID_REGION');
+    const picked = await pick(human, matchId, reach[0] ?? -1);
+    expect(picked.statusCode, picked.body).toBe(200);
+    expect(eventsOf(await events(matchId), 'ATTACK_SKIPPED')).toEqual([]);
+  });
+
+  it('wer keine Armee neben einem Ziel hat, setzt aus; die anderen greifen an', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['MEDIUM']);
+    const prepare = await play(matchId, [{ human }], inPrepare(1));
+    const mySeat = prepare.mySeat ?? -1;
+    await setArmies(matchId, [mySeat]);
+    expect(
+      boardOf(await view(human, matchId)).regions.some((r) => r.owner === mySeat && r.armies > 0),
+    ).toBe(false);
+
+    let myPicks = 0;
+    const next = await play(matchId, [{ human }], inPrepare(2), (current) => {
+      if (current.phase?.kind === 'PICK' && current.legalRegions.length > 0) myPicks += 1;
+    });
+    expect(next.phase?.kind).toBe('PREPARE');
+    expect(myPicks).toBe(0);
+    const all = await events(matchId);
+    expect(eventsOf(all, 'ATTACK_SKIPPED').filter((e) => e.payload.attacker === mySeat)).toEqual([
+      expect.objectContaining({ payload: { round: 1, attacker: mySeat } }),
+    ]);
+    // Ich habe in Runde 1 kein Ziel gewählt; wer angriff, war der Bot
+    const attackers = eventsOf(all, 'TARGET_CHOSEN').map((e) => e.payload.attacker);
+    expect(attackers).not.toContain(mySeat);
+    // Der Ausfall steht nach dem Aufdecken und vor dem Einkommen der nächsten Runde
+    const types = all.map((e) => e.type);
+    const skippedAt = all.findIndex(
+      (e) => e.type === 'ATTACK_SKIPPED' && e.payload.attacker === mySeat,
+    );
+    expect(types.lastIndexOf('ORDERS_REVEALED', skippedAt)).toBeGreaterThan(-1);
+    expect(types.indexOf('INCOME', skippedAt)).toBeGreaterThan(skippedAt);
+    expect(await unreadableEvents(matchId)).toEqual([]);
+  });
+
+  it('hat niemand ein Ziel, folgt auf das Aufdecken gleich die nächste Rüstzeit, nach der letzten die Abrechnung', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['MEDIUM']);
+    const rounds = PLAYTEST_REALM_RULES.campaign.rounds;
+    for (let round = 1; round <= rounds; round++) {
+      const prepare = await play(matchId, [{ human }], inPrepare(round));
+      expect(boardOf(prepare).step).toMatchObject({ kind: 'PREPARE', round });
+      await setArmies(matchId, [0, 1]);
+      const submitted = await submitOrders(human, matchId, []);
+      expect(submitted.statusCode, submitted.body).toBe(200);
+      // Das Aufgedeckte steht als Ansage; die Zustandsmaschine ist schon in der nächsten Runde
+      const shown = await view(human, matchId);
+      expect(shown.phase?.kind).toBe('ANNOUNCE');
+      expect(boardOf(shown).step).toMatchObject(
+        round < rounds ? { kind: 'PREPARE', round: round + 1 } : { kind: 'FINISHED' },
+      );
+      const tail = (await events(matchId)).slice(-4).map((e) => e.type);
+      expect(tail.slice(0, 3)).toEqual(['ORDERS_REVEALED', 'ATTACK_SKIPPED', 'ATTACK_SKIPPED']);
+      expect(tail[3]).toBe(round < rounds ? 'INCOME' : 'REALM_MATCH_FINISHED');
+    }
+    const final = await play(matchId, [{ human }]);
+    expect(final.match.status).toBe('FINISHED');
+    const all = await events(matchId);
+    expect(eventsOf(all, 'ATTACK_SKIPPED')).toHaveLength(2 * rounds);
+    expect(eventsOf(all, 'TARGET_CHOSEN')).toEqual([]);
+    expect(eventsOf(all, 'REALM_DUEL_RESOLVED')).toEqual([]);
+    expect(eventsOf(all, 'REALM_MATCH_FINISHED').at(-1)?.payload.reason).toBe('ROUNDS_COMPLETE');
+    expect(boardOf(final).duels).toBe(0);
+    expect(await unreadableEvents(matchId)).toEqual([]);
+  });
+
+  it('sind nur noch Bots im Spiel und alle fallen aus, läuft jede Runde mit ihren Befehlen weiter', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['MEDIUM', 'MEDIUM']);
+    const prepare = await play(matchId, [{ human }], inPrepare(1));
+    const mySeat = prepare.mySeat ?? -1;
+    const bots = [0, 1, 2].filter((seat) => seat !== mySeat);
+    const heir = bots[0] ?? -1;
+    // Mein Reich ist gefallen und gehört einem Bot; niemand hat Armeen, und keiner kann welche kaufen
+    const row = await server.db
+      .selectFrom('matches')
+      .select('state')
+      .where('id', '=', matchId)
+      .executeTakeFirstOrThrow();
+    const state = row.state as unknown as {
+      readonly regions: readonly { readonly owner: number | null }[];
+      readonly seats: readonly object[];
+      readonly rules: { readonly economy: { readonly costs: object } };
+      readonly step: object;
+    };
+    const fallen = {
+      ...state,
+      regions: state.regions.map((r) => ({
+        ...r,
+        owner: r.owner === mySeat ? heir : r.owner,
+        armies: 0,
+      })),
+      seats: state.seats.map((s, seat) =>
+        seat === mySeat ? { ...s, eliminatedInDuel: 0, eliminatedBy: heir } : s,
+      ),
+      rules: {
+        ...state.rules,
+        economy: {
+          ...state.rules.economy,
+          costs: { ...state.rules.economy.costs, army: { bread: 9999, material: 9999 } },
+        },
+      },
+      step: { ...state.step, orders: [[], [], []] },
+    };
+    await server.db
+      .updateTable('matches')
+      .set({ state: JSON.stringify(fallen) })
+      .where('id', '=', matchId)
+      .execute();
+
+    const final = await play(matchId, [{ human }]);
+    expect(final.match.status).toBe('FINISHED');
+    const rounds = PLAYTEST_REALM_RULES.campaign.rounds;
+    const all = await events(matchId);
+    // In jeder Runde fallen genau die beiden Bots aus, Runde für Runde
+    const twice = Array.from({ length: rounds }, (_, i) => [i + 1, i + 1]).flat();
+    const skipped = eventsOf(all, 'ATTACK_SKIPPED');
+    expect(skipped.map((e) => e.payload.round)).toEqual(twice);
+    for (let round = 1; round <= rounds; round++) {
+      const seats = skipped.filter((e) => e.payload.round === round).map((e) => e.payload.attacker);
+      expect([...seats].sort((a, b) => a - b)).toEqual(bots);
+    }
+    expect(eventsOf(all, 'TARGET_CHOSEN')).toEqual([]);
+    // Ab Runde 2 geben beide Bots in jeder Runde ab; keine Rüstzeit läuft leer bis zur Frist
+    for (let round = 2; round <= rounds; round++) {
+      const submitted = eventsOf(all, 'ORDERS_SUBMITTED')
+        .filter((e) => e.payload.round === round)
+        .map((e) => e.payload.seat);
+      expect([...submitted].sort((a, b) => a - b)).toEqual(bots);
+    }
+    expect(eventsOf(all, 'PREPARE_CLOSED').map((e) => e.payload.round)).toEqual([1]);
+    expect([...new Set(eventsOf(all, 'ORDERS_REVEALED').map((e) => e.payload.round))]).toEqual(
+      Array.from({ length: rounds }, (_, i) => i + 1),
+    );
+    expect(await unreadableEvents(matchId)).toEqual([]);
   });
 });
 

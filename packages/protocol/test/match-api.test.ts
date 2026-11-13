@@ -333,6 +333,17 @@ describe('Partie mit Ausbau (MATCH_RULES §11, ADR-058)', () => {
     expect(payloadOf('MATCH_FINISHED', finished)).toBeUndefined();
   });
 
+  it('ausgefallener Angriff (ADR-064): Runde und Sitz, sonst nichts', () => {
+    const skipped = { round: 2, attacker: 1 };
+    expect(payloadOf('ATTACK_SKIPPED', skipped)).toEqual(skipped);
+    // Ein Ziel gibt es nicht: Unbekannte Zusätze fallen weg, wie bei allen Ereignissen
+    expect(payloadOf('ATTACK_SKIPPED', { ...skipped, region: 5 })).toEqual(skipped);
+    expect(payloadOf('ATTACK_SKIPPED', { round: 2 })).toBeUndefined();
+    expect(payloadOf('ATTACK_SKIPPED', { attacker: 1 })).toBeUndefined();
+    expect(payloadOf('ATTACK_SKIPPED', { round: 0, attacker: 1 })).toBeUndefined();
+    expect(payloadOf('ATTACK_SKIPPED', { round: 2, attacker: 3 })).toBeUndefined();
+  });
+
   it('gemeinsame Ereignisse: Zusätze des Ausbaus sind optional, alte Inhalte bleiben lesbar', () => {
     const target = { round: 1, attacker: 0, defender: 1, region: 5 };
     expect(payloadOf('TARGET_CHOSEN', target)).toEqual(target);

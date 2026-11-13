@@ -212,6 +212,11 @@ export const matchEventPayloadSchemas = {
     material: count,
   }),
   /**
+   * Der Angriff dieses Reichs fällt in dieser Runde aus: Es hat kein Ziel in Reichweite einer
+   * eigenen Armee (`economy.attackNeedsArmy`, ADR-064). Der Nächste der Runde ist dran.
+   */
+  ATTACK_SKIPPED: z.object({ round, attacker: seat }),
+  /**
    * Das Glücksrad blieb stehen. `exhausted` nennt Kategorien des Rads, die keine ungestellte Frage
    * mehr hatten und deshalb nicht gezogen werden konnten (MATCH_RULES §11.6).
    */

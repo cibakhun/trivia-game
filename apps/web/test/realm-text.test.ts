@@ -339,6 +339,12 @@ describe('Angriff auf ein freies Feld in Worten (O-37)', () => {
     expect(logText(missed, name, region)).toBe('Ackerbrunn bleibt frei.');
   });
 
+  it('nennt im Verlauf, wessen Angriff ausfiel (ADR-064)', () => {
+    expect(logText(event(60, 'ATTACK_SKIPPED', { round: 2, attacker: 0 }), name, region)).toBe(
+      'Bot (leicht) setzt aus: keine Armee neben einem Ziel.',
+    );
+  });
+
   it('zählt im Band die Runden der Landnahme mit', () => {
     const land = realmViewOf({ step: { kind: 'LAND_ESTIMATE', round: 1 } });
     expect(stepLabel(land)).toBe('Landnahme · 1 von 2');

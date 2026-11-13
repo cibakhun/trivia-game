@@ -196,13 +196,17 @@ interface Attack {
   readonly target: string;
   readonly lots: number;
   readonly free: boolean;
+  /** Ein Feld ohne eigene Armee daneben wurde vorher angetippt und mit Grund abgelehnt. */
+  readonly refused: 'NO_ARMY' | 'FAR' | null;
 }
 
 /**
  * Greift ein markiertes Feld an: mit `free` ein freies, wenn eines am eigenen Land liegt, sonst
  * ein fremdes, lieber eines ohne Burg, damit alle drei Reiche lange im Spiel bleiben. Der erste
  * Tipp zeigt nur das Ziel mit den Losen im Glücksrad; an den Server geht die Wahl erst mit
- * „Angreifen“.
+ * „Angreifen“. Angriff nur mit Armee (ADR-064): Markiert ist nur, was neben einer eigenen Armee
+ * liegt; ein anderes fremdes oder freies Feld nennt beim Antippen den Grund und geht nicht an den
+ * Server.
  */
 async function attackFirst(page: Page, matchId: string, free: boolean): Promise<Attack | null> {
   let sent = 0;
@@ -214,10 +218,44 @@ async function attackFirst(page: Page, matchId: string, free: boolean): Promise<
   page.on('request', count);
   try {
     const board = page.getByTestId('match-board');
+    // Eigene Felder lassen sich beim Angriff nicht antippen; ihr Name nennt die Armeen
+    const shown = await board.locator('.board-region').evaluateAll((all) => {
+      const ids = (list: Element[]) => list.map((g) => Number(g.getAttribute('data-region')));
+      return {
+        legal: ids(all.filter((g) => g.classList.contains('legal'))),
+        armed: ids(
+          all.filter(
+            (g) =>
+              g.getAttribute('role') === 'img' &&
+              /, [1-9]\d* Armeen?, /.test(g.getAttribute('aria-label') ?? ''),
+          ),
+        ),
+      };
+    });
+    if (shown.legal.length === 0) return null;
+    for (const id of shown.legal) {
+      expect(
+        regionNeighbors(MAP, id).some((near) => shown.armed.includes(near)),
+        `Feld ${id} ist markiert, aber keine eigene Armee steht daneben`,
+      ).toBe(true);
+    }
+    let refused: Attack['refused'] = null;
+    const other = board.locator('.board-region[role="button"]:not(.legal)').first();
+    if (await succeeds(other.tap({ timeout: 2_000 }))) {
+      const note = page.getByTestId('match-target-refused');
+      if (await succeeds(note.waitFor({ timeout: 2_000 }))) {
+        const reach = await note.getAttribute('data-reach');
+        expect(reach).toMatch(/^(NO_ARMY|FAR)$/);
+        await expect(note).toContainText('Kein Ziel:');
+        await expect(page.getByTestId('match-target')).toHaveCount(0);
+        refused = reach === 'FAR' ? 'FAR' : 'NO_ARMY';
+      }
+    }
+    expect(sent).toBe(0);
     const open = board.locator('.board-region.legal.free');
     const plain = board.locator('.board-region.legal:not(.free):not(.capital)');
     const owned = board.locator('.board-region.legal:not(.free)');
-    let field = board.getByRole('button').first();
+    let field = board.locator('.board-region.legal').first();
     for (const wanted of free ? [open, plain, owned] : [plain, owned]) {
       if ((await wanted.count()) === 0) continue;
       field = wanted.first();
@@ -231,10 +269,12 @@ async function attackFirst(page: Page, matchId: string, free: boolean): Promise<
     if (!(await succeeds(field.tap({ timeout: 2_000 })))) return null;
     const target = page.getByTestId('match-target');
     if (!(await succeeds(target.waitFor({ timeout: 2_000 })))) return null;
-    const shown = await target.locator('.feld-name').textContent();
+    const title = await target.locator('.feld-name').textContent();
     const lots = await page.getByTestId('match-lots').locator('.lot').count();
     const chance = await page.getByTestId('match-lots-chance').textContent();
-    expect(shown).toBe(name);
+    expect(title).toBe(name);
+    // Mit dem Ziel ist der Grund des abgelehnten Felds wieder weg
+    await expect(page.getByTestId('match-target-refused')).toHaveCount(0);
     expect(sent).toBe(0);
     // Unter den Losen steht, wie wahrscheinlich die Frage aus den eigenen Lieblingskategorien kommt
     expect(chance).toMatch(/^\d+ % für deine Lieblingskategorien\./);
@@ -247,7 +287,7 @@ async function attackFirst(page: Page, matchId: string, free: boolean): Promise<
     const ok = accepted(page, matchId, 'pick');
     const attack = page.getByTestId('match-pick').getByRole('button', { name: 'Angreifen' });
     if (!(await succeeds(attack.tap({ timeout: 2_000 }))) || !(await ok)) return null;
-    return { target: name, lots, free: unowned };
+    return { target: name, lots, free: unowned, refused };
   } finally {
     page.off('request', count);
   }
@@ -410,6 +450,12 @@ async function prepare(
     await other.tap(quick);
     await expect(page.getByTestId('prepare-foreign')).toContainText(
       'In der Rüstzeit geht hier nichts.',
+      quick,
+    );
+    // Dazu, ob es im Feldzug ein Ziel wäre: nur neben einer eigenen Armee (ADR-064)
+    await expect(page.getByTestId('prepare-foreign')).toHaveAttribute(
+      'data-reach',
+      /^(TARGET|NO_ARMY|FAR)$/,
       quick,
     );
     // „?“ öffnet „So geht's“ auch während der Rüstzeit; an der Tastatur schließt es Escape
@@ -618,6 +664,8 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   // Reich die beider Seiten und die freien, gegen ein freies Feld nur die eigenen und die freien
   expect(attacks.length).toBeGreaterThan(0);
   expect(attacks.every((a) => a.lots === (a.free ? 2 : 3))).toBe(true);
+  // Angriff nur mit Armee (ADR-064): Ein Feld ohne eigene Armee daneben nannte den Grund
+  expect(attacks.some((a) => a.refused !== null)).toBe(true);
   // Nach zwei Runden Landnahme ist die halbe Karte frei: Ein freies Feld liegt am eigenen Land
   expect(attacks.filter((a) => a.free)).toHaveLength(1);
 
