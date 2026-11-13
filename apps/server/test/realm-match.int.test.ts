@@ -876,11 +876,11 @@ describe('Angriff nur mit Armee (ADR-064)', () => {
         !reach.includes(id) &&
         neighborsOf(now, id).some((n) => now.regions[n]?.owner === mySeat),
     );
-    if (unreached >= 0) {
-      const refused = await pick(human, matchId, unreached);
-      expect(refused.statusCode, refused.body).toBe(422);
-      expect(errorOf(refused).code).toBe('INVALID_REGION');
-    }
+    // Ohne ein solches Feld prüfte der Test die Ablehnung nicht: Dann soll er scheitern statt bestehen
+    expect(unreached, 'Feld an der Grenze ohne eigene Armee daneben').toBeGreaterThanOrEqual(0);
+    const refused = await pick(human, matchId, unreached);
+    expect(refused.statusCode, refused.body).toBe(422);
+    expect(errorOf(refused).code).toBe('INVALID_REGION');
     const picked = await pick(human, matchId, reach[0] ?? -1);
     expect(picked.statusCode, picked.body).toBe(200);
     expect(eventsOf(await events(matchId), 'ATTACK_SKIPPED')).toEqual([]);

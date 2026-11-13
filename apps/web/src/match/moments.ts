@@ -52,20 +52,36 @@ export function isCalm(state: MatchScreenState): boolean {
   );
 }
 
+/**
+ * Zustände, in denen ein ausgefallener Angriff (ADR-064) sein Band bekommt: die ruhigen und das
+ * Ende der Partie. Kostet das letzte Duell dem Letzten der Runde sein Ziel, folgt kein ruhiger
+ * Zustand mehr; ohne das Band über der Abrechnung erführe er nicht, warum er nicht mehr dran war.
+ */
+export function showsSkips(state: MatchScreenState): boolean {
+  return isCalm(state) || state === 'finished';
+}
+
 /** „Du bist dran“ gilt nur, solange die eigene Wahl offen ist. */
 function isTurn(moment: Moment): boolean {
   return moment.key.startsWith('turn-');
 }
 
+/** Ein gefallenes Reich wird nach einer Frage nachgeholt; alles andere ist dann überholt. */
+function isFallen(moment: Moment): boolean {
+  return moment.key.startsWith('fallen-');
+}
+
 /**
  * Warteschlange nach einem Zustandswechsel: Während einer Frage bleibt nur ein gefallenes Reich,
- * es wird danach nachgeholt. „Du bist dran“ verfällt, sobald die eigene Wahl vorbei ist, sonst
+ * es wird danach nachgeholt. Ein ausgefallener Angriff verfällt dann wie jede Ankündigung, ob sein
+ * Band die Farbe des Reichs trägt oder mehrere nennt: Nach der Frage stünde es über der Auflösung
+ * eines anderen Angriffs. „Du bist dran“ verfällt, sobald die eigene Wahl vorbei ist, sonst
  * stünde es über der Ansage dessen, der als Nächster wählt. Verfällt nichts, bleibt es dieselbe
  * Liste, damit das laufende Band nicht neu startet.
  */
 export function pruneMoments(queue: readonly Moment[], state: MatchScreenState): readonly Moment[] {
   const keep = (moment: Moment) =>
-    state === 'question' ? moment.tone === 'seat' : state === 'pick' || !isTurn(moment);
+    state === 'question' ? isFallen(moment) : state === 'pick' || !isTurn(moment);
   return queue.every(keep) ? queue : queue.filter(keep);
 }
 
@@ -114,10 +130,11 @@ export function momentsBetween(
         seat: event.payload.by,
       });
     }
-    // Ausgefallene Angriffe (ADR-064) erst in einem ruhigen Zustand, nicht über einer Auflösung;
-    // beim Aufdecken hinter dessen Ankündigung, sonst vor der nächsten Runde. Fallen mehrere
-    // zugleich aus, nennt ein einziges Band alle: Sonst stünden Bänder bis in die Rüstzeit
-    const skips = isCalm(next.state)
+    // Ausgefallene Angriffe (ADR-064) erst in einem ruhigen Zustand oder am Ende der Partie, nicht
+    // über einer Auflösung; beim Aufdecken hinter dessen Ankündigung, sonst vor der nächsten
+    // Runde. Fallen mehrere zugleich aus, nennt ein einziges Band alle: Sonst stünden Bänder bis
+    // in die Rüstzeit
+    const skips = showsSkips(next.state)
       ? fresh.filter((event) => event.type === 'ATTACK_SKIPPED')
       : [];
     const [only] = skips;

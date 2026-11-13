@@ -658,12 +658,12 @@ describe('Blatt der Rüstzeit', () => {
     expect(note).toContain('<span aria-hidden="true">Keine Armee an der Grenze</span>');
     expect(note).toContain(`<span class="visually-hidden">${warning}</span>`);
     expect(bare).not.toContain('<h3>Deine Befehle</h3>');
-    expect(bare).toContain('class="orders noted"');
+    expect(bare).toContain('class="orders noted" data-note="NO_TARGET"');
     // Der Knopf sagt, was die Abgabe so bedeutet
     expect(buttonOf(bare, 'Fertig ohne Angriff')).toContain('data-no-attack="true"');
     // Mit Befehlen bleibt der Hinweis über ihnen stehen
     const built = prepare({ view: inland, orders: [{ kind: 'BUILD', region: PLAIN }] });
-    expect(built).toContain('class="orders noted filled"');
+    expect(built).toContain('class="orders noted filled" data-note="NO_TARGET"');
     expect(buttonOf(built, 'Fertig ohne Angriff')).toContain('data-no-attack="true"');
     // Eine Armee an die Grenze gezogen: Die Warnung ist weg
     const moved = prepare({
@@ -743,6 +743,13 @@ describe('Blatt der Rüstzeit', () => {
     const note = part(html, 'data-testid="prepare-dropped"', '</p>');
     expect(note).toContain('<span aria-hidden="true">Folgebefehl mit entfernt</span>');
     expect(textOf(note)).toContain('Ohne diesen Befehl ging ein späterer nicht mehr.');
+    // Die Art des Hinweises steht am Block: Bei geringer Höhe teilt sich nur dieser die Zeile mit
+    // den übrigen Befehlen (erst der Hinweis, dann die Befehle), die Warnung trägt dort der Knopf
+    expect(html).toContain('class="orders noted" data-note="DROPPED"');
+    expect(prepare({ dropped: true, orders: [{ kind: 'BUILD', region: PLAIN }] })).toContain(
+      'class="orders noted filled" data-note="DROPPED"',
+    );
+    expect(prepare()).not.toContain('data-note=');
     // Dieser Hinweis geht vor: Die Warnung zum Angriff steht dann nur am Knopf
     const both = prepare({
       view: prepView({ armies: { [TOWN]: 0, [PLAIN]: 0 } }),

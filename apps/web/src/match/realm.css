@@ -1491,13 +1491,30 @@ span.order-chip {
   .orders h3 {
     display: none;
   }
-  /* Ohne Überschrift steht der Hinweis in der Zeile der Befehle, solange es keine gibt */
+  /* Ohne Überschrift steht der Hinweis in der Zeile der Befehle, solange es keine gibt. Stehen
+     Befehle da, trägt der Knopf die Warnung zum Angriff („Fertig ohne Angriff“); beide Zeilen
+     zusammen schnitten das Blatt ab */
   .orders.noted .orders-none,
   .orders.noted.filled .orders-note {
     display: none;
   }
   .orders-note {
     line-height: calc(24 * var(--u));
+  }
+  /* „Folgebefehl mit entfernt“ trägt kein Knopf: Der Hinweis steht kurz an der Stelle der
+     übrigen Befehle und gibt sie dann frei */
+  .orders.noted.filled[data-note='DROPPED'] {
+    position: relative;
+  }
+  .orders.noted.filled[data-note='DROPPED'] .orders-note {
+    display: block;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    animation: orders-note-out 0.3s 2.4s both;
+  }
+  .orders.noted.filled[data-note='DROPPED'] ul {
+    animation: orders-strip-in 0.3s 2.4s both;
   }
   .stage-realm .blatt-go {
     min-height: calc(38 * var(--u));
@@ -1509,6 +1526,28 @@ span.order-chip {
   }
   .fav {
     min-height: calc(44 * var(--u));
+  }
+}
+
+/* Bei geringer Höhe wechselt die Zeile der Befehle vom Hinweis zu den Befehlen (siehe oben): Der
+   Wechsel ist ein Überblenden ohne Bewegung und bleibt auch bei reduzierter Bewegung */
+@keyframes orders-note-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes orders-strip-in {
+  from {
+    opacity: 0;
+    visibility: hidden;
+  }
+  to {
+    opacity: 1;
   }
 }
 

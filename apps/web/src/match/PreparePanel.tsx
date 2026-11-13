@@ -400,7 +400,10 @@ export function PreparePanel({
         </p>
       ) : null}
       {error ? <ErrorNote error={error} /> : null}
-      <div className={`orders${note ? ' noted' : ''}${chips.length > 0 ? ' filled' : ''}`}>
+      <div
+        className={`orders${note ? ' noted' : ''}${chips.length > 0 ? ' filled' : ''}`}
+        data-note={note?.kind}
+      >
         {/* Der Hinweis steht in der Zeile der Überschrift: So wächst das Blatt nie */}
         {note ? (
           <p

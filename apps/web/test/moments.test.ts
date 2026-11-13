@@ -315,6 +315,22 @@ describe('Große Momente der Partie mit Ausbau', () => {
         [],
       ).map((m) => m.title),
     ).toEqual(['Rüstzeit']);
+    // Nach dem letzten Duell der Partie folgt kein ruhiger Zustand mehr: Das Band steht über der
+    // Abrechnung, sonst erführe der Letzte der Runde nicht, warum er nicht mehr dran war
+    expect(
+      run(
+        { state: 'reveal', kind: 'DUEL_TRIVIA', round: 5 },
+        { state: 'finished', kind: 'FINISHED', round: 5, lastSeq: 12 },
+        [skipped(11, 0)],
+      ).map((m) => m.title),
+    ).toEqual(['Dein Angriff fällt aus']);
+    // Eine Frage überholt beide Bänder: Danach stünden sie über der Auflösung eines anderen
+    const single = run({ round: 2 }, { round: 2, lastSeq: 12 }, [skipped(11, 1)]);
+    const many = run({ round: 2 }, { round: 2, lastSeq: 13 }, [skipped(11, 0), skipped(12, 1)]);
+    expect([...single, ...many].map((m) => m.tone)).toEqual(['seat', 'ink']);
+    expect(pruneMoments([...single, ...many], 'question')).toEqual([]);
+    expect(pruneMoments(single, 'announce')).toBe(single);
+    expect(pruneMoments(many, 'prepare')).toBe(many);
   });
 
   it('feiert ein fallendes Reich wie ohne Ausbau', () => {

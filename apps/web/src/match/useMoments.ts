@@ -8,6 +8,7 @@ import {
   isCalm,
   momentsBetween,
   pruneMoments,
+  showsSkips,
   type Moment,
   type MomentSnapshot,
 } from './moments.ts';
@@ -27,7 +28,8 @@ export function useMoments(
   name: SeatName,
 ): Moment | null {
   const previous = useRef<MomentSnapshot | null>(null);
-  // Ausgefallene Angriffe, die während einer Auflösung kamen: Ihr Band folgt, sobald sie vorbei ist
+  // Ausgefallene Angriffe, die während einer Auflösung kamen: Ihr Band folgt, sobald sie vorbei
+  // ist, nach dem letzten Duell der Partie über der Abrechnung
   const held = useRef<readonly ParsedMatchEvent[]>([]);
   const shown = useRef(new Set<string>());
   const [queue, setQueue] = useState<readonly Moment[]>([]);
@@ -55,9 +57,9 @@ export function useMoments(
     previous.current =
       before && !isCalm(state) ? { ...next, kind: before.kind, round: before.round } : next;
     const arrived = before ? events.filter((e) => e.seq > before.lastSeq) : [];
-    const calm = isCalm(state);
-    const fresh = calm ? [...held.current, ...arrived] : arrived;
-    held.current = calm
+    const release = showsSkips(state);
+    const fresh = release ? [...held.current, ...arrived] : arrived;
+    held.current = release
       ? []
       : [...held.current, ...arrived.filter((e) => e.type === 'ATTACK_SKIPPED')];
     if (state === 'question') return;
