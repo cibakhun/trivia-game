@@ -315,6 +315,29 @@ describe('Spielstand der Partie mit Ausbau', () => {
     expect(seats(view)).not.toContain('receiving');
   });
 
+  it('zeigt den Stand vor dem Einkommen, solange dessen Rüstzeit nicht begonnen hat (ADR-067)', () => {
+    const view = prepView();
+    const html = renderToStaticMarkup(
+      createElement(RealmSeatList, {
+        view,
+        play: playOf(view),
+        name: seatNames(view),
+        pending: [
+          { seat: 0, bread: 2, material: 3 },
+          { seat: ME, bread: 4, material: 5 },
+        ],
+      }),
+    );
+    // Verbucht sind 7 Brot und 10 Baustoff; das Einkommen der neuen Runde steht noch aus
+    expect(textOf(plaque(html, ME))).toContain('3 Brot');
+    expect(textOf(plaque(html, ME))).toContain('5 Baustoff');
+    expect(textOf(plaque(seats(view), ME))).toContain('7 Brot');
+    // Auch bei den anderen, und nie unter null
+    const other = (markup: string) => /(\d+) Brot/.exec(textOf(plaque(markup, 0)))?.[1];
+    expect(Number(other(html))).toBe(Math.max(0, Number(other(seats(view))) - 2));
+    expect(textOf(plaque(html, 1))).toBe(textOf(plaque(seats(view), 1)));
+  });
+
   it('sagt in der Rüstzeit, wer fertig ist und wer noch rüstet', () => {
     const html = seats(prepView());
     expect(plaque(html, 0)).toContain('data-status="ready"');

@@ -13,7 +13,8 @@ import type { RealmPlay } from './realm-model.ts';
  * In der Rüstzeit steht bei den anderen daneben, wer schon fertig ist und wer noch rüstet; wer
  * gerade wählt, trägt einen goldenen Rand und „am Zug“. Das eigene Reich ist getönt und nennt an
  * dieser Stelle, was die nächste Runde bringt: Den eigenen Rüststand zeigt schon das Blatt rechts.
- * Vorräte zählen sichtbar hoch und herunter, wenn sie sich ändern.
+ * Vorräte zählen sichtbar hoch und herunter, wenn sie sich ändern; das Einkommen einer Runde zeigen
+ * sie erst, wenn deren Rüstzeit beginnt (ADR-067).
  */
 
 /** So lange zählt ein Vorrat, wenn er sich ändert. */
@@ -29,6 +30,7 @@ export function RealmSeatList({
   play,
   name,
   receiving = null,
+  pending = null,
 }: {
   readonly view: MatchView;
   readonly play: RealmPlay;
@@ -38,6 +40,17 @@ export function RealmSeatList({
    * Zahlen erst hoch, wenn es ankommt.
    */
   readonly receiving?: { readonly delayMs: number; readonly durationMs: number } | null;
+  /**
+   * Einkommen, das der Server schon verbucht hat, das aber erst mit der Rüstzeit gezeigt wird (es
+   * kommt mit dem Ende der Runde davor): Bis dahin steht in den Vorräten noch der Stand davor.
+   */
+  readonly pending?:
+    | readonly {
+        readonly seat: number;
+        readonly bread: number;
+        readonly material: number;
+      }[]
+    | null;
 }) {
   const { board } = play;
   const preparing = view.phase?.kind === 'PREPARE';
@@ -63,6 +76,7 @@ export function RealmSeatList({
           const income = mine && status !== 'turn';
           const pill = status !== null && (status === 'turn' || !mine);
           const arriving = mine ? receiving : null;
+          const wait = pending?.find((entry) => entry.seat === s.seat);
           const stock = (value: number) => (
             <CountUp
               value={value}
@@ -118,7 +132,7 @@ export function RealmSeatList({
                   <>
                     <Amount
                       kind="bread"
-                      value={stock(s.bread)}
+                      value={stock(Math.max(0, s.bread - (wait?.bread ?? 0)))}
                       label={t('realm.bread')}
                       size={15}
                     />
@@ -130,7 +144,7 @@ export function RealmSeatList({
                     ) : null}
                     <Amount
                       kind="material"
-                      value={stock(s.material)}
+                      value={stock(Math.max(0, s.material - (wait?.material ?? 0)))}
                       label={t('realm.material')}
                       size={15}
                     />

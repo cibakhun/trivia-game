@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 /**
  * Einkommen als Bewegung (ADR-067): Zu Beginn der Rüstzeit wandern Brot und Baustoff von den
  * eigenen Feldern in den eigenen Vorrat links, die Zahlen dort zählen hoch, wenn die ersten
- * Zeichen ankommen. Gezeigt wird nur ein Einkommen, das diese Seite hat kommen sehen.
+ * Zeichen ankommen. Gezeigt wird nur ein Einkommen, das diese Seite hat kommen sehen. Verbucht ist
+ * es beim Server schon vorher, mit dem Ende der Runde davor: Solange die Rüstzeit nicht begonnen
+ * hat, zeigen die Vorräte aller Reiche noch den Stand davor.
  */
 export interface IncomeTiming {
   /** Wartezeit vor dem ersten Abflug: Der Bildschirm der Rüstzeit steht dann. */
@@ -41,25 +43,62 @@ export function incomeTiming(count: number): IncomeTiming {
   };
 }
 
+/** Was diese Seite von den Einkommen der Partie schon gezeigt hat. */
+export interface IncomeWatch {
+  /** Nummer des letzten Einkommens, das gezeigt oder übergangen ist. */
+  readonly seen: number;
+  /** Nummer des Einkommens, das gerade fliegt. */
+  readonly playing: number | null;
+}
+
 /**
- * Welches Einkommen gerade als Bewegung läuft: die Nummer seines Ereignisses, sonst `null`.
- * `ready`: Der Bildschirm der eigenen Rüstzeit steht (vorher wartet es); `live`: Die Seite hat
- * einen Wechsel miterlebt, sie wurde also nicht eben erst mit diesem Stand geladen.
+ * Wie es mit dem jüngsten Einkommen (`incomeSeq`) weitergeht. Der Server verbucht es schon mit dem
+ * Ende des letzten Duells der Runde, die Rüstzeit beginnt erst nach dessen Auflösung: Bis dahin
+ * bleibt der Stand unverändert, und die Vorräte zeigen noch den Wert davor (`incomeHeld`).
+ * `ready`: Der Bildschirm der eigenen Rüstzeit steht, jetzt fliegt es. `moved`: Die Partie ist
+ * weiter, ohne dass die eigene Rüstzeit stand (Zuschauer, gefallenes Reich, nur noch Bots, Ende):
+ * Das Einkommen gilt als gezeigt. `live`: Die Seite hat einen Wechsel miterlebt.
+ */
+export function incomeWatch(
+  now: IncomeWatch,
+  incomeSeq: number,
+  ready: boolean,
+  moved: boolean,
+  live: boolean,
+): IncomeWatch {
+  if (incomeSeq <= now.seen) return now;
+  if (ready) return { seen: incomeSeq, playing: live ? incomeSeq : null };
+  if (moved) return { seen: incomeSeq, playing: null };
+  return now;
+}
+
+/** Das jüngste Einkommen ist verbucht, aber noch nicht gezeigt: Die Vorräte warten darauf. */
+export function incomeHeld(now: IncomeWatch, incomeSeq: number): boolean {
+  return incomeSeq > now.seen;
+}
+
+export interface IncomeFlight {
+  /** Nummer des Einkommens, das gerade als Bewegung läuft, sonst `null`. */
+  readonly playing: number | null;
+  /** Die Vorräte zeigen noch den Stand vor dem jüngsten Einkommen. */
+  readonly held: boolean;
+}
+
+/**
+ * Welches Einkommen gerade als Bewegung läuft und ob die Vorräte noch darauf warten; `ready`,
+ * `moved` und `live` wie bei `incomeWatch`.
  */
 export function useIncomeFlight(
   incomeSeq: number,
   ready: boolean,
+  moved: boolean,
   live: boolean,
   totalMs: number,
-): number | null {
-  const [flight, setFlight] = useState<{ seen: number; playing: number | null }>(() => ({
-    seen: incomeSeq,
-    playing: null,
-  }));
+): IncomeFlight {
+  const [flight, setFlight] = useState<IncomeWatch>(() => ({ seen: incomeSeq, playing: null }));
   // Merken während des Renderns: Die Vorräte zählen von Anfang an mit der Wartezeit
-  if (ready && incomeSeq > flight.seen) {
-    setFlight({ seen: incomeSeq, playing: live ? incomeSeq : null });
-  }
+  const next = incomeWatch(flight, incomeSeq, ready, moved, live);
+  if (next !== flight) setFlight(next);
   const playing = flight.playing;
   useEffect(() => {
     if (playing === null) return;
@@ -69,5 +108,5 @@ export function useIncomeFlight(
     );
     return () => clearTimeout(timer);
   }, [playing, totalMs]);
-  return ready ? playing : null;
+  return { playing: ready ? next.playing : null, held: incomeHeld(next, incomeSeq) };
 }

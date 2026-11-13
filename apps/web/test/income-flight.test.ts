@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { incomeTiming } from '../src/match/income-flight.ts';
+import {
+  incomeHeld,
+  incomeTiming,
+  incomeWatch,
+  type IncomeWatch,
+} from '../src/match/income-flight.ts';
 
 /**
  * Zeitplan des Einkommens als Bewegung (ADR-067): Die Zeichen fliegen nacheinander ab, die Vorräte
@@ -37,5 +42,47 @@ describe('Zeitplan des Einkommens', () => {
       expect(time.countAtMs + time.countMs).toBeGreaterThanOrEqual(last);
       expect(time.totalMs).toBeGreaterThan(time.countAtMs + time.countMs);
     }
+  });
+});
+
+/**
+ * Der Server verbucht das Einkommen mit dem Ende des letzten Duells der Runde, die Rüstzeit beginnt
+ * erst nach dessen Auflösung. Die Vorräte warten so lange, sonst stünde die neue Zahl schon da,
+ * bevor ein Zeichen fliegt.
+ */
+describe('Einkommen zwischen Verbuchen und Rüstzeit', () => {
+  const before: IncomeWatch = { seen: 40, playing: null };
+
+  it('hält ein Einkommen zurück, das während der Auflösung kommt', () => {
+    const during = incomeWatch(before, 57, false, false, true);
+    expect(during).toBe(before);
+    expect(incomeHeld(during, 57)).toBe(true);
+  });
+
+  it('lässt es fliegen, sobald die eigene Rüstzeit steht, und gibt die Vorräte frei', () => {
+    const start = incomeWatch(before, 57, true, true, true);
+    expect(start).toEqual({ seen: 57, playing: 57 });
+    expect(incomeHeld(start, 57)).toBe(false);
+    // Danach ändert sich nichts mehr, bis das nächste Einkommen kommt
+    expect(incomeWatch(start, 57, true, true, true)).toBe(start);
+  });
+
+  it('zeigt nur die Zahl, wenn die Seite den Wechsel nicht miterlebt hat', () => {
+    const start = incomeWatch(before, 57, true, true, false);
+    expect(start).toEqual({ seen: 57, playing: null });
+    expect(incomeHeld(start, 57)).toBe(false);
+  });
+
+  it('gibt die Vorräte frei, wenn die Partie ohne eigene Rüstzeit weitergeht', () => {
+    // Zuschauer, gefallenes Reich, nur noch Bots: Es fliegt nichts, die Zahl steht
+    const on = incomeWatch(before, 57, false, true, true);
+    expect(on).toEqual({ seen: 57, playing: null });
+    expect(incomeHeld(on, 57)).toBe(false);
+  });
+
+  it('hält nichts zurück, wenn die Seite mit diesem Stand geladen wurde', () => {
+    const loaded: IncomeWatch = { seen: 57, playing: null };
+    expect(incomeHeld(loaded, 57)).toBe(false);
+    expect(incomeWatch(loaded, 57, false, false, false)).toBe(loaded);
   });
 });

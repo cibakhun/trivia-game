@@ -287,9 +287,16 @@ export function RealmStage({
     [play, mySeat],
   );
   const incomeTime = useMemo(() => incomeTiming(sources.length), [sources.length]);
-  const incomeSeq = useIncomeFlight(
-    lastOf(events, 'INCOME')?.seq ?? 0,
+  const income = lastOf(events, 'INCOME');
+  const incomeAt = income?.seq ?? 0;
+  // Verbucht ist das Einkommen schon mit dem Ende der Runde davor; gezeigt wird es, wenn die eigene
+  // Rüstzeit steht. Wer keine hat (Zuschauer, gefallenes Reich, nur noch Bots), sieht nur die Zahl
+  const { playing: incomeSeq, held: incomeWaits } = useIncomeFlight(
+    incomeAt,
     state === 'prepare' || state === 'prepared',
+    view?.match.status !== 'RUNNING' ||
+      view.phase?.kind === 'PREPARE' ||
+      (lastOf(events, 'ORDERS_REVEALED')?.seq ?? 0) > incomeAt,
     live,
     incomeTime.totalMs,
   );
@@ -594,6 +601,7 @@ export function RealmStage({
           receiving={
             incoming ? { delayMs: incomeTime.countAtMs, durationMs: incomeTime.countMs } : null
           }
+          pending={incomeWaits && income ? income.payload.income : null}
         />
         <TurnOrder view={view} name={name} skipped={skipped} />
         <div className="stage-tools three">
