@@ -28,12 +28,15 @@ function noop() {
   // Nach der eigenen Antwort läuft die Zeit nur noch zur Anzeige
 }
 
-/** Band oben links: die Kategorie aus dem Glücksrad, sonst die Art der Frage. */
-function QuestionKind({
-  question,
+/**
+ * Band oben links: die Kategorie aus dem Glücksrad, sonst die Art der Frage. Die Auflösung trägt
+ * als Rückseite der Karte dasselbe Band (`RevealPanel`).
+ */
+export function QuestionKind({
+  kind,
   category,
 }: {
-  readonly question: MatchPresentedQuestion;
+  readonly kind: MatchPresentedQuestion['kind'];
   readonly category: QuestionCategory | null;
 }) {
   return (
@@ -43,7 +46,7 @@ function QuestionKind({
           <CategoryIcon category={category} size={18} />
           {t(`realm.category.${category}`)}
         </>
-      ) : question.kind === 'TRIVIA' ? (
+      ) : kind === 'TRIVIA' ? (
         t('quiz.trivia')
       ) : (
         t('quiz.estimate')
@@ -82,7 +85,7 @@ export function WatchedQuestionCard({
       data-kind={question.kind}
     >
       <header className="sheet-head">
-        <QuestionKind question={question} category={category} />
+        <QuestionKind kind={question.kind} category={category} />
         <span className="sheet-tag">{t('match.watch.tag')}</span>
       </header>
       <Countdown deadline={deadline} totalMs={question.timeLimitMs} onExpire={noop} brief />
@@ -163,7 +166,7 @@ export function StageQuestion({
       data-kind={question.kind}
     >
       <header className="sheet-head">
-        <QuestionKind question={question} category={category} />
+        <QuestionKind kind={question.kind} category={category} />
       </header>
       <Countdown
         deadline={deadline}

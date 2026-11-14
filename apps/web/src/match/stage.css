@@ -1787,7 +1787,10 @@ html.match-playing body {
   pointer-events: none !important;
 }
 
-.sheet-ghost * {
+/* Auch was ein Blatt nur zeichnet (`::before`, `::after`), steht im Abbild still */
+.sheet-ghost *,
+.sheet-ghost *::before,
+.sheet-ghost *::after {
   animation: none !important;
   transition: none !important;
 }
@@ -2091,8 +2094,14 @@ html.match-playing body {
   color: var(--muted);
 }
 
-/* Auflösung: dieselbe Karte wie die Frage, Antworten in zwei Spalten mit den Wappen daran */
+/*
+ * Auflösung: die Rückseite der Fragekarte (RevealPanel). Band, Frage und Antwortfelder stehen wie
+ * auf der Vorderseite. Was dazukommt, kommt nacheinander ab `--reveal-at` (wenn das Blatt
+ * aufgesetzt hat): der Stempel der richtigen Antwort, die Farben derer, die gewählt haben, ihre
+ * Namen, zuletzt die Folge.
+ */
 .sheet.reveal {
+  --reveal-at: 0.12s;
   display: grid;
   gap: calc(7 * var(--u));
   animation: sheet-in 0.3s ease-out both;
@@ -2100,79 +2109,230 @@ html.match-playing body {
 
 /* Kam die Auflösung aus der Fragekarte, ist sie deren Rückseite (siehe „Wechsel der Blätter“) */
 .stage-centre.turned .sheet.reveal {
+  --reveal-at: 0.3s;
   animation: sheet-turn-in 0.32s 0.13s both;
 }
 
+.sheet.reveal .sheet-head {
+  padding-right: 0;
+}
+
+/* „Auflösung“ ist die Überschrift des Blatts und sieht aus wie das Schild der Vorderseite */
+.sheet.reveal .sheet-tag {
+  font-family: var(--font-body);
+}
+
+/* Ausgang eines Duells im Blatt selbst (ohne Bühne daneben): Wappen des Siegers, Wirkung, Grund */
 .stage .reveal-verdict {
+  --tone: var(--accent);
+  display: flex;
+  align-items: center;
   gap: calc(8 * var(--u));
   padding: calc(5 * var(--u)) calc(9 * var(--u));
-  border-left-width: calc(4 * var(--u));
+  border-left: calc(4 * var(--u)) solid var(--tone);
   border-radius: 0 calc(8 * var(--u)) calc(8 * var(--u)) 0;
+  background: color-mix(in srgb, var(--tone) 13%, transparent);
+}
+
+.stage .reveal-verdict.seat-0 {
+  --tone: var(--seat-0);
+}
+
+.stage .reveal-verdict.seat-1 {
+  --tone: var(--seat-1);
+}
+
+.stage .reveal-verdict.seat-2 {
+  --tone: var(--seat-2);
 }
 
 .stage .reveal-verdict svg {
+  flex: none;
   width: calc(24 * var(--u));
   height: auto;
 }
 
 .stage .reveal-headline {
+  font-family: var(--font-display);
   font-size: calc(15 * var(--u));
+  font-weight: 800;
   line-height: 1.2;
 }
 
 .stage .reveal-reason {
   font-size: calc(12 * var(--u));
+  color: var(--muted);
 }
 
 .stage .reveal-prompt {
+  padding: 0 calc(3 * var(--u));
   font-family: var(--font-display);
-  font-size: calc(16.5 * var(--u));
+  font-size: calc(18 * var(--u));
   font-weight: 700;
-  line-height: 1.22;
+  line-height: 1.2;
+  overflow-wrap: break-word;
 }
 
-.stage .reveal-solution {
-  font-size: calc(16 * var(--u));
+.stage .reveal.prompt-long .reveal-prompt {
+  font-size: calc(15 * var(--u));
 }
+
+/* ----- Wissensfrage: vier gleich hohe Felder an ihrer Stelle aus der Frage ----- */
 
 .stage .reveal-options {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: calc(6 * var(--u));
+  grid-auto-rows: 1fr;
+  gap: calc(7 * var(--u));
+  padding: 0;
+  list-style: none;
 }
 
+/* Oben die Antwort, darunter das Band derer, die sie gewählt haben */
 .stage .reveal-option {
-  align-content: center;
-  gap: calc(3 * var(--u)) calc(6 * var(--u));
-  min-height: calc(40 * var(--u));
-  padding: calc(4 * var(--u)) calc(7 * var(--u));
-  font-size: calc(14 * var(--u));
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: calc(52 * var(--u));
+  overflow: hidden;
+  font-size: calc(16 * var(--u));
+  font-weight: 600;
   line-height: 1.15;
-  border-radius: calc(8 * var(--u));
-}
-
-.stage .reveal-option:not(.correct, .wrong) {
-  opacity: 0.7;
+  color: var(--text);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-radius: calc(9 * var(--u));
 }
 
 /*
- * Antwortfelder in den Farben der Spieler (ADR-065): Wer ein Feld gewählt hat, malt es aus;
- * mehrere teilen es sich zu gleichen Teilen, mit einer Naht in Papierfarbe dazwischen. Die Farbe
- * ist mit dem Papier gemischt, damit die Schrift in beiden Farbschemen mindestens 7:1 hält.
+ * Lange Antworten brauchen zwei Zeilen: Dann ist jede Reihe nur so hoch wie ihr höchstes Feld,
+ * damit auch der schlimmste Fall (lange Frage, Gleichstand, Erklärung) auf die niedrige Bühne passt.
  */
-.stage .reveal-option {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+.stage .reveal.options-mid .reveal-options,
+.stage .reveal.options-long .reveal-options {
+  grid-auto-rows: auto;
+}
+
+.stage .reveal.options-mid .reveal-option,
+.stage .reveal.options-long .reveal-option {
+  min-height: calc(44 * var(--u));
+  font-size: calc(14 * var(--u));
+}
+
+.stage .reveal.options-long .reveal-option {
+  font-size: calc(12.5 * var(--u));
+}
+
+.stage .reveal.options-mid .reveal-answer,
+.stage .reveal.options-long .reveal-answer {
+  padding-top: calc(3 * var(--u));
+  padding-bottom: calc(3 * var(--u));
+}
+
+.stage .reveal.options-mid .reveal-chips .seat-chip,
+.stage .reveal.options-long .reveal-chips .seat-chip {
+  font-size: calc(11.5 * var(--u));
+}
+
+/* Weder richtig noch gewählt: tritt zurück */
+.stage .reveal-option:not(.correct, .chosen) {
+  opacity: 0.6;
 }
 
 .stage .reveal-option.chosen {
   font-weight: 700;
-  border-color: var(--border-strong);
 }
 
+.stage .reveal-option.wrong {
+  border-color: color-mix(in srgb, var(--danger) 60%, var(--border-strong));
+}
+
+/* Richtig: grüner Rand mit Hof, wie der goldene der eigenen Wahl auf der Vorderseite */
 .stage .reveal-option.correct {
-  border-color: var(--success);
-  box-shadow: inset 0 0 0 calc(1 * var(--u)) var(--success);
+  margin: calc(-1 * var(--u));
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+  border: calc(2 * var(--u)) solid var(--success);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.stage .reveal-answer {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  min-width: 0;
+  padding: calc(4 * var(--u)) calc(9 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
+}
+
+.stage .reveal-option-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/*
+ * Münze mit dem Buchstaben der Antwort, wie auf der Vorderseite. Auf die richtige Antwort setzt
+ * sich ein grüner Stempel mit Haken, auf eine falsch gewählte ein roter mit Kreuz; auch die Lösung
+ * einer Schätzfrage trägt den grünen.
+ */
+.stage .reveal-mark {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(25 * var(--u));
+  height: calc(25 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(13 * var(--u));
+  font-weight: 800;
+  line-height: 1;
+  color: var(--primary-text);
+  background: radial-gradient(circle at 35% 30%, var(--primary-top), var(--primary-bottom));
+  border: 1px solid var(--primary-edge);
+  border-radius: 50%;
+}
+
+/* Die Lösung einer Schätzfrage hat keinen Buchstaben: Dort steht nur der Stempel */
+.stage .reveal-solution .reveal-mark {
+  background: none;
+  border-color: transparent;
+}
+
+.stage .reveal-stamp {
+  --stamp: var(--success);
+  position: absolute;
+  inset: -1px;
+  display: grid;
+  place-items: center;
+  color: var(--surface);
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--stamp) 78%, var(--surface)),
+    var(--stamp)
+  );
+  border: 1px solid color-mix(in srgb, var(--stamp) 80%, var(--text));
+  border-radius: 50%;
+  animation: reveal-stamp 0.3s var(--reveal-at) ease-out both;
+}
+
+/* Erst die richtige Antwort, einen Wimpernschlag später die falsch gewählte */
+.stage .reveal-stamp.wrong {
+  --stamp: var(--danger);
+  animation-delay: calc(var(--reveal-at) + 0.1s);
+}
+
+.stage .reveal-stamp svg {
+  width: 74%;
+  height: 74%;
+}
+
+/*
+ * Band derer, die eine Antwort gewählt haben (ADR-065): je Sitz ein gleich breites Stück in
+ * seiner Farbe, mit einer Naht in Papierfarbe dazwischen, darauf Wappen und Name. Die Farbe ist
+ * mit dem Papier gemischt, damit die Schrift in beiden Farbschemen mindestens 7:1 hält.
+ */
+.stage .reveal-band {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  border-top: 1px solid color-mix(in srgb, var(--border-strong) 45%, transparent);
 }
 
 .stage .reveal-fill {
@@ -2181,116 +2341,328 @@ html.match-playing body {
   z-index: -1;
   display: flex;
   gap: calc(1.5 * var(--u));
-  background: var(--surface);
-  transform-origin: left center;
-  animation: reveal-fill 0.5s 0.3s cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
 
+/*
+ * Jede Farbe läuft von ihrem Rand ein: allein von links über das ganze Band, zu zweit von beiden
+ * Seiten bis zur Naht in der Mitte (links, wer angreift).
+ */
 .stage .reveal-fill i {
   --tone: var(--border-strong);
   flex: 1;
   background: color-mix(in srgb, var(--tone) 42%, var(--surface));
+  transform-origin: left center;
+  animation: reveal-fill 0.45s calc(var(--reveal-at) + 0.2s) cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
 
-.stage .reveal-fill .seat-0 {
+.stage .reveal-fill i:last-child:not(:first-child) {
+  transform-origin: right center;
+}
+
+.stage .reveal-fill .seat-0,
+.stage .reveal-rank.seat-0 {
   --tone: var(--seat-0);
 }
 
-.stage .reveal-fill .seat-1 {
+.stage .reveal-fill .seat-1,
+.stage .reveal-rank.seat-1 {
   --tone: var(--seat-1);
 }
 
-.stage .reveal-fill .seat-2 {
+.stage .reveal-fill .seat-2,
+.stage .reveal-rank.seat-2 {
   --tone: var(--seat-2);
 }
 
-.stage .reveal-option.chosen .reveal-chips {
-  animation: reveal-chip 0.25s 0.65s ease-out both;
+/* Jeder Name steht in seinem Stück des Bands; ein langer bricht in zwei Zeilen um */
+.stage .reveal-chips {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: calc(1.5 * var(--u));
+  animation: reveal-chip 0.25s calc(var(--reveal-at) + 0.55s) ease-out both;
 }
 
-/* Auf der Rückseite der Fragekarte: erst setzt sie auf (0,45 s), dann laufen die Farben ein */
-.stage-centre.turned .reveal-fill {
-  animation-delay: 0.5s;
+.stage .reveal-chips .seat-chip {
+  min-width: 0;
+  max-width: none;
+  gap: calc(5 * var(--u));
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.08;
+  background: none;
+  border: 0;
+  border-radius: 0;
 }
 
-.stage-centre.turned .reveal-option.chosen .reveal-chips {
-  animation-delay: 0.85s;
+.stage .reveal-chips .seat-chip svg {
+  width: calc(17 * var(--u));
+  height: auto;
 }
 
-/* Kreis an der Stelle des Buchstabens aus der Frage: richtig, falsch gewählt oder der Buchstabe */
-.stage .reveal-mark {
+.stage .reveal-chips .seat-chip-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.stage .reveal-silent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  color: var(--muted);
+}
+
+/* ----- Schätzfrage: die Lösung in der Tafel der Eingabe, darunter die Schätzungen ----- */
+
+.stage .reveal-solution {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  min-height: calc(40 * var(--u));
+  padding: calc(4 * var(--u)) calc(12 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
+  background: var(--map-coin);
+  border: calc(2 * var(--u)) solid var(--primary-edge);
+  border-radius: calc(10 * var(--u));
+  box-shadow: inset 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.25);
+}
+
+.stage .reveal-solution-label {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: calc(12.5 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Eine Zahl mit Einheit: Zahlen stehen in Tabellenziffern, damit sie untereinander fluchten */
+.stage .reveal-figure {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stage .reveal-unit {
+  font-size: 0.64em;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.stage .reveal-solution .reveal-figure {
+  font-size: calc(25 * var(--u));
+  line-height: 1.1;
+  animation: reveal-figure 0.34s var(--reveal-at) ease-out both;
+}
+
+.stage .reveal-ranks {
+  display: grid;
+  gap: calc(5 * var(--u));
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Je Platz eine kleine Tafel mit der Farbe des Sitzes am linken Rand, wie die Tafeln des
+ * Spielstands. Zwei Zeilen: oben Wappen, Name und Schätzung, darunter Abstand, Zeit und die
+ * Auswahl der Landnahme. Die Schätzungen fluchten rechts mit der Lösung.
+ */
+.stage .reveal-rank {
+  --tone: var(--border-strong);
+  --row: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(23 * var(--u)) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'place who value'
+    'place detail picks';
+  align-items: center;
+  gap: 0 calc(8 * var(--u));
+  padding: calc(4 * var(--u)) calc(13 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-left: calc(5 * var(--u)) solid var(--tone);
+  border-radius: calc(9 * var(--u));
+  animation: reveal-row 0.3s calc(var(--reveal-at) + 0.16s + var(--row) * 0.13s) ease-out both;
+}
+
+/* Der letzte Platz kommt zuerst, der beste zuletzt */
+.stage .reveal-rank:nth-last-child(2) {
+  --row: 1;
+}
+
+.stage .reveal-rank:nth-last-child(3) {
+  --row: 2;
+}
+
+.stage .reveal-rank.best {
+  background: color-mix(in srgb, var(--map-gold) 17%, var(--surface));
+  border-color: var(--map-gold);
+  border-left-color: var(--tone);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 30%, transparent);
+}
+
+/* Ein goldener Ring läuft einmal von der besten Schätzung weg, wenn sie steht */
+.stage .reveal-rank.best::after {
+  content: '';
+  position: absolute;
+  inset: calc(-3 * var(--u));
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  border-radius: calc(11 * var(--u));
+  opacity: 0;
+  pointer-events: none;
+  animation: reveal-glint 0.6s calc(var(--reveal-at) + 0.42s + var(--row) * 0.13s) ease-out both;
+}
+
+.stage .reveal-rank.silent {
+  color: var(--muted);
+}
+
+/* Platz als Münze: Gold, Silber, Bronze wie in der Abrechnung */
+.stage .reveal-place {
+  grid-area: place;
   display: grid;
   place-items: center;
-  width: calc(20 * var(--u));
-  height: calc(20 * var(--u));
+  width: calc(23 * var(--u));
+  height: calc(23 * var(--u));
   font-family: var(--font-display);
-  font-size: calc(11.5 * var(--u));
+  font-size: calc(13 * var(--u));
   font-weight: 800;
   line-height: 1;
-  color: var(--muted);
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 50%;
 }
 
-.stage .reveal-option.correct .reveal-mark {
-  color: var(--surface);
-  background: var(--success);
-  border-color: var(--success);
+.stage .reveal-rank[data-place='1'] .reveal-place {
+  color: #2a1a08;
+  background: radial-gradient(circle at 35% 30%, #f5d77f, #c4902c);
+  border-color: #8a5f17;
 }
 
-.stage .reveal-option.wrong .reveal-mark {
-  color: var(--surface);
-  background: var(--danger);
-  border-color: var(--danger);
+.stage .reveal-rank[data-place='2'] .reveal-place {
+  color: #222;
+  background: radial-gradient(circle at 35% 30%, #f1f1ec, #a9a9a2);
+  border-color: #77776f;
 }
 
-/* Der Haken der richtigen Antwort drückt sich auf wie ein Stempel, wenn das Blatt aufgesetzt hat */
-.stage .reveal-option.correct .reveal-mark {
-  animation: reveal-stamp 0.3s 0.12s ease-out both;
+.stage .reveal-rank[data-place='3'] .reveal-place {
+  color: #241307;
+  background: radial-gradient(circle at 35% 30%, #e9b48a, #a8653a);
+  border-color: #6e3d1d;
 }
 
-.stage-centre.turned .reveal-option.correct .reveal-mark {
-  animation-delay: 0.3s;
+.stage .reveal-rank.silent .reveal-place {
+  color: var(--muted);
+  background: var(--surface-2);
+  border-color: var(--border);
 }
 
-.stage .reveal-option-text {
-  flex: 1 1 calc(60 * var(--u));
+.stage .reveal-rank .seat-chip {
+  grid-area: who;
+  justify-self: start;
+  max-width: 100%;
+  gap: calc(6 * var(--u));
+  padding: 0;
+  font-size: calc(14.5 * var(--u));
+  line-height: 1.2;
+  background: none;
+  border: 0;
+  border-radius: 0;
 }
 
-.stage .reveal-chips {
-  gap: calc(3 * var(--u));
+.stage .reveal-rank .seat-chip svg {
+  width: calc(19 * var(--u));
+  height: auto;
 }
 
-.stage .reveal-ranks {
-  gap: calc(5 * var(--u));
+.stage .reveal-value {
+  grid-area: value;
+  justify-self: end;
+  font-size: calc(19 * var(--u));
+  line-height: 1.15;
+  text-align: right;
 }
 
-.stage .reveal-rank {
-  grid-template-columns: calc(18 * var(--u)) minmax(0, 1fr) auto;
-  gap: calc(1 * var(--u)) calc(7 * var(--u));
-  padding: calc(4 * var(--u)) calc(8 * var(--u));
-  font-size: calc(14 * var(--u));
-  border-radius: calc(8 * var(--u));
+.stage .reveal-rank.silent .reveal-value {
+  font-size: calc(13 * var(--u));
 }
 
-.stage .reveal-detail,
+.stage .reveal-detail {
+  grid-area: detail;
+  min-height: calc(15 * var(--u));
+  font-size: calc(12 * var(--u));
+  line-height: calc(15 * var(--u));
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.stage .reveal-off.exact {
+  font-weight: 700;
+  color: var(--success);
+}
+
 .stage .reveal-picks {
+  grid-area: picks;
+  justify-self: end;
+  padding: calc(1 * var(--u)) calc(8 * var(--u));
   font-size: calc(11.5 * var(--u));
+  font-weight: 700;
+  line-height: calc(14 * var(--u));
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-radius: 999px;
 }
 
-.stage .reveal-picks {
-  padding: calc(1 * var(--u)) calc(7 * var(--u));
+.stage .reveal-picks.none {
+  padding-right: 0;
+  font-weight: 400;
+  color: var(--muted);
+  background: none;
 }
 
-.stage .reveal-silent {
-  gap: calc(4 * var(--u));
-  font-size: calc(12.5 * var(--u));
+/* ----- Was aus den Antworten folgt (ADR-069: erst die Antworten, dann die Folge) ----- */
+
+.stage .reveal-next {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: calc(8 * var(--u));
+  padding: calc(5 * var(--u)) calc(11 * var(--u)) calc(5 * var(--u)) calc(9 * var(--u));
+  background: color-mix(in srgb, var(--map-gold) 17%, var(--surface));
+  border: 1px solid var(--map-gold);
+  border-radius: calc(9 * var(--u));
+  animation: reveal-row 0.32s calc(var(--reveal-at) + 0.9s) ease-out both;
+}
+
+.stage .reveal-next svg {
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
+}
+
+.stage .reveal-next-title {
+  font-family: var(--font-display);
+  font-size: calc(16 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stage .reveal-next-text {
+  font-size: calc(13.5 * var(--u));
+  line-height: 1.2;
 }
 
 .stage .reveal-explanation {
+  padding: 0 calc(3 * var(--u));
   font-size: calc(12.5 * var(--u));
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 @keyframes sheet-in {
@@ -2323,6 +2695,35 @@ html.match-playing body {
   from {
     opacity: 0;
     transform: translateY(calc(2 * var(--u)));
+  }
+}
+
+/* Die Lösung setzt sich mit dem Stempel: kurz größer, dann an ihrem Platz */
+@keyframes reveal-figure {
+  from {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes reveal-row {
+  from {
+    opacity: 0;
+    transform: translateY(calc(5 * var(--u)));
+  }
+}
+
+@keyframes reveal-glint {
+  from {
+    opacity: 0.85;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.035, 1.28);
   }
 }
 
@@ -3242,10 +3643,14 @@ html.match-playing body {
     transition: none;
   }
 
-  /* Die Farbe steht sofort im Feld: ohne das stünde sie erst nach der Wartezeit der Bewegung da */
-  .stage .reveal-fill,
-  .stage .reveal-option.chosen .reveal-chips,
-  .stage .reveal-option.correct .reveal-mark,
+  /* Alles steht sofort da: ohne das stünde es erst nach der Wartezeit der Bewegung im Blatt */
+  .stage .reveal-fill i,
+  .stage .reveal-chips,
+  .stage .reveal-stamp,
+  .stage .reveal-solution .reveal-figure,
+  .stage .reveal-rank,
+  .stage .reveal-rank.best::after,
+  .stage .reveal-next,
   .stage-centre.turned .sheet.reveal {
     animation: none;
   }
