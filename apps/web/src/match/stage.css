@@ -1662,34 +1662,42 @@ html.match-playing body {
   }
 }
 
-/* Abrechnung: links die Tabelle, rechts Ergebnis und Knöpfe */
+/* ---------- Abrechnung: links die Tabelle, rechts Ergebnis und Knöpfe ---------- */
+
 .sheet.result {
   width: min(100%, calc(610 * var(--u)));
   display: grid;
   grid-template-columns: minmax(0, 1fr) calc(190 * var(--u));
   grid-template-areas:
-    'table laurel'
+    'table emblem'
     'table title'
     'table reason'
-    'table note'
     'table actions';
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   column-gap: calc(16 * var(--u));
   row-gap: calc(5 * var(--u));
   align-items: start;
-  animation: sheet-in 0.35s ease-out both;
 }
 
-.sheet.result .laurel {
-  grid-area: laurel;
-  justify-self: center;
-  width: calc(84 * var(--u));
-  height: auto;
-  margin: 0;
+/*
+ * Der Hinweis (Testpartie, Partie mit Bots) steht als Fußnote unter der Tabelle: So bleibt die
+ * rechte Spalte kurz, und das Blatt lässt auf der niedrigen Bühne (340 hoch) oben Platz für ein
+ * Band über der Karte.
+ */
+.sheet.result:has(> .muted) {
+  grid-template-areas:
+    'table emblem'
+    'table title'
+    'table reason'
+    'table actions'
+    'note actions';
+  grid-template-rows: auto auto 1fr auto auto;
 }
 
 .sheet.result h1 {
   grid-area: title;
+  position: relative;
+  z-index: 1;
   font-family: var(--font-display);
   font-size: calc(21 * var(--u));
   font-weight: 800;
@@ -1699,19 +1707,30 @@ html.match-playing body {
 
 .sheet.result > p {
   grid-area: reason;
+  position: relative;
+  z-index: 1;
   font-size: calc(12.5 * var(--u));
   line-height: 1.3;
   text-align: center;
   color: var(--muted);
 }
 
+/* Ohne `:has` liegt die Fußnote am unteren Rand der Spalte der Tabelle, die mittig darüber steht */
 .sheet.result > p.muted {
+  grid-area: table;
+  align-self: end;
+}
+
+.sheet.result:has(> .muted) > p.muted {
   grid-area: note;
 }
 
+/* Die Tabelle passt immer ins Blatt: nichts rollt, und was sich einstempelt, wird nicht beschnitten */
 .sheet.result .table-wrap {
   grid-area: table;
   align-self: center;
+  justify-self: stretch;
+  overflow: visible;
 }
 
 .sheet.result .actions {
@@ -1723,6 +1742,27 @@ html.match-playing body {
 
 .sheet.result .sides {
   font-size: calc(13.5 * var(--u));
+}
+
+/*
+ * Die Zeilen selbst bewegen sich nie (in WebKit zeichnet eine Tabelle mit bewegten Zeilen ihre
+ * Linien falsch): Beim Aufbau erscheint der Inhalt der Zellen, die Linien stehen wie in einem
+ * Kontobuch schon da. Der goldene Grund der eigenen Zeile liegt deshalb auf den Zellen.
+ */
+.sheet.result .sides tbody tr {
+  animation: none;
+}
+
+.sheet.result .sides tr.me {
+  background: none;
+}
+
+.sheet.result .sides tr.me > * {
+  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.sheet.result .sides .cell {
+  display: inline-block;
 }
 
 .sheet.result .sides th,
@@ -1744,9 +1784,495 @@ html.match-playing body {
 }
 
 .sheet.result .place {
+  position: relative;
   width: calc(22 * var(--u));
   height: calc(22 * var(--u));
   font-size: calc(12.5 * var(--u));
+}
+
+/* Sieg: Das Blatt trägt einen goldenen Rand wie das Blatt des eigenen Zugs */
+.sheet.result.victory {
+  border-color: var(--map-gold);
+  box-shadow:
+    0 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-gold) 55%, transparent),
+    0 calc(10 * var(--u)) calc(28 * var(--u)) rgb(30 18 6 / 0.55);
+}
+
+/* Punkte, die hochzählen: Die Endzahl hält unsichtbar ihren Platz, die laufende liegt darüber */
+.sheet.result .tally {
+  position: relative;
+  display: inline-block;
+}
+
+.sheet.result .tally-end {
+  opacity: 0;
+}
+
+.sheet.result .tally-run {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Wer nicht gewonnen hat: das eigene Wappen mit der Plakette des Platzes */
+.result-crest {
+  grid-area: emblem;
+  position: relative;
+  margin: calc(8 * var(--u)) 0 calc(5 * var(--u));
+  line-height: 0;
+}
+
+.result-crest .crest {
+  display: block;
+  width: calc(46 * var(--u));
+  height: auto;
+}
+
+.sheet.result .result-crest .place {
+  position: absolute;
+  right: calc(-12 * var(--u));
+  bottom: calc(-6 * var(--u));
+  width: calc(25 * var(--u));
+  height: calc(25 * var(--u));
+  font-size: calc(13.5 * var(--u));
+  line-height: 1;
+  box-shadow: 0 0 0 calc(2 * var(--u)) var(--surface);
+}
+
+/*
+ * Siegel des Siegs: Lorbeerkranz mit Krone vor einem Strahlenkranz. Drei Lagen übereinander, jede
+ * ein eigenes Element, damit sie sich einzeln bewegen lassen: Strahlen, Schatten und Effekte,
+ * darüber die Zeichnung. Die Mitte der Krone liegt bei 50 % / 54,17 % des Kastens.
+ */
+.result-seal {
+  /* Auf der niedrigen Bühne (340 hoch) 104 breit; ist sie höher, wächst es bis 124 mit */
+  --seal-w: min(calc(124 * var(--u)), calc(104 * var(--u) + (100vh - 340 * var(--u)) * 0.4));
+  grid-area: emblem;
+  position: relative;
+  z-index: 0;
+  width: var(--seal-w);
+  aspect-ratio: 120 / 96;
+}
+
+@supports (height: 100dvh) {
+  .result-seal {
+    --seal-w: min(calc(124 * var(--u)), calc(104 * var(--u) + (100dvh - 340 * var(--u)) * 0.4));
+  }
+}
+
+.seal-body {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.seal-rays {
+  position: absolute;
+  left: 0;
+  top: -8.33%;
+  width: 100%;
+  height: 125%;
+  overflow: visible;
+}
+
+.seal-ray-in {
+  stop-color: var(--map-gold);
+  stop-opacity: 0.62;
+}
+
+.seal-ray-out {
+  stop-color: var(--map-gold);
+  stop-opacity: 0;
+}
+
+.seal-stem {
+  fill: none;
+  stroke: #55702f;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.seal-leaf {
+  fill: #86a551;
+  stroke: #41572a;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.seal-leaf-inner {
+  fill: #6f8e42;
+}
+
+.seal-rib {
+  fill: none;
+  stroke: #41572a;
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.seal-crown {
+  fill: url('#seal-gold');
+  stroke: #7a5212;
+  stroke-width: 2.2;
+}
+
+.seal-band {
+  fill: #c9962f;
+  stroke: #7a5212;
+  stroke-width: 2;
+}
+
+.seal-crown-light {
+  fill: none;
+  stroke: #fff3c4;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
+}
+
+.seal-pearl {
+  fill: #fff3c4;
+  stroke: #7a5212;
+  stroke-width: 1.3;
+}
+
+.seal-gem {
+  fill: #b23a24;
+  stroke: #7a5212;
+  stroke-width: 1.4;
+}
+
+.seal-gem-light {
+  fill: none;
+  stroke: #ffd9c9;
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.seal-knot,
+.seal-ribbon {
+  fill: #d9a63c;
+  stroke: #7a5212;
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+
+/* Schatten des herabfallenden Siegels und was beim Aufsetzen aufblitzt: ohne Bewegung unsichtbar */
+.seal-shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 22%;
+  bottom: 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(40 25 8 / 0.55), rgb(40 25 8 / 0) 100%);
+  opacity: 0;
+}
+
+.seal-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.seal-fx > .fx-ring,
+.seal-fx > .fx-sparks,
+.seal-flash {
+  left: 50%;
+  top: 54.17%;
+}
+
+/* Auf hellem Papier liest sich nur dunkles Gold und Tinte; in der Nacht kehrt sich das um */
+.seal-fx > .fx-sparks b {
+  background: linear-gradient(90deg, transparent, var(--map-gold) 35%, var(--primary-edge));
+}
+
+.seal-ring-ink {
+  --c: color-mix(in srgb, var(--map-ink) 60%, transparent);
+}
+
+.seal-ring-gold {
+  --c: var(--map-gold);
+}
+
+.seal-flash {
+  position: absolute;
+  width: calc(100 * var(--u));
+  height: calc(100 * var(--u));
+  margin: calc(-50 * var(--u)) 0 0 calc(-50 * var(--u));
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    #fff8dc 0%,
+    rgb(255 228 150 / 0.75) 34%,
+    rgb(255 228 150 / 0) 72%
+  );
+  opacity: 0;
+}
+
+/*
+ * Bewegung der Abrechnung (docs/ART_DIRECTION.md §5): nur, wenn die Seite das Ende miterlebt hat
+ * (`.entrance`, steht beim Erscheinen fest). Grundzustand ist überall das Endbild. Die Zeiten
+ * kommen aus `result-motion.ts` im Takt des Klangs: `--at` je Zeile (sie steht, ihre Punkte
+ * zählen), `--seal-at` für das Aufsetzen des Siegels. Bewegt werden nur transform und opacity,
+ * dazu zwei reine Farbwechsel ohne Einfluss auf das Layout (Grund der eigenen Zeile, Lichtstreif
+ * im Titel); die Knöpfe hängen an nichts davon und sind von Anfang an bedienbar.
+ */
+.sheet.result.entrance,
+.sheet.plain-sheet.entrance {
+  animation: result-sheet-in 0.32s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes result-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6 * var(--u))) scale(0.985);
+  }
+}
+
+/*
+ * Vor dem Spiel löst der Abbruch das Blatt der Aufstellung ab: Dort steht das neue Blatt vom
+ * ersten Bild an deckend da und setzt sich nur, sonst läge für einen Augenblick die Karte frei.
+ */
+.stage-plain .sheet.plain-sheet.entrance {
+  animation: plain-sheet-settle 0.28s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes plain-sheet-settle {
+  from {
+    transform: scale(1.06);
+  }
+}
+
+/*
+ * Erscheint das Blatt über der freien Karte, legt sich ihr Schleier im selben Zug darüber (der
+ * Schleier steht immer im Dokument und blendet, siehe oben). Lag schon ein Blatt da, steht er
+ * längst und bleibt, wie er ist.
+ */
+.stage:has(.sheet.entrance) > .stage-veil {
+  transition: opacity 0.32s ease-out;
+}
+
+/* Sieg: Die Zeilen steigen vom letzten Platz zum ersten auf, jede Plakette stempelt sich ein */
+.sheet.result.entrance .sides tbody tr > * > * {
+  animation: result-row-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) calc(var(--at) - 150ms) both;
+}
+
+.sheet.result.entrance .sides tr.me > * {
+  animation: result-tint-in 0.3s ease-out calc(var(--at) - 150ms) both;
+}
+
+@keyframes result-tint-in {
+  from {
+    background-color: transparent;
+  }
+}
+
+@keyframes result-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6 * var(--u)));
+  }
+}
+
+.sheet.result.victory.entrance .sides .place {
+  animation: result-medal-in 0.32s calc(var(--at) - 160ms) both;
+}
+
+@keyframes result-medal-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.9) rotate(-16deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.88) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  76% {
+    transform: scale(1.07);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Die Plakette des ersten Platzes schlägt einen goldenen Ring */
+.sheet.result.victory.entrance .place-1 .place::after {
+  content: '';
+  position: absolute;
+  inset: calc(-2 * var(--u));
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: result-medal-ring 0.5s var(--at) cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+
+@keyframes result-medal-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  6% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+/* Sonst: ruhig, von oben nach unten, ohne Stempel */
+.sheet.result.entrance:not(.victory) .sides tbody tr > * > * {
+  animation: result-row-calm 0.45s ease-out calc(var(--at) - 150ms) both;
+}
+
+@keyframes result-row-calm {
+  from {
+    opacity: 0;
+    transform: translateY(calc(4 * var(--u)));
+  }
+}
+
+/* Das Siegel fällt, schlägt auf (`--seal-at`) und federt aus; sein Schatten läuft ihm voraus */
+.sheet.result.entrance .seal-body {
+  animation: seal-stamp 0.52s calc(var(--seal-at) - 230ms) both;
+}
+
+@keyframes seal-stamp {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-8 * var(--u))) scale(1.6) rotate(-10deg);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.45);
+  }
+  16% {
+    opacity: 1;
+  }
+  44% {
+    opacity: 1;
+    transform: translateY(0) scale(0.9) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  64% {
+    transform: scale(1.06);
+    animation-timing-function: ease-in-out;
+  }
+  82% {
+    transform: scale(0.985);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.sheet.result.entrance .seal-shadow {
+  animation: seal-shadow 0.23s calc(var(--seal-at) - 230ms) ease-in both;
+}
+
+@keyframes seal-shadow {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  88% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.sheet.result.entrance .seal-flash {
+  animation: seal-flash 0.5s var(--seal-at) cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+
+@keyframes seal-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  8% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Die Strahlen fächern mit dem Aufsetzen auf, drehen aus und stehen */
+.sheet.result.entrance .seal-rays {
+  animation: seal-rays 1.4s var(--seal-at) cubic-bezier(0.12, 0.8, 0.2, 1) both;
+}
+
+@keyframes seal-rays {
+  0% {
+    opacity: 0;
+    transform: scale(0.35) rotate(-60deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Der Titel drückt sich unter dem Siegel ein, ein Lichtstreif läuft einmal über das Gold */
+.sheet.result.victory.entrance h1 {
+  animation: result-title-in 0.36s calc(var(--seal-at) + 50ms) cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes result-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6 * var(--u))) scale(0.92);
+  }
+}
+
+.sheet.result.victory.entrance h1::after {
+  content: attr(data-text);
+  content: attr(data-text) / '';
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  text-shadow: none;
+  background: linear-gradient(105deg, transparent 43%, #fff8dc 50%, transparent 57%) no-repeat;
+  background-size: 300% 100%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  pointer-events: none;
+  animation: result-sheen 0.8s calc(var(--seal-at) + 300ms) ease-in-out both;
+}
+
+@keyframes result-sheen {
+  from {
+    background-position: 100% 0;
+  }
+}
+
+.sheet.result.victory.entrance > p {
+  animation: result-text-in 0.4s calc(var(--seal-at) + 240ms) ease-out both;
+}
+
+@keyframes result-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(3 * var(--u)));
+  }
 }
 
 /* Hinweis, wenn die Abfrage scheitert: oben in der Mitte */
