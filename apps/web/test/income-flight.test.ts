@@ -42,7 +42,7 @@ describe('Zeitplan des Einkommens', () => {
     expect(many.totalMs).toBeLessThanOrEqual(2700);
   });
 
-  it('räumt erst ab, wenn alle Zeichen da sind und der Vorrat ausgefedert hat (ADR-068)', () => {
+  it('räumt erst ab, wenn alle Zeichen da sind und der Vorrat ausgefedert hat (ADR-070)', () => {
     for (const count of [0, 1, 3, 9, 24]) {
       const time = incomeTiming(count);
       expect(time.totalMs).toBeGreaterThan(time.landedMs);
@@ -112,7 +112,7 @@ describe('Einkommen zwischen Verbuchen und Rüstzeit', () => {
 });
 
 /**
- * Ankunft im Vorrat (ADR-068): Nur die Zeichen, die wirklich ankommen, heben sich; die Tafeln der
+ * Ankunft im Vorrat (ADR-070): Nur die Zeichen, die wirklich ankommen, heben sich; die Tafeln der
  * anderen schimmern, wenn ihr Vorrat nur hochzählt. Bei vielen Feldern bleibt die Spur schmal.
  */
 describe('Tafeln beim Einkommen', () => {

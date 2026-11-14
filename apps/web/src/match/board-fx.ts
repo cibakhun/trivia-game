@@ -6,7 +6,7 @@ import type { RealmLayer } from './RealmBoardArt.tsx';
 import { realmBursts } from './realm-fx.ts';
 
 /**
- * Welche Effekte die Karte gerade spielt (ADR-068), als reine Ableitung aus dem, was sie ohnehin
+ * Welche Effekte die Karte gerade spielt (ADR-070), als reine Ableitung aus dem, was sie ohnehin
  * zeigt: Ausgang eines Duells, Aufdecken der Befehle, Ausgang mit Ausbau. Nur für Wechsel, die die
  * Seite miterlebt hat (`live`); nie während einer Frage, denn dann steht kein Ausgang an.
  */

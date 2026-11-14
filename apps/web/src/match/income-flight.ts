@@ -61,7 +61,7 @@ export interface IncomeWatch {
   /**
    * Nummer des Einkommens, dessen Zahlen gerade sichtbar hochzählen, weil die Seite seine Freigabe
    * miterlebt hat: mit eigenem Flug oder ohne (Zuschauer, gefallenes Reich). Die Tafeln der anderen
-   * schimmern dann (ADR-068).
+   * schimmern dann (ADR-070).
    */
   readonly rising: number | null;
 }

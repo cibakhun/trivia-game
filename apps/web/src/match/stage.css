@@ -788,7 +788,7 @@ html.match-playing body {
   color: var(--success);
 }
 
-/* ---------- Flug über die Bühne (ADR-067, ADR-068) ---------- */
+/* ---------- Flug über die Bühne (ADR-067, ADR-070) ---------- */
 
 /* Zeichen fliegen einmal von einem Element der Bühne zu einem anderen: Einkommen in den Vorrat,
    die Kategorie vom Rad ins Blatt. Jedes springt mit einem kleinen Ring ab und zieht goldene

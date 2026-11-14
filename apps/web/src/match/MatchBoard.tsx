@@ -8,6 +8,7 @@ import {
   useState,
   type CSSProperties,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react';
 import { ArtDefs, symbolRef, type SymbolId } from '../art/ArtDefs.tsx';
 import {
@@ -78,6 +79,38 @@ const SEA = 3000;
 /** Kachel der Wellen jenseits des Kartenblatts, in Wellenabständen. */
 const FAR_COLUMNS = 12;
 const FAR_ROWS = 9;
+
+/**
+ * Gruppe (oder mit `path` ein Pfad), deren Bewegung `motion` nur abspielt, wenn sie nach dem ersten
+ * Aufbau der Karte erschienen ist. Das steht beim Erscheinen fest: Ein späteres Rendern hängt die
+ * Klasse nicht nachträglich an, sonst liefe die Animation nach dem Laden mitten im Spiel an. Ein
+ * neuer Stand braucht deshalb einen neuen Schlüssel (`key`).
+ */
+function Born({
+  className,
+  motion,
+  live,
+  style,
+  path,
+  children,
+}: {
+  readonly className: string;
+  readonly motion: string;
+  readonly live: boolean;
+  readonly style?: CSSProperties;
+  readonly path?: string;
+  readonly children?: ReactNode;
+}) {
+  const [born] = useState(live);
+  const classes = born && motion ? `${className} ${motion}` : className;
+  return path === undefined ? (
+    <g className={classes} style={style}>
+      {children}
+    </g>
+  ) : (
+    <path d={path} className={classes} style={style} />
+  );
+}
 
 /** `true` ab dem zweiten Rendern: Beim ersten Aufbau läuft keine Änderungsanimation. */
 function useSettled(): boolean {
@@ -300,7 +333,7 @@ export function MatchBoard({
       ? { ['--wave' as string]: `${Math.min(3, hexDistance(from, to)) * 0.12}s` }
       : undefined;
   };
-  // Effekte über der Karte (ADR-068): nur für Wechsel, die die Seite miterlebt hat
+  // Effekte über der Karte (ADR-070): nur für Wechsel, die die Seite miterlebt hat
   const fx = useMemo(
     () => boardFx({ art, duel, layout, castle, realm, live: settled }),
     [art, duel, layout, castle, realm, settled],
@@ -641,11 +674,13 @@ export function MatchBoard({
             ))}
           {hotArt ? <path d={hotArt.d} className="hot-ring" /> : null}
           {spotArt ? (
-            <path
+            <Born
               key={spotArt.id}
-              d={spotArt.d}
-              className={`spot-ring${settled ? ' draw' : ''}`}
+              className="spot-ring"
+              motion="draw"
+              live={settled}
               style={{ ['--spot' as string]: `var(--seat-${spotOwner ?? 0})` }}
+              path={spotArt.d}
             />
           ) : null}
         </g>
@@ -673,6 +708,12 @@ export function MatchBoard({
             layout={layout}
             castle={castle}
             fallingCastle={realm === null}
+            razed={
+              realm
+                ? realm.motion?.kind === 'outcome' &&
+                  realm.motion.fields[duel.region]?.fell === 'CASTLE'
+                : castle && duel.effect === 'TAKEOVER'
+            }
             size={s}
             enter={settled}
             ink={flood && contested !== null ? inks[contested] : undefined}
@@ -951,13 +992,15 @@ function RegionArt({
       >
         {capital ? (
           <>
-            <g
+            <Born
               key={`castle-${lives}`}
-              className={`castle${rising ? ' rising' : struck ? (realm ? ' hit shaken' : ' hit') : ''}`}
+              className={`castle${rising ? ' rising' : realm && struck ? ' hit shaken' : ''}`}
+              motion={!realm && !rising && struck ? 'hit' : ''}
+              live={settled}
               style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
             >
               {use('castle', castleX, cy + (realm ? REALM_CASTLE.y : 0.02) * s, castleSize)}
-            </g>
+            </Born>
             <g className="lives" style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}>
               {Array.from({ length: maxLives }, (_, i) => {
                 const left = i < lives;
@@ -965,11 +1008,13 @@ function RegionArt({
                 const y = cy + (realm ? REALM_CASTLE.livesY : 0.5) * s;
                 return (
                   <g key={`${i}-${left ? 'on' : 'off'}`}>
-                    <g
-                      className={`life ${left ? 'life-on' : `life-off${!realm && settled ? ' breaking' : ''}`}`}
+                    <Born
+                      className={`life ${left ? 'life-on' : 'life-off'}`}
+                      motion={!realm && !left ? 'breaking' : ''}
+                      live={settled}
                     >
                       {use('shield', x, y, REALM_CASTLE.life * s)}
-                    </g>
+                    </Born>
                     {/* Mit Ausbau zerbricht das eben verlorene Schild in zwei Hälften */}
                     {realm && motion?.hit === true && i === lives ? (
                       <ShieldShatter prefix={prefix} x={x} y={y} size={REALM_CASTLE.life * s} />
@@ -1005,12 +1050,12 @@ function RegionArt({
           </g>
         ) : null}
         {showCoin ? (
-          <g key={`coin-${value}`} className={`coin${settled ? ' pop' : ''}`}>
+          <Born key={`coin-${value}`} className="coin" motion="pop" live={settled}>
             <circle cx={coinX} cy={coinY} r={(realm ? 0.17 : 0.2) * s} />
             <text x={coinX} y={coinY + 0.01 * s} className="board-value">
               {formatNumber(value)}
             </text>
-          </g>
+          </Born>
         ) : null}
       </g>
     </>
@@ -1038,6 +1083,7 @@ function DuelStageArt({
   layout,
   castle,
   fallingCastle,
+  razed,
   size: s,
   enter,
   ink,
@@ -1052,6 +1098,11 @@ function DuelStageArt({
   readonly castle: boolean;
   /** Die Burg einer eingenommenen Hauptstadt fällt hier; mit Ausbau lässt die Karte sie einstürzen. */
   readonly fallingCastle: boolean;
+  /**
+   * Im Ausgang stürzt auf dem Ziel eine Burg ein. Der Sieger setzt sich dann nicht als Siegel
+   * darüber: Er prallt am Wall ab und tritt zurück, damit der Einsturz frei vor dem Auge liegt.
+   */
+  readonly razed: boolean;
   readonly size: number;
   /** Aufmarsch abspielen (nicht beim ersten Aufbau der Seite). */
   readonly enter: boolean;
@@ -1088,7 +1139,7 @@ function DuelStageArt({
         : duel.repelled
           ? ' held'
           : '';
-  const classes = `duel-stage scene-${duel.scene}${ending} contact-${contact}${enter && duel.scene === 'announce' ? ' enter' : ''}`;
+  const classes = `duel-stage scene-${duel.scene}${ending} contact-${contact}${razed ? ' razed' : ''}${enter && duel.scene === 'announce' ? ' enter' : ''}`;
   // Hält die Verteidigung, blitzt vor dem Wappen ein goldener Schild auf
   const guard =
     layout && outcome && duel.repelled && duel.defender !== null && !castle

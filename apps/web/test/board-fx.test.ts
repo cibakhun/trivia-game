@@ -6,7 +6,7 @@ import { mapArt } from '../src/art/map-art.ts';
 import { boardFx, duelFx, HIT_STOP_MS, IMPACT_MS } from '../src/match/board-fx.ts';
 import type { DuelStage } from '../src/match/match-model.ts';
 
-/** Effekte des Duells auf der Karte (ADR-068): Anlauf, Einschlag und je Ausgang ein eigenes Bild. */
+/** Effekte des Duells auf der Karte (ADR-070): Anlauf, Einschlag und je Ausgang ein eigenes Bild. */
 
 const art = mapArt(WENDELMARK);
 const at = (name: string) => WENDELMARK.regions.findIndex((r) => r.name === name);

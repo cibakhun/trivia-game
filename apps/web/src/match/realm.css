@@ -158,7 +158,7 @@
   color: var(--success);
 }
 
-/* Das Einkommen kommt an (ADR-067, ADR-068): Mit dem ersten Zeichen hebt sich das Zeichen im
+/* Das Einkommen kommt an (ADR-067, ADR-070): Mit dem ersten Zeichen hebt sich das Zeichen im
    eigenen Vorrat, ein goldener Ring geht von ihm aus, und es glimmt, solange Zeichen kommen; mit
    dem letzten federt es zurück, wieder mit einem Ring, und das Glimmen verlischt. Die Zahl daneben
    zählt mit den Ankünften und leuchtet dabei golden. Ohne Bewegung steht alles still im Endbild.
@@ -1311,7 +1311,7 @@ span.order-chip {
    (ADR-067). Solange es schnell dreht, liegt der Wirbel darüber und der Zeiger lehnt angedrückt;
    wird es langsamer, kommen die Stifte heraus, und jeder, der dann unter dem Zeiger durchläuft,
    stößt ihn an (Zeiten aus `wheel-motion.ts`). Steht es, flammt das gezogene Feld auf, Strahlen
-   gehen hinter dem Rad auf, und der goldene Rand legt sich um das Feld (ADR-068) */
+   gehen hinter dem Rad auf, und der goldene Rand legt sich um das Feld (ADR-070) */
 .wheel.spinning .wheel-disc {
   animation: wheel-spin var(--spin, 2s) linear var(--spun, 0ms) both;
 }

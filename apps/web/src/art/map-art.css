@@ -681,6 +681,18 @@
 .map-art .duel-stage.scene-outcome.attack-won .duel-token.defender .token-flash {
   animation: duel-flash 0.62s linear both;
 }
+/* Eine Burg stürzt ein (`razed`): Der Sieger setzt sich nicht als Siegel über sie, sondern prallt
+   am Wall ab und tritt zurück. So liegt der Einsturz frei vor dem Auge; dass die Region nun seine
+   ist, erzählt die einlaufende Tinte. Die Klasse steht ab Beginn des Ausgangs fest */
+.map-art .duel-stage.scene-outcome.attack-won.razed .duel-token.attacker {
+  animation-name: duel-charge-razed;
+}
+.map-art .duel-stage.scene-outcome.attack-won.razed .duel-token.attacker .token-seal {
+  animation: none;
+}
+.map-art .duel-stage.scene-outcome.attack-won.razed .duel-token.attacker .token-body {
+  animation: none;
+}
 /* Die Hauptstadt fällt: Ihre Burg wankt und versinkt, während der Sieger einzieht */
 .map-art .duel-castle {
   opacity: 0;
@@ -777,12 +789,15 @@
   --ink-ms: 0.75s;
 }
 /*
- * Burg und Münze reagieren erst, wenn der Schlag sitzt und die Beschriftung wieder steht. Die
- * Verzögerung gilt für die ganze Auflösung, damit der Wechsel zu den Antworten nichts abschneidet.
+ * Die Burg ruckt im Augenblick des Schlags, ihr Lebensschild bricht nach dem Treffer-Stopp; die
+ * Münze reagiert erst, wenn die Beschriftung wieder steht. Die Verzögerung gilt für die ganze
+ * Auflösung, damit der Wechsel zu den Antworten nichts abschneidet.
  */
-.map-art[data-effect] .castle.hit,
+.map-art[data-effect] .castle.hit {
+  animation-delay: var(--fall-at);
+}
 .map-art[data-effect] .life-off.breaking {
-  animation-delay: 0.25s;
+  animation-delay: var(--break-at);
 }
 .map-art[data-effect] .coin.pop {
   animation-delay: 1.05s;
@@ -1117,6 +1132,40 @@
   }
   100% {
     transform: translate(calc(var(--thrown-x) * 0.7), calc(var(--thrown-y) * 0.7));
+    opacity: 0;
+  }
+}
+
+/* Burg stürzt ein: Einschlag wie immer, abgeprallt (500 ms), dann tritt er zurück und vergeht
+   (bis 720 ms), bevor der Bergfried fällt */
+@keyframes duel-charge-razed {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  }
+  8.7% {
+    transform: translate(var(--back-x), var(--back-y));
+    animation-timing-function: cubic-bezier(0.42, 0, 0.78, 0.6);
+  }
+  30.4% {
+    transform: translate(var(--hit-x), var(--hit-y));
+  }
+  35.7% {
+    transform: translate(var(--hit-x), var(--hit-y));
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  43.5% {
+    transform: translate(var(--recoil-x), var(--recoil-y));
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+  62.6%,
+  100% {
+    transform: translate(
+      calc(var(--recoil-x) - var(--ux) * var(--unit) * 0.12),
+      calc(var(--recoil-y) - var(--uy) * var(--unit) * 0.12)
+    );
     opacity: 0;
   }
 }

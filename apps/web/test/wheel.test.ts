@@ -210,7 +210,7 @@ describe('Rad als Zeichnung', () => {
 });
 
 /**
- * Bewegung des Rads, nachgerechnet aus der Kurve, mit der CSS es dreht (ADR-068): Stifte an den
+ * Bewegung des Rads, nachgerechnet aus der Kurve, mit der CSS es dreht (ADR-070): Stifte an den
  * Feldgrenzen laufen unter dem Zeiger durch, in der langsamen Phase klackert er an jedem.
  */
 describe('Kurve der Drehung', () => {

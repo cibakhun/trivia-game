@@ -1,5 +1,5 @@
 /*
- * Effekte über der Karte (art/fx, ADR-068). Jedes Teilchen ist ohne Animation unsichtbar: Die
+ * Effekte über der Karte (art/fx, ADR-070). Jedes Teilchen ist ohne Animation unsichtbar: Die
  * Karte darunter zeigt schon das Endbild. Gerechnet wird nur mit transform und opacity, damit der
  * Browser die Teilchen bewegt, ohne die Karte neu zu zeichnen. Variablen je Teilchen (FxLayer):
  * --s Größe, --dx/--dy Weg, --lift Bogen, --rot Drehung, --d Beginn, --t Dauer, --c Farbe.

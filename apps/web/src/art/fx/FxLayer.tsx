@@ -3,7 +3,7 @@ import { fxParticles, type FxBurst, type FxParticle } from './fx.ts';
 import './fx.css';
 
 /**
- * Ebene der Effekte über der Karte (ADR-068): Sie liegt im Rahmen der Karte, über dem SVG, nimmt
+ * Ebene der Effekte über der Karte (ADR-070): Sie liegt im Rahmen der Karte, über dem SVG, nimmt
  * keine Tipps an und rechnet Karteneinheiten einmal beim Erscheinen in Bildpunkte um (und wieder,
  * wenn sich die Größe ändert). Ein neuer Anlass braucht einen neuen `key` am Element: Dann beginnt
  * alles von vorn. Ohne Animation (laufende Frage, „Bewegung reduzieren“) ist nichts zu sehen.

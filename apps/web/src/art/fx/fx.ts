@@ -1,7 +1,7 @@
 import { hashText, sequence } from '../noise.ts';
 
 /**
- * Effekte über der Karte (ADR-068): Splitter, Trümmer, Staub, Funken, Tintenspritzer, Druckwellen,
+ * Effekte über der Karte (ADR-070): Splitter, Trümmer, Staub, Funken, Tintenspritzer, Druckwellen,
  * Glanzpunkte und Bewegungsstriche. Ein Ausbruch (`FxBurst`) sagt, was wo wann geschieht, in
  * Karteneinheiten; daraus entstehen fest gewürfelte Teilchen (`fxParticles`), auf jedem Gerät
  * dieselben. Gezeichnet werden sie in einer eigenen Ebene über der Karte (`FxLayer`), als

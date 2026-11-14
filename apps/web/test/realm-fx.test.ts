@@ -7,7 +7,7 @@ import type { RealmLayer, RealmMotion, RealmMove } from '../src/match/RealmBoard
 import { OUTCOME_TIMES, REVEAL_TIMES, realmBursts } from '../src/match/realm-fx.ts';
 
 /**
- * Effekte der Partie mit Ausbau über der Karte (ADR-068): Staub, Trümmer und Glanz folgen der
+ * Effekte der Partie mit Ausbau über der Karte (ADR-070): Staub, Trümmer und Glanz folgen der
  * Bewegung der Karte und sind verweht, bevor ihre Ebene geht.
  */
 

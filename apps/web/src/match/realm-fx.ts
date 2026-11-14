@@ -15,7 +15,7 @@ import {
 } from './RealmBoardArt.tsx';
 
 /**
- * Effekte der Partie mit Ausbau über der Karte (ADR-068), als reine Ableitung aus der Bewegung
+ * Effekte der Partie mit Ausbau über der Karte (ADR-070), als reine Ableitung aus der Bewegung
  * (`RealmMotion`, ADR-067). Die Zeiten folgen den Variablen oben im Abschnitt „Bewegung“ von
  * `art/map-art.css`, damit Staub und Trümmer genau dort und dann aufsteigen, wo die Karte das
  * Gebäude brechen, die Burg einstürzen oder den Zug aufsetzen lässt. Alles ist verweht, bevor
