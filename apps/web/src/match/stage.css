@@ -1528,12 +1528,26 @@ html.match-playing body {
     'table emblem'
     'table title'
     'table reason'
-    'table note'
     'table actions';
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   column-gap: calc(16 * var(--u));
   row-gap: calc(5 * var(--u));
   align-items: start;
+}
+
+/*
+ * Der Hinweis (Testpartie, Partie mit Bots) steht als Fußnote unter der Tabelle: So bleibt die
+ * rechte Spalte kurz, und das Blatt lässt auf der niedrigen Bühne (340 hoch) oben Platz für ein
+ * Band über der Karte.
+ */
+.sheet.result:has(> .muted) {
+  grid-template-areas:
+    'table emblem'
+    'table title'
+    'table reason'
+    'table actions'
+    'note actions';
+  grid-template-rows: auto auto 1fr auto auto;
 }
 
 .sheet.result h1 {
@@ -1557,7 +1571,13 @@ html.match-playing body {
   color: var(--muted);
 }
 
+/* Ohne `:has` liegt die Fußnote am unteren Rand der Spalte der Tabelle, die mittig darüber steht */
 .sheet.result > p.muted {
+  grid-area: table;
+  align-self: end;
+}
+
+.sheet.result:has(> .muted) > p.muted {
   grid-area: note;
 }
 
