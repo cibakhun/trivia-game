@@ -509,6 +509,12 @@ export const de = {
       attacker: 'greift an',
       defender: 'verteidigt',
     },
+    /** Fragekarte zum Mitlesen für alle, die nicht gefragt sind (ADR-065). */
+    watch: {
+      tag: 'Du schaust zu',
+      estimate: 'Gesucht ist eine Zahl',
+      estimateUnit: 'Gesucht ist eine Zahl in {unit}',
+    },
     /** Kurz für den eigenen Sitz, wo „Anna (du)“ zu lang wäre. */
     youShort: 'Du',
     /** Wer an der laufenden Frage schon geantwortet hat (nur dass, nicht was). */
@@ -524,6 +530,8 @@ export const de = {
       duel: 'Duell um {region}: {attacker} greift {defender} an.',
       duelEstimate: 'Gleichstand im Duell um {region}: Die genauere Schätzung entscheidet.',
       spectating: 'Du schaust zu. Gleich geht es weiter.',
+      /** Die Frage steht zum Mitlesen auf der Karte (ADR-065). */
+      watching: 'Du schaust zu. Wer was gewählt hat, zeigt die Auflösung.',
       presenting: 'Die Frage wird geladen …',
       answered: 'Deine Antwort ist gespeichert. Warte auf die anderen …',
       missed: 'Die Zeit für diese Frage ist abgelaufen.',
@@ -731,6 +739,7 @@ export const de = {
       ready: '✓ fertig',
       busy: 'rüstet',
       castleLives: { one: '{count} Burgleben', other: '{count} Burgleben' },
+      income: 'Einkommen je Runde: {bread} Brot, {material} Baustoff',
     },
     board: {
       region: '{name}: {owner}, {building}, {armies}, {value} Punkte',
@@ -907,6 +916,7 @@ export const de = {
       skipped: 'Kein Angriff, weil keine Armee neben einem Ziel steht: {names}.',
       nobody: 'In dieser Runde greift niemand an.',
     },
+    march: { hint: 'Gleich dreht sich das Glücksrad.' },
     wheel: {
       title: 'Glücksrad',
       lots: 'Lose im Rad',

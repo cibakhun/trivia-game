@@ -244,13 +244,14 @@ export function RealmBlatt({
   play,
   state,
   local,
+  watching = false,
   phaseDeadline,
   estimate,
   busy,
   events,
   reveal,
   outcome,
-  outcomeBeat,
+  catching = false,
   error,
   name,
   region,
@@ -264,15 +265,20 @@ export function RealmBlatt({
   readonly play: RealmPlay;
   readonly state: MatchScreenState;
   readonly local: LocalQuestion | null;
+  /** Die Frage anderer steht zum Mitlesen auf der Karte (ADR-065). */
+  readonly watching?: boolean;
   readonly phaseDeadline: number | null;
   readonly estimate: string;
   readonly busy: boolean;
   readonly events: readonly ParsedMatchEvent[];
   readonly reveal: Reveal | null;
-  /** Eben entschiedenes Duell: steht während der ganzen Auflösung im Blatt. */
+  /**
+   * Eben entschiedenes Duell: steht im Blatt, sobald die Karte den Ausgang zeigt. Solange erst die
+   * Antworten stehen (ADR-069), ist es noch `null`.
+   */
   readonly outcome: RealmDuel | null;
-  /** Erster Takt der Auflösung: Die Karte zeigt den Ausgang, die Antworten folgen. */
-  readonly outcomeBeat: boolean;
+  /** Glücksrad: Das Zeichen der Kategorie fliegt gerade vom Rad her und erscheint erst mit der Ankunft. */
+  readonly catching?: boolean;
   readonly error: unknown;
   readonly name: SeatName;
   readonly region: RegionName;
@@ -475,6 +481,21 @@ export function RealmBlatt({
       );
     }
     case 'announce': {
+      // Aufmarsch vor dem Glücksrad (ADR-071): Die Karte zeigt, wer wen wo angreift; das Blatt
+      // nennt beide Seiten wie später beim Rad und in der Frage
+      if (step.kind === 'DUEL_WHEEL') {
+        return sheet(
+          attacked ? 'attacked' : step.attacker === view.mySeat ? 'turn' : '',
+          'match-announce',
+          true,
+          <>
+            <h2 className="blatt-title">{questionTitle()}</h2>
+            {duelBox('attackOn')}
+            <p className="blatt-hint">{t('realm.march.hint')}</p>
+            {phaseTimer(timers.announceMs, true)}
+          </>,
+        );
+      }
       const shown = shownPick(events);
       const title =
         shown?.type === 'CASTLE_CHOSEN'
@@ -580,7 +601,11 @@ export function RealmBlatt({
             {t(step.defender === null ? 'realm.wheel.hintFree' : 'realm.wheel.hint')}
           </p>
           {category ? (
-            <p className="wheel-result" data-testid="wheel-result" data-category={category}>
+            <p
+              className={`wheel-result${catching ? ' catching' : ''}`}
+              data-testid="wheel-result"
+              data-category={category}
+            >
               <CategoryIcon category={category} size={34} />
               <span>
                 <strong>{categoryName(category)}</strong>
@@ -646,7 +671,7 @@ export function RealmBlatt({
               )
             : state === 'missed'
               ? t('match.question.missed')
-              : t('match.question.spectating');
+              : t(watching ? 'match.question.watching' : 'match.question.spectating');
       return sheet(
         '',
         'match-waiting',
@@ -673,7 +698,7 @@ export function RealmBlatt({
             duel={outcome}
             name={name}
             region={region}
-            timer={outcomeBeat ? null : phaseTimer(timers.revealMs, true)}
+            timer={phaseTimer(timers.revealMs, true)}
             note={note}
           />
         );
@@ -693,7 +718,7 @@ export function RealmBlatt({
               {start ? t('realm.question.startRule') : t('match.moment.landDetail')}
             </p>
           ) : (
-            // Gleichstand im Duell: Was daraus folgt, steht auf dem Blatt in der Mitte
+            // Duell: erst die Antworten (ADR-069). Bei Gleichstand steht in der Mitte, was daraus folgt
             duelBox('about')
           )}
           {phaseTimer(timers.revealMs, true)}

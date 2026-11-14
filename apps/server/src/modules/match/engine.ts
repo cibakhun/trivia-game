@@ -29,6 +29,7 @@ import { sql } from 'kysely';
 import { randomToken } from '../../infra/crypto.ts';
 import { ApiError } from '../../infra/errors.ts';
 import { loadCandidates, loadQuestionContent, type QuestionContent } from '../quiz/questions.ts';
+import { botThinkMs } from './bot-think.ts';
 import {
   appendMatchEvents,
   saveMatch,
@@ -270,7 +271,12 @@ export abstract class MatchRun {
     );
   }
 
-  /** Öffnet die Frage des Schritts; `RESOLVE_NOW`, wenn kein Mensch antworten muss. */
+  /**
+   * Öffnet die Frage des Schritts. Ist kein Mensch gefragt, bleibt sie offen, bis die Bedenkzeit
+   * der gefragten Bots um ist (O-43): Wer zuschaut, liest so lange mit, und die Bots gelten in der
+   * Ansicht nach derselben Zeit als fertig. `RESOLVE_NOW` gibt es nur noch, wenn kein Mensch mehr
+   * zur Partie gehört und also niemand zuschaut.
+   */
   protected async openQuestion(): Promise<'WAITING' | 'RESOLVE_NOW' | 'ABANDONED'> {
     const pending = this.pendingQuestion();
     if (!pending) throw new Error('Schritt ohne Frage');
@@ -303,11 +309,20 @@ export abstract class MatchRun {
       })
       .execute();
     // Bot-Antworten vor jeder Präsentation erzeugen und speichern (versiegelt, NPC_SYSTEM §3.4)
+    let botsDoneMs = 0;
     for (const seat of pending.seats) {
       const player = this.playerAt(seat);
       if (player.botStrength !== null) {
         const profile = this.botProfile(seat, player.botStrength);
-        await this.insertBotAnswer(seq, seat, player.botStrength, profile, content, timeLimitMs);
+        const thinkMs = await this.insertBotAnswer(
+          seq,
+          seat,
+          player.botStrength,
+          profile,
+          content,
+          timeLimitMs,
+        );
+        botsDoneMs = Math.max(botsDoneMs, thinkMs);
       }
     }
     this.match.questionSeq = seq;
@@ -323,7 +338,11 @@ export abstract class MatchRun {
       ...(pending.category === null ? {} : { category: pending.category }),
     });
     const humans = pending.seats.filter((seat) => this.playerAt(seat).userId !== null);
-    return humans.length > 0 ? 'WAITING' : 'RESOLVE_NOW';
+    if (humans.length > 0) return 'WAITING';
+    if (this.humanUserIds().length === 0) return 'RESOLVE_NOW';
+    // Nur Bots gefragt: Die Frage endet, sobald der letzte von ihnen fertig ist
+    this.match.phaseDeadlineAt = new Date(this.now.getTime() + Math.min(botsDoneMs, timeLimitMs));
+    return 'WAITING';
   }
 
   /**
@@ -392,6 +411,7 @@ export abstract class MatchRun {
     return pick?.candidate.versionId ?? null;
   }
 
+  /** Erzeugt die Antwort eines Bots und liefert, nach welcher Zeit er als fertig gilt. */
   private async insertBotAnswer(
     seq: number,
     seat: number,
@@ -399,7 +419,7 @@ export abstract class MatchRun {
     profile: NpcProfile,
     content: QuestionContent,
     timeLimitMs: number,
-  ): Promise<void> {
+  ): Promise<number> {
     const entityId = `${this.match.id}.q${seq}.s${seat}`;
     const rng = createRng(await deriveSeed(this.ctx.rngSecret, 'npc-answer', entityId));
     const rngAudit = {
@@ -437,7 +457,7 @@ export abstract class MatchRun {
           created_at: this.now,
         })
         .execute();
-      return;
+      return botThinkMs(this.match.id, seq, seat, timeLimitMs);
     }
     const spec = content.estimate;
     if (!spec) throw new Error('Schätzfrage ohne Daten');
@@ -466,6 +486,7 @@ export abstract class MatchRun {
         created_at: this.now,
       })
       .execute();
+    return answer.estimateMs;
   }
 
   /**

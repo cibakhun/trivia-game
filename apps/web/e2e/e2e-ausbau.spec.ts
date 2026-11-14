@@ -31,12 +31,25 @@ interface Seen {
   scroll: number;
   /** Aufgedeckte Befehle je Runde: das eigene Reich, alle Zeilen und wie viele Reiche noch leben. */
   readonly orders: Record<string, { mine: string; rows: number; alive: number }>;
+  /**
+   * Aufmarsch vor dem Glücksrad (ADR-071): ob die Karte den Angriff zeigte (Bühne des Duells,
+   * Pfeil), ob das Rad schon darüber lag und was das Blatt sagte.
+   */
+  readonly marches: { scene: boolean; arrow: boolean; disc: boolean; text: string }[];
   /** Glücksrad je Duell: ob die Scheibe mitten auf der Karte lag und was es zeigte. */
   readonly wheels: { disc: boolean; segments: number; category: string | null; text: string }[];
   /** Ausgang je Duell. */
   readonly outcomes: { effect: string; text: string; sign: boolean }[];
   /** Liste, wer schon geantwortet hat: Zeilen, und ob die eigene als beantwortet markiert war. */
   readonly answers: { rows: number; mine: boolean }[];
+  /** Fragen anderer zum Mitlesen (ADR-065, O-43): je Frage die Karte und der Satz im Blatt. */
+  readonly watched: {
+    kind: string;
+    text: string;
+    options: number;
+    buttons: number;
+    sheet: string;
+  }[];
 }
 
 /** Lässt die Seite mitschreiben, was sie zeigt; für eine Abfrage von außen steht manches zu kurz. */
@@ -47,13 +60,16 @@ async function recordSeen(page: Page): Promise<void> {
       frames: [],
       scroll: 0,
       orders: {},
+      marches: [],
       wheels: [],
       outcomes: [],
       answers: [],
+      watched: [],
     };
     (window as unknown as { seen: Seen }).seen = seen;
     let key = '';
     let outcomeSeq = '';
+    let watchedSeq = '';
     const text = (selector: string) =>
       (document.querySelector(selector)?.textContent ?? '').replace(/\s+/g, ' ').trim();
     const note = () => {
@@ -90,6 +106,16 @@ async function recordSeen(page: Page): Promise<void> {
           alive: document.querySelectorAll('[data-testid="match-seats"] li:not(.eliminated)')
             .length,
         };
+      } else if (state === 'announce' && step === 'DUEL_WHEEL') {
+        const board = '[data-testid="match-board"]';
+        const march = {
+          scene: document.querySelector(`${board} .duel-stage.scene-announce`) !== null,
+          arrow: document.querySelector(`${board} .duel-arrow`) !== null,
+          disc: document.querySelector('[data-testid="match-wheel-disc"]') !== null,
+          text: text('[data-testid="match-announce"]'),
+        };
+        if (entered) seen.marches.push(march);
+        else seen.marches[seen.marches.length - 1] = march;
       } else if (state === 'wheel') {
         const disc = document.querySelector('[data-testid="match-wheel-disc"]');
         const result = document.querySelector('[data-testid="wheel-result"]');
@@ -112,6 +138,18 @@ async function recordSeen(page: Page): Promise<void> {
             sign: document.querySelector('[data-testid="match-board"] .plan-change') !== null,
           });
         }
+      }
+      const card = document.querySelector('[data-testid="match-question-watched"]');
+      const cardSeq = screen.getAttribute('data-seq') ?? '';
+      if (card && cardSeq !== watchedSeq) {
+        watchedSeq = cardSeq;
+        seen.watched.push({
+          kind: card.getAttribute('data-kind') ?? '',
+          text: text('[data-testid="match-question-watched"]'),
+          options: card.querySelectorAll('.option-read').length,
+          buttons: card.querySelectorAll('button').length,
+          sheet: text('[data-testid="match-waiting"]'),
+        });
       }
       const list = document.querySelector('[data-testid="match-answers"]');
       if (list) {
@@ -306,6 +344,42 @@ interface Prepared {
 }
 
 /**
+ * Chrome auf dem iPhone quer (ADR-068): Seine Leiste verdeckt einen Teil des Bildschirms, die
+ * Medienabfragen sehen ihn trotzdem ganz. Macht die Bühne so lange 70 Punkte niedriger als das
+ * Fenster: Sie meldet `data-low`, das Blatt rückt zusammen, und `inSight` muss weiter gelten. Mit
+ * der Medienabfrage von vorher fehlte dann die Zeile „Ziehen“. Danach steht die Karte genau wie
+ * vorher; was dazwischen war, zählt für „die Karte stand die ganze Partie an derselben Stelle“
+ * nicht mit.
+ */
+async function underBar(page: Page, inSight: () => Promise<void>): Promise<void> {
+  const quick = { timeout: 2_000 };
+  const screen = page.getByTestId('match-screen');
+  const board = page.getByTestId('match-board');
+  const placeOf = () =>
+    board.evaluate((svg) => {
+      const rect = svg.getBoundingClientRect();
+      return [
+        ...[rect.x, rect.y, rect.width, rect.height].map(Math.round),
+        svg.getAttribute('viewBox'),
+      ].join(' ');
+    });
+  const place = await placeOf();
+  const places = (await seenBy(page)).frames.length;
+  const bar = await page.addStyleTag({
+    content: 'html.match-playing{--u:0.9412px !important}.stage{inset:0 0 70px 0 !important}',
+  });
+  await expect(screen).toHaveAttribute('data-low', 'true', quick);
+  await inSight();
+  await bar.evaluate((style) => (style as HTMLStyleElement).remove());
+  await expect(screen).not.toHaveAttribute('data-low', 'true', quick);
+  await inSight();
+  await expect.poll(placeOf, quick).toBe(place);
+  await page.evaluate((count) => {
+    (window as unknown as { seen: Seen }).seen.frames.length = count;
+  }, places);
+}
+
+/**
  * Eine Rüstzeit: Runde 1 baut auf einem freien eigenen Feld (einmal gestrichen und neu befohlen)
  * und kauft eine Armee in der Burg; Runde 2 tauscht und zieht eine Armee aus der Burg auf ein
  * eigenes Nachbarfeld (erst ein falsches Feld, dann das richtige); Runde 3 tippt ein Feld an, das
@@ -361,6 +435,18 @@ async function prepare(
     await expect(blatt).toContainText('Noch keine Befehle', quick);
     // Auch ohne gewähltes Feld stehen die drei Zeilen da, und die eigenen Felder leuchten auf
     await expect(page.getByTestId('prepare-acts').getByRole('listitem')).toHaveCount(3, quick);
+    // Keine der drei Zeilen liegt unter dem Rand des Blatts, und „Fertig“ ist zu sehen
+    const rows = page.getByTestId('prepare-acts').getByRole('listitem');
+    const screen = page.getByTestId('match-screen');
+    const inSight = async () => {
+      for (let i = 0; i < 3; i++) {
+        await expect(rows.nth(i)).toBeInViewport({ ratio: 0.95, ...quick });
+      }
+      await expect(blatt.locator('.blatt-go')).toBeInViewport({ ratio: 0.95, ...quick });
+    };
+    await inSight();
+    await expect(screen).not.toHaveAttribute('data-low', 'true', quick);
+    await underBar(page, inSight);
     await expect(board.locator('.plan-hint')).toHaveCount(await own.count(), quick);
     // Unter dem Band steht, was läuft und was danach kommt
     const flow = page.getByTestId('match-flow').getByRole('listitem');
@@ -390,6 +476,10 @@ async function prepare(
     // Armeen entstehen nur in der Burg: erst „Kaufen“, danach steht dort der Zähler
     await castle.tap(quick);
     await expect(field).toContainText('Burg', quick);
+    // Der gemeldete Zustand (ADR-068): Die Burg ist gewählt, und die Bühne ist niedriger als das
+    // Fenster. Auch dann stehen alle drei Zeilen und „Fertig“ im Blatt
+    await inSight();
+    await underBar(page, inSight);
     const buy = act('buy', 'Kaufen');
     if ((await buy.count()) > 0) {
       await buy.tap(quick);
@@ -669,6 +759,19 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   // Nach zwei Runden Landnahme ist die halbe Karte frei: Ein freies Feld liegt am eigenen Land
   expect(attacks.filter((a) => a.free)).toHaveLength(1);
 
+  // Aufmarsch vor dem Glücksrad (ADR-071): Nach der Zielwahl zeigt erst die Karte, wer wen wo
+  // angreift (Schleier, Wappen, Pfeil), noch ohne Rad darüber; das Blatt nennt den Angriff. Erst
+  // danach dreht sich das Rad. Die eigene Wahl fragt sofort nach, der Aufmarsch steht dann sicher
+  expect(seen.marches.length).toBeGreaterThan(0);
+  for (const march of seen.marches) {
+    expect(march).toMatchObject({ scene: true, arrow: true, disc: false });
+    expect(march.text).toMatch(/Angriff auf /);
+    expect(march.text).toContain('Gleich dreht sich das Glücksrad.');
+  }
+  seen.states.forEach((entry, i) => {
+    if (entry === 'announce:DUEL_WHEEL') expect(seen.states[i + 1]).toBe('wheel:DUEL_TRIVIA');
+  });
+
   // Glücksrad vor jeder Wissensfrage eines Duells: die Scheibe mitten auf der Karte, im Blatt die
   // Lose und am Ende die Kategorie
   expect(seen.wheels.length).toBeGreaterThanOrEqual(attacks.length);
@@ -699,6 +802,16 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(seen.answers.some((a) => a.mine)).toBe(true);
   expect(seen.answers.some((a) => !a.mine)).toBe(true);
 
+  // Fragen, an denen nur Bots gefragt sind, stehen für ihre Bedenkzeit offen (O-43): Wer zuschaut,
+  // liest sie mit, ohne etwas antippen zu können
+  expect(seen.watched.length).toBeGreaterThan(0);
+  for (const card of seen.watched) {
+    expect(card.text).toContain('Du schaust zu');
+    expect(card.buttons).toBe(0);
+    expect(card.options).toBe(card.kind === 'TRIVIA' ? 4 : 0);
+    expect(card.sheet).toContain('Wer was gewählt hat, zeigt die Auflösung.');
+  }
+
   // Jede Phase kam vor, in der Reihenfolge der Regeln
   const states = seen.states.map((s) => s.split(':')[0]);
   expect(states).toEqual(
@@ -708,6 +821,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
       'pick',
       'prepare',
       'orders',
+      'announce',
       'wheel',
       'reveal',
       'finished',

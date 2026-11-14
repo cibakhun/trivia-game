@@ -1,13 +1,22 @@
 import type { MatchBotStrengthCode, QuestionCategory, RealmOrderDto } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
-import { ActionKey, ApiRequestError, NetworkError, api, newActionKey } from '../api/client.ts';
+import {
+  ActionKey,
+  ApiRequestError,
+  NetworkError,
+  api,
+  isTransientError,
+  newActionKey,
+} from '../api/client.ts';
 import { playSound } from '../audio/sound.ts';
 import {
   countedAnswer,
   needsPresent,
+  needsWatch,
   screenStateOf,
   type LocalAnswer,
   type LocalQuestion,
+  type WatchedQuestion,
 } from '../match/match-model.ts';
 import { MatchStage, type MatchStageProps } from '../match/MatchStage.tsx';
 import { RealmStage } from '../match/RealmStage.tsx';
@@ -18,17 +27,20 @@ import { navigate } from '../router.ts';
  * Eine Partie (API.md §2.6, MATCH_RULES §3): Aufstellung, Wahl auf der Karte, Frage mit
  * Countdown, Auflösung, Abrechnung. Den Stand liefert die Abfrage (`useMatchFeed`); sobald eine
  * Frage an diesen Sitz geht, holt der Browser sie sofort ab, denn ab dem Öffnen läuft die Zeit.
- * Nach einem Reload holt er sie erneut; dann zählt nur die Zeit des Servers. Diese Komponente
+ * Nach einem Reload holt er sie erneut; dann zählt nur die Zeit des Servers. Geht die Frage an
+ * andere, holt er sie zum Mitlesen (ADR-065): ohne eigene Zeit und ohne Antworten. Diese Komponente
  * hält den Stand und schickt die Aktionen; was zu sehen ist, zeichnet die Bühne: `MatchStage`, in
  * der Partie mit Ausbau (MATCH_RULES §11) `RealmStage` mit Lieblingskategorien und Rüstzeit.
  */
 export function MatchScreen({ matchId }: { readonly matchId: string }) {
   const { view, events, error, phaseDeadline, refresh } = useMatchFeed(matchId);
   const [local, setLocal] = useState<LocalQuestion | null>(null);
+  const [watched, setWatched] = useState<WatchedQuestion | null>(null);
   const [estimate, setEstimate] = useState('');
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<unknown>(null);
   const presenting = useRef<number | null>(null);
+  const watching = useRef<number | null>(null);
   /** Ein Schlüssel je Frage, auch wenn nach einem Netzfehler erneut gesendet wird. */
   const answerKeys = useRef(new Map<number, string>());
   /** Je Frage: Antworten, deren Bestätigung ausblieb; eine davon kann schon zählen. */
@@ -85,6 +97,35 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
         refresh();
       });
   }, [view, local, matchId, refresh]);
+
+  // Frage zum Mitlesen holen, sobald sie an andere geht (ADR-065)
+  useEffect(() => {
+    if (!view || !needsWatch(view, watched) || view.question === null) return;
+    const questionSeq = view.question.seq;
+    if (watching.current === questionSeq) return;
+    watching.current = questionSeq;
+    api
+      .watchMatchQuestion(matchId, questionSeq)
+      .then((res) => {
+        // Kommt die Antwort erst, wenn schon die nächste Frage geholt wird, zählt sie nicht mehr
+        if (watching.current !== questionSeq) return;
+        setWatched({
+          seq: questionSeq,
+          question: res.question,
+          deadline: performance.now() + res.question.remainingMs,
+        });
+      })
+      .catch((e: unknown) => {
+        if (watching.current !== questionSeq) return;
+        if (isTransientError(e)) {
+          // Kein Netz oder der Server stolpert: Die nächste Abfrage versucht es erneut
+          watching.current = null;
+          return;
+        }
+        // Schon geschlossen: Frage und Antworten zeigt gleich die Auflösung
+        setWatched({ seq: questionSeq, question: null, deadline: performance.now() });
+      });
+  }, [view, watched, matchId]);
 
   async function runAction(action: () => Promise<void>) {
     setBusy(true);
@@ -255,6 +296,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     view,
     events,
     local,
+    watched,
     phaseDeadline,
     feedError: error,
     actionError,

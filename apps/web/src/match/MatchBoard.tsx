@@ -17,13 +17,20 @@ import {
   inUpperHalf,
   type DuelLayout,
 } from '../art/attack.ts';
-import { mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
-import { COMPACT_SCALE, type StageFrame } from '../art/stage-frame.ts';
+import { frontiers, mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
+import { COMPACT_SCALE, seaDepth, type StageFrame } from '../art/stage-frame.ts';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
 import type { DuelStage } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
-import { hasBuilding, RealmPlanArt, RealmRegionArt, type RealmLayer } from './RealmBoardArt.tsx';
+import {
+  hasBuilding,
+  REALM_CASTLE,
+  RealmPlanArt,
+  RealmRegionArt,
+  RealmRuinArt,
+  type RealmLayer,
+} from './RealmBoardArt.tsx';
 
 /**
  * Karte der Partie im Stil „Alte Landkarte“ (docs/ART_DIRECTION.md): Regionen mit natürlichen
@@ -115,6 +122,7 @@ export function MatchBoard({
   onPick,
   frame,
   realm = null,
+  home = null,
   selectable = NONE,
 }: {
   readonly map: MatchMap;
@@ -124,6 +132,8 @@ export function MatchBoard({
   readonly legal: readonly number[];
   /** Partie mit Ausbau: Gebäude, Armeen und Pläne über der Karte. */
   readonly realm?: RealmLayer | null;
+  /** Der eigene Sitz: Die Außengrenze seines Reichs trägt eine helle Linie. */
+  readonly home?: number | null;
   /**
    * Felder, die einen Tipp annehmen, ohne als Wahl hervorgehoben zu sein (Rüstzeit: die eigenen).
    * Auch sie melden sich über `onPick`.
@@ -147,6 +157,16 @@ export function MatchBoard({
   // Kleines Land (Handy): größere Schrift, weniger Zierde
   const narrow = frame === null || frame.scale < COMPACT_SCALE;
   const far = useMemo(() => farSea(art), [art]);
+  // Die Außengrenzen hängen nur an den Besitzern: Der Schlüssel hält sie über Abfragen hinweg fest
+  const ownerKey = board.regions.map((r) => r.owner ?? '-').join(',');
+  const realms = useMemo(
+    () =>
+      frontiers(
+        art,
+        ownerKey.split(',').map((owner) => (owner === '-' ? null : Number(owner))),
+      ),
+    [art, ownerKey],
+  );
   const [hot, setHot] = useState<number | null>(null);
   const choosable = new Set(busy ? [] : legal);
   const tappable = new Set(busy ? [] : selectable);
@@ -189,6 +209,13 @@ export function MatchBoard({
     if (!deciding) ownersBefore.current = board.regions.map((r) => r.owner);
   });
   const before = deciding ? ownersBefore.current : null;
+  // Armeen vor dem Ausgang: Ein genommenes Feld verliert alle, das Ereignis nennt nur eine
+  const resolving = realm?.motion?.kind === 'outcome';
+  const armiesBefore = useRef<readonly number[] | null>(null);
+  useEffect(() => {
+    if (!resolving) armiesBefore.current = realm?.regions.map((r) => r.armies) ?? null;
+  });
+  const armiesSeen = resolving ? armiesBefore.current : null;
   // Der Sieger nimmt die Region: Seine Farbe läuft von der Grenze her ein, über die er kam
   const conquest =
     duel?.scene === 'outcome' && (duel.effect === 'CONQUERED' || duel.effect === 'TAKEOVER');
@@ -226,13 +253,20 @@ export function MatchBoard({
   const spotArt = spot === null ? undefined : art.regions[spot];
   const spotOwner = spot === null ? null : (board.regions[spot]?.owner ?? null);
 
+  const viewBox = frame?.viewBox ?? art.tightViewBox;
+  const depth = seaDepth(viewBox) ?? {
+    cx: art.width / 2,
+    cy: art.height / 2,
+    r: Math.hypot(art.width, art.height) / 2,
+  };
+
   // Der Rahmen ist das Rasterfeld, die Karte füllt ihn: Als Rasterfeld mit `height: 100%` wird das
   // SVG in WebKit (iPhone) so hoch wie das ganze Raster und rutscht unter das Blatt.
   return (
     <div className="board-frame">
       <svg
         className={`board map-art${narrow ? ' narrow' : ''}`}
-        viewBox={frame?.viewBox ?? art.tightViewBox}
+        viewBox={viewBox}
         preserveAspectRatio="xMidYMid slice"
         role="group"
         aria-label={t('match.board.label', { name: map.name })}
@@ -267,6 +301,32 @@ export function MatchBoard({
               <path d={region.d} />
             </clipPath>
           ))}
+          {/* In Karteneinheiten um das sichtbare Bild, nicht um das riesige Rechteck des Meers */}
+          <radialGradient
+            id={`${prefix}-depth`}
+            gradientUnits="userSpaceOnUse"
+            cx={depth.cx}
+            cy={depth.cy}
+            r={depth.r}
+          >
+            <stop offset="0.5" className="depth-near" />
+            <stop offset="1" className="depth-far" />
+          </radialGradient>
+          {/* Goldener Schein hinter eben Geändertem: eine eigene Form statt eines Filters (WebKit) */}
+          <radialGradient id={`${prefix}-glow`}>
+            <stop offset="0.35" className="glow-in" />
+            <stop offset="1" className="glow-out" />
+          </radialGradient>
+          <clipPath id={`${prefix}-land`}>
+            <path d={art.coast} />
+          </clipPath>
+          {realms.map((r) => (
+            <clipPath key={r.seat} id={`${prefix}-realm-${r.seat}`}>
+              {r.regions.map((id) => (
+                <path key={id} d={art.regions[id]?.d} />
+              ))}
+            </clipPath>
+          ))}
         </defs>
 
         <rect
@@ -296,10 +356,20 @@ export function MatchBoard({
             />
           ))}
         </g>
+        <rect
+          className="sea-depth"
+          aria-hidden="true"
+          fill={`url(#${prefix}-depth)`}
+          x={-SEA}
+          y={-SEA}
+          width={art.width + 2 * SEA}
+          height={art.height + 2 * SEA}
+        />
         <g className="coast-ripples" aria-hidden="true">
           <path d={art.coast} className="ripple ripple-3" />
           <path d={art.coast} className="ripple ripple-2" />
           <path d={art.coast} className="ripple ripple-1" />
+          <path d={art.coast} className="coast-hatch" />
         </g>
 
         <g className="regions">
@@ -371,7 +441,7 @@ export function MatchBoard({
                       ? `${label} · ${tp('match.board.lives', lives)}`
                       : `${label} · ${t('match.board.capital')} · ${tp('match.board.lives', lives)}`}
                 </title>
-                <path d={region.d} className="land" />
+                <path d={region.d} className={`land terrain-${region.terrain}`} />
                 {lost !== null ? (
                   <g className="wash wash-old">
                     <path
@@ -407,6 +477,28 @@ export function MatchBoard({
           })}
         </g>
 
+        {/* Relief an der Küste und je Reich ein Farbband entlang seiner Außengrenze */}
+        <path
+          d={art.coast}
+          className="coast-shade"
+          clipPath={`url(#${prefix}-land)`}
+          aria-hidden="true"
+        />
+        <g className="frontiers" aria-hidden="true">
+          {realms.map((r) => (
+            <g key={r.seat} className={`frontier seat-${r.seat}${r.seat === home ? ' home' : ''}`}>
+              <path
+                d={r.d}
+                className="frontier-band"
+                clipPath={`url(#${prefix}-realm-${r.seat})`}
+              />
+              {/* Dunkle Fassung unter der hellen Linie des eigenen Reichs, ohne Filter (WebKit) */}
+              {r.seat === home ? <path d={r.d} className="frontier-casing" /> : null}
+              <path d={r.d} className="frontier-line" />
+            </g>
+          ))}
+        </g>
+
         <g className="region-borders" aria-hidden="true">
           {art.regions.map((region) => (
             <path key={region.id} d={region.d} />
@@ -426,9 +518,12 @@ export function MatchBoard({
               key={region.id}
               prefix={prefix}
               region={region}
-              capital={
-                (board.regions[region.id]?.capitalOf ?? null) !== null ||
-                (realm !== null && hasBuilding(realm, region.id))
+              built={
+                (board.regions[region.id]?.capitalOf ?? null) !== null
+                  ? 'castle'
+                  : realm !== null && hasBuilding(realm, region.id)
+                    ? 'building'
+                    : null
               }
             />
           ))}
@@ -436,6 +531,7 @@ export function MatchBoard({
 
         {realm ? (
           <RealmPlanArt
+            prefix={prefix}
             art={art}
             layer={realm}
             owners={board.regions.map((r) => r.owner)}
@@ -459,6 +555,8 @@ export function MatchBoard({
                 lives={livesAt(region.id, state.capitalOf)}
                 maxLives={maxLives}
                 realm={realm}
+                rising={realm?.motion?.fields[region.id]?.built === true}
+                armiesSeen={armiesSeen?.[region.id]}
                 settled={settled}
                 staged={staged(region.id)}
                 arriving={conquest && region.id === contested}
@@ -487,6 +585,7 @@ export function MatchBoard({
 
         {realm ? (
           <RealmPlanArt
+            prefix={prefix}
             art={art}
             layer={realm}
             owners={board.regions.map((r) => r.owner)}
@@ -506,6 +605,7 @@ export function MatchBoard({
             source={source}
             layout={layout}
             castle={castle}
+            fallingCastle={realm === null}
             size={s}
             enter={settled}
           />
@@ -513,6 +613,7 @@ export function MatchBoard({
 
         {realm?.changes?.length ? (
           <RealmPlanArt
+            prefix={prefix}
             art={art}
             layer={realm}
             owners={board.regions.map((r) => r.owner)}
@@ -561,20 +662,21 @@ function farSea(art: MapArt): {
   return { width, height, marks };
 }
 
-/** Landschaftsmotive einer Region; bei Hauptstädten nur die seitlichen. */
+/** Landschaftsmotive einer Region; wo gebaut ist, weicht die Szene über dem Namen. */
 function RegionDecor({
   prefix,
   region,
-  capital,
+  built,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
-  readonly capital: boolean;
+  /** Burg: nur die unteren Ecken bleiben; anderes Gebäude: Ecken und Spitzen bleiben. */
+  readonly built: 'castle' | 'building' | null;
 }) {
   return (
     <>
       {region.decor
-        .filter((d) => !capital || d.slot === 'side')
+        .filter((d) => (built === 'castle' ? d.slot === 'side' : !built || d.slot !== 'top'))
         .map((d, i) => (
           <use
             key={i}
@@ -604,6 +706,8 @@ function RegionArt({
   arriving,
   size: s,
   realm,
+  rising,
+  armiesSeen,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
@@ -614,6 +718,10 @@ function RegionArt({
   readonly maxLives: number;
   /** Partie mit Ausbau: Gebäude und Banner statt des Besitzerschilds. */
   readonly realm: RealmLayer | null;
+  /** Eben gebaut (Aufdecken): Eine neue Burg wächst aus dem Boden. */
+  readonly rising: boolean;
+  /** Armeen hier vor dem Ausgang, soweit gesehen. */
+  readonly armiesSeen: number | undefined;
   readonly settled: boolean;
   /** Hier steht gerade das Wappen eines Duells: Die Beschriftung tritt zurück, ganz oder nur der Name. */
   readonly staged: 'all' | 'name' | null;
@@ -636,79 +744,122 @@ function RegionArt({
   const armies = realm?.regions[region.id]?.armies ?? 0;
   const withArmy =
     realm !== null && owner !== null && (armies > 0 || (realm.recruits?.[region.id] ?? 0) > 0);
-  // Stehen Armeen auf dem Feld, rücken Burg und Münze zur Seite und machen dem Banner Platz
-  const castleX = withArmy ? cx - 0.32 * s : cx - 0.12 * s;
+  // Mit Ausbau: Gebäude oben, Name in der Mitte, Bannerträger unten; neben einer Burg steht er rechts
+  const castleX = realm
+    ? withArmy
+      ? cx + REALM_CASTLE.beside * s
+      : cx
+    : withArmy
+      ? cx - 0.32 * s
+      : cx - 0.12 * s;
+  const castleSize = realm ? REALM_CASTLE.size * s : 0.62 * s;
+  // Neben einer Burg mit Armee liegt die Münze unter dem Bannerträger, rechts der Lebensschilde
   const coinX = realm
-    ? !withArmy
-      ? cx
-      : capital
-        ? cx + 0.02 * s
-        : cx + 0.17 * s
+    ? capital
+      ? cx + (withArmy ? 0.27 : 0.44) * s
+      : withArmy
+        ? cx + 0.5 * s
+        : cx
     : owner === null
       ? cx
       : cx + 0.13 * s;
-  const coinY = capital ? cy + 0.08 * s : cy + 0.3 * s;
+  const coinY = realm
+    ? capital
+      ? cy + (withArmy ? 0.6 : 0.54) * s
+      : cy + 0.46 * s
+    : capital
+      ? cy + 0.08 * s
+      : cy + 0.3 * s;
+  // Mit Ausbau steht der Wert nur, wo eine gehaltene Verteidigung ihn über das Übliche hebt (§11.7)
+  const showCoin = realm === null || (realm.regions[region.id]?.held ?? 0) > 0;
+  const nameY = capital ? cy - (realm ? 0.56 : 0.47) * s : realm ? cy : cy - 0.06 * s;
+  const livesX = realm ? castleX : cx;
+  // Fällt hier eben ein Gebäude eine Stufe, kehrt die Beschriftung sofort zurück: Man soll es fallen sehen
+  const motion = realm?.motion?.fields[region.id];
+  const prompt = motion?.fell !== undefined && motion.fell !== 'CASTLE';
+  // Eine genommene Burg ist im neuen Stand schon fort: Sie stürzt ein, wo sie stand
+  const ruin = motion?.fell === 'CASTLE' && !capital ? motion : null;
   return (
-    <g
-      className={`region-label${owner === null ? ' free' : ` seat-${owner}`}${staged ? ` staged-${staged}` : ''}${arriving ? ' arriving' : ''}`}
-    >
-      {capital ? (
-        <>
-          <g
-            key={`castle-${lives}`}
-            className={`castle${settled && lives < maxLives ? ' hit' : ''}`}
-            style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
-          >
-            {use('castle', castleX, cy + 0.02 * s, 0.62 * s)}
-          </g>
-          <g className="lives">
-            {Array.from({ length: maxLives }, (_, i) => {
-              const left = i < lives;
-              const x = cx + (i - (maxLives - 1) / 2) * 0.24 * s;
-              return (
-                <g
-                  key={`${i}-${left ? 'on' : 'off'}`}
-                  className={`life ${left ? 'life-on' : `life-off${settled ? ' breaking' : ''}`}`}
-                  style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
-                >
-                  {use('shield', x, cy + 0.5 * s, 0.22 * s)}
-                </g>
-              );
-            })}
-          </g>
-        </>
-      ) : null}
-      <text x={cx} y={capital ? cy - 0.47 * s : cy - 0.06 * s} className="board-name">
-        {region.name}
-      </text>
-      {realm ? (
-        <RealmRegionArt
+    <>
+      {ruin ? (
+        <RealmRuinArt
           prefix={prefix}
           region={region}
-          owner={owner}
-          castle={capital}
           size={s}
-          layer={realm}
+          motion={ruin}
+          lives={maxLives}
+          armiesSeen={armiesSeen}
         />
-      ) : owner !== null ? (
-        <g className="owner-badge">
-          {use('shield', cx - 0.2 * s, coinY, 0.27 * s, `badge-shield seat-fill-${owner}`)}
-          {use(
-            `emblem-${owner}` as SymbolId,
-            cx - 0.2 * s,
-            coinY - 0.015 * s,
-            0.11 * s,
-            'badge-emblem',
-          )}
-        </g>
       ) : null}
-      <g key={`coin-${value}`} className={`coin${settled ? ' pop' : ''}`}>
-        <circle cx={coinX} cy={coinY} r={0.2 * s} />
-        <text x={coinX} y={coinY + 0.01 * s} className="board-value">
-          {formatNumber(value)}
+      <g
+        className={`region-label${owner === null ? ' free' : ` seat-${owner}`}${staged ? ` staged-${staged}` : ''}${arriving ? ' arriving' : ''}${prompt ? ' prompt' : ''}`}
+      >
+        {capital ? (
+          <>
+            <g
+              key={`castle-${lives}`}
+              className={`castle${rising ? ' rising' : settled && lives < maxLives ? ' hit' : ''}`}
+              style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
+            >
+              {use('castle', castleX, cy + (realm ? REALM_CASTLE.y : 0.02) * s, castleSize)}
+            </g>
+            <g className="lives">
+              {Array.from({ length: maxLives }, (_, i) => {
+                const left = i < lives;
+                const x = livesX + (i - (maxLives - 1) / 2) * REALM_CASTLE.livesGap * s;
+                return (
+                  <g
+                    key={`${i}-${left ? 'on' : 'off'}`}
+                    className={`life ${left ? 'life-on' : `life-off${settled ? ' breaking' : ''}`}`}
+                    style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
+                  >
+                    {use(
+                      'shield',
+                      x,
+                      cy + (realm ? REALM_CASTLE.livesY : 0.5) * s,
+                      REALM_CASTLE.life * s,
+                    )}
+                  </g>
+                );
+              })}
+            </g>
+          </>
+        ) : null}
+        <text x={cx} y={nameY} className="board-name">
+          {region.name}
         </text>
+        {realm ? (
+          <RealmRegionArt
+            prefix={prefix}
+            region={region}
+            owner={owner}
+            castle={capital}
+            size={s}
+            layer={realm}
+            armiesSeen={armiesSeen}
+          />
+        ) : owner !== null ? (
+          <g className="owner-badge">
+            {use('shield', cx - 0.2 * s, coinY, 0.27 * s, `badge-shield seat-fill-${owner}`)}
+            {use(
+              `emblem-${owner}` as SymbolId,
+              cx - 0.2 * s,
+              coinY - 0.015 * s,
+              0.11 * s,
+              'badge-emblem',
+            )}
+          </g>
+        ) : null}
+        {showCoin ? (
+          <g key={`coin-${value}`} className={`coin${settled ? ' pop' : ''}`}>
+            <circle cx={coinX} cy={coinY} r={(realm ? 0.17 : 0.2) * s} />
+            <text x={coinX} y={coinY + 0.01 * s} className="board-value">
+              {formatNumber(value)}
+            </text>
+          </g>
+        ) : null}
       </g>
-    </g>
+    </>
   );
 }
 
@@ -728,6 +879,7 @@ function DuelStageArt({
   source,
   layout,
   castle,
+  fallingCastle,
   size: s,
   enter,
 }: {
@@ -739,6 +891,8 @@ function DuelStageArt({
   readonly layout: DuelLayout | null;
   /** Das Ziel ist eine Hauptstadt: Statt eines Wappens steht dort ihre Burg. */
   readonly castle: boolean;
+  /** Die Burg einer eingenommenen Hauptstadt fällt hier; mit Ausbau lässt die Karte sie einstürzen. */
+  readonly fallingCastle: boolean;
   readonly size: number;
   /** Aufmarsch abspielen (nicht beim ersten Aufbau der Seite). */
   readonly enter: boolean;
@@ -808,7 +962,7 @@ function DuelStageArt({
           </g>
           {castle ? (
             // Die Burg einer eingenommenen Hauptstadt ist auf der Karte schon fort: Hier fällt sie
-            duel.scene === 'outcome' && duel.effect === 'TAKEOVER' ? (
+            fallingCastle && duel.scene === 'outcome' && duel.effect === 'TAKEOVER' ? (
               <g className="duel-castle" style={{ ['--flag' as string]: 'var(--defender)' }}>
                 <use
                   href={symbolRef(prefix, 'castle')}

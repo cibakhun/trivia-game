@@ -1,7 +1,7 @@
 import { buildRealmWheel } from '@rdw/game-core';
 import { QUESTION_CATEGORIES, realmWheelSchema, type RealmOrderDto } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
-import { screenStateOf } from '../src/match/match-model.ts';
+import { duelStage, screenStateOf } from '../src/match/match-model.ts';
 import { mapOfView } from '../src/match/match-text.ts';
 import {
   attackReach,
@@ -726,6 +726,45 @@ describe('Bildschirm der Partie mit Ausbau', () => {
     ];
     expect(revealedRound(chosen)).toBeNull();
     expect(realmScreenStateOf(first, null, chosen)).toBe('announce');
+  });
+
+  it('zeigt vor dem Glücksrad erst den Aufmarsch auf der Karte (ADR-071)', () => {
+    const wheel = realmWheelSchema.parse(wheelPreview(playOf(), ME, 12));
+    const phase = {
+      kind: 'ANNOUNCE' as const,
+      deadline: '2026-11-10T20:00:03.000Z',
+      remainingMs: 2500,
+    };
+    const chosen = [event(46, 'TARGET_CHOSEN', { round: 2, attacker: 2, defender: 1, region: 12 })];
+    // Das Ziel steht, das Rad liegt bereit, gedreht ist es noch nicht
+    const march = realmViewOf(
+      { step: { kind: 'DUEL_WHEEL', attacker: 2, defender: 1, region: 12, wheel } },
+      { phase },
+    );
+    expect(realmScreenStateOf(march, null, chosen)).toBe('announce');
+    const marching = duelStage(march, 'announce', null, false);
+    expect(marching).toMatchObject({ attacker: 2, defender: 1, region: 12, scene: 'announce' });
+    // Dreht sich das Rad, bleibt dasselbe Duell in derselben Szene stehen: Der Aufmarsch läuft
+    // unter dem Rad nicht noch einmal an
+    const spun = realmViewOf(
+      {
+        step: {
+          kind: 'DUEL_TRIVIA',
+          attacker: 2,
+          defender: 1,
+          region: 12,
+          category: 'HISTORY',
+          wheel,
+        },
+      },
+      { phase },
+    );
+    const spinning = [
+      ...chosen,
+      event(47, 'WHEEL_SPUN', { round: 2, region: 12, category: 'HISTORY', exhausted: [] }),
+    ];
+    expect(realmScreenStateOf(spun, null, spinning)).toBe('wheel');
+    expect(duelStage(spun, 'wheel', null, false)).toEqual(marching);
   });
 
   it('zeigt das Glücksrad in der Ansage vor der Wissensfrage', () => {

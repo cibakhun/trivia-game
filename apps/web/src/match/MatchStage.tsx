@@ -14,12 +14,13 @@ import {
   duelResolved,
   duelStage,
   lastOf,
-  outcomeBeatMs,
   revealFor,
   screenStateOf,
   shownPick,
+  watchedFor,
   type LocalAnswer,
   type LocalQuestion,
+  type WatchedQuestion,
 } from './match-model.ts';
 import { mapOfView, regionNames, seatNames, stepLabel } from './match-text.ts';
 import type { Moment } from './moments.ts';
@@ -28,11 +29,11 @@ import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { SeatList } from './SeatList.tsx';
 import { StageBlatt } from './StageBlatt.tsx';
-import { StageQuestion } from './StageQuestion.tsx';
+import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
 import { useMoments } from './useMoments.ts';
-import { useOutcomeBeat } from './useOutcomeBeat.ts';
+import { useRevealBeats } from './useRevealBeats.ts';
 import { useStageFrame } from './useStageFrame.ts';
 import './stage.css';
 
@@ -48,6 +49,8 @@ export interface MatchStageProps {
   readonly events: readonly ParsedMatchEvent[];
   /** Die eigene Frage, wie dieser Browser sie abgeholt hat. */
   readonly local: LocalQuestion | null;
+  /** Die Frage anderer zum Mitlesen (ADR-065); fehlt sie, bleibt es beim Blatt rechts. */
+  readonly watched?: WatchedQuestion | null;
   /** Ende der laufenden Phase als `performance.now()`-Wert. */
   readonly phaseDeadline: number | null;
   /** Fehler der Abfrage (Netz) und der letzten eigenen Aktion. */
@@ -68,9 +71,10 @@ export interface MatchStageProps {
 }
 
 export function MatchStage({
-  view,
-  events,
+  view: feedView,
+  events: feedEvents,
   local,
+  watched = null,
   phaseDeadline,
   feedError,
   actionError,
@@ -85,6 +89,9 @@ export function MatchStage({
   onLeave,
   onSetBot,
 }: MatchStageProps) {
+  // Hat eine Auflösung ein Duell entschieden, kommen erst die Antworten, dann ihre Folgen
+  // (ADR-069): Solange zeigt die Bühne den Stand vor dem Ausgang
+  const { view, events, beat, late } = useRevealBeats(feedView, feedEvents, phaseDeadline);
   const state = screenStateOf(view, local);
   const seq = view?.question?.seq ?? null;
   const board = view?.board ?? null;
@@ -98,15 +105,12 @@ export function MatchStage({
     () => (state === 'reveal' && view?.question ? revealFor(events, view.question.seq) : null),
     [state, view?.question, events],
   );
-  // Ein entschiedenes Duell zeigt zuerst die Karte (erster Takt), danach das Blatt mit den Antworten
+  // Im Takt der Antworten kennt die Bühne den Ausgang noch nicht: Das Duell steht wie in der Frage
   const resolved = duelResolved(reveal);
-  const outcomeBeat = useOutcomeBeat(
-    resolved && view?.question ? view.question.seq : null,
-    view ? outcomeBeatMs(view.match.timers.revealMs) : 0,
-    phaseDeadline,
-  );
   // Das Duell steht von der Ansage bis zum Ende der Auflösung auf der Karte
-  const duel = view ? duelStage(view, state, reveal, outcomeBeat) : null;
+  const duel = view ? duelStage(view, state, reveal, beat === 'outcome') : null;
+  // Das Blatt mit Frage und Antworten: ohne Duell die ganze Auflösung, sonst im ersten Takt
+  const answering = beat === null || beat === 'answers' || late;
   // Was ein Bot eben gewählt hat, trägt während der Ansage einen Ring
   const spot = state === 'announce' ? (shownPick(events)?.payload.region ?? null) : null;
 
@@ -124,7 +128,7 @@ export function MatchStage({
   const attributes = {
     'data-testid': 'match-screen',
     'data-state': state,
-    'data-beat': state === 'reveal' ? (outcomeBeat ? 'outcome' : 'answers') : undefined,
+    'data-beat': state === 'reveal' ? (beat ?? 'answers') : undefined,
     'data-seq': seq ?? undefined,
   };
   const toast = feedError ? (
@@ -171,6 +175,8 @@ export function MatchStage({
     (state === 'question' || state === 'answered' || state === 'missed')
       ? { ...local, question: local.question }
       : null;
+  // Wer nicht gefragt ist, liest die Frage an derselben Stelle mit (ADR-065)
+  const watching = watchedFor(state, seq, watched);
   let sheet: ReactNode = null;
   if (asked) {
     sheet = (
@@ -187,9 +193,17 @@ export function MatchStage({
         onAnswerTrivia={(optionToken) => onAnswer(asked, { optionToken })}
       />
     );
-  } else if (state === 'reveal' && reveal && !outcomeBeat) {
-    // Den Ausgang eines Duells sagt das Blatt rechts; hier stehen Frage und Antworten
-    sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={!resolved} />;
+  } else if (watching) {
+    sheet = (
+      <WatchedQuestionCard
+        key={watching.seq}
+        question={watching.question}
+        deadline={watching.deadline}
+      />
+    );
+  } else if (state === 'reveal' && reveal && answering) {
+    // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
+    sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
     sheet = <ResultPanel view={view} finished={lastOf(events, 'MATCH_FINISHED')} name={name} />;
   } else if (state === 'abandoned') {
@@ -206,6 +220,7 @@ export function MatchStage({
           board={board}
           name={name}
           legal={state === 'pick' ? view.legalRegions : []}
+          home={view.mySeat}
           duel={duel}
           spot={spot}
           busy={busy}
@@ -236,13 +251,13 @@ export function MatchStage({
           view={view}
           state={state}
           local={local}
+          watching={watching !== null}
           phaseDeadline={phaseDeadline}
           estimate={estimate}
           busy={busy}
           events={events}
           reveal={reveal}
           outcome={resolved?.type === 'DUEL_RESOLVED' ? resolved : null}
-          outcomeBeat={outcomeBeat}
           error={actionError}
           name={name}
           region={region}

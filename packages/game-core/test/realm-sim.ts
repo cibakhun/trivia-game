@@ -45,10 +45,18 @@ export interface RealmSimOptions {
   readonly onStep?: (state: RealmState) => void;
 }
 
-/** Dauer je Schritt in ms: `full` = jede Zeit ausgereizt, `typical` = Annahmen aus dem Konzept. */
+/**
+ * Dauer je Schritt in ms: `full` = jede Zeit ausgereizt, `typical` = Annahmen aus dem Konzept für
+ * eine Partie unter Menschen. `solo` rechnet dieselbe Partie so, als wäre nur Sitz 0 ein Mensch:
+ * Bots wählen und rüsten sofort, und eine Frage, an der nur Bots gefragt sind, steht für ihre
+ * Bedenkzeit offen (O-43). `soloInstant` ist die Gegenprobe von vor O-43: Dort kostete eine solche
+ * Frage nur die Auflösung.
+ */
 export interface RealmDurations {
   readonly full: number;
   readonly typical: number;
+  readonly solo: number;
+  readonly soloInstant: number;
 }
 
 export interface RealmSimulated {
@@ -66,6 +74,13 @@ export const TYPICAL_MS = {
   estimate: 11_000,
   prepare: 25_000,
 } as const;
+
+/**
+ * Bedenkzeit der Bots bei einer Wissensfrage als Anteil des Zeitlimits (Server: `botThinkMs`,
+ * gleichverteilt zwischen 20 und 55 %): der Erwartungswert für einen Bot und für den langsameren
+ * von zweien. Feste Werte, damit die Dauer keinen Zufall aus den Strömen der Partie zieht.
+ */
+export const BOT_THINK_SHARE = { one: 0.375, two: 0.2 + (0.35 * 2) / 3 } as const;
 
 export function seededRng(i: number, salt: number): Rng {
   const seed = new Uint8Array(16);
@@ -132,13 +147,22 @@ export function simulateRealm(
   const events: RealmEvent[] = [];
   let full = 0;
   let typical = 0;
+  let solo = 0;
+  let soloInstant = 0;
   let steps = 0;
   let sealed: { attacker: MatchEstimateAnswer; defender: MatchEstimateAnswer } | null = null;
+  /** Beide Rechnungen für den einzelnen Menschen: `botsMs` gilt nur, wenn er nicht gefragt ist. */
+  const soloStep = (humanAsked: boolean, humanMs: number, botsMs: number, after: number) => {
+    solo += (humanAsked ? humanMs : botsMs) + after;
+    soloInstant += (humanAsked ? humanMs : 0) + after;
+  };
 
   const estimateRound = (seats: readonly number[]) => {
     const spec = randomEstimateSpec(questions);
     full += timers.estimateMs + timers.revealMs;
     typical += TYPICAL_MS.estimate + timers.revealMs;
+    // Start und Landnahme fragen alle Reiche, die noch stehen: Der Mensch ist dabei
+    soloStep(true, TYPICAL_MS.estimate, 0, timers.revealMs);
     return seats.map((seat) => {
       const a = generateNpcEstimate(
         answers,
@@ -182,10 +206,15 @@ export function simulateRealm(
                 ? 'PICK_REGION'
                 : 'PICK_TARGET';
         input = { kind, seat, region };
-        // Ein Angriff wird mit dem Glücksrad angesagt, jede andere Wahl bleibt kurz stehen
-        const pause = kind === 'PICK_TARGET' ? economy.timers.wheelMs : (timers.pickShowMs ?? 0);
+        // Ein Angriff steht erst als Aufmarsch auf der Karte, dann dreht sich das Glücksrad
+        // (ADR-071); jede andere Wahl bleibt kurz stehen
+        const pause =
+          kind === 'PICK_TARGET'
+            ? (timers.announceMs ?? 0) + economy.timers.wheelMs
+            : (timers.pickShowMs ?? 0);
         full += timers.pickMs + pause;
         typical += TYPICAL_MS.pick + pause;
+        soloStep(seat === 0, TYPICAL_MS.pick, 0, pause);
         break;
       }
       case 'PREPARE': {
@@ -211,6 +240,8 @@ export function simulateRealm(
         typical +=
           (anyMissed ? economy.timers.prepareMs : TYPICAL_MS.prepare) +
           economy.timers.ordersRevealMs;
+        // Ein gefallenes Reich rüstet nicht mehr: Dann geben nur Bots ab, und zwar sofort
+        soloStep(pending.includes(0), TYPICAL_MS.prepare, 0, economy.timers.ordersRevealMs);
         if (state.step.kind !== 'PREPARE') continue;
         input = { kind: 'CLOSE_PREPARE' };
         break;
@@ -254,14 +285,28 @@ export function simulateRealm(
         };
         full += timers.triviaMs + timers.revealMs;
         typical += TYPICAL_MS.trivia + timers.revealMs;
+        soloStep(
+          step.attacker === 0 || step.defender === 0,
+          TYPICAL_MS.trivia,
+          timers.triviaMs * (defender ? BOT_THINK_SHARE.two : BOT_THINK_SHARE.one),
+          timers.revealMs,
+        );
         break;
       }
       case 'DUEL_ESTIMATE': {
         if (!sealed) throw new Error('Schätzfrage ohne versiegelte Antworten');
-        input = { kind: 'DUEL_ESTIMATES', ...sealed };
+        const estimates = sealed;
+        input = { kind: 'DUEL_ESTIMATES', ...estimates };
         sealed = null;
         full += timers.estimateMs + timers.revealMs;
         typical += TYPICAL_MS.estimate + timers.revealMs;
+        // Bots tragen bei einer Schätzung ihre eigene Zeit: offen, bis der langsamere fertig ist
+        soloStep(
+          step.attacker === 0 || step.defender === 0,
+          TYPICAL_MS.estimate,
+          Math.max(estimates.attacker.effectiveMs ?? 0, estimates.defender.effectiveMs ?? 0),
+          timers.revealMs,
+        );
         break;
       }
     }
@@ -271,5 +316,5 @@ export function simulateRealm(
     events.push(...result.events);
     options.onStep?.(state);
   }
-  return { state, events, strengths, durationMs: { full, typical }, steps };
+  return { state, events, strengths, durationMs: { full, typical, solo, soloInstant }, steps };
 }

@@ -24,6 +24,31 @@ export interface StageFrame {
 export const COMPACT_SCALE = 0.8;
 
 /**
+ * Seitenverhältnis, ab dem die Bühne niedrig ist: ein quer gehaltenes Handy, auf dem die Leiste des
+ * Browsers einen Teil der Höhe nimmt. Das Blatt der Partie mit Ausbau rückt dann zusammen
+ * (`[data-low]` in realm.css). In voller Höhe braucht das Blatt der Rüstzeit 385 Punkte der Bühne
+ * (drei Zeilen des Felds, Hinweis, Befehle, Knopf), zusammengerückt 340: Die Grenze liegt mit etwas
+ * Luft darüber. Bis ADR-068 lag sie bei 360, und dazwischen fehlte die dritte Zeile.
+ */
+export const LOW_STAGE = 844 / 388;
+
+/**
+ * Ob die Bühne niedrig ist, gemessen an ihrer eigenen Fläche in Bildschirmpunkten. Eine
+ * Medienabfrage taugt dafür nicht: Chrome auf dem iPhone meldet ihr quer den ganzen Bildschirm,
+ * auch wenn seine Leiste ein Sechstel davon verdeckt. Das Blatt blieb dort in voller Höhe, und
+ * seine dritte Zeile („Ziehen“) lag unter dem Rand.
+ */
+export function isLowStage(width: number, height: number): boolean {
+  return (
+    Number.isFinite(width) &&
+    Number.isFinite(height) &&
+    width > 0 &&
+    height > 0 &&
+    width / height >= LOW_STAGE
+  );
+}
+
+/**
  * Ausschnitt, bei dem das Land (`land`, der enge `viewBox` der Karte) genau in `area` passt und
  * mittig darin liegt; `width` und `height` sind die Maße der Bühne. `null`, solange nichts zu
  * messen ist.
@@ -60,4 +85,32 @@ export function stageFrame(
     ].join(' '),
     scale,
   };
+}
+
+/** Kreis in Karteneinheiten, an dem die Tiefe des Meers hängt. */
+export interface SeaDepth {
+  readonly cx: number;
+  readonly cy: number;
+  readonly r: number;
+}
+
+/**
+ * Tiefe des Meers für einen Ausschnitt der Karte: ein Kreis um die Mitte des sichtbaren Bilds, der
+ * bis in dessen Ecken reicht. Das Meer wird so zum Bildrand hin dunkler, gleich wie groß der
+ * Bildschirm ist. `null`, wenn der Ausschnitt nicht zu lesen ist.
+ */
+export function seaDepth(viewBox: string): SeaDepth | null {
+  const [x, y, w, h] = viewBox.split(/\s+/).map(Number);
+  if (
+    x === undefined ||
+    y === undefined ||
+    w === undefined ||
+    h === undefined ||
+    ![x, y, w, h].every(Number.isFinite) ||
+    !(w > 0 && h > 0)
+  ) {
+    return null;
+  }
+  const round = (n: number) => Math.round(n * 100) / 100;
+  return { cx: round(x + w / 2), cy: round(y + h / 2), r: round(Math.hypot(w, h) / 2) };
 }

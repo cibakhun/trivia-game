@@ -39,9 +39,10 @@ import { realmStateOf } from './store.ts';
  *   Die Befehle liegen nur im gespeicherten Zustand; die Ansicht zeigt bis zum Aufdecken allein,
  *   wer fertig ist. Sind alle fertig oder ist die Frist um, wird aufgedeckt (`ORDERS_REVEALED`),
  *   und das Aufgedeckte bleibt `ordersRevealMs` stehen (ANNOUNCE).
- * - **Glücksrad:** Sobald ein Angriffsziel feststeht, dreht der Server das Rad (Strom `match`).
- *   Ziel, Rad und Kategorie stehen dann `wheelMs` lang als Ansage, danach kommt die Wissensfrage
- *   aus dieser Kategorie.
+ * - **Aufmarsch und Glücksrad (ADR-071):** Steht ein Angriffsziel fest, zeigt die Karte erst
+ *   `announceMs` lang, wer wen wo angreift (ANNOUNCE im Schritt DUEL_WHEEL, das Rad steht noch
+ *   nicht). Dann dreht der Server das Rad (Strom `match`); Rad und Kategorie stehen `wheelMs` lang
+ *   als zweite Ansage, danach kommt die Wissensfrage aus dieser Kategorie.
  */
 
 /** Ereignisse, deren Inhalt von der Partie ohne Ausbau abweicht, heißen im Protokoll anders. */
@@ -176,16 +177,24 @@ export class RealmRun extends MatchRun {
           if (player.botStrength !== null) {
             const { rng } = await this.drawRng('bot');
             this.applyPick(seat, chooseRegionForRealmBot(state, rng));
-            // Ein Angriffsziel führt gleich zum Glücksrad; jede andere Wahl bleibt erst stehen
-            if (this.state.step.kind !== 'DUEL_WHEEL' && this.announce(timers.pickShowMs)) return;
+            // Ein Angriffsziel steht als Aufmarsch auf der Karte (Schritt DUEL_WHEEL); jede andere
+            // Wahl bleibt als Wahl stehen
+            if (this.state.step.kind === 'DUEL_WHEEL') {
+              shown = seat;
+              continue;
+            }
+            if (this.announce(timers.pickShowMs)) return;
             continue;
           }
           this.awaitPick();
           return;
         }
         case 'DUEL_WHEEL':
+          // Eben gewählt: Erst zeigt die Karte, wer wen wo angreift, wie in der Partie ohne Ausbau
+          // (ADR-071). Nach dieser Ansage kommt der Ablauf ohne Wählenden wieder hier an
+          if (shown !== null && this.announce(timers.announceMs)) return;
           await this.spinWheel();
-          // Ziel, Rad und Kategorie stehen als Ansage; die Frage folgt danach ohne weitere Pause
+          // Rad und Kategorie stehen als Ansage; die Frage folgt danach ohne weitere Pause
           if (this.announce(this.economy.timers.wheelMs)) return;
           shown = null;
           continue;
@@ -204,7 +213,7 @@ export class RealmRun extends MatchRun {
           if (shown !== null && this.announce(timers.pickShowMs)) return;
           const opened = await this.openQuestion();
           if (opened !== 'RESOLVE_NOW') return;
-          // Nur Bots an der Frage: sofort auflösen, die Auflösung bleibt trotzdem stehen
+          // Kein Mensch in der Partie: sofort auflösen, die Auflösung bleibt trotzdem stehen
           await this.resolveQuestion();
           return;
         }

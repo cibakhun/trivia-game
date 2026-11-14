@@ -1,12 +1,13 @@
 import { expect, test, type Page } from '@playwright/test';
 import { closeAnswerDb, testDb } from './answers.ts';
-import { answerRight, matchIdOf, newPlayer, pickFirst } from './match-kit.ts';
+import { answerRight, matchIdOf, newPlayer, pickFirst, succeeds } from './match-kit.ts';
 
 /**
  * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots,
  * eine normale Partie am quer gehaltenen Handy allein mit Bots aus der Aufstellung (ADR-052,
- * ADR-059), der Einladungslink und eine normale Partie zu zweit in zwei Browser-Kontexten, die
- * Partien mit Spieltestzeiten.
+ * ADR-059), der Einladungslink, eine normale Partie zu zweit in zwei Browser-Kontexten und eine
+ * zu zweit mit einem Bot, in der jeder dem anderen zuschaut (ADR-065), die Partien mit
+ * Spieltestzeiten.
  * Jeder Spieler wählt die erste markierte Region und antwortet richtig; die Lösung liest nur der
  * Test aus der Datenbank. Ansagen und Auflösungen (ADR-053) stehen nur kurz: Die Seite schreibt
  * selbst mit, was sie gezeigt hat. Die Ablaufsteuerung läuft im Testserver wie im api-Prozess.
@@ -16,10 +17,13 @@ test.afterAll(async () => {
   await closeAnswerDb();
 });
 
-/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054, ADR-055). */
+/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-055, ADR-069). */
 interface Shown {
-  /** `outcome`: erster Takt der Auflösung eines Duells, die Karte zeigt den Ausgang. */
-  readonly state: 'announce' | 'outcome' | 'reveal';
+  /**
+   * `reveal`: das Blatt mit den Antworten. Hat die Frage ein Duell entschieden, folgen `outcome`
+   * (die Karte spielt den Ausgang) und `settled` (das Ergebnis steht).
+   */
+  readonly state: 'announce' | 'reveal' | 'outcome' | 'settled';
   readonly text: string;
   /** Ansage eines Duells (sonst: eine gezeigte Wahl). */
   readonly duel: boolean;
@@ -53,24 +57,24 @@ async function recordShown(page: Page): Promise<void> {
       const screen = document.querySelector('[data-testid="match-screen"]');
       const state = screen?.getAttribute('data-state');
       if (state !== 'announce' && state !== 'reveal') return;
-      // Der Ausgang eines Duells bleibt im Blatt stehen, solange die Auflösung dauert (ADR-059):
-      // Welcher Takt läuft, sagt die Bühne
+      // Erst das Blatt mit den Antworten, dann sagt das Blatt rechts den Ausgang eines Duells
+      // (ADR-069): Welcher Takt läuft, sagt die Bühne
+      const beat = state === 'reveal' ? screen?.getAttribute('data-beat') : null;
+      const answers = document.querySelector('[data-testid="match-reveal"]');
       const outcome =
-        state === 'reveal' && screen?.getAttribute('data-beat') === 'outcome'
+        beat === 'outcome' || (beat === 'settled' && !answers)
           ? document.querySelector('[data-testid="match-outcome"]')
           : null;
       const card =
         outcome ??
-        document.querySelector(
-          state === 'announce' ? '[data-testid="match-announce"]' : '[data-testid="match-reveal"]',
-        );
+        (state === 'announce' ? document.querySelector('[data-testid="match-announce"]') : answers);
       if (!card) return;
       // Ohne die ablaufende Zeit: Ihr Text zählt die Sekunden herunter, während das Blatt steht.
       // Mit ihm stünde dasselbe Blatt mehrfach in der Liste, sobald eine Sekunde umspringt.
       const still = card.cloneNode(true) as Element;
       for (const timer of still.querySelectorAll('[role="timer"]')) timer.remove();
       const entry: Shown = {
-        state: outcome ? 'outcome' : state,
+        state: outcome ? (beat === 'settled' ? 'settled' : 'outcome') : state,
         text: still.textContent ?? '',
         duel: card.classList.contains('announce-duel'),
         ring: document.querySelector('.spot-ring') !== null,
@@ -216,23 +220,34 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
     expect(duel.text).toMatch(/ greift .+ an\./);
     expect(duel).toMatchObject({ scene: 'announce', arrow: true, ring: false, chips: 2 });
   }
-  // Ausgang (ADR-054): Erst zeigt die Karte, wie das Duell ausging, mit einem Satz im Blatt;
-  // danach folgen die Antworten
+  // Auflösung eines Duells (ADR-069): Erst stehen die Antworten, und die Karte zeigt das Duell
+  // noch wie in der Frage. Danach spielt sie den Ausgang, mit einem Satz im Blatt
   const outcomes = shown.filter((s) => s.state === 'outcome');
   expect(outcomes.length).toBeGreaterThan(0);
   for (const outcome of outcomes) {
     expect(outcome.scene).toBe('outcome');
     expect(outcome.text).toMatch(/(erober|verlierst|triff|getroffen|nimm|fällt|scheitert|hält)/);
-    expect(shown[shown.indexOf(outcome) + 1]).toMatchObject({ state: 'reveal', scene: 'settled' });
+    expect(shown[shown.indexOf(outcome) - 1]).toMatchObject({ state: 'reveal', scene: 'duel' });
   }
-  // Letztes Duell (ADR-055): Auch seine Auflösung steht, erst der Ausgang, dann die Antworten.
+  // Danach steht das Ergebnis, bis es weitergeht
+  const settled = shown.filter((s) => s.state === 'settled');
+  expect(settled.length).toBeGreaterThan(0);
+  for (const result of settled) {
+    expect(result.scene).toBe('settled');
+    expect(shown[shown.indexOf(result) - 1]).toMatchObject({ state: 'outcome', text: result.text });
+  }
+  // Letztes Duell (ADR-055): Auch seine Auflösung steht ganz, erst die Antworten, dann der Ausgang.
   // Band und Zugfolge der letzten Runde bleiben so lange stehen; die Abrechnung kommt danach.
-  const [lastOutcome, lastReveal] = shown.slice(-2);
+  const lastAt = shown.map((s) => s.state).lastIndexOf('outcome');
+  const lastReveal = shown[lastAt - 1];
+  const lastOutcome = shown[lastAt];
+  expect(lastReveal).toMatchObject({ state: 'reveal', scene: 'duel', allDone: false });
   expect(lastOutcome).toMatchObject({ state: 'outcome', scene: 'outcome', allDone: true });
-  expect(lastReveal).toMatchObject({ state: 'reveal', scene: 'settled', allDone: true });
   expect(lastOutcome?.step).toMatch(/^Feldzug · Runde \d von 4$/);
   expect(lastReveal?.step).toBe(lastOutcome?.step);
-  expect(shown.findIndex((s) => s.allDone)).toBe(shown.length - 2);
+  // Die Zugfolge ist erst mit dem Ausgang abgehakt, nicht schon mit den Antworten
+  expect(shown.findIndex((s) => s.allDone)).toBe(lastAt);
+  expect(shown.slice(lastAt + 1).every((s) => s.state === 'settled' && s.allDone)).toBe(true);
   // Auflösungen: Jeder Sitz der Frage steht mit seinem Wappen an seiner Antwort
   const reveals = shown.filter((s) => s.state === 'reveal');
   expect(reveals.length).toBeGreaterThan(5);
@@ -548,4 +563,138 @@ test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => 
   const stats = await statistics(host);
   expect(stats.map((s) => s.matches_played)).toEqual([1, 1]);
   expect(stats.reduce((n, s) => n + s.matches_won, 0)).toBeGreaterThanOrEqual(1);
+});
+
+/** Karte zum Mitlesen, wie sie ein Zuschauer vor der Antwort des Gefragten sah (ADR-065). */
+interface Watched {
+  readonly seq: number;
+  readonly kind: string | null;
+  readonly text: string;
+  /** Antworten in der Reihenfolge der Karte, beim Zuschauer und beim Gefragten. */
+  readonly options: readonly string[];
+  readonly asked: readonly string[];
+  /** Schaltflächen in der Karte: Zum Mitlesen gibt es keine. */
+  readonly buttons: number;
+  /** Blatt rechts: wer gefragt ist und der Hinweis fürs Zuschauen. */
+  readonly sheet: string;
+}
+
+/**
+ * Lässt die Seite mitschreiben, welche Antwortfelder die Auflösung ausgemalt hat: je Feld die
+ * Sitze, die es gewählt haben, und die Zahl der Teile der Füllung. Die Seite steht schon, deshalb
+ * `evaluate` und kein Skript beim Laden.
+ */
+async function recordFills(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const fills: string[] = [];
+    (window as unknown as { fills: string[] }).fills = fills;
+    new MutationObserver(() => {
+      const chosen = document.querySelectorAll(
+        '[data-testid="match-reveal"] .reveal-option.chosen',
+      );
+      for (const option of chosen) {
+        const parts = option.querySelectorAll('.reveal-fill i').length;
+        const entry = `${option.getAttribute('data-chosen-by') ?? ''}|${parts}`;
+        if (!fills.includes(entry)) fills.push(entry);
+      }
+    }).observe(document, { subtree: true, childList: true });
+  });
+}
+
+/**
+ * Spielt wie `playToEnd`, wartet aber vor jeder eigenen Antwort kurz auf die andere Seite: Schaut
+ * sie dieser Frage zu, muss dort die Karte zum Mitlesen liegen, ehe die Antwort die Frage auflöst.
+ */
+async function playWatched(page: Page, other: Page, watched: Watched[]): Promise<number> {
+  const matchId = matchIdOf(page);
+  const screen = page.getByTestId('match-screen');
+  const theirs = other.getByTestId('match-screen');
+  const answered = new Set<number>();
+  const until = Date.now() + 200_000;
+  for (;;) {
+    if (Date.now() > until) throw new Error('Die Partie endet nicht rechtzeitig');
+    const state = await screen.getAttribute('data-state');
+    const seq = Number((await screen.getAttribute('data-seq')) ?? 0);
+    if (state === 'finished') break;
+    if (state === 'abandoned') throw new Error('Die Partie wurde abgebrochen');
+    if (state === 'pick') {
+      await pickFirst(page, matchId, 'click');
+    } else if (state === 'question' && !answered.has(seq)) {
+      const arrived = await succeeds(
+        expect(theirs).toHaveAttribute('data-seq', String(seq), { timeout: 3_000 }),
+      );
+      if (arrived && (await theirs.getAttribute('data-state')) === 'spectating') {
+        const card = other.getByTestId('match-question-watched');
+        await expect(card).toBeVisible({ timeout: 3_000 });
+        watched.push({
+          seq,
+          kind: await card.getAttribute('data-kind'),
+          text: (await card.textContent()) ?? '',
+          options: await card.locator('.option-text').allTextContents(),
+          asked: await page.getByTestId('match-question').locator('.option-text').allTextContents(),
+          buttons: await card.getByRole('button').count(),
+          sheet: (await other.getByTestId('match-waiting').textContent()) ?? '',
+        });
+      }
+      if (await answerRight(page, matchId, seq)) answered.add(seq);
+    }
+    await page.waitForTimeout(100);
+  }
+  return answered.size;
+}
+
+test('Partie: Wer zuschaut, liest die Frage mit; die Auflösung malt die Antwortfelder aus (ADR-065)', async ({
+  browser,
+}) => {
+  test.setTimeout(240_000);
+  const host = await newPlayer(browser);
+  const guest = await newPlayer(browser);
+
+  const create = host.getByRole('region', { name: 'Neue Partie' });
+  await create.getByLabel(/^Kurze Zeiten/).check();
+  await create.getByRole('button', { name: 'Partie eröffnen' }).click();
+  await expect(host).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
+  const lobby = host.getByTestId('match-lobby');
+  const code = (await host.getByTestId('invite-code').innerText()).trim();
+  await guest.getByLabel('Einladungscode').fill(code);
+  await guest.getByRole('button', { name: 'Beitreten' }).click();
+  await expect(guest).toHaveURL(host.url());
+  const taken = lobby.locator('[data-testid="lobby-seat"].taken');
+  await expect(taken).toHaveCount(2);
+  // Der Bot auf dem dritten Platz greift nur Menschen an: Dann schaut der andere Mensch zu
+  await lobby.getByRole('button', { name: 'Bot dazu' }).click();
+  await expect(taken).toHaveCount(3);
+  for (const page of [host, guest]) await recordFills(page);
+  await host.getByRole('button', { name: 'Partie starten' }).click();
+
+  const watched: Watched[] = [];
+  const [hostAnswers, guestAnswers] = await Promise.all([
+    playWatched(host, guest, watched),
+    playWatched(guest, host, watched),
+  ]);
+  expect(hostAnswers).toBeGreaterThan(0);
+  expect(guestAnswers).toBeGreaterThan(0);
+
+  // Mindestens einmal hat ein Mensch dem anderen zugeschaut und dabei die Frage gelesen
+  expect(watched.length).toBeGreaterThan(0);
+  for (const card of watched) {
+    expect(card.text).toContain('Du schaust zu');
+    expect(card.buttons).toBe(0);
+    expect(card.sheet).toContain('Wer was gewählt hat, zeigt die Auflösung.');
+    // Dieselbe Frage wie beim Gefragten, die Antworten in derselben Reihenfolge
+    expect(card.options).toEqual(card.asked);
+    if (card.kind === 'TRIVIA') expect(card.options).toHaveLength(4);
+  }
+  expect(watched.some((card) => card.kind === 'TRIVIA')).toBe(true);
+
+  // In der Auflösung trägt jedes gewählte Feld so viele Teile wie Sitze, die es gewählt haben
+  for (const page of [host, guest]) {
+    const fills = await page.evaluate(() => (window as unknown as { fills?: string[] }).fills);
+    expect(fills?.length).toBeGreaterThan(0);
+    for (const fill of fills ?? []) {
+      const [seats = '', parts] = fill.split('|');
+      expect(seats).not.toBe('');
+      expect(Number(parts)).toBe(seats.split(' ').length);
+    }
+  }
 });

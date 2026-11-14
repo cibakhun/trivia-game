@@ -10,21 +10,24 @@ import {
 } from 'react';
 import { HeroMap } from '../art/HeroMap.tsx';
 import { mapArt } from '../art/map-art.ts';
+import { CategoryIcon, MarkIcon } from '../art/RealmIcons.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { SoundToggle } from '../components/SoundToggle.tsx';
 import { t } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
 import { estimateToSend } from './estimate-input.ts';
+import { Flights, type FlightPlan } from './Flights.tsx';
 import { HelpSheet, helpSeen, markHelpSeen } from './HelpSheet.tsx';
+import { incomeTiming, useIncomeFlight } from './income-flight.ts';
 import { MatchBoard } from './MatchBoard.tsx';
 import {
   duelResolved,
   duelStage,
   lastOf,
-  outcomeBeatMs,
   revealFor,
   rulesOf,
   shownPick,
+  watchedFor,
 } from './match-model.ts';
 import { AbandonedPanel, MomentBanner, type MatchStageProps } from './MatchStage.tsx';
 import { regionNames, seatNames, stepLabel } from './match-text.ts';
@@ -33,10 +36,12 @@ import type { RealmLayer } from './RealmBoardArt.tsx';
 import { RealmBlatt } from './RealmBlatt.tsx';
 import {
   layerRegions,
+  outcomeMotion,
   outcomeSign,
   planLayer,
   realmBoardState,
   revealLayer,
+  revealMotion,
 } from './realm-layer.ts';
 import { RealmLobby, type RealmLobbyInitial } from './RealmLobby.tsx';
 import {
@@ -53,15 +58,16 @@ import {
   withMove,
 } from './realm-model.ts';
 import { RealmSeatList } from './RealmSeatList.tsx';
+import { incomeSources, type IncomeSource } from './realm-text.ts';
 import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { RoundFlow } from './RoundFlow.tsx';
-import { StageQuestion } from './StageQuestion.tsx';
+import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
 import { useMoments } from './useMoments.ts';
-import { useOutcomeBeat } from './useOutcomeBeat.ts';
+import { useRevealBeats } from './useRevealBeats.ts';
 import { useStageFrame } from './useStageFrame.ts';
 import { Wheel } from './Wheel.tsx';
 import './stage.css';
@@ -79,6 +85,9 @@ import './realm.css';
 
 /** Anteil der Ansage, den das Glücksrad dreht; danach steht es mit dem Ergebnis. */
 const WHEEL_SPIN_SHARE = 0.65;
+/** Das Zeichen der gezogenen Kategorie hebt kurz nach dem Stillstand ab und fliegt so lange. */
+const WHEEL_FLY_AFTER_MS = 90;
+const WHEEL_FLY_MS = 480;
 /** So lange vor Ablauf der Rüstzeit gibt der Browser einen offenen Entwurf von selbst ab. */
 const AUTO_SUBMIT_MS = 1500;
 
@@ -131,9 +140,10 @@ export interface RealmStageProps extends MatchStageProps {
 }
 
 export function RealmStage({
-  view,
-  events,
+  view: feedView,
+  events: feedEvents,
   local,
+  watched = null,
   phaseDeadline,
   feedError,
   actionError,
@@ -151,9 +161,17 @@ export function RealmStage({
   onSubmitOrders,
   initial,
 }: RealmStageProps) {
+  // Hat eine Auflösung ein Duell entschieden, kommen erst die Antworten, dann ihre Folgen
+  // (ADR-069): Solange zeigt die Bühne den Stand vor dem Ausgang
+  const { view, events, beat, late } = useRevealBeats(feedView, feedEvents, phaseDeadline);
   const play = useMemo(() => realmPlayOf(view), [view]);
   const [editing, setEditing] = useState(initial?.editing ?? false);
   const state = realmScreenStateOf(view, local, events, editing);
+  // Bewegung gibt es nur für Wechsel, die diese Seite miterlebt hat: Wer mitten im Aufdecken oder
+  // in einer Auflösung lädt, sieht sofort das Endbild (Merken während des Renderns)
+  const [entered, setEntered] = useState({ first: state, live: false });
+  if (!entered.live && state !== entered.first) setEntered({ first: entered.first, live: true });
+  const live = entered.live || state !== entered.first;
   const seq = view?.question?.seq ?? null;
   const mySeat = view?.mySeat ?? null;
   const step = play?.board.step ?? null;
@@ -188,15 +206,12 @@ export function RealmStage({
     () => (state === 'reveal' && view?.question ? revealFor(events, view.question.seq) : null),
     [state, view?.question, events],
   );
-  // Ein entschiedenes Duell zeigt zuerst die Karte (erster Takt), danach das Blatt mit den Antworten
+  // Im Takt der Antworten kennt die Bühne den Ausgang noch nicht: Das Duell steht wie in der Frage
   const resolved = duelResolved(reveal);
   const realmDuel = resolved?.type === 'REALM_DUEL_RESOLVED' ? resolved : null;
-  const outcomeBeat = useOutcomeBeat(
-    resolved && view?.question ? view.question.seq : null,
-    view ? outcomeBeatMs(view.match.timers.revealMs) : 0,
-    phaseDeadline,
-  );
-  const duel = view ? duelStage(view, state, reveal, outcomeBeat) : null;
+  const duel = view ? duelStage(view, state, reveal, beat === 'outcome') : null;
+  // Das Blatt mit Frage und Antworten: ohne Duell die ganze Auflösung, sonst im ersten Takt
+  const answering = beat === null || beat === 'answers' || late;
   // Was ein Bot eben gewählt hat, trägt während der Ansage einen Ring
   const spot = state === 'announce' ? (shownPick(events)?.payload.region ?? null) : null;
 
@@ -263,7 +278,36 @@ export function RealmStage({
   }, []);
 
   const land = play ? mapArt(play.map).tightViewBox : null;
-  const { stage, frame } = useStageFrame(land);
+  const { stage, frame, low } = useStageFrame(land);
+
+  // ---- Einkommen: Brot und Baustoff wandern von den eigenen Feldern in den Vorrat (ADR-067) ----
+  const sources = useMemo(
+    () => (play && mySeat !== null ? incomeSources(play, mySeat) : []),
+    [play, mySeat],
+  );
+  const incomeTime = useMemo(() => incomeTiming(sources.length), [sources.length]);
+  const income = lastOf(events, 'INCOME');
+  const incomeAt = income?.seq ?? 0;
+  // Verbucht ist das Einkommen schon mit dem Ende der Runde davor; gezeigt wird es, wenn die eigene
+  // Rüstzeit steht. Wer keine hat (Zuschauer, gefallenes Reich, nur noch Bots), sieht nur die Zahl
+  const { playing: incomeSeq, held: incomeWaits } = useIncomeFlight(
+    incomeAt,
+    state === 'prepare' || state === 'prepared',
+    view?.match.status !== 'RUNNING' ||
+      view.phase?.kind === 'PREPARE' ||
+      (lastOf(events, 'ORDERS_REVEALED')?.seq ?? 0) > incomeAt,
+    live,
+    incomeTime.totalMs,
+  );
+  // Der Flugplan steht mit dem ersten Bild fest: Spätere Ansichten ändern ihn nicht mehr
+  const [incomePlan, setIncomePlan] = useState<{
+    readonly seq: number;
+    readonly plans: readonly FlightPlan[];
+  } | null>(null);
+  if (incomeSeq !== null && incomePlan?.seq !== incomeSeq) {
+    setIncomePlan({ seq: incomeSeq, plans: incomeFlights(sources) });
+  }
+  const incoming = incomeSeq !== null && incomePlan?.seq === incomeSeq ? incomePlan.plans : null;
   const wheelMs = play?.realm.economy.timers.wheelMs ?? 0;
   const spinMs = Math.round(wheelMs * WHEEL_SPIN_SHARE);
   // Wie lange das Rad dieses Duells beim ersten Bild schon lief (Seite mitten in der Ansage
@@ -281,14 +325,36 @@ export function RealmStage({
     });
   }
   const spunMs = wheelKey !== null && spun?.key === wheelKey ? spun.elapsedMs : 0;
+  // Steht das Rad, springt das Zeichen der gezogenen Kategorie ins Blatt (ADR-067); nur, wenn die
+  // Seite das Rad hat anlaufen sehen und danach noch Zeit bleibt
+  const landed = state === 'wheel' ? (step?.category ?? null) : null;
+  const flyMs = Math.min(WHEEL_FLY_MS, Math.round(wheelMs * 0.16));
+  const flyAtMs = spinMs - spunMs + WHEEL_FLY_AFTER_MS;
+  const catching = live && landed !== null && flyAtMs > 0 && flyMs >= 150;
+  const wheelPlans = useMemo<readonly FlightPlan[]>(
+    () =>
+      catching && landed !== null && wheelKey !== null
+        ? [
+            {
+              key: wheelKey,
+              from: '[data-wheel-mark]',
+              to: '.wheel-result .glyph',
+              icon: <CategoryIcon category={landed} size={30} />,
+            },
+          ]
+        : [],
+    [catching, landed, wheelKey],
+  );
 
   const attributes = {
     'data-testid': 'match-screen',
     'data-mode': 'REALM',
     'data-state': state,
     'data-step': step?.kind,
-    'data-beat': state === 'reveal' ? (outcomeBeat ? 'outcome' : 'answers') : undefined,
+    'data-beat': state === 'reveal' ? (beat ?? 'answers') : undefined,
     'data-seq': seq ?? undefined,
+    // Niedrige Bühne: Das Blatt rückt zusammen (realm.css). Gemessen, nicht per Medienabfrage
+    'data-low': low ? 'true' : undefined,
   };
   const toast = feedError ? (
     <div className="stage-toast">
@@ -299,7 +365,7 @@ export function RealmStage({
   // Vor dem Start und nach einem Abbruch gibt es noch keine Karte der Partie
   if (!view || !play || !step) {
     return (
-      <main className="stage stage-plain" {...attributes}>
+      <main ref={stage} className="stage stage-plain" {...attributes}>
         <div className="stage-map">
           <HeroMap cover />
         </div>
@@ -350,14 +416,21 @@ export function RealmStage({
   } else if (state === 'prepared' && mySeat !== null) {
     layer = { regions, ...planLayer(play, mySeat, realm.myOrders ?? []), focusSeat: mySeat };
   } else if (state === 'orders') {
+    const revealed = revealedOrders(events, revealedRound(events) ?? step.round ?? 1);
     layer = {
       regions,
-      ...revealLayer(revealedOrders(events, revealedRound(events) ?? step.round ?? 1)),
+      ...revealLayer(revealed),
+      motion: live ? revealMotion(revealed) : null,
     };
   } else if (aimed !== null) {
     layer = { regions, selected: aimed };
   } else if (state === 'reveal' && realmDuel) {
-    layer = { regions, changes: [outcomeSign(realmDuel)], fresh: [realmDuel.payload.region] };
+    layer = {
+      regions,
+      changes: [outcomeSign(realmDuel)],
+      fresh: [realmDuel.payload.region],
+      motion: live ? outcomeMotion(realmDuel) : null,
+    };
   }
   // In der Rüstzeit lässt sich jedes Feld antippen: Fremde und freie sagen, warum dort nichts geht.
   // Beim Angriff ebenso jedes fremde und freie Feld: Was kein Ziel ist, nennt den Grund (ADR-064)
@@ -418,6 +491,8 @@ export function RealmStage({
     (state === 'question' || state === 'answered' || state === 'missed')
       ? { ...local, question: local.question }
       : null;
+  // Wer nicht gefragt ist, liest die Frage an derselben Stelle mit (ADR-065)
+  const watching = watchedFor(state, seq, watched);
   let sheet: ReactNode = null;
   let disc = false;
   if (asked) {
@@ -436,6 +511,15 @@ export function RealmStage({
         onAnswerTrivia={(optionToken) => onAnswer(asked, { optionToken })}
       />
     );
+  } else if (watching) {
+    sheet = (
+      <WatchedQuestionCard
+        key={watching.seq}
+        question={watching.question}
+        deadline={watching.deadline}
+        category={step.kind === 'DUEL_TRIVIA' ? step.category : null}
+      />
+    );
   } else if (state === 'wheel' && step.wheel && step.attacker !== null) {
     disc = true;
     sheet = (
@@ -452,9 +536,9 @@ export function RealmStage({
         />
       </div>
     );
-  } else if (state === 'reveal' && reveal && !outcomeBeat) {
-    // Den Ausgang eines Duells sagt das Blatt rechts; hier stehen Frage und Antworten
-    sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={!resolved} />;
+  } else if (state === 'reveal' && reveal && answering) {
+    // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
+    sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
     sheet = (
       <ResultPanel view={view} finished={lastOf(events, 'REALM_MATCH_FINISHED')} name={name} />
@@ -476,7 +560,12 @@ export function RealmStage({
     .map((turn) => name(turn.seat));
   const style: CSSProperties | undefined =
     state === 'wheel'
-      ? { ['--wheel-spin' as string]: `${spinMs}ms`, ['--wheel-spun' as string]: `${-spunMs}ms` }
+      ? {
+          ['--wheel-spin' as string]: `${spinMs}ms`,
+          ['--wheel-spun' as string]: `${-spunMs}ms`,
+          // Das Zeichen im Blatt erscheint, kurz bevor das fliegende ankommt
+          ['--wheel-fly' as string]: `${WHEEL_FLY_AFTER_MS + flyMs - 70}ms`,
+        }
       : undefined;
 
   return (
@@ -489,6 +578,7 @@ export function RealmStage({
           legal={state === 'pick' ? view.legalRegions : []}
           selectable={tappable}
           realm={layer}
+          home={mySeat}
           duel={duel}
           spot={spot}
           busy={busy}
@@ -505,7 +595,15 @@ export function RealmStage({
           </p>
         ) : null}
         {flow ? <RoundFlow flow={flow} /> : null}
-        <RealmSeatList view={view} play={play} name={name} />
+        <RealmSeatList
+          view={view}
+          play={play}
+          name={name}
+          receiving={
+            incoming ? { delayMs: incomeTime.countAtMs, durationMs: incomeTime.countMs } : null
+          }
+          pending={incomeWaits && income ? income.payload.income : null}
+        />
         <TurnOrder view={view} name={name} skipped={skipped} />
         <div className="stage-tools three">
           <SoundToggle />
@@ -569,13 +667,14 @@ export function RealmStage({
             play={play}
             state={state}
             local={local}
+            watching={watching !== null}
             phaseDeadline={phaseDeadline}
             estimate={estimate}
             busy={busy}
             events={events}
             reveal={reveal}
             outcome={realmDuel}
-            outcomeBeat={outcomeBeat}
+            catching={catching}
             error={actionError}
             name={name}
             region={region}
@@ -600,9 +699,46 @@ export function RealmStage({
       {sheet ? (
         <div className={`stage-centre${closed ? ' wide' : ''}${disc ? ' disc' : ''}`}>{sheet}</div>
       ) : null}
+      {wheelPlans.length > 0 ? (
+        <Flights
+          key={`wheel-${wheelKey}`}
+          stage={stage}
+          plans={wheelPlans}
+          startMs={flyAtMs}
+          flightMs={flyMs}
+          staggerMs={0}
+          tone="coin"
+        />
+      ) : null}
+      {incoming ? (
+        <Flights
+          key={`income-${incomeSeq}`}
+          stage={stage}
+          plans={incoming}
+          startMs={incomeTime.startMs}
+          flightMs={incomeTime.flightMs}
+          staggerMs={incomeTime.staggerMs}
+          nearestFirst
+        />
+      ) : null}
       {helpSheet}
       {toast}
       <RotateHint />
     </main>
   );
+}
+
+/** Flüge des Einkommens: je Feld ein Zeichen in den eigenen Vorrat; eine Burg schickt zwei. */
+function incomeFlights(sources: readonly IncomeSource[]): FlightPlan[] {
+  const perField = new Map<number, number>();
+  for (const source of sources) perField.set(source.region, (perField.get(source.region) ?? 0) + 1);
+  return sources.map((source) => ({
+    key: `${source.region}-${source.kind}`,
+    from: `[data-region="${source.region}"]`,
+    to: `.plaque.me .amount-${source.kind}`,
+    at: 'start' as const,
+    icon: <MarkIcon kind={source.kind} size={14} />,
+    // Zwei Zeichen vom selben Feld starten nebeneinander
+    shift: (perField.get(source.region) ?? 1) > 1 ? (source.kind === 'bread' ? -8 : 8) : 0,
+  }));
 }

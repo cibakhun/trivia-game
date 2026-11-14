@@ -125,7 +125,7 @@ export class ClassicRun extends MatchRun {
           const opened = await this.openQuestion();
           if (opened === 'WAITING') return;
           if (opened === 'ABANDONED') return;
-          // Nur Bots an der Frage: sofort auflösen, die Auflösung bleibt trotzdem stehen
+          // Kein Mensch in der Partie: sofort auflösen, die Auflösung bleibt trotzdem stehen
           await this.resolveQuestion();
           return;
         }

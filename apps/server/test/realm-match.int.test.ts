@@ -8,6 +8,7 @@ import {
 } from '@rdw/game-core';
 import {
   matchListResponseSchema,
+  matchWatchResponseSchema,
   parseMatchEvent,
   PLAYTEST_REALM_RULES,
   type MatchMapId,
@@ -21,6 +22,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { buildApp, runMatchDriverOnce } from '../src/index.ts';
 import { ApiError } from '../src/infra/errors.ts';
+import { botThinkMs } from '../src/modules/match/bot-think.ts';
 import { createLobby, startLobby } from '../src/modules/match/lobby.ts';
 import {
   TestClient,
@@ -373,6 +375,8 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     const matchId = await startRealmTest(human, ['MEDIUM', 'HARD']);
     const phases = new Set<string>();
     const steps = new Set<string>();
+    // Phase und Schritt in der Reihenfolge, in der sie wechseln
+    const seen: string[] = [];
     const final = await play(
       matchId,
       [
@@ -399,6 +403,17 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
         const board = current.realm?.board;
         if (!board) return;
         steps.add(board.step.kind);
+        const at = `${current.phase?.kind}:${board.step.kind}`;
+        if (seen.at(-1) !== at) seen.push(at);
+        // Aufmarsch (ADR-071): Das Ziel steht, das Rad liegt bereit, gedreht ist es noch nicht
+        if (board.step.kind === 'DUEL_WHEEL') {
+          expect(current.phase?.kind).toBe('ANNOUNCE');
+          expect(board.step.attacker).not.toBeNull();
+          expect(board.step.region).not.toBeNull();
+          expect(board.step.wheel).not.toBeNull();
+          expect(board.step.category).toBeNull();
+          expect(current.legalRegions).toEqual([]);
+        }
         expect(current.board).toBeNull();
         // Wer wählt, ist am Zug; in Fragen und in der Rüstzeit wählt niemand
         if (current.phase?.kind === 'PICK') expect(board.step.chooser).not.toBeNull();
@@ -411,13 +426,12 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(final.match.status).toBe('FINISHED');
     expect(final.phase).toBeNull();
     expect([...phases].sort()).toEqual(['ANNOUNCE', 'PICK', 'PREPARE', 'QUESTION', 'REVEAL']);
-    // Das Glücksrad dreht der Server sofort: Als Schritt sieht man es nie
-    expect(steps.has('DUEL_WHEEL')).toBe(false);
     for (const kind of [
       'START_ESTIMATE',
       'CASTLE_PICK',
       'LAND_ESTIMATE',
       'PREPARE',
+      'DUEL_WHEEL',
       'DUEL_TRIVIA',
     ]) {
       expect(steps.has(kind), kind).toBe(true);
@@ -481,6 +495,21 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(targets.length).toBeGreaterThan(0);
     expect(spins.length).toBe(targets.length);
     expect(duels.length).toBe(targets.length);
+    // Aufmarsch vor dem Rad (ADR-071): Nach jeder Zielwahl steht erst die Ansage des Angriffs, das
+    // Rad dreht sich danach, dann kommt die Frage
+    const marches = seen.flatMap((at, i) => (at === 'ANNOUNCE:DUEL_WHEEL' ? [i] : []));
+    expect(marches.length).toBe(targets.length);
+    for (const i of marches) {
+      expect(seen.slice(i + 1, i + 3)).toEqual(['ANNOUNCE:DUEL_TRIVIA', 'QUESTION:DUEL_TRIVIA']);
+    }
+    const announceMs = PLAYTEST_REALM_RULES.timers.announceMs ?? 0;
+    expect(announceMs).toBeGreaterThan(0);
+    for (const [i, target] of targets.entries()) {
+      const spin = spins[i];
+      if (!spin) throw new Error('Rad fehlt');
+      expect(spin.seq).toBeGreaterThan(target.seq);
+      expect(Date.parse(spin.at) - Date.parse(target.at)).toBeGreaterThanOrEqual(announceMs);
+    }
     expect(duels.map((e) => e.payload.duel)).toEqual(duels.map((_, i) => i + 1));
     const trivia = eventsOf(all, 'QUESTION_OPENED').filter(
       (e) => e.payload.purpose === 'DUEL_TRIVIA',
@@ -1018,6 +1047,108 @@ describe('Angriff nur mit Armee (ADR-064)', () => {
     expect([...new Set(eventsOf(all, 'ORDERS_REVEALED').map((e) => e.payload.round))]).toEqual(
       Array.from({ length: rounds }, (_, i) => i + 1),
     );
+    expect(await unreadableEvents(matchId)).toEqual([]);
+  });
+});
+
+describe('Fragen, an denen nur Bots gefragt sind (O-43)', () => {
+  it('bleiben offen, bis die Bedenkzeit der Bots um ist; so lange liest auch ein gefallenes Reich mit', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['MEDIUM', 'MEDIUM']);
+    const prepare = await play(matchId, [{ human }], inPrepare(1));
+    const mySeat = prepare.mySeat ?? -1;
+    const heir = [0, 1, 2].find((seat) => seat !== mySeat) ?? -1;
+    // Mein Reich ist gefallen und gehört einem Bot: Von jetzt an sind an jeder Frage nur Bots
+    // gefragt. Auf jedem Feld steht eine Armee, damit jeder Bot ein Ziel hat (ADR-064).
+    const row = await server.db
+      .selectFrom('matches')
+      .select('state')
+      .where('id', '=', matchId)
+      .executeTakeFirstOrThrow();
+    const state = row.state as unknown as {
+      readonly regions: readonly { readonly owner: number | null }[];
+      readonly seats: readonly object[];
+      readonly step: object;
+    };
+    const fallen = {
+      ...state,
+      regions: state.regions.map((r) => ({
+        ...r,
+        owner: r.owner === mySeat ? heir : r.owner,
+        armies: r.owner === null ? 0 : 1,
+      })),
+      seats: state.seats.map((s, seat) =>
+        seat === mySeat ? { ...s, eliminatedInDuel: 0, eliminatedBy: heir } : s,
+      ),
+      step: { ...state.step, orders: [[], [], []] },
+    };
+    await server.db
+      .updateTable('matches')
+      .set({ state: JSON.stringify(fallen) })
+      .where('id', '=', matchId)
+      .execute();
+
+    const opened = await play(
+      matchId,
+      [{ human }],
+      (current) => current.phase?.kind === 'QUESTION',
+    );
+    const question = opened.question;
+    if (!question || opened.phase?.kind !== 'QUESTION') throw new Error('Keine Frage erreicht');
+    expect(question).toMatchObject({ resolved: false, myStatus: 'NOT_PARTICIPATING' });
+    expect(question.seats).not.toContain(mySeat);
+    const { timers } = opened.match;
+    const limit = question.kind === 'TRIVIA' ? timers.triviaMs : timers.estimateMs;
+    const bots = await server.db
+      .selectFrom('match_answers')
+      .select(['seat', 'effective_ms'])
+      .where('match_id', '=', matchId)
+      .where('seq', '=', question.seq)
+      .where('status', '=', 'GENERATED')
+      .orderBy('seat')
+      .execute();
+    const seats = bots.map((bot) => bot.seat);
+    expect(seats).toEqual([...question.seats].sort((a, b) => a - b));
+    // Dieselbe Zeit, nach der die Ansicht einen Bot als fertig zeigt
+    const think = bots.map(
+      (bot) => bot.effective_ms ?? botThinkMs(matchId, question.seq, bot.seat, limit),
+    );
+    const slowest = Math.min(limit, Math.max(...think));
+    // Die Phase endet mit dem langsamsten Bot, nicht erst mit dem Zeitlimit der Frage
+    expect(opened.phase.remainingMs).toBeGreaterThan(0);
+    expect(opened.phase.remainingMs).toBeLessThanOrEqual(slowest);
+
+    // So lange liest der Mensch mit, und die Ablaufsteuerung löst nichts vor der Zeit auf
+    const url = `/matches/${matchId}/questions/${question.seq}/watch`;
+    const watched = await human.client.get(url);
+    expect(watched.statusCode, watched.body).toBe(200);
+    const read = matchWatchResponseSchema.parse(watched.json()).question;
+    expect(read.seq).toBe(question.seq);
+    // Die Restzeit auf der Karte zum Mitlesen zählt bis zum Ende der Frage, nicht bis zum Zeitlimit
+    expect(read.timeLimitMs).toBe(limit);
+    expect(read.remainingMs).toBeGreaterThan(0);
+    expect(read.remainingMs).toBeLessThanOrEqual(slowest);
+    const ctx = driverContext();
+    await runMatchDriverOnce(server.db, ctx);
+    expect((await view(human, matchId)).question).toMatchObject({
+      seq: question.seq,
+      resolved: false,
+    });
+
+    // Mit dem langsamsten Bot ist die Frage aufgelöst, und die Auflösung steht
+    await advanceGameClock(server.database.pool, slowest + 1);
+    await runMatchDriverOnce(server.db, ctx);
+    const done = await view(human, matchId);
+    expect(done.question).toMatchObject({ seq: question.seq, resolved: true, answered: seats });
+    expect(done.phase?.kind).toBe('REVEAL');
+    expect(errorOf(await human.client.get(url))).toMatchObject({
+      status: 409,
+      code: 'STEP_EXPIRED',
+    });
+
+    // Die Partie läuft ohne den Menschen zu Ende, jede Frage dieser Art wie diese
+    const final = await play(matchId, [{ human }]);
+    expect(final.match.status).toBe('FINISHED');
     expect(await unreadableEvents(matchId)).toEqual([]);
   });
 });

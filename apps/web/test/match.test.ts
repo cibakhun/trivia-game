@@ -2,19 +2,27 @@ import { KERNMARK, WENDELMARK } from '@rdw/game-core';
 import type { MatchPresentedQuestion, MatchView } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
+  ANSWERS_BEAT_MS,
   OUTCOME_BEAT_MS,
+  answersBeatMs,
+  answersFeed,
   countedAnswer,
+  decidedSeq,
   duelFocus,
   duelResolved,
   duelStage,
   lastOf,
   needsPresent,
+  needsWatch,
   outcomeBeatMs,
   pollDelay,
   revealFor,
+  revealPlan,
   screenStateOf,
   shownPick,
+  watchedFor,
   type LocalQuestion,
+  type WatchedQuestion,
 } from '../src/match/match-model.ts';
 import {
   logText,
@@ -26,7 +34,7 @@ import {
   seatNames,
   stepLabel,
 } from '../src/match/match-text.ts';
-import { AT, ID, event, viewOf, type Step } from './match-fixtures.ts';
+import { AT, ID, event, realmViewOf, viewOf, type Step } from './match-fixtures.ts';
 
 /** Partie im Browser (M4): Kartengeometrie, Zustand des Bildschirms, Auflösung und Texte. */
 
@@ -103,6 +111,40 @@ describe('Zustand des Bildschirms', () => {
     });
     expect(needsPresent(watching, null)).toBe(false);
     expect(screenStateOf(watching, null)).toBe('spectating');
+  });
+
+  it('Zuschauer: Die Frage anderer wird zum Mitlesen geholt, einmal je Frage (ADR-065)', () => {
+    const phase = { kind: 'QUESTION' as const, deadline: AT, remainingMs: 12000 };
+    const at = (question: MatchView['question'], kind: 'QUESTION' | 'REVEAL' = 'QUESTION') =>
+      viewOf({ phase: { ...phase, kind }, legalRegions: [], question });
+    const watching = at(questionInfo('NOT_PARTICIPATING'));
+    const got: WatchedQuestion = { seq: 4, question: presented, deadline: 9000 };
+    expect(needsWatch(watching, null)).toBe(true);
+    expect(needsWatch(watching, got)).toBe(false);
+    // Auch ein gescheitertes Mitlesen wird nicht wiederholt, eine alte Frage zählt aber nicht
+    expect(needsWatch(watching, { seq: 4, question: null, deadline: 0 })).toBe(false);
+    expect(needsWatch(watching, { ...got, seq: 3 })).toBe(true);
+    // Wer gefragt ist, holt die Frage mit `present`: Sonst läse er sie, ehe seine Zeit läuft
+    for (const status of ['NOT_PRESENTED', 'PRESENTED', 'ANSWERED', 'MISSED'] as const) {
+      expect(needsWatch(at(questionInfo(status)), null), status).toBe(false);
+    }
+    // Aufgelöst oder schon in der Auflösung: Frage und Antworten stehen dann im Ereignis
+    const resolved = { ...questionInfo('NOT_PARTICIPATING'), resolved: true };
+    expect(needsWatch(at(resolved as MatchView['question']), null)).toBe(false);
+    expect(needsWatch(at(questionInfo('NOT_PARTICIPATING'), 'REVEAL'), null)).toBe(false);
+    expect(needsWatch(at(null), null)).toBe(false);
+
+    // Gezeigt wird sie nur, solange dieser Sitz genau dieser Frage zuschaut
+    expect(watchedFor('spectating', 4, got)).toEqual({
+      seq: 4,
+      question: presented,
+      deadline: 9000,
+    });
+    expect(watchedFor('spectating', 5, got)).toBeNull();
+    expect(watchedFor('reveal', 4, got)).toBeNull();
+    expect(watchedFor('answered', 4, got)).toBeNull();
+    expect(watchedFor('spectating', 4, { seq: 4, question: null, deadline: 0 })).toBeNull();
+    expect(watchedFor('spectating', 4, null)).toBeNull();
   });
 
   it('Ansage: nichts zu tun, gezeigt wird die letzte Wahl', () => {
@@ -260,11 +302,152 @@ describe('Zustand des Bildschirms', () => {
     });
   });
 
-  it('erster Takt der Auflösung: ein Viertel der Zeit, höchstens anderthalb Sekunden', () => {
+  it('Takt des Ausgangs: ein Viertel der Zeit, höchstens anderthalb Sekunden', () => {
     expect(outcomeBeatMs(6000)).toBe(OUTCOME_BEAT_MS);
     expect(outcomeBeatMs(8000)).toBe(1500);
     expect(outcomeBeatMs(2000)).toBe(500);
     expect(outcomeBeatMs(0)).toBe(0);
+  });
+
+  it('Takt der Antworten: die Hälfte der übrigen Zeit, höchstens vier Sekunden', () => {
+    expect(answersBeatMs(6000)).toBe(3000);
+    expect(answersBeatMs(5300)).toBe(2650);
+    expect(answersBeatMs(12_000)).toBe(ANSWERS_BEAT_MS);
+    expect(answersBeatMs(Number.POSITIVE_INFINITY)).toBe(4000);
+    expect(answersBeatMs(2000)).toBe(1000);
+    // Die Seite kam zu spät in die Auflösung: Für das Blatt allein bleibt keine Zeit mehr
+    expect(answersBeatMs(700)).toBe(0);
+    expect(answersBeatMs(-50)).toBe(0);
+  });
+
+  it('Zeitplan einer Auflösung mit Duell: Antworten, Ausgang, Ergebnis (ADR-069)', () => {
+    // Normale Zeiten (6 s): 3 s Antworten, 1,5 s Ausgang auf der Karte, 1,5 s Ergebnis
+    expect(revealPlan(1000, 7000, 6000)).toEqual({ outcomeAt: 4000, settledAt: 5500 });
+    // Spieltestzeiten (2 s), die Seite erfuhr 0,4 s später davon
+    expect(revealPlan(1000, 2600, 2000)).toEqual({ outcomeAt: 1800, settledAt: 2300 });
+    // Ohne bekannte Frist gilt die längste Dauer
+    expect(revealPlan(0, null, 6000)).toEqual({ outcomeAt: 4000, settledAt: 5500 });
+    // Kaum noch Zeit: Die Karte steht gleich im Ergebnis
+    expect(revealPlan(1000, 1500, 6000)).toBeNull();
+    // Die Seite erfuhr erst 4 s später davon: Der Ausgang rückt zusammen, das Ergebnis steht
+    // noch vor dem Ende der Auflösung
+    expect(revealPlan(1000, 3000, 6000)).toEqual({ outcomeAt: 2000, settledAt: 2667 });
+    for (const left of [800, 1200, 2000, 3000, 4400, 5900, 6000]) {
+      const plan = revealPlan(0, left, 6000);
+      expect(plan && plan.outcomeAt < plan.settledAt && plan.settledAt < left).toBe(true);
+    }
+  });
+
+  it('Auflösung mit Duell: Im ersten Takt sieht die Bühne nur die Antworten (ADR-069)', () => {
+    const asked = { ...questionInfo('ANSWERED', 5), purpose: 'DUEL_TRIVIA', seats: [2, 1] };
+    const asking = viewOf(
+      {
+        phase: { kind: 'QUESTION', deadline: AT, remainingMs: 4000 },
+        legalRegions: [],
+        question: asked as MatchView['question'],
+      },
+      { kind: 'DUEL_TRIVIA', round: 1, chooser: null, attacker: 2, defender: 1, region: 9 },
+    );
+    // Der Server meldet mit der Auflösung schon den Stand danach: Das Feld gehört dem Angreifer,
+    // und der Schritt steht beim nächsten Angreifer
+    const after = viewOf(
+      {
+        phase: { kind: 'REVEAL', deadline: AT, remainingMs: 2000 },
+        legalRegions: [3],
+        question: { ...asked, resolved: true } as MatchView['question'],
+      },
+      { kind: 'CAMPAIGN_TARGET', round: 1, chooser: 0, attacker: 0 },
+    );
+    if (!after.board) throw new Error('Ansicht ohne Karte');
+    const revealing: MatchView = {
+      ...after,
+      board: {
+        ...after.board,
+        regions: after.board.regions.map((r, id) => (id === 9 ? { ...r, owner: 2 } : r)),
+      },
+    };
+    const events = [
+      event(20, 'QUESTION_OPENED', {
+        seq: 5,
+        kind: 'TRIVIA',
+        purpose: 'DUEL_TRIVIA',
+        seats: [2, 1],
+        timeLimitMs: 8000,
+        closesAt: AT,
+      }),
+      event(21, 'QUESTION_RESOLVED', {
+        seq: 5,
+        kind: 'TRIVIA',
+        prompt: 'Welche Farbe hat der Himmel?',
+        options: [{ token: 'a', text: 'Blau' }],
+        solution: { optionToken: 'a', text: 'Blau' },
+        explanation: null,
+        answers: [],
+      }),
+      event(22, 'DUEL_RESOLVED', {
+        round: 1,
+        duel: 1,
+        attacker: 2,
+        defender: 1,
+        region: 9,
+        winner: 'ATTACKER',
+        reason: 'TRIVIA',
+        effect: 'CONQUERED',
+        capitalLivesLeft: null,
+        regionValue: 100,
+      }),
+      event(23, 'KINGDOM_ELIMINATED', { round: 1, seat: 1, by: 2, regions: 1 }),
+    ];
+
+    // Nur eine laufende Auflösung, die ein Duell entschieden hat, bekommt die drei Takte
+    expect(decidedSeq(revealing, events)).toBe(5);
+    expect(decidedSeq(revealing, events.slice(0, 2))).toBeNull();
+    expect(decidedSeq(asking, events)).toBeNull();
+    expect(decidedSeq(null, events)).toBeNull();
+    expect(
+      decidedSeq({ ...revealing, match: { ...revealing.match, status: 'FINISHED' } }, events),
+    ).toBeNull();
+
+    const feed = answersFeed(revealing, events, asking);
+    // Phase und Frage sind die der Auflösung, Karte und Schritt die von vorher
+    expect(feed.view.phase).toEqual(revealing.phase);
+    expect(feed.view.question?.resolved).toBe(true);
+    expect(feed.view.board).toBe(asking.board);
+    expect(feed.view.board?.regions[9]?.owner).toBeNull();
+    expect(feed.view.legalRegions).toEqual([]);
+    // Die Ereignisse enden mit der Auflösung der Frage: kein Ausgang, kein gefallenes Reich
+    expect(feed.events).toEqual(events.slice(0, 2));
+    expect(screenStateOf(feed.view, null)).toBe('reveal');
+    const reveal = revealFor(feed.events, 5);
+    expect(reveal?.outcome).toEqual([]);
+    expect(decidedSeq(feed.view, feed.events)).toBeNull();
+    // Das Duell steht auf der Karte wie während der Frage
+    expect(duelStage(feed.view, 'reveal', reveal, false)).toEqual({
+      attacker: 2,
+      defender: 1,
+      region: 9,
+      winner: null,
+      repelled: false,
+      effect: null,
+      scene: 'duel',
+    });
+    // Danach der ganze Stand: Die Karte spielt den Ausgang
+    expect(duelStage(revealing, 'reveal', revealFor(events, 5), true)).toMatchObject({
+      winner: 2,
+      effect: 'CONQUERED',
+      scene: 'outcome',
+    });
+
+    // Mit Ausbau stehen Karte und Vorräte in `realm`: auch sie bleiben beim Stand von vorher
+    const realmBefore = realmViewOf({}, { phase: asking.phase, question: asking.question });
+    const realmAfter = realmViewOf(
+      { stock: { 2: { bread: 9, material: 12 } } },
+      { phase: revealing.phase, question: revealing.question },
+    );
+    const realmFeed = answersFeed(realmAfter, events, realmBefore);
+    expect(realmFeed.view.realm).toBe(realmBefore.realm);
+    expect(realmFeed.view.board).toBeNull();
+    expect(realmFeed.view.phase?.kind).toBe('REVEAL');
   });
 
   it('Auflösung, Ende, Aufstellung und Abbruch', () => {

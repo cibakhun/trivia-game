@@ -5,7 +5,9 @@ import { duelWinner } from './match-model.ts';
 import type {
   RealmBuilt,
   RealmChange,
+  RealmFieldMotion,
   RealmLayer,
+  RealmMotion,
   RealmMove,
   RealmRegionLayer,
 } from './RealmBoardArt.tsx';
@@ -34,6 +36,7 @@ export function layerRegions(board: RealmBoard): RealmRegionLayer[] {
     building: r.building,
     armies: r.armies,
     castleLives: r.castleLivesLeft,
+    held: r.fortifications,
   }));
 }
 
@@ -93,7 +96,50 @@ export function revealLayer(
   return { moves: mergeMoves(moves), fresh: [...fresh] };
 }
 
+/**
+ * Aufdecken als Bewegung (ADR-067): je Feld, was dort gebaut wurde, wie viele Armeen aus der Burg
+ * traten, ankamen und fortzogen. Daraus kennt die Karte den Stand davor, ohne ihn sich zu merken.
+ */
+export function revealMotion(revealed: readonly MatchEventOf<'ORDERS_REVEALED'>[]): RealmMotion {
+  const fields: Record<number, RealmFieldMotion> = {};
+  const add = (region: number, change: (field: RealmFieldMotion) => RealmFieldMotion) => {
+    fields[region] = change(fields[region] ?? {});
+  };
+  for (const event of revealed) {
+    const { orders, summary } = event.payload;
+    for (const built of summary.built) add(built.region, (f) => ({ ...f, built: true }));
+    for (const order of orders) {
+      if (order.kind === 'RECRUIT') {
+        add(order.region, (f) => ({ ...f, recruited: (f.recruited ?? 0) + order.count }));
+      } else if (order.kind === 'MOVE') {
+        add(order.from, (f) => ({ ...f, left: (f.left ?? 0) + order.count }));
+        add(order.to, (f) => ({ ...f, arrived: (f.arrived ?? 0) + order.count }));
+      }
+    }
+  }
+  return { kind: 'orders', fields };
+}
+
 type RealmDuel = MatchEventOf<'REALM_DUEL_RESOLVED'>;
+
+/**
+ * Ausgang eines Duells als Bewegung (ADR-067): Ein beschädigtes Gebäude fällt eine Stufe, eine
+ * genommene Burg stürzt ein, und wer verlor, verliert sichtbar eine Armee. Eroberung und Treffer
+ * auf die Burg zeigt die Bühne des Duells selbst.
+ */
+export function outcomeMotion(duel: RealmDuel): RealmMotion {
+  const { effect, building, region, armyLost } = duel.payload;
+  const fields: Record<number, RealmFieldMotion> = {};
+  if (effect === 'BUILDING_DAMAGED') {
+    fields[region] = { fell: building === 'VILLAGE' ? 'TOWN' : 'VILLAGE' };
+  } else if (effect === 'CASTLE_DESTROYED' || effect === 'TAKEOVER') {
+    // Das Feld gehört schon dem Angreifer: Die Burg fällt in der Farbe dessen, der sie verlor
+    const { defender } = duel.payload;
+    fields[region] = { fell: 'CASTLE', ...(defender === null ? {} : { fellOf: defender }) };
+  }
+  if (armyLost) fields[armyLost.region] = { ...fields[armyLost.region], lost: armyLost.seat };
+  return { kind: 'outcome', fields };
+}
 
 /** Was mit dem umkämpften Feld geschah, als Schlüssel der kurzen Texte (`realm.outcome.sign`). */
 export function outcomeSignKey(

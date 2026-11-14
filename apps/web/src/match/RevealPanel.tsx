@@ -9,11 +9,14 @@ import { SeatChip } from './SeatChip.tsx';
 /**
  * Auflösung einer Frage für alle Sitze, auch für Zuschauer (docs/ART_DIRECTION.md §4), als Blatt
  * mitten auf der Karte: oben in einem Satz, was daraus folgt, darunter die Frage und wer was
- * geantwortet hat. Bei einer Wissensfrage stehen die Wappen an der Antwort, die ihr Sitz gewählt
- * hat, an derselben Stelle wie in der Frage; bei einer Schätzfrage stehen die Sitze in der
- * Reihenfolge ihrer Schätzung, die beste zuerst. Das Blatt passt ohne Scrollen auf ein quer
- * gehaltenes Handy.
+ * geantwortet hat. Bei einer Wissensfrage stehen die Antworten an derselben Stelle wie in der
+ * Frage, und jedes Feld füllt sich mit der Farbe dessen, der es gewählt hat; wählten mehrere
+ * dasselbe, teilen sie sich das Feld zu gleichen Teilen (ADR-065). Bei einer Schätzfrage stehen
+ * die Sitze in der Reihenfolge ihrer Schätzung, die beste zuerst. Das Blatt passt ohne Scrollen
+ * auf ein quer gehaltenes Handy.
  */
+
+const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 
 type Answer = MatchEventOf<'QUESTION_RESOLVED'>['payload']['answers'][number];
 
@@ -121,7 +124,12 @@ export function RevealPanel({
   );
 }
 
-/** Antworten einer Wissensfrage: jede Option eine Zeile, daran die Wappen derer, die sie wählten. */
+/**
+ * Antworten einer Wissensfrage: jede Option ein Feld an ihrer Stelle aus der Frage. Wer sie wählte,
+ * malt das Feld in seiner Farbe aus (mehrere teilen es sich zu gleichen Teilen) und steht mit
+ * Wappen und Namen darauf: Die Farbe ist nie der einzige Träger. Der Kreis links zeigt, was
+ * richtig war und was falsch gewählt wurde, sonst den Buchstaben aus der Frage.
+ */
 function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly name: SeatName }) {
   const q = reveal.resolved.payload;
   const correctToken = 'optionToken' in q.solution ? q.solution.optionToken : null;
@@ -129,16 +137,26 @@ function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly nam
   return (
     <>
       <ul className="reveal-options">
-        {q.options.map((option) => {
+        {q.options.map((option, i) => {
           const correct = option.token === correctToken;
+          // In der Reihenfolge der Frage: im Duell der Angreifer links, wie im Kopf des Duells
           const chosenBy = q.answers.filter((a) => a.answered && a.optionText === option.text);
+          const chosen = chosenBy.length > 0;
           return (
             <li
               key={option.token}
-              className={`reveal-option${correct ? ' correct' : chosenBy.length > 0 ? ' wrong' : ''}`}
+              className={`reveal-option${correct ? ' correct' : chosen ? ' wrong' : ''}${chosen ? ' chosen' : ''}`}
+              data-chosen-by={chosenBy.map((a) => a.seat).join(' ')}
             >
+              {chosen ? (
+                <span className="reveal-fill" aria-hidden="true">
+                  {chosenBy.map((a) => (
+                    <i key={a.seat} className={`seat-${a.seat}`} />
+                  ))}
+                </span>
+              ) : null}
               <span className="reveal-mark" aria-hidden="true">
-                {correct ? '✓' : chosenBy.length > 0 ? '✗' : ''}
+                {correct ? '✓' : chosen ? '✗' : (OPTION_KEYS[i] ?? '')}
               </span>
               <span className="reveal-option-text">
                 {option.text}

@@ -11,7 +11,7 @@ import {
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import type { LocalQuestion, MatchScreenState } from '../src/match/match-model.ts';
+import type { LocalQuestion, MatchScreenState, WatchedQuestion } from '../src/match/match-model.ts';
 import { regionNames, seatNames } from '../src/match/match-text.ts';
 import { PreparePanel } from '../src/match/PreparePanel.tsx';
 import { RealmBlatt } from '../src/match/RealmBlatt.tsx';
@@ -297,13 +297,73 @@ describe('Spielstand der Partie mit Ausbau', () => {
     expect(count(mine, 'life-on')).toBe(3);
   });
 
+  it('lässt den eigenen Vorrat erst hochzählen, wenn das Einkommen ankommt (ADR-067)', () => {
+    const view = prepView();
+    const html = renderToStaticMarkup(
+      createElement(RealmSeatList, {
+        view,
+        play: playOf(view),
+        name: seatNames(view),
+        receiving: { delayMs: 990, durationMs: 760 },
+      }),
+    );
+    const mine = tagOf(html, 'plaque realm seat-2 me');
+    expect(mine).toContain('plaque realm seat-2 me receiving');
+    expect(mine).toContain('--receive-at:990ms');
+    expect(count(html, ' receiving')).toBe(1);
+    // Ohne Einkommen unterwegs trägt keine Tafel die Marke
+    expect(seats(view)).not.toContain('receiving');
+  });
+
+  it('zeigt den Stand vor dem Einkommen, solange dessen Rüstzeit nicht begonnen hat (ADR-067)', () => {
+    const view = prepView();
+    const html = renderToStaticMarkup(
+      createElement(RealmSeatList, {
+        view,
+        play: playOf(view),
+        name: seatNames(view),
+        pending: [
+          { seat: 0, bread: 2, material: 3 },
+          { seat: ME, bread: 4, material: 5 },
+        ],
+      }),
+    );
+    // Verbucht sind 7 Brot und 10 Baustoff; das Einkommen der neuen Runde steht noch aus
+    expect(textOf(plaque(html, ME))).toContain('3 Brot');
+    expect(textOf(plaque(html, ME))).toContain('5 Baustoff');
+    expect(textOf(plaque(seats(view), ME))).toContain('7 Brot');
+    // Auch bei den anderen, und nie unter null
+    const other = (markup: string) => /(\d+) Brot/.exec(textOf(plaque(markup, 0)))?.[1];
+    expect(Number(other(html))).toBe(Math.max(0, Number(other(seats(view))) - 2));
+    expect(textOf(plaque(html, 1))).toBe(textOf(plaque(seats(view), 1)));
+  });
+
   it('sagt in der Rüstzeit, wer fertig ist und wer noch rüstet', () => {
     const html = seats(prepView());
     expect(plaque(html, 0)).toContain('data-status="ready"');
     expect(textOf(plaque(html, 0))).toContain('✓ fertig');
     expect(plaque(html, 1)).toContain('data-status="busy"');
-    expect(textOf(plaque(html, ME))).toContain('rüstet');
+    expect(textOf(plaque(html, 1))).toContain('rüstet');
     expect(html).not.toContain('am Zug');
+  });
+
+  it('nennt am eigenen Reich statt des Rüststands, was die nächste Runde bringt', () => {
+    const html = seats(prepView());
+    const mine = plaque(html, ME);
+    expect(mine).toContain('data-status="busy"');
+    expect(mine).not.toContain('plaque-state');
+    expect(count(mine, 'class="plaque-plus"')).toBe(2);
+    expect(textOf(mine)).toContain('+4');
+    expect(textOf(mine)).toContain('+5');
+    expect(textOf(mine)).toContain('Einkommen je Runde: 4 Brot, 5 Baustoff');
+    expect(count(html, 'class="plaque-plus"')).toBe(2);
+  });
+
+  it('zeigt am eigenen Reich „am Zug“ an der Stelle des Einkommens', () => {
+    const mine = plaque(seats(targetView(ME)), ME);
+    expect(mine).toContain('plaque realm seat-2 turn me');
+    expect(textOf(mine)).toContain('am Zug');
+    expect(mine).not.toContain('plaque-plus');
   });
 
   it('hebt hervor, wer gerade sein Ziel wählt, und zeigt dann keinen Rüststand', () => {
@@ -784,7 +844,7 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     readonly local?: LocalQuestion | null;
     readonly events?: readonly ParsedMatchEvent[];
     readonly outcome?: MatchEventOf<'REALM_DUEL_RESOLVED'> | null;
-    readonly outcomeBeat?: boolean;
+    readonly catching?: boolean;
     readonly target?: number | null;
     readonly refusedTarget?: number | null;
     readonly estimate?: string;
@@ -804,7 +864,7 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
         events: extra.events ?? [],
         reveal: null,
         outcome: extra.outcome ?? null,
-        outcomeBeat: extra.outcomeBeat ?? false,
+        catching: extra.catching ?? false,
         error: null,
         name: seatNames(view),
         region: regionNames(play.map),
@@ -1009,6 +1069,43 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     );
   });
 
+  it('nennt im Aufmarsch vor dem Glücksrad, wer wen wo angreift (ADR-071)', () => {
+    // Das Ziel steht, das Rad ist noch nicht gedreht: Schritt DUEL_WHEEL ohne Kategorie
+    const march = (attacker: number, mySeat: number | null = ME) => {
+      const view = duelView('ANNOUNCE', 'DUEL_TRIVIA', attacker);
+      const step = { ...playOf(view).board.step, kind: 'DUEL_WHEEL' as const, category: null };
+      return realmViewOf(
+        { step, turns: attacker === ME ? MY_ATTACK : THEIR_ATTACK },
+        { phase: phaseOf('ANNOUNCE'), mySeat },
+      );
+    };
+    const mine = blatt(march(ME), 'announce');
+    expect(mine).toContain('data-testid="match-announce"');
+    expect(mine).toContain('class="blatt turn"');
+    expect(textOf(mine)).toContain('Dein Angriff');
+    expect(textOf(part(mine, 'data-testid="match-duel"', '</div>'))).toContain(
+      'Angriff auf das Dorf Kranichsee',
+    );
+    expect(textOf(mine)).toContain('Gleich dreht sich das Glücksrad.');
+    // Die Lose und das Rad kommen erst danach
+    expect(textOf(mine)).not.toContain('Lose im Rad');
+    expect(mine).not.toContain('data-testid="match-wheel"');
+    // Wer angegriffen wird, liest es in seiner Farbe; wer zuschaut, ohne
+    const attacked = blatt(march(0, 1), 'announce');
+    expect(attacked).toContain('class="blatt attacked"');
+    expect(textOf(attacked)).toContain('Du wirst angegriffen');
+    const watching = blatt(march(0), 'announce');
+    expect(watching).toContain('class="blatt"');
+    expect(textOf(watching)).toContain('Duell');
+    // Die Namen im Kasten sind nur Bild: Vorleseprogramme bekommen den ganzen Satz
+    for (const html of [mine, attacked, watching]) {
+      const box = part(html, 'data-testid="match-duel"', '</div>');
+      expect(textOf(part(box, 'class="visually-hidden"', '</p>'))).toMatch(
+        /^Duell um Kranichsee: .+ greift .+ an\.$/,
+      );
+    }
+  });
+
   it('zeigt am Glücksrad die Lose und wem die gezogene Kategorie liegt', () => {
     const html = blatt(duelView('ANNOUNCE', 'DUEL_TRIVIA', ME), 'wheel');
     expect(html).toContain('data-testid="match-wheel"');
@@ -1020,6 +1117,13 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     const result = part(html, 'data-testid="wheel-result"', '</p>');
     expect(result).toContain('data-category="HISTORY"');
     expect(textOf(result)).toBe('Geschichte liegt dir');
+    // Ohne Flug vom Rad her steht das Zeichen der Kategorie sofort da
+    expect(result).toContain('class="wheel-result"');
+  });
+
+  it('hält am Glücksrad das Zeichen der Kategorie zurück, bis es vom Rad her ankommt (ADR-067)', () => {
+    const html = blatt(duelView('ANNOUNCE', 'DUEL_TRIVIA', ME), 'wheel', { catching: true });
+    expect(tagOf(html, 'data-testid="wheel-result"')).toContain('class="wheel-result catching"');
   });
 
   it('färbt das Blatt am Glücksrad für den Angegriffenen', () => {
@@ -1576,6 +1680,7 @@ describe('Bühne der Partie mit Ausbau', () => {
   interface StageExtra {
     readonly events?: readonly ParsedMatchEvent[];
     readonly local?: LocalQuestion | null;
+    readonly watched?: WatchedQuestion | null;
     readonly initial?: RealmStageInitial;
     readonly estimate?: string;
   }
@@ -1586,6 +1691,7 @@ describe('Bühne der Partie mit Ausbau', () => {
         view,
         events: extra.events ?? [],
         local: extra.local ?? null,
+        watched: extra.watched ?? null,
         phaseDeadline: null,
         feedError: null,
         actionError: null,
@@ -1783,6 +1889,44 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(textOf(card)).toContain('In welchem Jahr fiel die Berliner Mauer?');
     expect(count(card, '<button')).toBe(4);
     expect(html).toContain('data-testid="match-answers"');
+  });
+
+  it('legt die Frage anderer zum Mitlesen auf die Karte, ohne etwas zum Antippen (ADR-065)', () => {
+    const view = duelView('QUESTION', 'DUEL_TRIVIA', 0, {
+      question: info('TRIVIA', 'DUEL_TRIVIA', 'NOT_PARTICIPATING', [0, 1], [0]),
+    });
+    const watched = { seq: 12, question: TRIVIA, deadline: 9000 };
+    const html = stage(view, { watched });
+    expect(main(html)).toContain('data-state="spectating"');
+    const card = part(html, 'data-testid="match-question-watched"', '</section>');
+    expect(textOf(card)).toContain('Geschichte');
+    expect(textOf(card)).toContain('Du schaust zu');
+    expect(textOf(card)).toContain('In welchem Jahr fiel die Berliner Mauer?');
+    expect(count(card, 'class="option-read"')).toBe(4);
+    expect(count(card, '<button')).toBe(0);
+    expect(html).not.toContain('data-testid="match-question"');
+    // Das Blatt rechts nennt weiter nur, wer schon geantwortet hat, nie was
+    const waiting = part(html, 'data-testid="match-waiting"', '</section>');
+    expect(textOf(waiting)).toContain('Bot (leicht) ✓ hat geantwortet');
+    expect(textOf(waiting)).toContain('Wer was gewählt hat, zeigt die Auflösung.');
+
+    // Ohne mitgelesene Frage, bei gescheitertem Mitlesen oder für eine andere Frage: nur das Blatt
+    const plain = stage(view);
+    expect(plain).not.toContain('match-question-watched');
+    expect(textOf(plain)).toContain('Du schaust zu. Gleich geht es weiter.');
+    expect(stage(view, { watched: { ...watched, question: null } })).not.toContain(
+      'match-question-watched',
+    );
+    expect(stage(view, { watched: { ...watched, seq: 11 } })).not.toContain(
+      'match-question-watched',
+    );
+    // Wer selbst gefragt ist, sieht seine eigene Karte, nie die zum Mitlesen
+    const mine = duelView('QUESTION', 'DUEL_TRIVIA', ME, {
+      question: info('TRIVIA', 'DUEL_TRIVIA', 'PRESENTED', [ME, 1], []),
+    });
+    const asked = stage(mine, { local: localOf(TRIVIA), watched });
+    expect(asked).toContain('data-testid="match-question"');
+    expect(asked).not.toContain('match-question-watched');
   });
 
   describe('Ablaufzeile unter dem Band', () => {

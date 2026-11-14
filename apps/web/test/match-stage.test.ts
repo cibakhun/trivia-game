@@ -7,7 +7,7 @@ import { mapOfView, regionNames, seatNames } from '../src/match/match-text.ts';
 import { RotateHint } from '../src/match/RotateHint.tsx';
 import { SeatList } from '../src/match/SeatList.tsx';
 import { StageBlatt } from '../src/match/StageBlatt.tsx';
-import { StageQuestion } from '../src/match/StageQuestion.tsx';
+import { StageQuestion, WatchedQuestionCard } from '../src/match/StageQuestion.tsx';
 import { TurnOrder } from '../src/match/TurnOrder.tsx';
 import { AT, ID, viewOf } from './match-fixtures.ts';
 
@@ -60,19 +60,24 @@ function localOf(question: MatchPresentedQuestion): LocalQuestion {
   return { seq: 7, question, shownAt: 0, deadline: 8000, reloaded: false, status: 'OPEN' };
 }
 
-function blatt(view: MatchView, state: MatchScreenState, local: LocalQuestion | null = null) {
+function blatt(
+  view: MatchView,
+  state: MatchScreenState,
+  local: LocalQuestion | null = null,
+  watching = false,
+) {
   return renderToStaticMarkup(
     createElement(StageBlatt, {
       view,
       state,
       local,
+      watching,
       phaseDeadline: 5000,
       estimate: '',
       busy: false,
       events: [],
       reveal: null,
       outcome: null,
-      outcomeBeat: false,
       error: null,
       name: seatNames(view),
       region: regionNames(mapOfView(view)),
@@ -278,6 +283,11 @@ describe('Blatt der Phase rechts auf dem Meer', () => {
       expect(textOf(row(html, 0))).toBe('Bot (leicht) ✓ hat geantwortet');
       expect(textOf(row(html, 2))).toBe('Bot (schwer) überlegt');
       expect(html).not.toContain('data-seat="1"');
+      // Steht die Frage zum Mitlesen auf der Karte (ADR-065), sagt das Blatt, was noch fehlt
+      expect(textOf(html)).toContain('Du schaust zu. Gleich geht es weiter.');
+      const reading = blatt(watching, 'spectating', null, true);
+      expect(textOf(reading)).toContain('Du schaust zu. Wer was gewählt hat, zeigt die Auflösung.');
+      expect(textOf(row(reading, 0))).toBe('Bot (leicht) ✓ hat geantwortet');
 
       const tie = {
         ...asked([]),
@@ -349,6 +359,39 @@ describe('Fragekarte mitten auf der Karte', () => {
     const html = card(ESTIMATE, { open: false, estimate: '', sent: { rawInput: '1230' } });
     expect(textOf(html)).toContain('1230');
     expect(html).toContain('estimate-entry sent');
+  });
+
+  describe('zum Mitlesen für alle, die nicht gefragt sind (ADR-065)', () => {
+    const watched = (question: MatchPresentedQuestion) =>
+      renderToStaticMarkup(createElement(WatchedQuestionCard, { question, deadline: 8000 }));
+
+    it('zeigt Frage und Antworten an derselben Stelle, aber nichts zum Antippen', () => {
+      const html = watched(TRIVIA);
+      expect(html).toContain('data-testid="match-question-watched"');
+      expect(html).toContain('question-sheet watching');
+      expect(html).toContain('data-kind="TRIVIA"');
+      expect(textOf(html)).toContain('Du schaust zu');
+      expect(textOf(html)).toContain('In welchem Jahr fiel die Berliner Mauer?');
+      expect(textOf(html)).toMatch(/A 1987 B 1989 C 1990 D 1991/);
+      expect(count(html, 'class="option-read"')).toBe(4);
+      expect(count(html, '<button')).toBe(0);
+      // Nichts ist als gewählt markiert: Wer was wählt, zeigt erst die Auflösung
+      expect(html).not.toContain('chosen');
+      expect(html).not.toContain('aria-pressed');
+    });
+
+    it('sagt bei der Schätzfrage nur, dass eine Zahl gesucht ist', () => {
+      const html = watched(ESTIMATE);
+      expect(html).toContain('data-kind="ESTIMATE"');
+      expect(html).toContain('estimate-entry watch');
+      expect(textOf(html)).toContain('Gesucht ist eine Zahl in km');
+      expect(html).not.toContain('data-testid="estimate-value"');
+      expect(count(html, '<button')).toBe(0);
+      expect(count(html, '<input')).toBe(0);
+      const plain = watched({ ...ESTIMATE, unitLabel: null });
+      expect(textOf(plain)).toContain('Gesucht ist eine Zahl');
+      expect(textOf(plain)).not.toContain('Gesucht ist eine Zahl in');
+    });
   });
 
   it('zeigt nach dem Schließen keine Eingabe, die nicht abgeschickt wurde', () => {
