@@ -58,6 +58,8 @@ import {
   withMove,
 } from './realm-model.ts';
 import { RealmSeatList } from './RealmSeatList.tsx';
+import { sheetVeil, type SheetKind } from './sheet-swap.ts';
+import { StageCentre } from './StageCentre.tsx';
 import { incomeSources, type IncomeSource } from './realm-text.ts';
 import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
@@ -399,7 +401,7 @@ export function RealmStage({
         <div className="stage-map">
           <HeroMap cover />
         </div>
-        <div className="stage-veil" aria-hidden="true" />
+        <div className="stage-veil on cut" aria-hidden="true" />
         <div className="stage-centre">
           {view && state === 'lobby' ? (
             <RealmLobby
@@ -524,8 +526,10 @@ export function RealmStage({
   // Wer nicht gefragt ist, liest die Frage an derselben Stelle mit (ADR-065)
   const watching = watchedFor(state, seq, watched);
   let sheet: ReactNode = null;
+  let sheetKind: SheetKind | null = null;
   let disc = false;
   if (asked) {
+    sheetKind = 'question';
     sheet = (
       <StageQuestion
         key={asked.seq}
@@ -542,6 +546,7 @@ export function RealmStage({
       />
     );
   } else if (watching) {
+    sheetKind = 'question';
     sheet = (
       <WatchedQuestionCard
         key={watching.seq}
@@ -552,6 +557,7 @@ export function RealmStage({
     );
   } else if (state === 'wheel' && step.wheel && step.attacker !== null) {
     disc = true;
+    sheetKind = 'wheel';
     sheet = (
       <div className="wheel-sheet" data-testid="match-wheel-disc">
         <Wheel
@@ -568,14 +574,19 @@ export function RealmStage({
     );
   } else if (state === 'reveal' && reveal && answering) {
     // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
+    sheetKind = 'reveal';
     sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
+    sheetKind = 'result';
     sheet = (
       <ResultPanel view={view} finished={lastOf(events, 'REALM_MATCH_FINISHED')} name={name} />
     );
   } else if (state === 'abandoned') {
+    sheetKind = 'closed';
     sheet = <AbandonedPanel view={view} events={events} />;
   }
+  // Im Duell tritt die Karte schon selbst zurück: Dann liegt kein zweiter Schleier darüber
+  const veil = sheetVeil(sheetKind, duel?.scene ?? null);
   // Beim Aufdecken zählt die aufgedeckte Runde: Fielen alle Angriffe aus, ist der Schritt schon in
   // der nächsten (ADR-064)
   const shownRound = state === 'orders' ? revealedRound(events) : null;
@@ -616,7 +627,10 @@ export function RealmStage({
           frame={frame}
         />
       </div>
-      {sheet ? <div className="stage-veil" aria-hidden="true" /> : null}
+      <div
+        className={`stage-veil${veil.on ? ' on' : ''}${veil.cut ? ' cut' : ''}`}
+        aria-hidden="true"
+      />
 
       <div className="stage-rail stage-left" data-stage-rail="left">
         {label ? (
@@ -728,9 +742,9 @@ export function RealmStage({
         {moment ? <MomentBanner key={moment.key} moment={moment} /> : null}
       </div>
 
-      {sheet ? (
-        <div className={`stage-centre${closed ? ' wide' : ''}${disc ? ' disc' : ''}`}>{sheet}</div>
-      ) : null}
+      <StageCentre kind={sheetKind} className={closed ? 'wide' : disc ? 'disc' : ''}>
+        {sheet}
+      </StageCentre>
       {wheelPlans.length > 0 ? (
         <Flights
           key={`wheel-${wheelKey}`}

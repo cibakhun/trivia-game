@@ -91,18 +91,34 @@ html.match-playing body {
   pointer-events: none;
 }
 
-/* Liegt ein Blatt auf der Karte, tritt sie leicht zurück, bleibt aber sichtbar */
+/*
+ * Liegt ein Blatt auf der Karte, tritt sie leicht zurück, bleibt aber sichtbar. Der Schleier steht
+ * immer im Dokument und blendet weich: Geht das Blatt, hebt er sich mit ihm. Vor einer Frage ist
+ * er ohne Übergang da (`cut`), weil dann die Antwortzeit läuft. Im Duell liegt er nicht: Dort
+ * dunkelt die Karte selbst alles außer den zwei Feldern ab, vom Aufmarsch bis zum Ausgang
+ * (`sheetVeil`).
+ */
 .stage-veil {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: color-mix(in srgb, var(--map-veil) 26%, transparent);
+  opacity: 0;
+  transition: opacity 0.28s ease-out;
   pointer-events: none;
 }
 
+.stage-veil.on {
+  opacity: 1;
+}
+
+.stage-veil.cut {
+  transition: none;
+}
+
 /* Unter dem Schleier eines Blatts hebt die Karte kein Duell mehr hervor: Sonst läge das Land
-   doppelt im Dunkeln */
-.stage:has(> .stage-veil) .map-art .duel-veil {
+   doppelt im Dunkeln (Auflösung nach dem Laden mitten hinein) */
+.stage:has(> .stage-veil.on) .map-art .duel-veil {
   opacity: 0;
   animation: none;
 }
@@ -1062,7 +1078,8 @@ html.match-playing body {
 
 /* ---------- Blätter mitten auf der Karte: Frage, Auflösung, Abrechnung ---------- */
 
-.stage-centre {
+.stage-centre,
+.sheet-ghost {
   position: absolute;
   z-index: 4;
   left: calc(var(--safe-l) + var(--rail-l) + (8 * var(--u)));
@@ -1075,8 +1092,99 @@ html.match-playing body {
 }
 
 /* Die Abrechnung reicht bis an den rechten Rand: Das Blatt der Phase hat dann nichts mehr zu sagen */
-.stage-centre.wide {
+.stage-centre.wide,
+.sheet-ghost.wide {
   right: var(--safe-r);
+}
+
+/*
+ * Wechsel der Blätter (StageCentre, sheet-swap.ts). Das Blatt, das geht, ist ein stilles Abbild
+ * in `.sheet-ghosts`: an derselben Stelle, ohne eigene Bewegung, nicht zu tippen.
+ *
+ *   Frage → Auflösung   Die Karte dreht sich um ihre waagrechte Mitte: 0–0,13 s kippt die Frage
+ *                       auf die Kante, 0,13–0,45 s kommt die Rückseite mit den Antworten und
+ *                       setzt mit leichtem Nachschwingen auf. Beide Blätter sind gleich breit:
+ *                       Auf der Kante sind sie dieselbe Linie.
+ *   Auflösung geht      Das Blatt hebt sich in 0,18 s von der Karte ab und gibt sie frei.
+ */
+.sheet-ghosts {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.sheet-ghosts:empty {
+  display: none;
+}
+
+.sheet-ghost,
+.sheet-ghost * {
+  pointer-events: none !important;
+}
+
+.sheet-ghost * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.sheet-ghost > * {
+  opacity: 0;
+}
+
+.sheet-ghost.leave-turn,
+.stage-centre.turned {
+  perspective: calc(900 * var(--u));
+}
+
+.sheet-ghost.leave-turn > * {
+  animation: sheet-turn-out 0.13s cubic-bezier(0.5, 0, 0.9, 0.55) both !important;
+}
+
+.sheet-ghost.leave-lift > * {
+  animation: sheet-lift 0.18s cubic-bezier(0.4, 0, 0.9, 0.6) both !important;
+}
+
+/* Wer sich vom Licht wegdreht, wird dunkler: Das macht aus dem Stauchen eine Drehung */
+@keyframes sheet-turn-out {
+  from {
+    opacity: 1;
+    transform: rotateX(0deg);
+    filter: brightness(1);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(90deg);
+    filter: brightness(0.78);
+  }
+}
+
+@keyframes sheet-turn-in {
+  from {
+    transform: rotateX(-90deg);
+    filter: brightness(0.78);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.35, 1);
+  }
+  68% {
+    transform: rotateX(4deg);
+    filter: brightness(1);
+    animation-timing-function: ease-in-out;
+  }
+  to {
+    transform: rotateX(0deg);
+    filter: brightness(1);
+  }
+}
+
+@keyframes sheet-lift {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(-12 * var(--u))) scale(1.04);
+  }
 }
 
 .sheet {
@@ -1326,6 +1434,11 @@ html.match-playing body {
   animation: sheet-in 0.3s ease-out both;
 }
 
+/* Kam die Auflösung aus der Fragekarte, ist sie deren Rückseite (siehe „Wechsel der Blätter“) */
+.stage-centre.turned .sheet.reveal {
+  animation: sheet-turn-in 0.32s 0.13s both;
+}
+
 .stage .reveal-verdict {
   gap: calc(8 * var(--u));
   padding: calc(5 * var(--u)) calc(9 * var(--u));
@@ -1406,7 +1519,7 @@ html.match-playing body {
   gap: calc(1.5 * var(--u));
   background: var(--surface);
   transform-origin: left center;
-  animation: reveal-fill 0.5s 0.25s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+  animation: reveal-fill 0.5s 0.3s cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
 
 .stage .reveal-fill i {
@@ -1428,7 +1541,16 @@ html.match-playing body {
 }
 
 .stage .reveal-option.chosen .reveal-chips {
-  animation: reveal-chip 0.25s 0.6s ease-out both;
+  animation: reveal-chip 0.25s 0.65s ease-out both;
+}
+
+/* Auf der Rückseite der Fragekarte: erst setzt sie auf (0,45 s), dann laufen die Farben ein */
+.stage-centre.turned .reveal-fill {
+  animation-delay: 0.5s;
+}
+
+.stage-centre.turned .reveal-option.chosen .reveal-chips {
+  animation-delay: 0.85s;
 }
 
 /* Kreis an der Stelle des Buchstabens aus der Frage: richtig, falsch gewählt oder der Buchstabe */
@@ -1457,6 +1579,15 @@ html.match-playing body {
   color: var(--surface);
   background: var(--danger);
   border-color: var(--danger);
+}
+
+/* Der Haken der richtigen Antwort drückt sich auf wie ein Stempel, wenn das Blatt aufgesetzt hat */
+.stage .reveal-option.correct .reveal-mark {
+  animation: reveal-stamp 0.3s 0.12s ease-out both;
+}
+
+.stage-centre.turned .reveal-option.correct .reveal-mark {
+  animation-delay: 0.3s;
 }
 
 .stage .reveal-option-text {
@@ -1508,6 +1639,19 @@ html.match-playing body {
 @keyframes reveal-fill {
   from {
     transform: scaleX(0);
+  }
+}
+
+@keyframes reveal-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.9);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.88);
+    animation-timing-function: ease-out;
   }
 }
 
@@ -1887,7 +2031,13 @@ html.match-playing body {
 
   /* Die Farbe steht sofort im Feld: ohne das stünde sie erst nach der Wartezeit der Bewegung da */
   .stage .reveal-fill,
-  .stage .reveal-option.chosen .reveal-chips {
+  .stage .reveal-option.chosen .reveal-chips,
+  .stage .reveal-option.correct .reveal-mark,
+  .stage-centre.turned .sheet.reveal {
     animation: none;
+  }
+
+  .sheet-ghosts {
+    display: none;
   }
 }

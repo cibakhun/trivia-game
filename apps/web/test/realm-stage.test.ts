@@ -1721,9 +1721,9 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(html).toContain('data-testid="match-turns"');
     expect(html).toContain('data-testid="match-prepare"');
     expect(textOf(part(html, 'data-testid="match-step"', '</p>'))).toContain('Runde 2 von 5');
-    // Nichts liegt mitten auf der Karte
+    // Nichts liegt mitten auf der Karte: Der Schleier steht bereit, liegt aber nicht
     expect(html).not.toContain('stage-centre');
-    expect(html).not.toContain('stage-veil');
+    expect(html).toContain('class="stage-veil"');
   });
 
   it('zeigt das gewählte Feld im Blatt und den Entwurf auf der Karte', () => {
@@ -1838,6 +1838,8 @@ describe('Bühne der Partie mit Ausbau', () => {
     // 65 % der Ansage dreht das Rad
     expect(main(html)).toContain('--wheel-spin:1950ms');
     expect(html).toContain('class="stage-centre disc"');
+    // Im Duell dunkelt die Karte selbst ab: kein zweiter Schleier unter Rad, Frage und Auflösung
+    expect(html).toContain('class="stage-veil cut"');
     const disc = part(html, 'data-testid="match-wheel-disc"', '</svg>');
     expect(disc).toContain('class="wheel spinning"');
     expect(count(disc, 'class="wheel-seg"')).toBe(10);
@@ -1874,6 +1876,7 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(textOf(card)).toContain('In welchem Jahr fiel die Berliner Mauer?');
     expect(count(card, '<button')).toBe(4);
     expect(html).toContain('data-testid="match-answers"');
+    expect(html).toContain('class="stage-veil cut"');
   });
 
   it('legt die Frage anderer zum Mitlesen auf die Karte, ohne etwas zum Antippen (ADR-065)', () => {
@@ -2091,5 +2094,6 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(main(html)).toContain('data-state="finished"');
     expect(html).toContain('data-testid="match-result"');
     expect(html).toContain('class="stage-centre wide"');
+    expect(html).toContain('class="stage-veil on"');
   });
 });
