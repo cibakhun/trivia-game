@@ -96,7 +96,6 @@ export function StageBlatt({
   events,
   reveal,
   outcome,
-  outcomeBeat,
   error,
   name,
   region,
@@ -113,10 +112,11 @@ export function StageBlatt({
   readonly busy: boolean;
   readonly events: readonly ParsedMatchEvent[];
   readonly reveal: Reveal | null;
-  /** Eben entschiedenes Duell: steht während der ganzen Auflösung im Blatt. */
+  /**
+   * Eben entschiedenes Duell: steht im Blatt, sobald die Karte den Ausgang zeigt. Solange erst die
+   * Antworten stehen (ADR-069), ist es noch `null`.
+   */
   readonly outcome: MatchEventOf<'DUEL_RESOLVED'> | null;
-  /** Erster Takt der Auflösung: Die Karte zeigt den Ausgang, die Antworten folgen. */
-  readonly outcomeBeat: boolean;
   /** Fehler der letzten eigenen Aktion. */
   readonly error: unknown;
   readonly name: SeatName;
@@ -271,7 +271,7 @@ export function StageBlatt({
         return (
           <section className={`blatt outcome seat-${winner}`}>
             <OutcomePanel duel={outcome} mySeat={view.mySeat} name={name} region={region} />
-            {outcomeBeat ? null : phaseTimer(timers.revealMs, true)}
+            {phaseTimer(timers.revealMs, true)}
             {note}
           </section>
         );
@@ -286,7 +286,7 @@ export function StageBlatt({
           {land ? (
             <p className="blatt-hint">{t('match.moment.landDetail')}</p>
           ) : (
-            // Gleichstand im Duell: Was daraus folgt, steht auf dem Blatt in der Mitte
+            // Duell: erst die Antworten (ADR-069). Bei Gleichstand steht in der Mitte, was daraus folgt
             <DuelHeader view={view} name={name} region={region} />
           )}
           {phaseTimer(timers.revealMs, true)}

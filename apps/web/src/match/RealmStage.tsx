@@ -24,7 +24,6 @@ import {
   duelResolved,
   duelStage,
   lastOf,
-  outcomeBeatMs,
   revealFor,
   rulesOf,
   shownPick,
@@ -68,7 +67,7 @@ import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
 import { useMoments } from './useMoments.ts';
-import { useOutcomeBeat } from './useOutcomeBeat.ts';
+import { useRevealBeats } from './useRevealBeats.ts';
 import { useStageFrame } from './useStageFrame.ts';
 import { Wheel } from './Wheel.tsx';
 import './stage.css';
@@ -141,8 +140,8 @@ export interface RealmStageProps extends MatchStageProps {
 }
 
 export function RealmStage({
-  view,
-  events,
+  view: feedView,
+  events: feedEvents,
   local,
   watched = null,
   phaseDeadline,
@@ -162,6 +161,9 @@ export function RealmStage({
   onSubmitOrders,
   initial,
 }: RealmStageProps) {
+  // Hat eine Auflösung ein Duell entschieden, kommen erst die Antworten, dann ihre Folgen
+  // (ADR-069): Solange zeigt die Bühne den Stand vor dem Ausgang
+  const { view, events, beat, late } = useRevealBeats(feedView, feedEvents, phaseDeadline);
   const play = useMemo(() => realmPlayOf(view), [view]);
   const [editing, setEditing] = useState(initial?.editing ?? false);
   const state = realmScreenStateOf(view, local, events, editing);
@@ -204,15 +206,12 @@ export function RealmStage({
     () => (state === 'reveal' && view?.question ? revealFor(events, view.question.seq) : null),
     [state, view?.question, events],
   );
-  // Ein entschiedenes Duell zeigt zuerst die Karte (erster Takt), danach das Blatt mit den Antworten
+  // Im Takt der Antworten kennt die Bühne den Ausgang noch nicht: Das Duell steht wie in der Frage
   const resolved = duelResolved(reveal);
   const realmDuel = resolved?.type === 'REALM_DUEL_RESOLVED' ? resolved : null;
-  const outcomeBeat = useOutcomeBeat(
-    resolved && view?.question ? view.question.seq : null,
-    view ? outcomeBeatMs(view.match.timers.revealMs) : 0,
-    phaseDeadline,
-  );
-  const duel = view ? duelStage(view, state, reveal, outcomeBeat) : null;
+  const duel = view ? duelStage(view, state, reveal, beat === 'outcome') : null;
+  // Das Blatt mit Frage und Antworten: ohne Duell die ganze Auflösung, sonst im ersten Takt
+  const answering = beat === null || beat === 'answers' || late;
   // Was ein Bot eben gewählt hat, trägt während der Ansage einen Ring
   const spot = state === 'announce' ? (shownPick(events)?.payload.region ?? null) : null;
 
@@ -365,7 +364,7 @@ export function RealmStage({
     'data-mode': 'REALM',
     'data-state': state,
     'data-step': step?.kind,
-    'data-beat': state === 'reveal' ? (outcomeBeat ? 'outcome' : 'answers') : undefined,
+    'data-beat': state === 'reveal' ? (beat ?? 'answers') : undefined,
     'data-seq': seq ?? undefined,
     // Niedrige Bühne: Das Blatt rückt zusammen (realm.css). Gemessen, nicht per Medienabfrage
     'data-low': low ? 'true' : undefined,
@@ -550,9 +549,9 @@ export function RealmStage({
         />
       </div>
     );
-  } else if (state === 'reveal' && reveal && !outcomeBeat) {
-    // Den Ausgang eines Duells sagt das Blatt rechts; hier stehen Frage und Antworten
-    sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={!resolved} />;
+  } else if (state === 'reveal' && reveal && answering) {
+    // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
+    sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
     sheet = (
       <ResultPanel view={view} finished={lastOf(events, 'REALM_MATCH_FINISHED')} name={name} />
@@ -695,7 +694,6 @@ export function RealmStage({
             events={events}
             reveal={reveal}
             outcome={realmDuel}
-            outcomeBeat={outcomeBeat}
             catching={catching}
             error={actionError}
             name={name}

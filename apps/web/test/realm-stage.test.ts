@@ -844,7 +844,6 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     readonly local?: LocalQuestion | null;
     readonly events?: readonly ParsedMatchEvent[];
     readonly outcome?: MatchEventOf<'REALM_DUEL_RESOLVED'> | null;
-    readonly outcomeBeat?: boolean;
     readonly catching?: boolean;
     readonly target?: number | null;
     readonly refusedTarget?: number | null;
@@ -865,7 +864,6 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
         events: extra.events ?? [],
         reveal: null,
         outcome: extra.outcome ?? null,
-        outcomeBeat: extra.outcomeBeat ?? false,
         catching: extra.catching ?? false,
         error: null,
         name: seatNames(view),

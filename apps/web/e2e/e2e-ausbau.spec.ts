@@ -331,6 +331,42 @@ interface Prepared {
 }
 
 /**
+ * Chrome auf dem iPhone quer (ADR-068): Seine Leiste verdeckt einen Teil des Bildschirms, die
+ * Medienabfragen sehen ihn trotzdem ganz. Macht die Bühne so lange 70 Punkte niedriger als das
+ * Fenster: Sie meldet `data-low`, das Blatt rückt zusammen, und `inSight` muss weiter gelten. Mit
+ * der Medienabfrage von vorher fehlte dann die Zeile „Ziehen“. Danach steht die Karte genau wie
+ * vorher; was dazwischen war, zählt für „die Karte stand die ganze Partie an derselben Stelle“
+ * nicht mit.
+ */
+async function underBar(page: Page, inSight: () => Promise<void>): Promise<void> {
+  const quick = { timeout: 2_000 };
+  const screen = page.getByTestId('match-screen');
+  const board = page.getByTestId('match-board');
+  const placeOf = () =>
+    board.evaluate((svg) => {
+      const rect = svg.getBoundingClientRect();
+      return [
+        ...[rect.x, rect.y, rect.width, rect.height].map(Math.round),
+        svg.getAttribute('viewBox'),
+      ].join(' ');
+    });
+  const place = await placeOf();
+  const places = (await seenBy(page)).frames.length;
+  const bar = await page.addStyleTag({
+    content: 'html.match-playing{--u:0.9412px !important}.stage{inset:0 0 70px 0 !important}',
+  });
+  await expect(screen).toHaveAttribute('data-low', 'true', quick);
+  await inSight();
+  await bar.evaluate((style) => (style as HTMLStyleElement).remove());
+  await expect(screen).not.toHaveAttribute('data-low', 'true', quick);
+  await inSight();
+  await expect.poll(placeOf, quick).toBe(place);
+  await page.evaluate((count) => {
+    (window as unknown as { seen: Seen }).seen.frames.length = count;
+  }, places);
+}
+
+/**
  * Eine Rüstzeit: Runde 1 baut auf einem freien eigenen Feld (einmal gestrichen und neu befohlen)
  * und kauft eine Armee in der Burg; Runde 2 tauscht und zieht eine Armee aus der Burg auf ein
  * eigenes Nachbarfeld (erst ein falsches Feld, dann das richtige); Runde 3 tippt ein Feld an, das
@@ -386,43 +422,18 @@ async function prepare(
     await expect(blatt).toContainText('Noch keine Befehle', quick);
     // Auch ohne gewähltes Feld stehen die drei Zeilen da, und die eigenen Felder leuchten auf
     await expect(page.getByTestId('prepare-acts').getByRole('listitem')).toHaveCount(3, quick);
-    // Keine der drei Zeilen liegt unter dem Rand des Blatts
+    // Keine der drei Zeilen liegt unter dem Rand des Blatts, und „Fertig“ ist zu sehen
     const rows = page.getByTestId('prepare-acts').getByRole('listitem');
     const screen = page.getByTestId('match-screen');
     const inSight = async () => {
       for (let i = 0; i < 3; i++) {
         await expect(rows.nth(i)).toBeInViewport({ ratio: 0.95, ...quick });
       }
+      await expect(blatt.locator('.blatt-go')).toBeInViewport({ ratio: 0.95, ...quick });
     };
     await inSight();
     await expect(screen).not.toHaveAttribute('data-low', 'true', quick);
-    // Chrome auf dem iPhone quer (ADR-068): Seine Leiste verdeckt einen Teil des Bildschirms, die
-    // Medienabfragen sehen ihn trotzdem ganz. Das Blatt richtet sich nach der gemessenen Bühne und
-    // rückt zusammen; mit der Medienabfrage von vorher fehlte hier die Zeile „Ziehen“
-    const placeOf = () =>
-      board.evaluate((svg) => {
-        const rect = svg.getBoundingClientRect();
-        return [
-          ...[rect.x, rect.y, rect.width, rect.height].map(Math.round),
-          svg.getAttribute('viewBox'),
-        ].join(' ');
-      });
-    const place = await placeOf();
-    const places = (await seenBy(page)).frames.length;
-    const bar = await page.addStyleTag({
-      content: 'html.match-playing{--u:0.9412px !important}.stage{inset:0 0 70px 0 !important}',
-    });
-    await expect(screen).toHaveAttribute('data-low', 'true', quick);
-    await inSight();
-    await bar.evaluate((style) => (style as HTMLStyleElement).remove());
-    await expect(screen).not.toHaveAttribute('data-low', 'true', quick);
-    await inSight();
-    // Ist die Leiste wieder weg, steht die Karte genau wie vorher. Was dazwischen war, zählt für
-    // „die Karte stand die ganze Partie an derselben Stelle“ nicht mit
-    await expect.poll(placeOf, quick).toBe(place);
-    await page.evaluate((count) => {
-      (window as unknown as { seen: Seen }).seen.frames.length = count;
-    }, places);
+    await underBar(page, inSight);
     await expect(board.locator('.plan-hint')).toHaveCount(await own.count(), quick);
     // Unter dem Band steht, was läuft und was danach kommt
     const flow = page.getByTestId('match-flow').getByRole('listitem');
@@ -452,6 +463,10 @@ async function prepare(
     // Armeen entstehen nur in der Burg: erst „Kaufen“, danach steht dort der Zähler
     await castle.tap(quick);
     await expect(field).toContainText('Burg', quick);
+    // Der gemeldete Zustand (ADR-068): Die Burg ist gewählt, und die Bühne ist niedriger als das
+    // Fenster. Auch dann stehen alle drei Zeilen und „Fertig“ im Blatt
+    await inSight();
+    await underBar(page, inSight);
     const buy = act('buy', 'Kaufen');
     if ((await buy.count()) > 0) {
       await buy.tap(quick);

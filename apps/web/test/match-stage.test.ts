@@ -78,7 +78,6 @@ function blatt(
       events: [],
       reveal: null,
       outcome: null,
-      outcomeBeat: false,
       error: null,
       name: seatNames(view),
       region: regionNames(mapOfView(view)),
