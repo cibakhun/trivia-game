@@ -28,6 +28,7 @@ import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { SeatList } from './SeatList.tsx';
+import { useSent } from './sent-action.ts';
 import { sheetVeil, type SheetKind } from './sheet-swap.ts';
 import { StageBlatt } from './StageBlatt.tsx';
 import { StageCentre } from './StageCentre.tsx';
@@ -95,6 +96,8 @@ export function MatchStage({
   // (ADR-069): Solange zeigt die Bühne den Stand vor dem Ausgang
   const { view, events, beat, late } = useRevealBeats(feedView, feedEvents, phaseDeadline);
   const state = screenStateOf(view, local);
+  // Eine abgeschickte Wahl bleibt am Feld stehen, bis der Stand sie zeigt (`sent-action`)
+  const sent = useSent(feedView?.lastEventSeq ?? null, actionError);
   const seq = view?.question?.seq ?? null;
   const board = view?.board ?? null;
 
@@ -233,8 +236,12 @@ export function MatchStage({
           home={view.mySeat}
           duel={duel}
           spot={spot}
-          busy={busy}
-          onPick={onPick}
+          busy={busy || sent.pending !== null}
+          pending={state === 'pick' ? (sent.pending?.region ?? null) : null}
+          onPick={(region) => {
+            sent.mark(region);
+            onPick(region);
+          }}
           frame={frame}
         />
       </div>

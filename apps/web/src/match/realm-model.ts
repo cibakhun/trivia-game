@@ -184,6 +184,27 @@ export function withTrade(
 }
 
 /**
+ * Namen der Befehle eines Entwurfs, in seiner Reihenfolge: Ein Befehl behält seinen Namen, solange
+ * er derselbe bleibt, auch wenn seine Zahl steigt oder er in der Reihenfolge rückt (ein Tausch
+ * steht vorn). Das Blatt der Rüstzeit erkennt daran, welches Plättchen neu ist. Ein Entwurf hat
+ * je Name einen Befehl (`setOrder`); käme doch einer doppelt, trägt er seine Nummer.
+ */
+export function orderKeys(orders: readonly RealmOrderDto[]): string[] {
+  const seen = new Map<string, number>();
+  return orders.map((order) => {
+    const name =
+      order.kind === 'MOVE'
+        ? `MOVE:${order.from}>${order.to}`
+        : order.kind === 'TRADE'
+          ? `TRADE:${order.give}`
+          : `${order.kind}:${order.region}`;
+    const count = seen.get(name) ?? 0;
+    seen.set(name, count + 1);
+    return count === 0 ? name : `${name}#${count}`;
+  });
+}
+
+/**
  * Tausch steht im Entwurf vorn: So zählt er für alles, was danach gebaut oder gekauft wird, auch
  * wenn der Spieler erst später tauscht. Die übrige Reihenfolge bleibt. Ein gültiger Entwurf bleibt
  * dabei gültig, weil alle anderen Befehle nur verbrauchen.

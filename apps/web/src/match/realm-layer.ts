@@ -1,7 +1,7 @@
 import type { MatchEventOf, RealmBoard, RealmOrderDto } from '@rdw/protocol';
 import { t } from '../i18n/i18n.ts';
 import type { BoardState } from './MatchBoard.tsx';
-import { duelWinner } from './match-model.ts';
+import { duelWinner, type ShownPick } from './match-model.ts';
 import type {
   RealmBuilt,
   RealmChange,
@@ -74,6 +74,30 @@ export function planLayer(
     }
   }
   return { planned, recruits, moves: mergeMoves(moves) };
+}
+
+/**
+ * Eben gesetzte Burg oder eben gesetztes Dorf (Ansage nach der Wahl am Anfang) als Bewegung: Das
+ * Gebäude wächst aus dem Boden wie beim Aufdecken, und die Armeen einer neuen Burg treten aus ihrem
+ * Tor. Ein genommenes Feld braucht das nicht: Dort läuft die Farbe ein.
+ */
+export function pickMotion(shown: ShownPick | null): RealmMotion | null {
+  if (shown?.type === 'CASTLE_CHOSEN') {
+    const { region, armies } = shown.payload;
+    return {
+      kind: 'orders',
+      fields: {
+        [region]:
+          armies > 0
+            ? { built: true, placed: true, recruited: armies }
+            : { built: true, placed: true },
+      },
+    };
+  }
+  if (shown?.type === 'VILLAGE_CHOSEN') {
+    return { kind: 'orders', fields: { [shown.payload.region]: { built: true, placed: true } } };
+  }
+  return null;
 }
 
 /** Aufdecken: die Züge aller Reiche und die Felder, auf denen sich etwas geändert hat. */

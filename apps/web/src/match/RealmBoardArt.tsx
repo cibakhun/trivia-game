@@ -44,6 +44,8 @@ export interface RealmChange {
 export interface RealmFieldMotion {
   /** Aufdecken: Hier wurde gebaut, das Gebäude wächst aus dem Boden. */
   readonly built?: boolean;
+  /** Wahl am Anfang: eben gesetzt. Die Lebensschilde einer Burg folgen erst, wenn sie steht. */
+  readonly placed?: boolean;
   /** Ausgang: Gebäude, das hier eben eine Stufe fiel oder einstürzte (was vorher stand). */
   readonly fell?: RealmBuilt;
   /** Ausgang: Sitz, dem die eingestürzte Burg gehörte; das Feld gehört schon dem Sieger. */
@@ -107,6 +109,16 @@ export interface RealmLayer {
   readonly changes?: readonly RealmChange[];
   /** Rüstzeit: Felder anderer Reiche treten zurück. */
   readonly focusSeat?: number | null;
+  /**
+   * Rüstzeit: Was hier an Bau, Kauf und Zug steht, ist geplant und noch nicht ausgeführt. Die Zahl
+   * eines geplanten Zugs steht auf Gold; neue Pläne setzen sich kurz in Szene (`Fresh`).
+   */
+  readonly planning?: boolean;
+  /**
+   * Zuletzt angetipptes Feld, das gerade kein Ziel ist (offenes „Ziehen“, Angriff): Es trägt einen
+   * gepunkteten Tintenrand, solange das Blatt sagt, warum nicht.
+   */
+  readonly refused?: number | null;
   /** Felder, deren Stand sich eben geändert hat (Aufdecken, Ausgang). */
   readonly fresh?: readonly number[];
   /**
@@ -234,6 +246,40 @@ export function useOutcomeMotion(
     return realm;
   }
   return seen === key ? realm : { ...realm, motion: null };
+}
+
+/**
+ * Gruppe (oder mit `path` ein Pfad), die ihre Bewegung `motion` nur trägt, wenn sie nach dem ersten
+ * Aufbau der Karte erschienen ist; das steht beim Erscheinen fest (wie `Born` in `MatchBoard`).
+ * So antwortet die Karte auf einen Tipp der Rüstzeit, läuft aber nichts an, wenn die Seite mitten
+ * darin geladen wird. Ein neuer Stand braucht einen neuen Schlüssel (`key`).
+ */
+function Fresh({
+  className,
+  motion,
+  live,
+  style,
+  path,
+  children,
+  ...data
+}: {
+  readonly className: string;
+  readonly motion: string;
+  readonly live: boolean;
+  readonly style?: CSSProperties | undefined;
+  readonly path?: string;
+  readonly children?: ReactNode;
+  readonly [data: `data-${string}`]: string | number | undefined;
+}) {
+  const [born] = useState(live);
+  const classes = born && motion ? `${className} ${motion}` : className;
+  return path === undefined ? (
+    <g className={classes} style={style} {...data}>
+      {children}
+    </g>
+  ) : (
+    <path d={path} className={classes} style={style} {...data} />
+  );
 }
 
 /** Bannerträger mit der Zahl auf der Fahne, um den Punkt (x, y). */
@@ -376,6 +422,7 @@ export function RealmRegionArt({
   castle,
   size: s,
   layer,
+  live,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
@@ -384,6 +431,8 @@ export function RealmRegionArt({
   readonly castle: boolean;
   readonly size: number;
   readonly layer: RealmLayer;
+  /** Die Karte steht schon: Was jetzt erscheint, hat die Seite miterlebt. */
+  readonly live: boolean;
 }) {
   const { cx, cy } = region;
   const state = layer.regions[region.id];
@@ -453,13 +502,17 @@ export function RealmRegionArt({
         </g>
       ) : null}
       {drawn ? (
-        <g
-          key="building"
+        // Ein Plan ist ein anderes Bild als das Gebäude selbst: Mit eigenem Schlüssel erscheint er
+        // neu und setzt sich wie eine Skizze (`plan-sketch`), das goldene Plus stempelt sich
+        <Fresh
+          key={planned ? `plan-${planned}` : 'building'}
           className={`building${planned ? ' ghost' : ''}${fresh ? ' fresh' : ''}${rising ? ' rising' : ''}${fell !== null ? ' settling' : ''}`}
+          motion={planned ? 'sketched' : ''}
+          live={live}
           style={flag}
           data-building={building}
         >
-          {house(building)}
+          {planned ? <g className="ghost-house">{house(building)}</g> : house(building)}
           {planned ? (
             <g className="ghost-plus">
               <circle cx={cx + 0.36 * s} cy={cy - 0.66 * s} r={0.12 * s} />
@@ -468,7 +521,7 @@ export function RealmRegionArt({
               />
             </g>
           ) : null}
-        </g>
+        </Fresh>
       ) : null}
       {standing ? (
         <g
@@ -657,6 +710,7 @@ export function RealmPlanArt({
   owners,
   size: s,
   level,
+  live: settled,
 }: {
   readonly prefix: string;
   readonly art: MapArt;
@@ -664,6 +718,8 @@ export function RealmPlanArt({
   /** Besitzer je Feld, für das Zurücktreten fremder Felder. */
   readonly owners: readonly (number | null)[];
   readonly size: number;
+  /** Die Karte steht schon: Was jetzt erscheint (Auswahl, Ziele, Pläne), antwortet auf einen Tipp. */
+  readonly live: boolean;
   /**
    * `under`: Flächen und Ränder unter den Beschriftungen; `over`: Pfeile darüber; `top`: Schilder
    * über allem, auch über dem Schleier eines Duells.
@@ -674,6 +730,8 @@ export function RealmPlanArt({
   if (level === 'under') {
     const selected =
       layer.selected === undefined || layer.selected === null ? undefined : at(layer.selected);
+    const refused =
+      layer.refused === undefined || layer.refused === null ? undefined : at(layer.refused);
     return (
       <g className="realm-plan" aria-hidden="true">
         {layer.focusSeat !== undefined && layer.focusSeat !== null
@@ -687,9 +745,25 @@ export function RealmPlanArt({
         })}
         {(layer.targets ?? []).map((id) => {
           const r = at(id);
-          return r ? <path key={id} d={r.d} className="plan-target" /> : null;
+          // Mit „Ziehen“ leuchten die Ziele einmal auf; ihr Strichrand läuft, solange sie warten
+          return r ? (
+            <Fresh key={id} className="plan-target" motion="lit" live={settled} path={r.d} />
+          ) : null;
         })}
-        {selected ? <path d={selected.d} className="plan-selected" /> : null}
+        {refused ? (
+          // Der Rand ruckt als Gruppe (bewegte Teile im SVG sind `<g>`, WebKit)
+          <Fresh key={refused.id} className="plan-refused" motion="shaken" live={settled}>
+            <path d={refused.d} />
+          </Fresh>
+        ) : null}
+        {selected ? (
+          // Der goldene Rand setzt sich mit dem Tipp; die dunkle Fassung ist eine eigene Form
+          // statt eines Filters (WebKit)
+          <Fresh key={selected.id} className="plan-selected" motion="land" live={settled}>
+            <path d={selected.d} className="ring-casing" />
+            <path d={selected.d} className="ring-line" />
+          </Fresh>
+        ) : null}
       </g>
     );
   }
@@ -742,12 +816,18 @@ export function RealmPlanArt({
         const px = banner.x + 0.24 * b;
         const py = banner.y + 0.3 * b;
         return (
-          <g key={key} className="army-plus">
+          // Jede Änderung der Zahl stempelt das Plättchen neu: die Antwort auf „Kaufen“, + und −
+          <Fresh
+            key={`${key}:${plus}`}
+            className="army-plus"
+            motion="stamped"
+            live={settled && layer.planning === true}
+          >
             <circle cx={px} cy={py} r={0.16 * s} />
             <text x={px} y={py + 0.005 * s}>
               +{plus}
             </text>
-          </g>
+          </Fresh>
         );
       })}
       {(layer.moves ?? []).map((move) => {
@@ -770,24 +850,36 @@ export function RealmPlanArt({
         const curve = `M${round(x1)} ${round(y1)}Q${round(mx)} ${round(my)} ${round(x2)} ${round(y2)}`;
         const midX = (x1 + 2 * mx + x2) / 4;
         const midY = (y1 + 2 * my + y2) / 4;
+        // Geplant (Rüstzeit) schießt der Pfeil mit dem Tipp aufs Ziel, und seine Zahl steht auf
+        // Gold; aufgedeckt zieht er sich wie ein Federstrich (`drawn`)
+        const planning = layer.planning === true && !live;
+        const measured = live || planning ? 1 : undefined;
         return (
-          <g
+          <Fresh
             key={`${move.seat}:${move.from}:${move.to}`}
-            className={`plan-move${live ? ' drawn' : ''}`}
+            className={`plan-move${live ? ' drawn' : ''}${planning ? ' planned' : ''}`}
+            motion={planning ? 'run' : ''}
+            live={settled}
             style={{ ['--flag' as string]: `var(--seat-${move.seat})` }}
           >
-            <path d={curve} className="move-halo" pathLength={live ? 1 : undefined} />
-            <path d={curve} className="move-line" pathLength={live ? 1 : undefined} />
+            <path d={curve} className="move-halo" pathLength={measured} />
+            <path d={curve} className="move-line" pathLength={measured} />
             <g className="move-head">
               <path d={tip(mx, my, x2, y2, 0.26 * s)} className="move-tip" />
             </g>
-            <g className="move-badge">
+            {/* Zieht noch eine Armee denselben Weg, stempelt sich nur die Zahl neu */}
+            <Fresh
+              key={planning ? move.count : 'badge'}
+              className="move-badge"
+              motion={planning ? 'stamped' : ''}
+              live={settled}
+            >
               <circle cx={midX} cy={midY} r={0.19 * s} className="move-disc" />
               <text x={midX} y={midY} className="move-count">
                 {move.count}
               </text>
-            </g>
-          </g>
+            </Fresh>
+          </Fresh>
         );
       })}
       {layer.motion?.kind === 'orders'
