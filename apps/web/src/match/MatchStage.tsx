@@ -1,5 +1,12 @@
 import type { MatchBotStrengthCode, MatchView, ParsedMatchEvent } from '@rdw/protocol';
-import { useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { HeroMap } from '../art/HeroMap.tsx';
 import { mapArt } from '../art/map-art.ts';
 import { SeatCrest } from '../art/SeatCrest.tsx';
@@ -360,8 +367,25 @@ export function MomentBanner({ shown }: { readonly shown: ShownMoment }) {
     ['--band-lead' as string]: `${leadMs}ms`,
     ['--band-ms' as string]: `${showMs}ms`,
   };
+  // Spielt ein Duell in der oberen Hälfte der Karte (Ansage, Ausgang), weicht das Band an den
+  // unteren Rand, damit es nichts verdeckt. Sein Platz steht mit seinem Erscheinen fest (vor dem
+  // ersten Bild): Es springt nicht, wenn der Takt unter ihm wechselt oder die Auflösung endet
+  const band = useRef<HTMLDivElement>(null);
+  const [low, setLow] = useState(false);
+  useLayoutEffect(() => {
+    const stage = band.current?.closest('.stage');
+    if (!stage) return;
+    const playing =
+      stage.getAttribute('data-state') === 'announce' ||
+      stage.getAttribute('data-beat') === 'outcome';
+    setLow(playing && stage.querySelector('.map-art[data-duel-high]') !== null);
+  }, []);
   return (
-    <div className={`turn-banner moment-${moment.tone}${grand ? ' grand' : ''}`} style={style}>
+    <div
+      ref={band}
+      className={`turn-banner moment-${moment.tone}${grand ? ' grand' : ''}${low ? ' low' : ''}`}
+      style={style}
+    >
       <span className="moment-ribbon" data-seat={moment.seat ?? undefined}>
         <span className="ribbon-shade" />
         <span className="ribbon-cloth">
