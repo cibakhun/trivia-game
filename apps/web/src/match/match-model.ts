@@ -394,16 +394,21 @@ export interface RevealPlan {
  * Zeitplan der Takte ab `now`. `deadline` ist das Ende der Auflösung (`null` = unbekannt),
  * `revealMs` ihre ganze Dauer. `null`, wenn für die Antworten keine Zeit mehr bleibt: Dann steht
  * die Karte gleich im Ergebnis.
+ *
+ * Der Ausgang nimmt höchstens zwei Drittel dessen, was nach den Antworten bleibt: So steht das
+ * Ergebnis auch dann noch vor dem Ende der Auflösung, wenn die Seite spät von ihr erfuhr.
  */
 export function revealPlan(
   now: number,
   deadline: number | null,
   revealMs: number,
 ): RevealPlan | null {
-  const answers = answersBeatMs(deadline === null ? Number.POSITIVE_INFINITY : deadline - now);
+  const left = deadline === null ? Number.POSITIVE_INFINITY : deadline - now;
+  const answers = answersBeatMs(left);
   if (answers <= 0) return null;
   const outcomeAt = now + answers;
-  return { outcomeAt, settledAt: outcomeAt + outcomeBeatMs(revealMs) };
+  const outcome = Math.min(outcomeBeatMs(revealMs), Math.round(((left - answers) * 2) / 3));
+  return { outcomeAt, settledAt: outcomeAt + outcome };
 }
 
 /** Frage, deren laufende Auflösung ein Duell entschieden hat; sonst `null`. */
