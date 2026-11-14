@@ -31,6 +31,11 @@ interface Seen {
   scroll: number;
   /** Aufgedeckte Befehle je Runde: das eigene Reich, alle Zeilen und wie viele Reiche noch leben. */
   readonly orders: Record<string, { mine: string; rows: number; alive: number }>;
+  /**
+   * Aufmarsch vor dem Glücksrad (ADR-071): ob die Karte den Angriff zeigte (Bühne des Duells,
+   * Pfeil), ob das Rad schon darüber lag und was das Blatt sagte.
+   */
+  readonly marches: { scene: boolean; arrow: boolean; disc: boolean; text: string }[];
   /** Glücksrad je Duell: ob die Scheibe mitten auf der Karte lag und was es zeigte. */
   readonly wheels: { disc: boolean; segments: number; category: string | null; text: string }[];
   /** Ausgang je Duell. */
@@ -55,6 +60,7 @@ async function recordSeen(page: Page): Promise<void> {
       frames: [],
       scroll: 0,
       orders: {},
+      marches: [],
       wheels: [],
       outcomes: [],
       answers: [],
@@ -103,6 +109,16 @@ async function recordSeen(page: Page): Promise<void> {
           alive: document.querySelectorAll('[data-testid="match-seats"] li:not(.eliminated)')
             .length,
         };
+      } else if (state === 'announce' && step === 'DUEL_WHEEL') {
+        const board = '[data-testid="match-board"]';
+        const march = {
+          scene: document.querySelector(`${board} .duel-stage.scene-announce`) !== null,
+          arrow: document.querySelector(`${board} .duel-arrow`) !== null,
+          disc: document.querySelector('[data-testid="match-wheel-disc"]') !== null,
+          text: text('[data-testid="match-announce"]'),
+        };
+        if (entered) seen.marches.push(march);
+        else seen.marches[seen.marches.length - 1] = march;
       } else if (state === 'wheel') {
         const disc = document.querySelector('[data-testid="match-wheel-disc"]');
         const result = document.querySelector('[data-testid="wheel-result"]');
@@ -750,6 +766,19 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   // Nach zwei Runden Landnahme ist die halbe Karte frei: Ein freies Feld liegt am eigenen Land
   expect(attacks.filter((a) => a.free)).toHaveLength(1);
 
+  // Aufmarsch vor dem Glücksrad (ADR-071): Nach der Zielwahl zeigt erst die Karte, wer wen wo
+  // angreift (Schleier, Wappen, Pfeil), noch ohne Rad darüber; das Blatt nennt den Angriff. Erst
+  // danach dreht sich das Rad. Die eigene Wahl fragt sofort nach, der Aufmarsch steht dann sicher
+  expect(seen.marches.length).toBeGreaterThan(0);
+  for (const march of seen.marches) {
+    expect(march).toMatchObject({ scene: true, arrow: true, disc: false });
+    expect(march.text).toMatch(/Angriff auf /);
+    expect(march.text).toContain('Gleich dreht sich das Glücksrad.');
+  }
+  seen.states.forEach((entry, i) => {
+    if (entry === 'announce:DUEL_WHEEL') expect(seen.states[i + 1]).toBe('wheel:DUEL_TRIVIA');
+  });
+
   // Glücksrad vor jeder Wissensfrage eines Duells: die Scheibe mitten auf der Karte, im Blatt die
   // Lose und am Ende die Kategorie
   expect(seen.wheels.length).toBeGreaterThanOrEqual(attacks.length);
@@ -799,6 +828,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
       'pick',
       'prepare',
       'orders',
+      'announce',
       'wheel',
       'reveal',
       'finished',

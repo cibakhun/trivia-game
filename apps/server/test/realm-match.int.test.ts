@@ -375,6 +375,8 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     const matchId = await startRealmTest(human, ['MEDIUM', 'HARD']);
     const phases = new Set<string>();
     const steps = new Set<string>();
+    // Phase und Schritt in der Reihenfolge, in der sie wechseln
+    const seen: string[] = [];
     const final = await play(
       matchId,
       [
@@ -401,6 +403,17 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
         const board = current.realm?.board;
         if (!board) return;
         steps.add(board.step.kind);
+        const at = `${current.phase?.kind}:${board.step.kind}`;
+        if (seen.at(-1) !== at) seen.push(at);
+        // Aufmarsch (ADR-071): Das Ziel steht, das Rad liegt bereit, gedreht ist es noch nicht
+        if (board.step.kind === 'DUEL_WHEEL') {
+          expect(current.phase?.kind).toBe('ANNOUNCE');
+          expect(board.step.attacker).not.toBeNull();
+          expect(board.step.region).not.toBeNull();
+          expect(board.step.wheel).not.toBeNull();
+          expect(board.step.category).toBeNull();
+          expect(current.legalRegions).toEqual([]);
+        }
         expect(current.board).toBeNull();
         // Wer wählt, ist am Zug; in Fragen und in der Rüstzeit wählt niemand
         if (current.phase?.kind === 'PICK') expect(board.step.chooser).not.toBeNull();
@@ -413,13 +426,12 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(final.match.status).toBe('FINISHED');
     expect(final.phase).toBeNull();
     expect([...phases].sort()).toEqual(['ANNOUNCE', 'PICK', 'PREPARE', 'QUESTION', 'REVEAL']);
-    // Das Glücksrad dreht der Server sofort: Als Schritt sieht man es nie
-    expect(steps.has('DUEL_WHEEL')).toBe(false);
     for (const kind of [
       'START_ESTIMATE',
       'CASTLE_PICK',
       'LAND_ESTIMATE',
       'PREPARE',
+      'DUEL_WHEEL',
       'DUEL_TRIVIA',
     ]) {
       expect(steps.has(kind), kind).toBe(true);
@@ -483,6 +495,21 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     expect(targets.length).toBeGreaterThan(0);
     expect(spins.length).toBe(targets.length);
     expect(duels.length).toBe(targets.length);
+    // Aufmarsch vor dem Rad (ADR-071): Nach jeder Zielwahl steht erst die Ansage des Angriffs, das
+    // Rad dreht sich danach, dann kommt die Frage
+    const marches = seen.flatMap((at, i) => (at === 'ANNOUNCE:DUEL_WHEEL' ? [i] : []));
+    expect(marches.length).toBe(targets.length);
+    for (const i of marches) {
+      expect(seen.slice(i + 1, i + 3)).toEqual(['ANNOUNCE:DUEL_TRIVIA', 'QUESTION:DUEL_TRIVIA']);
+    }
+    const announceMs = PLAYTEST_REALM_RULES.timers.announceMs ?? 0;
+    expect(announceMs).toBeGreaterThan(0);
+    for (const [i, target] of targets.entries()) {
+      const spin = spins[i];
+      if (!spin) throw new Error('Rad fehlt');
+      expect(spin.seq).toBeGreaterThan(target.seq);
+      expect(Date.parse(spin.at) - Date.parse(target.at)).toBeGreaterThanOrEqual(announceMs);
+    }
     expect(duels.map((e) => e.payload.duel)).toEqual(duels.map((_, i) => i + 1));
     const trivia = eventsOf(all, 'QUESTION_OPENED').filter(
       (e) => e.payload.purpose === 'DUEL_TRIVIA',

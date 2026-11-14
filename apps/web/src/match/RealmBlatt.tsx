@@ -483,6 +483,21 @@ export function RealmBlatt({
       );
     }
     case 'announce': {
+      // Aufmarsch vor dem Glücksrad (ADR-071): Die Karte zeigt, wer wen wo angreift; das Blatt
+      // nennt beide Seiten wie später beim Rad und in der Frage
+      if (step.kind === 'DUEL_WHEEL') {
+        return sheet(
+          attacked ? 'attacked' : step.attacker === view.mySeat ? 'turn' : '',
+          'match-announce',
+          true,
+          <>
+            <h2 className="blatt-title">{questionTitle()}</h2>
+            {duelBox('attackOn')}
+            <p className="blatt-hint">{t('realm.march.hint')}</p>
+            {phaseTimer(timers.announceMs, true)}
+          </>,
+        );
+      }
       const shown = shownPick(events);
       const title =
         shown?.type === 'CASTLE_CHOSEN'

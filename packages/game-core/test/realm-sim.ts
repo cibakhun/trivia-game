@@ -206,8 +206,12 @@ export function simulateRealm(
                 ? 'PICK_REGION'
                 : 'PICK_TARGET';
         input = { kind, seat, region };
-        // Ein Angriff wird mit dem Glücksrad angesagt, jede andere Wahl bleibt kurz stehen
-        const pause = kind === 'PICK_TARGET' ? economy.timers.wheelMs : (timers.pickShowMs ?? 0);
+        // Ein Angriff steht erst als Aufmarsch auf der Karte, dann dreht sich das Glücksrad
+        // (ADR-071); jede andere Wahl bleibt kurz stehen
+        const pause =
+          kind === 'PICK_TARGET'
+            ? (timers.announceMs ?? 0) + economy.timers.wheelMs
+            : (timers.pickShowMs ?? 0);
         full += timers.pickMs + pause;
         typical += TYPICAL_MS.pick + pause;
         soloStep(seat === 0, TYPICAL_MS.pick, 0, pause);

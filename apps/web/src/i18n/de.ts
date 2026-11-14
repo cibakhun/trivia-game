@@ -916,6 +916,7 @@ export const de = {
       skipped: 'Kein Angriff, weil keine Armee neben einem Ziel steht: {names}.',
       nobody: 'In dieser Runde greift niemand an.',
     },
+    march: { hint: 'Gleich dreht sich das Glücksrad.' },
     wheel: {
       title: 'Glücksrad',
       lots: 'Lose im Rad',
