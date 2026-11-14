@@ -17,10 +17,12 @@ import {
   inUpperHalf,
   type DuelLayout,
 } from '../art/attack.ts';
+import { FxLayer } from '../art/fx/FxLayer.tsx';
 import { frontiers, mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
 import { COMPACT_SCALE, seaDepth, type StageFrame } from '../art/stage-frame.ts';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
+import { boardFx } from './board-fx.ts';
 import type { DuelStage } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import {
@@ -154,6 +156,7 @@ export function MatchBoard({
   const art = useMemo(() => mapArt(map), [map]);
   const prefix = `map${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const settled = useSettled();
+  const svg = useRef<SVGSVGElement>(null);
   // Kleines Land (Handy): größere Schrift, weniger Zierde
   const narrow = frame === null || frame.scale < COMPACT_SCALE;
   const far = useMemo(() => farSea(art), [art]);
@@ -248,6 +251,14 @@ export function MatchBoard({
     const to = map.regions[region]?.cell;
     return from && to ? { ['--wave' as string]: `${hexDistance(from, to) * 0.12}s` } : undefined;
   };
+  // Effekte über der Karte (ADR-068): nur für Wechsel, die die Seite miterlebt hat
+  const fx = useMemo(
+    () => boardFx({ art, duel, layout, castle, realm, live: settled }),
+    [art, duel, layout, castle, realm, settled],
+  );
+  const quake: CSSProperties | undefined = fx.quake
+    ? { ['--quake-at' as string]: `${fx.quake.atMs}ms` }
+    : undefined;
   const hotArt =
     hot !== null && (choosable.has(hot) || tappable.has(hot)) ? art.regions[hot] : undefined;
   const spotArt = spot === null ? undefined : art.regions[spot];
@@ -263,8 +274,9 @@ export function MatchBoard({
   // Der Rahmen ist das Rasterfeld, die Karte füllt ihn: Als Rasterfeld mit `height: 100%` wird das
   // SVG in WebKit (iPhone) so hoch wie das ganze Raster und rutscht unter das Blatt.
   return (
-    <div className="board-frame">
+    <div className={`board-frame${fx.quake ? ` quake-${fx.quake.strength}` : ''}`} style={quake}>
       <svg
+        ref={svg}
         className={`board map-art${narrow ? ' narrow' : ''}`}
         viewBox={viewBox}
         preserveAspectRatio="xMidYMid slice"
@@ -622,6 +634,7 @@ export function MatchBoard({
           />
         ) : null}
       </svg>
+      {fx.bursts.length > 0 ? <FxLayer key={fx.key} svg={svg} bursts={fx.bursts} /> : null}
     </div>
   );
 }
