@@ -251,7 +251,6 @@ export function RealmBlatt({
   events,
   reveal,
   outcome,
-  outcomeBeat,
   catching = false,
   error,
   name,
@@ -273,10 +272,11 @@ export function RealmBlatt({
   readonly busy: boolean;
   readonly events: readonly ParsedMatchEvent[];
   readonly reveal: Reveal | null;
-  /** Eben entschiedenes Duell: steht während der ganzen Auflösung im Blatt. */
+  /**
+   * Eben entschiedenes Duell: steht im Blatt, sobald die Karte den Ausgang zeigt. Solange erst die
+   * Antworten stehen (ADR-069), ist es noch `null`.
+   */
   readonly outcome: RealmDuel | null;
-  /** Erster Takt der Auflösung: Die Karte zeigt den Ausgang, die Antworten folgen. */
-  readonly outcomeBeat: boolean;
   /** Glücksrad: Das Zeichen der Kategorie fliegt gerade vom Rad her und erscheint erst mit der Ankunft. */
   readonly catching?: boolean;
   readonly error: unknown;
@@ -683,7 +683,7 @@ export function RealmBlatt({
             duel={outcome}
             name={name}
             region={region}
-            timer={outcomeBeat ? null : phaseTimer(timers.revealMs, true)}
+            timer={phaseTimer(timers.revealMs, true)}
             note={note}
           />
         );
@@ -703,7 +703,7 @@ export function RealmBlatt({
               {start ? t('realm.question.startRule') : t('match.moment.landDetail')}
             </p>
           ) : (
-            // Gleichstand im Duell: Was daraus folgt, steht auf dem Blatt in der Mitte
+            // Duell: erst die Antworten (ADR-069). Bei Gleichstand steht in der Mitte, was daraus folgt
             duelBox('about')
           )}
           {phaseTimer(timers.revealMs, true)}

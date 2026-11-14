@@ -17,10 +17,13 @@ test.afterAll(async () => {
   await closeAnswerDb();
 });
 
-/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-054, ADR-055). */
+/** Was die Seite in einer Ansage oder Auflösung gezeigt hat (ADR-053, ADR-055, ADR-069). */
 interface Shown {
-  /** `outcome`: erster Takt der Auflösung eines Duells, die Karte zeigt den Ausgang. */
-  readonly state: 'announce' | 'outcome' | 'reveal';
+  /**
+   * `reveal`: das Blatt mit den Antworten. Hat die Frage ein Duell entschieden, folgen `outcome`
+   * (die Karte spielt den Ausgang) und `settled` (das Ergebnis steht).
+   */
+  readonly state: 'announce' | 'reveal' | 'outcome' | 'settled';
   readonly text: string;
   /** Ansage eines Duells (sonst: eine gezeigte Wahl). */
   readonly duel: boolean;
@@ -54,24 +57,24 @@ async function recordShown(page: Page): Promise<void> {
       const screen = document.querySelector('[data-testid="match-screen"]');
       const state = screen?.getAttribute('data-state');
       if (state !== 'announce' && state !== 'reveal') return;
-      // Der Ausgang eines Duells bleibt im Blatt stehen, solange die Auflösung dauert (ADR-059):
-      // Welcher Takt läuft, sagt die Bühne
+      // Erst das Blatt mit den Antworten, dann sagt das Blatt rechts den Ausgang eines Duells
+      // (ADR-069): Welcher Takt läuft, sagt die Bühne
+      const beat = state === 'reveal' ? screen?.getAttribute('data-beat') : null;
+      const answers = document.querySelector('[data-testid="match-reveal"]');
       const outcome =
-        state === 'reveal' && screen?.getAttribute('data-beat') === 'outcome'
+        beat === 'outcome' || (beat === 'settled' && !answers)
           ? document.querySelector('[data-testid="match-outcome"]')
           : null;
       const card =
         outcome ??
-        document.querySelector(
-          state === 'announce' ? '[data-testid="match-announce"]' : '[data-testid="match-reveal"]',
-        );
+        (state === 'announce' ? document.querySelector('[data-testid="match-announce"]') : answers);
       if (!card) return;
       // Ohne die ablaufende Zeit: Ihr Text zählt die Sekunden herunter, während das Blatt steht.
       // Mit ihm stünde dasselbe Blatt mehrfach in der Liste, sobald eine Sekunde umspringt.
       const still = card.cloneNode(true) as Element;
       for (const timer of still.querySelectorAll('[role="timer"]')) timer.remove();
       const entry: Shown = {
-        state: outcome ? 'outcome' : state,
+        state: outcome ? (beat === 'settled' ? 'settled' : 'outcome') : state,
         text: still.textContent ?? '',
         duel: card.classList.contains('announce-duel'),
         ring: document.querySelector('.spot-ring') !== null,
@@ -217,23 +220,34 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
     expect(duel.text).toMatch(/ greift .+ an\./);
     expect(duel).toMatchObject({ scene: 'announce', arrow: true, ring: false, chips: 2 });
   }
-  // Ausgang (ADR-054): Erst zeigt die Karte, wie das Duell ausging, mit einem Satz im Blatt;
-  // danach folgen die Antworten
+  // Auflösung eines Duells (ADR-069): Erst stehen die Antworten, und die Karte zeigt das Duell
+  // noch wie in der Frage. Danach spielt sie den Ausgang, mit einem Satz im Blatt
   const outcomes = shown.filter((s) => s.state === 'outcome');
   expect(outcomes.length).toBeGreaterThan(0);
   for (const outcome of outcomes) {
     expect(outcome.scene).toBe('outcome');
     expect(outcome.text).toMatch(/(erober|verlierst|triff|getroffen|nimm|fällt|scheitert|hält)/);
-    expect(shown[shown.indexOf(outcome) + 1]).toMatchObject({ state: 'reveal', scene: 'settled' });
+    expect(shown[shown.indexOf(outcome) - 1]).toMatchObject({ state: 'reveal', scene: 'duel' });
   }
-  // Letztes Duell (ADR-055): Auch seine Auflösung steht, erst der Ausgang, dann die Antworten.
+  // Danach steht das Ergebnis, bis es weitergeht
+  const settled = shown.filter((s) => s.state === 'settled');
+  expect(settled.length).toBeGreaterThan(0);
+  for (const result of settled) {
+    expect(result.scene).toBe('settled');
+    expect(shown[shown.indexOf(result) - 1]).toMatchObject({ state: 'outcome', text: result.text });
+  }
+  // Letztes Duell (ADR-055): Auch seine Auflösung steht ganz, erst die Antworten, dann der Ausgang.
   // Band und Zugfolge der letzten Runde bleiben so lange stehen; die Abrechnung kommt danach.
-  const [lastOutcome, lastReveal] = shown.slice(-2);
+  const lastAt = shown.map((s) => s.state).lastIndexOf('outcome');
+  const lastReveal = shown[lastAt - 1];
+  const lastOutcome = shown[lastAt];
+  expect(lastReveal).toMatchObject({ state: 'reveal', scene: 'duel', allDone: false });
   expect(lastOutcome).toMatchObject({ state: 'outcome', scene: 'outcome', allDone: true });
-  expect(lastReveal).toMatchObject({ state: 'reveal', scene: 'settled', allDone: true });
   expect(lastOutcome?.step).toMatch(/^Feldzug · Runde \d von 4$/);
   expect(lastReveal?.step).toBe(lastOutcome?.step);
-  expect(shown.findIndex((s) => s.allDone)).toBe(shown.length - 2);
+  // Die Zugfolge ist erst mit dem Ausgang abgehakt, nicht schon mit den Antworten
+  expect(shown.findIndex((s) => s.allDone)).toBe(lastAt);
+  expect(shown.slice(lastAt + 1).every((s) => s.state === 'settled' && s.allDone)).toBe(true);
   // Auflösungen: Jeder Sitz der Frage steht mit seinem Wappen an seiner Antwort
   const reveals = shown.filter((s) => s.state === 'reveal');
   expect(reveals.length).toBeGreaterThan(5);

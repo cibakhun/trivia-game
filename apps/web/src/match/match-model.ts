@@ -321,7 +321,7 @@ export interface DuelStage extends DuelFocus {
 
 /**
  * Bühne des Duells auf der Karte. `outcomeBeat` sagt, ob der Ausgang gerade gezeigt wird (der
- * erste Takt der Auflösung, siehe `outcomeBeatMs`).
+ * zweite Takt der Auflösung, siehe `revealPlan`).
  */
 export function duelStage(
   view: MatchView,
@@ -352,15 +352,89 @@ export function duelStage(
   };
 }
 
-/** Längster erster Takt der Auflösung: Die Karte zeigt den Ausgang, erst danach die Antworten. */
+/**
+ * Takte einer Auflösung, die ein Duell entschieden hat (ADR-069): zuerst die Antworten auf dem
+ * Blatt mitten auf der Karte (`answers`), solange zeigt die Karte den Stand vor dem Ausgang; dann
+ * spielt die Karte den Ausgang (`outcome`); den Rest der Zeit steht das Ergebnis (`settled`).
+ */
+export type RevealBeat = 'answers' | 'outcome' | 'settled';
+
+/** Längster Takt der Antworten und kürzester, für den sich das Blatt noch lohnt. */
+export const ANSWERS_BEAT_MS = 4000;
+export const ANSWERS_BEAT_MIN_MS = 400;
+
+/**
+ * Dauer des Takts der Antworten aus der Zeit, die von der Auflösung übrig ist: die Hälfte,
+ * höchstens `ANSWERS_BEAT_MS`. Bleibt dafür zu wenig (die Seite kam spät in die Auflösung), entfällt
+ * er (0).
+ */
+export function answersBeatMs(leftMs: number): number {
+  const ms = Math.min(ANSWERS_BEAT_MS, Math.round(leftMs / 2));
+  return ms >= ANSWERS_BEAT_MIN_MS ? ms : 0;
+}
+
+/** Längster Takt des Ausgangs: Die Karte spielt ab, was aus den Antworten folgt. */
 export const OUTCOME_BEAT_MS = 1500;
 
 /**
- * Dauer des ersten Takts aus der Zeit der Auflösung: ein Viertel, höchstens `OUTCOME_BEAT_MS`.
- * Mit Spieltestzeiten (2 s Auflösung) bleibt eine halbe Sekunde.
+ * Dauer des Takts des Ausgangs aus der Zeit der Auflösung: ein Viertel, höchstens
+ * `OUTCOME_BEAT_MS`. Mit Spieltestzeiten (2 s Auflösung) bleibt eine halbe Sekunde.
  */
 export function outcomeBeatMs(revealMs: number): number {
   return Math.min(OUTCOME_BEAT_MS, Math.round(revealMs / 4));
+}
+
+/** Wann die Takte einer Auflösung wechseln, als `performance.now()`-Werte. */
+export interface RevealPlan {
+  readonly outcomeAt: number;
+  readonly settledAt: number;
+}
+
+/**
+ * Zeitplan der Takte ab `now`. `deadline` ist das Ende der Auflösung (`null` = unbekannt),
+ * `revealMs` ihre ganze Dauer. `null`, wenn für die Antworten keine Zeit mehr bleibt: Dann steht
+ * die Karte gleich im Ergebnis.
+ */
+export function revealPlan(
+  now: number,
+  deadline: number | null,
+  revealMs: number,
+): RevealPlan | null {
+  const answers = answersBeatMs(deadline === null ? Number.POSITIVE_INFINITY : deadline - now);
+  if (answers <= 0) return null;
+  const outcomeAt = now + answers;
+  return { outcomeAt, settledAt: outcomeAt + outcomeBeatMs(revealMs) };
+}
+
+/** Frage, deren laufende Auflösung ein Duell entschieden hat; sonst `null`. */
+export function decidedSeq(
+  view: MatchView | null,
+  events: readonly ParsedMatchEvent[],
+): number | null {
+  if (view?.match.status !== 'RUNNING' || view.phase?.kind !== 'REVEAL' || !view.question) {
+    return null;
+  }
+  return duelResolved(revealFor(events, view.question.seq)) ? view.question.seq : null;
+}
+
+/**
+ * Was die Bühne im Takt der Antworten zeigt: die Auflösung der Frage ohne ihre Folgen. Karte,
+ * Vorräte und Zugfolge kommen aus `before`, der letzten Ansicht, solange die Frage lief; die
+ * Ereignisse enden mit der Auflösung der Frage. Alles, was danach kam (Ausgang des Duells,
+ * gefallenes Reich, Einkommen, Ende der Partie), sieht die Bühne erst mit dem nächsten Takt: So
+ * laufen Karte, Tafeln, Bänder und Klänge von selbst in der richtigen Reihenfolge.
+ */
+export function answersFeed(
+  view: MatchView,
+  events: readonly ParsedMatchEvent[],
+  before: MatchView,
+): { readonly view: MatchView; readonly events: readonly ParsedMatchEvent[] } {
+  const seq = view.question?.seq;
+  const index = events.findIndex((e) => e.type === 'QUESTION_RESOLVED' && e.payload.seq === seq);
+  return {
+    view: { ...view, board: before.board, realm: before.realm, legalRegions: [] },
+    events: index < 0 ? events : events.slice(0, index + 1),
+  };
 }
 
 /** Ereignisse, die auf die Auflösung einer Frage folgen, bis zur nächsten Frage. */
