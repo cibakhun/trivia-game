@@ -1097,13 +1097,15 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     const watching = blatt(march(0), 'announce');
     expect(watching).toContain('class="blatt"');
     expect(textOf(watching)).toContain('Duell');
-    // Die Namen im Kasten sind nur Bild: Vorleseprogramme bekommen den ganzen Satz
-    for (const html of [mine, attacked, watching]) {
-      const box = part(html, 'data-testid="match-duel"', '</div>');
-      expect(textOf(part(box, 'class="visually-hidden"', '</p>'))).toMatch(
-        /^Duell um Kranichsee: .+ greift .+ an\.$/,
+    // Die Namen im Kasten sind nur Bild: Vorleseprogramme bekommen den ganzen Satz, den
+    // Angreifer zuerst
+    const sentence = (html: string) =>
+      textOf(
+        part(part(html, 'data-testid="match-duel"', '</div>'), 'class="visually-hidden"', '</p>'),
       );
-    }
+    expect(sentence(mine)).toBe('Duell um Kranichsee: Anna (du) greift Bot (schwer) an.');
+    expect(sentence(attacked)).toBe('Duell um Kranichsee: Bot (leicht) greift Bot (schwer) an.');
+    expect(sentence(watching)).toBe('Duell um Kranichsee: Bot (leicht) greift Bot (schwer) an.');
   });
 
   it('zeigt am Glücksrad die Lose und wem die gezogene Kategorie liegt', () => {
