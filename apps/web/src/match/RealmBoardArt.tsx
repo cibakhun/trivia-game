@@ -657,6 +657,7 @@ export function RealmPlanArt({
   owners,
   size: s,
   level,
+  home = null,
 }: {
   readonly prefix: string;
   readonly art: MapArt;
@@ -669,17 +670,25 @@ export function RealmPlanArt({
    * über allem, auch über dem Schleier eines Duells.
    */
   readonly level: 'under' | 'over' | 'top';
+  /** Eigener Sitz: Seine Felder treten in der Rüstzeit nicht zurück. */
+  readonly home?: number | null;
 }) {
   const at = (id: number) => art.regions[id];
   if (level === 'under') {
     const selected =
       layer.selected === undefined || layer.selected === null ? undefined : at(layer.selected);
+    // Der Schleier über fremden Feldern liegt für den eigenen Sitz immer bereit und ist außerhalb
+    // der Rüstzeit unsichtbar: So blendet er mit ihrem Beginn und Ende weich, statt zu springen
+    const focused = layer.focusSeat !== undefined && layer.focusSeat !== null;
+    const rest = focused ? layer.focusSeat : home;
     return (
       <g className="realm-plan" aria-hidden="true">
-        {layer.focusSeat !== undefined && layer.focusSeat !== null
+        {rest !== undefined && rest !== null
           ? art.regions
-              .filter((r) => owners[r.id] !== layer.focusSeat)
-              .map((r) => <path key={r.id} d={r.d} className="plan-dim" />)
+              .filter((r) => owners[r.id] !== rest)
+              .map((r) => (
+                <path key={r.id} d={r.d} className={focused ? 'plan-dim on' : 'plan-dim'} />
+              ))
           : null}
         {(layer.hint ?? []).map((id) => {
           const r = at(id);

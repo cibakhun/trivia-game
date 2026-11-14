@@ -1621,7 +1621,8 @@
     animation: none !important;
   }
   .map-art .region-label,
-  .map-art .region-label .board-name {
+  .map-art .region-label .board-name,
+  .map-art .plan-dim {
     transition: none;
   }
   .map-art .legal-glow {
@@ -1685,9 +1686,15 @@
   fill: var(--map-ink);
 }
 
-/* Rüstzeit: Felder anderer Reiche treten zurück, mögliche Ziele eines Zugs sind gestrichelt */
+/* Rüstzeit: Felder anderer Reiche treten zurück, mögliche Ziele eines Zugs sind gestrichelt. Der
+   Schleier liegt immer bereit (`on` nur in der Rüstzeit) und blendet mit ihrem Beginn und Ende
+   weich; beim ersten Aufbau steht er sofort */
 .map-art .plan-dim {
   fill: var(--map-veil);
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+.map-art .plan-dim.on {
   opacity: 0.17;
 }
 .map-art .plan-target {

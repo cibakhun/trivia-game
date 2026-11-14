@@ -6,6 +6,7 @@ import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
 import type { RealmPlay } from './realm-model.ts';
+import { PlaqueOut, PlaqueState } from './SeatList.tsx';
 
 /**
  * Spielstand der Partie mit Ausbau links auf dem Meer (MATCH_RULES §11): je Reich eine Tafel mit
@@ -148,7 +149,7 @@ export function RealmSeatList({
               )}
               <span className="plaque-foot">
                 {s.eliminated ? (
-                  <span className="plaque-out">{t('match.seats.eliminated')}</span>
+                  <PlaqueOut />
                 ) : (
                   <>
                     <Amount
@@ -184,9 +185,11 @@ export function RealmSeatList({
                 )}
               </span>
               {pill ? (
-                <span className={`plaque-state ${status}`}>
-                  {status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
-                </span>
+                <PlaqueState
+                  key={status}
+                  status={status}
+                  text={status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
+                />
               ) : null}
             </li>
           );

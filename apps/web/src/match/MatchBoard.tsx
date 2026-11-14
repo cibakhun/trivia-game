@@ -644,6 +644,7 @@ export function MatchBoard({
             owners={board.regions.map((r) => r.owner)}
             size={s}
             level="under"
+            home={home}
           />
         ) : null}
 

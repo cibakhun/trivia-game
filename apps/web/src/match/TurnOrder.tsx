@@ -2,6 +2,7 @@ import type { MatchView } from '@rdw/protocol';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { t } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
+import { useBorn } from './stage-live.ts';
 
 /** Für Screenreader steht am eigenen Sitz kurz „Du“, sonst der Name. */
 function shortName(view: MatchView, seat: number, name: SeatName): string {
@@ -13,8 +14,10 @@ function shortName(view: MatchView, seat: number, name: SeatName): string {
  * Spielstand mit den Wappen in der Reihenfolge, in der gewählt oder angegriffen wird. Wer dran
  * ist, trägt einen goldenen Rand; wer schon dran war, einen Haken. Bei der Schätzfrage der
  * Landnahme, der Startfrage und in der Rüstzeit sind alle zugleich dran. Die Zeile ist immer gleich
- * hoch und bewegt sich nicht (keine Animation, auch nicht während einer Frage). Namen stehen nur
- * für Screenreader da: Die Wappen stehen direkt darüber im Spielstand.
+ * hoch und verschiebt nichts. Ist einer dran, liegt der goldene Rand als eigene Marke unter den
+ * Wappen (`ol::before`, kein Listenpunkt) und wandert von Platz zu Platz (stage.css, alle Plätze
+ * sind gleich breit); der Haken dessen, der eben dran war, setzt sich. Namen stehen nur für
+ * Screenreader da: Die Wappen stehen direkt darüber im Spielstand.
  */
 export function TurnOrder({
   view,
@@ -46,6 +49,8 @@ export function TurnOrder({
   // Schätzfrage an alle und Rüstzeit: Alle sind zugleich dran, eine Reihenfolge gibt es nicht
   const preparing = kind === 'PREPARE';
   const together = kind === 'LAND_ESTIMATE' || kind === 'START_ESTIMATE' || preparing;
+  // Stelle dessen, der dran ist: Dort liegt die Marke; -1, wenn keiner oder alle zugleich dran sind
+  const now = together ? -1 : board.turns.findIndex((turn) => turn.status === 'NOW');
   const statusText = (status: 'DONE' | 'NOW' | 'NEXT') =>
     preparing && status !== 'NEXT'
       ? t(status === 'DONE' ? 'realm.seats.ready' : 'realm.seats.busy')
@@ -55,7 +60,10 @@ export function TurnOrder({
       <h2 id="turns-title" className="turn-order-label">
         {label}
       </h2>
-      <ol className={together ? 'together' : undefined}>
+      <ol
+        className={together ? 'together' : now < 0 ? undefined : 'marked'}
+        style={now < 0 ? undefined : { ['--turn-now' as string]: now }}
+      >
         {board.turns.map((turn, i) => {
           // Wer aussetzt, war nicht dran: ein Strich statt des Hakens
           const out = turn.status === 'DONE' && skipped.includes(turn.seat);
@@ -70,9 +78,10 @@ export function TurnOrder({
               data-skipped={out ? 'true' : undefined}
             >
               {together ? null : (
-                <span className="turn-index" aria-hidden="true">
-                  {out ? '–' : turn.status === 'DONE' ? '✓' : i + 1}
-                </span>
+                <TurnIndex
+                  key={out ? 'out' : turn.status === 'DONE' ? 'done' : 'open'}
+                  text={out ? '–' : turn.status === 'DONE' ? '✓' : String(i + 1)}
+                />
               )}
               <SeatCrest seat={turn.seat} size={18} />
               <span className="visually-hidden">
@@ -84,5 +93,15 @@ export function TurnOrder({
         })}
       </ol>
     </section>
+  );
+}
+
+/** Zahl, Haken oder Strich vor dem Wappen; ein Wechsel, den die Bühne miterlebt, setzt sich kurz. */
+function TurnIndex({ text }: { readonly text: string }) {
+  const born = useBorn();
+  return (
+    <span className={born ? 'turn-index arriving' : 'turn-index'} aria-hidden="true">
+      {text}
+    </span>
   );
 }
