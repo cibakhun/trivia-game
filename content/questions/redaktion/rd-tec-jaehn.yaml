@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-jaehn
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Sigmund Jähn"
+    url: https://de.wikipedia.org/wiki/Sigmund_J%C3%A4hn
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war der erste Deutsche im Weltraum?"
+    options:
+      a: "Sigmund Jähn"
+      b: "Ulf Merbold"
+      c: "Alexander Gerst"
+      d: "Thomas Reiter"

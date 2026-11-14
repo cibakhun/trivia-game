@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-schachbrett
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Schachbrett"
+    url: https://de.wikipedia.org/wiki/Schachbrett
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Felder hat ein Schachbrett?"
+    options:
+      a: "49"
+      b: "100"
+      c: "64"
+      d: "81"

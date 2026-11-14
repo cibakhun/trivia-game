@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-em-1996-golden-goal
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Fußball-Europameisterschaft 1996"
+    url: https://de.wikipedia.org/wiki/Fu%C3%9Fball-Europameisterschaft_1996
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr wurde Deutschland durch ein Golden Goal von Oliver Bierhoff Europameister?"
+    options:
+      a: "2008"
+      b: "1992"
+      c: "1980"
+      d: "1996"

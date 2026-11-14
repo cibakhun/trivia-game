@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-oberschenkelknochen
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Oberschenkelknochen"
+    url: https://de.wikipedia.org/wiki/Oberschenkelknochen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der längste Knochen des Menschen?"
+    options:
+      a: "Wadenbein"
+      b: "Oberschenkelknochen"
+      c: "Oberarmknochen"
+      d: "Schienbein"

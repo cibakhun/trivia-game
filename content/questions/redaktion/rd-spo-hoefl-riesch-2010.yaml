@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-hoefl-riesch-2010
+kind: TRIVIA
+category: SPORTS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Maria Höfl-Riesch"
+    url: https://de.wikipedia.org/wiki/Maria_H%C3%B6fl-Riesch
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche deutsche Skirennläuferin gewann 2010 in Vancouver zweimal olympisches Gold?"
+    options:
+      a: "Maria Höfl-Riesch"
+      b: "Viktoria Rebensburg"
+      c: "Katja Seizinger"
+      d: "Hilde Gerg"

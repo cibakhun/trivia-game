@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-wm-2014-trainer
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Joachim Löw"
+    url: https://de.wikipedia.org/wiki/Joachim_L%C3%B6w
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war Bundestrainer, als Deutschland 2014 Weltmeister wurde?"
+    options:
+      a: "Berti Vogts"
+      b: "Joachim Löw"
+      c: "Hansi Flick"
+      d: "Jürgen Klinsmann"

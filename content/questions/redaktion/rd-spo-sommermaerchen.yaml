@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-sommermaerchen
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Fußball-Weltmeisterschaft 2006"
+    url: https://de.wikipedia.org/wiki/Fu%C3%9Fball-Weltmeisterschaft_2006
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Unter welchem Beinamen ist die Fußball-WM 2006 in Deutschland in Erinnerung?"
+    options:
+      a: "Wunder von Bern"
+      b: "Schmach von Córdoba"
+      c: "Nacht von Sevilla"
+      d: "Sommermärchen"

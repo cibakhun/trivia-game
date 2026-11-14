@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-canossa
+kind: TRIVIA
+category: HISTORY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Gang nach Canossa"
+    url: https://de.wikipedia.org/wiki/Gang_nach_Canossa
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wohin zog König Heinrich IV. 1077, um vom Papst die Lösung vom Kirchenbann zu erbitten?"
+    options:
+      a: "Canossa"
+      b: "Worms"
+      c: "Avignon"
+      d: "Ravenna"

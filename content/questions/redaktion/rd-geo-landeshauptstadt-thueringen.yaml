@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-landeshauptstadt-thueringen
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Thüringen"
+    url: https://de.wikipedia.org/wiki/Th%C3%BCringen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Landeshauptstadt von Thüringen?"
+    options:
+      a: "Gera"
+      b: "Jena"
+      c: "Erfurt"
+      d: "Weimar"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-wahlperiode-bundestag
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Deutscher Bundestag"
+    url: https://de.wikipedia.org/wiki/Deutscher_Bundestag
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie lange dauert eine reguläre Wahlperiode des Bundestages?"
+    options:
+      a: "6 Jahre"
+      b: "4 Jahre"
+      c: "3 Jahre"
+      d: "5 Jahre"

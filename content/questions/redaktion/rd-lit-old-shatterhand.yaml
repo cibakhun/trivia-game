@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-old-shatterhand
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Old Shatterhand"
+    url: https://de.wikipedia.org/wiki/Old_Shatterhand
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt Winnetous weißer Blutsbruder?"
+    options:
+      a: "Old Surehand"
+      b: "Sam Hawkens"
+      c: "Old Shatterhand"
+      d: "Old Firehand"

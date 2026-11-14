@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-tour-bergtrikot
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Tour de France"
+    url: https://de.wikipedia.org/wiki/Tour_de_France
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches Trikot trägt der beste Bergfahrer der Tour de France?"
+    options:
+      a: "Grün"
+      b: "Rosa"
+      c: "Weiß mit roten Punkten"
+      d: "Gelb"

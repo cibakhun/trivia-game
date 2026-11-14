@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-koch-tuberkulose
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Robert Koch"
+    url: https://de.wikipedia.org/wiki/Robert_Koch
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer entdeckte 1882 den Erreger der Tuberkulose?"
+    options:
+      a: "Paul Ehrlich"
+      b: "Robert Koch"
+      c: "Rudolf Virchow"
+      d: "Louis Pasteur"

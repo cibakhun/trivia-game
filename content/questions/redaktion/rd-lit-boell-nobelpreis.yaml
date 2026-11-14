@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-boell-nobelpreis
+kind: TRIVIA
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Heinrich Böll"
+    url: https://de.wikipedia.org/wiki/Heinrich_B%C3%B6ll
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher deutsche Schriftsteller erhielt 1972 den Literaturnobelpreis?"
+    options:
+      a: "Heinrich Böll"
+      b: "Hermann Hesse"
+      c: "Thomas Mann"
+      d: "Günter Grass"

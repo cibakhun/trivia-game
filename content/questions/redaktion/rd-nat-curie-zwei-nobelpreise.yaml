@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-curie-zwei-nobelpreise
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Marie Curie"
+    url: https://de.wikipedia.org/wiki/Marie_Curie
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer erhielt Nobelpreise sowohl für Physik als auch für Chemie?"
+    options:
+      a: "Otto Hahn"
+      b: "Linus Pauling"
+      c: "Marie Curie"
+      d: "Lise Meitner"

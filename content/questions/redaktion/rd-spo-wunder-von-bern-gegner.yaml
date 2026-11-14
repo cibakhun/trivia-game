@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-wunder-von-bern-gegner
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wunder von Bern"
+    url: https://de.wikipedia.org/wiki/Wunder_von_Bern
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Gegen welches Land gewann Deutschland 1954 das WM-Finale, das „Wunder von Bern“?"
+    options:
+      a: "Niederlande"
+      b: "Brasilien"
+      c: "Ungarn"
+      d: "Österreich"

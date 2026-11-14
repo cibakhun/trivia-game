@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-bache
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wildschwein"
+    url: https://de.wikipedia.org/wiki/Wildschwein
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie nennt man ein weibliches Wildschwein?"
+    options:
+      a: "Zibbe"
+      b: "Fähe"
+      c: "Bache"
+      d: "Ricke"

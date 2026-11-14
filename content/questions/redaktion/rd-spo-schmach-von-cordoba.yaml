@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-schmach-von-cordoba
+kind: TRIVIA
+category: SPORTS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Schmach von Córdoba"
+    url: https://de.wikipedia.org/wiki/Schmach_von_C%C3%B3rdoba
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Gegen welches Land verlor Deutschland bei der WM 1978 in der „Schmach von Córdoba“?"
+    options:
+      a: "Österreich"
+      b: "Niederlande"
+      c: "Italien"
+      d: "Argentinien"

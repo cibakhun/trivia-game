@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-nachbarstaaten-anzahl
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Deutschland"
+    url: https://de.wikipedia.org/wiki/Deutschland
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "An wie viele Staaten grenzt Deutschland?"
+    options:
+      a: "9"
+      b: "7"
+      c: "10"
+      d: "8"

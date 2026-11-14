@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-licht-sonne-erde
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Sonne"
+    url: https://de.wikipedia.org/wiki/Sonne
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie lange braucht das Licht von der Sonne bis zur Erde ungefähr?"
+    options:
+      a: "8 Sekunden"
+      b: "1 Tag"
+      c: "8 Minuten"
+      d: "1 Stunde"

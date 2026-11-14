@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-erste-kanzlerin
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Angela Merkel"
+    url: https://de.wikipedia.org/wiki/Angela_Merkel
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war die erste Bundeskanzlerin Deutschlands?"
+    options:
+      a: "Annegret Kramp-Karrenbauer"
+      b: "Hannelore Kraft"
+      c: "Ursula von der Leyen"
+      d: "Angela Merkel"

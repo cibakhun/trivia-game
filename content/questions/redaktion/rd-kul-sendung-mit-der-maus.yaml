@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-sendung-mit-der-maus
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die Sendung mit der Maus"
+    url: https://de.wikipedia.org/wiki/Die_Sendung_mit_der_Maus
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Kindersendung mit einer orangen Maus läuft seit 1971?"
+    options:
+      a: "Sesamstraße"
+      b: "Pumuckl"
+      c: "Löwenzahn"
+      d: "Die Sendung mit der Maus"

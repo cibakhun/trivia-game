@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-wahlalter-bundestag
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wahlalter"
+    url: https://de.wikipedia.org/wiki/Wahlalter
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Ab welchem Alter darf man in Deutschland an der Bundestagswahl teilnehmen?"
+    options:
+      a: "18"
+      b: "21"
+      c: "17"
+      d: "16"

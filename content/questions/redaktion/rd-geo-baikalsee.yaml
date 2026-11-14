@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-baikalsee
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Baikalsee"
+    url: https://de.wikipedia.org/wiki/Baikalsee
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der tiefste See der Erde?"
+    options:
+      a: "Baikalsee"
+      b: "Titicacasee"
+      c: "Tanganjikasee"
+      d: "Kaspisches Meer"

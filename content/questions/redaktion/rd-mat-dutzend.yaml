@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-dutzend
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Dutzend"
+    url: https://de.wikipedia.org/wiki/Dutzend
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Stück sind ein Dutzend?"
+    options:
+      a: "12"
+      b: "13"
+      c: "10"
+      d: "20"

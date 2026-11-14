@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-erster-bundeskanzler
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Konrad Adenauer"
+    url: https://de.wikipedia.org/wiki/Konrad_Adenauer
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war der erste Bundeskanzler der Bundesrepublik Deutschland?"
+    options:
+      a: "Theodor Heuss"
+      b: "Konrad Adenauer"
+      c: "Ludwig Erhard"
+      d: "Willy Brandt"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-montagsdemonstrationen
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Montagsdemonstrationen 1989/1990 in der DDR"
+    url: https://de.wikipedia.org/wiki/Montagsdemonstrationen_1989%2F1990_in_der_DDR
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welcher Stadt begannen 1989 die Montagsdemonstrationen gegen die DDR-Führung?"
+    options:
+      a: "Ost-Berlin"
+      b: "Dresden"
+      c: "Rostock"
+      d: "Leipzig"

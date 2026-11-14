@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-strasse-von-gibraltar
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Straße von Gibraltar"
+    url: https://de.wikipedia.org/wiki/Stra%C3%9Fe_von_Gibraltar
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Meerenge trennt Spanien von Marokko?"
+    options:
+      a: "Bosporus"
+      b: "Straße von Messina"
+      c: "Ärmelkanal"
+      d: "Straße von Gibraltar"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-bundestag-sitze-2025
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bundestagswahl 2025"
+    url: https://de.wikipedia.org/wiki/Bundestagswahl_2025
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Sitze hat der 2025 gewählte Bundestag?"
+    options:
+      a: "736"
+      b: "598"
+      c: "709"
+      d: "630"

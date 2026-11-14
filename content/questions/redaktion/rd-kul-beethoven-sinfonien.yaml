@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-beethoven-sinfonien
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Ludwig van Beethoven"
+    url: https://de.wikipedia.org/wiki/Ludwig_van_Beethoven
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Sinfonien vollendete Ludwig van Beethoven?"
+    options:
+      a: "12"
+      b: "9"
+      c: "10"
+      d: "7"

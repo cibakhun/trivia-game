@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-momo-graue-herren
+kind: TRIVIA
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Momo (Roman)"
+    url: https://de.wikipedia.org/wiki/Momo_(Roman)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißen die Zeitdiebe in Michael Endes „Momo“?"
+    options:
+      a: "Die grauen Herren"
+      b: "Die Schattenmänner"
+      c: "Die Zeitwächter"
+      d: "Die schwarzen Reiter"

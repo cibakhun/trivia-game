@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-gorbatschow
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Michail Gorbatschow"
+    url: https://de.wikipedia.org/wiki/Michail_Gorbatschow
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher sowjetische Staatschef stand für „Glasnost“ und „Perestroika“?"
+    options:
+      a: "Michail Gorbatschow"
+      b: "Juri Andropow"
+      c: "Boris Jelzin"
+      d: "Leonid Breschnew"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-fluss-nuernberg
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Pegnitz"
+    url: https://de.wikipedia.org/wiki/Pegnitz
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Fluss fließt durch die Altstadt von Nürnberg?"
+    options:
+      a: "Fränkische Saale"
+      b: "Altmühl"
+      c: "Regnitz"
+      d: "Pegnitz"

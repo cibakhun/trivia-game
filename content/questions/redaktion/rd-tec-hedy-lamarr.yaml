@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-hedy-lamarr
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Hedy Lamarr"
+    url: https://de.wikipedia.org/wiki/Hedy_Lamarr
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Schauspielerin entwickelte im Zweiten Weltkrieg ein Frequenzsprungverfahren mit?"
+    options:
+      a: "Marlene Dietrich"
+      b: "Hedy Lamarr"
+      c: "Greta Garbo"
+      d: "Ingrid Bergman"

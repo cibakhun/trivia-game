@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-schnellstes-landtier
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Gepard"
+    url: https://de.wikipedia.org/wiki/Gepard
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches ist das schnellste Landtier?"
+    options:
+      a: "Gabelbock"
+      b: "Springbock"
+      c: "Gepard"
+      d: "Löwe"

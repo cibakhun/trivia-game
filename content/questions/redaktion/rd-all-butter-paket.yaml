@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-butter-paket
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Butter"
+    url: https://de.wikipedia.org/wiki/Butter
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viel wiegt ein übliches Stück Butter in Deutschland?"
+    options:
+      a: "500 Gramm"
+      b: "250 Gramm"
+      c: "125 Gramm"
+      d: "200 Gramm"

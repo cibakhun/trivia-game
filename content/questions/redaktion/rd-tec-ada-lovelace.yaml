@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-ada-lovelace
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Ada Lovelace"
+    url: https://de.wikipedia.org/wiki/Ada_Lovelace
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Mathematikerin gilt als erste Programmiererin der Geschichte?"
+    options:
+      a: "Hedy Lamarr"
+      b: "Marie Curie"
+      c: "Ada Lovelace"
+      d: "Grace Hopper"

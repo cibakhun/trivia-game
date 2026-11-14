@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-volksaufstand-1953
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Aufstand vom 17. Juni 1953"
+    url: https://de.wikipedia.org/wiki/Aufstand_vom_17._Juni_1953
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Woran erinnert der 17. Juni 1953?"
+    options:
+      a: "Volksaufstand in der DDR"
+      b: "Gründung der DDR"
+      c: "Bau der Berliner Mauer"
+      d: "Beginn der Berlin-Blockade"

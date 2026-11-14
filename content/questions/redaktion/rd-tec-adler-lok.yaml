@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-adler-lok
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Adler (Lokomotive)"
+    url: https://de.wikipedia.org/wiki/Adler_(Lokomotive)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie hieß die Lokomotive der ersten deutschen Eisenbahn zwischen Nürnberg und Fürth?"
+    options:
+      a: "Saxonia"
+      b: "Pfeil"
+      c: "Rocket"
+      d: "Adler"

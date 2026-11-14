@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-poker-karten
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Französisches Blatt"
+    url: https://de.wikipedia.org/wiki/Franz%C3%B6sisches_Blatt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Karten hat ein französisches Blatt ohne Joker?"
+    options:
+      a: "54"
+      b: "52"
+      c: "48"
+      d: "32"

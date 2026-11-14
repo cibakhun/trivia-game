@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-leben-der-anderen
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Das Leben der Anderen"
+    url: https://de.wikipedia.org/wiki/Das_Leben_der_Anderen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher deutsche Film gewann 2007 den Oscar als bester fremdsprachiger Film?"
+    options:
+      a: "Das Leben der Anderen"
+      b: "Der Untergang"
+      c: "Good Bye, Lenin!"
+      d: "Lola rennt"

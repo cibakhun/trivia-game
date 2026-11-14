@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-biathlon
+kind: TRIVIA
+category: SPORTS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Biathlon"
+    url: https://de.wikipedia.org/wiki/Biathlon
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Sportart verbindet Skilanglauf mit Schießen?"
+    options:
+      a: "Skeleton"
+      b: "Moderner Fünfkampf"
+      c: "Nordische Kombination"
+      d: "Biathlon"

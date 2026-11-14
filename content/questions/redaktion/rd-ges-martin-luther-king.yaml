@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-martin-luther-king
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: I Have a Dream"
+    url: https://de.wikipedia.org/wiki/I_Have_a_Dream
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer hielt 1963 die berühmte Rede „I Have a Dream“?"
+    options:
+      a: "Barack Obama"
+      b: "Malcolm X"
+      c: "Martin Luther King"
+      d: "John F. Kennedy"

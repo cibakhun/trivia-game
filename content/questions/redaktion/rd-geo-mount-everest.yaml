@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-mount-everest
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mount Everest"
+    url: https://de.wikipedia.org/wiki/Mount_Everest
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der höchste Berg der Erde?"
+    options:
+      a: "K2"
+      b: "Kangchendzönga"
+      c: "Mont Blanc"
+      d: "Mount Everest"

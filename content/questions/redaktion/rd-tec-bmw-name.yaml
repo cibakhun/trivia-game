@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-bmw-name
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: BMW"
+    url: https://de.wikipedia.org/wiki/BMW
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wofür steht die Abkürzung „BMW“?"
+    options:
+      a: "Bayerische Motoren Werke"
+      b: "Berliner Maschinen-Werke"
+      c: "Bremer Motorenwerke"
+      d: "Bayerische Metallwerke"

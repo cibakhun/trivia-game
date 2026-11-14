@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-doppelhelix
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Desoxyribonukleinsäure"
+    url: https://de.wikipedia.org/wiki/Desoxyribonukleins%C3%A4ure
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Form hat das DNA-Molekül?"
+    options:
+      a: "Einzelstrang-Ring"
+      b: "Tripelhelix"
+      c: "Doppelhelix"
+      d: "Doppelkugel"

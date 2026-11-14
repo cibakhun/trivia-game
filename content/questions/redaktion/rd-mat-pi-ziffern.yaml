@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-pi-ziffern
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Kreiszahl"
+    url: https://de.wikipedia.org/wiki/Kreiszahl
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Mit welchen Ziffern beginnt die Kreiszahl π?"
+    options:
+      a: "3,15149"
+      b: "3,14169"
+      c: "3,14159"
+      d: "3,14259"

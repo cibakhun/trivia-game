@@ -70,8 +70,18 @@ export interface ChoiceTemplate {
   readonly window: number;
   readonly extract: (rows: readonly Row[]) => ChoiceFact[];
   readonly prompt: (fact: ChoiceFact) => string;
-  /** Kandidaten für falsche Antworten; Standard: andere Antworten derselben Vorlage. */
-  readonly distractorPool?: (fact: ChoiceFact, facts: readonly ChoiceFact[], rows: readonly Row[]) => string[];
+  /** Zweiter Datenstand nur für falsche Antworten (z. B. Städte je Staat zur Hauptstadt-Frage). */
+  readonly support?: string;
+  /**
+   * Kandidaten für falsche Antworten, die besten zuerst; Standard: andere Antworten derselben
+   * Vorlage. `support` sind die Zeilen des zweiten Datenstands (leer ohne `support`).
+   */
+  readonly distractorPool?: (
+    fact: ChoiceFact,
+    facts: readonly ChoiceFact[],
+    rows: readonly Row[],
+    support: readonly Row[],
+  ) => string[];
   /** Feste Schwierigkeit statt der aus der Bekanntheit. */
   readonly difficulty?: (fact: ChoiceFact) => 2 | 3 | 4;
   /** Aus wie vielen der besten Kandidaten die drei falschen Antworten gelost werden (Standard 6). */
@@ -210,7 +220,11 @@ function ranked<T extends { rank: number; label: string }>(facts: readonly T[]):
 }
 
 /** Erzeugt die Fragen einer Vorlage aus ihrem Datenstand. */
-export function generateFromTemplate(template: Template, snapshot: SnapshotData): GeneratedQuestion[] {
+export function generateFromTemplate(
+  template: Template,
+  snapshot: SnapshotData,
+  support?: SnapshotData,
+): GeneratedQuestion[] {
   const accessed = accessedDate(snapshot);
   if (template.kind === 'ESTIMATE') {
     const facts = ranked(template.extract(snapshot.rows)).filter(
@@ -227,7 +241,7 @@ export function generateFromTemplate(template: Template, snapshot: SnapshotData)
   for (const { item, share } of spreadPick(facts, template.count, template.window, template.id)) {
     const rng = createRng(`wd-${template.id}-${item.qid}:distractors`);
     const pool = template.distractorPool
-      ? template.distractorPool(item, facts, snapshot.rows).map((answer, rank) => ({ answer, rank }))
+      ? template.distractorPool(item, facts, snapshot.rows, support?.rows ?? []).map((answer, rank) => ({ answer, rank }))
       : facts.filter((f) => f.qid !== item.qid);
     const distractors = pickDistractors(item, pool, rng, {
       ...(template.shortlist !== undefined ? { shortlist: template.shortlist } : {}),

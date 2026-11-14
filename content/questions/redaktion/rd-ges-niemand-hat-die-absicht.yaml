@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-niemand-hat-die-absicht
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Walter Ulbricht"
+    url: https://de.wikipedia.org/wiki/Walter_Ulbricht
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher DDR-Politiker sagte kurz vor dem Mauerbau: „Niemand hat die Absicht, eine Mauer zu errichten“?"
+    options:
+      a: "Walter Ulbricht"
+      b: "Wilhelm Pieck"
+      c: "Egon Krenz"
+      d: "Erich Honecker"

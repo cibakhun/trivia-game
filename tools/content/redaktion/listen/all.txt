@@ -1,0 +1,46 @@
+# Allgemeinwissen (Alltag, Bräuche, Essen, Spiele, Sprache)
+T|ALL|2|lebkuchen|Welche Stadt ist besonders für ihre Lebkuchen bekannt?|Nürnberg|Dresden;Lübeck;Bremen|Nürnberger Lebkuchen|Nürnberg
+T|ALL|2|stollen|Aus welcher Stadt stammt der bekannteste Christstollen?|Dresden|Nürnberg;Lübeck;Meißen|Dresdner Stollen|Dresden
+T|ALL|1|marzipan|Für welche Süßigkeit ist Lübeck berühmt?|Marzipan|Lebkuchen;Printen;Baumkuchen|Lübecker Marzipan|Lübeck
+T|ALL|3|printen|Aus welcher Stadt stammen die Printen?|Aachen|Nürnberg;Köln;Bremen|Aachener Printen|Aachen
+T|ALL|1|maultaschen|Aus welcher Region stammen die Maultaschen?|Schwaben|Franken;Rheinland;Westfalen|Maultasche|schwäbisch
+T|ALL|2|weisswurst-mittag|Bis wann isst man Weißwürste nach alter Regel?|Bis zum Mittagsläuten|Bis zum Frühstücksende um 9 Uhr;Bis zum Nachmittagskaffee;Bis Sonnenuntergang|Weißwurst|Zwölf-Uhr-Läuten
+T|ALL|2|berliner-pfannkuchen|Wie heißt in Berlin das Gebäck, das anderswo „Berliner“ genannt wird?|Pfannkuchen|Krapfen;Kreppel;Schmalzkuchen|Berliner (Gebäck)|Pfannkuchen
+T|ALL|3|reinheitsgebot-jahr|Aus welchem Jahr stammt das bayerische Reinheitsgebot für Bier?|1516|1416;1616;1871|Reinheitsgebot|1516
+T|ALL|4|reinheitsgebot-zutaten|Welche Zutaten erlaubte das Reinheitsgebot von 1516 für Bier?|Gerste, Hopfen und Wasser|Malz, Hopfen und Hefe;Weizen, Hopfen und Wasser;Gerste, Hefe und Wasser|Reinheitsgebot|Hopfen
+T|ALL|2|theresienwiese|Auf welchem Platz findet das Münchner Oktoberfest statt?|Theresienwiese|Englischer Garten;Olympiapark;Königsplatz|Theresienwiese|Oktoberfest
+T|ALL|3|oktoberfest-anlass|Welcher Anlass führte 1810 zum ersten Oktoberfest?|Die Hochzeit des Kronprinzen Ludwig|Die Krönung König Maximilians;Das Ende der Napoleonischen Kriege;Ein großes Erntedankfest|Oktoberfest|Hochzeit
+T|ALL|1|elfter-elfter|Wann beginnt im Rheinland traditionell die Karnevalssession?|Am 11. November um 11:11 Uhr|Am 1. November um 11:11 Uhr;Am 11. Januar um 11:11 Uhr;Am 11. Dezember um 11:11 Uhr|Elfter im Elften|11:11
+T|ALL|2|alaaf|In welcher Stadt ruft man im Karneval traditionell „Alaaf“?|Köln|Mainz;Düsseldorf;Münster|Alaaf|Köln
+T|ALL|3|himmelfahrt|Welcher Feiertag wird am 40. Tag der Osterzeit gefeiert?|Christi Himmelfahrt|Pfingsten;Fronleichnam;Allerheiligen|Christi Himmelfahrt|40. Tag
+T|ALL|2|allerheiligen|Auf welches Datum fällt Allerheiligen?|1. November|2. November;31. Oktober;11. November|Allerheiligen|1. November
+T|ALL|2|donnerstag-donar|Welcher Wochentag ist nach dem germanischen Gott Donar benannt?|Donnerstag|Dienstag;Mittwoch;Freitag|Donnerstag|Donar
+T|ALL|1|silberhochzeit|Wie heißt der Hochzeitstag nach 25 Ehejahren?|Silberne Hochzeit|Goldene Hochzeit;Diamantene Hochzeit;Rubinhochzeit|Hochzeitstag|Silberne Hochzeit
+T|ALL|3|diamantene-hochzeit|Nach wie vielen Ehejahren feiert man die Diamantene Hochzeit?|60|50;65;75|Hochzeitstag|Diamantene Hochzeit
+T|ALL|1|notruf-112|Welche Notrufnummer wählt man in Deutschland für Feuerwehr und Rettungsdienst?|112|110;115;116 117|Notruf 112|Feuerwehr
+T|ALL|3|bereitschaftsdienst|Welche Nummer hat der ärztliche Bereitschaftsdienst in Deutschland?|116 117|112;110;115|Ärztlicher Bereitschaftsdienst|116 117
+T|ALL|2|flensburg-punkte|In welcher Stadt sitzt die Behörde, die die „Punkte“ für Verkehrsverstöße führt?|Flensburg|Kiel;Hamburg;Bremen|Kraftfahrt-Bundesamt|Flensburg
+T|ALL|2|richtgeschwindigkeit|Wie hoch ist die empfohlene Richtgeschwindigkeit auf deutschen Autobahnen?|130 km/h|100 km/h;120 km/h;150 km/h|Richtgeschwindigkeit|130
+T|ALL|1|stoppschild|Welche Form hat ein Stoppschild?|Achteckig|Dreieckig;Rund;Quadratisch|Stoppschild|achteckig
+T|ALL|2|kennzeichen-hh|Für welche Stadt steht das Kfz-Kennzeichen „HH“?|Hamburg|Hannover;Halle (Saale);Heidelberg|Liste der Kfz-Kennzeichen in Deutschland|Hamburg
+T|ALL|2|kennzeichen-ch|Welches Nationalitätszeichen tragen Autos aus der Schweiz?|CH|S;SZ;SW|Internationales Kfz-Kennzeichen|CH
+T|ALL|2|sommerzeit-monat|In welchem Monat werden in der EU die Uhren auf Sommerzeit umgestellt?|März|Februar;April;Mai|Sommerzeit|März
+T|ALL|2|sommerzeit-uhr|Wie werden die Uhren bei der Umstellung auf Sommerzeit gestellt?|Von 2 auf 3 Uhr vor|Von 3 auf 2 Uhr zurück;Von 1 auf 2 Uhr vor;Von 0 auf 1 Uhr vor|Sommerzeit|3 Uhr
+T|ALL|1|butter-paket|Wie viel wiegt ein übliches Stück Butter in Deutschland?|250 Gramm|125 Gramm;200 Gramm;500 Gramm|Butter|250
+T|ALL|1|skat-karten|Mit wie vielen Karten wird Skat gespielt?|32|24;36;52|Skat|32
+T|ALL|1|poker-karten|Wie viele Karten hat ein französisches Blatt ohne Joker?|52|32;48;54|Französisches Blatt|52
+T|ALL|1|schachbrett|Wie viele Felder hat ein Schachbrett?|64|49;81;100|Schachbrett|64
+T|ALL|1|laeufer|Welche Schachfigur zieht ausschließlich diagonal?|Läufer|Turm;Springer;König|Läufer (Schach)|diagonal
+T|ALL|3|wuerfel-augen|Wie viele Augen hat ein normaler Spielwürfel insgesamt?|21|18;20;24|Spielwürfel|21
+T|ALL|2|wuerfel-gegenueber|Welche Augenzahl liegt auf einem normalen Spielwürfel der Sechs gegenüber?|1|2;3;5|Spielwürfel|sieben
+T|ALL|1|mensch-aergere-dich-nicht|Wie viele Spielfiguren hat jeder Spieler bei „Mensch ärgere Dich nicht“?|4|3;5;6|Mensch ärgere Dich nicht|vier
+T|ALL|4|domino-steine|Wie viele Steine hat ein übliches Dominospiel bis Doppel-Sechs?|28|24;32;36|Domino|28
+T|ALL|1|schaltjahr|Wie viele Tage hat ein Schaltjahr?|366|364;365;367|Schaltjahr|366
+T|ALL|2|steinbock|Welches Sternzeichen haben Menschen, die am 1. Januar geboren sind?|Steinbock|Wassermann;Schütze;Fische|Steinbock (Tierkreiszeichen)|Januar
+T|ALL|1|blau-gelb|Welche Farbe entsteht beim Mischen von blauer und gelber Malfarbe?|Grün|Violett;Orange;Braun|Subtraktive Farbmischung|Grün
+T|ALL|1|alphabet|Wie viele Buchstaben hat das deutsche Alphabet ohne Umlaute und ß?|26|24;28;30|Deutsches Alphabet|26
+T|ALL|2|haeufigster-buchstabe|Welcher Buchstabe kommt in deutschen Texten am häufigsten vor?|E|A;I;N|Buchstabenhäufigkeit|E
+T|ALL|2|palindrom|Wie nennt man ein Wort, das vorwärts und rückwärts gelesen gleich lautet, etwa „Rentner“?|Palindrom|Anagramm;Akronym;Homonym|Palindrom|rückwärts
+T|ALL|2|anagramm|Wie nennt man ein Wort, das durch Umstellen der Buchstaben eines anderen entsteht?|Anagramm|Palindrom;Akronym;Synonym|Anagramm|Buchstaben
+T|ALL|2|at-domain|Welche Internet-Länderendung hat Österreich?|.at|.au;.os;.oe|.at|Österreich
+T|ALL|1|euro-scheine|Welcher ist der größte Euro-Geldschein, der heute noch ausgegeben wird?|200 Euro|100 Euro;500 Euro;1000 Euro|Eurobanknoten|200

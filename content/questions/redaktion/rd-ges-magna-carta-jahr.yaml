@@ -1,0 +1,29 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-magna-carta-jahr
+kind: ESTIMATE
+category: HISTORY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Magna Carta"
+    url: https://de.wikipedia.org/wiki/Magna_Carta
+    accessed: 2026-11-12
+reviews: []
+estimate:
+  answer_value: "1215"
+  answer_precision: 0
+  answer_unit: year
+  input_min: "1000"
+  input_max: "2026"
+  scale_type: LINEAR
+  scale: 40
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr wurde die Magna Carta besiegelt?"
+    unit_label: "Jahr"

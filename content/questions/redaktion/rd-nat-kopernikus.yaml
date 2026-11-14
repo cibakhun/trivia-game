@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-kopernikus
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Nikolaus Kopernikus"
+    url: https://de.wikipedia.org/wiki/Nikolaus_Kopernikus
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer begründete im 16. Jahrhundert das heliozentrische Weltbild der Neuzeit?"
+    options:
+      a: "Nikolaus Kopernikus"
+      b: "Galileo Galilei"
+      c: "Johannes Kepler"
+      d: "Claudius Ptolemäus"

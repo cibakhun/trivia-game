@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-pentagon
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Fünfeck"
+    url: https://de.wikipedia.org/wiki/F%C3%BCnfeck
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Ecken hat ein Fünfeck?"
+    options:
+      a: "4"
+      b: "8"
+      c: "5"
+      d: "6"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-kaiserpinguin
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Kaiserpinguin"
+    url: https://de.wikipedia.org/wiki/Kaiserpinguin
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches dieser Tiere lebt in der Antarktis und nicht in der Arktis?"
+    options:
+      a: "Walross"
+      b: "Polarfuchs"
+      c: "Kaiserpinguin"
+      d: "Eisbär"

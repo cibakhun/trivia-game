@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-fakultaet-5
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Fakultät (Mathematik)"
+    url: https://de.wikipedia.org/wiki/Fakult%C3%A4t_(Mathematik)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viel ist 5! (5 Fakultät)?"
+    options:
+      a: "720"
+      b: "60"
+      c: "120"
+      d: "25"

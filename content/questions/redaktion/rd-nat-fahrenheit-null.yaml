@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-fahrenheit-null
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Grad Fahrenheit"
+    url: https://de.wikipedia.org/wiki/Grad_Fahrenheit
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viel Grad Fahrenheit entsprechen 0 °C?"
+    options:
+      a: "100 °F"
+      b: "0 °F"
+      c: "212 °F"
+      d: "32 °F"

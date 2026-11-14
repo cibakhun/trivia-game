@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-planck-quanten
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Max Planck"
+    url: https://de.wikipedia.org/wiki/Max_Planck
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer begründete im Jahr 1900 die Quantenphysik?"
+    options:
+      a: "Max Planck"
+      b: "Albert Einstein"
+      c: "Niels Bohr"
+      d: "Werner Heisenberg"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-groesster-ozean
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Pazifischer Ozean"
+    url: https://de.wikipedia.org/wiki/Pazifischer_Ozean
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der größte Ozean der Erde?"
+    options:
+      a: "Indischer Ozean"
+      b: "Pazifischer Ozean"
+      c: "Atlantischer Ozean"
+      d: "Arktischer Ozean"

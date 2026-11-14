@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-landeshauptstadt-bayern
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bayern"
+    url: https://de.wikipedia.org/wiki/Bayern
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Landeshauptstadt von Bayern?"
+    options:
+      a: "Nürnberg"
+      b: "München"
+      c: "Augsburg"
+      d: "Regensburg"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-bundesliga-vereine
+kind: TRIVIA
+category: SPORTS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Fußball-Bundesliga"
+    url: https://de.wikipedia.org/wiki/Fu%C3%9Fball-Bundesliga
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Vereine spielen in der Fußball-Bundesliga?"
+    options:
+      a: "18"
+      b: "20"
+      c: "16"
+      d: "22"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-wm-1974-gegner
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Fußball-Weltmeisterschaft 1974"
+    url: https://de.wikipedia.org/wiki/Fu%C3%9Fball-Weltmeisterschaft_1974
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Gegen welches Land gewann Deutschland 1974 das WM-Finale in München?"
+    options:
+      a: "Polen"
+      b: "Italien"
+      c: "Niederlande"
+      d: "Ungarn"

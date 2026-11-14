@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-wuerfel-augen
+kind: TRIVIA
+category: GENERAL
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Spielwürfel"
+    url: https://de.wikipedia.org/wiki/Spielw%C3%BCrfel
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Augen hat ein normaler Spielwürfel insgesamt?"
+    options:
+      a: "24"
+      b: "20"
+      c: "21"
+      d: "18"

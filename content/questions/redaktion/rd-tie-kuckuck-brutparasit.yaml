@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-kuckuck-brutparasit
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Kuckuck"
+    url: https://de.wikipedia.org/wiki/Kuckuck
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Vogel legt seine Eier in die Nester anderer Vögel?"
+    options:
+      a: "Star"
+      b: "Buntspecht"
+      c: "Elster"
+      d: "Kuckuck"

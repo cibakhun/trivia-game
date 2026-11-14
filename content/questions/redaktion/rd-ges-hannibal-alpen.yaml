@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-hannibal-alpen
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Hannibal"
+    url: https://de.wikipedia.org/wiki/Hannibal
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Feldherr aus Karthago überquerte mit Kriegselefanten die Alpen?"
+    options:
+      a: "Hannibal"
+      b: "Scipio"
+      c: "Hamilkar"
+      d: "Spartacus"

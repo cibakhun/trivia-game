@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-saturn-v
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Apollo 11"
+    url: https://de.wikipedia.org/wiki/Apollo_11
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Mit welcher Rakete startete Apollo 11 zum Mond?"
+    options:
+      a: "Titan II"
+      b: "Ariane 1"
+      c: "Saturn V"
+      d: "Atlas"

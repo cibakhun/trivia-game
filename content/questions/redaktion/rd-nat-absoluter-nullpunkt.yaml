@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-absoluter-nullpunkt
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Absoluter Nullpunkt"
+    url: https://de.wikipedia.org/wiki/Absoluter_Nullpunkt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viel Grad Celsius beträgt der absolute Nullpunkt?"
+    options:
+      a: "−273,15 °C"
+      b: "−459,67 °C"
+      c: "−373,15 °C"
+      d: "−100 °C"

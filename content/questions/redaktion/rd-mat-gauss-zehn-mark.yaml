@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-gauss-zehn-mark
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Carl Friedrich Gauß"
+    url: https://de.wikipedia.org/wiki/Carl_Friedrich_Gau%C3%9F
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Mathematiker war auf dem letzten Zehn-Mark-Schein abgebildet?"
+    options:
+      a: "Gottfried Wilhelm Leibniz"
+      b: "Carl Friedrich Gauß"
+      c: "Bernhard Riemann"
+      d: "Leonhard Euler"

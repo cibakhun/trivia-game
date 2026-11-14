@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-mindestlohn
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mindestlohn in Deutschland"
+    url: https://de.wikipedia.org/wiki/Mindestlohn_in_Deutschland
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Seit welchem Jahr gilt in Deutschland ein allgemeiner gesetzlicher Mindestlohn?"
+    options:
+      a: "2018"
+      b: "2015"
+      c: "2009"
+      d: "2012"

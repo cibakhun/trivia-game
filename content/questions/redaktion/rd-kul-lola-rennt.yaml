@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-lola-rennt
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Lola rennt"
+    url: https://de.wikipedia.org/wiki/Lola_rennt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer führte Regie bei „Lola rennt“?"
+    options:
+      a: "Wim Wenders"
+      b: "Tom Tykwer"
+      c: "Fatih Akin"
+      d: "Wolfgang Petersen"

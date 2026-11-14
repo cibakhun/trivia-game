@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-varusschlacht-arminius
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Varusschlacht"
+    url: https://de.wikipedia.org/wiki/Varusschlacht
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Unter welchem germanischen Anführer wurden die Römer im Jahr 9 n. Chr. in der Varusschlacht geschlagen?"
+    options:
+      a: "Vercingetorix"
+      b: "Marbod"
+      c: "Arminius"
+      d: "Alarich"

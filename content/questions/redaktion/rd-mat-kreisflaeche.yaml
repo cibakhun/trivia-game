@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-kreisflaeche
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Kreisfläche"
+    url: https://de.wikipedia.org/wiki/Kreisfl%C3%A4che
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Mit welcher Formel berechnet man den Flächeninhalt eines Kreises?"
+    options:
+      a: "π · d"
+      b: "π · r³"
+      c: "2 · π · r"
+      d: "π · r²"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-mondlandung-jahr
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Apollo 11"
+    url: https://de.wikipedia.org/wiki/Apollo_11
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr betraten zum ersten Mal Menschen den Mond?"
+    options:
+      a: "1969"
+      b: "1972"
+      c: "1965"
+      d: "1967"

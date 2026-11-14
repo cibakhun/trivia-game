@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-panamakanal
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Panamakanal"
+    url: https://de.wikipedia.org/wiki/Panamakanal
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Kanal verbindet den Atlantik mit dem Pazifik?"
+    options:
+      a: "Kiel-Kanal"
+      b: "Panamakanal"
+      c: "Korinth-Kanal"
+      d: "Suezkanal"

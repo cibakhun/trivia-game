@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-blaue-donau
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: An der schönen blauen Donau"
+    url: https://de.wikipedia.org/wiki/An_der_sch%C3%B6nen_blauen_Donau
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer komponierte den Walzer „An der schönen blauen Donau“?"
+    options:
+      a: "Joseph Lanner"
+      b: "Franz Schubert"
+      c: "Franz Lehár"
+      d: "Johann Strauss (Sohn)"

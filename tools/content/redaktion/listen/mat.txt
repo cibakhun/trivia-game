@@ -1,0 +1,44 @@
+# Mathematik (Rechenfragen sind selbst nachgerechnet; Quelle belegt den Begriff)
+T|MAT|1|sieben-mal-acht|Wie viel ist 7 mal 8?|56|48;54;63|Multiplikation|Multiplikation
+T|MAT|2|dreizehn-quadrat|Wie viel ist 13 zum Quadrat?|169|149;159;179|Quadratzahl|169
+T|MAT|1|wurzel-144|Wie viel ist die Quadratwurzel aus 144?|12|11;13;14|Quadratwurzel|Quadratwurzel
+T|MAT|2|zwei-hoch-zehn|Wie viel ist 2 hoch 10?|1024|512;1000;2048|Zweierpotenz|1024
+T|MAT|1|prozent-200|Wie viel sind 15 Prozent von 200?|30|15;20;35|Prozent|Prozent
+T|MAT|3|fakultaet-5|Wie viel ist 5! (5 Fakultät)?|120|25;60;720|Fakultät (Mathematik)|120
+T|MAT|3|summe-1-bis-100|Welche Summe ergibt sich, wenn man alle Zahlen von 1 bis 100 addiert?|5050|5000;5100;10100|Gaußsche Summenformel|5050
+T|MAT|2|fibonacci|Welche Zahl folgt in der Folge 1, 1, 2, 3, 5, 8, 13 als nächste?|21|18;20;26|Fibonacci-Folge|21
+T|MAT|3|quadrat-und-kubik|Welche dieser Zahlen ist zugleich eine Quadratzahl und eine Kubikzahl?|64|16;27;81|Kubikzahl|64
+T|MAT|2|kleinste-primzahl|Welches ist die kleinste Primzahl?|2|0;1;3|Primzahl|2
+T|MAT|3|primzahl-97|Welche dieser Zahlen ist eine Primzahl?|97|87;91;93|Primzahl|Primzahl
+T|MAT|2|hoch-null|Was ergibt jede Zahl außer null hoch 0?|1|0;Die Zahl selbst;Unendlich|Potenz (Mathematik)|1
+T|MAT|2|quotient|Wie heißt das Ergebnis einer Division?|Quotient|Produkt;Summe;Differenz|Division (Mathematik)|Quotient
+T|MAT|1|milliarde-nullen|Wie viele Nullen hat eine Milliarde?|9|6;12;15|Milliarde|Milliarde
+T|MAT|2|billion-deutsch|Wie schreibt man eine deutsche Billion als Zahl?|1.000.000.000.000|1.000.000.000;100.000.000.000;1.000.000.000.000.000|Billion|Billion
+T|MAT|3|googol|Wie heißt die Zahl, die aus einer Eins mit 100 Nullen besteht?|Googol|Googolplex;Zentillion;Dezillion|Googol|100
+T|MAT|1|roemisch-50|Welche römische Zahl steht für 50?|L|C;D;X|Römische Zahlschrift|L
+T|MAT|2|roemisch-500|Welche römische Zahl steht für 500?|D|C;L;M|Römische Zahlschrift|D
+T|MAT|3|roemisch-1989|Welche Jahreszahl ist MCMLXXXIX?|1989|1979;1991;2009|Römische Zahlschrift|Römische Zahlschrift
+T|MAT|1|pi-ziffern|Mit welchen Ziffern beginnt die Kreiszahl π?|3,14159|3,14259;3,14169;3,15149|Kreiszahl|3,14159
+T|MAT|3|eulersche-zahl|Welchen ungefähren Wert hat die Eulersche Zahl e?|2,718|1,414;1,618;3,142|Eulersche Zahl|2,718
+T|MAT|3|goldener-schnitt|Welchen ungefähren Wert hat das Verhältnis des Goldenen Schnitts?|1,618|1,414;2,718;3,142|Goldener Schnitt|1,618
+T|MAT|1|winkelsumme-dreieck|Wie groß ist die Winkelsumme in einem ebenen Dreieck?|180 Grad|90 Grad;270 Grad;360 Grad|Winkelsumme|180
+T|MAT|2|winkelsumme-viereck|Wie groß ist die Winkelsumme in einem ebenen Viereck?|360 Grad|180 Grad;270 Grad;540 Grad|Viereck|360
+T|MAT|1|rechter-winkel|Wie viel Grad hat ein rechter Winkel?|90 Grad|45 Grad;100 Grad;180 Grad|Rechter Winkel|90
+T|MAT|2|hypotenuse|Wie heißt im rechtwinkligen Dreieck die Seite gegenüber dem rechten Winkel?|Hypotenuse|Kathete;Ankathete;Höhe|Hypotenuse|rechten Winkel
+T|MAT|1|pythagoras|Wie lautet der Satz des Pythagoras?|a² + b² = c²|a + b = c;a² − b² = c²;2a + 2b = c|Satz des Pythagoras|Pythagoras
+T|MAT|2|kreisflaeche|Mit welcher Formel berechnet man den Flächeninhalt eines Kreises?|π · r²|2 · π · r;π · d;π · r³|Kreisfläche|Flächeninhalt
+T|MAT|1|wuerfel-ecken|Wie viele Ecken hat ein Würfel?|8|6;10;12|Würfel (Geometrie)|Ecken
+T|MAT|2|wuerfel-kanten|Wie viele Kanten hat ein Würfel?|12|8;10;14|Würfel (Geometrie)|Kanten
+T|MAT|3|platonische-koerper|Wie viele platonische Körper gibt es?|5|4;6;7|Platonischer Körper|fünf
+T|MAT|4|ikosaeder|Wie viele Flächen hat ein Ikosaeder?|20|12;16;24|Ikosaeder|20
+T|MAT|4|sechseck-diagonalen|Wie viele Diagonalen hat ein Sechseck?|9|6;12;15|Diagonale (Geometrie)|Diagonale
+T|MAT|1|pentagon|Wie viele Ecken hat ein Fünfeck?|5|4;6;8|Fünfeck|Fünfeck
+T|MAT|2|minuten-tag|Wie viele Minuten hat ein Tag?|1440|1240;1400;1640|Tag|1440
+T|MAT|1|sekunden-stunde|Wie viele Sekunden hat eine Stunde?|3600|360;3000;6000|Stunde|3600
+T|MAT|3|hektar|Wie viele Quadratmeter hat ein Hektar?|10.000|1.000;100;100.000|Hektar|10.000
+T|MAT|2|kubikmeter-liter|Wie viele Liter passen in einen Kubikmeter?|1000|10;100;10.000|Kubikmeter|1000
+T|MAT|1|dutzend|Wie viele Stück sind ein Dutzend?|12|10;13;20|Dutzend|zwölf
+T|MAT|4|schock|Wie viele Stück sind ein Schock?|60|12;100;144|Schock (Einheit)|60
+T|MAT|3|gauss-zehn-mark|Welcher Mathematiker war auf dem letzten Zehn-Mark-Schein abgebildet?|Carl Friedrich Gauß|Leonhard Euler;Gottfried Wilhelm Leibniz;Bernhard Riemann|Carl Friedrich Gauß|10-DM
+T|MAT|3|leibniz-infinitesimal|Wer entwickelte unabhängig von Isaac Newton die Infinitesimalrechnung?|Gottfried Wilhelm Leibniz|Carl Friedrich Gauß;Leonhard Euler;Johannes Kepler|Gottfried Wilhelm Leibniz|Infinitesimalrechnung
+T|MAT|4|fermat-wiles|Wer bewies in den 1990er-Jahren den Großen Fermatschen Satz?|Andrew Wiles|Grigori Perelman;Terence Tao;John Nash|Großer Fermatscher Satz|Wiles

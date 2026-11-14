@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-blau-gelb
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Subtraktive Farbmischung"
+    url: https://de.wikipedia.org/wiki/Subtraktive_Farbmischung
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Farbe entsteht beim Mischen von blauer und gelber Malfarbe?"
+    options:
+      a: "Grün"
+      b: "Violett"
+      c: "Braun"
+      d: "Orange"

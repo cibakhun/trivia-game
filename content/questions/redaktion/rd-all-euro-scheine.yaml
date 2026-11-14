@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-euro-scheine
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Eurobanknoten"
+    url: https://de.wikipedia.org/wiki/Eurobanknoten
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der größte Euro-Geldschein, der heute noch ausgegeben wird?"
+    options:
+      a: "1000 Euro"
+      b: "100 Euro"
+      c: "500 Euro"
+      d: "200 Euro"

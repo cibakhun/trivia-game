@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-beuteltier
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wombats"
+    url: https://de.wikipedia.org/wiki/Wombats
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches dieser Tiere ist ein Beuteltier?"
+    options:
+      a: "Wombat"
+      b: "Ameisenbär"
+      c: "Gürteltier"
+      d: "Faultier"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-eu-mitglieder
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Europäische Union"
+    url: https://de.wikipedia.org/wiki/Europ%C3%A4ische_Union
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Mitgliedstaaten hat die Europäische Union seit dem Austritt des Vereinigten Königreichs?"
+    options:
+      a: "30"
+      b: "28"
+      c: "27"
+      d: "25"

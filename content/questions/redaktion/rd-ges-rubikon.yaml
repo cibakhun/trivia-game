@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-rubikon
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Rubikon"
+    url: https://de.wikipedia.org/wiki/Rubikon
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher römische Feldherr überschritt 49 v. Chr. mit seinen Truppen den Rubikon?"
+    options:
+      a: "Pompeius"
+      b: "Gaius Iulius Caesar"
+      c: "Augustus"
+      d: "Marcus Antonius"

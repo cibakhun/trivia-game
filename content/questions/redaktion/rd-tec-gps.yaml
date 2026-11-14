@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-gps
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Global Positioning System"
+    url: https://de.wikipedia.org/wiki/Global_Positioning_System
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wofür steht die Abkürzung „GPS“?"
+    options:
+      a: "Global Path Signal"
+      b: "Geo Positioning Satellite"
+      c: "Global Positioning System"
+      d: "General Position Service"

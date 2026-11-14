@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-lebkuchen
+kind: TRIVIA
+category: GENERAL
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Nürnberger Lebkuchen"
+    url: https://de.wikipedia.org/wiki/N%C3%BCrnberger_Lebkuchen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Stadt ist besonders für ihre Lebkuchen bekannt?"
+    options:
+      a: "Bremen"
+      b: "Lübeck"
+      c: "Nürnberg"
+      d: "Dresden"

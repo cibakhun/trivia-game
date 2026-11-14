@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-lupenreiner-hattrick
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Hattrick"
+    url: https://de.wikipedia.org/wiki/Hattrick
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie nennt man drei Tore eines Spielers in einer Halbzeit, ohne dass ein anderer Spieler dazwischen trifft?"
+    options:
+      a: "Triple"
+      b: "Dreierpack"
+      c: "Lupenreiner Hattrick"
+      d: "Doppelpack"

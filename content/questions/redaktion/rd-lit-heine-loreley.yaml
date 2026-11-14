@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-heine-loreley
+kind: TRIVIA
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die Lore-Ley"
+    url: https://de.wikipedia.org/wiki/Die_Lore-Ley
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Dichter schrieb das Gedicht „Die Lore-Ley“ mit dem Anfang „Ich weiß nicht, was soll es bedeuten“?"
+    options:
+      a: "Friedrich Hölderlin"
+      b: "Novalis"
+      c: "Heinrich Heine"
+      d: "Eduard Mörike"

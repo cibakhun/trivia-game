@@ -1,0 +1,53 @@
+# Literatur (Weltklassiker mit „Wer schrieb …?“ kommen aus Wikidata; hier deutsche Literatur, Figuren, Kinderbücher)
+T|LIT|2|die-raeuber|Wer schrieb das Drama „Die Räuber“?|Friedrich Schiller|Johann Wolfgang von Goethe;Gotthold Ephraim Lessing;Heinrich von Kleist|Die Räuber|Schiller
+T|LIT|2|nathan|Wer schrieb das Drama „Nathan der Weise“?|Gotthold Ephraim Lessing|Friedrich Schiller;Johann Wolfgang von Goethe;Johann Gottfried Herder|Nathan der Weise|Lessing
+T|LIT|2|wilhelm-tell-schweiz|Welches Drama von Friedrich Schiller spielt in der Schweiz?|Wilhelm Tell|Maria Stuart;Don Karlos;Kabale und Liebe|Wilhelm Tell (Schiller)|Schweiz
+T|LIT|2|werther|In welchem Briefroman nimmt sich der Held aus unglücklicher Liebe zu Lotte das Leben?|Die Leiden des jungen Werthers|Wilhelm Meisters Lehrjahre;Kabale und Liebe;Hyperion|Die Leiden des jungen Werthers|Lotte
+T|LIT|3|faust-gretchen|Wie heißt die junge Frau, die Faust im ersten Teil der Tragödie verführt?|Gretchen|Lotte;Luise;Klärchen|Faust. Eine Tragödie.|Gretchen
+T|LIT|3|faust-mephisto|Wie heißt der Teufel, mit dem Faust in der Tragödie einen Pakt schließt?|Mephisto|Luzifer;Beelzebub;Belial|Faust. Eine Tragödie.|Mephisto
+T|LIT|3|heine-loreley|Welcher Dichter schrieb das Gedicht „Die Lore-Ley“ mit dem Anfang „Ich weiß nicht, was soll es bedeuten“?|Heinrich Heine|Friedrich Hölderlin;Eduard Mörike;Novalis|Die Lore-Ley|Heine
+T|LIT|2|buddenbrooks|Wer schrieb den Roman „Buddenbrooks“?|Thomas Mann|Heinrich Mann;Theodor Fontane;Hermann Hesse|Buddenbrooks|Thomas Mann
+T|LIT|4|mann-nobelpreis|Welchen Roman hob die Begründung hervor, als Thomas Mann den Literaturnobelpreis erhielt?|Buddenbrooks|Der Zauberberg;Der Tod in Venedig;Doktor Faustus|Thomas Mann|Buddenbrooks
+T|LIT|3|zauberberg|In welchem Roman verbringt Hans Castorp sieben Jahre in einem Sanatorium in Davos?|Der Zauberberg|Buddenbrooks;Der Steppenwolf;Siddhartha|Der Zauberberg|Hans Castorp
+T|LIT|2|steppenwolf|Wer schrieb den Roman „Der Steppenwolf“?|Hermann Hesse|Thomas Mann;Erich Kästner;Stefan Zweig|Der Steppenwolf|Hesse
+T|LIT|2|effi-briest|Wer schrieb den Roman „Effi Briest“?|Theodor Fontane|Theodor Storm;Gottfried Keller;Wilhelm Raabe|Effi Briest|Fontane
+T|LIT|3|schimmelreiter|Wer schrieb die Novelle „Der Schimmelreiter“?|Theodor Storm|Theodor Fontane;Wilhelm Raabe;Gottfried Keller|Der Schimmelreiter|Storm
+T|LIT|3|verwandlung-samsa|Wie heißt die Hauptfigur, die in „Die Verwandlung“ eines Morgens als Ungeziefer erwacht?|Gregor Samsa|Josef K.;Karl Roßmann;Hans Castorp|Die Verwandlung|Gregor Samsa
+T|LIT|2|im-westen-nichts-neues|Wer schrieb den Roman „Im Westen nichts Neues“?|Erich Maria Remarque|Ernst Jünger;Erich Kästner;Kurt Tucholsky|Im Westen nichts Neues|Remarque
+T|LIT|2|dreigroschenoper|Wer schrieb „Die Dreigroschenoper“?|Bertolt Brecht|Carl Zuckmayer;Gerhart Hauptmann;Ödön von Horváth|Die Dreigroschenoper|Brecht
+T|LIT|3|hauptmann-koepenick|Wer schrieb das Theaterstück „Der Hauptmann von Köpenick“?|Carl Zuckmayer|Bertolt Brecht;Gerhart Hauptmann;Heinrich Mann|Der Hauptmann von Köpenick (Zuckmayer)|Zuckmayer
+T|LIT|2|blechtrommel|Wer schrieb den Roman „Die Blechtrommel“?|Günter Grass|Heinrich Böll;Siegfried Lenz;Martin Walser|Die Blechtrommel|Grass
+T|LIT|3|oskar-matzerath|Wie heißt der Junge in „Die Blechtrommel“, der beschließt, nicht mehr zu wachsen?|Oskar Matzerath|Felix Krull;Hans Castorp;Tadzio|Die Blechtrommel|Oskar Matzerath
+T|LIT|3|boell-nobelpreis|Welcher deutsche Schriftsteller erhielt 1972 den Literaturnobelpreis?|Heinrich Böll|Günter Grass;Thomas Mann;Hermann Hesse|Heinrich Böll|1972
+T|LIT|2|parfum|Wer schrieb den Roman „Das Parfum“?|Patrick Süskind|Daniel Kehlmann;Bernhard Schlink;Uwe Timm|Das Parfum|Süskind
+T|LIT|3|der-vorleser|Wer schrieb den Roman „Der Vorleser“?|Bernhard Schlink|Patrick Süskind;Daniel Kehlmann;Günter Grass|Der Vorleser|Schlink
+T|LIT|3|vermessung-der-welt|Wer schrieb den Roman „Die Vermessung der Welt“?|Daniel Kehlmann|Patrick Süskind;Juli Zeh;Uwe Tellkamp|Die Vermessung der Welt|Kehlmann
+T|LIT|4|vermessung-forscher|Welche beiden Forscher stehen im Mittelpunkt von „Die Vermessung der Welt“?|Gauß und Humboldt|Kepler und Galilei;Darwin und Humboldt;Gauß und Leibniz|Die Vermessung der Welt|Humboldt
+T|LIT|1|winnetou-autor|Wer erfand die Figur Winnetou?|Karl May|Friedrich Gerstäcker;James Fenimore Cooper;Balduin Möllhausen|Winnetou|Karl May
+T|LIT|2|old-shatterhand|Wie heißt Winnetous weißer Blutsbruder?|Old Shatterhand|Old Surehand;Old Firehand;Sam Hawkens|Old Shatterhand|Winnetou
+T|LIT|1|max-und-moritz|Wer schuf „Max und Moritz“?|Wilhelm Busch|Heinrich Hoffmann;Christian Morgenstern;Joachim Ringelnatz|Max und Moritz|Wilhelm Busch
+T|LIT|2|struwwelpeter|Wer schrieb den „Struwwelpeter“?|Heinrich Hoffmann|Wilhelm Busch;Hans Christian Andersen;Christian Morgenstern|Struwwelpeter|Heinrich Hoffmann
+T|LIT|3|brueder-grimm-vornamen|Wie hießen die Brüder Grimm, die die „Kinder- und Hausmärchen“ herausgaben, mit Vornamen?|Jacob und Wilhelm|Jacob und Ludwig;Wilhelm und Ludwig;Hans und Wilhelm|Brüder Grimm|Jacob
+T|LIT|2|emil-detektive|Wer schrieb „Emil und die Detektive“?|Erich Kästner|Michael Ende;Otfried Preußler;James Krüss|Emil und die Detektive|Kästner
+T|LIT|1|unendliche-geschichte|Wer schrieb „Die unendliche Geschichte“?|Michael Ende|Cornelia Funke;Erich Kästner;Otfried Preußler|Die unendliche Geschichte|Michael Ende
+T|LIT|3|momo-graue-herren|Wie heißen die Zeitdiebe in Michael Endes „Momo“?|Die grauen Herren|Die schwarzen Reiter;Die Schattenmänner;Die Zeitwächter|Momo (Roman)|grauen Herren
+T|LIT|2|hotzenplotz|Wer schrieb „Der Räuber Hotzenplotz“?|Otfried Preußler|Michael Ende;James Krüss;Paul Maar|Der Räuber Hotzenplotz|Preußler
+T|LIT|3|krabat|Wer schrieb den Jugendroman „Krabat“?|Otfried Preußler|Michael Ende;Cornelia Funke;Wolfgang Herrndorf|Krabat (Roman)|Preußler
+T|LIT|3|sams|Wer schrieb die Bücher über „Das Sams“?|Paul Maar|Kirsten Boie;Otfried Preußler;Cornelia Funke|Paul Maar|Sams
+T|LIT|3|tintenherz|Wer schrieb „Tintenherz“?|Cornelia Funke|Kirsten Boie;Michael Ende;Andreas Steinhöfel|Tintenherz|Funke
+T|LIT|3|tschick|Wer schrieb den Jugendroman „Tschick“?|Wolfgang Herrndorf|Andreas Steinhöfel;Cornelia Funke;Daniel Kehlmann|Tschick|Herrndorf
+T|LIT|1|pippi-autorin|Wer schrieb die Bücher über Pippi Langstrumpf?|Astrid Lindgren|Selma Lagerlöf;Tove Jansson;Enid Blyton|Pippi Langstrumpf|Lindgren
+T|LIT|3|pippi-pferd|Wie heißt das Pferd von Pippi Langstrumpf?|Kleiner Onkel|Herr Nilsson;Fury;Jolly Jumper|Pippi Langstrumpf|Kleiner Onkel
+T|LIT|2|nils-holgersson|Wer schrieb „Die wunderbare Reise des kleinen Nils Holgersson mit den Wildgänsen“?|Selma Lagerlöf|Astrid Lindgren;Hans Christian Andersen;Johanna Spyri|Selma Lagerlöf|Nils Holgersson
+T|LIT|1|harry-potter-haus|In welches Haus von Hogwarts wird Harry Potter eingeteilt?|Gryffindor|Slytherin;Ravenclaw;Hufflepuff|Harry Potter|Gryffindor
+T|LIT|2|frodo|Welcher Hobbit trägt in „Der Herr der Ringe“ den Ring nach Mordor?|Frodo Beutlin|Bilbo Beutlin;Samweis Gamdschie;Meriadoc Brandybock|Frodo Beutlin|Mordor
+T|LIT|2|romeo-julia-verona|In welcher Stadt spielt Shakespeares „Romeo und Julia“?|Verona|Venedig;Florenz;Padua|Romeo und Julia|Verona
+T|LIT|2|hamlet-daenemark|In welchem Land spielt Shakespeares „Hamlet“?|Dänemark|Schweden;Norwegen;England|Hamlet|Dänemark
+T|LIT|2|moby-dick-ahab|Wie heißt der Kapitän in „Moby-Dick“?|Ahab|Nemo;Hook;Smollett|Moby-Dick|Ahab
+T|LIT|1|sherlock-holmes|Wer erfand die Figur Sherlock Holmes?|Arthur Conan Doyle|Agatha Christie;Edgar Allan Poe;Wilkie Collins|Sherlock Holmes|Conan Doyle
+T|LIT|2|poirot|Welcher belgische Detektiv stammt von Agatha Christie?|Hercule Poirot|Jules Maigret;Auguste Dupin;Philip Marlowe|Hercule Poirot|belgisch
+T|LIT|2|watson|Wie heißt der Freund und Chronist von Sherlock Holmes?|Dr. Watson|Dr. Jekyll;Inspector Lestrade;Professor Moriarty|Sherlock Holmes|Watson
+T|LIT|3|nemo-nautilus|Wie heißt das U-Boot von Kapitän Nemo bei Jules Verne?|Nautilus|Pequod;Hispaniola;Albatros|Zwanzigtausend Meilen unter dem Meer|Nautilus
+T|LIT|3|robinson-freitag|Wie nennt Robinson Crusoe seinen Gefährten auf der Insel?|Freitag|Sonntag;Montag;Samstag|Robinson Crusoe|Freitag
+T|LIT|2|pinocchio-nase|Was passiert mit Pinocchios Nase, wenn er lügt?|Sie wird länger|Sie wird rot;Sie schrumpft;Sie fällt ab|Die Abenteuer des Pinocchio|Nase
+T|LIT|1|odysseus-heimat|Auf welche Insel will Odysseus in Homers „Odyssee“ heimkehren?|Ithaka|Kreta;Rhodos;Zypern|Odyssee|Ithaka

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-microsoft-gruender
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Microsoft"
+    url: https://de.wikipedia.org/wiki/Microsoft
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer gründete Microsoft zusammen mit Paul Allen?"
+    options:
+      a: "Bill Gates"
+      b: "Steve Jobs"
+      c: "Larry Ellison"
+      d: "Steve Wozniak"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-sicherheitsrat-staendige
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Sicherheitsrat der Vereinten Nationen"
+    url: https://de.wikipedia.org/wiki/Sicherheitsrat_der_Vereinten_Nationen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele ständige Mitglieder hat der UN-Sicherheitsrat?"
+    options:
+      a: "3"
+      b: "10"
+      c: "5"
+      d: "7"

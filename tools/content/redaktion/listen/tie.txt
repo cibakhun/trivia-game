@@ -1,0 +1,50 @@
+# Natur und Tiere
+T|TIE|1|groesstes-tier|Welches ist das größte lebende Tier der Erde?|Blauwal|Pottwal;Walhai;Afrikanischer Elefant|Blauwal|größte
+T|TIE|1|groesstes-landtier|Welches ist das größte heute lebende Landtier?|Afrikanischer Elefant|Giraffe;Breitmaulnashorn;Flusspferd|Afrikanischer Elefant|größte
+T|TIE|1|schnellstes-landtier|Welches ist das schnellste Landtier?|Gepard|Löwe;Gabelbock;Springbock|Gepard|schnellste
+T|TIE|2|wanderfalke-sturzflug|Welcher Vogel erreicht im Sturzflug die höchste Geschwindigkeit?|Wanderfalke|Steinadler;Mauersegler;Habicht|Wanderfalke|Sturzflug
+T|TIE|1|groesster-vogel|Welcher ist der größte lebende Vogel?|Strauß|Emu;Kasuar;Andenkondor|Afrikanischer Strauß|größte
+T|TIE|2|groesster-fisch|Welcher ist der größte Fisch der Erde?|Walhai|Weißer Hai;Riesenhai;Mondfisch|Walhai|größte
+T|TIE|3|wels-groesster|Welcher ist der größte Süßwasserfisch Mitteleuropas?|Wels|Hecht;Zander;Karpfen|Wels (Art)|größte
+T|TIE|2|groesster-hirsch|Welcher ist der größte Hirsch der Erde?|Elch|Rothirsch;Wapiti;Rentier|Elch|größte
+T|TIE|3|laengste-schlange|Welche Schlange gilt als die längste der Erde?|Netzpython|Grüne Anakonda;Königskobra;Tigerpython|Netzpython|längste
+T|TIE|2|fledertiere|Welche Säugetiere können als einzige aktiv fliegen?|Fledertiere|Flughörnchen;Riesengleiter;Gleithörnchen|Fledertiere|fliegen
+T|TIE|2|schnabeltier|Welches Säugetier legt Eier?|Schnabeltier|Känguru;Koala;Gürteltier|Schnabeltier|Eier
+T|TIE|2|beuteltier|Welches dieser Tiere ist ein Beuteltier?|Wombat|Gürteltier;Faultier;Ameisenbär|Wombats|Beuteltier
+T|TIE|1|wal-saeugetier|Zu welcher Tiergruppe gehören Wale?|Säugetiere|Fische;Reptilien;Amphibien|Wale|Säugetier
+T|TIE|1|frosch-amphibie|Zu welcher Tiergruppe gehören Frösche?|Amphibien|Reptilien;Fische;Säugetiere|Froschlurche|Amphibien
+T|TIE|2|blindschleiche|Was ist eine Blindschleiche?|Eine Echse|Eine Schlange;Ein Wurm;Ein Lurch|Blindschleiche|Echse
+T|TIE|2|kreuzotter|Welche Giftschlange ist in Deutschland am weitesten verbreitet?|Kreuzotter|Aspisviper;Ringelnatter;Schlingnatter|Kreuzotter|Deutschland
+T|TIE|1|spinne-beine|Wie viele Beine hat eine Spinne?|8|6;10;12|Webspinnen|acht Beine
+T|TIE|1|insekt-beine|Wie viele Beine hat ein Insekt?|6|4;8;10|Insekten|sechs Beine
+T|TIE|1|krake-arme|Wie viele Arme hat ein Krake?|8|6;10;12|Kraken|acht Arme
+T|TIE|3|krake-herzen|Wie viele Herzen hat ein Krake?|3|1;2;4|Kraken|drei Herzen
+T|TIE|3|haie-schwimmblase|Welches Organ fehlt Haien im Gegensatz zu den meisten Knochenfischen?|Schwimmblase|Kiemen;Leber;Herz|Haie|Schwimmblase
+T|TIE|2|kuh-magen|Aus wie vielen Abschnitten besteht der Magen einer Kuh?|Vier|Zwei;Drei;Fünf|Wiederkäuer|Pansen
+T|TIE|2|elefant-tragzeit|Welches Landsäugetier hat mit fast zwei Jahren die längste Tragzeit?|Afrikanischer Elefant|Giraffe;Nashorn;Pferd|Afrikanischer Elefant|Tragzeit
+T|TIE|4|groenlandwal-alter|Welches Säugetier kann nach heutigem Wissen über 200 Jahre alt werden?|Grönlandwal|Afrikanischer Elefant;Blauwal;Schwertwal|Grönlandwal|200
+T|TIE|2|kolibri-rueckwaerts|Welcher Vogel kann rückwärts fliegen?|Kolibri|Mauersegler;Eisvogel;Rauchschwalbe|Kolibris|rückwärts
+T|TIE|1|kuckuck-brutparasit|Welcher Vogel legt seine Eier in die Nester anderer Vögel?|Kuckuck|Elster;Star;Buntspecht|Kuckuck|Nest
+T|TIE|1|wolf-hund|Von welchem Wildtier stammt der Haushund ab?|Wolf|Schakal;Rotfuchs;Kojote|Haushund|Wolf
+T|TIE|2|luchs-deutschland|Welches ist die größte Katze, die in Deutschland wild lebt?|Luchs|Wildkatze;Puma;Schneeleopard|Eurasischer Luchs|Deutschland
+T|TIE|1|biber-damm|Welches Tier baut Dämme aus Ästen und Baumstämmen?|Biber|Fischotter;Bisamratte;Nutria|Biber|Damm
+T|TIE|3|siebenschlaefer|Welches Nagetier verdankt seinen Namen der Dauer seines Winterschlafs?|Siebenschläfer|Murmeltier;Haselmaus;Feldhamster|Siebenschläfer|sieben Monate
+T|TIE|1|panda-nahrung|Wovon ernährt sich der Große Panda hauptsächlich?|Bambus|Eukalyptus;Fisch;Früchte|Großer Panda|Bambus
+T|TIE|1|koala-nahrung|Wovon ernährt sich der Koala hauptsächlich?|Eukalyptusblättern|Bambus;Akazienblättern;Gräsern|Koala|Eukalyptus
+T|TIE|1|pferd-junges|Wie heißt das Junge eines Pferdes?|Fohlen|Kalb;Lamm;Ferkel|Pferd|Fohlen
+T|TIE|2|rehbock|Wie nennt man ein männliches Reh?|Bock|Hirsch;Keiler;Hengst|Reh|Rehbock
+T|TIE|3|bache|Wie nennt man ein weibliches Wildschwein?|Bache|Ricke;Fähe;Zibbe|Wildschwein|Bache
+T|TIE|4|faehe|Wie heißt der weibliche Fuchs in der Jägersprache?|Fähe|Bache;Ricke;Geiß|Rotfuchs|Fähe
+T|TIE|1|kaulquappe|Wie heißen die Larven von Fröschen?|Kaulquappen|Raupen;Maden;Engerlinge|Kaulquappe|Frosch
+T|TIE|2|drohnen|Wie heißen die männlichen Tiere eines Bienenvolkes?|Drohnen|Arbeiter;Wächter;Ammen|Drohn|männlich
+T|TIE|4|biene-augen|Wie viele Augen hat eine Honigbiene?|5|2;4;6|Westliche Honigbiene|Punktaugen
+T|TIE|1|kaiserpinguin|Welches dieser Tiere lebt in der Antarktis und nicht in der Arktis?|Kaiserpinguin|Eisbär;Walross;Polarfuchs|Kaiserpinguin|Antarktis
+T|TIE|1|bucheckern|Von welchem Baum stammen Bucheckern?|Buche|Eiche;Ahorn;Linde|Rotbuche|Bucheckern
+T|TIE|3|laerche-nadeln|Welcher heimische Nadelbaum verliert im Herbst seine Nadeln?|Lärche|Kiefer;Tanne;Eibe|Europäische Lärche|Nadeln
+T|TIE|2|knollenblaetterpilz|Welcher Pilz gehört zu den gefährlichsten Giftpilzen Europas?|Grüner Knollenblätterpilz|Fliegenpilz;Steinpilz;Pfifferling|Grüner Knollenblätterpilz|giftig
+T|TIE|3|sonnentau|Welche fleischfressende Pflanze fängt Insekten mit klebrigen Drüsenhaaren?|Sonnentau|Venusfliegenfalle;Kannenpflanze;Wasserschlauch|Sonnentau|Drüsen
+T|TIE|1|photosynthese|Wie heißt der Vorgang, bei dem Pflanzen mit Licht Zucker herstellen?|Photosynthese|Osmose;Gärung;Transpiration|Photosynthese|Licht
+T|TIE|1|photosynthese-gas|Welches Gas nehmen Pflanzen bei der Photosynthese auf?|Kohlenstoffdioxid|Sauerstoff;Stickstoff;Methan|Photosynthese|Kohlenstoffdioxid
+T|TIE|1|chlorophyll|Welcher Farbstoff macht Blätter grün?|Chlorophyll|Carotin;Anthocyan;Hämoglobin|Chlorophyll|grün
+T|TIE|2|edelweiss|Welche geschützte Blume ist ein Symbol der Alpen?|Edelweiß|Kornblume;Mohn;Löwenzahn|Alpen-Edelweiß|Alpen
+T|TIE|3|mammutbaum|Welcher Baum ist der massigste der Erde?|Riesenmammutbaum|Küstenmammutbaum;Affenbrotbaum;Eukalyptus|Riesenmammutbaum|größte

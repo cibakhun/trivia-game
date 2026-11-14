@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-nelson-mandela
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Nelson Mandela"
+    url: https://de.wikipedia.org/wiki/Nelson_Mandela
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Freiheitskämpfer saß 27 Jahre in Haft und wurde 1994 Präsident Südafrikas?"
+    options:
+      a: "Desmond Tutu"
+      b: "Frederik Willem de Klerk"
+      c: "Nelson Mandela"
+      d: "Steve Biko"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-pythagoras
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Satz des Pythagoras"
+    url: https://de.wikipedia.org/wiki/Satz_des_Pythagoras
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie lautet der Satz des Pythagoras?"
+    options:
+      a: "a² + b² = c²"
+      b: "2a + 2b = c"
+      c: "a² − b² = c²"
+      d: "a + b = c"

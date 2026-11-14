@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-minuten-tag
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Tag"
+    url: https://de.wikipedia.org/wiki/Tag
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Minuten hat ein Tag?"
+    options:
+      a: "1440"
+      b: "1240"
+      c: "1640"
+      d: "1400"

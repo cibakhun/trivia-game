@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-elf-september
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Terroranschläge am 11. September 2001"
+    url: https://de.wikipedia.org/wiki/Terroranschl%C3%A4ge_am_11._September_2001
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr wurden die Türme des World Trade Centers in New York durch Terroranschläge zerstört?"
+    options:
+      a: "2000"
+      b: "2003"
+      c: "1999"
+      d: "2001"

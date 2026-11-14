@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-panda-nahrung
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Großer Panda"
+    url: https://de.wikipedia.org/wiki/Gro%C3%9Fer_Panda
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wovon ernährt sich der Große Panda hauptsächlich?"
+    options:
+      a: "Früchte"
+      b: "Eukalyptus"
+      c: "Bambus"
+      d: "Fisch"

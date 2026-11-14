@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-mainhattan
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Frankfurt am Main"
+    url: https://de.wikipedia.org/wiki/Frankfurt_am_Main
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Stadt trägt wegen ihrer Hochhäuser den Spitznamen „Mainhattan“?"
+    options:
+      a: "Aschaffenburg"
+      b: "Würzburg"
+      c: "Offenbach am Main"
+      d: "Frankfurt am Main"

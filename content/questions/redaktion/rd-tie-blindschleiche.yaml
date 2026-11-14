@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-blindschleiche
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Blindschleiche"
+    url: https://de.wikipedia.org/wiki/Blindschleiche
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Was ist eine Blindschleiche?"
+    options:
+      a: "Ein Wurm"
+      b: "Eine Echse"
+      c: "Eine Schlange"
+      d: "Ein Lurch"

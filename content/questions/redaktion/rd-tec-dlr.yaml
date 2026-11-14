@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-dlr
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Deutsches Zentrum für Luft- und Raumfahrt"
+    url: https://de.wikipedia.org/wiki/Deutsches_Zentrum_f%C3%BCr_Luft-_und_Raumfahrt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wofür steht die Abkürzung „DLR“?"
+    options:
+      a: "Deutscher Luft- und Raketenverband"
+      b: "Deutsche Luft- und Raumfahrtagentur"
+      c: "Deutsches Labor für Raketentechnik"
+      d: "Deutsches Zentrum für Luft- und Raumfahrt"

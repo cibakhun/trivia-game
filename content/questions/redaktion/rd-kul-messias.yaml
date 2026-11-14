@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-messias
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Der Messias (Händel)"
+    url: https://de.wikipedia.org/wiki/Der_Messias_(H%C3%A4ndel)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer komponierte das Oratorium „Der Messias“?"
+    options:
+      a: "Johann Sebastian Bach"
+      b: "Henry Purcell"
+      c: "Georg Friedrich Händel"
+      d: "Joseph Haydn"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-haeufigster-buchstabe
+kind: TRIVIA
+category: GENERAL
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Buchstabenhäufigkeit"
+    url: https://de.wikipedia.org/wiki/Buchstabenh%C3%A4ufigkeit
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Buchstabe kommt in deutschen Texten am häufigsten vor?"
+    options:
+      a: "N"
+      b: "E"
+      c: "I"
+      d: "A"

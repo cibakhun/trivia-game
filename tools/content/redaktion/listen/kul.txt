@@ -1,0 +1,49 @@
+# Kunst und Kultur („Wer malte …?“ und „Wer komponierte die Oper …?“ kommen aus Wikidata)
+T|KUL|1|mona-lisa-museum|In welchem Museum hängt die „Mona Lisa“?|Louvre|Uffizien;Prado;Eremitage|Mona Lisa|Louvre
+T|KUL|2|sixtinische-kapelle|Wer malte die Decke der Sixtinischen Kapelle aus?|Michelangelo|Raffael;Leonardo da Vinci;Sandro Botticelli|Sixtinische Kapelle|Michelangelo
+T|KUL|2|der-denker|Wer schuf die Skulptur „Der Denker“?|Auguste Rodin|Michelangelo;Camille Claudel;Edgar Degas|Der Denker|Rodin
+T|KUL|1|van-gogh-ohr|Welcher Maler schnitt sich 1888 einen Teil seines Ohres ab?|Vincent van Gogh|Paul Gauguin;Edvard Munch;Claude Monet|Vincent van Gogh|Ohr
+T|KUL|3|duerer|Welcher Künstler aus Nürnberg schuf den Kupferstich „Melencolia I“?|Albrecht Dürer|Lucas Cranach der Ältere;Hans Holbein der Jüngere;Matthias Grünewald|Melencolia I|Dürer
+T|KUL|3|bauhaus|Welcher Architekt gründete 1919 das Bauhaus?|Walter Gropius|Ludwig Mies van der Rohe;Le Corbusier;Hannes Meyer|Bauhaus|Gropius
+T|KUL|3|bauhaus-stadt|In welcher Stadt wurde das Bauhaus 1919 gegründet?|Weimar|Dessau;Berlin;Leipzig|Bauhaus|Weimar
+T|KUL|3|blauer-reiter|Welche Künstlergruppe gründeten Wassily Kandinsky und Franz Marc 1911 in München?|Der Blaue Reiter|Die Brücke;Bauhaus;Der Sturm|Der Blaue Reiter|Kandinsky
+T|KUL|2|franz-marc-pferde|Welcher Maler ist für seine blauen Pferde bekannt?|Franz Marc|August Macke;Wassily Kandinsky;Paul Klee|Franz Marc|Pferde
+T|KUL|2|documenta|Wie heißt die Kunstausstellung, die alle fünf Jahre in Kassel stattfindet?|documenta|Biennale;Art Basel;Ruhrtriennale|Documenta|Kassel
+T|KUL|3|elbphilharmonie|Welches Architekturbüro entwarf die Elbphilharmonie in Hamburg?|Herzog & de Meuron|Zaha Hadid Architects;Gehry Partners;Studio Libeskind|Elbphilharmonie|Herzog & de Meuron
+T|KUL|2|zwinger|In welcher Stadt steht der Zwinger?|Dresden|Leipzig;Potsdam;München|Dresdner Zwinger|Dresden
+T|KUL|1|sanssouci|In welcher Stadt steht Schloss Sanssouci?|Potsdam|Berlin;Dresden;Weimar|Schloss Sanssouci|Potsdam
+T|KUL|2|neuschwanstein|Welcher König ließ Schloss Neuschwanstein bauen?|Ludwig II.|Ludwig I.;Maximilian II.;Otto I.|Schloss Neuschwanstein|Ludwig II.
+T|KUL|3|koelner-dom-vollendet|In welchem Jahr wurde der Kölner Dom vollendet?|1880|1648;1815;1913|Kölner Dom|1880
+T|KUL|2|koelner-dom-stil|In welchem Baustil ist der Kölner Dom errichtet?|Gotik|Romanik;Barock;Renaissance|Kölner Dom|gotisch
+T|KUL|1|mondscheinsonate|Wer komponierte die „Mondscheinsonate“?|Ludwig van Beethoven|Wolfgang Amadeus Mozart;Frédéric Chopin;Franz Schubert|Klaviersonate Nr. 14 (Beethoven)|Mondscheinsonate
+T|KUL|2|beethoven-geburtsort|In welcher Stadt wurde Ludwig van Beethoven geboren?|Bonn|Wien;Salzburg;Köln|Ludwig van Beethoven|Bonn
+T|KUL|2|beethoven-sinfonien|Wie viele Sinfonien vollendete Ludwig van Beethoven?|9|7;10;12|Ludwig van Beethoven|neun
+T|KUL|1|mozart-geburtsort|In welcher Stadt wurde Wolfgang Amadeus Mozart geboren?|Salzburg|Wien;Linz;Innsbruck|Wolfgang Amadeus Mozart|Salzburg
+T|KUL|2|bach-thomaskantor|In welcher Stadt war Johann Sebastian Bach Thomaskantor?|Leipzig|Dresden;Weimar;Eisenach|Thomaskantor|Leipzig
+T|KUL|2|weihnachtsoratorium|Wer komponierte das „Weihnachtsoratorium“, das 1734 erstmals erklang?|Johann Sebastian Bach|Georg Friedrich Händel;Georg Philipp Telemann;Joseph Haydn|Weihnachtsoratorium|Bach
+T|KUL|2|messias|Wer komponierte das Oratorium „Der Messias“?|Georg Friedrich Händel|Johann Sebastian Bach;Joseph Haydn;Henry Purcell|Der Messias (Händel)|Händel
+T|KUL|3|hymne-melodie|Wer komponierte die Melodie der deutschen Nationalhymne?|Joseph Haydn|Ludwig van Beethoven;Wolfgang Amadeus Mozart;Johannes Brahms|Das Lied der Deutschen|Haydn
+T|KUL|2|blaue-donau|Wer komponierte den Walzer „An der schönen blauen Donau“?|Johann Strauss (Sohn)|Franz Schubert;Joseph Lanner;Franz Lehár|An der schönen blauen Donau|Strauss
+T|KUL|2|bayreuth|In welcher Stadt finden jedes Jahr die Richard-Wagner-Festspiele statt?|Bayreuth|Salzburg;München;Weimar|Bayreuther Festspiele|Wagner
+T|KUL|2|schwanensee|Wer komponierte das Ballett „Schwanensee“?|Pjotr Iljitsch Tschaikowski|Igor Strawinsky;Sergei Prokofjew;Nikolai Rimski-Korsakow|Schwanensee|Tschaikowski
+T|KUL|2|paganini|Welches Instrument spielte Niccolò Paganini?|Violine|Violoncello;Klavier;Gitarre|Niccolò Paganini|Geiger
+T|KUL|3|klavier-tasten|Wie viele Tasten hat ein modernes Klavier in der Regel?|88|76;85;96|Klavier|88
+T|KUL|1|gitarre-saiten|Wie viele Saiten hat eine gewöhnliche Gitarre?|6|4;5;7|Gitarre|sechs Saiten
+T|KUL|2|geige-saiten|Wie viele Saiten hat eine Violine?|4|3;5;6|Violine|vier Saiten
+T|KUL|2|notenlinien|Aus wie vielen Linien besteht ein Notensystem?|5|4;6;7|Notensystem (Musik)|fünf
+T|KUL|3|kraftwerk-autobahn|Welche Düsseldorfer Band veröffentlichte 1974 das Album „Autobahn“?|Kraftwerk|Tangerine Dream;Can;Neu!|Autobahn (Album)|Kraftwerk
+T|KUL|1|99-luftballons|Mit welchem Lied hatte Nena 1983 einen weltweiten Hit?|99 Luftballons|Nur geträumt;Irgendwie, irgendwo, irgendwann;Leuchtturm|99 Luftballons|Nena
+T|KUL|1|lena-esc|Wer gewann 2010 den Eurovision Song Contest für Deutschland?|Lena|Nicole;Helene Fischer;Sarah Connor|Eurovision Song Contest 2010|Lena
+T|KUL|2|nicole-esc|Mit welchem Lied gewann Nicole 1982 den Grand Prix Eurovision?|Ein bißchen Frieden|Satellite;Theater;Johnny Blue|Ein bißchen Frieden|Nicole
+T|KUL|2|campino|Wer ist der Sänger der Toten Hosen?|Campino|Farin Urlaub;Bela B.;Herbert Grönemeyer|Die Toten Hosen|Campino
+T|KUL|2|groenemeyer-bochum|Welcher Sänger veröffentlichte 1984 das Album „4630 Bochum“?|Herbert Grönemeyer|Marius Müller-Westernhagen;Peter Maffay;Udo Lindenberg|4630 Bochum|Grönemeyer
+T|KUL|3|lindenberg-atlantic|In welchem Hamburger Hotel lebt Udo Lindenberg seit vielen Jahren?|Hotel Atlantic|Hotel Vier Jahreszeiten;Hotel Louis C. Jacob;Hotel Reichshof|Udo Lindenberg|Atlantic
+T|KUL|3|leben-der-anderen|Welcher deutsche Film gewann 2007 den Oscar als bester fremdsprachiger Film?|Das Leben der Anderen|Good Bye, Lenin!;Der Untergang;Lola rennt|Das Leben der Anderen|Oscar
+T|KUL|2|im-westen-oscar|Welcher deutsche Film gewann 2023 vier Oscars, darunter als bester internationaler Film?|Im Westen nichts Neues|Das Lehrerzimmer;Der Untergang;Systemsprenger|Im Westen nichts Neues (2022)|Oscar
+T|KUL|3|lola-rennt|Wer führte Regie bei „Lola rennt“?|Tom Tykwer|Wim Wenders;Fatih Akin;Wolfgang Petersen|Lola rennt|Tykwer
+T|KUL|3|das-boot|Wer drehte den Film „Das Boot“ von 1981?|Wolfgang Petersen|Rainer Werner Fassbinder;Werner Herzog;Volker Schlöndorff|Das Boot (Film)|Petersen
+T|KUL|2|goldener-baer|Wie heißt der Hauptpreis der Berlinale?|Goldener Bär|Goldene Palme;Goldener Löwe;Goldene Kamera|Goldener Bär|Berlinale
+T|KUL|3|filmpreis-lola|Wie heißt die Trophäe des Deutschen Filmpreises?|Lola|Bambi;Romy;Goldener Bär|Deutscher Filmpreis|Lola
+T|KUL|1|tatort|Wie heißt die ARD-Krimireihe, die seit 1970 läuft?|Tatort|Derrick;Polizeiruf 110;Der Alte|Tatort (Fernsehreihe)|1970
+T|KUL|1|sendung-mit-der-maus|Welche Kindersendung mit einer orangen Maus läuft seit 1971?|Die Sendung mit der Maus|Löwenzahn;Sesamstraße;Pumuckl|Die Sendung mit der Maus|1971
+T|KUL|3|sandmaennchen|Wie heißt die Gutenachtsendung für Kinder, die seit 1959 im Fernsehen läuft?|Unser Sandmännchen|Die Sendung mit der Maus;Löwenzahn;Logo!|Unser Sandmännchen|1959

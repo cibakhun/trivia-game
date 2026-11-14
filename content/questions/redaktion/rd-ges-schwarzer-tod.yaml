@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-schwarzer-tod
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Schwarzer Tod"
+    url: https://de.wikipedia.org/wiki/Schwarzer_Tod
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie nennt man die große Pestepidemie, die Europa von 1346 bis 1353 heimsuchte?"
+    options:
+      a: "Antoninische Pest"
+      b: "Spanische Grippe"
+      c: "Schwarzer Tod"
+      d: "Englischer Schweiß"

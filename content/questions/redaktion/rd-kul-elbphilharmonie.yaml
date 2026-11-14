@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-elbphilharmonie
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Elbphilharmonie"
+    url: https://de.wikipedia.org/wiki/Elbphilharmonie
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches Architekturbüro entwarf die Elbphilharmonie in Hamburg?"
+    options:
+      a: "Zaha Hadid Architects"
+      b: "Studio Libeskind"
+      c: "Herzog & de Meuron"
+      d: "Gehry Partners"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-sherlock-holmes
+kind: TRIVIA
+category: LITERATURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Sherlock Holmes"
+    url: https://de.wikipedia.org/wiki/Sherlock_Holmes
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer erfand die Figur Sherlock Holmes?"
+    options:
+      a: "Agatha Christie"
+      b: "Edgar Allan Poe"
+      c: "Arthur Conan Doyle"
+      d: "Wilkie Collins"

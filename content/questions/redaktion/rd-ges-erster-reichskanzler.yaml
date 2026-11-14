@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-erster-reichskanzler
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Otto von Bismarck"
+    url: https://de.wikipedia.org/wiki/Otto_von_Bismarck
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war der erste Reichskanzler des Deutschen Kaiserreichs?"
+    options:
+      a: "Otto von Bismarck"
+      b: "Bernhard von Bülow"
+      c: "Paul von Hindenburg"
+      d: "Leo von Caprivi"

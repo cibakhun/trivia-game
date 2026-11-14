@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-dpi
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Punktdichte"
+    url: https://de.wikipedia.org/wiki/Punktdichte
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wofür steht die Angabe „dpi“ bei Druckern und Scannern?"
+    options:
+      a: "data per inch"
+      b: "dots per image"
+      c: "dots per inch"
+      d: "digits per image"

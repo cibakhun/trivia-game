@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-max-und-moritz
+kind: TRIVIA
+category: LITERATURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Max und Moritz"
+    url: https://de.wikipedia.org/wiki/Max_und_Moritz
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schuf „Max und Moritz“?"
+    options:
+      a: "Heinrich Hoffmann"
+      b: "Christian Morgenstern"
+      c: "Joachim Ringelnatz"
+      d: "Wilhelm Busch"

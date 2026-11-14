@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-domino-steine
+kind: TRIVIA
+category: GENERAL
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Domino"
+    url: https://de.wikipedia.org/wiki/Domino
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Steine hat ein übliches Dominospiel bis Doppel-Sechs?"
+    options:
+      a: "36"
+      b: "32"
+      c: "24"
+      d: "28"

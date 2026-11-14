@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-pinocchio-nase
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die Abenteuer des Pinocchio"
+    url: https://de.wikipedia.org/wiki/Die_Abenteuer_des_Pinocchio
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Was passiert mit Pinocchios Nase, wenn er lügt?"
+    options:
+      a: "Sie fällt ab"
+      b: "Sie schrumpft"
+      c: "Sie wird rot"
+      d: "Sie wird länger"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-www
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: World Wide Web"
+    url: https://de.wikipedia.org/wiki/World_Wide_Web
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wofür steht die Abkürzung „WWW“?"
+    options:
+      a: "Web World Wide"
+      b: "Wide World Web"
+      c: "World Wide Web"
+      d: "World Wide Window"

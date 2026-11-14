@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-werther
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die Leiden des jungen Werthers"
+    url: https://de.wikipedia.org/wiki/Die_Leiden_des_jungen_Werthers
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Briefroman nimmt sich der Held aus unglücklicher Liebe zu Lotte das Leben?"
+    options:
+      a: "Wilhelm Meisters Lehrjahre"
+      b: "Die Leiden des jungen Werthers"
+      c: "Kabale und Liebe"
+      d: "Hyperion"

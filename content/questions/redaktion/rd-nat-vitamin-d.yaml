@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-vitamin-d
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Vitamin D"
+    url: https://de.wikipedia.org/wiki/Vitamin_D
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches Vitamin bildet der Körper mithilfe von Sonnenlicht in der Haut?"
+    options:
+      a: "Vitamin A"
+      b: "Vitamin D"
+      c: "Vitamin B12"
+      d: "Vitamin C"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-verwandlung-samsa
+kind: TRIVIA
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die Verwandlung"
+    url: https://de.wikipedia.org/wiki/Die_Verwandlung
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Hauptfigur in Kafkas „Die Verwandlung“?"
+    options:
+      a: "Hans Castorp"
+      b: "Josef K."
+      c: "Karl Roßmann"
+      d: "Gregor Samsa"

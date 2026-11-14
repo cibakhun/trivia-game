@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-dieselmotor
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Rudolf Diesel"
+    url: https://de.wikipedia.org/wiki/Rudolf_Diesel
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Ingenieur entwickelte in den 1890er-Jahren den nach ihm benannten Selbstzündermotor?"
+    options:
+      a: "Carl Benz"
+      b: "Nikolaus August Otto"
+      c: "Felix Wankel"
+      d: "Rudolf Diesel"

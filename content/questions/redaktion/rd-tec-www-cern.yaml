@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-www-cern
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: World Wide Web"
+    url: https://de.wikipedia.org/wiki/World_Wide_Web
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "An welcher Forschungseinrichtung entstand das World Wide Web?"
+    options:
+      a: "CERN"
+      b: "Fraunhofer-Gesellschaft"
+      c: "MIT"
+      d: "Stanford University"

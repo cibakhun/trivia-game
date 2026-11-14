@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-thesen-luther
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: 95 Thesen"
+    url: https://de.wikipedia.org/wiki/95_Thesen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer veröffentlichte 1517 die 95 Thesen gegen den Ablasshandel?"
+    options:
+      a: "Philipp Melanchthon"
+      b: "Martin Luther"
+      c: "Johannes Calvin"
+      d: "Huldrych Zwingli"

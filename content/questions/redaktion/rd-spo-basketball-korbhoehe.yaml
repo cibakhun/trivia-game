@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-basketball-korbhoehe
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Basketball"
+    url: https://de.wikipedia.org/wiki/Basketball
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welcher Höhe hängt ein Basketballkorb?"
+    options:
+      a: "2,85 Meter"
+      b: "3,25 Meter"
+      c: "3,50 Meter"
+      d: "3,05 Meter"

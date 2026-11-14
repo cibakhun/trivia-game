@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-marzipan
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Lübecker Marzipan"
+    url: https://de.wikipedia.org/wiki/L%C3%BCbecker_Marzipan
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Für welche Süßigkeit ist Lübeck berühmt?"
+    options:
+      a: "Marzipan"
+      b: "Baumkuchen"
+      c: "Lebkuchen"
+      d: "Printen"

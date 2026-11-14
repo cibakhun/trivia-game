@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-handball-wm-2007
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Handball-Weltmeisterschaft der Männer 2007"
+    url: https://de.wikipedia.org/wiki/Handball-Weltmeisterschaft_der_M%C3%A4nner_2007
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr wurde die deutsche Handballnationalmannschaft der Männer im eigenen Land Weltmeister?"
+    options:
+      a: "2019"
+      b: "2011"
+      c: "2003"
+      d: "2007"

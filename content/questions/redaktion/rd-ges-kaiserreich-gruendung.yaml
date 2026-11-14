@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-kaiserreich-gruendung
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Deutsches Kaiserreich"
+    url: https://de.wikipedia.org/wiki/Deutsches_Kaiserreich
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr wurde das Deutsche Kaiserreich gegründet?"
+    options:
+      a: "1848"
+      b: "1866"
+      c: "1888"
+      d: "1871"

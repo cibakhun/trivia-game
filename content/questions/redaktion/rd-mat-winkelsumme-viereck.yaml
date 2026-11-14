@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-winkelsumme-viereck
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Viereck"
+    url: https://de.wikipedia.org/wiki/Viereck
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie groß ist die Winkelsumme in einem ebenen Viereck?"
+    options:
+      a: "180 Grad"
+      b: "360 Grad"
+      c: "270 Grad"
+      d: "540 Grad"

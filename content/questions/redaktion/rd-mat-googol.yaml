@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-googol
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Googol"
+    url: https://de.wikipedia.org/wiki/Googol
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Zahl, die aus einer Eins mit 100 Nullen besteht?"
+    options:
+      a: "Dezillion"
+      b: "Zentillion"
+      c: "Googol"
+      d: "Googolplex"

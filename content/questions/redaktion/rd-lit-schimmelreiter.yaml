@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-schimmelreiter
+kind: TRIVIA
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Der Schimmelreiter"
+    url: https://de.wikipedia.org/wiki/Der_Schimmelreiter
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schrieb die Novelle „Der Schimmelreiter“?"
+    options:
+      a: "Theodor Fontane"
+      b: "Theodor Storm"
+      c: "Gottfried Keller"
+      d: "Wilhelm Raabe"

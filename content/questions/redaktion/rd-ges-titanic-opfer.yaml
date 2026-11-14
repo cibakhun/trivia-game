@@ -1,0 +1,29 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-titanic-opfer
+kind: ESTIMATE
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Titanic (Schiff)"
+    url: https://de.wikipedia.org/wiki/Titanic_(Schiff)
+    accessed: 2026-11-12
+reviews: []
+estimate:
+  answer_value: "1500"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1"
+  input_max: "100000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Menschen kamen beim Untergang der Titanic ungefähr ums Leben?"
+    unit_label: "Menschen"

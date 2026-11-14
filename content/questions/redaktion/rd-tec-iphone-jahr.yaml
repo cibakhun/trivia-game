@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-iphone-jahr
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: iPhone (1. Generation)"
+    url: https://de.wikipedia.org/wiki/iPhone_(1._Generation)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr kam das erste iPhone auf den Markt?"
+    options:
+      a: "2005"
+      b: "2007"
+      c: "2008"
+      d: "2010"

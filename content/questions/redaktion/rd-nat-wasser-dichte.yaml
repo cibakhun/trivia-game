@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-wasser-dichte
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Dichteanomalie"
+    url: https://de.wikipedia.org/wiki/Dichteanomalie
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Bei welcher Temperatur hat Wasser seine größte Dichte?"
+    options:
+      a: "4 °C"
+      b: "10 °C"
+      c: "0 °C"
+      d: "−4 °C"

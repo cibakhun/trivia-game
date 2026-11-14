@@ -1,0 +1,63 @@
+# Sport (keine Ergebnisse nach Mitte 2025, keine Rekorde, die die WM 2026 verschoben haben könnte)
+T|SPO|2|wunder-von-bern-gegner|Gegen welches Land gewann Deutschland 1954 das WM-Finale, das „Wunder von Bern“?|Ungarn|Brasilien;Österreich;Niederlande|Wunder von Bern|Ungarn
+T|SPO|3|wm-1974-gegner|Gegen welches Land gewann Deutschland 1974 das WM-Finale in München?|Niederlande|Ungarn;Italien;Polen|Fußball-Weltmeisterschaft 1974|Niederlande
+T|SPO|2|wm-2014-gegner|Gegen welches Land gewann Deutschland 2014 das WM-Finale in Rio de Janeiro?|Argentinien|Brasilien;Niederlande;Spanien|Fußball-Weltmeisterschaft 2014|Argentinien
+T|SPO|2|wm-2014-tor|Wer schoss im WM-Finale 2014 das Tor zum 1:0-Sieg Deutschlands?|Mario Götze|Thomas Müller;André Schürrle;Miroslav Klose|Fußball-Weltmeisterschaft 2014|Götze
+T|SPO|2|wm-2014-halbfinale|Gegen welches Land gewann Deutschland bei der WM 2014 das Halbfinale mit 7:1?|Brasilien|Argentinien;Frankreich;Niederlande|Fußball-Weltmeisterschaft 2014|7:1
+T|SPO|2|wm-2014-trainer|Wer war Bundestrainer, als Deutschland 2014 Weltmeister wurde?|Joachim Löw|Jürgen Klinsmann;Hansi Flick;Berti Vogts|Joachim Löw|2014
+T|SPO|2|beckenbauer-spieler-trainer|Welcher Deutsche wurde als Spieler (1974) und als Teamchef (1990) Fußball-Weltmeister?|Franz Beckenbauer|Berti Vogts;Gerd Müller;Rudi Völler|Franz Beckenbauer|1990
+T|SPO|4|schmach-von-cordoba|Gegen welches Land verlor Deutschland bei der WM 1978 in der „Schmach von Córdoba“?|Österreich|Niederlande;Italien;Argentinien|Schmach von Córdoba|Österreich
+T|SPO|2|sommermaerchen|Unter welchem Beinamen ist die Fußball-WM 2006 in Deutschland in Erinnerung?|Sommermärchen|Wunder von Bern;Schmach von Córdoba;Nacht von Sevilla|Fußball-Weltmeisterschaft 2006|Sommermärchen
+T|SPO|3|em-1996-golden-goal|In welchem Jahr wurde Deutschland durch ein Golden Goal von Oliver Bierhoff Europameister?|1996|1980;1992;2008|Fußball-Europameisterschaft 1996|Golden Goal
+T|SPO|1|erste-wm-sieger|Welches Land gewann 1930 die erste Fußball-Weltmeisterschaft?|Uruguay|Argentinien;Brasilien;Italien|Fußball-Weltmeisterschaft 1930|Uruguay
+T|SPO|3|frauen-wm-titel|Wie oft wurde die deutsche Fußballnationalmannschaft der Frauen Weltmeister?|Zweimal|Einmal;Dreimal;Viermal|Deutsche Fußballnationalmannschaft der Frauen|2007
+T|SPO|2|bundesliga-start|In welchem Jahr startete die Fußball-Bundesliga?|1963|1954;1960;1965|Fußball-Bundesliga|1963
+T|SPO|1|bundesliga-vereine|Wie viele Vereine spielen in der Fußball-Bundesliga?|18|16;20;22|Fußball-Bundesliga|18
+T|SPO|1|rekordmeister|Welcher Verein ist deutscher Rekordmeister im Fußball der Männer?|FC Bayern München|Borussia Dortmund;1. FC Nürnberg;FC Schalke 04|FC Bayern München|Rekordmeister
+T|SPO|2|bundesliga-rekordtorschuetze|Welcher Spieler erzielte die meisten Tore in der Geschichte der Fußball-Bundesliga?|Gerd Müller|Robert Lewandowski;Klaus Fischer;Jupp Heynckes|Gerd Müller|365
+T|SPO|1|allianz-arena|Wie heißt das Stadion des FC Bayern München?|Allianz Arena|Olympiastadion;Signal Iduna Park;Veltins-Arena|Allianz Arena|FC Bayern
+T|SPO|3|die-knappen|Welcher Verein trägt den Spitznamen „Die Knappen“?|FC Schalke 04|Borussia Dortmund;VfL Bochum;Rot-Weiss Essen|FC Schalke 04|Knappen
+T|SPO|3|die-fohlen|Welcher Verein wird „Die Fohlen“ genannt?|Borussia Mönchengladbach|Eintracht Frankfurt;Hannover 96;1. FC Köln|Borussia Mönchengladbach|Fohlen
+T|SPO|2|titan-kahn|Welcher deutsche Torwart wurde „Der Titan“ genannt?|Oliver Kahn|Jens Lehmann;Manuel Neuer;Sepp Maier|Oliver Kahn|Titan
+T|SPO|1|fussball-spieler|Wie viele Spieler einer Mannschaft stehen beim Fußball gleichzeitig auf dem Platz?|11|9;10;12|Fußball|elf
+T|SPO|3|lupenreiner-hattrick|Wie nennt man drei Tore eines Spielers in einer Halbzeit, ohne dass ein anderer Spieler dazwischen trifft?|Lupenreiner Hattrick|Doppelpack;Triple;Dreierpack|Hattrick|lupenrein
+T|SPO|2|handball-spieler|Wie viele Spieler einer Mannschaft stehen beim Handball gleichzeitig auf dem Feld, Torwart eingeschlossen?|7|5;6;8|Handball|sieben
+T|SPO|2|handball-halbzeit|Wie lange dauert eine Halbzeit im Handball bei Erwachsenen?|30 Minuten|20 Minuten;25 Minuten;35 Minuten|Handball|30 Minuten
+T|SPO|3|handball-wm-2007|In welchem Jahr wurde die deutsche Handballnationalmannschaft der Männer im eigenen Land Weltmeister?|2007|2003;2011;2019|Handball-Weltmeisterschaft der Männer 2007|Weltmeister
+T|SPO|2|volleyball-spieler|Wie viele Spieler einer Mannschaft stehen beim Volleyball gleichzeitig auf dem Feld?|6|5;7;8|Volleyball|sechs
+T|SPO|2|basketball-spieler|Wie viele Spieler einer Mannschaft stehen beim Basketball gleichzeitig auf dem Feld?|5|4;6;7|Basketball|fünf
+T|SPO|3|basketball-korbhoehe|In welcher Höhe hängt ein Basketballkorb?|3,05 Meter|2,85 Meter;3,25 Meter;3,50 Meter|Basketball|3,05
+T|SPO|2|eishockey-drittel|In wie viele Spielabschnitte ist ein Eishockeyspiel eingeteilt?|3|2;4;5|Eishockey|Drittel
+T|SPO|3|touchdown-punkte|Wie viele Punkte bringt ein Touchdown im American Football?|6|3;5;7|Touchdown|sechs
+T|SPO|3|tischtennis-satz|Bis zu wie vielen Punkten wird ein Satz im Tischtennis gespielt?|11|15;20;21|Tischtennis|11
+T|SPO|2|wimbledon-rasen|Welches Grand-Slam-Turnier im Tennis wird auf Rasen gespielt?|Wimbledon|French Open;US Open;Australian Open|Wimbledon Championships|Rasen
+T|SPO|2|french-open-belag|Auf welchem Belag werden die French Open gespielt?|Sand|Rasen;Hartplatz;Teppich|French Open|Sand
+T|SPO|2|golden-slam-graf|Welche Tennisspielerin gewann 1988 den „Golden Slam“?|Steffi Graf|Martina Navratilova;Monica Seles;Gabriela Sabatini|Steffi Graf|Golden Slam
+T|SPO|2|becker-alter-1985|Wie alt war Boris Becker bei seinem ersten Wimbledonsieg 1985?|17|16;18;19|Boris Becker|17
+T|SPO|2|schumacher-titel|Wie oft wurde Michael Schumacher Formel-1-Weltmeister?|7|5;6;8|Michael Schumacher|sieben
+T|SPO|2|vettel-team|Mit welchem Rennstall gewann Sebastian Vettel seine Formel-1-Weltmeistertitel?|Red Bull Racing|Ferrari;Mercedes;Toro Rosso|Sebastian Vettel|Red Bull
+T|SPO|2|rosberg-2016|Welcher Deutsche wurde 2016 Formel-1-Weltmeister?|Nico Rosberg|Sebastian Vettel;Nico Hülkenberg;Ralf Schumacher|Nico Rosberg|2016
+T|SPO|1|olympische-ringe|Wie viele Ringe zeigt das olympische Symbol?|5|4;6;7|Olympische Ringe|fünf
+T|SPO|3|jesse-owens|Welcher Leichtathlet gewann bei den Olympischen Sommerspielen 1936 vier Goldmedaillen?|Jesse Owens|Carl Lewis;Paavo Nurmi;Luz Long|Jesse Owens|vier
+T|SPO|3|phelps-gold|Wie viele olympische Goldmedaillen gewann der Schwimmer Michael Phelps?|23|18;20;28|Michael Phelps|23
+T|SPO|2|bolt-958|Welcher Sprinter lief 2009 in Berlin die 100 Meter in 9,58 Sekunden?|Usain Bolt|Asafa Powell;Tyson Gay;Yohan Blake|Usain Bolt|9,58
+T|SPO|2|marathon-laenge|Wie lang ist die Marathonstrecke?|42,195 km|40,000 km;41,195 km;43,195 km|Marathonlauf|42,195
+T|SPO|2|triathlon|Aus welchen drei Disziplinen besteht ein Triathlon?|Schwimmen, Radfahren, Laufen|Schwimmen, Rudern, Laufen;Radfahren, Laufen, Schießen;Schwimmen, Reiten, Laufen|Triathlon|Schwimmen
+T|SPO|1|biathlon|Welche Sportart verbindet Skilanglauf mit Schießen?|Biathlon|Nordische Kombination;Skeleton;Moderner Fünfkampf|Biathlon|Schießen
+T|SPO|2|biathlon-scheiben|Wie viele Scheiben muss ein Biathlet bei jeder Schießeinlage treffen?|5|3;4;10|Biathlon|fünf
+T|SPO|2|nordische-kombination|Welche Disziplinen vereint die Nordische Kombination?|Skispringen und Skilanglauf|Skilanglauf und Schießen;Abfahrt und Slalom;Skispringen und Biathlon|Nordische Kombination|Skispringen
+T|SPO|2|vierschanzentournee-laender|In welchen beiden Ländern findet die Vierschanzentournee statt?|Deutschland und Österreich|Deutschland und Schweiz;Österreich und Schweiz;Norwegen und Finnland|Vierschanzentournee|Österreich
+T|SPO|3|vierschanzentournee-start|In welchem Ort beginnt die Vierschanzentournee traditionell?|Oberstdorf|Garmisch-Partenkirchen;Innsbruck;Bischofshofen|Vierschanzentournee|Oberstdorf
+T|SPO|4|streif|Wie heißt die berühmte Abfahrtsstrecke in Kitzbühel?|Streif|Kandahar;Lauberhorn;Saslong|Streif|Kitzbühel
+T|SPO|4|hoefl-riesch-2010|Welche deutsche Skirennläuferin gewann bei den Olympischen Winterspielen 2010 zweimal Gold?|Maria Höfl-Riesch|Viktoria Rebensburg;Katja Seizinger;Hilde Gerg|Maria Höfl-Riesch|2010
+T|SPO|2|katarina-witt|Welche Eiskunstläuferin aus der DDR gewann 1984 und 1988 olympisches Gold?|Katarina Witt|Anett Pötzsch;Gaby Seyfert;Tanja Szewczenko|Katarina Witt|1988
+T|SPO|2|tour-gelbes-trikot|Welche Farbe hat das Trikot des Gesamtführenden der Tour de France?|Gelb|Grün;Rosa;Weiß|Tour de France|Gelbe Trikot
+T|SPO|3|tour-bergtrikot|Welches Trikot trägt der beste Bergfahrer der Tour de France?|Weiß mit roten Punkten|Grün;Gelb;Rosa|Tour de France|gepunktet
+T|SPO|2|ullrich-1997|Welcher Deutsche gewann 1997 die Tour de France?|Jan Ullrich|Erik Zabel;Andreas Klöden;Jens Voigt|Jan Ullrich|1997
+T|SPO|2|golf-loecher|Wie viele Löcher hat ein regulärer Golfplatz?|18|9;12;24|Golf|18
+T|SPO|2|darts-501|Mit wie vielen Punkten beginnt jeder Spieler ein Leg im üblichen Darts-Spiel?|501|301;401;601|Darts|501
+T|SPO|2|darts-180|Wie viele Punkte kann man mit drei Darts höchstens erzielen?|180|150;171;200|Darts|180
+T|SPO|3|snooker-schwarz|Welche Farbe hat beim Snooker die Kugel mit dem höchsten Wert?|Schwarz|Pink;Blau;Grün|Snooker|Schwarz
+T|SPO|3|boxen-wm-runden|Über wie viele Runden geht ein Profibox-WM-Kampf heute in der Regel?|12|8;10;15|Boxen|zwölf
+T|SPO|4|schmeling-louis|Welcher deutsche Boxer besiegte 1936 Joe Louis durch K. o.?|Max Schmeling|Gustav Eder;Bubi Scholz;Walter Neusel|Max Schmeling|Joe Louis
+T|SPO|3|chio-aachen|In welcher Stadt findet das CHIO statt, das als „Weltfest des Pferdesports“ gilt?|Aachen|Hamburg;Münster;Verden|CHIO Aachen|Aachen

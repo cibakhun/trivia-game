@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-paulskirche
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Frankfurter Nationalversammlung"
+    url: https://de.wikipedia.org/wiki/Frankfurter_Nationalversammlung
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr trat die Nationalversammlung in der Frankfurter Paulskirche erstmals zusammen?"
+    options:
+      a: "1871"
+      b: "1866"
+      c: "1848"
+      d: "1832"

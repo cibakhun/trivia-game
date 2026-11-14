@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-darwin
+kind: TRIVIA
+category: SCIENCE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Charles Darwin"
+    url: https://de.wikipedia.org/wiki/Charles_Darwin
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer begründete die Evolutionstheorie durch natürliche Selektion?"
+    options:
+      a: "Gregor Mendel"
+      b: "Alfred Wegener"
+      c: "Jean-Baptiste de Lamarck"
+      d: "Charles Darwin"

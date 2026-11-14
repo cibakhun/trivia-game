@@ -1,0 +1,29 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-everest-erstbesteigung
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mount Everest"
+    url: https://de.wikipedia.org/wiki/Mount_Everest
+    accessed: 2026-11-12
+reviews: []
+estimate:
+  answer_value: "1953"
+  answer_precision: 0
+  answer_unit: year
+  input_min: "1800"
+  input_max: "2026"
+  scale_type: LINEAR
+  scale: 15
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr wurde der Mount Everest zum ersten Mal bestiegen?"
+    unit_label: "Jahr"

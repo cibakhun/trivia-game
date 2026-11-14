@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-berliner-pfannkuchen
+kind: TRIVIA
+category: GENERAL
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Berliner (Gebäck)"
+    url: https://de.wikipedia.org/wiki/Berliner_(Geb%C3%A4ck)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt in Berlin das Gebäck, das anderswo „Berliner“ genannt wird?"
+    options:
+      a: "Pfannkuchen"
+      b: "Krapfen"
+      c: "Kreppel"
+      d: "Schmalzkuchen"

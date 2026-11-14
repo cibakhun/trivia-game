@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-turing-enigma
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Alan Turing"
+    url: https://de.wikipedia.org/wiki/Alan_Turing
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher britische Mathematiker trug maßgeblich zur Entschlüsselung der Enigma bei?"
+    options:
+      a: "Alan Turing"
+      b: "John von Neumann"
+      c: "Isaac Newton"
+      d: "Charles Babbage"

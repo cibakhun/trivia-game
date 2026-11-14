@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-artikel-1-gg
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Menschenwürde"
+    url: https://de.wikipedia.org/wiki/Menschenw%C3%BCrde
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Artikel des Grundgesetzes steht: „Die Würde des Menschen ist unantastbar“?"
+    options:
+      a: "Artikel 1"
+      b: "Artikel 20"
+      c: "Artikel 3"
+      d: "Artikel 5"

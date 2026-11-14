@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-elysee-vertrag
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Élysée-Vertrag"
+    url: https://de.wikipedia.org/wiki/%C3%89lys%C3%A9e-Vertrag
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche beiden Staaten schlossen 1963 den Élysée-Vertrag?"
+    options:
+      a: "Deutschland und die Niederlande"
+      b: "Deutschland und Polen"
+      c: "Frankreich und Italien"
+      d: "Deutschland und Frankreich"

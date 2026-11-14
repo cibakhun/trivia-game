@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-landeshauptstadt-mecklenburg-vorpommern
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mecklenburg-Vorpommern"
+    url: https://de.wikipedia.org/wiki/Mecklenburg-Vorpommern
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Landeshauptstadt von Mecklenburg-Vorpommern?"
+    options:
+      a: "Schwerin"
+      b: "Neubrandenburg"
+      c: "Greifswald"
+      d: "Rostock"

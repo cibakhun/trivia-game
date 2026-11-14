@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-hoch-null
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Potenz (Mathematik)"
+    url: https://de.wikipedia.org/wiki/Potenz_(Mathematik)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Was ergibt jede Zahl außer null hoch 0?"
+    options:
+      a: "Die Zahl selbst"
+      b: "1"
+      c: "Unendlich"
+      d: "0"

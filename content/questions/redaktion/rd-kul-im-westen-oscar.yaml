@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-im-westen-oscar
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Im Westen nichts Neues (2022)"
+    url: https://de.wikipedia.org/wiki/Im_Westen_nichts_Neues_(2022)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher deutsche Film gewann 2023 vier Oscars, darunter als bester internationaler Film?"
+    options:
+      a: "Das Lehrerzimmer"
+      b: "Im Westen nichts Neues"
+      c: "Systemsprenger"
+      d: "Der Untergang"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-groesstes-landtier
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Afrikanischer Elefant"
+    url: https://de.wikipedia.org/wiki/Afrikanischer_Elefant
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches ist das größte heute lebende Landtier?"
+    options:
+      a: "Breitmaulnashorn"
+      b: "Afrikanischer Elefant"
+      c: "Giraffe"
+      d: "Flusspferd"

@@ -1,0 +1,29 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-mond-entfernung
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mond"
+    url: https://de.wikipedia.org/wiki/Mond
+    accessed: 2026-11-12
+reviews: []
+estimate:
+  answer_value: "384400"
+  answer_precision: 0
+  answer_unit: km
+  input_min: "1000"
+  input_max: "10000000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie weit ist der Mond im Mittel von der Erde entfernt (in Kilometern)?"
+    unit_label: "Kilometer"

@@ -1,0 +1,56 @@
+# Naturwissenschaft (Elementsymbole und Ordnungszahlen kommen aus Wikidata)
+T|NAT|1|merkur-sonne|Welcher Planet ist der Sonne am nächsten?|Merkur|Venus;Mars;Erde|Merkur (Planet)|sonnennächste
+T|NAT|1|jupiter-groesster|Welcher ist der größte Planet unseres Sonnensystems?|Jupiter|Saturn;Neptun;Uranus|Jupiter (Planet)|größte
+T|NAT|1|roter-planet|Welcher Planet wird „der Rote Planet“ genannt?|Mars|Venus;Jupiter;Merkur|Mars (Planet)|Roter Planet
+T|NAT|3|venus-heissester|Welcher Planet ist der heißeste unseres Sonnensystems?|Venus|Merkur;Mars;Jupiter|Venus (Planet)|heißeste
+T|NAT|1|planeten-zahl|Wie viele Planeten hat unser Sonnensystem?|8|7;9;10|Sonnensystem|acht
+T|NAT|3|pluto-2006|In welchem Jahr wurde Pluto der Status als Planet aberkannt?|2006|1999;2010;2015|Pluto (Zwergplanet)|2006
+T|NAT|2|licht-sonne-erde|Wie lange braucht das Licht von der Sonne bis zur Erde ungefähr?|8 Minuten|8 Sekunden;1 Stunde;1 Tag|Sonne|Minuten
+T|NAT|2|lichtgeschwindigkeit|Wie schnell ist Licht im Vakuum ungefähr?|300.000 km pro Sekunde|30.000 km pro Sekunde;150.000 km pro Sekunde;3.000.000 km pro Sekunde|Lichtgeschwindigkeit|299.792
+T|NAT|1|milchstrasse|Wie heißt die Galaxie, zu der unser Sonnensystem gehört?|Milchstraße|Andromedagalaxie;Große Magellansche Wolke;Sombrerogalaxie|Milchstraße|Sonnensystem
+T|NAT|3|proxima-centauri|Welcher Stern ist der Sonne am nächsten?|Proxima Centauri|Sirius;Polarstern;Wega|Proxima Centauri|nächste
+T|NAT|3|sirius-hellster|Welcher Stern ist der hellste am Nachthimmel?|Sirius|Polarstern;Wega;Beteigeuze|Sirius|hellste
+T|NAT|1|wasser-formel|Wie lautet die chemische Formel von Wasser?|H₂O|CO₂;H₂O₂;HO₂|Wasser|H2O
+T|NAT|2|diamant-element|Aus welchem chemischen Element bestehen Diamanten?|Kohlenstoff|Silicium;Bor;Stickstoff|Diamant|Kohlenstoff
+T|NAT|2|luft-stickstoff|Welches Gas macht den größten Anteil der Luft aus?|Stickstoff|Sauerstoff;Argon;Kohlenstoffdioxid|Luft|Stickstoff
+T|NAT|2|luft-sauerstoff|Wie viel Prozent der Luft sind ungefähr Sauerstoff?|21 Prozent|10 Prozent;35 Prozent;78 Prozent|Luft|21
+T|NAT|3|wasser-dichte|Bei welcher Temperatur hat Wasser seine größte Dichte?|4 °C|0 °C;−4 °C;10 °C|Dichteanomalie|4 °C
+T|NAT|3|absoluter-nullpunkt|Wie viel Grad Celsius beträgt der absolute Nullpunkt?|−273,15 °C|−100 °C;−373,15 °C;−459,67 °C|Absoluter Nullpunkt|273,15
+T|NAT|3|fahrenheit-null|Wie viel Grad Fahrenheit entsprechen 0 °C?|32 °F|0 °F;100 °F;212 °F|Grad Fahrenheit|32
+T|NAT|1|quecksilber-fluessig|Welches Metall ist bei Raumtemperatur flüssig?|Quecksilber|Blei;Zinn;Natrium|Quecksilber|flüssig
+T|NAT|2|neon-leuchtreklame|Welches Edelgas leuchtet in Leuchtröhren typisch orangerot?|Neon|Argon;Helium;Xenon|Neon|rot
+T|NAT|2|ph-neutral|Welchen pH-Wert hat eine neutrale Lösung bei 25 °C?|7|0;5;14|PH-Wert|neutral
+T|NAT|1|volt|In welcher Einheit wird die elektrische Spannung gemessen?|Volt|Ampere;Ohm;Watt|Volt|Spannung
+T|NAT|2|ohm|In welcher Einheit wird der elektrische Widerstand gemessen?|Ohm|Volt;Ampere;Coulomb|Ohm (Einheit)|Widerstand
+T|NAT|2|newton-kraft|In welcher Einheit wird die Kraft gemessen?|Newton|Joule;Pascal;Watt|Newton (Einheit)|Kraft
+T|NAT|4|einstein-nobelpreis|Wofür erhielt Albert Einstein den Nobelpreis für Physik?|Erklärung des photoelektrischen Effekts|Spezielle Relativitätstheorie;Allgemeine Relativitätstheorie;Formel E = mc²|Albert Einstein|photoelektrischen
+T|NAT|3|einstein-ulm|In welcher Stadt wurde Albert Einstein geboren?|Ulm|München;Bern;Zürich|Albert Einstein|Ulm
+T|NAT|3|roentgen-1901|Wer erhielt 1901 den ersten Nobelpreis für Physik?|Wilhelm Conrad Röntgen|Max Planck;Albert Einstein;Marie Curie|Wilhelm Conrad Röntgen|1901
+T|NAT|2|curie-zwei-nobelpreise|Wer erhielt Nobelpreise sowohl für Physik als auch für Chemie?|Marie Curie|Linus Pauling;Lise Meitner;Otto Hahn|Marie Curie|Chemie
+T|NAT|3|hahn-kernspaltung|Wer entdeckte 1938 zusammen mit Fritz Straßmann die Kernspaltung des Urans?|Otto Hahn|Werner Heisenberg;Max Born;Carl Friedrich von Weizsäcker|Otto Hahn|Kernspaltung
+T|NAT|3|planck-quanten|Wer begründete im Jahr 1900 die Quantenphysik?|Max Planck|Niels Bohr;Albert Einstein;Werner Heisenberg|Max Planck|Quanten
+T|NAT|2|kepler-gesetze|Wer formulierte die Gesetze der Planetenbewegung?|Johannes Kepler|Galileo Galilei;Nikolaus Kopernikus;Tycho Brahe|Keplersche Gesetze|Kepler
+T|NAT|2|kopernikus|Wer begründete im 16. Jahrhundert das heliozentrische Weltbild der Neuzeit?|Nikolaus Kopernikus|Johannes Kepler;Galileo Galilei;Claudius Ptolemäus|Nikolaus Kopernikus|heliozentrisch
+T|NAT|1|newton-gravitation|Wer formulierte das Gravitationsgesetz?|Isaac Newton|Galileo Galilei;Johannes Kepler;Albert Einstein|Newtonsches Gravitationsgesetz|Newton
+T|NAT|1|darwin|Wer begründete die Evolutionstheorie durch natürliche Selektion?|Charles Darwin|Gregor Mendel;Jean-Baptiste de Lamarck;Alfred Wegener|Charles Darwin|Selektion
+T|NAT|2|mendel-erbsen|Wer entdeckte die Vererbungsregeln bei Versuchen mit Erbsen?|Gregor Mendel|Charles Darwin;Robert Koch;Louis Pasteur|Gregor Mendel|Erbsen
+T|NAT|2|koch-tuberkulose|Wer entdeckte 1882 den Erreger der Tuberkulose?|Robert Koch|Louis Pasteur;Rudolf Virchow;Paul Ehrlich|Robert Koch|Tuberkulose
+T|NAT|2|fleming-penicillin|Wer entdeckte 1928 das Penicillin?|Alexander Fleming|Robert Koch;Louis Pasteur;Paul Ehrlich|Alexander Fleming|Penicillin
+T|NAT|3|wegener-kontinente|Welcher deutsche Forscher begründete die Theorie der Kontinentalverschiebung?|Alfred Wegener|Alexander von Humboldt;Carl Ritter;Ferdinand von Richthofen|Alfred Wegener|Kontinentalverschiebung
+T|NAT|2|knochen-zahl|Wie viele Knochen hat ein erwachsener Mensch ungefähr?|206|186;226;306|Skelett des Menschen|206
+T|NAT|2|oberschenkelknochen|Welcher ist der längste Knochen des Menschen?|Oberschenkelknochen|Schienbein;Oberarmknochen;Wadenbein|Oberschenkelknochen|längste
+T|NAT|3|steigbuegel|Welcher ist der kleinste Knochen des Menschen?|Steigbügel|Hammer;Amboss;Kniescheibe|Steigbügel (Anatomie)|kleinste
+T|NAT|2|haut-organ|Welches ist das größte Organ des Menschen?|Haut|Leber;Lunge;Darm|Haut|größte
+T|NAT|2|zaehne-erwachsen|Wie viele Zähne hat das vollständige Gebiss eines Erwachsenen mit Weisheitszähnen?|32|28;30;36|Gebiss des Menschen|32
+T|NAT|3|universalspender|Welche Blutgruppe gilt als Universalspender für rote Blutkörperchen?|0 negativ|AB positiv;A negativ;B positiv|Blutgruppe|0
+T|NAT|2|insulin|Welches Organ bildet das Hormon Insulin?|Bauchspeicheldrüse|Leber;Niere;Schilddrüse|Insulin|Bauchspeicheldrüse
+T|NAT|2|vitamin-d|Welches Vitamin bildet der Körper mithilfe von Sonnenlicht in der Haut?|Vitamin D|Vitamin C;Vitamin A;Vitamin B12|Vitamin D|Haut
+T|NAT|2|chromosomen|Wie viele Chromosomen hat eine menschliche Körperzelle normalerweise?|46|23;44;48|Chromosom|46
+T|NAT|2|dns|Wofür steht die Abkürzung „DNS“ in der Biologie?|Desoxyribonukleinsäure|Ribonukleinsäure;Dinukleotidsäure;Doppelnukleinsäure|Desoxyribonukleinsäure|DNS
+T|NAT|2|doppelhelix|Welche Form hat das DNA-Molekül?|Doppelhelix|Tripelhelix;Einzelstrang-Ring;Doppelkugel|Desoxyribonukleinsäure|Doppelhelix
+T|NAT|2|erdumfang|Wie groß ist der Umfang der Erde am Äquator ungefähr?|40.000 km|12.700 km;20.000 km;100.000 km|Erde|40.075
+T|NAT|2|seismologie|Wie heißt die Wissenschaft von den Erdbeben?|Seismologie|Vulkanologie;Meteorologie;Geodäsie|Seismologie|Erdbeben
+E|NAT|3|mond-entfernung|Wie weit ist der Mond im Mittel von der Erde entfernt (in Kilometern)?|384400|km|Kilometer|1000|10000000|LOG|0.3|Mond|384.400
+E|NAT|4|sonne-temperatur|Wie heiß ist die sichtbare Oberfläche der Sonne ungefähr (in Grad Celsius)?|5500|celsius|Grad Celsius|100|100000|LOG|0.3|Sonne|5778
+E|GEO|3|everest-erstbesteigung|In welchem Jahr wurde der Mount Everest zum ersten Mal bestiegen?|1953|year|Jahr|1800|2026|LINEAR|15|Mount Everest|1953
+E|NAT|3|erde-alter|Wie alt ist die Erde ungefähr (in Millionen Jahren)?|4600|million_years|Millionen Jahre|1|100000|LOG|0.3|Erde|4,6

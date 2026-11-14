@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-hahn-kernspaltung
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Otto Hahn"
+    url: https://de.wikipedia.org/wiki/Otto_Hahn
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer entdeckte 1938 zusammen mit Fritz Straßmann die Kernspaltung des Urans?"
+    options:
+      a: "Otto Hahn"
+      b: "Max Born"
+      c: "Carl Friedrich von Weizsäcker"
+      d: "Werner Heisenberg"

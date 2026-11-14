@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-gandhi
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mahatma Gandhi"
+    url: https://de.wikipedia.org/wiki/Mahatma_Gandhi
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer führte mit gewaltlosem Widerstand Indien in die Unabhängigkeit von Großbritannien?"
+    options:
+      a: "Mahatma Gandhi"
+      b: "Jawaharlal Nehru"
+      c: "Subhas Chandra Bose"
+      d: "Indira Gandhi"

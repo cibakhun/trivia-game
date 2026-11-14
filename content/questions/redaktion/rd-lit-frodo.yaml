@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-frodo
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Frodo Beutlin"
+    url: https://de.wikipedia.org/wiki/Frodo_Beutlin
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Hobbit trägt in „Der Herr der Ringe“ den Ring nach Mordor?"
+    options:
+      a: "Frodo Beutlin"
+      b: "Samweis Gamdschie"
+      c: "Bilbo Beutlin"
+      d: "Meriadoc Brandybock"

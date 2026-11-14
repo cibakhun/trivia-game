@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-rekordmeister
+kind: TRIVIA
+category: SPORTS
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: FC Bayern München"
+    url: https://de.wikipedia.org/wiki/FC_Bayern_M%C3%BCnchen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Verein ist deutscher Rekordmeister im Fußball der Männer?"
+    options:
+      a: "Borussia Dortmund"
+      b: "1. FC Nürnberg"
+      c: "FC Bayern München"
+      d: "FC Schalke 04"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-weisswurst-mittag
+kind: TRIVIA
+category: GENERAL
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Weißwurst"
+    url: https://de.wikipedia.org/wiki/Wei%C3%9Fwurst
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Bis wann isst man Weißwürste nach alter Regel?"
+    options:
+      a: "Bis Sonnenuntergang"
+      b: "Bis zum Frühstücksende um 9 Uhr"
+      c: "Bis zum Mittagsläuten"
+      d: "Bis zum Nachmittagskaffee"

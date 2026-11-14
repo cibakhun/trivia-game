@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-flagge-farben
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Flagge Deutschlands"
+    url: https://de.wikipedia.org/wiki/Flagge_Deutschlands
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Farben hat die Flagge Deutschlands von oben nach unten?"
+    options:
+      a: "Schwarz-Rot-Gold"
+      b: "Schwarz-Weiß-Rot"
+      c: "Gold-Rot-Schwarz"
+      d: "Rot-Schwarz-Gold"

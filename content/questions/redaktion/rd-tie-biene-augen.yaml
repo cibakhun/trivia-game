@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-biene-augen
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Westliche Honigbiene"
+    url: https://de.wikipedia.org/wiki/Westliche_Honigbiene
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Augen hat eine Honigbiene?"
+    options:
+      a: "4"
+      b: "2"
+      c: "5"
+      d: "6"

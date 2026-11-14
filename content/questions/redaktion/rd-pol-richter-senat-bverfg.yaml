@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-richter-senat-bverfg
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bundesverfassungsgericht"
+    url: https://de.wikipedia.org/wiki/Bundesverfassungsgericht
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Richter gehören jedem der beiden Senate des Bundesverfassungsgerichts an?"
+    options:
+      a: "8"
+      b: "9"
+      c: "6"
+      d: "12"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-hymne-strophe
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Das Lied der Deutschen"
+    url: https://de.wikipedia.org/wiki/Das_Lied_der_Deutschen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Strophe des „Liedes der Deutschen“ ist die Nationalhymne?"
+    options:
+      a: "Die dritte"
+      b: "Alle drei"
+      c: "Die zweite"
+      d: "Die erste"

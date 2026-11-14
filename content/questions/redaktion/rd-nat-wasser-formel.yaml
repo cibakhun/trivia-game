@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-wasser-formel
+kind: TRIVIA
+category: SCIENCE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wasser"
+    url: https://de.wikipedia.org/wiki/Wasser
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie lautet die chemische Formel von Wasser?"
+    options:
+      a: "HO₂"
+      b: "H₂O₂"
+      c: "H₂O"
+      d: "CO₂"

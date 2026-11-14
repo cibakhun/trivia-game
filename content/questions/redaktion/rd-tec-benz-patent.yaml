@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-benz-patent
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Benz Patent-Motorwagen Nummer 1"
+    url: https://de.wikipedia.org/wiki/Benz_Patent-Motorwagen_Nummer_1
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer meldete 1886 einen Motorwagen mit Verbrennungsmotor zum Patent an?"
+    options:
+      a: "Rudolf Diesel"
+      b: "Gottlieb Daimler"
+      c: "Wilhelm Maybach"
+      d: "Carl Benz"

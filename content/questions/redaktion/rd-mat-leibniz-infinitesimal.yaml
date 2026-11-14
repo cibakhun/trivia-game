@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-leibniz-infinitesimal
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Gottfried Wilhelm Leibniz"
+    url: https://de.wikipedia.org/wiki/Gottfried_Wilhelm_Leibniz
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer entwickelte unabhängig von Isaac Newton die Infinitesimalrechnung?"
+    options:
+      a: "Johannes Kepler"
+      b: "Carl Friedrich Gauß"
+      c: "Gottfried Wilhelm Leibniz"
+      d: "Leonhard Euler"

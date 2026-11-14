@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-roemische-vertraege
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Römische Verträge"
+    url: https://de.wikipedia.org/wiki/R%C3%B6mische_Vertr%C3%A4ge
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr wurden die Römischen Verträge unterzeichnet, mit denen die Europäische Wirtschaftsgemeinschaft gegründet wurde?"
+    options:
+      a: "1957"
+      b: "1951"
+      c: "1965"
+      d: "1949"

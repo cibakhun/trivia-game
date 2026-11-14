@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-99-luftballons
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: 99 Luftballons"
+    url: https://de.wikipedia.org/wiki/99_Luftballons
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Mit welchem Lied hatte Nena 1983 einen weltweiten Hit?"
+    options:
+      a: "Leuchtturm"
+      b: "Nur geträumt"
+      c: "Irgendwie, irgendwo, irgendwann"
+      d: "99 Luftballons"

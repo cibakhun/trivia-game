@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-anzahl-bundeslaender
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Land (Deutschland)"
+    url: https://de.wikipedia.org/wiki/Land_(Deutschland)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Aus wie vielen Ländern besteht die Bundesrepublik Deutschland?"
+    options:
+      a: "12"
+      b: "18"
+      c: "16"
+      d: "14"

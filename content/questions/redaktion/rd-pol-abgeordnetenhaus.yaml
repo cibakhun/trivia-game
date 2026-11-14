@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-abgeordnetenhaus
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Abgeordnetenhaus von Berlin"
+    url: https://de.wikipedia.org/wiki/Abgeordnetenhaus_von_Berlin
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt das Landesparlament von Berlin?"
+    options:
+      a: "Senat"
+      b: "Landtag"
+      c: "Bürgerschaft"
+      d: "Abgeordnetenhaus"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-kreuzotter
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Kreuzotter"
+    url: https://de.wikipedia.org/wiki/Kreuzotter
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Giftschlange ist in Deutschland am weitesten verbreitet?"
+    options:
+      a: "Aspisviper"
+      b: "Ringelnatter"
+      c: "Kreuzotter"
+      d: "Schlingnatter"

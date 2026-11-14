@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-kennzeichen-hh
+kind: TRIVIA
+category: GENERAL
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Liste der Kfz-Kennzeichen in Deutschland"
+    url: https://de.wikipedia.org/wiki/Liste_der_Kfz-Kennzeichen_in_Deutschland
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Für welche Stadt steht das Kfz-Kennzeichen „HH“?"
+    options:
+      a: "Halle (Saale)"
+      b: "Heidelberg"
+      c: "Hamburg"
+      d: "Hannover"

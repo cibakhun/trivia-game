@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-von-braun
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wernher von Braun"
+    url: https://de.wikipedia.org/wiki/Wernher_von_Braun
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher deutsche Raketeningenieur leitete später die Entwicklung der Mondrakete Saturn V?"
+    options:
+      a: "Wernher von Braun"
+      b: "Walter Dornberger"
+      c: "Eugen Sänger"
+      d: "Hermann Oberth"

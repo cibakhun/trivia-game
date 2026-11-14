@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-groesstes-bundesland
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bayern"
+    url: https://de.wikipedia.org/wiki/Bayern
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches Bundesland ist das flächengrößte?"
+    options:
+      a: "Niedersachsen"
+      b: "Nordrhein-Westfalen"
+      c: "Baden-Württemberg"
+      d: "Bayern"

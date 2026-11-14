@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-wiederwahl-bundespraesident
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bundespräsident (Deutschland)"
+    url: https://de.wikipedia.org/wiki/Bundespr%C3%A4sident_(Deutschland)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie oft darf ein Bundespräsident direkt im Anschluss wiedergewählt werden?"
+    options:
+      a: "Beliebig oft"
+      b: "Einmal"
+      c: "Gar nicht"
+      d: "Zweimal"

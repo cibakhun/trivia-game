@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-die-fohlen
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Borussia Mönchengladbach"
+    url: https://de.wikipedia.org/wiki/Borussia_M%C3%B6nchengladbach
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Verein wird „Die Fohlen“ genannt?"
+    options:
+      a: "1. FC Köln"
+      b: "Eintracht Frankfurt"
+      c: "Hannover 96"
+      d: "Borussia Mönchengladbach"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-fuenf-prozent-huerde
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Sperrklausel"
+    url: https://de.wikipedia.org/wiki/Sperrklausel
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viel Prozent der Zweitstimmen braucht eine Partei bei der Bundestagswahl in der Regel, um in den Bundestag einzuziehen?"
+    options:
+      a: "3 Prozent"
+      b: "7 Prozent"
+      c: "4 Prozent"
+      d: "5 Prozent"

@@ -44,7 +44,7 @@ export const sourceSchema = z
   })
   .strict();
 
-/** Dokumentierte menschliche Prüfung (Brief §5.6): Fakten oder Sprache (dann mit Sprache). */
+/** Dokumentierte Prüfung (Brief §5.6; nach ADR-072 auch durch Claude mit zweiter Quelle): Fakten oder Sprache (dann mit Sprache). */
 export const reviewSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('FACT'), reviewer: nonEmpty, date: isoDate, note: z.string().optional() }).strict(),
   z

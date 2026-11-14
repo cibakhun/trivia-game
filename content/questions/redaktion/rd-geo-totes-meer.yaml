@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-totes-meer
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Totes Meer"
+    url: https://de.wikipedia.org/wiki/Totes_Meer
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "An welchem Gewässer liegt der tiefste Punkt der Landoberfläche der Erde?"
+    options:
+      a: "Totes Meer"
+      b: "Assalsee"
+      c: "See Genezareth"
+      d: "Kaspisches Meer"

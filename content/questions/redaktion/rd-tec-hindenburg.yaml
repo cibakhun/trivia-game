@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-hindenburg
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: LZ 129"
+    url: https://de.wikipedia.org/wiki/LZ_129
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie hieß das Luftschiff, das 1937 bei der Landung in Lakehurst verbrannte?"
+    options:
+      a: "LZ 120 Bodensee"
+      b: "LZ 127 Graf Zeppelin"
+      c: "LZ 129 Hindenburg"
+      d: "LZ 10 Schwaben"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-silberhochzeit
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Hochzeitstag"
+    url: https://de.wikipedia.org/wiki/Hochzeitstag
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt der Hochzeitstag nach 25 Ehejahren?"
+    options:
+      a: "Rubinhochzeit"
+      b: "Goldene Hochzeit"
+      c: "Diamantene Hochzeit"
+      d: "Silberne Hochzeit"

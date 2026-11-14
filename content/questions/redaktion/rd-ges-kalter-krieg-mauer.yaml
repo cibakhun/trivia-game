@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-kalter-krieg-mauer
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Eiserner Vorhang (Politik)"
+    url: https://de.wikipedia.org/wiki/Eiserner_Vorhang_(Politik)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie wurde die Grenze zwischen dem Ostblock und dem Westen im Kalten Krieg oft bildhaft genannt?"
+    options:
+      a: "Eiserner Vorhang"
+      b: "Rote Linie"
+      c: "Stählerne Mauer"
+      d: "Großer Graben"

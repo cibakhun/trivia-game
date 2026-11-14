@@ -1,0 +1,29 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-sonne-temperatur
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Sonne"
+    url: https://de.wikipedia.org/wiki/Sonne
+    accessed: 2026-11-12
+reviews: []
+estimate:
+  answer_value: "5500"
+  answer_precision: 0
+  answer_unit: celsius
+  input_min: "100"
+  input_max: "100000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heiß ist die sichtbare Oberfläche der Sonne ungefähr (in Grad Celsius)?"
+    unit_label: "Grad Celsius"

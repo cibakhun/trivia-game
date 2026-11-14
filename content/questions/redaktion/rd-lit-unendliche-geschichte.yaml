@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-unendliche-geschichte
+kind: TRIVIA
+category: LITERATURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die unendliche Geschichte"
+    url: https://de.wikipedia.org/wiki/Die_unendliche_Geschichte
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schrieb „Die unendliche Geschichte“?"
+    options:
+      a: "Michael Ende"
+      b: "Erich Kästner"
+      c: "Cornelia Funke"
+      d: "Otfried Preußler"

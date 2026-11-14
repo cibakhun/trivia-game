@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-blauer-reiter
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Der Blaue Reiter"
+    url: https://de.wikipedia.org/wiki/Der_Blaue_Reiter
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Künstlergruppe gründeten Wassily Kandinsky und Franz Marc 1911 in München?"
+    options:
+      a: "Der Blaue Reiter"
+      b: "Der Sturm"
+      c: "Bauhaus"
+      d: "Die Brücke"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-hotzenplotz
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Der Räuber Hotzenplotz"
+    url: https://de.wikipedia.org/wiki/Der_R%C3%A4uber_Hotzenplotz
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schrieb „Der Räuber Hotzenplotz“?"
+    options:
+      a: "Otfried Preußler"
+      b: "Michael Ende"
+      c: "Paul Maar"
+      d: "James Krüss"

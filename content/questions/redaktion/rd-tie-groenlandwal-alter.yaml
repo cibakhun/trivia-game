@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-groenlandwal-alter
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Grönlandwal"
+    url: https://de.wikipedia.org/wiki/Gr%C3%B6nlandwal
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches Säugetier kann nach heutigem Wissen über 200 Jahre alt werden?"
+    options:
+      a: "Afrikanischer Elefant"
+      b: "Schwertwal"
+      c: "Grönlandwal"
+      d: "Blauwal"

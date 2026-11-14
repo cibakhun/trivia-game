@@ -1,0 +1,62 @@
+# Politik und Gesellschaft (keine Amtsinhaber von heute, nur Dauerhaftes)
+T|POL|1|staatsoberhaupt|Wer ist das Staatsoberhaupt der Bundesrepublik Deutschland?|Der Bundespräsident|Der Bundeskanzler;Der Bundestagspräsident;Der Bundesratspräsident|Bundespräsident (Deutschland)|Staatsoberhaupt
+T|POL|2|wahl-bundespraesident|Wer wählt den Bundespräsidenten?|Die Bundesversammlung|Der Bundestag;Der Bundesrat;Das Volk in direkter Wahl|Bundesversammlung (Deutschland)|Bundespräsident
+T|POL|2|amtszeit-bundespraesident|Für wie viele Jahre wird der Bundespräsident gewählt?|5 Jahre|4 Jahre;6 Jahre;7 Jahre|Bundespräsident (Deutschland)|fünf Jahre
+T|POL|3|wiederwahl-bundespraesident|Wie oft darf ein Bundespräsident direkt im Anschluss wiedergewählt werden?|Einmal|Gar nicht;Zweimal;Beliebig oft|Bundespräsident (Deutschland)|einmal
+T|POL|1|wahl-bundeskanzler|Wer wählt den Bundeskanzler?|Der Bundestag|Der Bundesrat;Die Bundesversammlung;Das Volk in direkter Wahl|Bundeskanzler (Deutschland)|Bundestag
+T|POL|2|richtlinienkompetenz|Wer bestimmt laut Grundgesetz die Richtlinien der Politik?|Der Bundeskanzler|Der Bundespräsident;Der Bundestagspräsident;Der Bundesrat|Richtlinienkompetenz|Bundeskanzler
+T|POL|2|wahlperiode-bundestag|Wie lange dauert eine reguläre Wahlperiode des Bundestages?|4 Jahre|3 Jahre;5 Jahre;6 Jahre|Deutscher Bundestag|vier Jahre
+T|POL|2|sitz-bundestag|In welchem Gebäude hat der Deutsche Bundestag seinen Sitz?|Reichstagsgebäude|Schloss Bellevue;Bundeskanzleramt;Preußisches Herrenhaus|Reichstagsgebäude|Bundestag
+T|POL|2|sitz-bundespraesident|Wie heißt der Amtssitz des Bundespräsidenten in Berlin?|Schloss Bellevue|Schloss Charlottenburg;Reichstagsgebäude;Bundeskanzleramt|Schloss Bellevue|Bundespräsident
+T|POL|4|bundestag-umzug|In welchem Jahr nahm der Bundestag seine Arbeit im Berliner Reichstagsgebäude auf?|1999|1990;1994;2002|Reichstagsgebäude|1999
+T|POL|3|bundestag-sitze-2025|Wie viele Sitze hat der 2025 gewählte Bundestag?|630|598;709;736|Bundestagswahl 2025|630
+T|POL|2|bundesrat-laender|Über welches Verfassungsorgan wirken die Länder bei der Gesetzgebung des Bundes mit?|Bundesrat|Bundestag;Bundesversammlung;Bundesverfassungsgericht|Bundesrat (Deutschland)|Länder
+T|POL|3|vermittlungsausschuss|Welches Gremium sucht einen Kompromiss, wenn Bundestag und Bundesrat über ein Gesetz streiten?|Vermittlungsausschuss|Ältestenrat;Gemeinsamer Ausschuss;Bundesversammlung|Vermittlungsausschuss|Bundesrat
+T|POL|1|sitz-bverfg|In welcher Stadt hat das Bundesverfassungsgericht seinen Sitz?|Karlsruhe|Berlin;Leipzig;Bonn|Bundesverfassungsgericht|Karlsruhe
+T|POL|4|richter-senat-bverfg|Wie viele Richter gehören jedem der beiden Senate des Bundesverfassungsgerichts an?|8|6;9;12|Bundesverfassungsgericht|acht
+T|POL|4|sitz-bverwg|In welcher Stadt hat das Bundesverwaltungsgericht seinen Sitz?|Leipzig|Karlsruhe;Kassel;Erfurt|Bundesverwaltungsgericht|Leipzig
+T|POL|3|sitz-bundesagentur-arbeit|In welcher Stadt hat die Bundesagentur für Arbeit ihren Hauptsitz?|Nürnberg|Berlin;Frankfurt am Main;Köln|Bundesagentur für Arbeit|Nürnberg
+T|POL|4|sitz-bka|In welcher Stadt hat das Bundeskriminalamt seinen Hauptsitz?|Wiesbaden|Karlsruhe;Köln;Mainz|Bundeskriminalamt (Deutschland)|Wiesbaden
+T|POL|4|bendlerblock|Welches Bundesministerium hat einen Dienstsitz im Berliner Bendlerblock?|Bundesministerium der Verteidigung|Auswärtiges Amt;Bundesministerium des Innern;Bundesministerium der Finanzen|Bendlerblock|Verteidigung
+T|POL|2|auswaertiges-amt|Wie heißt das deutsche Außenministerium offiziell?|Auswärtiges Amt|Bundesaußenamt;Amt für Äußeres;Bundeskanzleramt|Auswärtiges Amt|Außenministerium
+T|POL|2|bnd|Welcher Dienst ist der Auslandsnachrichtendienst der Bundesrepublik?|Bundesnachrichtendienst|Bundesamt für Verfassungsschutz;Militärischer Abschirmdienst;Bundeskriminalamt|Bundesnachrichtendienst|Auslandsnachrichtendienst
+T|POL|1|artikel-1-gg|In welchem Artikel des Grundgesetzes steht: „Die Würde des Menschen ist unantastbar“?|Artikel 1|Artikel 3;Artikel 5;Artikel 20|Menschenwürde|Artikel 1
+T|POL|2|wahlalter-bundestag|Ab welchem Alter darf man in Deutschland an der Bundestagswahl teilnehmen?|18|16;17;21|Wahlalter|18
+T|POL|2|fuenf-prozent-huerde|Wie viel Prozent der Zweitstimmen braucht eine Partei bei der Bundestagswahl in der Regel, um in den Bundestag einzuziehen?|5 Prozent|3 Prozent;4 Prozent;7 Prozent|Sperrklausel|Fünf-Prozent
+T|POL|2|stimmen-bundestagswahl|Wie viele Stimmen hat jeder Wähler bei der Bundestagswahl?|Zwei|Eine;Drei;Vier|Zweitstimme|Erststimme
+T|POL|2|mdb|Wofür steht die Abkürzung „MdB“?|Mitglied des Bundestages|Minister der Bundesregierung;Mitglied des Bundesrates;Ministerium des Bundes|Mitglied des Deutschen Bundestages|MdB
+T|POL|3|konstruktives-misstrauensvotum|Wie heißt das Verfahren, mit dem der Bundestag einen Bundeskanzler stürzt, indem er zugleich einen Nachfolger wählt?|Konstruktives Misstrauensvotum|Vertrauensfrage;Amtsenthebungsverfahren;Auflösungsbeschluss|Konstruktives Misstrauensvotum|Nachfolger
+T|POL|3|misstrauensvotum-1982|Welcher Bundeskanzler wurde 1982 durch ein konstruktives Misstrauensvotum abgelöst?|Helmut Schmidt|Willy Brandt;Ludwig Erhard;Kurt Georg Kiesinger|Konstruktives Misstrauensvotum|Helmut Schmidt
+T|POL|4|laengster-kanzler|Welcher Bundeskanzler war am längsten im Amt?|Helmut Kohl|Angela Merkel;Konrad Adenauer;Helmut Schmidt|Helmut Kohl|längste
+T|POL|3|nobelpreis-brandt|Welcher Bundeskanzler erhielt 1971 den Friedensnobelpreis?|Willy Brandt|Helmut Schmidt;Konrad Adenauer;Helmut Kohl|Willy Brandt|Friedensnobelpreis
+T|POL|3|rede-8-mai-1985|Welcher Bundespräsident nannte 1985 in einer berühmten Rede den 8. Mai einen „Tag der Befreiung“?|Richard von Weizsäcker|Karl Carstens;Roman Herzog;Walter Scheel|Richard von Weizsäcker|Befreiung
+T|POL|1|flagge-farben|Welche Farben hat die Flagge Deutschlands von oben nach unten?|Schwarz-Rot-Gold|Schwarz-Weiß-Rot;Rot-Schwarz-Gold;Gold-Rot-Schwarz|Flagge Deutschlands|Schwarz-Rot-Gold
+T|POL|1|bundeswappen|Welches Tier zeigt das Bundeswappen?|Adler|Löwe;Bär;Greif|Bundeswappen Deutschlands|Adler
+T|POL|2|hymne-strophe|Welche Strophe des „Liedes der Deutschen“ ist die Nationalhymne?|Die dritte|Die erste;Die zweite;Alle drei|Das Lied der Deutschen|dritte Strophe
+T|POL|3|hymne-text|Wer schrieb den Text des „Liedes der Deutschen“?|August Heinrich Hoffmann von Fallersleben|Ernst Moritz Arndt;Friedrich Schiller;Ludwig Uhland|Das Lied der Deutschen|Hoffmann von Fallersleben
+T|POL|2|stadtstaaten-zahl|Wie viele der deutschen Länder sind Stadtstaaten?|Drei|Zwei;Vier;Fünf|Stadtstaat|Bremen
+T|POL|3|freistaaten|Welche drei Länder führen die Bezeichnung „Freistaat“?|Bayern, Sachsen und Thüringen|Bayern, Sachsen und Brandenburg;Bayern, Thüringen und Baden-Württemberg;Sachsen, Thüringen und Sachsen-Anhalt|Freistaat|Thüringen
+T|POL|3|buergerschaft|Welche Länder nennen ihr Landesparlament „Bürgerschaft“?|Hamburg und Bremen|Berlin und Hamburg;Berlin und Bremen;Bremen und Saarland|Bürgerschaft|Bremen
+T|POL|3|abgeordnetenhaus|Wie heißt das Landesparlament von Berlin?|Abgeordnetenhaus|Senat;Bürgerschaft;Landtag|Abgeordnetenhaus von Berlin|Landesparlament
+T|POL|2|frauenwahlrecht|In welchem Jahr wurde in Deutschland das Frauenwahlrecht eingeführt?|1918|1871;1908;1949|Frauenwahlrecht|1918
+T|POL|2|mindestlohn|Seit welchem Jahr gilt in Deutschland ein allgemeiner gesetzlicher Mindestlohn?|2015|2009;2012;2018|Mindestlohn in Deutschland|2015
+T|POL|2|wehrpflicht-ausgesetzt|In welchem Jahr wurde die allgemeine Wehrpflicht in Deutschland ausgesetzt?|2011|2001;2008;2014|Wehrpflicht in Deutschland|2011
+T|POL|3|strafmuendigkeit|Ab welchem Alter ist man in Deutschland strafmündig?|14|12;16;18|Strafmündigkeit|14
+T|POL|3|krankenversicherung-bismarck|Unter welchem Reichskanzler wurde 1883 die gesetzliche Krankenversicherung eingeführt?|Otto von Bismarck|Leo von Caprivi;Bernhard von Bülow;Theobald von Bethmann Hollweg|Gesetzliche Krankenversicherung (Deutschland)|1883
+T|POL|2|dgb|Wofür steht die Abkürzung „DGB“?|Deutscher Gewerkschaftsbund|Deutscher Gemeindebund;Deutscher Genossenschaftsbund;Deutscher Grundbesitzerbund|Deutscher Gewerkschaftsbund|DGB
+T|POL|1|eu-mitglieder|Wie viele Mitgliedstaaten hat die Europäische Union seit dem Austritt des Vereinigten Königreichs?|27|25;28;30|Europäische Union|27
+T|POL|2|brexit-jahr|In welchem Jahr trat das Vereinigte Königreich aus der Europäischen Union aus?|2020|2016;2019;2021|Brexit|31. Januar 2020
+T|POL|2|europaflagge-sterne|Wie viele Sterne zeigt die Europaflagge?|12|10;15;27|Europaflagge|zwölf
+T|POL|2|europahymne|Welche Melodie ist die Hymne Europas?|„Ode an die Freude“ von Beethoven|„Eine kleine Nachtmusik“ von Mozart;„Halleluja“ von Händel;„Air“ von Bach|Europahymne|Freude
+T|POL|2|sitz-ezb|In welcher Stadt hat die Europäische Zentralbank ihren Sitz?|Frankfurt am Main|Brüssel;Luxemburg;Straßburg|Europäische Zentralbank|Frankfurt
+T|POL|3|sitz-eu-parlament|Welche Stadt ist der offizielle Sitz des Europäischen Parlaments?|Straßburg|Brüssel;Luxemburg;Den Haag|Europäisches Parlament|Straßburg
+T|POL|3|sitz-eugh|In welcher Stadt hat der Gerichtshof der Europäischen Union seinen Sitz?|Luxemburg|Straßburg;Brüssel;Den Haag|Gerichtshof der Europäischen Union|Luxemburg
+T|POL|4|hallstein|Wer war der erste Präsident der Kommission der Europäischen Wirtschaftsgemeinschaft?|Walter Hallstein|Jacques Delors;Robert Schuman;Jean Monnet|Walter Hallstein|Kommission
+T|POL|2|elysee-vertrag|Welche beiden Staaten schlossen 1963 den Élysée-Vertrag?|Deutschland und Frankreich|Deutschland und Polen;Frankreich und Italien;Deutschland und die Niederlande|Élysée-Vertrag|Frankreich
+T|POL|1|sitz-uno|In welcher Stadt hat die UNO ihren Hauptsitz?|New York|Genf;Wien;Paris|Vereinte Nationen|New York
+T|POL|2|sicherheitsrat-staendige|Wie viele ständige Mitglieder hat der UN-Sicherheitsrat?|5|3;7;10|Sicherheitsrat der Vereinten Nationen|fünf ständige
+T|POL|2|sitz-nato|In welcher Stadt hat die NATO ihr Hauptquartier?|Brüssel|Washington, D.C.;Genf;Den Haag|NATO|Brüssel
+T|POL|3|sitz-istgh|In welcher Stadt hat der Internationale Strafgerichtshof seinen Sitz?|Den Haag|Genf;Straßburg;New York|Internationaler Strafgerichtshof|Den Haag
+T|POL|2|sitz-who|In welcher Stadt hat die Weltgesundheitsorganisation ihren Sitz?|Genf|New York;Wien;Rom|Weltgesundheitsorganisation|Genf
+T|POL|2|friedensnobelpreis-ort|In welcher Stadt wird der Friedensnobelpreis verliehen?|Oslo|Stockholm;Genf;Kopenhagen|Friedensnobelpreis|Oslo
+T|POL|3|rotes-kreuz|Auf wessen Anregung geht die Gründung des Roten Kreuzes zurück?|Henry Dunant|Florence Nightingale;Albert Schweitzer;Clara Barton|Henry Dunant|Rote Kreuz

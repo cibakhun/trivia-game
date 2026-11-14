@@ -18,18 +18,25 @@ const labelOf = (rows: readonly Row[]): string => rows[0]?.['label'] ?? '';
  * Ein eindeutiger Zahlenwert je Gegenstand; mehrere verschiedene (gerundete) Werte → kein Fakt.
  * Mit `named` nur Gegenstände, für die `de.ts` eine geprüfte Form mit Artikel kennt: Namen ohne
  * diese Form ergäben holprige Fragen („der Berg „Berg Olymp““) und sind meist ohnehin abseitig.
+ * `override` setzt den Wert (schon umgerechnet) für Gegenstände, bei denen Wikidata von der
+ * deutschen Wikipedia abweicht; gefragt wird mit dem Wert, den deutsche Spieler nachlesen können.
  */
 function singleValueFacts(
   rows: readonly Row[],
   exclude: Exclusions,
   convert: (value: number) => number,
-  options: { named?: boolean; rename?: (label: string) => string } = {},
+  options: {
+    named?: boolean;
+    rename?: (label: string) => string;
+    override?: Readonly<Record<string, number>>;
+  } = {},
 ): EstimateFact[] {
   const facts: EstimateFact[] = [];
   for (const [qid, group] of groupByItem(rows)) {
     if (exclude[qid]) continue;
     if (options.named && !hasNominative(labelOf(group))) continue;
-    const values = distinct(
+    const fixed = options.override?.[qid];
+    const values = fixed !== undefined ? [fixed] : distinct(
       group.map((r) => numberOf(r['value'])).filter((v): v is number => v !== null).map((v) => Math.round(convert(v))),
     );
     const value = values[0];
@@ -141,6 +148,13 @@ const CAPITAL_EXCLUSIONS: Exclusions = {
   ...NOT_SOVEREIGN,
   Q183: 'Deutschland: zu leicht für deutsches Publikum',
   Q801: 'Israel: Hauptstadt Jerusalem international umstritten',
+  Q1049: 'Sudan: Regierung saß im Bürgerkrieg in Port Sudan; Schreibweise Khartum/Chartum schwankt',
+  Q817: 'Kuwait: die Hauptstadt heißt in der deutschen Wikipedia wie das Land',
+};
+
+/** Hauptstädte in der Schreibweise der deutschen Wikipedia, wo Wikidata eine andere führt. */
+const CAPITAL_NAMES: Readonly<Record<string, string>> = {
+  Kischinau: 'Chișinău',
 };
 
 // ---------------------------------------------------------------- Schätzfragen
@@ -166,6 +180,7 @@ const MOUNTAIN_EXCLUSIONS: Exclusions = {
   Q83497: 'Mount Rushmore: bekannt als Denkmal, die Höhe des Bergs fragt niemand',
   Q205976: 'Ölberg: mehrere Berge dieses Namens (Jerusalem, Siebengebirge)',
   Q377485: 'Sinai: Lage des biblischen Bergs umstritten',
+  Q16990: 'Ätna: Höhe ändert sich mit den Ausbrüchen (Wikidata 3357 m, deutsche Wikipedia 3403 m)',
 };
 
 const bergHoehe: EstimateTemplate = {
@@ -173,7 +188,7 @@ const bergHoehe: EstimateTemplate = {
   id: 'berg-hoehe',
   snapshot: 'berge-hoehe',
   category: 'GEOGRAPHY',
-  count: 6,
+  count: 30,
   window: 40,
   unit: 'm',
   unitLabel: 'Meter',
@@ -191,6 +206,42 @@ const RIVER_EXCLUSIONS: Exclusions = {
   Q882739: 'Blauer Nil: Länge je nach Zählung 1450 oder 1783 km',
   Q4814791: 'Weißer Nil: Länge je nach Zählung sehr verschieden',
   Q35827: 'Río de la Plata: Mündungstrichter, kein Fluss im üblichen Sinn',
+  // Länge je nach Zählweise oder Quelle stark verschieden (Wikidata gegen deutsche Wikipedia)
+  Q3783: 'Amazonas: 6400 oder 6992 km je nach Quelle',
+  Q7355: 'Gelber Fluss: 5464 oder 4845 km',
+  Q3503: 'Kongo: 4700 oder 4374 km (mit Quellflüssen 4835 km)',
+  Q5089: 'Ganges: 2525 oder 2620 km',
+  Q35591: 'Tigris: 1850 oder 1900 km',
+  Q5419: 'Missouri: 3726 oder 4087 km',
+  Q41986: 'Maas: 950 oder 874 km',
+  Q707598: 'Weser (Nebenfluss der Ourthe in Belgien): gleicher Name wie die deutsche Weser',
+  Q155045: 'Eger: fließt größtenteils in Tschechien',
+  Q317036: 'Regen: Name im Fragetext missverständlich',
+  Q152331: 'Rur: zu leicht mit der Ruhr zu verwechseln',
+};
+
+/**
+ * Flusslängen der deutschen Wikipedia, wo Wikidata abweicht (Stand der Artikel 2026-11-12): Gefragt
+ * wird mit dem Wert, den deutsche Spieler nachlesen.
+ */
+const RIVER_LENGTHS_DE: Readonly<Record<string, number>> = {
+  Q1670: 527, // Main (Wikidata 524)
+  Q1664: 219, // Ruhr (217)
+  Q1682: 334, // Havel (325)
+  Q19686: 346, // Themse (334)
+  Q103148: 246, // Lahn (242)
+  Q6424: 300, // Werra (292)
+  Q6434: 220, // Fulda (218)
+  Q1967803: 260, // Aller (263)
+  Q317060: 230, // Altmühl (227)
+  Q161051: 278, // Leine (281)
+  Q153972: 235, // Saar (246)
+  Q5413: 6380, // Jangtsekiang (6300)
+  Q34589: 2736, // Euphrat (2800)
+  Q40855: 2201, // Dnipro (2285)
+  Q45403: 3100, // Brahmaputra (2900)
+  Q131792: 2010, // Orinoco (2140)
+  Q2251: 1953, // Columbia River (2000)
 };
 
 const flussLaenge: EstimateTemplate = {
@@ -198,7 +249,7 @@ const flussLaenge: EstimateTemplate = {
   id: 'fluss-laenge',
   snapshot: 'fluesse-laenge',
   category: 'GEOGRAPHY',
-  count: 6,
+  count: 30,
   window: 50,
   unit: 'km',
   unitLabel: 'Kilometer',
@@ -207,9 +258,42 @@ const flussLaenge: EstimateTemplate = {
   scaleType: 'LOG',
   scale: 0.3,
   extract: (rows) =>
-    singleValueFacts(rows, RIVER_EXCLUSIONS, (m) => m / 1000, { named: true }).filter((f) => f.value >= 100),
+    singleValueFacts(rows, RIVER_EXCLUSIONS, (m) => m / 1000, { named: true, override: RIVER_LENGTHS_DE }).filter(
+      (f) => f.value >= 100,
+    ),
   prompt: (f) => `Wie lang ist ${nominative(f.label, 'der Fluss')} (in Kilometern)?`,
   difficulty: familiar,
+};
+
+/** Staaten, deren Fläche je nach Zählweise stark schwankt (Wikidata gegen deutsche Wikipedia). */
+const AREA_EXCLUSIONS: Exclusions = {
+  ...COUNTRY_EXCLUSIONS,
+  Q142: 'Frankreich: mit oder ohne Übersee 551.695, 632.734 oder 643.801 km²',
+  Q928: 'Philippinen: 343.448 (mit Gewässern) oder 298.179 km²',
+  Q334: 'Singapur: wächst durch Landgewinnung (719 oder 736 km²)',
+  Q30: 'Vereinigte Staaten: 9.833.517 (mit Gewässern) oder 9.525.067 km²',
+  Q801: 'Israel: Kernland 22.380 km² in der deutschen Wikipedia, 20.770 in Wikidata; Grenzen umstritten',
+  Q55: 'Niederlande: 37.378 (Land) oder 41.543 km² (mit Wasserflächen)',
+  Q962: 'Benin: 114.763 oder 112.622 km²',
+  Q965: 'Burkina Faso: 274.200 oder 267.950 km²',
+};
+
+/**
+ * Staaten, deren Einwohnerzahl in Wikidata um mehr als 2,5 % von der deutschen Wikipedia abweicht
+ * (anderer Stichtag oder andere Zählung, z. B. Melderegister gegen UN-Schätzung).
+ */
+const POPULATION_EXCLUSIONS: Exclusions = {
+  ...COUNTRY_EXCLUSIONS,
+  Q668: 'Indien', Q145: 'Vereinigtes Königreich', Q414: 'Argentinien', Q889: 'Afghanistan', Q869: 'Thailand',
+  Q851: 'Saudi-Arabien', Q115: 'Äthiopien', Q27: 'Irland', Q858: 'Syrien', Q1016: 'Libyen', Q334: 'Singapur',
+  Q711: 'Mongolei', Q819: 'Laos', Q963: 'Botswana', Q1009: 'Kamerun', Q912: 'Mali', Q265: 'Usbekistan',
+  Q16: 'Kanada', Q79: 'Ägypten', Q36: 'Polen', Q794: 'Iran', Q399: 'Armenien', Q225: 'Bosnien und Herzegowina',
+  Q805: 'Jemen', Q965: 'Burkina Faso', Q962: 'Benin', Q817: 'Kuwait', Q1029: 'Mosambik', Q1036: 'Uganda',
+  Q717: 'Venezuela', Q217: 'Republik Moldau', Q229: 'Zypern', Q836: 'Myanmar', Q750: 'Bolivien',
+  Q222: 'Albanien', Q252: 'Indonesien', Q822: 'Libanon', Q916: 'Angola', Q736: 'Ecuador',
+  Q262: 'Algerien', Q189: 'Island', Q230: 'Georgien', Q117: 'Ghana', Q241: 'Kuba', Q863: 'Tadschikistan',
+  Q783: 'Honduras', Q678: 'Tonga', Q212: 'Ukraine', Q233: 'Malta', Q1025: 'Mauretanien', Q1037: 'Ruanda',
+  Q974: 'Demokratische Republik Kongo',
 };
 
 const landFlaeche: EstimateTemplate = {
@@ -217,15 +301,15 @@ const landFlaeche: EstimateTemplate = {
   id: 'land-flaeche',
   snapshot: 'laender-flaeche',
   category: 'GEOGRAPHY',
-  count: 5,
-  window: 80,
+  count: 40,
+  window: 120,
   unit: 'km2',
   unitLabel: 'Quadratkilometer',
   inputMin: 1,
   inputMax: 20000000,
   scaleType: 'LOG',
   scale: 0.4,
-  extract: (rows) => singleValueFacts(rows, COUNTRY_EXCLUSIONS, (m2) => m2 / 1_000_000, { rename: countryName }),
+  extract: (rows) => singleValueFacts(rows, AREA_EXCLUSIONS, (m2) => m2 / 1_000_000, { rename: countryName }),
   prompt: (f) => `Wie groß ist die Fläche ${ofCountry(f.label)} (in Quadratkilometern)?`,
 };
 
@@ -234,15 +318,16 @@ const landEinwohner: EstimateTemplate = {
   id: 'land-einwohner',
   snapshot: 'laender-einwohner',
   category: 'GEOGRAPHY',
-  count: 5,
-  window: 80,
+  count: 40,
+  window: 120,
   unit: 'count',
   unitLabel: 'Einwohner',
   inputMin: 1000,
   inputMax: 2000000000,
   scaleType: 'LOG',
   scale: 0.4,
-  extract: (rows) => latestValueFacts(rows, COUNTRY_EXCLUSIONS, countryName),
+  // nur Zahlen ab 2020: ältere Stände („im Jahr 2017“) wirken in einer neuen Frage veraltet
+  extract: (rows) => latestValueFacts(rows, POPULATION_EXCLUSIONS, countryName).filter((f) => (f.asOf ?? 0) >= 2020),
   prompt: (f) => `Wie viele Menschen lebten ${f.context ?? ''} ${inCountry(f.label)}?`.replace(/ {2,}/g, ' '),
 };
 
@@ -251,8 +336,8 @@ const stadtEinwohner: EstimateTemplate = {
   id: 'stadt-einwohner',
   snapshot: 'staedte-einwohner-de',
   category: 'GEOGRAPHY',
-  count: 6,
-  window: 60,
+  count: 30,
+  window: 78,
   unit: 'count',
   unitLabel: 'Einwohner',
   inputMin: 1000,
@@ -268,8 +353,8 @@ const bauwerkHoehe: EstimateTemplate = {
   id: 'bauwerk-hoehe',
   snapshot: 'bauwerke-hoehe',
   category: 'TECHNOLOGY',
-  count: 6,
-  window: 40,
+  count: 20,
+  window: 25,
   unit: 'm',
   unitLabel: 'Meter',
   inputMin: 1,
@@ -278,10 +363,56 @@ const bauwerkHoehe: EstimateTemplate = {
   scale: 0.3,
   // nur Bauwerke mit geprüfter deutscher Form: das schließt unfertige (Jeddah Tower) und in
   // Deutschland kaum bekannte Hochhäuser aus; mehrdeutige Höhen (mit/ohne Antenne) fallen ohnehin weg
-  extract: (rows) => singleValueFacts(rows, {}, (m) => m, { named: true }),
+  extract: (rows) =>
+    singleValueFacts(rows, { Q91274: 'Galataturm: 63 oder 67 m je nach Quelle' }, (m) => m, { named: true }),
   prompt: (f) => `Wie hoch ist ${nominative(f.label, 'das Bauwerk')} (in Metern)?`,
   difficulty: familiar,
 };
+
+// Gegenstände in Deutschland: für deutsche Spieler besonders vertraut (eigene Abfragen *-de)
+
+const bergDe: EstimateTemplate = {
+  ...bergHoehe,
+  id: 'berg-hoehe-de',
+  snapshot: 'berge-de',
+  count: 25,
+  window: 60,
+  inputMax: 3000,
+};
+
+const flussDe: EstimateTemplate = {
+  ...flussLaenge,
+  id: 'fluss-laenge-de',
+  snapshot: 'fluesse-de',
+  count: 25,
+  window: 60,
+  inputMax: 3000,
+};
+
+/** Länder mit Artikel („das Saarland“). */
+const STATE_NAMES: Readonly<Record<string, string>> = {
+  Saarland: 'das Saarland',
+  'Freie Hansestadt Bremen': 'das Land Bremen',
+};
+const stateName = (label: string): string => STATE_NAMES[label] ?? label;
+
+const bundeslandFlaeche: EstimateTemplate = {
+  kind: 'ESTIMATE',
+  id: 'bundesland-flaeche',
+  snapshot: 'bundeslaender-flaeche',
+  category: 'GEOGRAPHY',
+  count: 16,
+  window: 16,
+  unit: 'km2',
+  unitLabel: 'Quadratkilometer',
+  inputMin: 1,
+  inputMax: 1000000,
+  scaleType: 'LOG',
+  scale: 0.4,
+  extract: (rows) => singleValueFacts(rows, {}, (m2) => m2 / 1_000_000),
+  prompt: (f) => `Wie groß ist ${stateName(f.label)} (in Quadratkilometern)?`,
+};
+
 
 /**
  * Personen für die Geburtsjahr-Frage: nur, wer vor allem als Komponist oder Maler bekannt ist.
@@ -355,8 +486,8 @@ const geburtsjahr: EstimateTemplate = {
   id: 'geburtsjahr',
   snapshot: 'personen-geburt',
   category: 'ARTS_CULTURE',
-  count: 6,
-  window: 60,
+  count: 40,
+  window: 58,
   unit: 'year',
   unitLabel: 'Jahr',
   inputMin: 1000,
@@ -395,8 +526,8 @@ const nobelJahr: EstimateTemplate = {
   id: 'nobel',
   snapshot: 'nobelpreise',
   category: (f) => (f.keySuffix === 'literatur' ? 'LITERATURE' : 'SCIENCE'),
-  count: 5,
-  window: 40,
+  count: 25,
+  window: 80,
   unit: 'year',
   unitLabel: 'Jahr',
   inputMin: 1901,
@@ -457,8 +588,8 @@ const ordnungszahl: EstimateTemplate = {
   id: 'ordnungszahl',
   snapshot: 'elemente',
   category: 'SCIENCE',
-  count: 5,
-  window: 40,
+  count: 15,
+  window: 50,
   unit: 'count',
   unitLabel: 'Ordnungszahl',
   inputMin: 1,
@@ -491,18 +622,65 @@ export function capitalNamesCountry(country: string, capital: string): boolean {
   return words(country).some((w) => capitalWords.includes(w));
 }
 
+/**
+ * Städte, die als falsche Antwort in die Irre führen, weil sie Hauptstadtaufgaben haben
+ * (Regierungssitz, zweite Hauptstadt). Frühere Hauptstädte wie Lagos oder Bonn bleiben als
+ * falsche Antwort erlaubt: Die Frage gilt der heutigen Hauptstadt.
+ */
+const NOT_A_FALSE_CAPITAL: ReadonlySet<string> = new Set([
+  'Den Haag', // Regierungssitz der Niederlande
+  'Daressalam', // Regierungssitz Tansanias
+  'Putrajaya', // Verwaltungssitz Malaysias
+  'Cotonou', // Regierungssitz Benins
+  'Abidjan', // Regierungssitz der Elfenbeinküste
+  'La Paz', // Regierungssitz Boliviens
+  'Sucre',
+  'Pretoria', // Südafrika hat drei Hauptstädte
+  'Kapstadt',
+  'Bloemfontein',
+  'Colombo', // Sri Lanka: Hauptstadt und Regierungssitz getrennt
+  'Sri Jayawardenepura Kotte',
+  'Tel Aviv-Jaffa',
+]);
+
 const hauptstadt: ChoiceTemplate = {
   kind: 'TRIVIA',
   id: 'hauptstadt',
   snapshot: 'laender-hauptstadt',
+  support: 'staedte-je-staat',
   category: 'GEOGRAPHY',
-  count: 8,
-  window: 100,
+  count: 70,
+  window: 120,
   extract: (rows) =>
-    singleAnswerFacts(rows, CAPITAL_EXCLUSIONS, { withGroup: true, rename: countryName }).filter(
+    singleAnswerFacts(rows, CAPITAL_EXCLUSIONS, {
+      withGroup: true,
+      rename: countryName,
+      answerName: (name) => CAPITAL_NAMES[name] ?? name,
+    }).filter(
       (f) => !capitalNamesCountry(f.label, f.answer),
     ),
   prompt: (f) => `Wie heißt die Hauptstadt ${ofCountry(f.label)}?`,
+  shortlist: 4,
+  // falsche Antworten: zuerst die bekanntesten anderen Städte desselben Staats (Kanada: Toronto,
+  // Montreal, Vancouver), sonst Hauptstädte ähnlich bekannter Staaten desselben Kontinents
+  distractorPool: (fact, facts, _rows, support) => {
+    const countriesOf = new Map<string, Set<string>>();
+    for (const r of support) {
+      const item = r['item'] ?? '';
+      countriesOf.set(item, (countriesOf.get(item) ?? new Set()).add(r['country'] ?? ''));
+    }
+    const cities = support
+      .filter((r) => r['country'] === fact.qid && countriesOf.get(r['item'] ?? '')?.size === 1)
+      .sort((a, b) => (numberOf(b['sitelinks']) ?? 0) - (numberOf(a['sitelinks']) ?? 0))
+      .map((r) => r['label'] ?? '')
+      .filter((name) => name !== '' && !NOT_A_FALSE_CAPITAL.has(name) && !capitalNamesCountry(fact.label, name));
+    const capitals = facts
+      .filter((f) => f.qid !== fact.qid && !NOT_A_FALSE_CAPITAL.has(f.answer))
+      .map((f) => ({ answer: f.answer, score: (f.group === fact.group ? 0 : 10_000) + Math.abs(f.rank - fact.rank) }))
+      .sort((a, b) => a.score - b.score || a.answer.localeCompare(b.answer, 'de'))
+      .map((c) => c.answer);
+    return distinct([...cities.slice(0, 4), ...capitals]);
+  },
 };
 
 /**
@@ -524,13 +702,22 @@ export function currencyNamesCountry(country: string, currency: string): boolean
     .some((w) => currencyWords.some((c) => c.startsWith(w.slice(0, 4))));
 }
 
+/**
+ * Währungsnamen wie in der deutschen Wikipedia, wo die Wikidata-Bezeichnung veraltet oder klein
+ * geschrieben ist (Peru zahlt seit 2015 mit dem „Sol“, nicht mehr mit dem „Nuevo Sol“).
+ */
+const CURRENCY_NAMES: Readonly<Record<string, string>> = {
+  'Nuevo Sol': 'Sol',
+  'mazedonischer Denar': 'Denar',
+};
+
 const waehrung: ChoiceTemplate = {
   kind: 'TRIVIA',
   id: 'waehrung',
   snapshot: 'laender-waehrung',
   category: 'POLITICS_SOCIETY',
-  count: 6,
-  window: 80,
+  count: 20,
+  window: 32,
   extract: (rows) => {
     const facts = singleAnswerFacts(rows, COUNTRY_EXCLUSIONS, { withGroup: true, rename: countryName });
     // gemeinsame Währungen (Euro, CFA-Franc, US-Dollar …) sind mehrdeutig oder zu leicht
@@ -540,9 +727,11 @@ const waehrung: ChoiceTemplate = {
       set.add(row['item'] ?? '');
       countriesPerCurrency.set(row['answer'] ?? '', set);
     }
-    return facts.filter(
-      (f) => (countriesPerCurrency.get(f.context ?? '')?.size ?? 0) === 1 && !currencyNamesCountry(f.label, f.answer),
-    );
+    return facts
+      .filter(
+        (f) => (countriesPerCurrency.get(f.context ?? '')?.size ?? 0) === 1 && !currencyNamesCountry(f.label, f.answer),
+      )
+      .map((f) => ({ ...f, answer: CURRENCY_NAMES[f.answer] ?? f.answer }));
   },
   prompt: (f) => `Mit welcher Währung bezahlt man ${inCountry(f.label)}?`,
 };
@@ -592,8 +781,8 @@ const autor: ChoiceTemplate = {
   id: 'autor',
   snapshot: 'literatur-werke',
   category: 'LITERATURE',
-  count: 8,
-  window: 60,
+  count: 50,
+  window: 92,
   extract: (rows) =>
     singleAnswerFacts(rows, WORK_EXCLUSIONS, {
       onePerAnswer: true,
@@ -605,15 +794,33 @@ const autor: ChoiceTemplate = {
   prompt: (f) => `Wer schrieb „${f.label}“?`,
 };
 
+/** Titel, unter denen eine Oper in Deutschland bekannt ist, wo Wikidata den Originaltitel führt. */
+const OPERA_TITLES: Readonly<Record<string, string>> = {
+  'Samson et Dalila': 'Samson und Dalila',
+  Pagliacci: 'Der Bajazzo',
+  'Orfeo ed Euridice': 'Orpheus und Eurydike',
+  'Il barbiere di Siviglia': 'Der Barbier von Sevilla',
+};
+
 const oper: ChoiceTemplate = {
   kind: 'TRIVIA',
   id: 'oper',
   snapshot: 'opern',
   category: 'ARTS_CULTURE',
-  count: 6,
-  window: 40,
+  count: 20,
+  window: 28,
   extract: (rows) =>
-    singleAnswerFacts(rows, { Q242667: 'Rockoper, eher Musical' }, { onePerAnswer: true, answerName: personName }),
+    singleAnswerFacts(
+      rows,
+      {
+        Q242667: 'Rockoper, eher Musical',
+        Q464930: 'Die Fledermaus ist eine Operette',
+        Q478202: 'Die lustige Witwe ist eine Operette',
+        Q1137065: 'Orpheus in der Unterwelt ist eine Operette',
+        Q190237: 'Der Ring des Nibelungen ist ein Zyklus aus vier Opern',
+      },
+      { onePerAnswer: true, answerName: personName, rename: (title) => OPERA_TITLES[title] ?? title },
+    ),
   prompt: (f) => `Wer komponierte die Oper „${f.label}“?`,
 };
 
@@ -622,9 +829,14 @@ const gemaelde: ChoiceTemplate = {
   id: 'gemaelde',
   snapshot: 'gemaelde',
   category: 'ARTS_CULTURE',
-  count: 8,
-  window: 50,
-  extract: (rows) => singleAnswerFacts(rows, {}, { onePerAnswer: true, answerName: personName }),
+  count: 18,
+  window: 22,
+  extract: (rows) =>
+    singleAnswerFacts(
+      rows,
+      { Q334138: 'Der Ursprung der Welt: Aktdarstellung, für ein Spiel für alle zu freizügig' },
+      { onePerAnswer: true, answerName: personName },
+    ),
   prompt: (f) => `Wer malte das Gemälde „${f.label}“?`,
 };
 
@@ -633,8 +845,8 @@ const elementSymbol: ChoiceTemplate = {
   id: 'element-symbol',
   snapshot: 'elemente',
   category: 'SCIENCE',
-  count: 6,
-  window: 30,
+  count: 10,
+  window: 12,
   // nur Symbole, die nicht mit dem deutschen Namen beginnen (Fe, Au, Hg …), sonst errät man es
   extract: (rows) =>
     elementRows(rows)
@@ -715,7 +927,7 @@ const olympia: ChoiceTemplate = {
   id: 'olympia',
   snapshot: 'olympia',
   category: 'SPORTS',
-  count: 8,
+  count: 35,
   window: 50,
   extract: (rows) => {
     const facts: ChoiceFact[] = [];
@@ -729,7 +941,8 @@ const olympia: ChoiceTemplate = {
       // das Jahr aus der Bezeichnung: Tokio 2020 fand 2021 statt, heißt aber „Sommerspiele 2020“
       const year =
         numberOf(/\b(18|19|20)\d\d\b/.exec(first['label'])?.[0]) ?? yearOf(first['date']) ?? yearOf(first['start']);
-      if (year === null || year > 2026 || CANCELLED_GAMES.has(year)) continue;
+      // nichts nach 2024: Die Winterspiele 2026 hatten zwei Gastgeber (Mailand und Cortina d’Ampezzo)
+      if (year === null || year > 2024 || CANCELLED_GAMES.has(year)) continue;
       const summer = first['type'] === SUMMER;
       facts.push({
         qid,
@@ -749,7 +962,10 @@ const olympia: ChoiceTemplate = {
 
 export const TEMPLATES: readonly Template[] = [
   bergHoehe,
+  bergDe,
   flussLaenge,
+  flussDe,
+  bundeslandFlaeche,
   landFlaeche,
   landEinwohner,
   stadtEinwohner,

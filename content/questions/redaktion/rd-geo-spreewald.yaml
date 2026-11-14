@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-spreewald
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Spreewald"
+    url: https://de.wikipedia.org/wiki/Spreewald
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Landschaft in Brandenburg, die man auf Kähnen über Kanäle erkundet und die für Gurken bekannt ist?"
+    options:
+      a: "Spreewald"
+      b: "Uckermark"
+      c: "Prignitz"
+      d: "Havelland"

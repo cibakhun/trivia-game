@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-bonn-hauptstadt
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bonn"
+    url: https://de.wikipedia.org/wiki/Bonn
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Stadt war von 1949 bis 1990 Hauptstadt der Bundesrepublik Deutschland?"
+    options:
+      a: "Köln"
+      b: "Düsseldorf"
+      c: "Frankfurt am Main"
+      d: "Bonn"

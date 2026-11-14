@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-blechtrommel
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die Blechtrommel"
+    url: https://de.wikipedia.org/wiki/Die_Blechtrommel
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schrieb den Roman „Die Blechtrommel“?"
+    options:
+      a: "Martin Walser"
+      b: "Günter Grass"
+      c: "Siegfried Lenz"
+      d: "Heinrich Böll"

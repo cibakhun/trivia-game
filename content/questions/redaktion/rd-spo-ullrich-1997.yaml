@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-ullrich-1997
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Jan Ullrich"
+    url: https://de.wikipedia.org/wiki/Jan_Ullrich
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Deutsche gewann 1997 die Tour de France?"
+    options:
+      a: "Jens Voigt"
+      b: "Jan Ullrich"
+      c: "Erik Zabel"
+      d: "Andreas Klöden"

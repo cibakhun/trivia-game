@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-ikosaeder
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Ikosaeder"
+    url: https://de.wikipedia.org/wiki/Ikosaeder
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Flächen hat ein Ikosaeder?"
+    options:
+      a: "16"
+      b: "20"
+      c: "24"
+      d: "12"

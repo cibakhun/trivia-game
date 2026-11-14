@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-duerer
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Melencolia I"
+    url: https://de.wikipedia.org/wiki/Melencolia_I
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Künstler aus Nürnberg schuf den Kupferstich „Melencolia I“?"
+    options:
+      a: "Matthias Grünewald"
+      b: "Lucas Cranach der Ältere"
+      c: "Albrecht Dürer"
+      d: "Hans Holbein der Jüngere"

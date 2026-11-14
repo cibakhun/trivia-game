@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-nordische-kombination
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Nordische Kombination"
+    url: https://de.wikipedia.org/wiki/Nordische_Kombination
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Disziplinen vereint die Nordische Kombination?"
+    options:
+      a: "Skispringen und Skilanglauf"
+      b: "Skispringen und Biathlon"
+      c: "Skilanglauf und Schießen"
+      d: "Abfahrt und Slalom"

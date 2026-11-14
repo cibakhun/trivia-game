@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-spartacus
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Spartacus"
+    url: https://de.wikipedia.org/wiki/Spartacus
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie hieß der Anführer des großen Sklavenaufstands gegen Rom von 73 bis 71 v. Chr.?"
+    options:
+      a: "Hannibal"
+      b: "Vercingetorix"
+      c: "Spartacus"
+      d: "Arminius"

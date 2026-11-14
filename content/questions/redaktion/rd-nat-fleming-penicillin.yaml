@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-fleming-penicillin
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Alexander Fleming"
+    url: https://de.wikipedia.org/wiki/Alexander_Fleming
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer entdeckte 1928 das Penicillin?"
+    options:
+      a: "Robert Koch"
+      b: "Louis Pasteur"
+      c: "Paul Ehrlich"
+      d: "Alexander Fleming"

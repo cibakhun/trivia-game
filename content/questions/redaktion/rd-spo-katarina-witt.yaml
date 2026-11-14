@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-katarina-witt
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Katarina Witt"
+    url: https://de.wikipedia.org/wiki/Katarina_Witt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Eiskunstläuferin aus der DDR gewann 1984 und 1988 olympisches Gold?"
+    options:
+      a: "Tanja Szewczenko"
+      b: "Gaby Seyfert"
+      c: "Katarina Witt"
+      d: "Anett Pötzsch"

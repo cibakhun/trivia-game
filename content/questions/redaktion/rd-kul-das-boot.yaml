@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-das-boot
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Das Boot (Film)"
+    url: https://de.wikipedia.org/wiki/Das_Boot_(Film)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer drehte den Film „Das Boot“ von 1981?"
+    options:
+      a: "Volker Schlöndorff"
+      b: "Wolfgang Petersen"
+      c: "Rainer Werner Fassbinder"
+      d: "Werner Herzog"

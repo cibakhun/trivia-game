@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-schwanensee
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Schwanensee"
+    url: https://de.wikipedia.org/wiki/Schwanensee
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer komponierte das Ballett „Schwanensee“?"
+    options:
+      a: "Igor Strawinsky"
+      b: "Nikolai Rimski-Korsakow"
+      c: "Pjotr Iljitsch Tschaikowski"
+      d: "Sergei Prokofjew"

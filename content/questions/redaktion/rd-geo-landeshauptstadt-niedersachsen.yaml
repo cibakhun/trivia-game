@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-landeshauptstadt-niedersachsen
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Niedersachsen"
+    url: https://de.wikipedia.org/wiki/Niedersachsen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Landeshauptstadt von Niedersachsen?"
+    options:
+      a: "Oldenburg"
+      b: "Osnabrück"
+      c: "Hannover"
+      d: "Braunschweig"

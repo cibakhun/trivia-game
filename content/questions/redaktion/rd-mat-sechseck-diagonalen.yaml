@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-sechseck-diagonalen
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Diagonale (Geometrie)"
+    url: https://de.wikipedia.org/wiki/Diagonale_(Geometrie)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Diagonalen hat ein Sechseck?"
+    options:
+      a: "12"
+      b: "15"
+      c: "6"
+      d: "9"

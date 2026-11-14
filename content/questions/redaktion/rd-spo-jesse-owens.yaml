@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-jesse-owens
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Jesse Owens"
+    url: https://de.wikipedia.org/wiki/Jesse_Owens
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Leichtathlet gewann bei den Olympischen Spielen 1936 in Berlin vier Goldmedaillen?"
+    options:
+      a: "Paavo Nurmi"
+      b: "Jesse Owens"
+      c: "Carl Lewis"
+      d: "Luz Long"

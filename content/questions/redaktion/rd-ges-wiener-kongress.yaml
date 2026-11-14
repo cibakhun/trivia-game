@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-wiener-kongress
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wiener Kongress"
+    url: https://de.wikipedia.org/wiki/Wiener_Kongress
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Versammlung ordnete Europa nach Napoleons Niederlage 1814/15 neu?"
+    options:
+      a: "Berliner Kongress"
+      b: "Frankfurter Fürstentag"
+      c: "Wiener Kongress"
+      d: "Konzil von Konstanz"

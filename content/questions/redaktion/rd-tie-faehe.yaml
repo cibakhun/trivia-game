@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-faehe
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Rotfuchs"
+    url: https://de.wikipedia.org/wiki/Rotfuchs
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt der weibliche Fuchs in der Jägersprache?"
+    options:
+      a: "Fähe"
+      b: "Geiß"
+      c: "Ricke"
+      d: "Bache"

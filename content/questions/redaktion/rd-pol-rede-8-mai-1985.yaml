@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-rede-8-mai-1985
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Richard von Weizsäcker"
+    url: https://de.wikipedia.org/wiki/Richard_von_Weizs%C3%A4cker
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Bundespräsident nannte 1985 in einer berühmten Rede den 8. Mai einen „Tag der Befreiung“?"
+    options:
+      a: "Richard von Weizsäcker"
+      b: "Karl Carstens"
+      c: "Walter Scheel"
+      d: "Roman Herzog"

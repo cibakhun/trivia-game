@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-nobelpreis-brandt
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Willy Brandt"
+    url: https://de.wikipedia.org/wiki/Willy_Brandt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Bundeskanzler erhielt 1971 den Friedensnobelpreis?"
+    options:
+      a: "Helmut Kohl"
+      b: "Helmut Schmidt"
+      c: "Willy Brandt"
+      d: "Konrad Adenauer"

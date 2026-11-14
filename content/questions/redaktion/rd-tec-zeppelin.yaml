@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-zeppelin
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Ferdinand von Zeppelin"
+    url: https://de.wikipedia.org/wiki/Ferdinand_von_Zeppelin
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Nach wem sind die Starrluftschiffe benannt, die ab 1900 am Bodensee gebaut wurden?"
+    options:
+      a: "Claude Dornier"
+      b: "Otto Lilienthal"
+      c: "Ferdinand von Zeppelin"
+      d: "Hugo Junkers"

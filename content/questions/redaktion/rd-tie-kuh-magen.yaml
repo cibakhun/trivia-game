@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tie-kuh-magen
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wiederkäuer"
+    url: https://de.wikipedia.org/wiki/Wiederk%C3%A4uer
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Aus wie vielen Abschnitten besteht der Magen einer Kuh?"
+    options:
+      a: "Vier"
+      b: "Zwei"
+      c: "Fünf"
+      d: "Drei"

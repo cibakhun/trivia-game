@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-wiedervereinigung-jahr
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Deutsche Wiedervereinigung"
+    url: https://de.wikipedia.org/wiki/Deutsche_Wiedervereinigung
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welchem Jahr trat die DDR der Bundesrepublik Deutschland bei?"
+    options:
+      a: "1990"
+      b: "1992"
+      c: "1989"
+      d: "1991"

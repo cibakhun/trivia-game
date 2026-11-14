@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-maastricht
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Vertrag von Maastricht"
+    url: https://de.wikipedia.org/wiki/Vertrag_von_Maastricht
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welcher Stadt wurde 1992 der Vertrag zur Gründung der Europäischen Union unterzeichnet?"
+    options:
+      a: "Brüssel"
+      b: "Maastricht"
+      c: "Lissabon"
+      d: "Rom"

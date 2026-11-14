@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-tatort
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Tatort (Fernsehreihe)"
+    url: https://de.wikipedia.org/wiki/Tatort_(Fernsehreihe)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die ARD-Krimireihe, die seit 1970 läuft?"
+    options:
+      a: "Derrick"
+      b: "Polizeiruf 110"
+      c: "Tatort"
+      d: "Der Alte"

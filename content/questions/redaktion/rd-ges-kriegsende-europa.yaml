@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-kriegsende-europa
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Ende des Zweiten Weltkrieges in Europa"
+    url: https://de.wikipedia.org/wiki/Ende_des_Zweiten_Weltkrieges_in_Europa
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "An welchem Tag endete der Zweite Weltkrieg in Europa mit der bedingungslosen Kapitulation der Wehrmacht?"
+    options:
+      a: "8. Mai 1945"
+      b: "1. September 1945"
+      c: "9. November 1945"
+      d: "6. August 1945"

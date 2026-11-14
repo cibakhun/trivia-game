@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-bendlerblock
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bendlerblock"
+    url: https://de.wikipedia.org/wiki/Bendlerblock
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches Bundesministerium hat einen Dienstsitz im Berliner Bendlerblock?"
+    options:
+      a: "Bundesministerium der Verteidigung"
+      b: "Auswärtiges Amt"
+      c: "Bundesministerium der Finanzen"
+      d: "Bundesministerium des Innern"

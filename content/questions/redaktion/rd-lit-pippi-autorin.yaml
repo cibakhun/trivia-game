@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-pippi-autorin
+kind: TRIVIA
+category: LITERATURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Pippi Langstrumpf"
+    url: https://de.wikipedia.org/wiki/Pippi_Langstrumpf
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schrieb die Bücher über Pippi Langstrumpf?"
+    options:
+      a: "Tove Jansson"
+      b: "Selma Lagerlöf"
+      c: "Astrid Lindgren"
+      d: "Enid Blyton"

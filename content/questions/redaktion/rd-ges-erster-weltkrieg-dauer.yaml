@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-erster-weltkrieg-dauer
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Erster Weltkrieg"
+    url: https://de.wikipedia.org/wiki/Erster_Weltkrieg
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Von wann bis wann dauerte der Erste Weltkrieg?"
+    options:
+      a: "1914 bis 1918"
+      b: "1910 bis 1914"
+      c: "1912 bis 1915"
+      d: "1916 bis 1920"

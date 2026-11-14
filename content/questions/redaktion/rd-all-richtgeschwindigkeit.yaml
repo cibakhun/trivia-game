@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-richtgeschwindigkeit
+kind: TRIVIA
+category: GENERAL
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Richtgeschwindigkeit"
+    url: https://de.wikipedia.org/wiki/Richtgeschwindigkeit
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie hoch ist die empfohlene Richtgeschwindigkeit auf deutschen Autobahnen?"
+    options:
+      a: "120 km/h"
+      b: "130 km/h"
+      c: "150 km/h"
+      d: "100 km/h"

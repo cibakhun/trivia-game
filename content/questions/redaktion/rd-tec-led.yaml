@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-led
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Leuchtdiode"
+    url: https://de.wikipedia.org/wiki/Leuchtdiode
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wofür steht die Abkürzung „LED“?"
+    options:
+      a: "Light Electric Device"
+      b: "Laser Emitting Diode"
+      c: "Light-Emitting Diode"
+      d: "Low Energy Display"

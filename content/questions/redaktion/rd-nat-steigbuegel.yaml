@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-steigbuegel
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Steigbügel (Anatomie)"
+    url: https://de.wikipedia.org/wiki/Steigb%C3%BCgel_(Anatomie)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der kleinste Knochen des Menschen?"
+    options:
+      a: "Steigbügel"
+      b: "Amboss"
+      c: "Kniescheibe"
+      d: "Hammer"

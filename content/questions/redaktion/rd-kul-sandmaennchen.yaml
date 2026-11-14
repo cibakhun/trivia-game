@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-sandmaennchen
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Unser Sandmännchen"
+    url: https://de.wikipedia.org/wiki/Unser_Sandm%C3%A4nnchen
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt die Gutenachtsendung für Kinder, die seit 1959 im Fernsehen läuft?"
+    options:
+      a: "Logo!"
+      b: "Die Sendung mit der Maus"
+      c: "Unser Sandmännchen"
+      d: "Löwenzahn"

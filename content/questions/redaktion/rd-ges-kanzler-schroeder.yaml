@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-kanzler-schroeder
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Gerhard Schröder"
+    url: https://de.wikipedia.org/wiki/Gerhard_Schr%C3%B6der
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war von 1998 bis 2005 Bundeskanzler?"
+    options:
+      a: "Helmut Kohl"
+      b: "Angela Merkel"
+      c: "Gerhard Schröder"
+      d: "Joschka Fischer"

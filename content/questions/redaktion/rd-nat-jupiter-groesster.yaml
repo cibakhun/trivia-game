@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-nat-jupiter-groesster
+kind: TRIVIA
+category: SCIENCE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Jupiter (Planet)"
+    url: https://de.wikipedia.org/wiki/Jupiter_(Planet)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der größte Planet unseres Sonnensystems?"
+    options:
+      a: "Saturn"
+      b: "Uranus"
+      c: "Jupiter"
+      d: "Neptun"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-fermat-wiles
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Großer Fermatscher Satz"
+    url: https://de.wikipedia.org/wiki/Gro%C3%9Fer_Fermatscher_Satz
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer bewies in den 1990er-Jahren den Großen Fermatschen Satz?"
+    options:
+      a: "Andrew Wiles"
+      b: "Terence Tao"
+      c: "John Nash"
+      d: "Grigori Perelman"

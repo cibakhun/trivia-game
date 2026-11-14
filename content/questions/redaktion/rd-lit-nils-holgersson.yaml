@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-nils-holgersson
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Selma Lagerlöf"
+    url: https://de.wikipedia.org/wiki/Selma_Lagerl%C3%B6f
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer schrieb „Die wunderbare Reise des kleinen Nils Holgersson mit den Wildgänsen“?"
+    options:
+      a: "Hans Christian Andersen"
+      b: "Johanna Spyri"
+      c: "Astrid Lindgren"
+      d: "Selma Lagerlöf"

@@ -141,6 +141,21 @@ describe('Schätzfragen', () => {
     );
   });
 
+  it('Flusslänge: Wert der deutschen Wikipedia, wo Wikidata abweicht', () => {
+    const rows = [{ item: 'Q1670', label: 'Main', sitelinks: '90', value: '524000' }];
+    const [main] = generateFromTemplate(template('fluss-laenge-de'), snap('fluesse-de', rows));
+    expect(main?.question.estimate?.answer_value).toBe('527');
+  });
+
+  it('Einwohner von Staaten: nur Stände ab 2020', () => {
+    const rows = [
+      { item: 'Q31', label: 'Belgien', sitelinks: '300', value: '11825551', date: '2024-01-01T00:00:00Z' },
+      { item: 'Q790', label: 'Haiti', sitelinks: '290', value: '10981229', date: '2017-01-01T00:00:00Z' },
+    ];
+    const questions = generateFromTemplate(template('land-einwohner'), snap('laender-einwohner', rows));
+    expect(questions.map((q) => q.question.key)).toEqual(['wd-land-einwohner-q31']);
+  });
+
   it('Einwohner: neuester Stichtag, Stichtag steht in der Frage', () => {
     const rows = [
       { item: 'Q1726', label: 'München', sitelinks: '200', value: '1488202', date: '2022-12-31T00:00:00Z' },
@@ -252,11 +267,16 @@ describe('Auswahlfragen', () => {
       { item: 'Q38', label: 'Italien', sitelinks: '260', answer: 'EUR', answerLabel: 'Euro', continent: 'Q46' },
       { item: 'Q17', label: 'Japan', sitelinks: '250', answer: 'C4', answerLabel: 'Yen', continent: 'Q48' },
       { item: 'Q155', label: 'Brasilien', sitelinks: '240', answer: 'C5', answerLabel: 'Real', continent: 'Q18' },
+      { item: 'Q419', label: 'Peru', sitelinks: '230', answer: 'C6', answerLabel: 'Nuevo Sol', continent: 'Q18' },
     ];
     const questions = generateFromTemplate(template('waehrung'), snap('laender-waehrung', rows));
     expectValid(questions);
     const keys = questions.map((q) => q.question.key);
     expect(keys).toContain('wd-waehrung-q36');
+    // Name wie in der deutschen Wikipedia, auch unter den falschen Antworten
+    const options = questions.flatMap((q) => Object.values(q.question.translations.de?.options ?? {}));
+    expect(options).toContain('Sol');
+    expect(options).not.toContain('Nuevo Sol');
     expect(keys).not.toContain('wd-waehrung-q39');
     expect(keys).not.toContain('wd-waehrung-q142');
   });
@@ -303,6 +323,8 @@ describe('Auswahlfragen', () => {
       ['Q8544', 'Olympische Sommerspiele 2000', 'Q3130', 'Sydney', '2000'],
       ['Q181278', 'Olympische Sommerspiele 2020', 'Q1490', 'Tokio', '2021'],
       ['Q699653', 'Winter-Paralympics 1988', 'Q1735', 'Innsbruck', '1988'],
+      // 2026 mit zwei Gastgebern, von denen Wikidata hier nur Cortina als bekannte Ausrichterstadt führt
+      ['Q4630399', 'Olympische Winterspiele 2026', 'Q41158', 'Cortina d’Ampezzo', '2026'],
     ].map(([item, label, answer, answerLabel, year]) => ({
       item: item ?? '',
       label: label ?? '',
@@ -351,6 +373,28 @@ describe('Auswahlfragen', () => {
     const crime = questions.find((q) => q.question.key === 'wd-autor-q165318')?.question;
     const correct = crime?.trivia?.correct ?? '';
     expect(crime?.translations.de?.options?.[correct]).toBe('Fjodor Dostojewski');
+  });
+
+  it('Oper: keine Operetten, deutsche Titel', () => {
+    const operas = [
+      ['Q182', 'Carmen', 'Q1', 'Georges Bizet'],
+      ['Q464930', 'Die Fledermaus', 'Q2', 'Johann Strauss'],
+      ['Q208659', 'Il barbiere di Siviglia', 'Q3', 'Gioachino Rossini'],
+      ['Q248644', 'Pagliacci', 'Q4', 'Ruggero Leoncavallo'],
+      ['Q5', 'Aida', 'Q5', 'Giuseppe Verdi'],
+    ].map(([item, label, answer, answerLabel], i) => ({
+      item: item ?? '',
+      label: label ?? '',
+      sitelinks: String(200 - i),
+      answer: answer ?? '',
+      answerLabel: answerLabel ?? '',
+    }));
+    const questions = generateFromTemplate(template('oper'), snap('opern', operas));
+    expectValid(questions);
+    const prompts = questions.map((q) => q.question.translations.de?.prompt);
+    expect(prompts).not.toContain('Wer komponierte die Oper „Die Fledermaus“?');
+    expect(prompts).toContain('Wer komponierte die Oper „Der Barbier von Sevilla“?');
+    expect(prompts).toContain('Wer komponierte die Oper „Der Bajazzo“?');
   });
 
   it('gleiche Daten ergeben dieselben Fragen', () => {

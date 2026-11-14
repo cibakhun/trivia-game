@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-elfter-elfter
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Elfter im Elften"
+    url: https://de.wikipedia.org/wiki/Elfter_im_Elften
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wann beginnt im Rheinland traditionell die Karnevalssession?"
+    options:
+      a: "Am 11. November um 11:11 Uhr"
+      b: "Am 11. Januar um 11:11 Uhr"
+      c: "Am 11. Dezember um 11:11 Uhr"
+      d: "Am 1. November um 11:11 Uhr"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-anden
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Anden"
+    url: https://de.wikipedia.org/wiki/Anden
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt das längste Gebirge der Erde über dem Meeresspiegel?"
+    options:
+      a: "Anden"
+      b: "Ural"
+      c: "Himalaya"
+      d: "Rocky Mountains"

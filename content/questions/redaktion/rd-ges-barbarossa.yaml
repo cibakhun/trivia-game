@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-barbarossa
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Friedrich I. (HRR)"
+    url: https://de.wikipedia.org/wiki/Friedrich_I._(HRR)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Kaiser trug den Beinamen „Barbarossa“?"
+    options:
+      a: "Otto I."
+      b: "Friedrich I."
+      c: "Karl IV."
+      d: "Heinrich IV."

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-flensburg-punkte
+kind: TRIVIA
+category: GENERAL
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Kraftfahrt-Bundesamt"
+    url: https://de.wikipedia.org/wiki/Kraftfahrt-Bundesamt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "In welcher Stadt sitzt die Behörde, die die „Punkte“ für Verkehrsverstöße führt?"
+    options:
+      a: "Bremen"
+      b: "Kiel"
+      c: "Flensburg"
+      d: "Hamburg"

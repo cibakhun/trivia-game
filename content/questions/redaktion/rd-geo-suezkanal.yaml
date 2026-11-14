@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-suezkanal
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Sueskanal"
+    url: https://de.wikipedia.org/wiki/Sueskanal
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche beiden Meere verbindet der Suezkanal?"
+    options:
+      a: "Rotes Meer und Arabisches Meer"
+      b: "Nordsee und Ostsee"
+      c: "Mittelmeer und Schwarzes Meer"
+      d: "Mittelmeer und Rotes Meer"

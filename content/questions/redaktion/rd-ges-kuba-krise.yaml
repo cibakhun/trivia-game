@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-kuba-krise
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Kubakrise"
+    url: https://de.wikipedia.org/wiki/Kubakrise
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Um welche Insel ging es in der Krise von 1962, die die Welt an den Rand eines Atomkriegs brachte?"
+    options:
+      a: "Kuba"
+      b: "Island"
+      c: "Zypern"
+      d: "Taiwan"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-zwei-plus-vier
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Zwei-plus-Vier-Vertrag"
+    url: https://de.wikipedia.org/wiki/Zwei-plus-Vier-Vertrag
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie heißt der Vertrag von 1990, mit dem die vier Siegermächte die volle Souveränität Deutschlands anerkannten?"
+    options:
+      a: "Zwei-plus-Vier-Vertrag"
+      b: "Grundlagenvertrag"
+      c: "Vertrag von Maastricht"
+      d: "Moskauer Vertrag"

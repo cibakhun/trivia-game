@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-stauffenberg
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Attentat vom 20. Juli 1944"
+    url: https://de.wikipedia.org/wiki/Attentat_vom_20._Juli_1944
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer verübte am 20. Juli 1944 das Bombenattentat auf Adolf Hitler?"
+    options:
+      a: "Claus Schenk Graf von Stauffenberg"
+      b: "Erwin Rommel"
+      c: "Georg Elser"
+      d: "Wilhelm Canaris"

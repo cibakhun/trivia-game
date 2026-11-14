@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-triathlon
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Triathlon"
+    url: https://de.wikipedia.org/wiki/Triathlon
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Aus welchen drei Disziplinen besteht ein Triathlon?"
+    options:
+      a: "Schwimmen, Radfahren, Laufen"
+      b: "Schwimmen, Reiten, Laufen"
+      c: "Schwimmen, Rudern, Laufen"
+      d: "Radfahren, Laufen, Schießen"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-geo-zeitzonen-deutschland
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mitteleuropäische Zeit"
+    url: https://de.wikipedia.org/wiki/Mitteleurop%C3%A4ische_Zeit
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welche Zeitzone gilt in Deutschland im Winter?"
+    options:
+      a: "Westeuropäische Zeit"
+      b: "Greenwich Mean Time"
+      c: "Osteuropäische Zeit"
+      d: "Mitteleuropäische Zeit"

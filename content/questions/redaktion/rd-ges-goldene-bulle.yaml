@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-goldene-bulle
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Goldene Bulle"
+    url: https://de.wikipedia.org/wiki/Goldene_Bulle
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welches Gesetz regelte ab 1356 die Wahl des römisch-deutschen Königs durch die Kurfürsten?"
+    options:
+      a: "Goldene Bulle"
+      b: "Magna Carta"
+      c: "Sachsenspiegel"
+      d: "Wormser Konkordat"

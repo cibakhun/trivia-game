@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-mensch-aergere-dich-nicht
+kind: TRIVIA
+category: GENERAL
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mensch ärgere Dich nicht"
+    url: https://de.wikipedia.org/wiki/Mensch_%C3%A4rgere_Dich_nicht
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wie viele Spielfiguren hat jeder Spieler bei „Mensch ärgere Dich nicht“?"
+    options:
+      a: "3"
+      b: "5"
+      c: "6"
+      d: "4"

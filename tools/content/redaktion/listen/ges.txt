@@ -1,0 +1,86 @@
+# Geschichte
+T|GES|1|mauerfall-jahr|In welchem Jahr fiel die Berliner Mauer?|1989|1987;1990;1991|Berliner Mauer|9. November 1989
+T|GES|2|mauerbau-jahr|In welchem Jahr wurde die Berliner Mauer gebaut?|1961|1949;1953;1968|Berliner Mauer|13. August 1961
+T|GES|1|tag-der-einheit|Auf welches Datum fällt der Tag der Deutschen Einheit?|3. Oktober|9. November;1. Mai;17. Juni|Tag der Deutschen Einheit|3. Oktober
+T|GES|2|wiedervereinigung-jahr|In welchem Jahr trat die DDR der Bundesrepublik Deutschland bei?|1990|1989;1991;1992|Deutsche Wiedervereinigung|1990
+T|GES|1|erster-bundeskanzler|Wer war der erste Bundeskanzler der Bundesrepublik Deutschland?|Konrad Adenauer|Ludwig Erhard;Willy Brandt;Theodor Heuss|Konrad Adenauer|erster Bundeskanzler
+T|GES|3|erster-bundespraesident|Wer war der erste Bundespräsident der Bundesrepublik Deutschland?|Theodor Heuss|Heinrich Lübke;Konrad Adenauer;Richard von Weizsäcker|Theodor Heuss|erster Bundespräsident
+T|GES|2|grundgesetz-jahr|In welchem Jahr trat das Grundgesetz der Bundesrepublik Deutschland in Kraft?|1949|1945;1948;1955|Grundgesetz für die Bundesrepublik Deutschland|23. Mai 1949
+T|GES|3|kniefall-warschau|Welcher Bundeskanzler kniete 1970 in Warschau vor dem Ehrenmal für die Opfer des Ghetto-Aufstands nieder?|Willy Brandt|Helmut Schmidt;Kurt Georg Kiesinger;Helmut Kohl|Kniefall von Warschau|Willy Brandt
+T|GES|1|kanzler-der-einheit|Wer war Bundeskanzler zur Zeit der deutschen Wiedervereinigung?|Helmut Kohl|Helmut Schmidt;Gerhard Schröder;Willy Brandt|Helmut Kohl|Wiedervereinigung
+T|GES|1|zweiter-weltkrieg-beginn|In welchem Jahr begann der Zweite Weltkrieg in Europa?|1939|1938;1940;1941|Zweiter Weltkrieg|1. September 1939
+T|GES|1|erster-weltkrieg-dauer|Von wann bis wann dauerte der Erste Weltkrieg?|1914 bis 1918|1912 bis 1915;1916 bis 1920;1910 bis 1914|Erster Weltkrieg|1914;1918
+T|GES|1|thesen-luther|Wer veröffentlichte 1517 die 95 Thesen gegen den Ablasshandel?|Martin Luther|Philipp Melanchthon;Johannes Calvin;Huldrych Zwingli|95 Thesen|Martin Luther
+T|GES|2|thesen-stadt|In welcher Stadt veröffentlichte Martin Luther 1517 seine 95 Thesen?|Wittenberg|Worms;Eisenach;Erfurt|95 Thesen|Wittenberg
+T|GES|3|varusschlacht-arminius|Unter welchem germanischen Anführer wurden die Römer im Jahr 9 n. Chr. in der Varusschlacht geschlagen?|Arminius|Vercingetorix;Marbod;Alarich|Varusschlacht|Arminius
+T|GES|2|kaiserkroenung-800|Wer wurde im Jahr 800 in Rom zum Kaiser gekrönt?|Karl der Große|Otto der Große;Ludwig der Fromme;Friedrich Barbarossa|Karl der Große|800
+T|GES|3|barbarossa|Welcher Kaiser trug den Beinamen „Barbarossa“?|Friedrich I.|Otto I.;Heinrich IV.;Karl IV.|Friedrich I. (HRR)|Barbarossa
+T|GES|2|kaiserreich-gruendung|In welchem Jahr wurde das Deutsche Kaiserreich gegründet?|1871|1848;1866;1888|Deutsches Kaiserreich|1871
+T|GES|2|erster-reichskanzler|Wer war der erste Reichskanzler des Deutschen Kaiserreichs?|Otto von Bismarck|Leo von Caprivi;Bernhard von Bülow;Paul von Hindenburg|Otto von Bismarck|Reichskanzler
+T|GES|2|letzter-kaiser|Wie hieß der letzte deutsche Kaiser?|Wilhelm II.|Wilhelm I.;Friedrich III.;Ludwig II.|Wilhelm II. (Deutsches Reich)|letzte
+T|GES|2|weimarer-republik-name|In welcher Stadt tagte 1919 die Nationalversammlung, nach der die erste deutsche Republik benannt ist?|Weimar|Berlin;Frankfurt am Main;Bonn|Weimarer Nationalversammlung|Weimar
+T|GES|3|paulskirche|In welchem Jahr trat die Nationalversammlung in der Frankfurter Paulskirche erstmals zusammen?|1848|1832;1866;1871|Frankfurter Nationalversammlung|1848
+T|GES|1|bonn-hauptstadt|Welche Stadt war Hauptstadt der Bundesrepublik Deutschland, bevor Berlin es wurde?|Bonn|Köln;Frankfurt am Main;Düsseldorf|Bonn|Hauptstadt
+T|GES|3|volksaufstand-1953|Woran erinnert der 17. Juni 1953?|Volksaufstand in der DDR|Bau der Berliner Mauer;Gründung der DDR;Beginn der Berlin-Blockade|Aufstand vom 17. Juni 1953|17. Juni 1953
+T|GES|1|ich-bin-ein-berliner|Welcher US-Präsident sagte 1963 in Berlin den Satz „Ich bin ein Berliner“?|John F. Kennedy|Ronald Reagan;Richard Nixon;Dwight D. Eisenhower|Ich bin ein Berliner|Kennedy
+T|GES|3|niemand-hat-die-absicht|Welcher DDR-Politiker sagte kurz vor dem Mauerbau: „Niemand hat die Absicht, eine Mauer zu errichten“?|Walter Ulbricht|Erich Honecker;Egon Krenz;Wilhelm Pieck|Walter Ulbricht|Niemand hat die Absicht
+T|GES|1|gorbatschow|Welcher sowjetische Staatschef stand für „Glasnost“ und „Perestroika“?|Michail Gorbatschow|Leonid Breschnew;Boris Jelzin;Juri Andropow|Michail Gorbatschow|Perestroika
+T|GES|1|mondlandung-jahr|In welchem Jahr betraten zum ersten Mal Menschen den Mond?|1969|1965;1967;1972|Apollo 11|1969
+T|GES|1|kolumbus-1492|Wer erreichte 1492 im Auftrag der spanischen Krone Amerika?|Christoph Kolumbus|Amerigo Vespucci;Vasco da Gama;Ferdinand Magellan|Christoph Kolumbus|1492
+T|GES|2|franzoesische-revolution|In welchem Jahr begann die Französische Revolution?|1789|1776;1799;1815|Französische Revolution|1789
+T|GES|1|waterloo-napoleon|Wer wurde 1815 in der Schlacht bei Waterloo endgültig besiegt?|Napoleon Bonaparte|Ludwig XVI.;Napoleon III.;Karl X.|Schlacht bei Waterloo|Napoleon
+T|GES|1|gutenberg|Wer erfand in Mainz den Buchdruck mit beweglichen Metalllettern?|Johannes Gutenberg|Albrecht Dürer;Martin Luther;Nikolaus Kopernikus|Johannes Gutenberg|Mainz
+T|GES|2|weltwunder-erhalten|Welches der sieben Weltwunder der Antike ist bis heute erhalten?|Cheops-Pyramide|Koloss von Rhodos;Leuchtturm von Pharos;Hängende Gärten der Semiramis|Sieben Weltwunder der Antike|Cheops
+T|GES|1|erste-kanzlerin|Wer war die erste Bundeskanzlerin Deutschlands?|Angela Merkel|Ursula von der Leyen;Annegret Kramp-Karrenbauer;Hannelore Kraft|Angela Merkel|Bundeskanzlerin
+T|GES|2|euro-bargeld|In welchem Jahr wurde der Euro in Deutschland als Bargeld eingeführt?|2002|1999;2000;2001|Euro|2002
+T|GES|2|kanzler-schroeder|Wer war von 1998 bis 2005 Bundeskanzler?|Gerhard Schröder|Helmut Kohl;Angela Merkel;Joschka Fischer|Gerhard Schröder|1998
+T|GES|2|rubikon|Welcher römische Feldherr überschritt 49 v. Chr. mit seinen Truppen den Rubikon?|Gaius Iulius Caesar|Pompeius;Augustus;Marcus Antonius|Rubikon|Caesar
+T|GES|2|erster-roemischer-kaiser|Wer gilt als erster römischer Kaiser?|Augustus|Gaius Iulius Caesar;Nero;Tiberius|Augustus|Kaiser
+T|GES|2|titanic-jahr|In welchem Jahr sank die Titanic?|1912|1905;1914;1920|Titanic (Schiff)|1912
+T|GES|3|schwarzer-tod|Wie nennt man die große Pestepidemie, die Europa von 1346 bis 1353 heimsuchte?|Schwarzer Tod|Spanische Grippe;Englischer Schweiß;Antoninische Pest|Schwarzer Tod|1346
+T|GES|2|dreissigjaehriger-krieg-ende|Mit welchem Friedensschluss endete der Dreißigjährige Krieg?|Westfälischer Friede|Friede von Versailles;Augsburger Religionsfriede;Wiener Kongress|Westfälischer Friede|1648
+T|GES|3|wiener-kongress|Welche Versammlung ordnete Europa nach Napoleons Niederlage 1814/15 neu?|Wiener Kongress|Berliner Kongress;Frankfurter Fürstentag;Konzil von Konstanz|Wiener Kongress|1815
+T|GES|2|luftbruecke|Welche Stadt wurde 1948/49 über eine Luftbrücke versorgt?|West-Berlin|Hamburg;Wien;Bonn|Berliner Luftbrücke|West-Berlin
+T|GES|3|zwei-plus-vier|Wie heißt der Vertrag von 1990, mit dem die vier Siegermächte die volle Souveränität Deutschlands anerkannten?|Zwei-plus-Vier-Vertrag|Moskauer Vertrag;Grundlagenvertrag;Vertrag von Maastricht|Zwei-plus-Vier-Vertrag|1990
+T|GES|2|hanse|Wie hieß der mittelalterliche Bund von Kaufleuten und Städten, zu dem Lübeck, Hamburg und Bremen gehörten?|Hanse|Zunft;Gilde;Rheinbund|Hanse|Lübeck
+T|GES|3|hanse-koenigin|Welche Stadt wurde als „Königin der Hanse“ bezeichnet?|Lübeck|Hamburg;Bremen;Rostock|Lübeck|Königin der Hanse
+T|GES|2|kleopatra|Über welches Land herrschte Kleopatra VII.?|Ägypten|Persien;Griechenland;Karthago|Kleopatra VII.|Ägypten
+T|GES|3|magna-carta|In welchem Land wurde die Magna Carta besiegelt?|England|Frankreich;Schottland;Kastilien|Magna Carta|1215
+T|GES|2|kalter-krieg-mauer|Wie wurde die Grenze zwischen dem Ostblock und dem Westen im Kalten Krieg oft bildhaft genannt?|Eiserner Vorhang|Großer Graben;Rote Linie;Stählerne Mauer|Eiserner Vorhang (Politik)|Eiserner Vorhang
+T|GES|4|augsburger-religionsfriede|Welcher Vertrag erlaubte 1555 den Landesherren im Reich, zwischen katholischem und lutherischem Bekenntnis zu wählen?|Augsburger Religionsfriede|Westfälischer Friede;Wormser Konkordat;Goldene Bulle|Augsburger Religionsfrieden|1555
+T|GES|3|goldene-bulle|Welches Gesetz regelte ab 1356 die Wahl des römisch-deutschen Königs durch die Kurfürsten?|Goldene Bulle|Magna Carta;Wormser Konkordat;Sachsenspiegel|Goldene Bulle|1356
+T|GES|4|canossa|Wohin zog König Heinrich IV. 1077, um vom Papst die Lösung vom Kirchenbann zu erbitten?|Canossa|Avignon;Worms;Ravenna|Gang nach Canossa|1077
+T|GES|3|stauffenberg|Wer verübte am 20. Juli 1944 das Bombenattentat auf Adolf Hitler?|Claus Schenk Graf von Stauffenberg|Georg Elser;Wilhelm Canaris;Erwin Rommel|Attentat vom 20. Juli 1944|Stauffenberg
+T|GES|3|weisse-rose|Wie hieß die Widerstandsgruppe um Hans und Sophie Scholl?|Weiße Rose|Rote Kapelle;Kreisauer Kreis;Edelweißpiraten|Weiße Rose|Sophie Scholl
+T|GES|2|kriegsende-europa|An welchem Tag endete der Zweite Weltkrieg in Europa mit der bedingungslosen Kapitulation der Wehrmacht?|8. Mai 1945|1. September 1945;9. November 1945;6. August 1945|Ende des Zweiten Weltkrieges in Europa|8. Mai 1945
+T|GES|3|nuernberger-prozesse|In welcher Stadt wurde ab 1945 den Hauptkriegsverbrechern des NS-Regimes der Prozess gemacht?|Nürnberg|München;Berlin;Frankfurt am Main|Nürnberger Prozesse|Nürnberg
+T|GES|2|ddr-gruendung|In welchem Jahr wurde die DDR gegründet?|1949|1945;1953;1961|Deutsche Demokratische Republik|7. Oktober 1949
+T|GES|3|montagsdemonstrationen|In welcher Stadt begannen 1989 die Montagsdemonstrationen gegen die DDR-Führung?|Leipzig|Dresden;Ost-Berlin;Rostock|Montagsdemonstrationen 1989/1990 in der DDR|Leipzig
+T|GES|2|honecker|Wer war von 1971 bis 1989 der mächtigste Politiker der DDR?|Erich Honecker|Walter Ulbricht;Egon Krenz;Willi Stoph|Erich Honecker|1971
+T|GES|3|schabowski|Wer verkündete auf der Pressekonferenz, die zur Öffnung der Berliner Mauer führte, die neue Reiseregelung?|Günter Schabowski|Egon Krenz;Erich Honecker;Hans Modrow|Günter Schabowski|Pressekonferenz
+T|GES|2|alexander-der-grosse|Welcher König aus Makedonien eroberte das Perserreich?|Alexander der Große|Philipp II.;Leonidas;Hannibal|Alexander der Große|Perserreich
+T|GES|3|hannibal-alpen|Welcher Feldherr aus Karthago überquerte mit Kriegselefanten die Alpen?|Hannibal|Hamilkar;Scipio;Spartacus|Hannibal|Alpen
+T|GES|3|spartacus|Wie hieß der Anführer des großen Sklavenaufstands gegen Rom von 73 bis 71 v. Chr.?|Spartacus|Vercingetorix;Hannibal;Arminius|Spartacus|Sklavenaufstand
+T|GES|2|vesuv-pompeji|Welche römische Stadt wurde im Jahr 79 n. Chr. beim Ausbruch des Vesuvs verschüttet?|Pompeji|Ostia;Ravenna;Paestum|Pompeji|79
+T|GES|3|marco-polo|Aus welcher Stadt stammte der Reisende Marco Polo?|Venedig|Genua;Florenz;Neapel|Marco Polo|Venedig
+T|GES|2|bastille|Welches Gebäude stürmten die Pariser am 14. Juli 1789?|Bastille|Louvre;Notre-Dame;Versailles|Sturm auf die Bastille|14. Juli 1789
+T|GES|2|unabhaengigkeit-usa|In welchem Jahr erklärten die Vereinigten Staaten ihre Unabhängigkeit?|1776|1789;1765;1812|Unabhängigkeitserklärung der Vereinigten Staaten|1776
+T|GES|3|erster-us-praesident|Wer war der erste Präsident der Vereinigten Staaten?|George Washington|Thomas Jefferson;John Adams;Benjamin Franklin|George Washington|erste Präsident
+T|GES|2|lincoln|Welcher US-Präsident führte die Nordstaaten durch den Bürgerkrieg und wurde 1865 ermordet?|Abraham Lincoln|Ulysses S. Grant;Andrew Jackson;Thomas Jefferson|Abraham Lincoln|1865
+T|GES|2|tschernobyl|In welchem Jahr ereignete sich die Reaktorkatastrophe von Tschernobyl?|1986|1979;1984;1991|Nuklearkatastrophe von Tschernobyl|1986
+T|GES|2|elf-september|In welchem Jahr wurden die Türme des World Trade Centers in New York durch Terroranschläge zerstört?|2001|1999;2000;2003|Terroranschläge am 11. September 2001|2001
+T|GES|3|sputnik|Welches Land schickte 1957 den ersten künstlichen Satelliten ins All?|Sowjetunion|Vereinigte Staaten;Frankreich;Vereinigtes Königreich|Sputnik 1|1957
+T|GES|2|gagarin|Wer war 1961 der erste Mensch im Weltraum?|Juri Gagarin|Neil Armstrong;Alexei Leonow;John Glenn|Juri Gagarin|1961
+T|GES|1|armstrong|Wer betrat als erster Mensch den Mond?|Neil Armstrong|Buzz Aldrin;Michael Collins;Juri Gagarin|Neil Armstrong|Mond
+T|GES|3|maastricht|In welcher Stadt wurde 1992 der Vertrag zur Gründung der Europäischen Union unterzeichnet?|Maastricht|Rom;Lissabon;Brüssel|Vertrag von Maastricht|1992
+T|GES|3|roemische-vertraege|In welchem Jahr wurden die Römischen Verträge unterzeichnet, mit denen die Europäische Wirtschaftsgemeinschaft gegründet wurde?|1957|1949;1951;1965|Römische Verträge|1957
+T|GES|2|nelson-mandela|Welcher Freiheitskämpfer saß 27 Jahre in Haft und wurde 1994 Präsident Südafrikas?|Nelson Mandela|Desmond Tutu;Steve Biko;Frederik Willem de Klerk|Nelson Mandela|1994
+T|GES|3|gandhi|Wer führte mit gewaltlosem Widerstand Indien in die Unabhängigkeit von Großbritannien?|Mahatma Gandhi|Jawaharlal Nehru;Indira Gandhi;Subhas Chandra Bose|Mahatma Gandhi|gewaltlos
+T|GES|2|martin-luther-king|Wer hielt 1963 die berühmte Rede „I Have a Dream“?|Martin Luther King|Malcolm X;John F. Kennedy;Barack Obama|I Have a Dream|Martin Luther King
+T|GES|3|kuba-krise|Um welche Insel ging es in der Krise von 1962, die die Welt an den Rand eines Atomkriegs brachte?|Kuba|Taiwan;Island;Zypern|Kubakrise|1962
+E|GES|3|luther-geburt|In welchem Jahr wurde Martin Luther geboren?|1483|year|Jahr|1000|2026|LINEAR|40|Martin Luther|1483
+E|GES|3|westfaelischer-friede-jahr|In welchem Jahr endete der Dreißigjährige Krieg?|1648|year|Jahr|1000|2026|LINEAR|40|Dreißigjähriger Krieg|1648
+E|GES|4|brandenburger-tor-jahr|In welchem Jahr wurde das Brandenburger Tor fertiggestellt?|1791|year|Jahr|1000|2026|LINEAR|40|Brandenburger Tor|1791
+E|GES|2|gutenberg-bibel|Um welches Jahr entstand die Gutenberg-Bibel?|1454|year|Jahr|1000|2026|LINEAR|40|Gutenberg-Bibel|1454
+E|GES|4|magna-carta-jahr|In welchem Jahr wurde die Magna Carta besiegelt?|1215|year|Jahr|1000|2026|LINEAR|40|Magna Carta|1215
+E|GES|3|titanic-opfer|Wie viele Menschen kamen beim Untergang der Titanic ungefähr ums Leben?|1500|count|Menschen|1|100000|LOG|0.3|Titanic (Schiff)|1500

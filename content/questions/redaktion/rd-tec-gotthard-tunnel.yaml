@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-tec-gotthard-tunnel
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Gotthard-Basistunnel"
+    url: https://de.wikipedia.org/wiki/Gotthard-Basistunnel
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher ist der längste Eisenbahntunnel der Erde?"
+    options:
+      a: "Eurotunnel"
+      b: "Seikan-Tunnel"
+      c: "Lötschberg-Basistunnel"
+      d: "Gotthard-Basistunnel"

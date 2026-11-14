@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-rotes-kreuz
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Henry Dunant"
+    url: https://de.wikipedia.org/wiki/Henry_Dunant
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Auf wessen Anregung geht die Gründung des Roten Kreuzes zurück?"
+    options:
+      a: "Florence Nightingale"
+      b: "Albert Schweitzer"
+      c: "Clara Barton"
+      d: "Henry Dunant"

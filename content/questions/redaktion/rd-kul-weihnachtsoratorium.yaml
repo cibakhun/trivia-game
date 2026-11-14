@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-kul-weihnachtsoratorium
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Weihnachtsoratorium"
+    url: https://de.wikipedia.org/wiki/Weihnachtsoratorium
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer komponierte das „Weihnachtsoratorium“, das 1734 erstmals erklang?"
+    options:
+      a: "Johann Sebastian Bach"
+      b: "Georg Friedrich Händel"
+      c: "Joseph Haydn"
+      d: "Georg Philipp Telemann"

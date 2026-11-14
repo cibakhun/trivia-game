@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-pol-staatsoberhaupt
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Bundespräsident (Deutschland)"
+    url: https://de.wikipedia.org/wiki/Bundespr%C3%A4sident_(Deutschland)
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer ist das Staatsoberhaupt der Bundesrepublik Deutschland?"
+    options:
+      a: "Der Bundestagspräsident"
+      b: "Der Bundeskanzler"
+      c: "Der Bundespräsident"
+      d: "Der Bundesratspräsident"

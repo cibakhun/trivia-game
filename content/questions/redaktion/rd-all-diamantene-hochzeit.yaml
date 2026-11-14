@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-all-diamantene-hochzeit
+kind: TRIVIA
+category: GENERAL
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Hochzeitstag"
+    url: https://de.wikipedia.org/wiki/Hochzeitstag
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Nach wie vielen Ehejahren feiert man die Diamantene Hochzeit?"
+    options:
+      a: "75"
+      b: "60"
+      c: "50"
+      d: "65"

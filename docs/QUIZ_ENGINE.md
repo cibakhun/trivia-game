@@ -21,7 +21,7 @@ Bezug: Brief §5, §10.3, §11.5, §13.1. Kennzeichnung siehe [README](README.md
 | Texte | je Sprache Fragetext und Optionstexte (`option_key → Text`) | [V] |
 | Quellen | mindestens eine überprüfbare Quelle pro Frage | [V-nah, Brief §5.2] |
 | Status | `DRAFT → IN_REVIEW → APPROVED → RETIRED` pro Version; zusätzlich `SUSPENDED` auf Fragenebene | [V-nah, Brief §5.2 „Status der Qualitätsprüfung“, „Versionsnummer“] |
-| Herkunft | `EDITORIAL`, `AI_ASSISTED` (nur nach menschlicher Prüfung aktivierbar), `LICENSED` (mit Lizenzvermerk) | [V-nah, Brief §5.6] |
+| Herkunft | `EDITORIAL`, `AI_ASSISTED` (nur nach dokumentierter Prüfung aktivierbar: von Menschen oder nach ADR-072 von Claude mit zweiter Quelle), `LICENSED` (mit Lizenzvermerk) | [V-nah, Brief §5.6, ADR-072] |
 | Tags | z. B. `region:HU` für landesspezifisches Wissen (§4) | [E] |
 
 **Reihenfolge der Optionen:** pro Teilnehmer zufällig gemischt. An den Client gehen nicht die `option_key`s, sondern pro Präsentation neue Zufallstoken (`presentation` in `quiz_answers`, nur serverseitig gespeichert). So lässt sich aus wiederholten Fragen keine Zuordnung „Schlüssel → richtige Antwort“ lernen [E].
@@ -244,7 +244,7 @@ flowchart LR
 ```
 
 - Fragen liegen als YAML-Dateien in Git (eigenes Verzeichnis oder eigenes Redaktions-Repository): Versionierung, Review per Pull Request, Herkunft nachvollziehbar.
-- **KI-generierte Entwürfe** sind erlaubt, werden aber mit `origin: AI_ASSISTED` markiert und können ohne dokumentierte menschliche Fakten- und Sprachprüfung nicht `APPROVED` werden (Brief §5.6) – technisch erzwungen durch die Freigabeprüfung im Import.
+- **KI-generierte Entwürfe** sind erlaubt, werden aber mit `origin: AI_ASSISTED` markiert und können ohne dokumentierte Fakten- und Sprachprüfung nicht `APPROVED` werden (Brief §5.6) – technisch erzwungen durch die Freigabeprüfung im Import. Seit ADR-072 darf Claude diese Prüfung mit der deutschen Wikipedia als zweiter Quelle übernehmen (Prüfer „Claude“, Methode in der Prüfnotiz); vor einem öffentlichen Start prüft ein Mensch eine Stichprobe.
 - Keine Übernahme fremder Fragendatenbanken (Brief §14.1). Fakten selbst sind nicht urheberrechtlich geschützt, Formulierungen schon: Fragen werden eigenständig formuliert. Datensammlungen unter „Share-Alike“-Lizenzen werden nicht eingebunden, da sie die eigene Datenbank lizenzrechtlich binden könnten.
 - **Fakten aus freien Datenquellen** (ADR-056): Der Wikidata-Generator holt Fakten aus Wikidata (CC0) und formuliert daraus Schätz- und Auswahlfragen nach Vorlagen (`tools/content/src/wikidata/templates.ts`); falsche Antworten kommen aus derselben Gruppe (Kontinent, Epoche, Anfangsbuchstabe), solange sie mindestens drei bietet, sonst aus ähnlich bekannten Gegenständen anderer Gruppen. `pnpm content:wikidata:fetch` speichert je Abfrage einen Datenstand unter `content/wikidata/` (braucht Zugang zu `query.wikidata.org`), `pnpm content:wikidata` erzeugt daraus Entwürfe unter `content/questions/wikidata/` (`AI_ASSISTED`, `DRAFT`) und überschreibt vorhandene Dateien nur mit `--force`, damit sprachlich überarbeitete Entwürfe bleiben. Weitere Quellen nur mit Eintrag in [ASSETS.md](ASSETS.md#datenquellen-für-fragen).
 

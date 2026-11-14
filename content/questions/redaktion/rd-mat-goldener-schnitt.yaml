@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-mat-goldener-schnitt
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Goldener Schnitt"
+    url: https://de.wikipedia.org/wiki/Goldener_Schnitt
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welchen ungefähren Wert hat das Verhältnis des Goldenen Schnitts?"
+    options:
+      a: "2,718"
+      b: "1,618"
+      c: "3,142"
+      d: "1,414"

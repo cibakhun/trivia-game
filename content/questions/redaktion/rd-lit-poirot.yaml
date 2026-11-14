@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-lit-poirot
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Hercule Poirot"
+    url: https://de.wikipedia.org/wiki/Hercule_Poirot
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher belgische Detektiv stammt von Agatha Christie?"
+    options:
+      a: "Hercule Poirot"
+      b: "Jules Maigret"
+      c: "Auguste Dupin"
+      d: "Philip Marlowe"

@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-spo-bundesliga-rekordtorschuetze
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Gerd Müller"
+    url: https://de.wikipedia.org/wiki/Gerd_M%C3%BCller
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Welcher Spieler erzielte die meisten Tore in der Geschichte der Fußball-Bundesliga?"
+    options:
+      a: "Robert Lewandowski"
+      b: "Klaus Fischer"
+      c: "Gerd Müller"
+      d: "Jupp Heynckes"

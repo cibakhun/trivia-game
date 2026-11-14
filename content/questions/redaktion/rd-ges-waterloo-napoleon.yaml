@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-waterloo-napoleon
+kind: TRIVIA
+category: HISTORY
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Schlacht bei Waterloo"
+    url: https://de.wikipedia.org/wiki/Schlacht_bei_Waterloo
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer wurde 1815 in der Schlacht bei Waterloo endgültig besiegt?"
+    options:
+      a: "Ludwig XVI."
+      b: "Karl X."
+      c: "Napoleon Bonaparte"
+      d: "Napoleon III."

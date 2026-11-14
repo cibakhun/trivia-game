@@ -1,0 +1,32 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+schema_version: 1
+key: rd-ges-gagarin
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: DRAFT
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Juri Gagarin"
+    url: https://de.wikipedia.org/wiki/Juri_Gagarin
+    accessed: 2026-11-12
+reviews: []
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: DRAFT
+    prompt: "Wer war 1961 der erste Mensch im Weltraum?"
+    options:
+      a: "John Glenn"
+      b: "Neil Armstrong"
+      c: "Alexei Leonow"
+      d: "Juri Gagarin"
