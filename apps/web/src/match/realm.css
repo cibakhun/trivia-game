@@ -1916,84 +1916,86 @@ span.order-chip {
   padding: calc(3 * var(--u)) calc(12 * var(--u));
 }
 
-/* ---------- Niedriger Bildschirm (Leiste des Browsers sichtbar): das Blatt rückt zusammen ---------- */
+/* ---------- Niedrige Bühne (Leiste des Browsers sichtbar): das Blatt rückt zusammen ----------
+   `data-low` setzt die Bühne selbst, sobald sie breiter als 844:388 ist (`isLowStage`,
+   useStageFrame). Eine Medienabfrage sähe in Chrome auf dem iPhone den ganzen Bildschirm samt der
+   Fläche unter der Leiste des Browsers und ließe das Blatt in voller Höhe: Die dritte Zeile
+   („Ziehen“) lag dort unter dem Rand. `:where` lässt das Gewicht der Regeln, wie es war. */
 
-@media (min-aspect-ratio: 844 / 360) {
-  .stage-realm .blatt {
-    gap: calc(5 * var(--u));
-    padding: calc(7 * var(--u)) calc(10 * var(--u)) calc(8 * var(--u));
-  }
-  .stage-realm .blatt .countdown-seconds {
-    top: calc(8 * var(--u));
-  }
-  .stock-row {
-    padding: calc(2 * var(--u)) 0;
-    font-size: calc(15.5 * var(--u));
-  }
-  .blatt-body {
-    gap: calc(5 * var(--u));
-  }
-  /* Die Zeile unter dem Namen entfällt, ihre Angabe steht kurz neben dem Namen */
-  .prep .feld {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: calc(6 * var(--u));
-  }
-  .prep .feld-fact {
-    display: none;
-  }
-  /* Ohne gewähltes Feld gibt es keine Kurzfassung: Das Einkommen behält seine Zeile */
-  .prep .feld.idle {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .prep .feld.idle .feld-fact {
-    display: inline-flex;
-  }
-  .prep .feld-short {
-    display: inline-flex;
-  }
-  .prep {
-    --act-h: calc(36 * var(--u));
-  }
-  .orders h3 {
-    display: none;
-  }
-  /* Ohne Überschrift steht der Hinweis in der Zeile der Befehle, solange es keine gibt. Stehen
-     Befehle da, trägt der Knopf die Warnung zum Angriff („Fertig ohne Angriff“); beide Zeilen
-     zusammen schnitten das Blatt ab */
-  .orders.noted .orders-none,
-  .orders.noted.filled .orders-note {
-    display: none;
-  }
-  .orders-note {
-    line-height: calc(24 * var(--u));
-  }
-  /* „Folgebefehl mit entfernt“ trägt kein Knopf: Der Hinweis steht kurz an der Stelle der
-     übrigen Befehle und gibt sie dann frei */
-  .orders.noted.filled[data-note='DROPPED'] {
-    position: relative;
-  }
-  .orders.noted.filled[data-note='DROPPED'] .orders-note {
-    display: block;
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    animation: orders-note-out 0.3s 2.4s both;
-  }
-  .orders.noted.filled[data-note='DROPPED'] ul {
-    animation: orders-strip-in 0.3s 2.4s both;
-  }
-  .stage-realm .blatt-go {
-    min-height: calc(38 * var(--u));
-  }
-  /* Die Chance bleibt stehen, nur der Zusatz dahinter entfällt */
-  .lots-more,
-  .wheel-hint {
-    display: none;
-  }
-  .fav {
-    min-height: calc(44 * var(--u));
-  }
+.stage-realm:where([data-low='true']) .blatt {
+  gap: calc(5 * var(--u));
+  padding: calc(7 * var(--u)) calc(10 * var(--u)) calc(8 * var(--u));
+}
+.stage-realm:where([data-low='true']) .blatt .countdown-seconds {
+  top: calc(8 * var(--u));
+}
+:where(.stage[data-low='true']) .stock-row {
+  padding: calc(2 * var(--u)) 0;
+  font-size: calc(15.5 * var(--u));
+}
+:where(.stage[data-low='true']) .blatt-body {
+  gap: calc(5 * var(--u));
+}
+/* Die Zeile unter dem Namen entfällt, ihre Angabe steht kurz neben dem Namen */
+:where(.stage[data-low='true']) .prep .feld {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: calc(6 * var(--u));
+}
+:where(.stage[data-low='true']) .prep .feld-fact {
+  display: none;
+}
+/* Ohne gewähltes Feld gibt es keine Kurzfassung: Das Einkommen behält seine Zeile */
+:where(.stage[data-low='true']) .prep .feld.idle {
+  grid-template-columns: minmax(0, 1fr);
+}
+:where(.stage[data-low='true']) .prep .feld.idle .feld-fact {
+  display: inline-flex;
+}
+:where(.stage[data-low='true']) .prep .feld-short {
+  display: inline-flex;
+}
+:where(.stage[data-low='true']) .prep {
+  --act-h: calc(36 * var(--u));
+}
+:where(.stage[data-low='true']) .orders h3 {
+  display: none;
+}
+/* Ohne Überschrift steht der Hinweis in der Zeile der Befehle, solange es keine gibt. Stehen
+   Befehle da, trägt der Knopf die Warnung zum Angriff („Fertig ohne Angriff“); beide Zeilen
+   zusammen schnitten das Blatt ab */
+:where(.stage[data-low='true']) .orders.noted .orders-none,
+:where(.stage[data-low='true']) .orders.noted.filled .orders-note {
+  display: none;
+}
+:where(.stage[data-low='true']) .orders-note {
+  line-height: calc(24 * var(--u));
+}
+/* „Folgebefehl mit entfernt“ trägt kein Knopf: Der Hinweis steht kurz an der Stelle der
+   übrigen Befehle und gibt sie dann frei */
+:where(.stage[data-low='true']) .orders.noted.filled[data-note='DROPPED'] {
+  position: relative;
+}
+:where(.stage[data-low='true']) .orders.noted.filled[data-note='DROPPED'] .orders-note {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: orders-note-out 0.3s 2.4s both;
+}
+:where(.stage[data-low='true']) .orders.noted.filled[data-note='DROPPED'] ul {
+  animation: orders-strip-in 0.3s 2.4s both;
+}
+.stage-realm:where([data-low='true']) .blatt-go {
+  min-height: calc(38 * var(--u));
+}
+/* Die Chance bleibt stehen, nur der Zusatz dahinter entfällt */
+:where(.stage[data-low='true']) .lots-more,
+:where(.stage[data-low='true']) .wheel-hint {
+  display: none;
+}
+:where(.stage[data-low='true']) .fav {
+  min-height: calc(44 * var(--u));
 }
 
 /* Bei geringer Höhe wechselt die Zeile der Befehle vom Hinweis zu den Befehlen (siehe oben): Der

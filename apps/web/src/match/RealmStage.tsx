@@ -279,7 +279,7 @@ export function RealmStage({
   }, []);
 
   const land = play ? mapArt(play.map).tightViewBox : null;
-  const { stage, frame } = useStageFrame(land);
+  const { stage, frame, low } = useStageFrame(land);
 
   // ---- Einkommen: Brot und Baustoff wandern von den eigenen Feldern in den Vorrat (ADR-067) ----
   const sources = useMemo(
@@ -367,6 +367,8 @@ export function RealmStage({
     'data-step': step?.kind,
     'data-beat': state === 'reveal' ? (outcomeBeat ? 'outcome' : 'answers') : undefined,
     'data-seq': seq ?? undefined,
+    // Niedrige Bühne: Das Blatt rückt zusammen (realm.css). Gemessen, nicht per Medienabfrage
+    'data-low': low ? 'true' : undefined,
   };
   const toast = feedError ? (
     <div className="stage-toast">
@@ -377,7 +379,7 @@ export function RealmStage({
   // Vor dem Start und nach einem Abbruch gibt es noch keine Karte der Partie
   if (!view || !play || !step) {
     return (
-      <main className="stage stage-plain" {...attributes}>
+      <main ref={stage} className="stage stage-plain" {...attributes}>
         <div className="stage-map">
           <HeroMap cover />
         </div>
