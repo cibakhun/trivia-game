@@ -83,7 +83,10 @@ async function recordSeen(page: Page): Promise<void> {
         );
       }
       const board = document.querySelector('[data-testid="match-board"]');
-      if (board) {
+      // Bebt die Karte gerade (ADR-070), ruckt nur ihr Rahmen kurz: kein Platzwechsel
+      const frameEl = board?.closest('.board-frame');
+      const quaking = frameEl ? getComputedStyle(frameEl).transform !== 'none' : false;
+      if (board && !quaking) {
         const rect = board.getBoundingClientRect();
         const frame = [
           ...[rect.x, rect.y, rect.width, rect.height].map(Math.round),
