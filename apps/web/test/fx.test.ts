@@ -54,4 +54,17 @@ describe('fxParticles', () => {
   it('richtet sich nach der Zahl', () => {
     expect(fxParticles(burst('dust', { count: 3 }))).toHaveLength(3);
   });
+
+  it('läuft mit kleinerem Takt schneller ab, in derselben Gestalt', () => {
+    const normal = fxParticles(burst('dust', { count: 6 }));
+    const quick = fxParticles(burst('dust', { count: 6, tempo: 0.5 }));
+    expect(quick).toHaveLength(normal.length);
+    quick.forEach((p, i) => {
+      const q = normal[i]!;
+      expect(p.dx).toBe(q.dx);
+      expect(p.size).toBe(q.size);
+      expect(p.durationMs).toBeLessThan(q.durationMs);
+      expect(p.delayMs - 350).toBeLessThanOrEqual(q.delayMs - 350);
+    });
+  });
 });

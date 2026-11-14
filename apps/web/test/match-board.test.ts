@@ -165,7 +165,21 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     fresh: options.fresh ?? [],
     motion: options.motion ?? null,
   });
-  const MOVING = ['rising', 'falling', 'counting', 'arriving', 'army gone', 'marcher', 'drawn'];
+  const MOVING = [
+    'rising',
+    'falling',
+    'counting',
+    'arriving',
+    'army gone',
+    'marcher',
+    'drawn',
+    'piece',
+    'shatter',
+    'shaken',
+    'army-dust',
+    'gate-light',
+    'after-fall',
+  ];
 
   it('rechnet aus der Bewegung zurück, wie viele Armeen vorher auf dem Feld standen', () => {
     expect(armiesBefore(3, null)).toBe(3);
@@ -267,9 +281,36 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     });
     expect(html).toContain('class="building falling"');
     expect(html).toContain('data-fell="TOWN"');
-    expect(html.match(/class="ruin"><use[^>]*-town"/g)).toHaveLength(1);
+    // Bis zum Bruch steht die Stadt ganz, dann fallen drei Stücke entlang fester Bruchlinien
+    expect(html.match(/class="whole"><use[^>]*-town"/g)).toHaveLength(1);
+    expect(count(html, 'class="piece piece-')).toBe(3);
+    expect(html.match(/clip-path="url\(#[^)]*-crack-[012]\)"><use[^>]*-town"/g)).toHaveLength(3);
+    // Danach steigt das Dorf aus dem Staub, sein Schein erst mit ihm
     expect(html).toContain('class="building fresh settling"');
+    expect(html).toContain('class="fresh-glow after-fall"');
     expect(count(html, ' prompt"')).toBe(1);
+  });
+
+  it('lässt eine getroffene Burg beben und ihr verlorenes Schild in zwei Hälften zerbrechen', () => {
+    const base = layer({
+      buildings: { 0: 'CASTLE' },
+      motion: { kind: 'outcome', fields: { 0: { hit: true } } },
+    });
+    const html = render({
+      board: {
+        ...boardOf(),
+        regions: boardOf().regions.map((r, i) => (i === 0 ? { ...r, capitalOf: 0 } : r)),
+      },
+      realm: {
+        ...base,
+        regions: base.regions.map((r, i) => (i === 0 ? { ...r, castleLives: 2 } : r)),
+      },
+    });
+    expect(html).toContain('class="castle hit shaken"');
+    expect(count(html, 'class="life life-shatter"')).toBe(1);
+    expect(
+      html.match(/class="half half-[01]"><g clip-path="url\(#[^)]*-half-[01]\)"/g),
+    ).toHaveLength(2);
   });
 
   it('lässt eine genommene Burg mit ihren Schilden und ihrem Bannerträger einstürzen', () => {
@@ -281,10 +322,14 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
       }),
     });
     expect(count(html, 'class="castle falling"')).toBe(1);
-    expect(html.match(/class="ruin"><use[^>]*-castle"/g)).toHaveLength(1);
-    expect(count(html, 'class="life life-off"')).toBe(3);
+    expect(html.match(/class="whole"><use[^>]*-castle"/g)).toHaveLength(1);
+    expect(html.match(/clip-path="url\(#[^)]*-tower-[012]\)"><use[^>]*-castle"/g)).toHaveLength(3);
+    // Das letzte Schild zerspringt, die leeren fallen nacheinander mit
+    expect(count(html, 'class="life life-shatter"')).toBe(1);
+    expect(count(html, 'class="life life-off drop drop-')).toBe(2);
     expect(html).toContain('class="army gone seat-0" style="--flag:var(--seat-0)"');
     expect(html).toContain('data-switch="ruin"');
+    expect(count(html, 'class="army-dust"')).toBe(1);
     // Die Beschriftung des Felds wartet wie bei jeder Eroberung
     expect(html).not.toContain(' prompt"');
   });
@@ -301,5 +346,25 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     expect(html).toContain('class="army-count was">2<');
     expect(html).toContain(`class="army gone seat-${ME}"`);
     expect(count(html, 'data-switch="loss"')).toBe(2);
+    // Wo der Träger getroffen wird oder fällt, wirbelt Staub auf
+    expect(count(html, 'class="army-dust"')).toBe(2);
+  });
+
+  it('lässt den Träger auf einem eben genommenen Feld außerhalb der wartenden Beschriftung fallen', () => {
+    // Feld 5 gehört nach dem Sieg mir (Sitz 2); dort verlor Sitz 1 seine Armee
+    const html = render({
+      realm: layer({
+        armies: { 5: 1 },
+        motion: { kind: 'outcome', fields: { 5: { lost: 1 } } },
+      }),
+    });
+    expect(count(html, 'class="army gone rout seat-1"')).toBe(1);
+    expect(html).toContain('data-switch="rout"');
+    // Er steht vor der Beschriftung des Felds, nicht in ihr
+    const rout = html.indexOf('class="army gone rout');
+    const label = html.indexOf('class="region-label', rout);
+    expect(rout).toBeGreaterThan(-1);
+    expect(label).toBeGreaterThan(rout);
+    expect(html.slice(rout, label)).not.toContain('region-label');
   });
 });
