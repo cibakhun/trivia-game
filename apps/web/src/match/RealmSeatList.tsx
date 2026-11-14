@@ -14,7 +14,9 @@ import type { RealmPlay } from './realm-model.ts';
  * gerade wählt, trägt einen goldenen Rand und „am Zug“. Das eigene Reich ist getönt und nennt an
  * dieser Stelle, was die nächste Runde bringt: Den eigenen Rüststand zeigt schon das Blatt rechts.
  * Vorräte zählen sichtbar hoch und herunter, wenn sie sich ändern; das Einkommen einer Runde zeigen
- * sie erst, wenn deren Rüstzeit beginnt (ADR-067).
+ * sie erst, wenn deren Rüstzeit beginnt (ADR-067). Kommt es im eigenen Vorrat an, heben sich die
+ * Zeichen mit dem ersten Zeichen und federn mit dem letzten zurück, je mit einem goldenen Ring; die
+ * Tafeln der anderen Reiche zeigen ihren Zuwachs mit einem Schimmer (ADR-068).
  */
 
 /** So lange zählt ein Vorrat, wenn er sich ändert. */
@@ -30,6 +32,7 @@ export function RealmSeatList({
   play,
   name,
   receiving = null,
+  gaining = null,
   pending = null,
 }: {
   readonly view: MatchView;
@@ -39,7 +42,14 @@ export function RealmSeatList({
    * Das Einkommen wandert gerade von den eigenen Feldern in den eigenen Vorrat: Dort zählen die
    * Zahlen erst hoch, wenn es ankommt.
    */
-  readonly receiving?: { readonly delayMs: number; readonly durationMs: number } | null;
+  readonly receiving?: {
+    readonly delayMs: number;
+    readonly durationMs: number;
+    /** Was ankommt: Nur diese Zeichen heben sich; ohne Angabe beide. */
+    readonly kinds?: readonly ('bread' | 'material')[];
+  } | null;
+  /** Reiche, deren Vorrat gerade mit dem Einkommen hochzählt, ohne dass etwas fliegt: Sie schimmern. */
+  readonly gaining?: readonly number[] | null;
   /**
    * Einkommen, das der Server schon verbucht hat, das aber erst mit der Rüstzeit gezeigt wird (es
    * kommt mit dem Ende der Runde davor): Bis dahin steht in den Vorräten noch der Stand davor.
@@ -96,11 +106,22 @@ export function RealmSeatList({
                 status === 'turn' ? 'turn' : '',
                 mine ? 'me' : '',
                 arriving ? 'receiving' : '',
+                ...(arriving
+                  ? (arriving.kinds ?? ['bread', 'material']).map((kind) => `receive-${kind}`)
+                  : []),
+                !arriving && gaining?.includes(s.seat) ? 'gaining' : '',
                 s.eliminated ? 'eliminated' : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
-              style={arriving ? { ['--receive-at' as string]: `${arriving.delayMs}ms` } : undefined}
+              style={
+                arriving
+                  ? {
+                      ['--receive-at' as string]: `${arriving.delayMs}ms`,
+                      ['--receive-ms' as string]: `${arriving.durationMs}ms`,
+                    }
+                  : undefined
+              }
               data-seat={s.seat}
               data-status={status ?? undefined}
             >

@@ -291,7 +291,11 @@ export function RealmStage({
   const incomeAt = income?.seq ?? 0;
   // Verbucht ist das Einkommen schon mit dem Ende der Runde davor; gezeigt wird es, wenn die eigene
   // Rüstzeit steht. Wer keine hat (Zuschauer, gefallenes Reich, nur noch Bots), sieht nur die Zahl
-  const { playing: incomeSeq, held: incomeWaits } = useIncomeFlight(
+  const {
+    playing: incomeSeq,
+    held: incomeWaits,
+    rising: incomeRising,
+  } = useIncomeFlight(
     incomeAt,
     state === 'prepare' || state === 'prepared',
     view?.match.status !== 'RUNNING' ||
@@ -309,6 +313,15 @@ export function RealmStage({
     setIncomePlan({ seq: incomeSeq, plans: incomeFlights(sources) });
   }
   const incoming = incomeSeq !== null && incomePlan?.seq === incomeSeq ? incomePlan.plans : null;
+  // Wessen Vorrat mit diesem Einkommen nur hochzählt (alle außer dem eigenen, wenn dorthin geflogen
+  // wird): Diese Tafeln schimmern (ADR-068)
+  const gaining =
+    incomeRising !== null && income?.seq === incomeRising
+      ? income.payload.income
+          .filter((entry) => entry.bread + entry.material > 0)
+          .filter((entry) => !(incoming && entry.seat === mySeat))
+          .map((entry) => entry.seat)
+      : null;
   const wheelMs = play?.realm.economy.timers.wheelMs ?? 0;
   const spinMs = Math.round(wheelMs * WHEEL_SPIN_SHARE);
   // Wie lange das Rad dieses Duells beim ersten Bild schon lief (Seite mitten in der Ansage
@@ -599,8 +612,15 @@ export function RealmStage({
           play={play}
           name={name}
           receiving={
-            incoming ? { delayMs: incomeTime.countAtMs, durationMs: incomeTime.countMs } : null
+            incoming
+              ? {
+                  delayMs: incomeTime.countAtMs,
+                  durationMs: incomeTime.countMs,
+                  kinds: [...new Set(sources.map((source) => source.kind))],
+                }
+              : null
           }
+          gaining={gaining}
           pending={incomeWaits && income ? income.payload.income : null}
         />
         <TurnOrder view={view} name={name} skipped={skipped} />

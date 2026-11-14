@@ -788,12 +788,15 @@ html.match-playing body {
   color: var(--success);
 }
 
-/* ---------- Flug über die Bühne (ADR-067) ---------- */
+/* ---------- Flug über die Bühne (ADR-067, ADR-068) ---------- */
 
 /* Zeichen fliegen einmal von einem Element der Bühne zu einem anderen: Einkommen in den Vorrat,
-   die Kategorie vom Rad ins Blatt. Die Ebene liegt über allem, nimmt keine Tipps an und ist ohne
-   Animation unsichtbar: Das Endbild steht schon darunter. */
+   die Kategorie vom Rad ins Blatt. Jedes springt mit einem kleinen Ring ab und zieht goldene
+   Glanzpunkte nach, die denselben Bogen etwas später fliegen. Die Ebene liegt über allem, nimmt
+   keine Tipps an und ist ohne Animation unsichtbar: Das Endbild steht schon darunter. */
 .flight-layer {
+  --trail-gap: 38ms;
+  --ring-size: calc(30 * var(--u));
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -816,8 +819,9 @@ html.match-playing body {
 .flight-layer.tone-token .flight-arc {
   padding: calc(2.5 * var(--u));
   background: var(--surface);
-  border: calc(1.2 * var(--u)) solid var(--border-strong);
+  border: calc(1.2 * var(--u)) solid color-mix(in srgb, var(--map-gold) 65%, var(--border-strong));
   border-radius: 50%;
+  box-shadow: 0 calc(1.5 * var(--u)) calc(3 * var(--u)) rgb(40 25 8 / 0.3);
 }
 /* Vom Rad ins Blatt: eine Scheibe wie die Felder des Rads, sie landet in voller Größe */
 .flight-layer.tone-coin {
@@ -825,16 +829,75 @@ html.match-playing body {
   --flight-peak: 1.3;
   --flight-to: 1;
   --flight-lift: calc(-20 * var(--u));
+  --trail-gap: 34ms;
+  --ring-size: calc(46 * var(--u));
 }
 .flight-layer.tone-coin .flight-arc {
   padding: calc(3 * var(--u));
   background: var(--map-coin);
   border: calc(2 * var(--u)) solid var(--map-gold);
   border-radius: 50%;
+  box-shadow:
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--map-glow) 75%, transparent),
+    0 calc(3 * var(--u)) calc(6 * var(--u)) rgb(30 18 6 / 0.35);
 }
 .flight svg {
   display: block;
 }
+/* Ins Lager fallen die Zeichen hinein: zum Ende hin schneller und kleiner. Sonst kreisten bei vielen
+   Feldern ein Dutzend Zeichen zugleich über der Tafel, und die Zahl dort wäre verdeckt. */
+.flight-layer.tone-token {
+  --flight-to: 0.5;
+}
+.flight-layer.tone-token .flight {
+  animation-timing-function: cubic-bezier(0.45, 0, 0.7, 0.9);
+}
+
+/* Glanzpunkte: derselbe Flug, je Punkt etwas später, kleiner und blasser */
+.flight.trail,
+.flight.trail .flight-arc {
+  animation-delay: calc(var(--flight-at, 0ms) + var(--trail, 1) * var(--trail-gap));
+}
+.flight-layer .flight.trail .flight-arc {
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.flight.trail i {
+  display: block;
+  width: calc(4.5 * var(--u));
+  height: calc(4.5 * var(--u));
+  border-radius: 50%;
+  background: var(--map-glow);
+  box-shadow: 0 0 calc(3 * var(--u)) calc(1 * var(--u)) var(--map-gold);
+  opacity: calc(0.85 - var(--trail, 1) * 0.22);
+  scale: calc(1 - var(--trail, 1) * 0.16);
+}
+.flight-layer.tone-coin .flight.trail i {
+  width: calc(7 * var(--u));
+  height: calc(7 * var(--u));
+}
+
+/* Ring beim Absprung und, für die Scheibe vom Rad, bei der Ankunft im Blatt */
+.flight-ring {
+  position: absolute;
+  width: var(--ring-size);
+  height: var(--ring-size);
+  translate: -50% -50%;
+  border: calc(1.8 * var(--u)) solid var(--map-gold);
+  border-radius: 50%;
+  box-shadow:
+    0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-glow) 80%, transparent),
+    inset 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-glow) 70%, transparent);
+  opacity: 0;
+  animation: flight-ring 560ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--ring-at, 0ms) both;
+}
+.flight-ring.land {
+  --ring-size: calc(62 * var(--u));
+  border-width: calc(2 * var(--u));
+}
+
 @keyframes flight-go {
   0% {
     transform: none;
@@ -860,6 +923,25 @@ html.match-playing body {
   }
   100% {
     transform: scale(var(--flight-to, 0.8));
+  }
+}
+@keyframes flight-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  14% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight-ring {
+    animation: none;
   }
 }
 
