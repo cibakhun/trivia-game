@@ -376,11 +376,15 @@
 
 /* ---------- Rüstzeit ---------- */
 
+/* Die Zeile ist immer so hoch wie mit dem Tausch-Knopf (28 Einheiten): Fehlt er, weil die Befehle
+   abgegeben sind, rückten die Vorräte sonst mit „Fertig“ um ein paar Pixel nach oben */
 .stock-row {
+  --stock-pad: calc(5 * var(--u));
   display: flex;
   align-items: center;
   gap: calc(10 * var(--u));
-  padding: calc(5 * var(--u)) 0;
+  min-height: calc(28 * var(--u) + 2 * var(--stock-pad) + 2px);
+  padding: var(--stock-pad) 0;
   border-block: 1px solid transparent;
   border-image: var(--ink-rule) 1;
   font-size: calc(17 * var(--u));
@@ -2224,7 +2228,7 @@ span.order-chip {
   top: calc(8 * var(--u));
 }
 :where(.stage[data-low='true']) .stock-row {
-  padding: calc(2 * var(--u)) 0;
+  --stock-pad: calc(2 * var(--u));
   font-size: calc(15.5 * var(--u));
 }
 :where(.stage[data-low='true']) .blatt-body {

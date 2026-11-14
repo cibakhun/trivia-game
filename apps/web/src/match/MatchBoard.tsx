@@ -1093,9 +1093,22 @@ function RegionArt({
             </g>
           </>
         ) : null}
-        <text x={cx} y={nameY} className="board-name">
-          {region.name}
-        </text>
+        {capital && realm && motion?.placed === true ? (
+          // Eben gesetzte Burg: Der Name rückt von der Mitte nach oben, während sie wächst (als
+          // Gruppe, wie alles Bewegte auf der Karte)
+          <g
+            className="name-rise"
+            style={{ ['--rise' as string]: `${Math.round((cy - nameY) * 10) / 10}px` }}
+          >
+            <text x={cx} y={nameY} className="board-name">
+              {region.name}
+            </text>
+          </g>
+        ) : (
+          <text x={cx} y={nameY} className="board-name">
+            {region.name}
+          </text>
+        )}
         {realm ? (
           <RealmRegionArt
             prefix={prefix}

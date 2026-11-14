@@ -1820,6 +1820,16 @@
 }
 /* Das gewählte Feld trägt den festen goldenen Rand (`ring-casing`, `ring-line` oben bei der Wahl) */
 
+/* Eben gesetzte Burg: Der Name stand in der Mitte des Felds und rückt nach oben, während die
+   Burg aus dem Boden wächst, statt zu springen */
+.map-art .name-rise {
+  animation: name-rise 0.36s cubic-bezier(0.3, 0.7, 0.25, 1) both;
+}
+@keyframes name-rise {
+  from {
+    transform: translateY(var(--rise));
+  }
+}
 /* Eben gesetzte Burg (Wahl am Anfang): Ihre Lebensschilde folgen, wenn sie aus dem Boden
    gewachsen ist (`building-rise` ab `--rise-at`), statt schon unter dem leeren Feld zu stehen */
 .map-art .lives.placed {
@@ -1897,6 +1907,7 @@
   .map-art .plan-refused,
   .map-art .building.ghost *,
   .map-art .lives.placed,
+  .map-art .name-rise,
   .map-art .army-plus,
   .map-art .plan-move.planned * {
     animation: none !important;
