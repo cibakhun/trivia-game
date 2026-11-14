@@ -3,6 +3,7 @@ import { NO_FX, type BoardFx, type FxBurst, type FxQuake } from '../art/fx/fx.ts
 import type { MapArt } from '../art/map-art.ts';
 import type { DuelStage } from './match-model.ts';
 import type { RealmLayer } from './RealmBoardArt.tsx';
+import { realmBursts } from './realm-fx.ts';
 
 /**
  * Welche Effekte die Karte gerade spielt (ADR-068), als reine Ableitung aus dem, was sie ohnehin
@@ -105,8 +106,15 @@ export function duelFx({ art, duel, layout }: BoardFxInput): BoardFx {
   return { key, bursts, quake: { strength: heavy ? 'heavy' : 'light', atMs: IMPACT_MS } };
 }
 
-/** Partie mit Ausbau: Staub, Trümmer und Glanz beim Aufdecken und im Ausgang. */
-export function realmFx({ realm }: BoardFxInput): BoardFx {
-  if (!realm?.motion) return NO_FX;
-  return NO_FX;
+/**
+ * Partie mit Ausbau: Staub, Trümmer und Glanz beim Aufdecken und im Ausgang (`realm-fx.ts`). Der
+ * Ausgang spielt nur in der Szene `outcome`, zusammen mit dem Duell: So bleibt der Schlüssel der
+ * Ebene über die ganze Szene derselbe, und danach liegt das Blatt mit den Antworten auf der Karte.
+ */
+export function realmFx({ art, duel, layout, realm }: BoardFxInput): BoardFx {
+  const motion = realm?.motion;
+  if (!realm || !motion) return NO_FX;
+  if (motion.kind === 'outcome' && duel !== null && duel.scene !== 'outcome') return NO_FX;
+  const plan = realmBursts({ art, realm, motion, layout });
+  return plan.bursts.length === 0 && !plan.quake ? NO_FX : plan;
 }

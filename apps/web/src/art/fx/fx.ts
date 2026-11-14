@@ -52,6 +52,11 @@ export interface FxBurst {
   readonly count?: number;
   /** Stärke: Reichweite und Größe, 1 = normal. */
   readonly power?: number;
+  /**
+   * Takt: Dauer und Streuung des Beginns, 1 = normal, kleiner = schneller. Für Ausbrüche, die
+   * vor einem festen Schnitt verweht sein müssen (Ende des ersten Takts, Ende des Aufdeckens).
+   */
+  readonly tempo?: number;
 }
 
 export interface FxParticle {
@@ -148,6 +153,7 @@ export function fxParticles(burst: FxBurst): FxParticle[] {
   const rand = sequence(hashText(burst.key));
   const between = ([a, b]: readonly [number, number]) => a + (b - a) * rand();
   const power = burst.power ?? 1;
+  const tempo = burst.tempo ?? 1;
   const count = burst.count ?? spec.count;
   const s = burst.size * power;
   const base = burst.dir ? Math.atan2(burst.dir.y, burst.dir.x) : 0;
@@ -161,8 +167,8 @@ export function fxParticles(burst: FxBurst): FxParticle[] {
     const uy = Math.sin(angle);
     const reach = between(spec.reach) * s;
     const size = between(spec.grain) * s;
-    const delayMs = Math.round(burst.atMs + rand() * spec.jitterMs);
-    const durationMs = Math.round(between(spec.durationMs) * (0.85 + 0.15 * power));
+    const delayMs = Math.round(burst.atMs + rand() * spec.jitterMs * tempo);
+    const durationMs = Math.round(between(spec.durationMs) * (0.85 + 0.15 * power) * tempo);
     const variant = Math.floor(rand() * 4);
     let dx = ux * reach;
     let dy = uy * reach;

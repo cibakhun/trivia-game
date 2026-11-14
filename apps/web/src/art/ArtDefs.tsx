@@ -36,6 +36,99 @@ export function symbolRef(prefix: string, id: SymbolId): string {
   return `#${prefix}-${id}`;
 }
 
+/**
+ * Bruchlinien für Bewegung (ADR-067): Ein Motiv zerfällt in Stücke, indem es mehrmals gezeichnet
+ * und je Stück entlang einer gezackten Linie beschnitten wird. Die Linien sind relativ zum Motiv
+ * (`objectBoundingBox`) und reichen über seinen Rand hinaus, damit der Strich mitkommt.
+ */
+export type CrackId =
+  /** Gebäude in drei Streifen: links, Mitte, rechts. */
+  | 'crack-0'
+  | 'crack-1'
+  | 'crack-2'
+  /** Burg in drei Teilen: linker Turm, Bergfried, rechter Turm. */
+  | 'tower-0'
+  | 'tower-1'
+  | 'tower-2'
+  /** Schild in zwei Hälften. */
+  | 'half-0'
+  | 'half-1';
+
+export function crackRef(prefix: string, id: CrackId): string {
+  return `url(#${prefix}-${id})`;
+}
+
+type Seam = readonly (readonly [number, number])[];
+
+/** Gezackte Linie von oben nach unten (x je Höhe 0 … 1), über den Rand hinaus verlängert. */
+function seam(points: Seam): Seam {
+  return [[points[0]![0], -0.3], ...points, [points[points.length - 1]![0], 1.3]];
+}
+
+/** Fläche zwischen zwei Linien; `null` ist der Rand links oder rechts, weit außerhalb des Motivs. */
+function strip(left: Seam | null, right: Seam | null): string {
+  const a = left ?? seam([[-0.3, 0]]);
+  const b = right ?? seam([[1.3, 0]]);
+  const points = [...a, ...[...b].reverse()];
+  return `M${points.map(([x, y]) => `${x} ${y}`).join('L')}Z`;
+}
+
+const BUILDING_SEAMS = [
+  seam([
+    [0.37, 0],
+    [0.31, 0.2],
+    [0.4, 0.38],
+    [0.33, 0.6],
+    [0.41, 0.8],
+    [0.36, 1],
+  ]),
+  seam([
+    [0.65, 0],
+    [0.71, 0.17],
+    [0.62, 0.36],
+    [0.7, 0.57],
+    [0.63, 0.78],
+    [0.69, 1],
+  ]),
+] as const;
+const TOWER_SEAMS = [
+  seam([
+    [0.255, 0],
+    [0.255, 0.34],
+    [0.21, 0.5],
+    [0.275, 0.68],
+    [0.22, 0.85],
+    [0.25, 1],
+  ]),
+  seam([
+    [0.745, 0],
+    [0.745, 0.3],
+    [0.79, 0.46],
+    [0.725, 0.64],
+    [0.78, 0.83],
+    [0.75, 1],
+  ]),
+] as const;
+const SHIELD_SEAM = seam([
+  [0.5, 0],
+  [0.44, 0.22],
+  [0.57, 0.42],
+  [0.46, 0.63],
+  [0.54, 0.82],
+  [0.5, 1],
+]);
+
+const CRACKS: Readonly<Record<CrackId, string>> = {
+  'crack-0': strip(null, BUILDING_SEAMS[0]),
+  'crack-1': strip(BUILDING_SEAMS[0], BUILDING_SEAMS[1]),
+  'crack-2': strip(BUILDING_SEAMS[1], null),
+  'tower-0': strip(null, TOWER_SEAMS[0]),
+  'tower-1': strip(TOWER_SEAMS[0], TOWER_SEAMS[1]),
+  'tower-2': strip(TOWER_SEAMS[1], null),
+  'half-0': strip(null, SHIELD_SEAM),
+  'half-1': strip(SHIELD_SEAM, null),
+};
+
 export function ArtDefs({ prefix }: { readonly prefix: string }) {
   const id = (name: string) => `${prefix}-${name}`;
   return (
@@ -371,6 +464,16 @@ export function ArtDefs({ prefix }: { readonly prefix: string }) {
           strokeLinejoin="round"
         />
       </symbol>
+      {(Object.keys(CRACKS) as CrackId[]).map((crack) => (
+        <clipPath key={crack} id={id(crack)} clipPathUnits="objectBoundingBox">
+          <path d={CRACKS[crack]} />
+        </clipPath>
+      ))}
+      {/* Staub, der am Fuß aufwirbelt: weich auslaufend, eine Form statt eines Filters (WebKit) */}
+      <radialGradient id={id('puff')}>
+        <stop offset="0.2" className="puff-in" />
+        <stop offset="1" className="puff-out" />
+      </radialGradient>
       {/* Wappenbilder der Sitze, wie die Zeichen ◆ ● ▲ */}
       <symbol id={id('emblem-0')} viewBox={BOX}>
         <path d="M0-40L30 0L0 40L-30 0Z" />

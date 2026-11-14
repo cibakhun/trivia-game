@@ -123,15 +123,17 @@ export function revealMotion(revealed: readonly MatchEventOf<'ORDERS_REVEALED'>[
 type RealmDuel = MatchEventOf<'REALM_DUEL_RESOLVED'>;
 
 /**
- * Ausgang eines Duells als Bewegung (ADR-067): Ein beschädigtes Gebäude fällt eine Stufe, eine
- * genommene Burg stürzt ein, und wer verlor, verliert sichtbar eine Armee. Eroberung und Treffer
- * auf die Burg zeigt die Bühne des Duells selbst.
+ * Ausgang eines Duells als Bewegung (ADR-067): Ein beschädigtes Gebäude bricht eine Stufe ab, eine
+ * getroffene Burg bebt und verliert ein Schild, eine genommene Burg stürzt ein, und wer verlor,
+ * verliert sichtbar eine Armee. Die Eroberung selbst zeigt die Bühne des Duells.
  */
 export function outcomeMotion(duel: RealmDuel): RealmMotion {
   const { effect, building, region, armyLost } = duel.payload;
   const fields: Record<number, RealmFieldMotion> = {};
   if (effect === 'BUILDING_DAMAGED') {
     fields[region] = { fell: building === 'VILLAGE' ? 'TOWN' : 'VILLAGE' };
+  } else if (effect === 'CASTLE_HIT') {
+    fields[region] = { hit: true };
   } else if (effect === 'CASTLE_DESTROYED' || effect === 'TAKEOVER') {
     // Das Feld gehört schon dem Angreifer: Die Burg fällt in der Farbe dessen, der sie verlor
     const { defender } = duel.payload;

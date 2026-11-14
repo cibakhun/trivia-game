@@ -231,9 +231,18 @@ describe('Schild über einem entschiedenen Duell', () => {
       duel({ winner: 'DEFENDER', effect: 'FORTIFIED', armyLost: { seat: 2, region: 7 } }),
     );
     expect(held.fields).toEqual({ 7: { lost: 2 } });
-    // Eine Burg, die nur getroffen wird, bleibt stehen; ohne Verlust bewegt sich nichts
-    expect(outcomeMotion(duel({ effect: 'CASTLE_HIT', castleLivesLeft: 2 })).fields).toEqual({});
+    // Ohne Verlust und ohne Gebäude bewegt sich auf der Karte nichts außer dem Duell selbst
     expect(outcomeMotion(duel({})).fields).toEqual({});
+  });
+
+  it('lässt eine getroffene Burg beben und ein Schild verlieren, auch mit verlorener Armee', () => {
+    expect(outcomeMotion(duel({ effect: 'CASTLE_HIT', castleLivesLeft: 2 })).fields).toEqual({
+      12: { hit: true },
+    });
+    const both = outcomeMotion(
+      duel({ effect: 'CASTLE_HIT', castleLivesLeft: 1, armyLost: { seat: 1, region: 12 } }),
+    );
+    expect(both.fields).toEqual({ 12: { hit: true, lost: 1 } });
   });
 
   it('freies Feld (O-37): genommen in der Farbe des Angreifers, sonst ohne Farbe', () => {

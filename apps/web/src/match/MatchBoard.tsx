@@ -26,11 +26,16 @@ import { boardFx } from './board-fx.ts';
 import type { DuelStage } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import {
+  armiesBefore as armiesBeforeMotion,
   hasBuilding,
   REALM_CASTLE,
   RealmPlanArt,
   RealmRegionArt,
+  RealmRoutArt,
   RealmRuinArt,
+  routed,
+  ShieldShatter,
+  useOutcomeMotion,
   type RealmLayer,
 } from './RealmBoardArt.tsx';
 
@@ -123,7 +128,7 @@ export function MatchBoard({
   busy,
   onPick,
   frame,
-  realm = null,
+  realm: realmLayer = null,
   home = null,
   selectable = NONE,
 }: {
@@ -156,6 +161,8 @@ export function MatchBoard({
   const art = useMemo(() => mapArt(map), [map]);
   const prefix = `map${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const settled = useSettled();
+  // Der Ausgang mit Ausbau spielt, wenn die Szene `outcome` kommt, nicht schon mit der Auflösung
+  const realm = useOutcomeMotion(realmLayer, duel);
   const svg = useRef<SVGSVGElement>(null);
   // Kleines Land (Handy): größere Schrift, weniger Zierde
   const narrow = frame === null || frame.scale < COMPACT_SCALE;
@@ -213,7 +220,7 @@ export function MatchBoard({
   });
   const before = deciding ? ownersBefore.current : null;
   // Armeen vor dem Ausgang: Ein genommenes Feld verliert alle, das Ereignis nennt nur eine
-  const resolving = realm?.motion?.kind === 'outcome';
+  const resolving = realmLayer?.motion?.kind === 'outcome';
   const armiesBefore = useRef<readonly number[] | null>(null);
   useEffect(() => {
     if (!resolving) armiesBefore.current = realm?.regions.map((r) => r.armies) ?? null;
@@ -755,8 +762,14 @@ function RegionArt({
     />
   );
   const armies = realm?.regions[region.id]?.armies ?? 0;
+  const motion = realm?.motion?.fields[region.id];
+  // Solange eine Armee noch aufbricht oder fällt, bleibt ihr Platz neben der Burg
   const withArmy =
-    realm !== null && owner !== null && (armies > 0 || (realm.recruits?.[region.id] ?? 0) > 0);
+    realm !== null &&
+    owner !== null &&
+    (armies > 0 ||
+      (realm.recruits?.[region.id] ?? 0) > 0 ||
+      armiesBeforeMotion(armies, motion ?? null) > 0);
   // Mit Ausbau: Gebäude oben, Name in der Mitte, Bannerträger unten; neben einer Burg steht er rechts
   const castleX = realm
     ? withArmy
@@ -788,10 +801,11 @@ function RegionArt({
   const nameY = capital ? cy - (realm ? 0.56 : 0.47) * s : realm ? cy : cy - 0.06 * s;
   const livesX = realm ? castleX : cx;
   // Fällt hier eben ein Gebäude eine Stufe, kehrt die Beschriftung sofort zurück: Man soll es fallen sehen
-  const motion = realm?.motion?.fields[region.id];
   const prompt = motion?.fell !== undefined && motion.fell !== 'CASTLE';
   // Eine genommene Burg ist im neuen Stand schon fort: Sie stürzt ein, wo sie stand
   const ruin = motion?.fell === 'CASTLE' && !capital ? motion : null;
+  // Mit Ausbau trifft der Schlag die Burg in der Szene `outcome`; ohne Ausbau zeigt es der Wechsel
+  const struck = realm ? motion?.hit === true : settled && lives < maxLives;
   return (
     <>
       {ruin ? (
@@ -804,6 +818,15 @@ function RegionArt({
           armiesSeen={armiesSeen}
         />
       ) : null}
+      {motion && routed(motion, owner) ? (
+        <RealmRoutArt
+          prefix={prefix}
+          region={region}
+          size={s}
+          motion={motion}
+          armiesSeen={armiesSeen}
+        />
+      ) : null}
       <g
         className={`region-label${owner === null ? ' free' : ` seat-${owner}`}${staged ? ` staged-${staged}` : ''}${arriving ? ' arriving' : ''}${prompt ? ' prompt' : ''}`}
       >
@@ -811,27 +834,27 @@ function RegionArt({
           <>
             <g
               key={`castle-${lives}`}
-              className={`castle${rising ? ' rising' : settled && lives < maxLives ? ' hit' : ''}`}
+              className={`castle${rising ? ' rising' : struck ? (realm ? ' hit shaken' : ' hit') : ''}`}
               style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
             >
               {use('castle', castleX, cy + (realm ? REALM_CASTLE.y : 0.02) * s, castleSize)}
             </g>
-            <g className="lives">
+            <g className="lives" style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}>
               {Array.from({ length: maxLives }, (_, i) => {
                 const left = i < lives;
                 const x = livesX + (i - (maxLives - 1) / 2) * REALM_CASTLE.livesGap * s;
+                const y = cy + (realm ? REALM_CASTLE.livesY : 0.5) * s;
                 return (
-                  <g
-                    key={`${i}-${left ? 'on' : 'off'}`}
-                    className={`life ${left ? 'life-on' : `life-off${settled ? ' breaking' : ''}`}`}
-                    style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
-                  >
-                    {use(
-                      'shield',
-                      x,
-                      cy + (realm ? REALM_CASTLE.livesY : 0.5) * s,
-                      REALM_CASTLE.life * s,
-                    )}
+                  <g key={`${i}-${left ? 'on' : 'off'}`}>
+                    <g
+                      className={`life ${left ? 'life-on' : `life-off${!realm && settled ? ' breaking' : ''}`}`}
+                    >
+                      {use('shield', x, y, REALM_CASTLE.life * s)}
+                    </g>
+                    {/* Mit Ausbau zerbricht das eben verlorene Schild in zwei Hälften */}
+                    {realm && motion?.hit === true && i === lives ? (
+                      <ShieldShatter prefix={prefix} x={x} y={y} size={REALM_CASTLE.life * s} />
+                    ) : null}
                   </g>
                 );
               })}
@@ -849,7 +872,6 @@ function RegionArt({
             castle={capital}
             size={s}
             layer={realm}
-            armiesSeen={armiesSeen}
           />
         ) : owner !== null ? (
           <g className="owner-badge">
