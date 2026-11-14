@@ -266,11 +266,10 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     const from = WENDELMARK.regions[0]!.name;
     const to = WENDELMARK.regions[1]!.name;
     const html = render({
-      realm: layer({
-        armies: { 0: 3 },
-        moves: [{ from: 0, to: 1, count: 2, seat: 0 }],
+      realm: {
+        ...layer({ armies: { 0: 3 }, moves: [{ from: 0, to: 1, count: 2, seat: 0 }] }),
         planning: true,
-      }),
+      },
     });
     // Reihenfolge im Bild: Pfeil, dann beide Namen noch einmal, dann die Zahl
     const arrow = html.indexOf('class="move-line"');
