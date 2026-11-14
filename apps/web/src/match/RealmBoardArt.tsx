@@ -751,13 +751,10 @@ export function RealmPlanArt({
           ) : null;
         })}
         {refused ? (
-          <Fresh
-            key={refused.id}
-            className="plan-refused"
-            motion="shaken"
-            live={settled}
-            path={refused.d}
-          />
+          // Der Rand ruckt als Gruppe (bewegte Teile im SVG sind `<g>`, WebKit)
+          <Fresh key={refused.id} className="plan-refused" motion="shaken" live={settled}>
+            <path d={refused.d} />
+          </Fresh>
         ) : null}
         {selected ? (
           // Der goldene Rand setzt sich mit dem Tipp; die dunkle Fassung ist eine eigene Form

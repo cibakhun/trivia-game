@@ -1780,6 +1780,7 @@
 /* Kein Ziel: gepunkteter Tintenrand, solange das Blatt sagt, warum; mit dem Tipp ruckt er einmal
    (0,3 s, ±4 Einheiten), das klassische Nein */
 .map-art .plan-refused {
+  transform-box: fill-box;
   fill: none;
   stroke: var(--map-ink);
   stroke-opacity: 0.78;
