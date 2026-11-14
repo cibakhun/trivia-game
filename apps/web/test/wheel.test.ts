@@ -1,4 +1,6 @@
 import { realmWheelSchema, type QuestionCategory, type RealmWheelDto } from '@rdw/protocol';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
@@ -9,7 +11,22 @@ import {
   wheelOvershoot,
   wheelParts,
   wheelTurn,
+  wheelWhirl,
+  whirlStops,
+  type WheelPart,
 } from '../src/match/Wheel.tsx';
+import {
+  CLACK_MIN_GAP_MS,
+  cubicBezier,
+  WHEEL_EASE,
+  WHEEL_MAIN_SHARE,
+  wheelAngleAt,
+  wheelBlur,
+  wheelClacks,
+  wheelPasses,
+  wheelSpeedAt,
+  type WheelSweep,
+} from '../src/match/wheel-motion.ts';
 import { realmViewOf } from './match-fixtures.ts';
 
 /**
@@ -145,11 +162,21 @@ describe('Rad als Zeichnung', () => {
   });
 
   it('steht ohne Drehzeit und dreht mit ihr', () => {
-    expect(draw()).toContain('class="wheel"');
+    const still = draw();
+    expect(still).toContain('class="wheel"');
+    // Ohne Drehung gibt es weder Wirbel noch Klacker
+    expect(still).not.toContain('wheel-whirl');
+    expect(still).not.toContain('wheel-clack');
     const spinning = draw({ spinMs: 1950, elapsedMs: 400 });
     expect(spinning).toContain('class="wheel spinning"');
     expect(spinning).toContain('--spin:1950ms');
     expect(spinning).toContain('--spun:-400ms');
+    expect(spinning).toContain('class="wheel-whirl"');
+    expect(count(spinning, 'class="wheel-clack"')).toBeGreaterThanOrEqual(2);
+  });
+
+  it('setzt an jede Feldgrenze einen Stift', () => {
+    expect(count(draw(), 'class="wheel-peg"')).toBe(11);
   });
 
   it('dreht nicht ohne gezogene Kategorie und zeigt dann keinen Treffer', () => {
@@ -179,5 +206,167 @@ describe('Rad als Zeichnung', () => {
 
   it('lässt erschöpfte Kategorien aus der Zeichnung', () => {
     expect(count(draw({ exhausted: ['LITERATURE', 'SPORTS'] }), 'class="wheel-seg"')).toBe(9);
+  });
+});
+
+/**
+ * Bewegung des Rads, nachgerechnet aus der Kurve, mit der CSS es dreht (ADR-070): Stifte an den
+ * Feldgrenzen laufen unter dem Zeiger durch, in der langsamen Phase klackert er an jedem.
+ */
+describe('Kurve der Drehung', () => {
+  const ease = cubicBezier(...WHEEL_EASE);
+
+  it('beginnt bei 0, endet bei 1 und steigt dazwischen', () => {
+    expect(ease.y(ease.forX(0))).toBe(0);
+    expect(ease.y(ease.forX(1))).toBe(1);
+    let last = 0;
+    for (let t = 0.05; t <= 1; t += 0.05) {
+      const y = ease.y(ease.forX(t));
+      expect(y).toBeGreaterThan(last);
+      last = y;
+    }
+  });
+
+  it('findet zu einem Fortschritt die Stelle der Kurve und zurück', () => {
+    for (const p of [0.1, 0.5, 0.9, 0.99]) {
+      expect(ease.y(ease.forY(p))).toBeCloseTo(p, 9);
+    }
+    for (const t of [0.2, 0.6]) expect(ease.x(ease.forX(t))).toBeCloseTo(t, 9);
+  });
+
+  it('läuft schnell an und rollt ganz aus', () => {
+    expect(ease.slope(0)).toBeCloseTo(0.58 / 0.13, 6);
+    expect(ease.slope(1)).toBe(0);
+  });
+
+  it('ist dieselbe Kurve wie in realm.css', () => {
+    // Wer die Kurve oder das Schlüsselbild des Überschwingens dort ändert, muss es hier tun
+    const css = readFileSync(
+      fileURLToPath(new URL('../src/match/realm.css', import.meta.url)),
+      'utf8',
+    );
+    const spin = /@keyframes wheel-spin \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
+    expect(spin).toContain(`cubic-bezier(${WHEEL_EASE.join(', ')})`);
+    expect(spin).toContain(`${WHEEL_MAIN_SHARE * 100}% {`);
+  });
+});
+
+/** Rad aus den Regeln mit der gezogenen Kategorie, wie `Wheel` es dreht (1,95 s). */
+function sweepOf(parts: readonly WheelPart[], landed: QuestionCategory, spinMs = 1950): WheelSweep {
+  const turn = wheelTurn(parts, landed);
+  const hit = parts.find((p) => p.category === landed);
+  return {
+    edges: parts.length > 1 ? parts.map((p) => p.from) : [],
+    from: turn - 1080,
+    to: turn + wheelOvershoot(hit?.span ?? 0),
+    spinMs,
+  };
+}
+
+const mod360 = (angle: number) => ((angle % 360) + 360) % 360;
+
+describe('Stifte unter dem Zeiger', () => {
+  const parts = wheelParts(previewWheel());
+  const categories = parts.map((p) => p.category);
+
+  it('findet jeden Durchgang einer Grenze, wenn sie genau oben liegt', () => {
+    for (const landed of categories) {
+      const sweep = sweepOf(parts, landed);
+      const passes = wheelPasses(sweep);
+      // Drei ganze Umdrehungen und das Stück bis ins Ziel: jede Grenze drei- oder viermal
+      expect(passes.length).toBeGreaterThanOrEqual(parts.length * 3);
+      expect(passes.length).toBeLessThanOrEqual(parts.length * 4);
+      let last = 0;
+      for (const pass of passes) {
+        expect(pass.atMs).toBeGreaterThanOrEqual(last);
+        last = pass.atMs;
+        // Oben liegt der Winkel -Drehung: Dort steht in diesem Augenblick die Grenze
+        const top = mod360(-wheelAngleAt(sweep, pass.atMs));
+        const off = Math.min(mod360(top - pass.edge), mod360(pass.edge - top));
+        expect(off).toBeLessThan(0.01);
+      }
+      expect(last).toBeLessThan(sweep.spinMs * WHEEL_MAIN_SHARE);
+    }
+  });
+
+  it('klackert nur in der langsamen Phase und nie dichter als 65 ms', () => {
+    for (const landed of categories) {
+      const sweep = sweepOf(parts, landed);
+      const clacks = wheelClacks(sweep);
+      expect(clacks.length).toBeGreaterThanOrEqual(2);
+      expect(clacks.length).toBeLessThanOrEqual(10);
+      let previous = 0;
+      for (const clack of clacks) {
+        expect(clack.atMs - previous).toBeGreaterThanOrEqual(CLACK_MIN_GAP_MS);
+        expect(wheelSpeedAt(sweep, clack.atMs)).toBeLessThanOrEqual(0.9 + 1e-6);
+        previous = clack.atMs;
+      }
+    }
+  });
+
+  it('stößt den Zeiger zuletzt an der Grenze an, über die das Rad ins gezogene Feld läuft', () => {
+    for (const landed of categories) {
+      const sweep = sweepOf(parts, landed);
+      const hit = parts.find((p) => p.category === landed);
+      const entry = wheelPasses(sweep).at(-1);
+      // Das Rad dreht im Uhrzeigersinn: Unter dem Zeiger kommt zuletzt der Rand am Ende des Felds
+      expect(mod360(entry?.edge ?? -1)).toBeCloseTo(mod360(hit?.to ?? 0), 6);
+      expect(wheelClacks(sweep).at(-1)?.atMs).toBe(entry?.atMs);
+    }
+  });
+
+  it('schlägt kräftig aus, solange das Rad Fahrt hat, und zögert am Ende', () => {
+    const clacks = wheelClacks(sweepOf(parts, 'HISTORY'));
+    for (let i = 1; i < clacks.length; i += 1) {
+      expect(clacks[i]!.kick).toBeLessThanOrEqual(clacks[i - 1]!.kick);
+      expect(clacks[i]!.pushMs).toBeGreaterThanOrEqual(clacks[i - 1]!.pushMs);
+    }
+    for (const clack of clacks) {
+      expect(clack.kick).toBeGreaterThanOrEqual(8);
+      expect(clack.kick).toBeLessThanOrEqual(15);
+    }
+  });
+
+  it('hat ohne Grenze keine Stifte und klackert nicht', () => {
+    const one = wheelParts(SMALL, ['SPORTS', 'TECHNOLOGY']);
+    expect(one).toHaveLength(1);
+    expect(wheelClacks(sweepOf(one, 'HISTORY'))).toEqual([]);
+  });
+
+  it('dreht nicht ohne Drehzeit', () => {
+    expect(wheelPasses({ ...sweepOf(parts, 'HISTORY'), spinMs: 0 })).toEqual([]);
+  });
+});
+
+describe('Wirbel der schnellen Scheibe', () => {
+  const parts = wheelParts(previewWheel());
+
+  it('steht ganz, solange das Rad schneller als ein Wirbel dreht, und ist weg, wenn es langsam ist', () => {
+    const sweep = sweepOf(parts, 'HISTORY');
+    const blur = wheelBlur(sweep);
+    expect(blur.fullMs).toBeGreaterThan(0);
+    expect(blur.goneMs).toBeGreaterThan(blur.fullMs);
+    expect(blur.goneMs).toBeLessThan(sweep.spinMs * WHEEL_MAIN_SHARE);
+    expect(wheelSpeedAt(sweep, blur.fullMs)).toBeCloseTo(1.2, 2);
+    expect(wheelSpeedAt(sweep, blur.goneMs)).toBeCloseTo(0.42, 2);
+    // Der erste Klacker kommt erst, wenn man die Felder wieder sieht
+    expect(wheelClacks(sweep)[0]!.atMs).toBeGreaterThan(blur.fullMs);
+  });
+
+  it('verwischt die Farben der Felder zu einem Verlauf rund um die Mitte', () => {
+    const whirl = wheelWhirl(parts, 2, 1);
+    expect(whirl.startsWith('conic-gradient(')).toBe(true);
+    expect(whirl).toContain('var(--seat-2)');
+    expect(whirl).toContain('var(--seat-1)');
+    // Der Verlauf läuft einmal herum und schließt bei 0 und 360 Grad mit derselben Farbe
+    const stops = whirlStops(parts, 2, 1);
+    expect(stops[0]?.angle).toBe(0);
+    expect(stops.at(-1)?.angle).toBe(360);
+    expect(stops[0]?.colour).toBe(stops.at(-1)?.colour);
+    for (let i = 1; i < stops.length; i += 1) {
+      expect(stops[i]!.angle).toBeGreaterThan(stops[i - 1]!.angle);
+    }
+    // Freies Feld: kein Verteidiger im Wirbel
+    expect(wheelWhirl(parts, 2, null)).not.toContain('var(--seat-1)');
   });
 });

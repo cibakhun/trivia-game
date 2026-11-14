@@ -91,18 +91,34 @@ html.match-playing body {
   pointer-events: none;
 }
 
-/* Liegt ein Blatt auf der Karte, tritt sie leicht zurück, bleibt aber sichtbar */
+/*
+ * Liegt ein Blatt auf der Karte, tritt sie leicht zurück, bleibt aber sichtbar. Der Schleier steht
+ * immer im Dokument und blendet weich: Geht das Blatt, hebt er sich mit ihm. Vor einer Frage ist
+ * er ohne Übergang da (`cut`), weil dann die Antwortzeit läuft. Im Duell liegt er nicht: Dort
+ * dunkelt die Karte selbst alles außer den zwei Feldern ab, vom Aufmarsch bis zum Ausgang
+ * (`sheetVeil`).
+ */
 .stage-veil {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: color-mix(in srgb, var(--map-veil) 26%, transparent);
+  opacity: 0;
+  transition: opacity 0.28s ease-out;
   pointer-events: none;
 }
 
+.stage-veil.on {
+  opacity: 1;
+}
+
+.stage-veil.cut {
+  transition: none;
+}
+
 /* Unter dem Schleier eines Blatts hebt die Karte kein Duell mehr hervor: Sonst läge das Land
-   doppelt im Dunkeln */
-.stage:has(> .stage-veil) .map-art .duel-veil {
+   doppelt im Dunkeln (Auflösung nach dem Laden mitten hinein) */
+.stage:has(> .stage-veil.on) .map-art .duel-veil {
   opacity: 0;
   animation: none;
 }
@@ -137,6 +153,20 @@ html.match-playing body {
   clip-path: polygon(0 0, 100% 0, calc(100% - (8 * var(--u))) 50%, 100% 100%, 0 100%);
 }
 
+/* Wechselt der Abschnitt, während die Bühne zusieht, schreibt sich der Text neu ein; das Band
+   bleibt stehen (StepRibbon) */
+.round-ribbon .arriving {
+  display: inline-block;
+  animation: rail-write 0.3s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes rail-write {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-5 * var(--u)));
+  }
+}
+
 .plaques ul {
   display: grid;
   gap: calc(5 * var(--u));
@@ -159,6 +189,14 @@ html.match-playing body {
   border-left: calc(5 * var(--u)) solid var(--seat);
   border-radius: calc(8 * var(--u));
   box-shadow: 0 calc(2 * var(--u)) calc(7 * var(--u)) rgb(40 25 8 / 0.3);
+  /* Der goldene Rand dessen, der wählt, blendet ein und aus; eine gefallene Tafel verblasst,
+     während auf der Karte ihre Burg stürzt (der Spielstand folgt dem Schlag, stage-live.ts) */
+  outline: calc(2.5 * var(--u)) solid transparent;
+  outline-offset: calc(1 * var(--u));
+  transition:
+    outline-color 0.3s ease,
+    opacity 0.7s ease,
+    filter 0.7s ease;
 }
 
 .plaque.seat-1 {
@@ -170,8 +208,7 @@ html.match-playing body {
 }
 
 .plaque.turn {
-  outline: calc(2.5 * var(--u)) solid var(--map-gold);
-  outline-offset: calc(1 * var(--u));
+  outline-color: var(--map-gold);
 }
 
 .plaque.eliminated {
@@ -265,6 +302,24 @@ html.match-playing body {
   font-weight: 700;
 }
 
+/* „am Zug“, „fertig“, „rüstet“ und „ausgeschieden“ setzen sich, wenn sie erscheinen */
+.plaque-state.arriving,
+.plaque-out.arriving {
+  animation: rail-set 0.28s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+}
+
+.plaque-out.arriving {
+  transform-origin: left center;
+  animation-duration: 0.36s;
+}
+
+@keyframes rail-set {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
 .stage .seat-lives {
   gap: calc(2 * var(--u));
   vertical-align: 0;
@@ -273,6 +328,77 @@ html.match-playing body {
 .stage .seat-lives span {
   width: calc(10 * var(--u));
   height: calc(12 * var(--u));
+}
+
+/* Ein Leben geht verloren (LifeShields): Das Schild springt kurz auf, blitzt und läuft in seiner
+   Farbe nach unten leer; zurück bleibt das blasse Schild. Die Farbe ist eine Fläche im Schild
+   (sein Umriss schneidet sie ab), ohne Animation unsichtbar */
+.plaque .seat-lives .life-off.lost {
+  position: relative;
+  animation: life-lost 0.56s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+.plaque .seat-lives .life-off.lost::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--seat);
+  opacity: 0;
+  animation: life-drain 0.56s ease-in both;
+}
+
+@keyframes life-lost {
+  0% {
+    transform: none;
+  }
+  16% {
+    transform: scale(1.75);
+  }
+  36% {
+    transform: scale(1.2) rotate(-9deg);
+  }
+  58% {
+    transform: scale(1.08) rotate(5deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes life-drain {
+  0% {
+    opacity: 1;
+    transform: none;
+    background: var(--seat);
+  }
+  16% {
+    opacity: 1;
+    transform: none;
+    background: var(--map-glow);
+  }
+  36% {
+    opacity: 1;
+    transform: none;
+    background: var(--seat);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(102%);
+    background: var(--seat);
+  }
+}
+
+/* Das Reich scheidet aus (PlaqueLives): Seine letzten Leben laufen noch leer wie jedes verlorene,
+   dann verblasst die Reihe. Ohne Bewegung ist sie gleich fort */
+.plaque-lives.leaving {
+  opacity: 0;
+  animation: lives-out 0.3s ease-in 0.52s both;
+}
+
+@keyframes lives-out {
+  from {
+    opacity: 1;
+  }
 }
 
 /* Zugfolge: eine schmale Zeile, immer gleich hoch */
@@ -291,9 +417,14 @@ html.match-playing body {
 }
 
 .turn-order ol {
+  /* Breite eines Platzes und Abstand zum nächsten: Danach wandert die Marke */
+  --turn-w: calc(36 * var(--u));
+  --turn-gap: calc(3 * var(--u));
+  --turn-now: 0;
+  position: relative;
   display: flex;
   align-items: center;
-  gap: calc(3 * var(--u));
+  gap: var(--turn-gap);
   height: calc(26 * var(--u));
   padding: 0 calc(4 * var(--u));
   background: color-mix(in srgb, var(--surface) 82%, transparent);
@@ -301,8 +432,38 @@ html.match-playing body {
   border-radius: calc(13 * var(--u));
 }
 
+/* Die goldene Marke dessen, der dran ist: eine eigene Form unter den Wappen, die von Platz zu
+   Platz wandert (TurnOrder setzt `--turn-now`). Ist keiner dran, ist sie unsichtbar */
+.turn-order ol::before {
+  content: '';
+  position: absolute;
+  left: calc(4 * var(--u));
+  top: 50%;
+  box-sizing: border-box;
+  width: var(--turn-w);
+  height: calc(20 * var(--u));
+  margin-top: calc(-10 * var(--u));
+  background: var(--map-coin);
+  border: calc(1.5 * var(--u)) solid var(--map-gold);
+  border-radius: calc(10 * var(--u));
+  opacity: 0;
+  transform: translateX(calc(var(--turn-now) * (var(--turn-w) + var(--turn-gap))));
+  transition:
+    transform 0.42s cubic-bezier(0.3, 0.75, 0.25, 1),
+    opacity 0.25s ease;
+}
+
+.turn-order ol.marked::before {
+  opacity: 1;
+}
+
+.turn-order ol.together::before {
+  content: none;
+}
+
 .turn-step {
   position: relative;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   gap: calc(2 * var(--u));
@@ -310,6 +471,13 @@ html.match-playing body {
   padding: 0 calc(4 * var(--u)) 0 calc(3 * var(--u));
   border-radius: calc(10 * var(--u));
   border: calc(1.5 * var(--u)) solid transparent;
+  transition: opacity 0.3s ease;
+}
+
+/* In einer Reihenfolge sind alle Plätze gleich breit, damit die Marke genau auf jeden passt */
+.turn-order ol:not(.together) .turn-step {
+  flex: none;
+  width: var(--turn-w);
 }
 
 .turn-step svg {
@@ -318,11 +486,18 @@ html.match-playing body {
 }
 
 .turn-index {
-  min-width: calc(9 * var(--u));
+  flex: none;
+  width: calc(9 * var(--u));
   font-size: calc(11 * var(--u));
   font-weight: 800;
   text-align: center;
   color: var(--muted);
+  transition: color 0.3s ease;
+}
+
+/* Haken oder Strich dessen, der eben dran war, setzt sich */
+.turn-index.arriving {
+  animation: rail-set 0.3s cubic-bezier(0.2, 1.3, 0.4, 1) both;
 }
 
 .turn-step.turn-done {
@@ -338,7 +513,9 @@ html.match-playing body {
   color: var(--danger);
 }
 
-.turn-step.turn-now {
+/* Alle zugleich dran (Schätzfrage, Rüstzeit): Jeder trägt den Rand selbst; sonst liegt die Marke
+   darunter */
+.turn-order ol.together .turn-step.turn-now {
   background: var(--map-coin);
   border-color: var(--map-gold);
 }
@@ -422,6 +599,193 @@ html.match-playing body {
     0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--surface) 55%, transparent),
     0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
   overflow: hidden;
+}
+
+/*
+ * Farbiger Rand des Blatts als eigene Form darüber (`.blatt-ring`): Sie bleibt stehen, wenn das
+ * Blatt seine Seite wechselt, und blendet von Ton zu Ton (Gold: du bist dran; Rot: du wirst
+ * angegriffen; Farbe des Siegers im Ausgang). Welcher Ton gilt, liest sie vom Blatt daneben
+ * (`:has`); ohne `:has` trägt das Blatt den Rand wie bisher selbst. Während der eigenen Frage
+ * steht der Rand sofort.
+ */
+.blatt-ring {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border: 1px solid transparent;
+  border-radius: calc(10 * var(--u));
+  box-shadow: 0 0 0 calc(3 * var(--u)) transparent;
+  pointer-events: none;
+  transition:
+    border-color 0.32s ease,
+    box-shadow 0.32s ease;
+}
+
+/* Der Ausgang färbt den Rand erst, wenn der Schlag sitzt (wie der Inhalt des Blatts) */
+.stage[data-beat='outcome'] .blatt-ring {
+  transition-delay: 0.3s;
+}
+
+.stage[data-state='question'] .blatt-ring {
+  transition: none;
+}
+
+@supports selector(:has(*)) {
+  .stage-right:has(> .blatt-ring) > .blatt:is(.turn, .attacked, .outcome) {
+    border-color: var(--border-strong);
+    box-shadow:
+      0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--surface) 55%, transparent),
+      0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
+  }
+
+  .stage-right:has(> .blatt.turn) > .blatt-ring {
+    border-color: var(--map-gold);
+    box-shadow: 0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--map-gold) 62%, transparent);
+  }
+
+  .stage-right:has(> .blatt.attacked) > .blatt-ring {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--danger) 46%, transparent);
+  }
+
+  .stage-right:has(> .blatt.outcome) > .blatt-ring {
+    --tone: var(--seat-0);
+    border-color: var(--tone);
+    box-shadow: 0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--tone) 52%, transparent);
+  }
+
+  .stage-right:has(> .blatt.outcome.seat-1) > .blatt-ring {
+    --tone: var(--seat-1);
+  }
+
+  .stage-right:has(> .blatt.outcome.seat-2) > .blatt-ring {
+    --tone: var(--seat-2);
+  }
+
+  .stage-right:has(> .blatt.outcome.outcome-none) > .blatt-ring {
+    --tone: var(--border-strong);
+  }
+
+  /* Ohne Blatt (Abrechnung, Abbruch) gibt es keinen Rand: Er geht im selben Bild wie das Blatt,
+     statt leer neben der Abrechnung nachzublenden */
+  .stage-right:not(:has(> .blatt)) > .blatt-ring {
+    transition: none;
+  }
+}
+
+/*
+ * Das Blatt schlägt um (stage-live.ts, `data-turn` an der Leiste): Seine Abschnitte schreiben sich
+ * von oben nach unten kurz nacheinander ein, das Papier bleibt stehen. Die Regeln haben kein
+ * Gewicht (`:where`): Was im Blatt eine eigene Bewegung hat (Ergebnis des Glücksrads, Ausgang),
+ * behält sie. `data-turn` wechselt zwischen `a` und `b`, damit jede neue Seite neu anläuft; die
+ * Leiste selbst trägt eine leere Animation, deren Ende das Umschlagen abschließt (was danach auf
+ * derselben Seite erscheint, läuft nicht mit ein). Nie während der eigenen Frage.
+ */
+.stage-right[data-turn] {
+  --blatt-at: 0ms;
+  animation: blatt-settle-a 1ms linear calc(var(--blatt-at) + 460ms) both;
+}
+
+.stage-right[data-turn='b'] {
+  animation-name: blatt-settle-b;
+}
+
+/* Der Ausgang eines Duells steht im Blatt, wenn der Schlag sitzt, nicht schon im Anlauf */
+.stage[data-beat='outcome'] > .stage-right[data-turn] {
+  --blatt-at: 300ms;
+}
+
+:where(.stage:not([data-state='question']) > .stage-right[data-turn='a'] > .blatt > *) {
+  animation: blatt-in-a 230ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--blatt-at, 0ms) both;
+}
+
+:where(.stage:not([data-state='question']) > .stage-right[data-turn='b'] > .blatt > *) {
+  animation: blatt-in-b 230ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--blatt-at, 0ms) both;
+}
+
+:where(.stage-right[data-turn] > .blatt > :nth-child(2)) {
+  animation-delay: calc(var(--blatt-at, 0ms) + 40ms);
+}
+
+:where(.stage-right[data-turn] > .blatt > :nth-child(3)) {
+  animation-delay: calc(var(--blatt-at, 0ms) + 80ms);
+}
+
+:where(.stage-right[data-turn] > .blatt > :nth-child(4)) {
+  animation-delay: calc(var(--blatt-at, 0ms) + 120ms);
+}
+
+:where(.stage-right[data-turn] > .blatt > :nth-child(5)) {
+  animation-delay: calc(var(--blatt-at, 0ms) + 160ms);
+}
+
+:where(.stage-right[data-turn] > .blatt > :nth-child(n + 6)) {
+  animation-delay: calc(var(--blatt-at, 0ms) + 200ms);
+}
+
+/* Der Kasten des Duells stand schon auf der Seite davor (Aufmarsch, Glücksrad, Auflösung): Er
+   bleibt stehen, nur der Rest der Seite schreibt sich neu ein (`useKept` in stage-live.ts) */
+.stage-right[data-turn] > .blatt > .duel-box.kept {
+  animation: none;
+}
+
+/* Ohne Ausbau hat die Karte des Ausgangs ihre eigene Bewegung: Auch sie wartet auf den Schlag */
+.stage-right[data-turn] > .blatt > .outcome-card {
+  animation-delay: var(--blatt-at);
+}
+
+@keyframes blatt-in-a {
+  from {
+    opacity: 0;
+    transform: translateY(calc(5 * var(--u)));
+  }
+}
+
+@keyframes blatt-in-b {
+  from {
+    opacity: 0;
+    transform: translateY(calc(5 * var(--u)));
+  }
+}
+
+/* Die Sekunden der Restzeit sitzen am Blatt selbst (oben rechts neben der Überschrift). Verschöbe
+   sich ihre Zeile, säßen sie so lange an ihr und sprängen danach zurück: Die Restzeit blendet
+   deshalb nur ein */
+.stage-right[data-turn='a'] > .blatt > .countdown {
+  animation-name: blatt-fade-a;
+}
+
+.stage-right[data-turn='b'] > .blatt > .countdown {
+  animation-name: blatt-fade-b;
+}
+
+@keyframes blatt-fade-a {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes blatt-fade-b {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes blatt-settle-a {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes blatt-settle-b {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Die nächste Wahl auf derselben Seite (Bots setzen nacheinander): Nur ihre Zeile schreibt sich ein */
+.blatt .announce-line.arriving {
+  animation: blatt-in-a 230ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 
 /* Eigener Zug: goldener Rand, ohne Bewegung (auch während einer Frage) */
@@ -788,12 +1152,15 @@ html.match-playing body {
   color: var(--success);
 }
 
-/* ---------- Flug über die Bühne (ADR-067) ---------- */
+/* ---------- Flug über die Bühne (ADR-067, ADR-070) ---------- */
 
 /* Zeichen fliegen einmal von einem Element der Bühne zu einem anderen: Einkommen in den Vorrat,
-   die Kategorie vom Rad ins Blatt. Die Ebene liegt über allem, nimmt keine Tipps an und ist ohne
-   Animation unsichtbar: Das Endbild steht schon darunter. */
+   die Kategorie vom Rad ins Blatt. Jedes springt mit einem kleinen Ring ab und zieht goldene
+   Glanzpunkte nach, die denselben Bogen etwas später fliegen. Die Ebene liegt über allem, nimmt
+   keine Tipps an und ist ohne Animation unsichtbar: Das Endbild steht schon darunter. */
 .flight-layer {
+  --trail-gap: 38ms;
+  --ring-size: calc(30 * var(--u));
   position: absolute;
   inset: 0;
   z-index: 5;
@@ -816,8 +1183,9 @@ html.match-playing body {
 .flight-layer.tone-token .flight-arc {
   padding: calc(2.5 * var(--u));
   background: var(--surface);
-  border: calc(1.2 * var(--u)) solid var(--border-strong);
+  border: calc(1.2 * var(--u)) solid color-mix(in srgb, var(--map-gold) 65%, var(--border-strong));
   border-radius: 50%;
+  box-shadow: 0 calc(1.5 * var(--u)) calc(3 * var(--u)) rgb(40 25 8 / 0.3);
 }
 /* Vom Rad ins Blatt: eine Scheibe wie die Felder des Rads, sie landet in voller Größe */
 .flight-layer.tone-coin {
@@ -825,16 +1193,75 @@ html.match-playing body {
   --flight-peak: 1.3;
   --flight-to: 1;
   --flight-lift: calc(-20 * var(--u));
+  --trail-gap: 34ms;
+  --ring-size: calc(46 * var(--u));
 }
 .flight-layer.tone-coin .flight-arc {
   padding: calc(3 * var(--u));
   background: var(--map-coin);
   border: calc(2 * var(--u)) solid var(--map-gold);
   border-radius: 50%;
+  box-shadow:
+    0 0 calc(10 * var(--u)) color-mix(in srgb, var(--map-glow) 75%, transparent),
+    0 calc(3 * var(--u)) calc(6 * var(--u)) rgb(30 18 6 / 0.35);
 }
 .flight svg {
   display: block;
 }
+/* Ins Lager fallen die Zeichen hinein: zum Ende hin schneller und kleiner. Sonst kreisten bei vielen
+   Feldern ein Dutzend Zeichen zugleich über der Tafel, und die Zahl dort wäre verdeckt. */
+.flight-layer.tone-token {
+  --flight-to: 0.5;
+}
+.flight-layer.tone-token .flight {
+  animation-timing-function: cubic-bezier(0.45, 0, 0.7, 0.9);
+}
+
+/* Glanzpunkte: derselbe Flug, je Punkt etwas später, kleiner und blasser */
+.flight.trail,
+.flight.trail .flight-arc {
+  animation-delay: calc(var(--flight-at, 0ms) + var(--trail, 1) * var(--trail-gap));
+}
+.flight-layer .flight.trail .flight-arc {
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.flight.trail i {
+  display: block;
+  width: calc(4.5 * var(--u));
+  height: calc(4.5 * var(--u));
+  border-radius: 50%;
+  background: var(--map-glow);
+  box-shadow: 0 0 calc(3 * var(--u)) calc(1 * var(--u)) var(--map-gold);
+  opacity: calc(0.85 - var(--trail, 1) * 0.22);
+  scale: calc(1 - var(--trail, 1) * 0.16);
+}
+.flight-layer.tone-coin .flight.trail i {
+  width: calc(7 * var(--u));
+  height: calc(7 * var(--u));
+}
+
+/* Ring beim Absprung und, für die Scheibe vom Rad, bei der Ankunft im Blatt */
+.flight-ring {
+  position: absolute;
+  width: var(--ring-size);
+  height: var(--ring-size);
+  translate: -50% -50%;
+  border: calc(1.8 * var(--u)) solid var(--map-gold);
+  border-radius: 50%;
+  box-shadow:
+    0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-glow) 80%, transparent),
+    inset 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-glow) 70%, transparent);
+  opacity: 0;
+  animation: flight-ring 560ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--ring-at, 0ms) both;
+}
+.flight-ring.land {
+  --ring-size: calc(62 * var(--u));
+  border-width: calc(2 * var(--u));
+}
+
 @keyframes flight-go {
   0% {
     transform: none;
@@ -862,6 +1289,25 @@ html.match-playing body {
     transform: scale(var(--flight-to, 0.8));
   }
 }
+@keyframes flight-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  14% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight-ring {
+    animation: none;
+  }
+}
 
 /* ---------- Band über der Karte ---------- */
 
@@ -871,76 +1317,244 @@ html.match-playing body {
   left: calc(var(--safe-l) + var(--rail-l));
   right: calc(var(--safe-r) + var(--rail-r));
   top: calc(10 * var(--u));
+  bottom: max(var(--safe-b), calc(10 * var(--u)));
   display: grid;
   justify-items: center;
+  align-items: start;
   pointer-events: none;
 }
 
-/* Steht ein Duell in der oberen Hälfte der Karte, weicht das Band an den unteren Rand */
-.stage[data-state='announce']:has(.map-art[data-duel-high]) .stage-banner,
-.stage[data-beat='outcome']:has(.map-art[data-duel-high]) .stage-banner {
-  top: auto;
-  bottom: max(var(--safe-b), calc(10 * var(--u)));
+/* Spielt ein Duell in der oberen Hälfte der Karte, steht das Band am unteren Rand. Wo es steht,
+   legt es fest, wenn es erscheint (`MomentBanner`), und bleibt dort */
+.turn-banner.low {
+  align-self: end;
 }
 
+/*
+ * Das Band ist eine kleine Schriftrolle (docs/ART_DIRECTION.md §5): Sie erscheint geschlossen, entrollt sich von der
+ * Mitte her zwischen zwei Stäben, steht, rollt sich wieder ein und verschwindet. Bewegt werden nur
+ * `transform`, `opacity` und `clip-path`: Das Tuch öffnet sich über `clip-path`, die Stäbe fahren
+ * als Ebenen in der Breite des Tuchs mit seinen Kanten (50 % ihrer Breite ist die halbe Breite des
+ * Tuchs, gleich wie lang der Text ist). Zeiten: `--band-lead` Wartezeit, `--band-ms` Dauer
+ * (`momentTiming`). Je Teil zwei Animationen: Die spätere gilt erst ab ihrem Beginn (nur
+ * `forwards`), davor hält die frühere ihr Ende.
+ */
 .turn-banner {
+  --band-lead: 0ms;
+  --band-ms: 1500ms;
+  --band-open-at: 70ms;
+  --band-open: 360ms;
+  --band-close: 240ms;
+  /* Halbe Breite eines Stabs */
+  --rod: calc(4.5 * var(--u));
   display: grid;
   justify-items: center;
   gap: calc(4 * var(--u));
   max-width: 96%;
-  animation: stage-banner 1.5s ease-in-out both;
+  animation:
+    band-in 110ms ease-out var(--band-lead) both,
+    band-out 120ms ease-in calc(var(--band-lead) + var(--band-ms) - 120ms) forwards;
 }
 
 .moment-ribbon {
-  display: flex;
-  align-items: center;
-  gap: calc(8 * var(--u));
-  padding: calc(4 * var(--u)) calc(26 * var(--u)) calc(5 * var(--u));
+  --band-top: var(--primary-top);
+  --band-bottom: var(--primary-bottom);
+  --band-text: var(--primary-text);
+  --band-line: color-mix(in srgb, var(--primary-edge) 75%, transparent);
+  --cap-top: color-mix(in srgb, var(--map-ink) 70%, var(--primary-bottom));
+  --cap-bottom: var(--map-ink);
+  position: relative;
+  isolation: isolate;
+  display: grid;
   font-family: var(--font-display);
   font-size: calc(19 * var(--u));
   font-weight: 800;
   line-height: 1.15;
   white-space: nowrap;
-  color: var(--primary-text);
-  background: linear-gradient(var(--primary-top), var(--primary-bottom));
-  filter: drop-shadow(0 calc(3 * var(--u)) calc(5 * var(--u)) rgb(30 18 6 / 0.4));
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    calc(100% - (11 * var(--u))) 50%,
-    100% 100%,
-    0 100%,
-    calc(11 * var(--u)) 50%
-  );
+  color: var(--band-text);
 }
 
-.moment-ribbon svg {
+/* Schatten unter dem Tuch: eine eigene Form, die mit dem Tuch in die Breite wächst */
+.ribbon-shade {
+  position: absolute;
+  z-index: 0;
+  inset: calc(4 * var(--u)) calc(2 * var(--u)) 0;
+  border-radius: calc(2 * var(--u));
+  box-shadow: 0 calc(3 * var(--u)) calc(7 * var(--u)) rgb(30 18 6 / 0.5);
+  animation:
+    shade-open var(--band-open) cubic-bezier(0.22, 0.8, 0.24, 1)
+      calc(var(--band-lead) + var(--band-open-at)) both,
+    shade-close var(--band-close) cubic-bezier(0.5, 0, 0.75, 0.4)
+      calc(var(--band-lead) + var(--band-ms) - 120ms - var(--band-close)) forwards;
+}
+
+.ribbon-cloth {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(8 * var(--u));
+  padding: calc(5 * var(--u)) calc(24 * var(--u)) calc(6 * var(--u));
+  overflow: hidden;
+  /* Von oben: Schatten zu den Stäben hin, zwei feine Linien, Korn des Tuchs, Farbe */
+  background:
+    linear-gradient(
+      90deg,
+      rgb(20 12 4 / 0.34),
+      transparent calc(11 * var(--u)),
+      transparent calc(100% - (11 * var(--u))),
+      rgb(20 12 4 / 0.34)
+    ),
+    linear-gradient(var(--band-line), var(--band-line)) 0 calc(2.5 * var(--u)) / 100%
+      max(1px, calc(1 * var(--u))) no-repeat,
+    linear-gradient(var(--band-line), var(--band-line)) 0 calc(100% - (2.5 * var(--u))) / 100%
+      max(1px, calc(1 * var(--u))) no-repeat,
+    var(--paper-grain),
+    linear-gradient(var(--band-top), var(--band-bottom));
+  animation:
+    ribbon-open var(--band-open) cubic-bezier(0.22, 0.8, 0.24, 1)
+      calc(var(--band-lead) + var(--band-open-at)) both,
+    ribbon-close var(--band-close) cubic-bezier(0.5, 0, 0.75, 0.4)
+      calc(var(--band-lead) + var(--band-ms) - 120ms - var(--band-close)) forwards;
+}
+
+/* Ein Lichtstreif zieht einmal über das Tuch, sobald es offen ist */
+.ribbon-cloth::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 32%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in srgb, var(--map-glow) 55%, transparent) 50%,
+    transparent
+  );
+  opacity: 0;
+  pointer-events: none;
+  animation: ribbon-sheen 640ms cubic-bezier(0.4, 0, 0.3, 1)
+    calc(var(--band-lead) + var(--band-open-at) + var(--band-open) - 80ms) both;
+}
+
+.ribbon-cloth svg {
+  flex: none;
   width: calc(21 * var(--u));
   height: auto;
 }
 
-/* Phase und Runde: dunkles Tintenband mit goldener Schrift */
-.moment-ink .moment-ribbon {
-  color: var(--map-coin);
-  background: var(--map-ink);
+/* Schrift und Wappen liegen über dem Lichtstreif */
+.ribbon-cloth > svg,
+.moment-title {
+  position: relative;
+  z-index: 1;
 }
 
-/* Ein Reich fällt: Band in der Farbe des Siegers, mit dessen Wappen */
+/* Die Stäbe: je eine Ebene so breit wie das Tuch, der Stab sitzt auf ihrer äußeren Kante */
+.ribbon-rod {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+}
+
+.ribbon-rod i {
+  --rod-dark: color-mix(in srgb, var(--band-bottom) 58%, #000);
+  --rod-light: color-mix(in srgb, var(--band-top) 62%, #fff);
+  position: absolute;
+  top: calc(-3 * var(--u));
+  bottom: calc(-3 * var(--u));
+  width: calc(2 * var(--rod));
+  border-radius: var(--rod);
+  background: linear-gradient(
+    90deg,
+    var(--rod-dark),
+    var(--band-bottom) 26%,
+    var(--rod-light) 44%,
+    var(--band-bottom) 66%,
+    var(--rod-dark)
+  );
+  box-shadow: 0 calc(2 * var(--u)) calc(4 * var(--u)) rgb(30 18 6 / 0.4);
+  animation:
+    rod-thin var(--band-open) cubic-bezier(0.22, 0.8, 0.24, 1)
+      calc(var(--band-lead) + var(--band-open-at)) both,
+    rod-thick var(--band-close) cubic-bezier(0.5, 0, 0.75, 0.4)
+      calc(var(--band-lead) + var(--band-ms) - 120ms - var(--band-close)) forwards;
+}
+
+/* Knäufe oben und unten */
+.ribbon-rod i::before,
+.ribbon-rod i::after {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--u));
+  right: calc(-1 * var(--u));
+  height: calc(4 * var(--u));
+  border-radius: calc(2 * var(--u));
+  background: linear-gradient(var(--cap-top), var(--cap-bottom));
+}
+
+.ribbon-rod i::before {
+  top: calc(-2 * var(--u));
+}
+
+.ribbon-rod i::after {
+  bottom: calc(-2 * var(--u));
+}
+
+.rod-l {
+  animation:
+    rod-open-l var(--band-open) cubic-bezier(0.22, 0.8, 0.24, 1)
+      calc(var(--band-lead) + var(--band-open-at)) both,
+    rod-close-l var(--band-close) cubic-bezier(0.5, 0, 0.75, 0.4)
+      calc(var(--band-lead) + var(--band-ms) - 120ms - var(--band-close)) forwards;
+}
+
+.rod-l i {
+  left: calc(-1 * var(--rod));
+}
+
+.rod-r {
+  animation:
+    rod-open-r var(--band-open) cubic-bezier(0.22, 0.8, 0.24, 1)
+      calc(var(--band-lead) + var(--band-open-at)) both,
+    rod-close-r var(--band-close) cubic-bezier(0.5, 0, 0.75, 0.4)
+      calc(var(--band-lead) + var(--band-ms) - 120ms - var(--band-close)) forwards;
+}
+
+.rod-r i {
+  right: calc(-1 * var(--rod));
+}
+
+/* Phase und Runde: dunkles Tintenband mit goldener Schrift */
+.moment-ink .moment-ribbon {
+  --band-top: color-mix(in srgb, var(--map-ink) 84%, var(--map-coin));
+  --band-bottom: var(--map-ink);
+  --band-text: var(--map-coin);
+  --band-line: color-mix(in srgb, var(--map-gold) 80%, transparent);
+  --cap-top: var(--primary-top);
+  --cap-bottom: var(--primary-bottom);
+}
+
+/* Ein Reich fällt, ein Angriff fällt aus: Band in der Farbe des Reichs, mit dessen Wappen */
 .moment-seat .moment-ribbon {
-  color: #fff;
+  --band-seat: var(--seat-0);
+  --band-top: color-mix(in srgb, var(--band-seat) 84%, #fff);
+  --band-bottom: color-mix(in srgb, var(--band-seat) 88%, #000);
+  --band-text: #fff;
+  --band-line: rgb(255 255 255 / 0.6);
+  --cap-top: var(--primary-top);
+  --cap-bottom: var(--primary-bottom);
   text-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
 }
 
-.moment-ribbon[data-seat='0'] {
-  background: var(--seat-0);
+.moment-seat .moment-ribbon[data-seat='1'] {
+  --band-seat: var(--seat-1);
 }
 
-.moment-ribbon[data-seat='1'] {
-  background: var(--seat-1);
-}
-
-.moment-ribbon[data-seat='2'] {
-  background: var(--seat-2);
+.moment-seat .moment-ribbon[data-seat='2'] {
+  --band-seat: var(--seat-2);
 }
 
 .moment-ribbon .crest .crest-shield {
@@ -948,39 +1562,188 @@ html.match-playing body {
 }
 
 .moment-detail {
-  padding: calc(3 * var(--u)) calc(10 * var(--u));
+  padding: calc(2 * var(--u)) calc(11 * var(--u)) calc(3 * var(--u));
+  border: 1px solid color-mix(in srgb, var(--border-strong) 70%, transparent);
   border-radius: calc(8 * var(--u));
   font-size: calc(13 * var(--u));
   font-weight: 700;
   text-align: center;
   color: var(--text);
-  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
   box-shadow: 0 calc(2 * var(--u)) calc(6 * var(--u)) rgb(40 25 8 / 0.3);
+  animation:
+    detail-in 220ms ease-out calc(var(--band-lead) + var(--band-open-at) + var(--band-open) - 120ms)
+      both,
+    detail-out 150ms ease-in calc(var(--band-lead) + var(--band-ms) - 150ms - var(--band-close))
+      forwards;
 }
 
-@keyframes stage-banner {
+/* „Ein Reich fällt!“: größer, schwerer, das Wappen des Siegers setzt sich wie ein Siegel */
+.turn-banner.grand {
+  --band-open-at: 120ms;
+  --band-open: 460ms;
+  --rod: calc(5.5 * var(--u));
+  animation:
+    band-drop 190ms cubic-bezier(0.3, 0.7, 0.3, 1.25) var(--band-lead) both,
+    band-out 120ms ease-in calc(var(--band-lead) + var(--band-ms) - 120ms) forwards;
+}
+
+.turn-banner.grand .moment-ribbon {
+  font-size: calc(23 * var(--u));
+  /* Das Band setzt sich, sobald es offen ist */
+  animation: band-settle 260ms ease-out
+    calc(var(--band-lead) + var(--band-open-at) + var(--band-open) - 60ms) both;
+}
+
+.turn-banner.grand .ribbon-cloth {
+  gap: calc(10 * var(--u));
+  padding: calc(6 * var(--u)) calc(30 * var(--u)) calc(7 * var(--u)) calc(24 * var(--u));
+}
+
+.turn-banner.grand .ribbon-cloth svg {
+  width: calc(27 * var(--u));
+  animation: band-seal 300ms cubic-bezier(0.2, 1.5, 0.4, 1)
+    calc(var(--band-lead) + var(--band-open-at) + var(--band-open) - 170ms) both;
+}
+
+.turn-banner.grand .moment-detail {
+  font-size: calc(13.5 * var(--u));
+}
+
+@keyframes band-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@keyframes band-drop {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-14 * var(--u))) scale(0.8);
+  }
+}
+
+@keyframes band-out {
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes band-settle {
+  40% {
+    transform: translateY(calc(2.5 * var(--u)));
+  }
+}
+
+@keyframes band-seal {
+  from {
+    opacity: 0;
+    transform: scale(1.9) rotate(-14deg);
+  }
+}
+
+@keyframes ribbon-open {
+  from {
+    clip-path: inset(0 50%);
+  }
+  to {
+    clip-path: inset(0 0);
+  }
+}
+
+@keyframes ribbon-close {
+  from {
+    clip-path: inset(0 0);
+  }
+  to {
+    clip-path: inset(0 50%);
+  }
+}
+
+@keyframes ribbon-sheen {
   0% {
     opacity: 0;
-    transform: scale(0.6);
+    transform: translateX(-110%);
   }
-  18% {
+  15%,
+  80% {
     opacity: 1;
-    transform: scale(1.05);
-  }
-  28%,
-  78% {
-    opacity: 1;
-    transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateY(-8%) scale(0.98);
+    transform: translateX(320%);
+  }
+}
+
+@keyframes shade-open {
+  from {
+    transform: scaleX(0.04);
+  }
+}
+
+@keyframes shade-close {
+  to {
+    transform: scaleX(0.04);
+  }
+}
+
+@keyframes rod-open-l {
+  from {
+    transform: translateX(calc(50% - var(--rod)));
+  }
+}
+
+@keyframes rod-close-l {
+  to {
+    transform: translateX(calc(50% - var(--rod)));
+  }
+}
+
+@keyframes rod-open-r {
+  from {
+    transform: translateX(calc(-50% + var(--rod)));
+  }
+}
+
+@keyframes rod-close-r {
+  to {
+    transform: translateX(calc(-50% + var(--rod)));
+  }
+}
+
+/* Aufgerollt ist ein Stab dicker */
+@keyframes rod-thin {
+  from {
+    transform: scaleX(1.3);
+  }
+}
+
+@keyframes rod-thick {
+  to {
+    transform: scaleX(1.3);
+  }
+}
+
+@keyframes detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-6 * var(--u)));
+  }
+}
+
+@keyframes detail-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-4 * var(--u)));
   }
 }
 
 /* ---------- Blätter mitten auf der Karte: Frage, Auflösung, Abrechnung ---------- */
 
-.stage-centre {
+.stage-centre,
+.sheet-ghost {
   position: absolute;
   z-index: 4;
   left: calc(var(--safe-l) + var(--rail-l) + (8 * var(--u)));
@@ -993,8 +1756,102 @@ html.match-playing body {
 }
 
 /* Die Abrechnung reicht bis an den rechten Rand: Das Blatt der Phase hat dann nichts mehr zu sagen */
-.stage-centre.wide {
+.stage-centre.wide,
+.sheet-ghost.wide {
   right: var(--safe-r);
+}
+
+/*
+ * Wechsel der Blätter (StageCentre, sheet-swap.ts). Das Blatt, das geht, ist ein stilles Abbild
+ * in `.sheet-ghosts`: an derselben Stelle, ohne eigene Bewegung, nicht zu tippen.
+ *
+ *   Frage → Auflösung   Die Karte dreht sich um ihre waagrechte Mitte: 0–0,13 s kippt die Frage
+ *                       auf die Kante, 0,13–0,45 s kommt die Rückseite mit den Antworten und
+ *                       setzt mit leichtem Nachschwingen auf. Beide Blätter sind gleich breit:
+ *                       Auf der Kante sind sie dieselbe Linie.
+ *   Auflösung geht      Das Blatt hebt sich in 0,18 s von der Karte ab und gibt sie frei.
+ */
+.sheet-ghosts {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.sheet-ghosts:empty {
+  display: none;
+}
+
+.sheet-ghost,
+.sheet-ghost * {
+  pointer-events: none !important;
+}
+
+/* Auch was ein Blatt nur zeichnet (`::before`, `::after`), steht im Abbild still */
+.sheet-ghost *,
+.sheet-ghost *::before,
+.sheet-ghost *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+.sheet-ghost > * {
+  opacity: 0;
+}
+
+.sheet-ghost.leave-turn,
+.stage-centre.turned {
+  perspective: calc(900 * var(--u));
+}
+
+.sheet-ghost.leave-turn > * {
+  animation: sheet-turn-out 0.13s cubic-bezier(0.5, 0, 0.9, 0.55) both !important;
+}
+
+.sheet-ghost.leave-lift > * {
+  animation: sheet-lift 0.18s cubic-bezier(0.4, 0, 0.9, 0.6) both !important;
+}
+
+/* Wer sich vom Licht wegdreht, wird dunkler: Das macht aus dem Stauchen eine Drehung */
+@keyframes sheet-turn-out {
+  from {
+    opacity: 1;
+    transform: rotateX(0deg);
+    filter: brightness(1);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(90deg);
+    filter: brightness(0.78);
+  }
+}
+
+@keyframes sheet-turn-in {
+  from {
+    transform: rotateX(-90deg);
+    filter: brightness(0.78);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.35, 1);
+  }
+  68% {
+    transform: rotateX(4deg);
+    filter: brightness(1);
+    animation-timing-function: ease-in-out;
+  }
+  to {
+    transform: rotateX(0deg);
+    filter: brightness(1);
+  }
+}
+
+@keyframes sheet-lift {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(calc(-12 * var(--u))) scale(1.04);
+  }
 }
 
 .sheet {
@@ -1237,83 +2094,245 @@ html.match-playing body {
   color: var(--muted);
 }
 
-/* Auflösung: dieselbe Karte wie die Frage, Antworten in zwei Spalten mit den Wappen daran */
+/*
+ * Auflösung: die Rückseite der Fragekarte (RevealPanel). Band, Frage und Antwortfelder stehen wie
+ * auf der Vorderseite. Was dazukommt, kommt nacheinander ab `--reveal-at` (wenn das Blatt
+ * aufgesetzt hat): der Stempel der richtigen Antwort, die Farben derer, die gewählt haben, ihre
+ * Namen, zuletzt die Folge.
+ */
 .sheet.reveal {
+  --reveal-at: 0.12s;
   display: grid;
   gap: calc(7 * var(--u));
   animation: sheet-in 0.3s ease-out both;
 }
 
+/* Kam die Auflösung aus der Fragekarte, ist sie deren Rückseite (siehe „Wechsel der Blätter“) */
+.stage-centre.turned .sheet.reveal {
+  --reveal-at: 0.3s;
+  animation: sheet-turn-in 0.32s 0.13s both;
+}
+
+.sheet.reveal .sheet-head {
+  padding-right: 0;
+}
+
+/* „Auflösung“ ist die Überschrift des Blatts und sieht aus wie das Schild der Vorderseite */
+.sheet.reveal .sheet-tag {
+  font-family: var(--font-body);
+}
+
+/* Ausgang eines Duells im Blatt selbst (ohne Bühne daneben): Wappen des Siegers, Wirkung, Grund */
 .stage .reveal-verdict {
+  --tone: var(--accent);
+  display: flex;
+  align-items: center;
   gap: calc(8 * var(--u));
   padding: calc(5 * var(--u)) calc(9 * var(--u));
-  border-left-width: calc(4 * var(--u));
+  border-left: calc(4 * var(--u)) solid var(--tone);
   border-radius: 0 calc(8 * var(--u)) calc(8 * var(--u)) 0;
+  background: color-mix(in srgb, var(--tone) 13%, transparent);
+}
+
+.stage .reveal-verdict.seat-0 {
+  --tone: var(--seat-0);
+}
+
+.stage .reveal-verdict.seat-1 {
+  --tone: var(--seat-1);
+}
+
+.stage .reveal-verdict.seat-2 {
+  --tone: var(--seat-2);
 }
 
 .stage .reveal-verdict svg {
+  flex: none;
   width: calc(24 * var(--u));
   height: auto;
 }
 
 .stage .reveal-headline {
+  font-family: var(--font-display);
   font-size: calc(15 * var(--u));
+  font-weight: 800;
   line-height: 1.2;
 }
 
 .stage .reveal-reason {
   font-size: calc(12 * var(--u));
+  color: var(--muted);
 }
 
 .stage .reveal-prompt {
+  padding: 0 calc(3 * var(--u));
   font-family: var(--font-display);
-  font-size: calc(16.5 * var(--u));
+  font-size: calc(18 * var(--u));
   font-weight: 700;
-  line-height: 1.22;
+  line-height: 1.2;
+  overflow-wrap: break-word;
 }
 
-.stage .reveal-solution {
-  font-size: calc(16 * var(--u));
+.stage .reveal.prompt-long .reveal-prompt {
+  font-size: calc(15 * var(--u));
 }
+
+/* ----- Wissensfrage: vier gleich hohe Felder an ihrer Stelle aus der Frage ----- */
 
 .stage .reveal-options {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: calc(6 * var(--u));
+  grid-auto-rows: 1fr;
+  gap: calc(7 * var(--u));
+  padding: 0;
+  list-style: none;
 }
 
+/* Oben die Antwort, darunter das Band derer, die sie gewählt haben */
 .stage .reveal-option {
-  align-content: center;
-  gap: calc(3 * var(--u)) calc(6 * var(--u));
-  min-height: calc(40 * var(--u));
-  padding: calc(4 * var(--u)) calc(7 * var(--u));
-  font-size: calc(14 * var(--u));
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: calc(52 * var(--u));
+  overflow: hidden;
+  font-size: calc(16 * var(--u));
+  font-weight: 600;
   line-height: 1.15;
-  border-radius: calc(8 * var(--u));
-}
-
-.stage .reveal-option:not(.correct, .wrong) {
-  opacity: 0.7;
+  color: var(--text);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-radius: calc(9 * var(--u));
 }
 
 /*
- * Antwortfelder in den Farben der Spieler (ADR-065): Wer ein Feld gewählt hat, malt es aus;
- * mehrere teilen es sich zu gleichen Teilen, mit einer Naht in Papierfarbe dazwischen. Die Farbe
- * ist mit dem Papier gemischt, damit die Schrift in beiden Farbschemen mindestens 7:1 hält.
+ * Lange Antworten brauchen zwei Zeilen: Dann ist jede Reihe nur so hoch wie ihr höchstes Feld,
+ * damit auch der schlimmste Fall (lange Frage, Gleichstand, Erklärung) auf die niedrige Bühne passt.
  */
-.stage .reveal-option {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+.stage .reveal.options-mid .reveal-options,
+.stage .reveal.options-long .reveal-options {
+  grid-auto-rows: auto;
+}
+
+.stage .reveal.options-mid .reveal-option,
+.stage .reveal.options-long .reveal-option {
+  min-height: calc(44 * var(--u));
+  font-size: calc(14 * var(--u));
+}
+
+.stage .reveal.options-long .reveal-option {
+  font-size: calc(12.5 * var(--u));
+}
+
+.stage .reveal.options-mid .reveal-answer,
+.stage .reveal.options-long .reveal-answer {
+  padding-top: calc(3 * var(--u));
+  padding-bottom: calc(3 * var(--u));
+}
+
+.stage .reveal.options-mid .reveal-chips .seat-chip,
+.stage .reveal.options-long .reveal-chips .seat-chip {
+  font-size: calc(11.5 * var(--u));
+}
+
+/* Weder richtig noch gewählt: tritt zurück */
+.stage .reveal-option:not(.correct, .chosen) {
+  opacity: 0.6;
 }
 
 .stage .reveal-option.chosen {
   font-weight: 700;
-  border-color: var(--border-strong);
 }
 
+.stage .reveal-option.wrong {
+  border-color: color-mix(in srgb, var(--danger) 60%, var(--border-strong));
+}
+
+/* Richtig: grüner Rand mit Hof, wie der goldene der eigenen Wahl auf der Vorderseite */
 .stage .reveal-option.correct {
-  border-color: var(--success);
-  box-shadow: inset 0 0 0 calc(1 * var(--u)) var(--success);
+  margin: calc(-1 * var(--u));
+  background: color-mix(in srgb, var(--success) 14%, var(--surface));
+  border: calc(2 * var(--u)) solid var(--success);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+.stage .reveal-answer {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  min-width: 0;
+  padding: calc(4 * var(--u)) calc(9 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
+}
+
+.stage .reveal-option-text {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/*
+ * Münze mit dem Buchstaben der Antwort, wie auf der Vorderseite. Auf die richtige Antwort setzt
+ * sich ein grüner Stempel mit Haken, auf eine falsch gewählte ein roter mit Kreuz; auch die Lösung
+ * einer Schätzfrage trägt den grünen.
+ */
+.stage .reveal-mark {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(25 * var(--u));
+  height: calc(25 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(13 * var(--u));
+  font-weight: 800;
+  line-height: 1;
+  color: var(--primary-text);
+  background: radial-gradient(circle at 35% 30%, var(--primary-top), var(--primary-bottom));
+  border: 1px solid var(--primary-edge);
+  border-radius: 50%;
+}
+
+/* Die Lösung einer Schätzfrage hat keinen Buchstaben: Dort steht nur der Stempel */
+.stage .reveal-solution .reveal-mark {
+  background: none;
+  border-color: transparent;
+}
+
+.stage .reveal-stamp {
+  --stamp: var(--success);
+  position: absolute;
+  inset: -1px;
+  display: grid;
+  place-items: center;
+  color: var(--surface);
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--stamp) 78%, var(--surface)),
+    var(--stamp)
+  );
+  border: 1px solid color-mix(in srgb, var(--stamp) 80%, var(--text));
+  border-radius: 50%;
+  animation: reveal-stamp 0.3s var(--reveal-at) ease-out both;
+}
+
+/* Erst die richtige Antwort, einen Wimpernschlag später die falsch gewählte */
+.stage .reveal-stamp.wrong {
+  --stamp: var(--danger);
+  animation-delay: calc(var(--reveal-at) + 0.1s);
+}
+
+.stage .reveal-stamp svg {
+  width: 74%;
+  height: 74%;
+}
+
+/*
+ * Band derer, die eine Antwort gewählt haben (ADR-065): je Sitz ein gleich breites Stück in
+ * seiner Farbe, mit einer Naht in Papierfarbe dazwischen, darauf Wappen und Name. Die Farbe ist
+ * mit dem Papier gemischt, damit die Schrift in beiden Farbschemen mindestens 7:1 hält.
+ */
+.stage .reveal-band {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  border-top: 1px solid color-mix(in srgb, var(--border-strong) 45%, transparent);
 }
 
 .stage .reveal-fill {
@@ -1322,98 +2341,328 @@ html.match-playing body {
   z-index: -1;
   display: flex;
   gap: calc(1.5 * var(--u));
-  background: var(--surface);
-  transform-origin: left center;
-  animation: reveal-fill 0.5s 0.25s cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
 
+/*
+ * Jede Farbe läuft von ihrem Rand ein: allein von links über das ganze Band, zu zweit von beiden
+ * Seiten bis zur Naht in der Mitte (links, wer angreift).
+ */
 .stage .reveal-fill i {
   --tone: var(--border-strong);
   flex: 1;
   background: color-mix(in srgb, var(--tone) 42%, var(--surface));
+  transform-origin: left center;
+  animation: reveal-fill 0.45s calc(var(--reveal-at) + 0.2s) cubic-bezier(0.22, 0.8, 0.3, 1) both;
 }
 
-.stage .reveal-fill .seat-0 {
+.stage .reveal-fill i:last-child:not(:first-child) {
+  transform-origin: right center;
+}
+
+.stage .reveal-fill .seat-0,
+.stage .reveal-rank.seat-0 {
   --tone: var(--seat-0);
 }
 
-.stage .reveal-fill .seat-1 {
+.stage .reveal-fill .seat-1,
+.stage .reveal-rank.seat-1 {
   --tone: var(--seat-1);
 }
 
-.stage .reveal-fill .seat-2 {
+.stage .reveal-fill .seat-2,
+.stage .reveal-rank.seat-2 {
   --tone: var(--seat-2);
 }
 
-.stage .reveal-option.chosen .reveal-chips {
-  animation: reveal-chip 0.25s 0.6s ease-out both;
+/* Jeder Name steht in seinem Stück des Bands; ein langer bricht in zwei Zeilen um */
+.stage .reveal-chips {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: calc(1.5 * var(--u));
+  animation: reveal-chip 0.25s calc(var(--reveal-at) + 0.55s) ease-out both;
 }
 
-/* Kreis an der Stelle des Buchstabens aus der Frage: richtig, falsch gewählt oder der Buchstabe */
-.stage .reveal-mark {
+.stage .reveal-chips .seat-chip {
+  min-width: 0;
+  max-width: none;
+  gap: calc(5 * var(--u));
+  padding: calc(3 * var(--u)) calc(7 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  line-height: 1.08;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.stage .reveal-chips .seat-chip svg {
+  width: calc(17 * var(--u));
+  height: auto;
+}
+
+.stage .reveal-chips .seat-chip-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.stage .reveal-silent {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  color: var(--muted);
+}
+
+/* ----- Schätzfrage: die Lösung in der Tafel der Eingabe, darunter die Schätzungen ----- */
+
+.stage .reveal-solution {
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  min-height: calc(40 * var(--u));
+  padding: calc(4 * var(--u)) calc(12 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
+  background: var(--map-coin);
+  border: calc(2 * var(--u)) solid var(--primary-edge);
+  border-radius: calc(10 * var(--u));
+  box-shadow: inset 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.25);
+}
+
+.stage .reveal-solution-label {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: calc(12.5 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Eine Zahl mit Einheit: Zahlen stehen in Tabellenziffern, damit sie untereinander fluchten */
+.stage .reveal-figure {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stage .reveal-unit {
+  font-size: 0.64em;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.stage .reveal-solution .reveal-figure {
+  font-size: calc(25 * var(--u));
+  line-height: 1.1;
+  animation: reveal-figure 0.34s var(--reveal-at) ease-out both;
+}
+
+.stage .reveal-ranks {
+  display: grid;
+  gap: calc(5 * var(--u));
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Je Platz eine kleine Tafel mit der Farbe des Sitzes am linken Rand, wie die Tafeln des
+ * Spielstands. Zwei Zeilen: oben Wappen, Name und Schätzung, darunter Abstand, Zeit und die
+ * Auswahl der Landnahme. Die Schätzungen fluchten rechts mit der Lösung.
+ */
+.stage .reveal-rank {
+  --tone: var(--border-strong);
+  --row: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(23 * var(--u)) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'place who value'
+    'place detail picks';
+  align-items: center;
+  gap: 0 calc(8 * var(--u));
+  padding: calc(4 * var(--u)) calc(13 * var(--u)) calc(4 * var(--u)) calc(7 * var(--u));
+  background: linear-gradient(var(--surface), var(--surface-2));
+  border: 1px solid var(--border-strong);
+  border-left: calc(5 * var(--u)) solid var(--tone);
+  border-radius: calc(9 * var(--u));
+  animation: reveal-row 0.3s calc(var(--reveal-at) + 0.16s + var(--row) * 0.13s) ease-out both;
+}
+
+/* Der letzte Platz kommt zuerst, der beste zuletzt */
+.stage .reveal-rank:nth-last-child(2) {
+  --row: 1;
+}
+
+.stage .reveal-rank:nth-last-child(3) {
+  --row: 2;
+}
+
+.stage .reveal-rank.best {
+  background: color-mix(in srgb, var(--map-gold) 17%, var(--surface));
+  border-color: var(--map-gold);
+  border-left-color: var(--tone);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 30%, transparent);
+}
+
+/* Ein goldener Ring läuft einmal von der besten Schätzung weg, wenn sie steht */
+.stage .reveal-rank.best::after {
+  content: '';
+  position: absolute;
+  inset: calc(-3 * var(--u));
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  border-radius: calc(11 * var(--u));
+  opacity: 0;
+  pointer-events: none;
+  animation: reveal-glint 0.6s calc(var(--reveal-at) + 0.42s + var(--row) * 0.13s) ease-out both;
+}
+
+.stage .reveal-rank.silent {
+  color: var(--muted);
+}
+
+/* Platz als Münze: Gold, Silber, Bronze wie in der Abrechnung */
+.stage .reveal-place {
+  grid-area: place;
   display: grid;
   place-items: center;
-  width: calc(20 * var(--u));
-  height: calc(20 * var(--u));
+  width: calc(23 * var(--u));
+  height: calc(23 * var(--u));
   font-family: var(--font-display);
-  font-size: calc(11.5 * var(--u));
+  font-size: calc(13 * var(--u));
   font-weight: 800;
   line-height: 1;
-  color: var(--muted);
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 50%;
 }
 
-.stage .reveal-option.correct .reveal-mark {
-  color: var(--surface);
-  background: var(--success);
-  border-color: var(--success);
+.stage .reveal-rank[data-place='1'] .reveal-place {
+  color: #2a1a08;
+  background: radial-gradient(circle at 35% 30%, #f5d77f, #c4902c);
+  border-color: #8a5f17;
 }
 
-.stage .reveal-option.wrong .reveal-mark {
-  color: var(--surface);
-  background: var(--danger);
-  border-color: var(--danger);
+.stage .reveal-rank[data-place='2'] .reveal-place {
+  color: #222;
+  background: radial-gradient(circle at 35% 30%, #f1f1ec, #a9a9a2);
+  border-color: #77776f;
 }
 
-.stage .reveal-option-text {
-  flex: 1 1 calc(60 * var(--u));
+.stage .reveal-rank[data-place='3'] .reveal-place {
+  color: #241307;
+  background: radial-gradient(circle at 35% 30%, #e9b48a, #a8653a);
+  border-color: #6e3d1d;
 }
 
-.stage .reveal-chips {
-  gap: calc(3 * var(--u));
+.stage .reveal-rank.silent .reveal-place {
+  color: var(--muted);
+  background: var(--surface-2);
+  border-color: var(--border);
 }
 
-.stage .reveal-ranks {
-  gap: calc(5 * var(--u));
+.stage .reveal-rank .seat-chip {
+  grid-area: who;
+  justify-self: start;
+  max-width: 100%;
+  gap: calc(6 * var(--u));
+  padding: 0;
+  font-size: calc(14.5 * var(--u));
+  line-height: 1.2;
+  background: none;
+  border: 0;
+  border-radius: 0;
 }
 
-.stage .reveal-rank {
-  grid-template-columns: calc(18 * var(--u)) minmax(0, 1fr) auto;
-  gap: calc(1 * var(--u)) calc(7 * var(--u));
-  padding: calc(4 * var(--u)) calc(8 * var(--u));
-  font-size: calc(14 * var(--u));
-  border-radius: calc(8 * var(--u));
+.stage .reveal-rank .seat-chip svg {
+  width: calc(19 * var(--u));
+  height: auto;
 }
 
-.stage .reveal-detail,
+.stage .reveal-value {
+  grid-area: value;
+  justify-self: end;
+  font-size: calc(19 * var(--u));
+  line-height: 1.15;
+  text-align: right;
+}
+
+.stage .reveal-rank.silent .reveal-value {
+  font-size: calc(13 * var(--u));
+}
+
+.stage .reveal-detail {
+  grid-area: detail;
+  min-height: calc(15 * var(--u));
+  font-size: calc(12 * var(--u));
+  line-height: calc(15 * var(--u));
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.stage .reveal-off.exact {
+  font-weight: 700;
+  color: var(--success);
+}
+
 .stage .reveal-picks {
+  grid-area: picks;
+  justify-self: end;
+  padding: calc(1 * var(--u)) calc(8 * var(--u));
   font-size: calc(11.5 * var(--u));
+  font-weight: 700;
+  line-height: calc(14 * var(--u));
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-radius: 999px;
 }
 
-.stage .reveal-picks {
-  padding: calc(1 * var(--u)) calc(7 * var(--u));
+.stage .reveal-picks.none {
+  padding-right: 0;
+  font-weight: 400;
+  color: var(--muted);
+  background: none;
 }
 
-.stage .reveal-silent {
-  gap: calc(4 * var(--u));
-  font-size: calc(12.5 * var(--u));
+/* ----- Was aus den Antworten folgt (ADR-069: erst die Antworten, dann die Folge) ----- */
+
+.stage .reveal-next {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: calc(8 * var(--u));
+  padding: calc(5 * var(--u)) calc(11 * var(--u)) calc(5 * var(--u)) calc(9 * var(--u));
+  background: color-mix(in srgb, var(--map-gold) 17%, var(--surface));
+  border: 1px solid var(--map-gold);
+  border-radius: calc(9 * var(--u));
+  animation: reveal-row 0.32s calc(var(--reveal-at) + 0.9s) ease-out both;
+}
+
+.stage .reveal-next svg {
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
+}
+
+.stage .reveal-next-title {
+  font-family: var(--font-display);
+  font-size: calc(16 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.stage .reveal-next-text {
+  font-size: calc(13.5 * var(--u));
+  line-height: 1.2;
 }
 
 .stage .reveal-explanation {
+  padding: 0 calc(3 * var(--u));
   font-size: calc(12.5 * var(--u));
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 @keyframes sheet-in {
@@ -1429,6 +2678,19 @@ html.match-playing body {
   }
 }
 
+@keyframes reveal-stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.9);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.88);
+    animation-timing-function: ease-out;
+  }
+}
+
 @keyframes reveal-chip {
   from {
     opacity: 0;
@@ -1436,34 +2698,71 @@ html.match-playing body {
   }
 }
 
-/* Abrechnung: links die Tabelle, rechts Ergebnis und Knöpfe */
+/* Die Lösung setzt sich mit dem Stempel: kurz größer, dann an ihrem Platz */
+@keyframes reveal-figure {
+  from {
+    opacity: 0;
+    transform: scale(1.18);
+  }
+  60% {
+    opacity: 1;
+  }
+}
+
+@keyframes reveal-row {
+  from {
+    opacity: 0;
+    transform: translateY(calc(5 * var(--u)));
+  }
+}
+
+@keyframes reveal-glint {
+  from {
+    opacity: 0.85;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.035, 1.28);
+  }
+}
+
+/* ---------- Abrechnung: links die Tabelle, rechts Ergebnis und Knöpfe ---------- */
+
 .sheet.result {
   width: min(100%, calc(610 * var(--u)));
   display: grid;
   grid-template-columns: minmax(0, 1fr) calc(190 * var(--u));
   grid-template-areas:
-    'table laurel'
+    'table emblem'
     'table title'
     'table reason'
-    'table note'
     'table actions';
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   column-gap: calc(16 * var(--u));
   row-gap: calc(5 * var(--u));
   align-items: start;
-  animation: sheet-in 0.35s ease-out both;
 }
 
-.sheet.result .laurel {
-  grid-area: laurel;
-  justify-self: center;
-  width: calc(84 * var(--u));
-  height: auto;
-  margin: 0;
+/*
+ * Der Hinweis (Testpartie, Partie mit Bots) steht als Fußnote unter der Tabelle: So bleibt die
+ * rechte Spalte kurz, und das Blatt lässt auf der niedrigen Bühne (340 hoch) oben Platz für ein
+ * Band über der Karte.
+ */
+.sheet.result:has(> .muted) {
+  grid-template-areas:
+    'table emblem'
+    'table title'
+    'table reason'
+    'table actions'
+    'note actions';
+  grid-template-rows: auto auto 1fr auto auto;
 }
 
 .sheet.result h1 {
   grid-area: title;
+  position: relative;
+  z-index: 1;
   font-family: var(--font-display);
   font-size: calc(21 * var(--u));
   font-weight: 800;
@@ -1473,19 +2772,30 @@ html.match-playing body {
 
 .sheet.result > p {
   grid-area: reason;
+  position: relative;
+  z-index: 1;
   font-size: calc(12.5 * var(--u));
   line-height: 1.3;
   text-align: center;
   color: var(--muted);
 }
 
+/* Ohne `:has` liegt die Fußnote am unteren Rand der Spalte der Tabelle, die mittig darüber steht */
 .sheet.result > p.muted {
+  grid-area: table;
+  align-self: end;
+}
+
+.sheet.result:has(> .muted) > p.muted {
   grid-area: note;
 }
 
+/* Die Tabelle passt immer ins Blatt: nichts rollt, und was sich einstempelt, wird nicht beschnitten */
 .sheet.result .table-wrap {
   grid-area: table;
   align-self: center;
+  justify-self: stretch;
+  overflow: visible;
 }
 
 .sheet.result .actions {
@@ -1497,6 +2807,27 @@ html.match-playing body {
 
 .sheet.result .sides {
   font-size: calc(13.5 * var(--u));
+}
+
+/*
+ * Die Zeilen selbst bewegen sich nie (in WebKit zeichnet eine Tabelle mit bewegten Zeilen ihre
+ * Linien falsch): Beim Aufbau erscheint der Inhalt der Zellen, die Linien stehen wie in einem
+ * Kontobuch schon da. Der goldene Grund der eigenen Zeile liegt deshalb auf den Zellen.
+ */
+.sheet.result .sides tbody tr {
+  animation: none;
+}
+
+.sheet.result .sides tr.me {
+  background: none;
+}
+
+.sheet.result .sides tr.me > * {
+  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.sheet.result .sides .cell {
+  display: inline-block;
 }
 
 .sheet.result .sides th,
@@ -1518,9 +2849,495 @@ html.match-playing body {
 }
 
 .sheet.result .place {
+  position: relative;
   width: calc(22 * var(--u));
   height: calc(22 * var(--u));
   font-size: calc(12.5 * var(--u));
+}
+
+/* Sieg: Das Blatt trägt einen goldenen Rand wie das Blatt des eigenen Zugs */
+.sheet.result.victory {
+  border-color: var(--map-gold);
+  box-shadow:
+    0 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-gold) 55%, transparent),
+    0 calc(10 * var(--u)) calc(28 * var(--u)) rgb(30 18 6 / 0.55);
+}
+
+/* Punkte, die hochzählen: Die Endzahl hält unsichtbar ihren Platz, die laufende liegt darüber */
+.sheet.result .tally {
+  position: relative;
+  display: inline-block;
+}
+
+.sheet.result .tally-end {
+  opacity: 0;
+}
+
+.sheet.result .tally-run {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Wer nicht gewonnen hat: das eigene Wappen mit der Plakette des Platzes */
+.result-crest {
+  grid-area: emblem;
+  position: relative;
+  margin: calc(8 * var(--u)) 0 calc(5 * var(--u));
+  line-height: 0;
+}
+
+.result-crest .crest {
+  display: block;
+  width: calc(46 * var(--u));
+  height: auto;
+}
+
+.sheet.result .result-crest .place {
+  position: absolute;
+  right: calc(-12 * var(--u));
+  bottom: calc(-6 * var(--u));
+  width: calc(25 * var(--u));
+  height: calc(25 * var(--u));
+  font-size: calc(13.5 * var(--u));
+  line-height: 1;
+  box-shadow: 0 0 0 calc(2 * var(--u)) var(--surface);
+}
+
+/*
+ * Siegel des Siegs: Lorbeerkranz mit Krone vor einem Strahlenkranz. Drei Lagen übereinander, jede
+ * ein eigenes Element, damit sie sich einzeln bewegen lassen: Strahlen, Schatten und Effekte,
+ * darüber die Zeichnung. Die Mitte der Krone liegt bei 50 % / 54,17 % des Kastens.
+ */
+.result-seal {
+  /* Auf der niedrigen Bühne (340 hoch) 104 breit; ist sie höher, wächst es bis 124 mit */
+  --seal-w: min(calc(124 * var(--u)), calc(104 * var(--u) + (100vh - 340 * var(--u)) * 0.4));
+  grid-area: emblem;
+  position: relative;
+  z-index: 0;
+  width: var(--seal-w);
+  aspect-ratio: 120 / 96;
+}
+
+@supports (height: 100dvh) {
+  .result-seal {
+    --seal-w: min(calc(124 * var(--u)), calc(104 * var(--u) + (100dvh - 340 * var(--u)) * 0.4));
+  }
+}
+
+.seal-body {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.seal-rays {
+  position: absolute;
+  left: 0;
+  top: -8.33%;
+  width: 100%;
+  height: 125%;
+  overflow: visible;
+}
+
+.seal-ray-in {
+  stop-color: var(--map-gold);
+  stop-opacity: 0.62;
+}
+
+.seal-ray-out {
+  stop-color: var(--map-gold);
+  stop-opacity: 0;
+}
+
+.seal-stem {
+  fill: none;
+  stroke: #55702f;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.seal-leaf {
+  fill: #86a551;
+  stroke: #41572a;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.seal-leaf-inner {
+  fill: #6f8e42;
+}
+
+.seal-rib {
+  fill: none;
+  stroke: #41572a;
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.seal-crown {
+  fill: url('#seal-gold');
+  stroke: #7a5212;
+  stroke-width: 2.2;
+}
+
+.seal-band {
+  fill: #c9962f;
+  stroke: #7a5212;
+  stroke-width: 2;
+}
+
+.seal-crown-light {
+  fill: none;
+  stroke: #fff3c4;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
+}
+
+.seal-pearl {
+  fill: #fff3c4;
+  stroke: #7a5212;
+  stroke-width: 1.3;
+}
+
+.seal-gem {
+  fill: #b23a24;
+  stroke: #7a5212;
+  stroke-width: 1.4;
+}
+
+.seal-gem-light {
+  fill: none;
+  stroke: #ffd9c9;
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.seal-knot,
+.seal-ribbon {
+  fill: #d9a63c;
+  stroke: #7a5212;
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+
+/* Schatten des herabfallenden Siegels und was beim Aufsetzen aufblitzt: ohne Bewegung unsichtbar */
+.seal-shadow {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 22%;
+  bottom: 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(40 25 8 / 0.55), rgb(40 25 8 / 0) 100%);
+  opacity: 0;
+}
+
+.seal-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.seal-fx > .fx-ring,
+.seal-fx > .fx-sparks,
+.seal-flash {
+  left: 50%;
+  top: 54.17%;
+}
+
+/* Auf hellem Papier liest sich nur dunkles Gold und Tinte; in der Nacht kehrt sich das um */
+.seal-fx > .fx-sparks b {
+  background: linear-gradient(90deg, transparent, var(--map-gold) 35%, var(--primary-edge));
+}
+
+.seal-ring-ink {
+  --c: color-mix(in srgb, var(--map-ink) 60%, transparent);
+}
+
+.seal-ring-gold {
+  --c: var(--map-gold);
+}
+
+.seal-flash {
+  position: absolute;
+  width: calc(100 * var(--u));
+  height: calc(100 * var(--u));
+  margin: calc(-50 * var(--u)) 0 0 calc(-50 * var(--u));
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    #fff8dc 0%,
+    rgb(255 228 150 / 0.75) 34%,
+    rgb(255 228 150 / 0) 72%
+  );
+  opacity: 0;
+}
+
+/*
+ * Bewegung der Abrechnung (docs/ART_DIRECTION.md §5): nur, wenn die Seite das Ende miterlebt hat
+ * (`.entrance`, steht beim Erscheinen fest). Grundzustand ist überall das Endbild. Die Zeiten
+ * kommen aus `result-motion.ts` im Takt des Klangs: `--at` je Zeile (sie steht, ihre Punkte
+ * zählen), `--seal-at` für das Aufsetzen des Siegels. Bewegt werden nur transform und opacity,
+ * dazu zwei reine Farbwechsel ohne Einfluss auf das Layout (Grund der eigenen Zeile, Lichtstreif
+ * im Titel); die Knöpfe hängen an nichts davon und sind von Anfang an bedienbar.
+ */
+.sheet.result.entrance,
+.sheet.plain-sheet.entrance {
+  animation: result-sheet-in 0.32s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes result-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6 * var(--u))) scale(0.985);
+  }
+}
+
+/*
+ * Vor dem Spiel löst der Abbruch das Blatt der Aufstellung ab: Dort steht das neue Blatt vom
+ * ersten Bild an deckend da und setzt sich nur, sonst läge für einen Augenblick die Karte frei.
+ */
+.stage-plain .sheet.plain-sheet.entrance {
+  animation: plain-sheet-settle 0.28s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+
+@keyframes plain-sheet-settle {
+  from {
+    transform: scale(1.06);
+  }
+}
+
+/*
+ * Erscheint das Blatt über der freien Karte, legt sich ihr Schleier im selben Zug darüber (der
+ * Schleier steht immer im Dokument und blendet, siehe oben). Lag schon ein Blatt da, steht er
+ * längst und bleibt, wie er ist.
+ */
+.stage:has(.sheet.entrance) > .stage-veil {
+  transition: opacity 0.32s ease-out;
+}
+
+/* Sieg: Die Zeilen steigen vom letzten Platz zum ersten auf, jede Plakette stempelt sich ein */
+.sheet.result.entrance .sides tbody tr > * > * {
+  animation: result-row-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) calc(var(--at) - 150ms) both;
+}
+
+.sheet.result.entrance .sides tr.me > * {
+  animation: result-tint-in 0.3s ease-out calc(var(--at) - 150ms) both;
+}
+
+@keyframes result-tint-in {
+  from {
+    background-color: transparent;
+  }
+}
+
+@keyframes result-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6 * var(--u)));
+  }
+}
+
+.sheet.result.victory.entrance .sides .place {
+  animation: result-medal-in 0.32s calc(var(--at) - 160ms) both;
+}
+
+@keyframes result-medal-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.9) rotate(-16deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.88) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  76% {
+    transform: scale(1.07);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Die Plakette des ersten Platzes schlägt einen goldenen Ring */
+.sheet.result.victory.entrance .place-1 .place::after {
+  content: '';
+  position: absolute;
+  inset: calc(-2 * var(--u));
+  border: calc(2 * var(--u)) solid var(--map-gold);
+  border-radius: 50%;
+  opacity: 0;
+  animation: result-medal-ring 0.5s var(--at) cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+
+@keyframes result-medal-ring {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  6% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+/* Sonst: ruhig, von oben nach unten, ohne Stempel */
+.sheet.result.entrance:not(.victory) .sides tbody tr > * > * {
+  animation: result-row-calm 0.45s ease-out calc(var(--at) - 150ms) both;
+}
+
+@keyframes result-row-calm {
+  from {
+    opacity: 0;
+    transform: translateY(calc(4 * var(--u)));
+  }
+}
+
+/* Das Siegel fällt, schlägt auf (`--seal-at`) und federt aus; sein Schatten läuft ihm voraus */
+.sheet.result.entrance .seal-body {
+  animation: seal-stamp 0.52s calc(var(--seal-at) - 230ms) both;
+}
+
+@keyframes seal-stamp {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-8 * var(--u))) scale(1.6) rotate(-10deg);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.45);
+  }
+  16% {
+    opacity: 1;
+  }
+  44% {
+    opacity: 1;
+    transform: translateY(0) scale(0.9) rotate(0deg);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  64% {
+    transform: scale(1.06);
+    animation-timing-function: ease-in-out;
+  }
+  82% {
+    transform: scale(0.985);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.sheet.result.entrance .seal-shadow {
+  animation: seal-shadow 0.23s calc(var(--seal-at) - 230ms) ease-in both;
+}
+
+@keyframes seal-shadow {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  88% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.sheet.result.entrance .seal-flash {
+  animation: seal-flash 0.5s var(--seal-at) cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+
+@keyframes seal-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  8% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Die Strahlen fächern mit dem Aufsetzen auf, drehen aus und stehen */
+.sheet.result.entrance .seal-rays {
+  animation: seal-rays 1.4s var(--seal-at) cubic-bezier(0.12, 0.8, 0.2, 1) both;
+}
+
+@keyframes seal-rays {
+  0% {
+    opacity: 0;
+    transform: scale(0.35) rotate(-60deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Der Titel drückt sich unter dem Siegel ein, ein Lichtstreif läuft einmal über das Gold */
+.sheet.result.victory.entrance h1 {
+  animation: result-title-in 0.36s calc(var(--seal-at) + 50ms) cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes result-title-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6 * var(--u))) scale(0.92);
+  }
+}
+
+.sheet.result.victory.entrance h1::after {
+  content: attr(data-text);
+  content: attr(data-text) / '';
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  text-shadow: none;
+  background: linear-gradient(105deg, transparent 43%, #fff8dc 50%, transparent 57%) no-repeat;
+  background-size: 300% 100%;
+  background-position: 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  pointer-events: none;
+  animation: result-sheen 0.8s calc(var(--seal-at) + 300ms) ease-in-out both;
+}
+
+@keyframes result-sheen {
+  from {
+    background-position: 100% 0;
+  }
+}
+
+.sheet.result.victory.entrance > p {
+  animation: result-text-in 0.4s calc(var(--seal-at) + 240ms) ease-out both;
+}
+
+@keyframes result-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(3 * var(--u)));
+  }
 }
 
 /* Hinweis, wenn die Abfrage scheitert: oben in der Mitte */
@@ -1803,9 +3620,42 @@ html.match-playing body {
     display: none;
   }
 
-  /* Die Farbe steht sofort im Feld: ohne das stünde sie erst nach der Wartezeit der Bewegung da */
-  .stage .reveal-fill,
-  .stage .reveal-option.chosen .reveal-chips {
+  /* Wechsel am Rand: Alles steht sofort im Endbild */
+  .round-ribbon .arriving,
+  .plaque-state.arriving,
+  .plaque-out.arriving,
+  .turn-index.arriving,
+  .plaque-lives.leaving,
+  .plaque .seat-lives .life-off.lost,
+  .plaque .seat-lives .life-off.lost::after,
+  .stage-right[data-turn],
+  .stage-right[data-turn] > .blatt > *,
+  .stage-right[data-turn] > .blatt > .countdown,
+  .blatt .announce-line.arriving {
     animation: none;
+  }
+
+  .plaque,
+  .turn-order ol::before,
+  .turn-step,
+  .turn-index,
+  .blatt-ring {
+    transition: none;
+  }
+
+  /* Alles steht sofort da: ohne das stünde es erst nach der Wartezeit der Bewegung im Blatt */
+  .stage .reveal-fill i,
+  .stage .reveal-chips,
+  .stage .reveal-stamp,
+  .stage .reveal-solution .reveal-figure,
+  .stage .reveal-rank,
+  .stage .reveal-rank.best::after,
+  .stage .reveal-next,
+  .stage-centre.turned .sheet.reveal {
+    animation: none;
+  }
+
+  .sheet-ghosts {
+    display: none;
   }
 }

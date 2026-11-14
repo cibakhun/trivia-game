@@ -5,6 +5,7 @@ import { t } from '../i18n/i18n.ts';
 import { shownPick } from './match-model.ts';
 import { logText, questionContext, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
+import { useBorn } from './stage-live.ts';
 
 /**
  * Ansage (ADR-053, docs/ART_DIRECTION.md §4): Die Karte zeigt, was eben geschah oder gleich
@@ -66,12 +67,21 @@ export function AnnouncePanel({
   const pick = shownPick(events);
   return (
     <section className="announce-card" data-testid="match-announce" aria-live="polite">
-      <p className="announce-line">
+      <AnnounceLine key={pick?.seq ?? 'none'}>
         {pick ? <SeatCrest seat={pick.payload.seat} size={26} /> : null}
         <strong>
           {pick ? logText(pick, name, region) : (fallback ?? t('match.announce.next'))}
         </strong>
-      </p>
+      </AnnounceLine>
     </section>
   );
+}
+
+/**
+ * Zeile der gezeigten Wahl. Folgt auf derselben Seite des Blatts die nächste Wahl (Bots setzen
+ * nacheinander), schreibt sich nur diese Zeile neu ein; Überschrift und Blatt bleiben stehen.
+ */
+function AnnounceLine({ children }: { readonly children: ReactNode }) {
+  const born = useBorn();
+  return <p className={born ? 'announce-line arriving' : 'announce-line'}>{children}</p>;
 }

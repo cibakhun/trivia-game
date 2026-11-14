@@ -356,8 +356,13 @@
 .map-art .board-region.legal {
   cursor: pointer;
 }
-.map-art .board-region.legal:focus {
+/* Den Fokus zeigt die Karte selbst (`hot-ring`, nur für die Tastatur): Der Rahmen des Browsers wäre
+   ein Rechteck um das ganze Feld, und er erschiene auch nach jedem Tipp */
+.map-art .board-region:focus {
   outline: none;
+}
+.map-art .board-region[role='button'] {
+  cursor: pointer;
 }
 .map-art .legal-glow {
   fill: var(--map-glow);
@@ -406,9 +411,84 @@
 }
 
 /*
+ * Antwort auf einen Tipp (MatchBoard `press`): Die Fläche des Felds blitzt einmal golden auf, im
+ * Bild des Tipps am stärksten, und klingt in 0,28 s ab. Ein Tipp, der gerade nichts auswählt
+ * (`refused`), blitzt in Tinte und schwächer. Ohne Animation ist die Fläche unsichtbar.
+ */
+.map-art .board-press {
+  pointer-events: none;
+}
+.map-art .tap-press {
+  --press: 0.4;
+  fill: var(--map-gold);
+  opacity: 0;
+  animation: tap-press 0.28s cubic-bezier(0.3, 0.6, 0.35, 1) both;
+}
+.map-art .tap-press.refused {
+  --press: 0.2;
+  fill: var(--map-ink);
+}
+@keyframes tap-press {
+  from {
+    opacity: var(--press);
+  }
+}
+
+/*
+ * Fester goldener Rand: das gewählte Feld der Rüstzeit, das angetippte Ziel (`plan-selected`) und
+ * die eigene Wahl, solange sie zum Server unterwegs ist (`pick-ring`). Die dunkle Fassung darunter
+ * ist eine eigene Form statt eines Filters (WebKit). Mit dem Tipp setzt sich der Rand: Er steht
+ * sofort ganz da, breit, und zieht sich in 0,24 s auf sein Maß zusammen (`ring-land`).
+ */
+.map-art .ring-casing {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-opacity: 0.34;
+  stroke-width: 9.5;
+  stroke-linejoin: round;
+}
+.map-art .ring-line {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+.map-art :is(.pick-ring, .plan-selected).land .ring-line {
+  animation: ring-land 0.24s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.map-art :is(.pick-ring, .plan-selected).land .ring-casing {
+  animation: ring-land-casing 0.24s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes ring-land {
+  from {
+    stroke-width: 13;
+  }
+}
+@keyframes ring-land-casing {
+  from {
+    stroke-width: 16.5;
+  }
+}
+
+/*
  * Duell auf der Karte (match/MatchBoard.tsx `DuelStageArt`, docs/ART_DIRECTION.md §4). Die
  * Grundwerte sind immer das Endbild der Szene: Ohne Animation (laufende Frage, „Bewegung
- * reduzieren“) steht es sofort da.
+ * reduzieren“) steht es sofort da. Splitter, Funken, Druckwellen und das Beben der Karte liegen in
+ * der Effektebene darüber (art/fx, `duelFx` in match/board-fx.ts).
+ *
+ * Ausgang, Zeiten ab Beginn der Szene `outcome` (Schlag bei `--fall-at` = 0,35 s):
+ *   0–0,1 s     Der Angreifer holt Schwung: Er weicht ein Stück zurück und staucht sich.
+ *   0,1–0,35 s  Er stürmt den Pfeil entlang, immer schneller, und zieht sich in die Länge; der
+ *               Pfeil stößt nach vorn und wird von hinten zusammengeschoben.
+ *   0,35 s      Einschlag: Treffer-Stopp bis 0,41 s, beide Wappen stehen gestaucht still.
+ *   ab 0,41 s   erobert: Der Verteidiger zerspringt, der Sieger setzt sich wie ein Siegel in die
+ *               Mitte (goldener Ring), seine Farbe läuft von der Grenze her ein (ab 0,36 s).
+ *               gehalten: Ein goldener Schild blitzt auf, der Angreifer wird zurückgeschleudert
+ *               und taumelt, der Verteidiger pulsiert stolz mit goldenem Ring.
+ *               getroffen: Der Angreifer prallt ab und kehrt heim.
+ *   0,92–1,15 s Die Wappen gehen; ab 0,9 s stehen die Beschriftungen wieder.
+ *   1,14–1,5 s  Der Schleier hebt sich.
+ * Die Zeiten der Schlüsselbilder stehen in Millisekunden bei den Prozentwerten (Dauer 1,15 s).
  */
 .map-art .duel-stage {
   pointer-events: none;
@@ -422,9 +502,12 @@
 .map-art .duel-stage.enter .duel-veil {
   animation: duel-veil-in 0.35s ease-out both;
 }
-.map-art .duel-stage.scene-settled .duel-veil {
+/* Gegen Ende des Ausgangs hebt sich der Schleier: Was danach kommt (Blatt mit Antworten, Rest der
+   Auflösung), findet die Karte schon hell vor. Ausgang und Rest tragen dieselbe Animation, damit
+   sie beim Wechsel nicht neu anläuft */
+.map-art .duel-stage:is(.scene-outcome, .scene-settled) .duel-veil {
   opacity: 0;
-  animation: duel-veil-out 0.4s ease-in both;
+  animation: duel-veil-out 1.5s linear both;
 }
 
 /* Ränder: Ziel rot pulsierend, Herkunft ruhig in der Farbe des Angreifers */
@@ -444,15 +527,28 @@
 .map-art .duel-stage.enter .duel-ring.source {
   animation: duel-fade-in 0.35s ease-out both;
 }
-/* Entschieden: Der Rand nimmt die Farbe des Siegers an */
-.map-art .duel-stage.scene-outcome .duel-ring.target,
-.map-art .duel-stage.scene-settled .duel-ring.target {
+/* Entschieden: Der Rand nimmt die Farbe des Siegers an, im Augenblick des Schlags; bis dahin
+   steht noch der rote Rand darüber */
+.map-art .duel-stage:is(.scene-outcome, .scene-settled) .duel-ring.target {
   stroke: var(--winner);
-  animation: duel-ring-flash 0.55s ease-out both;
+  animation: none;
+}
+.map-art .duel-stage.scene-outcome .duel-ring.target {
+  animation:
+    duel-fade-in 0.06s var(--fall-at) ease-out both,
+    duel-ring-flash 0.55s var(--fall-at) ease-out both;
+}
+.map-art .duel-stage.scene-outcome .duel-ring.target.before {
+  stroke: var(--danger);
+  opacity: 0;
+  animation: duel-ring-before 0.42s linear both;
 }
 .map-art .duel-stage.scene-outcome .duel-ring.source {
   opacity: 0;
-  animation: duel-fade-out 0.3s ease-in both;
+  animation: duel-fade-out 0.25s 0.1s ease-in both;
+}
+.map-art[data-effect='CAPITAL_HIT'] .duel-stage.scene-outcome .duel-ring.target {
+  stroke: var(--danger);
 }
 
 /* Wappenplättchen */
@@ -472,8 +568,12 @@
 .map-art .token-emblem {
   fill: #fff;
 }
+.map-art .duel-token,
 .map-art .token-body,
-.map-art .duel-arrow {
+.map-art .token-squash,
+.map-art .token-seal,
+.map-art .token-guard,
+.map-art .token-stamp {
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -481,6 +581,54 @@
 .map-art .token-shadow {
   fill: var(--map-veil);
   opacity: 0.4;
+}
+/* Helle Scheibe über dem Wappen: Sie blitzt im Augenblick des Treffers auf */
+.map-art .token-flash {
+  fill: var(--map-lift);
+  opacity: 0;
+}
+/* Tintenring, mit dem sich das Wappen des Angreifers im Aufmarsch einstempelt */
+.map-art .token-stamp {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 2.5;
+  opacity: 0;
+}
+/* Goldener Ring des Siegers, mit hellem Schein als eigener Form darunter */
+.map-art .token-seal {
+  opacity: 0;
+}
+.map-art .seal-glow {
+  fill: none;
+  stroke: var(--map-glow);
+  stroke-width: 9;
+  opacity: 0.6;
+}
+.map-art .seal-ring {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 3.4;
+}
+/* Goldener Schild vor dem Verteidiger, wenn die Verteidigung hält */
+.map-art .token-guard {
+  opacity: 0;
+}
+.map-art .guard-room {
+  fill: none;
+  stroke: none;
+}
+.map-art .guard-glow {
+  fill: none;
+  stroke: var(--map-glow);
+  stroke-width: 11;
+  stroke-linecap: round;
+  opacity: 0.65;
+}
+.map-art .guard-arc {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 4;
+  stroke-linecap: round;
 }
 
 /* Wo ein Wappen steht, weichen Name, Münze und Burg; sie kehren zurück, wenn es geht */
@@ -499,150 +647,263 @@
   animation: duel-fade-in 0.25s 0.9s ease-out both;
 }
 
-/* Blockpfeil vom Angreifer zum Verteidiger */
-.map-art .duel-arrow path {
-  fill: var(--attacker);
+/*
+ * Blockpfeil vom Angreifer zum Verteidiger, im eigenen Rahmen gezeichnet (x zeigt zum Ziel): Erst
+ * beide Umrisse, dann beide Flächen, damit zwischen Schaft und Spitze keine Naht steht. Der ganze
+ * Pfeil wächst und staucht sich um seine Spitze, Schaft und Spitze um ihren Anfang.
+ */
+.map-art .arrow-outline {
+  fill: none;
   stroke: var(--map-coin);
   stroke-width: 3;
   stroke-linejoin: round;
-  paint-order: stroke;
+}
+.map-art .arrow-fill {
+  fill: var(--attacker);
+}
+.map-art .duel-arrow {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+}
+.map-art .arrow-shaft,
+.map-art .arrow-head {
+  transform-box: fill-box;
+  transform-origin: 0 50%;
 }
 
-/* Aufmarsch: Der Angreifer setzt sein Wappen, der Pfeil schießt über die Grenze, der Verteidiger
-   stellt sich */
+/* Aufmarsch: Der Angreifer stempelt sein Wappen mit einem Tintenring ein, der Pfeil zieht sich
+   wie ein Pinselstrich vom Schaft zur Spitze, der Verteidiger stellt sich */
 .map-art .duel-stage.enter .duel-token.attacker .token-body {
   animation: duel-stamp 0.34s 0.12s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
-.map-art .duel-stage.enter .duel-arrow {
-  animation: duel-shoot 0.3s 0.45s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+.map-art .duel-stage.enter .duel-token.attacker .token-stamp {
+  animation: duel-stamp-ring 0.6s 0.27s cubic-bezier(0.1, 0.6, 0.3, 1) both;
+}
+.map-art .duel-stage.enter .arrow-shaft {
+  animation: arrow-brush 0.26s 0.45s cubic-bezier(0.35, 0.1, 0.25, 1) both;
+}
+.map-art .duel-stage.enter .arrow-head {
+  animation: arrow-flick 0.24s 0.64s cubic-bezier(0.2, 1.5, 0.4, 1) both;
 }
 .map-art .duel-stage.enter .duel-token.defender .token-body {
   animation: duel-brace 0.36s 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
 /* Solange das Duell läuft, stoßen Wappen und Pfeil im Takt des roten Rands vor */
-.map-art .duel-stage:is(.scene-announce, .scene-duel) .duel-token.attacker .token-nudge,
-.map-art .duel-stage:is(.scene-announce, .scene-duel) .duel-arrow path {
+.map-art .duel-stage:is(.scene-announce, .scene-duel) .duel-token.attacker .token-nudge {
   animation: duel-push 1.1s 1.2s ease-in-out infinite;
+}
+.map-art .duel-stage:is(.scene-announce, .scene-duel) .duel-arrow {
+  animation: arrow-push 1.1s 1.2s ease-in-out infinite;
 }
 .map-art .duel-stage:is(.scene-announce, .scene-duel) .duel-token.defender .token-nudge {
   animation: duel-recoil 1.1s 1.2s ease-in-out infinite;
 }
 
-/* Ausgang: Endbild ohne Wappen, die Karte zeigt den neuen Stand */
+/* Ausgang: Endbild ohne Wappen und Pfeil, die Karte zeigt den neuen Stand */
 .map-art .duel-stage.scene-outcome .duel-token,
 .map-art .duel-stage.scene-outcome .duel-arrow {
   opacity: 0;
 }
+
+/* Anlauf und Einschlag, in jedem Ausgang gleich: Schwung holen, stürmen, Treffer-Stopp */
 .map-art .duel-stage.scene-outcome .duel-arrow {
-  animation: duel-fade-out 0.18s ease-in both;
+  animation: duel-thrust 1.15s linear both;
 }
-/* Angreifer gewinnt: Er stößt in die Region, der Verteidiger weicht */
+.map-art .duel-stage.scene-outcome .duel-token.attacker .token-squash {
+  animation: duel-squash 0.62s linear both;
+}
+
+/* Erobert: Der Verteidiger zerspringt im Treffer, der Sieger setzt sich wie ein Siegel */
 .map-art .duel-stage.scene-outcome.attack-won .duel-token.attacker {
-  animation: duel-advance 1.15s cubic-bezier(0.5, 0, 0.2, 1) both;
+  animation: duel-charge-won 1.15s linear both;
 }
 .map-art .duel-stage.scene-outcome.attack-won .duel-token.attacker .token-body {
-  animation: duel-triumph 0.45s 0.38s ease-out both;
+  animation: duel-seal 0.8s linear both;
+}
+.map-art .duel-stage.scene-outcome.attack-won .duel-token.attacker .token-seal {
+  animation: duel-seal-ring 1.15s linear both;
+}
+/* Auf einem freien Feld setzt er schon beim Einschlag auf */
+.map-art
+  .duel-stage.scene-outcome.attack-won.contact-field
+  .duel-token.attacker
+  :is(.token-body, .token-seal) {
+  animation-delay: -0.21s;
 }
 .map-art .duel-stage.scene-outcome.attack-won .duel-token.defender {
-  animation: duel-fall 0.45s 0.14s ease-in both;
+  animation: duel-shatter 1.15s linear both;
 }
 .map-art .duel-stage.scene-outcome.attack-won .duel-token.defender .token-body {
-  animation: duel-tumble 0.45s 0.14s ease-in both;
+  animation: duel-burst-out 1.15s linear both;
+}
+.map-art
+  .duel-stage.scene-outcome:is(.attack-won, .struck, .held)
+  .duel-token.defender
+  .token-squash {
+  animation: duel-absorb 0.62s linear both;
+}
+.map-art .duel-stage.scene-outcome.attack-won .duel-token.defender .token-flash {
+  animation: duel-flash 0.62s linear both;
+}
+/* Eine Burg stürzt ein (`razed`): Der Sieger setzt sich nicht als Siegel über sie, sondern prallt
+   am Wall ab und tritt zurück. So liegt der Einsturz frei vor dem Auge; dass die Region nun seine
+   ist, erzählt die einlaufende Tinte. Die Klasse steht ab Beginn des Ausgangs fest */
+.map-art .duel-stage.scene-outcome.attack-won.razed .duel-token.attacker {
+  animation-name: duel-charge-razed;
+}
+.map-art .duel-stage.scene-outcome.attack-won.razed .duel-token.attacker .token-seal {
+  animation: none;
+}
+.map-art .duel-stage.scene-outcome.attack-won.razed .duel-token.attacker .token-body {
+  animation: none;
 }
 /* Die Hauptstadt fällt: Ihre Burg wankt und versinkt, während der Sieger einzieht */
 .map-art .duel-castle {
   opacity: 0;
   transform-box: fill-box;
   transform-origin: 50% 90%;
-  animation: duel-castle-fall 0.65s 0.1s ease-in both;
+  animation: duel-castle-fall 0.65s 0.41s ease-in both;
 }
-/* Treffer auf die Hauptstadt: Der Angreifer schlägt gegen die Burg und kehrt zurück */
-.map-art[data-effect='CAPITAL_HIT'] .duel-stage.scene-outcome .duel-token.attacker {
-  animation: duel-strike 1.15s ease-in-out both;
+
+/* Getroffen: Der Angreifer schlägt gegen Burg oder Gebäude und kehrt heim, das Ziel steckt ein */
+.map-art .duel-stage.scene-outcome.struck .duel-token.attacker {
+  animation: duel-charge-hit 1.15s linear both;
 }
-.map-art[data-effect='CAPITAL_HIT'] .duel-stage.scene-outcome .duel-token.attacker .token-body {
-  animation: none;
+.map-art .duel-stage.scene-outcome:is(.struck, .held) .duel-token.defender {
+  animation: duel-stand 1.15s linear both;
 }
-.map-art[data-effect='CAPITAL_HIT'] .duel-stage.scene-outcome .duel-ring.target {
-  stroke: var(--danger);
+.map-art .duel-stage.scene-outcome.struck .duel-token.defender .token-nudge {
+  animation: duel-knock 1.15s linear both;
 }
-/* Verteidiger hält: Der Pfeil prallt ab, der Angreifer weicht zurück, der Verteidiger steht groß da */
-.map-art .duel-stage.scene-outcome.held .duel-arrow {
-  animation: duel-bounce 0.4s ease-out both;
+/* Ein getroffenes Gebäude fällt eine Stufe, sein Name kehrt schon ab 0,6 s zurück: Das Wappen des
+   Verteidigers steckt den Stoß ein und weicht vorher */
+.map-art .duel-stage.scene-outcome.struck.contact-token .duel-token.defender {
+  animation: duel-stand-short 1.15s linear both;
 }
+
+/* Gehalten: Der Schild blitzt auf, der Angreifer wird zurückgeschleudert und taumelt, der
+   Verteidiger pulsiert stolz mit goldenem Ring */
 .map-art .duel-stage.scene-outcome.held .duel-token.attacker {
-  animation: duel-repelled 1.15s ease-out both;
+  animation: duel-charge-held 1.15s linear both;
 }
 .map-art .duel-stage.scene-outcome.held .duel-token.attacker .token-body {
-  animation: duel-stagger 1.15s ease-out both;
-}
-.map-art .duel-stage.scene-outcome.held .duel-token.defender {
-  animation: duel-stand 1.15s ease-out both;
+  animation: duel-reel 1.15s linear both;
 }
 .map-art .duel-stage.scene-outcome.held .duel-token.defender .token-body {
-  animation: duel-triumph 0.5s 0.18s ease-out both;
+  animation: duel-proud 1.15s linear both;
+}
+.map-art .duel-stage.scene-outcome.held .duel-token.defender .token-seal {
+  animation: duel-seal-ring 1.15s -0.15s linear both;
+}
+.map-art .duel-stage.scene-outcome.held .token-guard {
+  animation: duel-guard 1.15s linear both;
 }
 
-/* Der Schlag: Ein Ring weitet sich vom Treffer aus */
-.map-art .duel-burst {
-  fill: none;
-  stroke: var(--winner);
-  stroke-width: 5;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-  /* Ohne Rückwirkung: Bis zum Schlag bleibt der Ring unsichtbar */
-  animation: duel-burst 0.6s 0.36s ease-out forwards;
-}
-.map-art .duel-stage.held .duel-burst {
-  animation-delay: 0.16s;
-}
-.map-art[data-effect='CAPITAL_HIT'] .duel-burst {
-  stroke: var(--danger);
-  animation-delay: 0.26s;
-}
-
-/* Die Farbe des alten Besitzers bleibt stehen, bis die neue sie überdeckt */
+/* Die Farbe des alten Besitzers weicht genau dort, wo die neue schon eingelaufen ist: kein
+   Mischton unter der Tinte (`ink-recede`, gleiche Schlüsselbilder wie `ink-spread`) */
 .map-art .wash-old {
   opacity: 0;
-  animation: duel-fade-out 0.55s ease-in both;
-  animation-delay: calc(var(--wave, 0s) + 0.15s);
+  animation: ink-recede var(--ink-ms, 0.9s) var(--ink-at, 0s) linear both;
+}
+.map-art .wash-old :is(.wash-fill, .wash-edge) {
+  fill: var(--old);
+  stroke: var(--old);
 }
 
 /*
- * Die Farbe des Siegers läuft von der Grenze her ein, über die er kam. Es bleibt dieselbe
- * Animation wie bei jeder Einfärbung, nur mit anderem Ursprung und Takt: Ein anderer Name ließe
- * sie neu anlaufen, sobald die Region nach dem Ausgang wieder eine gewöhnliche ist.
+ * Takt der Einfärbung (`ink-spread`, siehe unten): Die Farbe des Siegers läuft ein, wenn der
+ * Schlag sitzt, von der Grenze her, über die er kam (der Ursprung steckt in den Schlüsselbildern,
+ * MatchBoard). Es bleibt dieselbe Animation wie bei jeder Einfärbung, nur mit anderem Ursprung und
+ * Takt: Ein anderer Name ließe sie neu anlaufen, sobald die Region nach dem Ausgang wieder eine
+ * gewöhnliche ist.
  */
 .map-art .board-region.flooded {
-  --flood-r: 160%;
+  --ink-at: 0.36s;
+  --ink-ms: 0.85s;
 }
-.map-art .board-region.flooded .wash.ink-in {
-  animation-duration: 0.8s;
-  animation-delay: 0.15s;
-  animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1);
+/* Der Rand des Ziels nimmt die Farbe des Siegers dort an, wo die Tinte ihn erreicht; der rote
+   darunter geht erst, wenn sie die Region gefüllt hat */
+.map-art .duel-stage.scene-outcome .duel-ring-ink {
+  --ink-at: 0.36s;
+  --ink-ms: 0.85s;
+  animation: ink-spread var(--ink-ms) var(--ink-at) linear both;
 }
-/* Fällt ein Reich, folgen seine Regionen nacheinander */
-.map-art[data-effect='TAKEOVER'] .board-region:not(.flooded) .wash.ink-in {
-  animation-delay: var(--wave, 0s);
+.map-art .duel-stage.scene-outcome .duel-ring-ink .duel-ring.target {
+  animation: none;
+}
+.map-art .duel-stage.scene-outcome.attack-won .duel-ring.target.before {
+  animation-duration: 1.35s;
+}
+/* Die Außengrenzen der Reiche gehen erst in die neuen über, wenn die Tinte die Region gefüllt hat */
+.map-art .frontiers.turning-was {
+  opacity: 0;
+  animation: duel-fade-out 0.45s 0.66s ease-in-out both;
+}
+.map-art .frontiers.turning-now {
+  animation: duel-fade-in 0.45s 0.66s ease-in-out both;
+}
+.map-art[data-effect='TAKEOVER'] .frontiers:is(.turning-was, .turning-now) {
+  animation-duration: 0.6s;
+  animation-delay: 0.85s;
+}
+
+/* Fällt ein Reich, folgen seine Regionen nacheinander, je Feld Abstand 0,12 s (`--wave`) */
+.map-art[data-effect='TAKEOVER'] .board-region:not(.flooded) {
+  --ink-at: calc(0.36s + var(--wave, 0s));
+  --ink-ms: 0.75s;
 }
 /*
- * Burg und Münze reagieren erst, wenn der Schlag sitzt und die Beschriftung wieder steht. Die
- * Verzögerung gilt für die ganze Auflösung, damit der Wechsel zu den Antworten nichts abschneidet.
+ * Die Burg ruckt im Augenblick des Schlags, ihr Lebensschild bricht nach dem Treffer-Stopp; die
+ * Münze reagiert erst, wenn die Beschriftung wieder steht. Die Verzögerung gilt für die ganze
+ * Auflösung, damit der Wechsel zu den Antworten nichts abschneidet.
  */
-.map-art[data-effect] .castle.hit,
+.map-art[data-effect] .castle.hit {
+  animation-delay: var(--fall-at);
+}
 .map-art[data-effect] .life-off.breaking {
-  animation-delay: 0.25s;
+  animation-delay: var(--break-at);
 }
 .map-art[data-effect] .coin.pop {
   animation-delay: 1.05s;
 }
 
-/* Änderungen: Tinte breitet sich aus, Münze springt, Burg wackelt, Schild zerbricht */
+/*
+ * Nasse Tinte: Kommt eine Farbe neu auf eine Region, läuft sie als Klecks mit unruhigem Rand ein
+ * (art/ink.ts) und trägt eine dunklere nasse Kante, die beim Trocknen verblasst. Die
+ * Schlüsselbilder stehen in Variablen je Region (`--ink-0` … `--ink-5`, Innenrand der Kante
+ * `--wet-0` …), der Takt in `--ink-at` und `--ink-ms`; die Verzögerung kommt erst nach dem
+ * ersten Bild zum Tragen. Gleich viele Punkte je Bild und kein Filter: So überblendet auch WebKit.
+ */
 .map-art .ink-in {
-  animation: ink-spread 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation: ink-spread var(--ink-ms, 0.9s) var(--ink-at, 0s) linear both;
 }
+.map-art .wash-wet {
+  opacity: 0;
+  pointer-events: none;
+  animation: ink-wet var(--ink-ms, 0.9s) var(--ink-at, 0s) linear both;
+}
+.map-art .seat-0 > .wash-wet {
+  fill: color-mix(in srgb, var(--seat-0) 72%, var(--map-veil));
+}
+.map-art .seat-1 > .wash-wet {
+  fill: color-mix(in srgb, var(--seat-1) 72%, var(--map-veil));
+}
+.map-art .seat-2 > .wash-wet {
+  fill: color-mix(in srgb, var(--seat-2) 72%, var(--map-veil));
+}
+/*
+ * Bezugsrahmen der Tinte: `clip-path` rechnet bei SVG im Rahmen samt Strich, und WebKit kennt dort
+ * kein `fill-box`. Jede beschnittene Gruppe trägt deshalb diesen unsichtbaren Strich (breiter als
+ * `wash-edge`), so liegen neue Farbe, alte Farbe, nasse Kante und Rand genau übereinander.
+ */
+.map-art .ink-frame {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 8;
+}
+
+/* Änderungen: Münze springt, Burg wackelt, Schild zerbricht */
 .map-art .coin.pop {
   transform-box: fill-box;
   transform-origin: center;
@@ -659,15 +920,83 @@
   animation: shield-break 0.8s ease-out;
 }
 
-/* Ursprung und Reichweite sind einstellbar: Eine eroberte Region färbt sich von der Grenze her */
+/* Die Schlüsselbilder liegen bei art/ink.ts `INK_STOPS`; die Bewegung steckt in den Bildern selbst
+   (schnell heraus, dann zäh), deshalb läuft die Zeit dazwischen gleichmäßig */
 @keyframes ink-spread {
-  from {
-    clip-path: circle(0% at var(--flood-x, 50%) var(--flood-y, 50%));
-    opacity: 0.4;
+  0% {
+    clip-path: polygon(var(--ink-0));
+    opacity: 0.7;
   }
-  to {
-    clip-path: circle(var(--flood-r, 75%) at var(--flood-x, 50%) var(--flood-y, 50%));
+  14% {
+    clip-path: polygon(var(--ink-1));
+    opacity: 0.9;
+  }
+  32% {
+    clip-path: polygon(var(--ink-2));
     opacity: 1;
+  }
+  56% {
+    clip-path: polygon(var(--ink-3));
+  }
+  80% {
+    clip-path: polygon(var(--ink-4));
+  }
+  100% {
+    clip-path: polygon(var(--ink-5));
+    opacity: 1;
+  }
+}
+
+/* Die alte Farbe: überall außer im Klecks (ein Rahmen mit dem Klecks als Loch) */
+@keyframes ink-recede {
+  0% {
+    clip-path: polygon(evenodd, -9% -9%, 109% -9%, 109% 109%, -9% 109%, -9% -9%, var(--ink-0));
+    opacity: 1;
+  }
+  14% {
+    clip-path: polygon(evenodd, -9% -9%, 109% -9%, 109% 109%, -9% 109%, -9% -9%, var(--ink-1));
+  }
+  32% {
+    clip-path: polygon(evenodd, -9% -9%, 109% -9%, 109% 109%, -9% 109%, -9% -9%, var(--ink-2));
+  }
+  56% {
+    clip-path: polygon(evenodd, -9% -9%, 109% -9%, 109% 109%, -9% 109%, -9% -9%, var(--ink-3));
+  }
+  80% {
+    clip-path: polygon(evenodd, -9% -9%, 109% -9%, 109% 109%, -9% 109%, -9% -9%, var(--ink-4));
+  }
+  100% {
+    clip-path: polygon(evenodd, -9% -9%, 109% -9%, 109% 109%, -9% 109%, -9% -9%, var(--ink-5));
+    opacity: 1;
+  }
+}
+
+/* Die nasse Kante: ein Ring zwischen Rand und Innenrand, der mitläuft und dabei trocknet */
+@keyframes ink-wet {
+  0% {
+    clip-path: polygon(evenodd, var(--ink-0), var(--wet-0));
+    opacity: 0.3;
+  }
+  7% {
+    opacity: 0.8;
+  }
+  14% {
+    clip-path: polygon(evenodd, var(--ink-1), var(--wet-1));
+  }
+  32% {
+    clip-path: polygon(evenodd, var(--ink-2), var(--wet-2));
+    opacity: 0.7;
+  }
+  56% {
+    clip-path: polygon(evenodd, var(--ink-3), var(--wet-3));
+  }
+  80% {
+    clip-path: polygon(evenodd, var(--ink-4), var(--wet-4));
+    opacity: 0.3;
+  }
+  100% {
+    clip-path: polygon(evenodd, var(--ink-5), var(--wet-5));
+    opacity: 0;
   }
 }
 
@@ -678,8 +1007,13 @@
 }
 
 @keyframes duel-veil-out {
-  from {
+  0%,
+  76% {
     opacity: 0.5;
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    opacity: 0;
   }
 }
 
@@ -705,6 +1039,17 @@
   }
 }
 
+/* Der rote Rand steht bis zum Schlag und weicht dann der Farbe des Siegers */
+@keyframes duel-ring-before {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 /* Wappen setzen: groß und durchsichtig herein, wie ein Siegel, das aufgedrückt wird */
 @keyframes duel-stamp {
   from {
@@ -713,14 +1058,36 @@
   }
 }
 
-@keyframes duel-shoot {
-  from {
-    transform: translate(
-        calc(var(--ux) * var(--unit) * -0.45),
-        calc(var(--uy) * var(--unit) * -0.45)
-      )
-      scale(0.3);
+/* Unter dem Siegel quillt ein Ring Tinte hervor und verläuft */
+@keyframes duel-stamp-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.6);
     opacity: 0;
+  }
+}
+
+/* Pinselstrich: Der Schaft zieht sich vom Angreifer aus, die Spitze setzt mit Schwung ab */
+@keyframes arrow-brush {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.4;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+@keyframes arrow-flick {
+  0% {
+    transform: scale(0.15, 0.4);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
   }
 }
 
@@ -742,6 +1109,18 @@
   }
 }
 
+/* Derselbe Stoß für den Pfeil, in seinem eigenen Rahmen */
+@keyframes arrow-push {
+  0%,
+  55%,
+  100% {
+    transform: translateX(0);
+  }
+  72% {
+    transform: translateX(calc(var(--unit) * 0.1));
+  }
+}
+
 @keyframes duel-recoil {
   0%,
   68%,
@@ -756,13 +1135,29 @@
   }
 }
 
-/* Vorstoß in die Mitte der eroberten Region, kurz stehen, dann dem neuen Stand Platz machen */
-@keyframes duel-advance {
+/*
+ * Anlauf: zurück (ausrollend), dann immer schneller bis zum Einschlag. Alle drei Wege teilen die
+ * ersten 0,41 s. 100 ms = 8,7 %, 350 ms = 30,4 %, 410 ms = 35,7 %.
+ */
+@keyframes duel-charge-won {
   0% {
     transform: translate(0, 0);
     opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
   }
-  36%,
+  8.7% {
+    transform: translate(var(--back-x), var(--back-y));
+    animation-timing-function: cubic-bezier(0.42, 0, 0.78, 0.6);
+  }
+  30.4% {
+    transform: translate(var(--hit-x), var(--hit-y));
+  }
+  35.7% {
+    transform: translate(var(--hit-x), var(--hit-y));
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  /* 560 ms: in der Mitte */
+  48.7%,
   80% {
     transform: translate(var(--into-x), var(--into-y));
     opacity: 1;
@@ -773,33 +1168,243 @@
   }
 }
 
-@keyframes duel-triumph {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  40% {
-    transform: scale(1.35);
-  }
-}
-
-@keyframes duel-fall {
-  from {
+@keyframes duel-charge-held {
+  0% {
     transform: translate(0, 0);
     opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
   }
-  to {
-    transform: translate(calc(var(--ux) * var(--unit) * 0.6), calc(var(--uy) * var(--unit) * 0.6));
+  8.7% {
+    transform: translate(var(--back-x), var(--back-y));
+    animation-timing-function: cubic-bezier(0.42, 0, 0.78, 0.6);
+  }
+  30.4% {
+    transform: translate(var(--hit-x), var(--hit-y));
+  }
+  35.7% {
+    transform: translate(var(--hit-x), var(--hit-y));
+    animation-timing-function: cubic-bezier(0.1, 0.75, 0.3, 1);
+  }
+  /* 570 ms: hinter die eigene Mitte geschleudert, dann taumelnd ein Stück zurück */
+  49.6% {
+    transform: translate(var(--thrown-x), var(--thrown-y));
+    animation-timing-function: ease-in-out;
+  }
+  63.5%,
+  80% {
+    transform: translate(calc(var(--thrown-x) * 0.7), calc(var(--thrown-y) * 0.7));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(var(--thrown-x) * 0.7), calc(var(--thrown-y) * 0.7));
     opacity: 0;
   }
 }
 
-@keyframes duel-tumble {
-  to {
-    transform: rotate(50deg) scale(0.45);
+/* Burg stürzt ein: Einschlag wie immer, abgeprallt (500 ms), dann tritt er zurück und vergeht
+   (bis 720 ms), bevor der Bergfried fällt */
+@keyframes duel-charge-razed {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  }
+  8.7% {
+    transform: translate(var(--back-x), var(--back-y));
+    animation-timing-function: cubic-bezier(0.42, 0, 0.78, 0.6);
+  }
+  30.4% {
+    transform: translate(var(--hit-x), var(--hit-y));
+  }
+  35.7% {
+    transform: translate(var(--hit-x), var(--hit-y));
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  43.5% {
+    transform: translate(var(--recoil-x), var(--recoil-y));
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+  62.6%,
+  100% {
+    transform: translate(
+      calc(var(--recoil-x) - var(--ux) * var(--unit) * 0.12),
+      calc(var(--recoil-y) - var(--uy) * var(--unit) * 0.12)
+    );
+    opacity: 0;
   }
 }
 
+@keyframes duel-charge-hit {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  }
+  8.7% {
+    transform: translate(var(--back-x), var(--back-y));
+    animation-timing-function: cubic-bezier(0.42, 0, 0.78, 0.6);
+  }
+  30.4% {
+    transform: translate(var(--hit-x), var(--hit-y));
+  }
+  35.7% {
+    transform: translate(var(--hit-x), var(--hit-y));
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  /* 500 ms: abgeprallt, dann heim (760 ms) */
+  43.5% {
+    transform: translate(var(--recoil-x), var(--recoil-y));
+    animation-timing-function: cubic-bezier(0.45, 0, 0.3, 1);
+  }
+  66.1%,
+  80% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+}
+
+/*
+ * Stauchen und Strecken in Laufrichtung (Drehung um `--ang` hin und zurück): beim Ausholen
+ * gestaucht, im Sturm gestreckt, im Treffer platt, bis es sich fängt. Dauer 0,62 s:
+ * 100 ms = 16,1 %, 345 ms = 55,6 %, 350 ms = 56,5 %, 410 ms = 66,1 %.
+ */
+@keyframes duel-squash {
+  0% {
+    transform: rotate(var(--ang)) scale(1, 1) rotate(calc(var(--ang) * -1));
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  }
+  16.1% {
+    transform: rotate(var(--ang)) scale(0.88, 1.08) rotate(calc(var(--ang) * -1));
+    animation-timing-function: ease-in;
+  }
+  55.6% {
+    transform: rotate(var(--ang)) scale(1.16, 0.9) rotate(calc(var(--ang) * -1));
+  }
+  56.5%,
+  66.1% {
+    transform: rotate(var(--ang)) scale(0.87, 1.09) rotate(calc(var(--ang) * -1));
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1.4);
+  }
+  82% {
+    transform: rotate(var(--ang)) scale(1.04, 0.97) rotate(calc(var(--ang) * -1));
+  }
+  100% {
+    transform: rotate(var(--ang)) scale(1, 1) rotate(calc(var(--ang) * -1));
+  }
+}
+
+/* Der Getroffene wird im Treffer zusammengedrückt und federt aus */
+@keyframes duel-absorb {
+  0%,
+  55.6% {
+    transform: rotate(var(--ang)) scale(1, 1) rotate(calc(var(--ang) * -1));
+  }
+  56.5%,
+  66.1% {
+    transform: rotate(var(--ang)) scale(0.84, 1.1) rotate(calc(var(--ang) * -1));
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1.3);
+  }
+  100% {
+    transform: rotate(var(--ang)) scale(1, 1) rotate(calc(var(--ang) * -1));
+  }
+}
+
+/* Weißer Blitz im Treffer (Dauer 0,62 s) */
+@keyframes duel-flash {
+  0%,
+  55.6% {
+    opacity: 0;
+  }
+  56.5% {
+    opacity: 0.9;
+  }
+  66.1% {
+    opacity: 0.65;
+  }
+  76% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Das Wappen des Verteidigers platzt nach dem Treffer-Stopp weg: 410 bis 470 ms */
+@keyframes duel-shatter {
+  0%,
+  35.7% {
+    opacity: 1;
+  }
+  40.9%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes duel-burst-out {
+  0%,
+  35.7% {
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  40.9%,
+  100% {
+    transform: scale(1.4);
+  }
+}
+
+/*
+ * Der Sieger setzt sich wie ein Siegel: hebt sich auf dem Weg in die Mitte, drückt sich auf
+ * (580 ms), federt nach. Dauer 0,8 s: 410 ms = 51,3 %, 520 ms = 65 %, 580 ms = 72,5 %.
+ */
+@keyframes duel-seal {
+  0%,
+  51.3% {
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+  65% {
+    transform: scale(1.16);
+    animation-timing-function: cubic-bezier(0.6, 0, 1, 0.6);
+  }
+  72.5% {
+    transform: scale(0.9);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+  85% {
+    transform: scale(1.04);
+  }
+  97.5%,
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Der goldene Ring schnappt um das Siegel ein (560 bis 640 ms) und bleibt, bis das Wappen geht */
+@keyframes duel-seal-ring {
+  0%,
+  48.7% {
+    transform: scale(1.7);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.4, 1.3);
+  }
+  55.7% {
+    transform: scale(0.96);
+    opacity: 1;
+  }
+  61%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Die Hauptstadt fällt */
 @keyframes duel-castle-fall {
   0% {
     transform: none;
@@ -819,96 +1424,133 @@
   }
 }
 
-@keyframes duel-strike {
-  0% {
-    transform: translate(0, 0);
-    opacity: 1;
-  }
-  24% {
-    transform: translate(var(--strike-x), var(--strike-y));
-    opacity: 1;
-  }
-  50%,
-  80% {
-    transform: translate(0, 0);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(0, 0);
-    opacity: 0;
-  }
-}
-
-@keyframes duel-bounce {
-  0% {
-    transform: translate(0, 0);
-    opacity: 1;
-  }
-  25% {
-    transform: translate(calc(var(--ux) * var(--unit) * 0.1), calc(var(--uy) * var(--unit) * 0.1));
-    opacity: 1;
-  }
-  100% {
-    transform: translate(
-      calc(var(--ux) * var(--unit) * -0.35),
-      calc(var(--uy) * var(--unit) * -0.35)
-    );
-    opacity: 0;
-  }
-}
-
-/* Abgewehrt: Der Angreifer wird zurückgeworfen und bleibt geschlagen stehen */
-@keyframes duel-repelled {
+/* Abgewehrt: Der Angreifer taumelt, dreht sich halb weg und bleibt geschlagen stehen */
+@keyframes duel-reel {
   0%,
-  10% {
-    transform: translate(0, 0);
-    opacity: 1;
+  35.7% {
+    transform: rotate(0) scale(1);
+    animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
   }
-  26% {
-    transform: translate(
-      calc(var(--ux) * var(--unit) * -0.34),
-      calc(var(--uy) * var(--unit) * -0.34)
-    );
-    opacity: 1;
+  49.6% {
+    transform: rotate(-30deg) scale(0.86);
+    animation-timing-function: ease-in-out;
   }
-  44%,
-  80% {
-    transform: translate(
-      calc(var(--ux) * var(--unit) * -0.2),
-      calc(var(--uy) * var(--unit) * -0.2)
-    );
-    opacity: 0.7;
+  58% {
+    transform: rotate(-8deg) scale(0.88);
+    animation-timing-function: ease-in-out;
   }
+  66% {
+    transform: rotate(-19deg) scale(0.86);
+    animation-timing-function: ease-in-out;
+  }
+  73%,
   100% {
-    transform: translate(
-      calc(var(--ux) * var(--unit) * -0.2),
-      calc(var(--uy) * var(--unit) * -0.2)
-    );
-    opacity: 0;
+    transform: rotate(-14deg) scale(0.86);
   }
 }
 
-@keyframes duel-stagger {
+/* Gehalten: Das Wappen des Verteidigers pulsiert stolz (410 bis 800 ms) */
+@keyframes duel-proud {
   0%,
-  10% {
-    transform: none;
+  35.7% {
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
   }
-  26%,
+  42.6% {
+    transform: scale(1.2);
+    animation-timing-function: ease-in-out;
+  }
+  52.2% {
+    transform: scale(0.97);
+    animation-timing-function: ease-in-out;
+  }
+  60.9% {
+    transform: scale(1.05);
+    animation-timing-function: ease-in-out;
+  }
+  69.6%,
   100% {
-    transform: rotate(-16deg) scale(0.84);
+    transform: scale(1);
   }
 }
 
-@keyframes duel-burst {
-  from {
-    transform: scale(0.7);
-    opacity: 0.95;
-    stroke-width: 7;
-  }
-  to {
-    transform: scale(2.3);
+/* Der goldene Schild blitzt kurz vor dem Einschlag auf und verglimmt (340 bis 600 ms) */
+@keyframes duel-guard {
+  0%,
+  29.6% {
+    transform: scale(0.75);
     opacity: 0;
-    stroke-width: 1.5;
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1.4);
+  }
+  31.3% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  35.7% {
+    transform: scale(1);
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+  52.2%,
+  100% {
+    transform: scale(1.06);
+    opacity: 0;
+  }
+}
+
+/* Getroffen: Das Ziel wird ein Stück zurückgestoßen und richtet sich wieder auf */
+@keyframes duel-knock {
+  0%,
+  35.7% {
+    transform: translate(0, 0);
+    animation-timing-function: cubic-bezier(0.1, 0.7, 0.3, 1);
+  }
+  41.7% {
+    transform: translate(
+      calc(var(--ux) * var(--unit) * 0.09),
+      calc(var(--uy) * var(--unit) * 0.09)
+    );
+    animation-timing-function: ease-in-out;
+  }
+  60.9%,
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* Der Pfeil holt mit aus, stößt nach vorn und wird vom stürmenden Wappen zusammengeschoben; im
+   Einschlag zerfällt er (die Splitter fliegen in der Effektebene) */
+@keyframes duel-thrust {
+  0% {
+    transform: translateX(0) scaleX(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1);
+  }
+  8.7% {
+    transform: translateX(var(--arrow-pull)) scaleX(1);
+    animation-timing-function: cubic-bezier(0.42, 0, 0.78, 0.6);
+  }
+  30.4% {
+    transform: translateX(var(--arrow-thrust)) scaleX(var(--arrow-squeeze));
+    opacity: 1;
+  }
+  32%,
+  100% {
+    transform: translateX(var(--arrow-thrust)) scaleX(var(--arrow-squeeze));
+    opacity: 0;
+  }
+}
+
+/* 480 ms bis 600 ms */
+@keyframes duel-stand-short {
+  0%,
+  41.7% {
+    opacity: 1;
+    animation-timing-function: ease-in;
+  }
+  52.2%,
+  100% {
+    opacity: 0;
   }
 }
 
@@ -1029,6 +1671,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .map-art .ink-in,
+  .map-art .wash-wet,
+  .map-art .wash-old,
+  .map-art .frontiers:is(.turning-was, .turning-now),
   .map-art .coin.pop,
   .map-art .castle.hit,
   .map-art .life-off.breaking,
@@ -1041,7 +1686,8 @@
     animation: none !important;
   }
   .map-art .region-label,
-  .map-art .region-label .board-name {
+  .map-art .region-label .board-name,
+  .map-art .plan-dim {
     transition: none;
   }
   .map-art .legal-glow {
@@ -1105,9 +1751,15 @@
   fill: var(--map-ink);
 }
 
-/* Rüstzeit: Felder anderer Reiche treten zurück, mögliche Ziele eines Zugs sind gestrichelt */
+/* Rüstzeit: Felder anderer Reiche treten zurück, mögliche Ziele eines Zugs sind gestrichelt. Der
+   Schleier liegt immer bereit (`on` nur in der Rüstzeit) und blendet mit ihrem Beginn und Ende
+   weich; beim ersten Aufbau steht er sofort */
 .map-art .plan-dim {
   fill: var(--map-veil);
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+.map-art .plan-dim.on {
   opacity: 0.17;
 }
 .map-art .plan-target {
@@ -1117,6 +1769,52 @@
   stroke-width: 3.5;
   stroke-dasharray: 8 6;
   stroke-linejoin: round;
+  /* „Ziehen“ ist offen, der nächste Tipp gehört der Karte: Der Strichrand läuft wie bei jeder Wahl */
+  animation: march 1.2s linear infinite;
+}
+/* Mit „Ziehen“ leuchten die Ziele einmal auf (0,3 s) */
+.map-art .plan-target.lit {
+  animation:
+    target-lit 0.3s ease-out both,
+    march 1.2s linear infinite;
+}
+@keyframes target-lit {
+  from {
+    fill-opacity: 0.46;
+    stroke-width: 6;
+  }
+}
+/* Kein Ziel: gepunkteter Tintenrand, solange das Blatt sagt, warum; mit dem Tipp ruckt er einmal
+   (0,3 s, ±4 Einheiten), das klassische Nein */
+.map-art .plan-refused {
+  transform-box: fill-box;
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-opacity: 0.78;
+  stroke-width: 5;
+  stroke-dasharray: 0.1 10.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.map-art .plan-refused.shaken {
+  animation: refuse-shake 0.3s ease-out both;
+}
+@keyframes refuse-shake {
+  0% {
+    transform: translateX(0);
+  }
+  22% {
+    transform: translateX(-4px);
+  }
+  48% {
+    transform: translateX(4px);
+  }
+  74% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: none;
+  }
 }
 /* Rüstzeit, noch nichts gewählt: Die eigenen Felder leuchten zweimal auf und sind dann wieder still */
 .map-art .plan-hint {
@@ -1127,12 +1825,100 @@
   opacity: 0;
   animation: plan-hint 1.1s ease-in-out 0.25s 2;
 }
-.map-art .plan-selected {
-  fill: none;
-  stroke: var(--map-gold);
-  stroke-width: 6;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 2px var(--map-ink));
+/* Das gewählte Feld trägt den festen goldenen Rand (`ring-casing`, `ring-line` oben bei der Wahl) */
+
+/* Eben gesetzte Burg: Der Name stand in der Mitte des Felds und rückt nach oben, während die
+   Burg aus dem Boden wächst, statt zu springen */
+.map-art .name-rise {
+  animation: name-rise 0.36s cubic-bezier(0.3, 0.7, 0.25, 1) both;
+}
+@keyframes name-rise {
+  from {
+    transform: translateY(var(--rise));
+  }
+}
+/* Eben gesetzte Burg (Wahl am Anfang): Ihre Lebensschilde folgen, wenn sie aus dem Boden
+   gewachsen ist (`building-rise` ab `--rise-at`), statt schon unter dem leeren Feld zu stehen */
+.map-art .lives.placed {
+  transform-box: fill-box;
+  animation: lives-in 0.26s calc(var(--rise-at) + 0.4s) ease-out both;
+}
+@keyframes lives-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+/*
+ * Pläne der Rüstzeit setzen sich mit dem Tipp in Szene, kurz und anders als die Tatsachen beim
+ * Aufdecken (dort wachsen Gebäude aus dem Boden und der Zug zieht sich als fester Strich). Alles
+ * steht schon im Bild des Tipps da; die Grundwerte sind das Endbild.
+ *   Geplanter Bau    die blasse Skizze senkt sich aufs Feld (0,22 s), das goldene Plus stempelt sich
+ *   Geplanter Kauf   das Plättchen „+N“ stempelt sich, bei jeder Änderung der Zahl neu (0,2 s)
+ *   Geplanter Zug    der Pfeil schießt vom Start zum Ziel (0,2 s), Spitze und Zahl stempeln sich;
+ *                    die Zahl steht auf Gold und stempelt sich mit jeder weiteren Armee neu
+ */
+.map-art .building.ghost.sketched .ghost-house {
+  transform-box: fill-box;
+  transform-origin: 50% 92%;
+  animation: plan-sketch 0.22s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes plan-sketch {
+  from {
+    transform: translateY(-5px) scale(1.08);
+    opacity: 0.4;
+  }
+}
+.map-art :is(.ghost-plus, .army-plus, .move-badge, .move-head) {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.map-art .building.ghost.sketched .ghost-plus {
+  animation: plan-stamp 0.24s 0.04s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+.map-art .army-plus.stamped {
+  animation: plan-stamp 0.2s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+@keyframes plan-stamp {
+  from {
+    transform: scale(1.7);
+  }
+}
+/* Die Zahl eines geplanten Zugs steht auf Gold, wie das Plus eines geplanten Baus und Kaufs */
+.map-art .plan-move.planned .move-disc {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 1.5;
+}
+.map-art .plan-move.planned.run :is(.move-halo, .move-line) {
+  stroke-dasharray: 1;
+  animation: move-draw 0.2s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+}
+.map-art .plan-move.planned.run .move-head {
+  animation: plan-stamp-small 0.22s 0.08s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+.map-art .plan-move.planned .move-badge.stamped {
+  animation: plan-stamp-small 0.22s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+@keyframes plan-stamp-small {
+  from {
+    transform: scale(1.45);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-art .tap-press,
+  .map-art .ring-line,
+  .map-art .ring-casing,
+  .map-art .plan-target,
+  .map-art .plan-refused,
+  .map-art .building.ghost *,
+  .map-art .lives.placed,
+  .map-art .name-rise,
+  .map-art .army-plus,
+  .map-art .plan-move.planned * {
+    animation: none !important;
+  }
 }
 
 /* Zug: Pfeil in der Farbe des Reichs, in der Mitte die Zahl der Armeen */
@@ -1196,7 +1982,7 @@
   --sign-at: 0.7s;
 }
 
-/* Gebäude wächst aus dem Boden und federt nach */
+/* Gebäude wächst aus dem Boden und federt nach; Baustaub und Glanz kommen aus der Ebene darüber */
 .map-art .building.rising,
 .map-art .castle.rising {
   transform-box: fill-box;
@@ -1223,63 +2009,328 @@
   }
 }
 
-/* Beschädigtes Gebäude: Es wankt und sackt in sich zusammen, Staub steigt auf, dann steht die
-   kleinere Stufe da (oder nichts mehr) */
-.map-art .falling .ruin {
+/*
+ * Ausgang: Gebäude und Burg brechen in Stücke (RealmBoardArt `Shatter`). Bis zum Schlag steht das
+ * Motiv ganz da und ruckt, wenn er sitzt; dann übernehmen drei Stücke entlang fester Bruchlinien,
+ * die versetzt einsacken und kippen und unter dem Boden verschwinden. Trümmer und Staub steigen
+ * in der Ebene darüber auf (realm-fx.ts). Im Endbild ist alles fort.
+ */
+.map-art {
+  --break-at: calc(var(--fall-at) + 0.07s);
+}
+.map-art .falling .whole,
+.map-art .falling .piece,
+.map-art .life-shatter .whole,
+.map-art .life-shatter .half {
   opacity: 0;
   transform-box: fill-box;
-  transform-origin: 50% 92%;
-  animation: building-fall 0.75s var(--fall-at) ease-in both;
 }
-/* Damit man es fallen sieht, steht das Feld im Ausgang sofort wieder da; nur der Name wartet,
-   bis das Wappen des Verteidigers fort ist */
-.map-art .region-label.prompt {
-  transition-delay: 0s;
-  transition-duration: 0.15s;
+/* Ganz: sichtbar bis zum Bruch, danach fort (Rückwirkung nur nach vorn) */
+.map-art .falling .whole,
+.map-art .life-shatter .whole {
+  transform-origin: 50% 100%;
+  animation: motif-jolt calc(var(--break-at) - var(--fall-at)) var(--fall-at) ease-out backwards;
 }
-.map-art .region-label.prompt .board-name {
-  animation: duel-fade-in 0.25s 0.6s ease-out both;
-}
-@keyframes building-fall {
+@keyframes motif-jolt {
   0% {
     transform: none;
     opacity: 1;
   }
-  12% {
-    transform: translateX(-3px) rotate(-3deg);
-  }
-  24% {
-    transform: translateX(3px) rotate(3deg);
-  }
-  36% {
-    transform: translateX(-2px) rotate(-2deg);
-  }
-  48% {
-    transform: translateX(1px) rotate(1deg);
+  45% {
+    transform: translateY(1.5px) scale(1.05, 0.9);
     opacity: 1;
   }
   100% {
-    transform: translateY(5px) scale(1.05, 0.1);
+    transform: none;
+    opacity: 1;
+  }
+}
+/* Stücke: unsichtbar bis zum Bruch, dann fallen sie */
+.map-art .falling .piece {
+  animation: 0.5s var(--break-at) linear forwards;
+}
+.map-art .building.falling .piece-0 {
+  transform-origin: 4% 100%;
+  animation-name: piece-fall-0;
+}
+.map-art .building.falling .piece-1 {
+  transform-origin: 50% 100%;
+  animation-name: piece-fall-1;
+}
+.map-art .building.falling .piece-2 {
+  transform-origin: 96% 100%;
+  animation-name: piece-fall-2;
+}
+/* Mitte: Hier sitzt der Schlag, sie sackt zuerst und senkrecht in sich zusammen */
+@keyframes piece-fall-1 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1);
+  }
+  10% {
+    transform: translate(0, 2px) scale(1.02, 0.95);
+    animation-timing-function: cubic-bezier(0.55, 0.08, 0.7, 0.55);
+  }
+  84% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0.5px, 42px) rotate(3deg) scale(0.92, 0.8);
     opacity: 0;
   }
 }
-.map-art .building.settling {
-  animation: duel-fade-in 0.3s calc(var(--fall-at) + 0.5s) ease-out both;
+/* Links: Der Riss springt auf, das Stück hält sich einen Augenblick, dann kippt es nach außen
+   und sinkt in den Staub */
+@keyframes piece-fall-0 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1);
+  }
+  12% {
+    transform: translate(-2.5px, -0.5px) rotate(-6deg);
+    animation-timing-function: linear;
+  }
+  22% {
+    transform: translate(-3px, 0) rotate(-8deg);
+    animation-timing-function: cubic-bezier(0.55, 0.08, 0.7, 0.55);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-9px, 34px) rotate(-52deg);
+    opacity: 0;
+  }
 }
-.map-art .dust circle {
-  fill: var(--map-rock);
+/* Rechts: nach der anderen Seite, als letztes */
+@keyframes piece-fall-2 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.1, 0.8, 0.3, 1);
+  }
+  12% {
+    transform: translate(2.5px, -0.5px) rotate(6deg);
+    animation-timing-function: linear;
+  }
+  32% {
+    transform: translate(3px, 0) rotate(8deg);
+    animation-timing-function: cubic-bezier(0.55, 0.08, 0.7, 0.55);
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(9px, 32px) rotate(48deg);
+    opacity: 0;
+  }
+}
+/* Danach steigt die kleinere Stufe aus dem Staub; ihr Schein kommt mit ihr */
+.map-art .building.settling {
+  transform-box: fill-box;
+  transform-origin: 50% 92%;
+  animation: building-rise 0.55s calc(var(--fall-at) + 0.5s) cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.map-art .fresh-glow.after-fall {
+  animation: duel-fade-in 0.4s calc(var(--fall-at) + 0.6s) ease-out both;
+}
+
+/*
+ * Burg: zwei Schläge. Beim Bruch kippen die Türme nach außen; der Bergfried steht noch einen
+ * Augenblick, wankt und sackt dann als letzter und schwerster in sich zusammen. Der zweite Schlag
+ * liegt hinter dem Wappen des Siegers, das bis etwa 0,9 s über der Mitte steht.
+ */
+.map-art .castle.falling .piece {
+  animation-duration: 0.78s;
+}
+.map-art .castle.falling .piece-0 {
+  transform-origin: 6% 100%;
+  animation-name: tower-fall-0;
+}
+.map-art .castle.falling .piece-1 {
+  transform-origin: 50% 100%;
+  animation-name: tower-fall-1;
+  animation-duration: 0.84s;
+}
+.map-art .castle.falling .piece-2 {
+  transform-origin: 94% 100%;
+  animation-name: tower-fall-2;
+}
+@keyframes tower-fall-0 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+  18% {
+    transform: translate(-1.5px, 0.5px) rotate(-4deg);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.55);
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-6px, 40px) rotate(-40deg);
+    opacity: 0;
+  }
+}
+/* Bergfried: steht, wankt, als ihm die Türme wegbrechen, und stürzt nach 0,4 s senkrecht ein */
+@keyframes tower-fall-1 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  12% {
+    transform: rotate(-2deg);
+    animation-timing-function: ease-in-out;
+  }
+  30% {
+    transform: rotate(1.4deg);
+    animation-timing-function: ease-in-out;
+  }
+  44% {
+    transform: translate(0, 1px) rotate(-0.6deg) scale(1.02, 0.97);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.85, 0.5);
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(1px, 52px) rotate(-6deg) scale(0.94, 0.78);
+    opacity: 0;
+  }
+}
+@keyframes tower-fall-2 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.55);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(6px, 38px) rotate(42deg);
+    opacity: 0;
+  }
+}
+
+/* Lebensschild zerbricht: zwei Hälften springen an der Spitze auseinander, kippen und fallen */
+.map-art .life-shatter .half {
+  transform-origin: 50% 100%;
+  animation: 0.42s var(--break-at) linear forwards;
+}
+.map-art .life-shatter .half-0 {
+  animation-name: half-fall-0;
+}
+.map-art .life-shatter .half-1 {
+  animation-name: half-fall-1;
+}
+@keyframes half-fall-0 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.15, 0.85, 0.4, 1);
+  }
+  14% {
+    transform: translate(-2px, -1.5px) rotate(-12deg);
+    animation-timing-function: cubic-bezier(0.3, 0.12, 0.7, 0.6);
+  }
+  68% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-6px, 15px) rotate(-56deg);
+    opacity: 0;
+  }
+}
+@keyframes half-fall-1 {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.15, 0.85, 0.4, 1);
+  }
+  14% {
+    transform: translate(2px, -1px) rotate(10deg);
+    animation-timing-function: cubic-bezier(0.3, 0.12, 0.7, 0.6);
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(6px, 16px) rotate(50deg);
+    opacity: 0;
+  }
+}
+/* Die leeren Schilde einer einstürzenden Burg fallen mit, eins nach dem anderen */
+.map-art .life.drop {
   opacity: 0;
   transform-box: fill-box;
-  transform-origin: center;
-  animation: dust-puff 0.6s calc(var(--fall-at) + 0.4s) ease-out both;
+  transform-origin: 50% 100%;
+  animation: shield-drop 0.55s calc(var(--break-at) + 0.1s) forwards;
 }
-.map-art .dust circle:nth-child(2) {
-  animation-delay: calc(var(--fall-at) + 0.47s);
+.map-art .life.drop-2 {
+  animation-delay: calc(var(--break-at) + 0.18s);
 }
-.map-art .dust circle:nth-child(3) {
-  animation-delay: calc(var(--fall-at) + 0.55s);
+.map-art .life.drop-3 {
+  animation-delay: calc(var(--break-at) + 0.26s);
 }
-/* Das Schild über dem Feld kommt erst, wenn der Schlag sitzt; fällt ein Gebäude, danach */
+.map-art .life.drop-4 {
+  animation-delay: calc(var(--break-at) + 0.34s);
+}
+@keyframes shield-drop {
+  0% {
+    transform: none;
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(1px, 12px) rotate(24deg);
+    opacity: 0;
+  }
+}
+/* Getroffene Burg mit Ausbau: Der Schlag staucht sie, dann zittert sie gedämpft aus */
+.map-art .castle.hit.shaken {
+  animation: castle-shudder 0.66s var(--fall-at) linear both;
+}
+@keyframes castle-shudder {
+  0% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.1, 0.9, 0.3, 1);
+  }
+  9% {
+    transform: translate(-2.5px, 1px) rotate(-3.5deg) scale(1.05, 0.92);
+    animation-timing-function: ease-in-out;
+  }
+  24% {
+    transform: translate(2px, 0) rotate(2.6deg) scale(0.99, 1.03);
+    animation-timing-function: ease-in-out;
+  }
+  40% {
+    transform: translate(-1.2px, 0) rotate(-1.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  57% {
+    transform: translate(0.6px, 0) rotate(0.8deg);
+    animation-timing-function: ease-in-out;
+  }
+  76% {
+    transform: rotate(-0.3deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Das Schild über dem Feld kommt erst, wenn der Schlag sitzt; fällt ein Gebäude oder bebt eine
+   Burg, danach */
 .map-art .plan-change.late {
   transform-box: fill-box;
   transform-origin: center;
@@ -1298,32 +2349,40 @@
     opacity: 1;
   }
 }
-@keyframes dust-puff {
-  0% {
-    transform: scale(0.3);
-    opacity: 0;
-  }
-  25% {
-    opacity: 0.75;
-  }
-  100% {
-    transform: translateY(-8px) scale(1.7);
-    opacity: 0;
-  }
+/* Damit man es fallen sieht, steht das Feld im Ausgang sofort wieder da; nur der Name wartet,
+   bis das Wappen des Verteidigers fort ist */
+.map-art .region-label.prompt {
+  transition-delay: 0s;
+  transition-duration: 0.15s;
+}
+.map-art .region-label.prompt .board-name {
+  animation: duel-fade-in 0.25s 0.6s ease-out both;
 }
 
 /* Zahl auf der Fahne: Die alte steht, bis sich dort etwas tut, dann die neue */
 .map-art .army[data-switch='recruit'] {
-  --switch-at: calc(var(--recruit-at) + var(--recruit-ms) - 0.06s);
+  --switch-at: calc(var(--recruit-at) + var(--recruit-ms) * 0.92);
 }
 .map-art .army[data-switch='in'] {
-  --switch-at: calc(var(--march-at) + var(--march-ms) - 0.08s);
+  --switch-at: calc(var(--march-at) + var(--march-ms) * 0.92);
 }
 .map-art .army[data-switch='out'] {
   --switch-at: var(--march-at);
 }
+/*
+ * Armee verloren: Wann der Schlag den Bannerträger trifft. Wer ein Feld behält, verliert seine
+ * Armee, wenn die Beschriftung wieder steht (`--loss-at`); wer es verliert, im Augenblick des
+ * Schlags; neben einer einstürzenden Burg, wenn die Mauer fällt. Die Zahl springt beim Treffer.
+ */
 .map-art .army[data-switch='loss'] {
-  --switch-at: var(--loss-at);
+  --struck-at: calc(var(--loss-at) + 0.08s);
+  --switch-at: var(--struck-at);
+}
+.map-art .army[data-switch='rout'] {
+  --struck-at: calc(var(--fall-at) + 0.06s);
+}
+.map-art .army[data-switch='ruin'] {
+  --struck-at: calc(var(--fall-at) + 0.22s);
 }
 .map-art .army-count.was {
   opacity: 0;
@@ -1356,30 +2415,55 @@
 .map-art .army.counting:is([data-switch='recruit'], [data-switch='in']) .army-body {
   animation: army-pop 0.4s var(--switch-at) ease-out both;
 }
-/* Erste Armee auf dem Feld: Sie steht erst da, wenn der Zug ankommt, mit ihrem Schein */
+/* Erste Armee auf dem Feld: Sie steht erst da, wenn der Zug ankommt, mit ihrem Schein. Der
+   Träger des Zugs steht dann schon genau dort: Er wird im selben Augenblick zur Armee des Felds
+   und setzt mit einem kurzen Stauchen auf, sonst stünde er kurz doppelt da */
 .map-art .army.arriving .army-body {
-  animation: army-arrive 0.3s var(--switch-at) ease-out both;
+  animation: army-land 0.32s var(--switch-at) linear both;
 }
 .map-art .army.arriving .fresh-glow {
   animation: duel-fade-in 0.3s var(--switch-at) ease-out both;
 }
-/* Armee verloren: Der Träger wankt; war es die letzte, fällt er */
+/* Eine von mehreren Armeen verloren: Der Träger wird getroffen, taumelt zurück und fängt sich */
 .map-art .army.counting[data-switch='loss'] .army-body {
-  animation: castle-hit 0.5s var(--switch-at) ease-out both;
+  animation: army-stagger 0.56s calc(var(--struck-at) - 0.06s) linear both;
 }
 .map-art .army.gone .army-body {
   opacity: 0;
 }
 .map-art .army.gone[data-switch='out'] .army-body {
-  animation: count-out 0.12s var(--switch-at) linear both;
+  animation: count-out 1ms var(--switch-at) linear both;
 }
-.map-art .army.gone[data-switch='loss'] .army-body,
-.map-art .army.gone[data-switch='ruin'] .army-body {
-  animation: army-fall 0.65s var(--switch-at) ease-in both;
+/* Die letzte Armee verloren: Der Träger wird getroffen, kippt um und bleibt kurz liegen */
+.map-art
+  .army.gone:is([data-switch='loss'], [data-switch='rout'], [data-switch='ruin'])
+  .army-body {
+  animation: army-fall 0.68s calc(var(--struck-at) - 0.06s) linear both;
 }
-/* Neben einer einstürzenden Burg fällt der Bannerträger mit ihr */
-.map-art .army.gone[data-switch='ruin'] {
-  --switch-at: calc(var(--fall-at) + 0.25s);
+/* Auf einem genommenen Feld steht er außerhalb der wartenden Beschriftung: Er tritt mit dem
+   Ausgang hervor, wo eben das Wappen seines Reichs stand */
+.map-art .army.rout {
+  animation: duel-fade-in 0.16s ease-out both;
+}
+/* Staubwölkchen: beim Taumeln an den Füßen, beim Fallen dort, wo er aufschlägt */
+.map-art .army-dust circle {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: army-puff 0.5s calc(var(--struck-at) + 0.2s) ease-out both;
+}
+.map-art .army.counting .army-dust circle {
+  animation-delay: calc(var(--struck-at) + 0.02s);
+}
+.map-art .army-dust circle:nth-child(2) {
+  --puff-x: 1px;
+  animation-delay: calc(var(--struck-at) + 0.24s);
+}
+.map-art .army.counting .army-dust circle:nth-child(2) {
+  animation-delay: calc(var(--struck-at) + 0.06s);
+}
+.map-art .army-dust circle:nth-child(3) {
+  --puff-x: 4px;
 }
 @keyframes army-pop {
   0%,
@@ -1390,39 +2474,111 @@
     transform: scale(1.24);
   }
 }
-@keyframes army-arrive {
-  from {
-    transform: scale(0.8);
+@keyframes army-land {
+  0% {
+    transform: none;
     opacity: 0;
   }
-  to {
+  1% {
+    transform: scale(1.07, 0.88);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.35, 1.3);
+  }
+  100% {
     transform: none;
     opacity: 1;
+  }
+}
+@keyframes army-stagger {
+  0% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0.1, 0.9, 0.3, 1);
+  }
+  16% {
+    transform: translate(-2px, 0.5px) rotate(-15deg) scale(1.02, 0.94);
+    animation-timing-function: ease-in-out;
+  }
+  42% {
+    transform: translate(0.5px, 0) rotate(7deg);
+    animation-timing-function: ease-in-out;
+  }
+  64% {
+    transform: rotate(-3deg);
+    animation-timing-function: ease-in-out;
+  }
+  82% {
+    transform: rotate(1deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
   }
 }
 @keyframes army-fall {
   0% {
     transform: none;
     opacity: 1;
+    animation-timing-function: cubic-bezier(0.1, 0.9, 0.3, 1);
   }
-  30% {
-    transform: rotate(-12deg);
+  12% {
+    transform: translate(-2px, 0.5px) rotate(-14deg) scale(1.02, 0.95);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.95, 0.6);
+  }
+  40% {
+    transform: translate(1.5px, 2px) rotate(88deg);
+    animation-timing-function: ease-out;
+  }
+  48% {
+    transform: translate(1.5px, 1.5px) rotate(80deg);
+    animation-timing-function: ease-in;
+  }
+  56% {
+    transform: translate(1.5px, 2px) rotate(86deg);
     opacity: 1;
   }
   100% {
-    transform: translateY(5px) rotate(80deg);
+    transform: translate(1.5px, 2.5px) rotate(86deg);
+    opacity: 0;
+  }
+}
+@keyframes army-puff {
+  0% {
+    transform: translate(0, 0) scale(0.3);
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--puff-x, -3px), -3px) scale(1.7);
     opacity: 0;
   }
 }
 
-/* Zug: Der Pfeil zieht sich vom Start zum Ziel, dann marschiert der Träger von Fahne zu Fahne.
-   Ohne Rückwirkung: Bis zum Aufbruch ist er unsichtbar, sonst stünde er doppelt da */
+/*
+ * Zug: Der Pfeil zieht sich vom Start zum Ziel wie ein Strich mit der Feder (langsam angesetzt,
+ * schnell gezogen, sauber abgesetzt), dann stempelt sich die Spitze, die Zahl springt hervor, und
+ * der Träger marschiert von Fahne zu Fahne. Ohne Rückwirkung: Bis zum Aufbruch ist er
+ * unsichtbar, sonst stünde er doppelt da. Er löst sich im Aufbruch genau dort vom Träger des
+ * Felds und setzt nach 92 % des Marschs genau auf dessen Platz am Ziel auf; in beiden
+ * Augenblicken wechselt das Bild ohne Überblendung, weil beide Träger gleich aussehen.
+ */
 .map-art .plan-move.drawn :is(.move-halo, .move-line) {
   stroke-dasharray: 1;
-  animation: move-draw 0.35s 0.15s ease-out both;
+  animation: move-draw 0.42s 0.13s cubic-bezier(0.55, 0.05, 0.25, 1) both;
 }
-.map-art .plan-move.drawn :is(.move-tip, .move-badge) {
-  animation: duel-fade-in 0.2s 0.45s ease-out both;
+.map-art .plan-move.drawn .move-halo {
+  animation-delay: 0.1s;
+}
+.map-art .plan-move.drawn :is(.move-head, .move-badge) {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.map-art .plan-move.drawn .move-head {
+  animation: move-stamp 0.26s 0.5s cubic-bezier(0.2, 1.5, 0.45, 1) both;
+}
+.map-art .plan-move.drawn .move-badge {
+  animation: move-stamp 0.3s 0.56s cubic-bezier(0.2, 1.6, 0.45, 1) both;
 }
 @keyframes move-draw {
   from {
@@ -1432,29 +2588,43 @@
     stroke-dashoffset: 0;
   }
 }
+@keyframes move-stamp {
+  from {
+    transform: scale(0.25);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
 .map-art .marcher {
   opacity: 0;
   pointer-events: none;
   animation: army-march var(--march-ms) var(--march-at) linear forwards;
 }
 .map-art .marcher-hop {
-  animation: march-hop calc(var(--march-ms) / 5) var(--march-at) ease-in-out 5;
+  animation: march-hop calc(var(--march-ms) * 0.92 / 5) var(--march-at) ease-in-out 5;
 }
 @keyframes army-march {
   0% {
     transform: translate(0, 0);
     opacity: 0;
   }
-  12% {
+  0.5% {
     opacity: 1;
   }
-  50% {
+  46% {
     transform: translate(var(--mx), var(--my));
+  }
+  92% {
+    transform: translate(var(--dx), var(--dy));
     opacity: 1;
   }
-  90% {
-    opacity: 1;
-  }
+  92.5%,
   100% {
     transform: translate(var(--dx), var(--dy));
     opacity: 0;
@@ -1469,45 +2639,87 @@
     transform: translateY(-3.5px);
   }
 }
-/* Neue Armeen treten aus dem Tor der Burg und stellen sich zur Fahne */
+/* Neue Armeen treten aus dem Tor der Burg und gehen im Träger auf: Sie setzen nach 92 % genau auf
+   seinem Platz auf, dann springt seine Zahl; das Tor leuchtet dabei auf */
 .map-art .marcher.recruit {
   transform-box: fill-box;
   transform-origin: 50% 85%;
   animation: army-step-out var(--recruit-ms) var(--recruit-at) ease-out forwards;
 }
 .map-art .marcher.recruit .marcher-hop {
-  animation: march-hop calc(var(--recruit-ms) / 3) var(--recruit-at) ease-in-out 3;
+  animation: march-hop calc(var(--recruit-ms) * 0.92 / 3) var(--recruit-at) ease-in-out 3;
 }
 @keyframes army-step-out {
   0% {
     transform: translate(0, 0) scale(0.45);
     opacity: 0;
+    animation-timing-function: cubic-bezier(0.3, 0.35, 0.55, 1);
   }
   20% {
     opacity: 1;
   }
-  78% {
+  92% {
+    transform: translate(var(--dx), var(--dy)) scale(1);
     opacity: 1;
   }
+  92.5%,
   100% {
     transform: translate(var(--dx), var(--dy)) scale(1);
     opacity: 0;
   }
+}
+.map-art .gate-light {
+  opacity: 0;
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gate-light 0.62s calc(var(--recruit-at) - 0.08s) ease-out both;
+}
+@keyframes gate-light {
+  0% {
+    transform: scale(0.35);
+    opacity: 0;
+  }
+  32% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Staub am Fuß (ArtDefs `puff`): Fels, weich auslaufend */
+.map-art .puff-in {
+  stop-color: var(--map-rock);
+  stop-opacity: 0.85;
+}
+.map-art .puff-out {
+  stop-color: var(--map-rock);
+  stop-opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .map-art .building.rising,
   .map-art .castle.rising,
   .map-art .building.settling,
-  .map-art .falling .ruin,
-  .map-art .dust circle,
+  .map-art .falling .whole,
+  .map-art .falling .piece,
+  .map-art .life-shatter *,
+  .map-art .life.drop,
+  .map-art .castle.hit.shaken,
+  .map-art .fresh-glow.after-fall,
   .map-art .plan-change.late,
   .map-art .region-label.prompt .board-name,
+  .map-art .army,
   .map-art .army-count,
   .map-art .army-body,
+  .map-art .army-dust circle,
   .map-art .army .fresh-glow,
   .map-art .marcher,
   .map-art .marcher-hop,
+  .map-art .gate-light,
   .map-art .plan-move.drawn * {
     animation: none !important;
   }

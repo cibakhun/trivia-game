@@ -89,7 +89,10 @@ async function recordSeen(page: Page): Promise<void> {
         );
       }
       const board = document.querySelector('[data-testid="match-board"]');
-      if (board) {
+      // Bebt die Karte gerade (ADR-070), ruckt nur ihr Rahmen kurz: kein Platzwechsel
+      const frameEl = board?.closest('.board-frame');
+      const quaking = frameEl ? getComputedStyle(frameEl).transform !== 'none' : false;
+      if (board && !quaking) {
         const rect = board.getBoundingClientRect();
         const frame = [
           ...[rect.x, rect.y, rect.width, rect.height].map(Math.round),
@@ -456,6 +459,10 @@ async function prepare(
       quick,
     );
     const stock = page.getByTestId('prepare-stock');
+    // Das Einkommen der Runde fliegt zu Beginn in diesen Vorrat (ADR-070): erst wenn es angekommen
+    // ist, steht die Zahl, mit der der Test rechnet
+    await expect(stock).not.toHaveClass(/receive-/, { timeout: 6_000 });
+    await expect(stock.locator('.counting')).toHaveCount(0, quick);
     const before = await stock.textContent();
     await build();
     if (built !== null) {

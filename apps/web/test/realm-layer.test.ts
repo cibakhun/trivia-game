@@ -5,11 +5,13 @@ import {
   outcomeMotion,
   outcomeSign,
   outcomeSignKey,
+  pickMotion,
   planLayer,
   realmBoardState,
   revealLayer,
   revealMotion,
 } from '../src/match/realm-layer.ts';
+import { shownPick } from '../src/match/match-model.ts';
 import { realmPlayOf, type RealmPlay } from '../src/match/realm-model.ts';
 import { event, realmViewOf, type RealmViewOptions } from './match-fixtures.ts';
 
@@ -231,9 +233,18 @@ describe('Schild über einem entschiedenen Duell', () => {
       duel({ winner: 'DEFENDER', effect: 'FORTIFIED', armyLost: { seat: 2, region: 7 } }),
     );
     expect(held.fields).toEqual({ 7: { lost: 2 } });
-    // Eine Burg, die nur getroffen wird, bleibt stehen; ohne Verlust bewegt sich nichts
-    expect(outcomeMotion(duel({ effect: 'CASTLE_HIT', castleLivesLeft: 2 })).fields).toEqual({});
+    // Ohne Verlust und ohne Gebäude bewegt sich auf der Karte nichts außer dem Duell selbst
     expect(outcomeMotion(duel({})).fields).toEqual({});
+  });
+
+  it('lässt eine getroffene Burg beben und ein Schild verlieren, auch mit verlorener Armee', () => {
+    expect(outcomeMotion(duel({ effect: 'CASTLE_HIT', castleLivesLeft: 2 })).fields).toEqual({
+      12: { hit: true },
+    });
+    const both = outcomeMotion(
+      duel({ effect: 'CASTLE_HIT', castleLivesLeft: 1, armyLost: { seat: 1, region: 12 } }),
+    );
+    expect(both.fields).toEqual({ 12: { hit: true, lost: 1 } });
   });
 
   it('freies Feld (O-37): genommen in der Farbe des Angreifers, sonst ohne Farbe', () => {
@@ -245,5 +256,34 @@ describe('Schild über einem entschiedenen Duell', () => {
       text: 'bleibt frei',
       seat: null,
     });
+  });
+});
+
+describe('Eben gesetzte Burg, eben gesetztes Dorf', () => {
+  const chosen = (type: string, payload: Record<string, unknown>) =>
+    shownPick([event(5, type, payload)]);
+
+  it('lässt die Burg wachsen und ihre Armeen aus dem Tor treten', () => {
+    const castle = chosen('CASTLE_CHOSEN', { seat: 2, region: 2, armies: 2 });
+    expect(pickMotion(castle)).toEqual({
+      kind: 'orders',
+      fields: { 2: { built: true, placed: true, recruited: 2 } },
+    });
+    // Ohne Armeen tritt niemand heraus
+    const bare = chosen('CASTLE_CHOSEN', { seat: 2, region: 2, armies: 0 });
+    expect(pickMotion(bare)?.fields).toEqual({ 2: { built: true, placed: true } });
+  });
+
+  it('lässt das Dorf wachsen', () => {
+    const village = chosen('VILLAGE_CHOSEN', { seat: 0, region: 11 });
+    expect(pickMotion(village)).toEqual({
+      kind: 'orders',
+      fields: { 11: { built: true, placed: true } },
+    });
+  });
+
+  it('bewegt nichts, wenn nur ein Feld genommen wurde oder nichts zu zeigen ist', () => {
+    expect(pickMotion(chosen('REGION_CLAIMED', { round: 1, seat: 2, region: 7 }))).toBeNull();
+    expect(pickMotion(null)).toBeNull();
   });
 });

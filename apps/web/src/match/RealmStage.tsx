@@ -29,7 +29,7 @@ import {
   shownPick,
   watchedFor,
 } from './match-model.ts';
-import { AbandonedPanel, MomentBanner, type MatchStageProps } from './MatchStage.tsx';
+import { AbandonedPanel, MomentBanner, StepRibbon, type MatchStageProps } from './MatchStage.tsx';
 import { regionNames, seatNames, stepLabel } from './match-text.ts';
 import { PreparePanel } from './PreparePanel.tsx';
 import type { RealmLayer } from './RealmBoardArt.tsx';
@@ -38,6 +38,7 @@ import {
   layerRegions,
   outcomeMotion,
   outcomeSign,
+  pickMotion,
   planLayer,
   realmBoardState,
   revealLayer,
@@ -58,11 +59,22 @@ import {
   withMove,
 } from './realm-model.ts';
 import { RealmSeatList } from './RealmSeatList.tsx';
+import { sheetVeil, type SheetKind } from './sheet-swap.ts';
+import { StageCentre } from './StageCentre.tsx';
 import { incomeSources, type IncomeSource } from './realm-text.ts';
 import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { RoundFlow } from './RoundFlow.tsx';
+import { useSent } from './sent-action.ts';
+import {
+  BlattPage,
+  blattScene,
+  impactHoldMs,
+  StageLive,
+  useAfterImpact,
+  useBlattTurn,
+} from './stage-live.ts';
 import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
@@ -215,6 +227,28 @@ export function RealmStage({
   // Was ein Bot eben gewählt hat, trägt während der Ansage einen Ring
   const spot = state === 'announce' ? (shownPick(events)?.payload.region ?? null) : null;
 
+  // ---- Wechsel am Rand (stage-live.ts): Der Spielstand folgt dem Schlag des Duells, Band und
+  // Ablauf oben links bleiben bis zum Ende der Auflösung bei dessen Runde, das Blatt schlägt um ----
+  const decided = state === 'reveal' && beat !== null && !late ? seq : null;
+  const railView = useAfterImpact(
+    view,
+    beat === 'outcome' ? decided : null,
+    impactHoldMs(view?.match.timers.revealMs ?? 0),
+  );
+  const railPlay = useMemo(() => realmPlayOf(railView), [railView]);
+  const calmView = useAfterImpact(view, decided, Number.POSITIVE_INFINITY);
+  const calmPlay = useMemo(() => realmPlayOf(calmView), [calmView]);
+  const page = useBlattTurn(
+    blattScene(
+      state,
+      step,
+      seq,
+      realmDuel !== null,
+      state === 'announce' ? (shownPick(events)?.type ?? null) : null,
+    ),
+    live,
+  );
+
   // ---- Rüstzeit: Entwurf der eigenen Befehle, je Runde neu ----
   const prepRound = view?.phase?.kind === 'PREPARE' && step ? (step.round ?? 0) : null;
   const [prep, setPrep] = useState<PrepState>(() => ({
@@ -257,6 +291,12 @@ export function RealmStage({
     if (!aiming && !initial) setTarget(null);
   }, [aiming, initial]);
 
+  // Eine abgeschickte Wahl oder Abgabe gilt als unterwegs, bis der Stand sie zeigt (`sent-action`):
+  // Solange nimmt die Bühne nichts an, und nichts springt zurück in den Zustand davor
+  const sent = useSent(feedView?.lastEventSeq ?? null, actionError);
+  const sending = busy || sent.pending !== null;
+  const pendingPick = state === 'pick' ? (sent.pending?.region ?? null) : null;
+
   // Wer bis kurz vor Schluss nicht „Fertig“ tippt, gibt seinen Entwurf trotzdem ab: Ohne Abgabe
   // täte sein Reich in dieser Runde nichts
   const submit = useRef<() => void>(() => undefined);
@@ -280,7 +320,8 @@ export function RealmStage({
   const land = play ? mapArt(play.map).tightViewBox : null;
   const { stage, frame, low } = useStageFrame(land);
 
-  // ---- Einkommen: Brot und Baustoff wandern von den eigenen Feldern in den Vorrat (ADR-067) ----
+  // ---- Einkommen: Brot und Baustoff wandern von den eigenen Feldern in den Vorrat im Blatt
+  // der Rüstzeit rechts (ADR-067, ADR-070) ----
   const sources = useMemo(
     () => (play && mySeat !== null ? incomeSources(play, mySeat) : []),
     [play, mySeat],
@@ -290,7 +331,11 @@ export function RealmStage({
   const incomeAt = income?.seq ?? 0;
   // Verbucht ist das Einkommen schon mit dem Ende der Runde davor; gezeigt wird es, wenn die eigene
   // Rüstzeit steht. Wer keine hat (Zuschauer, gefallenes Reich, nur noch Bots), sieht nur die Zahl
-  const { playing: incomeSeq, held: incomeWaits } = useIncomeFlight(
+  const {
+    playing: incomeSeq,
+    held: incomeWaits,
+    rising: incomeRising,
+  } = useIncomeFlight(
     incomeAt,
     state === 'prepare' || state === 'prepared',
     view?.match.status !== 'RUNNING' ||
@@ -308,6 +353,31 @@ export function RealmStage({
     setIncomePlan({ seq: incomeSeq, plans: incomeFlights(sources) });
   }
   const incoming = incomeSeq !== null && incomePlan?.seq === incomeSeq ? incomePlan.plans : null;
+  // Was davon im Vorrat des Blatts rechts ankommt: Dort zählen die Zahlen mit den Plättchen hoch
+  const myIncome =
+    incoming && income ? income.payload.income.find((entry) => entry.seat === mySeat) : undefined;
+  const arriving = useMemo(
+    () =>
+      myIncome
+        ? {
+            bread: myIncome.bread,
+            material: myIncome.material,
+            delayMs: incomeTime.countAtMs,
+            durationMs: incomeTime.countMs,
+            kinds: [...new Set(sources.map((source) => source.kind))],
+          }
+        : null,
+    [myIncome, incomeTime, sources],
+  );
+  // Wessen Vorrat mit diesem Einkommen nur hochzählt (alle außer dem eigenen, wenn es fliegt: Die
+  // eigene Tafel zählt dann mit den Ankünften im Blatt rechts): Diese Tafeln schimmern (ADR-070)
+  const gaining =
+    incomeRising !== null && income?.seq === incomeRising
+      ? income.payload.income
+          .filter((entry) => entry.bread + entry.material > 0)
+          .filter((entry) => !(incoming && entry.seat === mySeat))
+          .map((entry) => entry.seat)
+      : null;
   const wheelMs = play?.realm.economy.timers.wheelMs ?? 0;
   const spinMs = Math.round(wheelMs * WHEEL_SPIN_SHARE);
   // Wie lange das Rad dieses Duells beim ersten Bild schon lief (Seite mitten in der Ansage
@@ -369,7 +439,7 @@ export function RealmStage({
         <div className="stage-map">
           <HeroMap cover />
         </div>
-        <div className="stage-veil" aria-hidden="true" />
+        <div className="stage-veil on cut" aria-hidden="true" />
         <div className="stage-centre">
           {view && state === 'lobby' ? (
             <RealmLobby
@@ -384,7 +454,7 @@ export function RealmStage({
               initial={initial?.favorites}
             />
           ) : view && state === 'abandoned' ? (
-            <AbandonedPanel view={view} events={events} />
+            <AbandonedPanel view={view} events={events} live={live} />
           ) : feedError ? null : (
             <p className="sheet plain-sheet">{t('app.loading')}</p>
           )}
@@ -407,14 +477,21 @@ export function RealmStage({
       ...planLayer(play, mySeat, prep.orders),
       selected: prep.trading ? null : prep.selected,
       targets: moveTargets,
+      refused: refused === null ? null : prep.refused,
       hint:
         prep.selected === null && !prep.trading
           ? board.regions.flatMap((r, id) => (r.owner === mySeat ? [id] : []))
           : [],
       focusSeat: mySeat,
+      planning: true,
     };
   } else if (state === 'prepared' && mySeat !== null) {
-    layer = { regions, ...planLayer(play, mySeat, realm.myOrders ?? []), focusSeat: mySeat };
+    layer = {
+      regions,
+      ...planLayer(play, mySeat, realm.myOrders ?? []),
+      focusSeat: mySeat,
+      planning: true,
+    };
   } else if (state === 'orders') {
     const revealed = revealedOrders(events, revealedRound(events) ?? step.round ?? 1);
     layer = {
@@ -423,7 +500,13 @@ export function RealmStage({
       motion: live ? revealMotion(revealed) : null,
     };
   } else if (aimed !== null) {
-    layer = { regions, selected: aimed };
+    // Mit „Angreifen“ übernimmt der Rand der abgeschickten Wahl und setzt sich noch einmal
+    layer = { regions, selected: pendingPick === aimed ? null : aimed };
+  } else if (refusedTarget !== null) {
+    layer = { regions, refused: refusedTarget };
+  } else if (state === 'announce' && live && pickMotion(shownPick(events))) {
+    // Eben gesetzt: Burg oder Dorf wächst aus dem Boden, die Armeen der Burg treten heraus
+    layer = { regions, motion: pickMotion(shownPick(events)) };
   } else if (state === 'reveal' && realmDuel) {
     layer = {
       regions,
@@ -481,6 +564,7 @@ export function RealmStage({
       setTarget(id);
       return;
     }
+    sent.mark(id);
     onPick(id);
   };
 
@@ -494,8 +578,10 @@ export function RealmStage({
   // Wer nicht gefragt ist, liest die Frage an derselben Stelle mit (ADR-065)
   const watching = watchedFor(state, seq, watched);
   let sheet: ReactNode = null;
+  let sheetKind: SheetKind | null = null;
   let disc = false;
   if (asked) {
+    sheetKind = 'question';
     sheet = (
       <StageQuestion
         key={asked.seq}
@@ -512,6 +598,7 @@ export function RealmStage({
       />
     );
   } else if (watching) {
+    sheetKind = 'question';
     sheet = (
       <WatchedQuestionCard
         key={watching.seq}
@@ -522,6 +609,7 @@ export function RealmStage({
     );
   } else if (state === 'wheel' && step.wheel && step.attacker !== null) {
     disc = true;
+    sheetKind = 'wheel';
     sheet = (
       <div className="wheel-sheet" data-testid="match-wheel-disc">
         <Wheel
@@ -538,22 +626,32 @@ export function RealmStage({
     );
   } else if (state === 'reveal' && reveal && answering) {
     // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
+    sheetKind = 'reveal';
     sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
+    sheetKind = 'result';
     sheet = (
-      <ResultPanel view={view} finished={lastOf(events, 'REALM_MATCH_FINISHED')} name={name} />
+      <ResultPanel
+        view={view}
+        finished={lastOf(events, 'REALM_MATCH_FINISHED')}
+        name={name}
+        live={live}
+      />
     );
   } else if (state === 'abandoned') {
-    sheet = <AbandonedPanel view={view} events={events} />;
+    sheetKind = 'closed';
+    sheet = <AbandonedPanel view={view} events={events} live={live} />;
   }
+  // Im Duell tritt die Karte schon selbst zurück: Dann liegt kein zweiter Schleier darüber
+  const veil = sheetVeil(sheetKind, duel?.scene ?? null);
   // Beim Aufdecken zählt die aufgedeckte Runde: Fielen alle Angriffe aus, ist der Schritt schon in
   // der nächsten (ADR-064)
   const shownRound = state === 'orders' ? revealedRound(events) : null;
   const label =
     shownRound === null
-      ? stepLabel(view)
+      ? stepLabel(calmView ?? view)
       : t('realm.step.ROUND', { round: shownRound, rounds: realm.campaignRounds });
-  const flow = roundFlow(play, state);
+  const flow = roundFlow(calmPlay ?? play, state);
   const closed = state === 'finished' || state === 'abandoned';
   const waiting = board.turns
     .filter((turn) => turn.status !== 'DONE' && turn.seat !== mySeat)
@@ -568,7 +666,7 @@ export function RealmStage({
         }
       : undefined;
 
-  return (
+  const scene = (
     <main ref={stage} className="stage stage-realm" style={style} {...attributes}>
       <div className="stage-map">
         <MatchBoard
@@ -581,30 +679,34 @@ export function RealmStage({
           home={mySeat}
           duel={duel}
           spot={spot}
-          busy={busy}
+          busy={sending}
+          pending={pendingPick}
           onPick={tapRegion}
           frame={frame}
         />
       </div>
-      {sheet ? <div className="stage-veil" aria-hidden="true" /> : null}
+      <div
+        className={`stage-veil${veil.on ? ' on' : ''}${veil.cut ? ' cut' : ''}`}
+        aria-hidden="true"
+      />
 
       <div className="stage-rail stage-left" data-stage-rail="left">
-        {label ? (
-          <p className="round-ribbon" data-testid="match-step">
-            {label}
-          </p>
-        ) : null}
-        {flow ? <RoundFlow flow={flow} /> : null}
+        {label ? <StepRibbon label={label} /> : null}
+        {/* Andere Abschnitte (Eröffnung, Feldzug): Die Zeile schreibt sich neu ein */}
+        {flow ? <RoundFlow key={flow.steps[0]} flow={flow} /> : null}
         <RealmSeatList
-          view={view}
-          play={play}
+          view={railView ?? view}
+          play={railPlay ?? play}
           name={name}
           receiving={
             incoming ? { delayMs: incomeTime.countAtMs, durationMs: incomeTime.countMs } : null
           }
-          pending={incomeWaits && income ? income.payload.income : null}
+          gaining={gaining}
+          // Solange der Spielstand noch den Stand vor dem Schlag zeigt, ist das Einkommen darin
+          // noch nicht verbucht: Dann gibt es nichts zurückzuhalten
+          pending={incomeWaits && income && railView === view ? income.payload.income : null}
         />
-        <TurnOrder view={view} name={name} skipped={skipped} />
+        <TurnOrder view={railView ?? view} name={name} skipped={skipped} />
         <div className="stage-tools three">
           <SoundToggle />
           <button
@@ -628,7 +730,15 @@ export function RealmStage({
         </div>
       </div>
 
-      <aside className="stage-rail stage-right" data-stage-rail="right">
+      <aside
+        className="stage-rail stage-right"
+        data-stage-rail="right"
+        data-busy={sending ? 'true' : undefined}
+        data-turn={page.turn ?? undefined}
+        onAnimationEnd={(e) => {
+          if (e.target === e.currentTarget) page.settle();
+        }}
+      >
         {(state === 'prepare' || state === 'prepared') && mySeat !== null ? (
           <PreparePanel
             play={play}
@@ -638,20 +748,23 @@ export function RealmStage({
             selected={prep.selected}
             moving={moving}
             refused={refused}
+            refusedAt={refused === null ? null : prep.refused}
             trading={prep.trading}
             dropped={prep.dropped}
             waiting={waiting}
             phaseDeadline={phaseDeadline}
-            busy={busy}
+            busy={sending}
             error={actionError}
             region={region}
             name={name}
+            arriving={arriving}
             onOrders={(orders, dropped) => setPrep((p) => ({ ...p, orders, dropped }))}
             onMoving={(open) => setPrep((p) => ({ ...p, moving: open, refused: null }))}
             onTrading={(open) =>
               setPrep((p) => ({ ...p, trading: open, moving: false, refused: null }))
             }
             onSubmit={() => {
+              sent.mark(null);
               void onSubmitOrders(prep.orders).then((accepted) => {
                 if (accepted) setEditing(false);
               });
@@ -670,7 +783,7 @@ export function RealmStage({
             watching={watching !== null}
             phaseDeadline={phaseDeadline}
             estimate={estimate}
-            busy={busy}
+            busy={sending}
             events={events}
             reveal={reveal}
             outcome={realmDuel}
@@ -686,19 +799,22 @@ export function RealmStage({
               if (asked && rawInput !== null) onAnswer(asked, { rawInput });
             }}
             onAttack={() => {
-              if (aimed !== null) onPick(aimed);
+              if (aimed === null) return;
+              sent.mark(aimed);
+              onPick(aimed);
             }}
           />
         )}
+        <span className="blatt-ring" aria-hidden="true" />
       </aside>
 
       <div className="stage-banner" aria-hidden="true">
-        {moment ? <MomentBanner key={moment.key} moment={moment} /> : null}
+        {moment ? <MomentBanner key={moment.moment.key} shown={moment} /> : null}
       </div>
 
-      {sheet ? (
-        <div className={`stage-centre${closed ? ' wide' : ''}${disc ? ' disc' : ''}`}>{sheet}</div>
-      ) : null}
+      <StageCentre kind={sheetKind} className={closed ? 'wide' : disc ? 'disc' : ''}>
+        {sheet}
+      </StageCentre>
       {wheelPlans.length > 0 ? (
         <Flights
           key={`wheel-${wheelKey}`}
@@ -726,17 +842,31 @@ export function RealmStage({
       <RotateHint />
     </main>
   );
+  // Was unter der Bühne erscheint, erfährt so, ob sie schon einen Wechsel miterlebt hat
+  return (
+    <StageLive value={live}>
+      <BlattPage value={page.count}>{scene}</BlattPage>
+    </StageLive>
+  );
 }
 
-/** Flüge des Einkommens: je Feld ein Zeichen in den eigenen Vorrat; eine Burg schickt zwei. */
+/** Höhe des Bogens, in dem der Baustoff in den Vorrat fliegt (Einheiten der Bühne). */
+const MATERIAL_LIFT = 46;
+
+/**
+ * Flüge des Einkommens: je Feld ein Zeichen in den Vorrat oben im Blatt der Rüstzeit rechts; eine
+ * Burg schickt zwei.
+ */
 function incomeFlights(sources: readonly IncomeSource[]): FlightPlan[] {
   const perField = new Map<number, number>();
   for (const source of sources) perField.set(source.region, (perField.get(source.region) ?? 0) + 1);
   return sources.map((source) => ({
     key: `${source.region}-${source.kind}`,
     from: `[data-region="${source.region}"]`,
-    to: `.plaque.me .amount-${source.kind}`,
-    at: 'start' as const,
+    to: `.stock-row .amount-${source.kind} .glyph`,
+    // Der Baustoff steht rechts vom Brot: Sein Bogen ist höher, damit er von oben auf sein Zeichen
+    // fällt und nicht über die Zahl des Brots fliegt
+    ...(source.kind === 'material' ? { lift: MATERIAL_LIFT } : {}),
     icon: <MarkIcon kind={source.kind} size={14} />,
     // Zwei Zeichen vom selben Feld starten nebeneinander
     shift: (perField.get(source.region) ?? 1) > 1 ? (source.kind === 'bread' ? -8 : 8) : 0,

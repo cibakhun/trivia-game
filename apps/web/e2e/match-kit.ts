@@ -133,3 +133,42 @@ export async function answerRight(
   const accepted = answerAccepted(page, matchId, seq);
   return (await succeeds(key('Antwort abgeben'))) && (await accepted);
 }
+
+/** Abbild eines Blatts, das eben von der Mitte der Karte ging (`StageCentre`, ADR-070). */
+export interface SheetGhost {
+  /** Wie es geht: `turn` (dreht sich weg) oder `lift` (hebt sich ab), siehe `sheetSwap`. */
+  readonly leave: string;
+  /** Kennungen im Abbild (`data-testid`, `id`): Es darf keine tragen. */
+  readonly marks: number;
+  /** Das neue Blatt weiß, dass es hereingedreht kommt. */
+  readonly turned: boolean;
+}
+
+/**
+ * Lässt die Seite jedes Abbild mitschreiben, sobald es erscheint: Es steht nur 0,13 bis 0,18 s, zu
+ * kurz für eine Abfrage von außen. Gilt für die Seite, wie sie steht, und nach jedem Neuladen.
+ */
+export async function recordGhosts(page: Page): Promise<void> {
+  const record = () => {
+    const ghosts: SheetGhost[] = [];
+    (window as unknown as { ghosts: SheetGhost[] }).ghosts = ghosts;
+    new MutationObserver((records) => {
+      for (const { addedNodes } of records) {
+        for (const node of addedNodes) {
+          if (!(node instanceof Element) || !node.classList.contains('sheet-ghost')) continue;
+          ghosts.push({
+            leave: [...node.classList].find((c) => c.startsWith('leave-'))?.slice(6) ?? '',
+            marks: node.querySelectorAll('[data-testid], [id]').length,
+            turned: document.querySelector('.stage-centre.turned') !== null,
+          });
+        }
+      }
+    }).observe(document, { subtree: true, childList: true });
+  };
+  await page.addInitScript(record);
+  await page.evaluate(record);
+}
+
+export function ghostsBy(page: Page): Promise<SheetGhost[]> {
+  return page.evaluate(() => (window as unknown as { ghosts?: SheetGhost[] }).ghosts ?? []);
+}

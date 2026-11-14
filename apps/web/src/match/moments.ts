@@ -89,6 +89,41 @@ function isFallen(moment: Moment): boolean {
   return moment.key.startsWith('fallen-');
 }
 
+/** So lange steht ein Band vom Entrollen bis es wieder eingerollt ist. */
+export const MOMENT_MS = 1500;
+/** „Ein Reich fällt!“ hat mehr Gewicht: Es steht länger. */
+export const GRAND_MOMENT_MS = 2200;
+/**
+ * Fällt ein Reich in einer Auflösung, die die Seite miterlebt, wartet das Band, bis der Schlag
+ * sitzt und die Burg eingestürzt ist (docs/ART_DIRECTION.md §5: Einschlag bei 0,35 s, Einsturz
+ * danach): Es sagt, was geschehen ist, und nimmt es nicht vorweg.
+ */
+export const FALLEN_LEAD_MS = 900;
+
+/** Gewicht eines Bands: Ein gefallenes Reich ist größer als eine Ankündigung. */
+export function momentWeight(moment: Moment): 'grand' | 'plain' {
+  return isFallen(moment) ? 'grand' : 'plain';
+}
+
+export interface MomentTiming {
+  /** Wartezeit, bevor sich das Band entrollt. */
+  readonly leadMs: number;
+  /** Vom Entrollen bis es wieder eingerollt ist. */
+  readonly showMs: number;
+}
+
+/**
+ * Zeiten eines Bands. `born` ist der Zustand, in dem sein Anlass eintraf: Nur ein Reich, das eben
+ * in der Auflösung fällt, wartet auf den Einsturz; nach einer Frage nachgeholt, kommt es sofort.
+ */
+export function momentTiming(moment: Moment, born: MatchScreenState): MomentTiming {
+  const grand = momentWeight(moment) === 'grand';
+  return {
+    leadMs: grand && born === 'reveal' ? FALLEN_LEAD_MS : 0,
+    showMs: grand ? GRAND_MOMENT_MS : MOMENT_MS,
+  };
+}
+
 /**
  * Warteschlange nach einem Zustandswechsel: Während einer Frage bleibt nur ein gefallenes Reich,
  * es wird danach nachgeholt. Ein ausgefallener Angriff verfällt dann wie jede Ankündigung, ob sein

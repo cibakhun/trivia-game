@@ -32,7 +32,21 @@ function chipsIn(html: string): number[] {
   return [...html.matchAll(/class="seat-chip seat-(\d)"/g)].map((m) => Number(m[1]));
 }
 
-/** Sitze, deren Farbe ein Antwortfeld ausmalt, von links nach rechts (ADR-065). */
+/** Stempel eines Antwortfelds: Haken (richtig), Kreuz (falsch gewählt) oder keiner. */
+function stampOf(row: string): string | null {
+  return /class="reveal-stamp (right|wrong)"/.exec(row)?.[1] ?? null;
+}
+
+/** Text so, wie ihn ein Vorleser zusammensetzt: ohne Zeichnungen, ohne Leerzeichen an den Marken. */
+function spokenOf(html: string): string {
+  return html
+    .replace(/<svg[\s\S]*?<\/svg>/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Sitze, deren Farbe das Band eines Antwortfelds füllt, von links nach rechts (ADR-065). */
 function fillOf(row: string): number[] {
   const fill =
     /<span class="reveal-fill" aria-hidden="true">([\s\S]*?)<\/span>/.exec(row)?.[1] ?? '';
@@ -120,7 +134,7 @@ function reveal(events: ParsedMatchEvent[], seq: number): string {
 }
 
 describe('Auflösung: wer was geantwortet hat', () => {
-  it('Wissensfrage im Duell: Wappen an der gewählten Antwort, oben die Folge mit dem Sieger', () => {
+  it('Wissensfrage im Duell: Wappen an der gewählten Antwort, Stempel auf richtig und falsch', () => {
     const html = reveal(
       [
         opened(20, 5, 'DUEL_TRIVIA', [2, 1]),
@@ -140,10 +154,12 @@ describe('Auflösung: wer was geantwortet hat', () => {
       '',
       'wrong chosen',
     ]);
-    expect(textOf(rows[1] ?? '')).toBe('✓ Blau (richtig) Bot (schwer)');
-    expect(textOf(rows[3] ?? '')).toMatch(/^✗ Gelb Anna \(du\)/);
-    // Jedes gewählte Feld trägt die Farbe dessen, der es wählte (ADR-065); die übrigen behalten
-    // den Buchstaben aus der Frage und bleiben leer
+    // Jedes Feld behält den Buchstaben aus der Frage; auf die richtige Antwort setzt sich der
+    // Haken, auf die falsch gewählte das Kreuz
+    expect(textOf(rows[1] ?? '')).toBe('B Blau (richtig) Bot (schwer)');
+    expect(textOf(rows[3] ?? '')).toBe('D Gelb Anna (du)');
+    expect(rows.map(stampOf)).toEqual([null, 'right', null, 'wrong']);
+    // Unter jeder gewählten Antwort läuft das Band in der Farbe dessen, der sie wählte (ADR-065)
     expect(rows.map(fillOf)).toEqual([[], [2], [], [1]]);
     expect(rows.map((row) => /data-chosen-by="([^"]*)"/.exec(row)?.[1])).toEqual([
       '',
@@ -153,11 +169,13 @@ describe('Auflösung: wer was geantwortet hat', () => {
     ]);
     expect(textOf(rows[0] ?? '')).toBe('A Grün');
     expect(textOf(rows[2] ?? '')).toBe('C Rot');
-    // Oben steht groß die Wirkung, klein der Grund; das Wappen gehört dem Sieger
+    // Kopf wie auf der Vorderseite der Karte: das Band mit der Art der Frage, daneben „Auflösung“.
+    // Ohne Bühne daneben steht darunter die Folge: groß die Wirkung, klein der Grund, das Wappen
+    // gehört dem Sieger
     expect(html).toContain('class="reveal-verdict seat-2"');
     const verdict = textOf(html.split('<p class="reveal-prompt"')[0] ?? '');
     expect(verdict).toBe(
-      'Auflösung Bot (schwer) erobert Goldwiese von Anna (du). Nur einer lag bei der Wissensfrage richtig.',
+      'Wissensfrage Auflösung Bot (schwer) erobert Goldwiese von Anna (du). Nur einer lag bei der Wissensfrage richtig.',
     );
     expect(html).not.toContain('reveal-silent');
     expect(textOf(html)).toContain('Erklärung: Das Licht wird gestreut.');
@@ -175,12 +193,16 @@ describe('Auflösung: wer was geantwortet hat', () => {
       5,
     );
     expect(rowsOf(both).map((row) => chipsIn(row))).toEqual([[], [2, 1], [], []]);
-    // Beide teilen sich das Feld zu gleichen Teilen, der Angreifer links wie im Kopf des Duells
+    // Beide teilen sich das Band zu gleichen Teilen, der Angreifer links wie im Kopf des Duells
     expect(rowsOf(both).map(fillOf)).toEqual([[], [2, 1], [], []]);
     expect(rowsOf(both)[1]).toContain('data-chosen-by="2 1"');
-    // Noch kein Ausgang: Das Stechen folgt
-    expect(textOf(both)).toContain('Beide lagen richtig: Eine Schätzfrage entscheidet das Duell.');
-    expect(both).toContain('class="reveal-verdict"');
+    // Noch kein Ausgang: Das Stechen folgt. Das steht unter den Antworten (ADR-069), nicht darüber
+    const next = /<p class="reveal-next"[\s\S]*?<\/p>/.exec(both)?.[0] ?? '';
+    expect(spokenOf(next)).toBe('Gleichstand: Eine Schätzfrage entscheidet das Duell.');
+    expect(both.indexOf('class="reveal-next"')).toBeGreaterThan(
+      both.indexOf('class="reveal-options"'),
+    );
+    expect(both).not.toContain('reveal-verdict');
 
     const silent = reveal(
       [
@@ -197,7 +219,10 @@ describe('Auflösung: wer was geantwortet hat', () => {
     // Die richtige Antwort wählte niemand: Sie bleibt ohne Farbe, ist aber als richtig markiert
     expect(rowsOf(silent).map(fillOf)).toEqual([[], [], [2], []]);
     expect(rowsOf(silent)[1]).toContain('class="reveal-option correct"');
-    expect(textOf(rowsOf(silent)[1] ?? '')).toBe('✓ Blau (richtig)');
+    expect(textOf(rowsOf(silent)[1] ?? '')).toBe('B Blau (richtig)');
+    expect(rowsOf(silent).map(stampOf)).toEqual([null, 'right', 'wrong', null]);
+    // Ein Ausgang steht fest: kein Band „Gleichstand“
+    expect(silent).not.toContain('reveal-next');
     const tail = silent.split('<p class="reveal-silent">')[1] ?? '';
     expect(textOf(tail)).toMatch(/^Keine Antwort: Anna \(du\)/);
     expect(chipsIn(tail)).toEqual([1]);
@@ -232,10 +257,22 @@ describe('Auflösung: wer was geantwortet hat', () => {
       '2 Anna (du) 120 m 5 daneben · 4,2 s wählt 1 Region',
       '3 Bot (leicht) keine Antwort wählt keine Region',
     ]);
-    expect(rows[0]).toContain('reveal-rank best');
-    expect(rows[2]).toContain('reveal-rank silent');
-    expect(textOf(html)).toContain('Richtige Antwort: 125 m');
-    expect(textOf(html)).toContain('Landnahme, Runde 3: Die genaueste Schätzung wählt zuerst.');
+    // Jede Zeile trägt die Farbe ihres Sitzes; die beste ist hervorgehoben, wer schwieg, tritt zurück
+    expect(rows.map((row) => /<li class="([^"]*)"/.exec(row)?.[1])).toEqual([
+      'reveal-rank seat-2 best',
+      'reveal-rank seat-1',
+      'reveal-rank seat-0 silent',
+    ]);
+    // Die Lösung steht in ihrer Tafel über den Schätzungen und liest sich als ein Satz
+    const solution = /<p class="reveal-solution"[\s\S]*?<\/p>/.exec(html)?.[0] ?? '';
+    expect(spokenOf(solution)).toBe('Richtige Antwort: 125 m');
+    expect(html.indexOf('class="reveal-solution"')).toBeLessThan(
+      html.indexOf('class="reveal-ranks"'),
+    );
+    expect(rows.map((row) => /data-place="(\d)"/.exec(row)?.[1])).toEqual(['1', '2', '3']);
+    // Was aus der Rangfolge folgt, sagt das Blatt der Phase: Im Blatt der Antworten steht es nicht
+    expect(html).not.toContain('reveal-outcome');
+    expect(textOf(html.split('<p class="reveal-prompt"')[0] ?? '')).toBe('Schätzfrage Auflösung');
   });
 
   it('Stechen im Duell: der kleinere Abstand zuerst, bei Gleichstand die schnellere Antwort', () => {

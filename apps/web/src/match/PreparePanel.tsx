@@ -1,6 +1,16 @@
 import type { RealmOrderDto } from '@rdw/protocol';
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react';
+import { CountUp } from '../art/CountUp.tsx';
 import { Amount, MarkIcon, type Mark } from '../art/RealmIcons.tsx';
+import { SeatSeal } from '../art/SeatCrest.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
@@ -9,6 +19,7 @@ import {
   attackReachOn,
   fieldOptions,
   fieldRows,
+  orderKeys,
   plannedRegions,
   plannedTargets,
   planOrders,
@@ -41,8 +52,24 @@ import {
  * Zeilen (Ausbauen, Armeen kaufen, Armeen ziehen), jede mit Preis und eigenem Knopf oder mit dem
  * Grund, aus dem sie gerade nichts anbietet; darunter die eigenen Befehle als Plättchen zum
  * Zurücknehmen und „Fertig“. Gerechnet wird mit den Regeln des Servers (`realm-model`); abgegeben
- * ist erst, was „Fertig“ schickt. Das Blatt ist immer gleich groß.
+ * ist erst, was „Fertig“ schickt. Das Blatt ist immer gleich groß. Zu Beginn der Rüstzeit landet
+ * hier oben das Einkommen (ADR-070): Der Vorrat erscheint mit dem Stand davor, und seine Zahlen
+ * zählen hoch, während die Plättchen von den eigenen Feldern ankommen.
  */
+
+/** Einkommen, das gerade von den eigenen Feldern in den Vorrat dieses Blatts fliegt. */
+export interface StockArrival {
+  readonly bread: number;
+  readonly material: number;
+  /** Ab wann und wie lange die Zahlen mit den Ankünften hochzählen. */
+  readonly delayMs: number;
+  readonly durationMs: number;
+  /** Was ankommt: Nur diese Zeichen heben sich. */
+  readonly kinds: readonly ('bread' | 'material')[];
+}
+
+/** So lange zählt der Vorrat, wenn ein Befehl ihn ändert. */
+const STOCK_COUNT_MS = 350;
 
 function noop() {
   // Ablauf der Rüstzeit: Den nächsten Schritt bringt die Abfrage
@@ -88,6 +115,62 @@ function useOrderStrip(count: number) {
   return { ref, edge, measure };
 }
 
+/** `true` ab dem zweiten Rendern: Was beim Aufbau des Blatts schon dasteht, bewegt sich nicht. */
+function useSettled(): boolean {
+  const settled = useRef(false);
+  useEffect(() => {
+    settled.current = true;
+  }, []);
+  return settled.current;
+}
+
+/** Hat sich der Wert geändert, seit das Element steht? Beim Aufbau nie: Dann bewegt sich nichts. */
+function useChanged(value: unknown): boolean {
+  const [seen, setSeen] = useState({ value, changed: false });
+  if (seen.value !== value) setSeen({ value, changed: true });
+  return seen.changed;
+}
+
+/**
+ * Element des Blatts, das die Klasse `fresh` nur trägt, wenn es nach dem Aufbau erschienen ist (wie
+ * `Born` auf der Karte): Daran hängt die Bewegung, mit der es auf einen Tipp antwortet. Das steht
+ * beim Erscheinen fest; ein neuer Stand braucht einen neuen Schlüssel (`key`).
+ */
+function Fresh({
+  tag: Tag,
+  live,
+  className,
+  children,
+  ...rest
+}: {
+  readonly tag: 'div' | 'p' | 'li';
+  readonly live: boolean;
+  readonly className?: string;
+  readonly children?: ReactNode;
+  readonly [data: `data-${string}`]: string | number | undefined;
+} & Pick<HTMLAttributes<HTMLElement>, 'role' | 'aria-live'>) {
+  const [born] = useState(live);
+  const classes = [className, born ? 'fresh' : null].filter(Boolean).join(' ');
+  return (
+    <Tag className={classes === '' ? undefined : classes} {...rest}>
+      {children}
+    </Tag>
+  );
+}
+
+/**
+ * Text, der einmal tickt, wenn er sich ändert (die Zahl eines Befehls, die Aufschrift von „Fertig“);
+ * beim Aufbau steht er still.
+ */
+function Ticked({ className, text }: { readonly className: string; readonly text: string }) {
+  const changed = useChanged(text);
+  return (
+    <span key={text} className={`${className}${changed ? ' ticked' : ''}`}>
+      {text}
+    </span>
+  );
+}
+
 function CostView({ cost }: { readonly cost: Cost }) {
   return (
     <span className="cost">
@@ -115,6 +198,9 @@ function Stepper({
   readonly disabled: boolean;
   readonly onChange: (value: number) => void;
 }) {
+  // Die Zahl tickt in die Richtung, in die sie sich geändert hat; beim Aufbau steht sie still
+  const [shown, setShown] = useState({ value, turn: '' });
+  if (shown.value !== value) setShown({ value, turn: value > shown.value ? ' up' : ' down' });
   return (
     <span className="stepper" role="group" aria-label={label}>
       <button
@@ -127,7 +213,9 @@ function Stepper({
         −
       </button>
       <strong className="step-value" aria-live="polite">
-        {value}
+        <span key={value} className={`step-num${shown.turn}`}>
+          {value}
+        </span>
       </strong>
       <button
         type="button"
@@ -150,6 +238,7 @@ export function PreparePanel({
   selected,
   moving,
   refused,
+  refusedAt = null,
   trading,
   dropped,
   waiting,
@@ -158,6 +247,7 @@ export function PreparePanel({
   error,
   region,
   name,
+  arriving = null,
   onOrders,
   onMoving,
   onTrading,
@@ -175,6 +265,8 @@ export function PreparePanel({
   readonly moving: boolean;
   /** Der letzte Tipp bei offenem „Ziehen“ war kein Ziel: warum nicht. */
   readonly refused: MoveRefusal | null;
+  /** Das Feld dieses Tipps: Ein Tipp auf ein anderes Feld sagt noch einmal Nein. */
+  readonly refusedAt?: number | null;
   readonly trading: boolean;
   /** Mit dem letzten Zurücknehmen fiel ein späterer Befehl mit heraus. */
   readonly dropped: boolean;
@@ -185,6 +277,8 @@ export function PreparePanel({
   readonly error: unknown;
   readonly region: RegionName;
   readonly name: (seat: number) => string;
+  /** Das Einkommen dieser Runde ist noch unterwegs in den Vorrat oben im Blatt. */
+  readonly arriving?: StockArrival | null;
   readonly onOrders: (orders: RealmOrderDto[], dropped: boolean) => void;
   readonly onMoving: (open: boolean) => void;
   readonly onTrading: (open: boolean) => void;
@@ -197,8 +291,30 @@ export function PreparePanel({
   const left = plan.ok
     ? { bread: plan.bread, material: plan.material }
     : { bread: stock?.bread ?? 0, material: stock?.material ?? 0 };
+  // Solange noch kein Befehl geplant ist, zählt der Vorrat mit den Ankünften; ein Befehl mitten im
+  // Flug rechnet sofort, ohne auf die Plättchen zu warten. Danach bleibt es dabei, auch wenn der
+  // Befehl wieder geht: Sonst wartete die Zahl noch einmal von vorn, obwohl die Plättchen landen
+  const [edited, setEdited] = useState(false);
+  if (arriving === null ? edited : !edited && orders.length > 0) setEdited(arriving !== null);
+  const landing = arriving !== null && orders.length === 0 && !edited ? arriving : null;
+  // Die Zahl hält von Anfang an den Platz ihres Endwerts (`room`): Wüchse das Brot beim Zählen um
+  // eine Stelle, rückte das Zeichen des Baustoffs weg, auf das die Plättchen schon zufliegen
+  const stockValue = (kind: 'bread' | 'material') => (
+    <CountUp
+      value={left[kind]}
+      render={String}
+      {...(arriving ? { from: Math.max(0, left[kind] - arriving[kind]) } : {})}
+      durationMs={landing?.durationMs ?? STOCK_COUNT_MS}
+      delayMs={landing?.delayMs ?? 0}
+      steady={landing !== null}
+      room
+    />
+  );
   const chips = orderChips(play, orders, region);
+  const keys = orderKeys(orders);
   const strip = useOrderStrip(chips.length);
+  // Was nach dem Aufbau des Blatts erscheint, antwortet auf einen Tipp und darf sich bewegen
+  const settled = useSettled();
   const field = selected === null || done ? null : fieldOptions(play, seat, orders, selected);
   // Angriff nur mit Armee (ADR-064): Stünde nach dem Entwurf keine neben einem Ziel, fiele er aus
   const noTarget =
@@ -228,13 +344,17 @@ export function PreparePanel({
   let body: ReactNode;
   if (done) {
     body = (
-      <p className="blatt-wait" aria-live="polite">
-        <strong>{t('realm.prepare.submitted')}</strong>{' '}
-        {waiting.length > 0
-          ? tp('realm.prepare.waiting', waiting.length, { names: waiting.join(', ') })
-          : null}{' '}
-        {t('realm.prepare.secret')}
-      </p>
+      // Abgegeben: Das eigene Siegel drückt sich aufs Blatt, die Befehle sind verschlossen
+      <Fresh tag="div" className="prep-sealed" live={settled}>
+        <p className="blatt-wait" aria-live="polite">
+          <strong>{t('realm.prepare.submitted')}</strong>{' '}
+          {waiting.length > 0
+            ? tp('realm.prepare.waiting', waiting.length, { names: waiting.join(', ') })
+            : null}{' '}
+          {t('realm.prepare.secret')}
+        </p>
+        <SeatSeal seat={seat} />
+      </Fresh>
     );
   } else if (trading) {
     body = (
@@ -269,13 +389,17 @@ export function PreparePanel({
     );
   } else if (field) {
     body = (
+      // Ein anderes Feld ist ein neues Blatt: Seine Zeilen stehen sofort da, ohne Bewegung
       <FieldBody
+        key={field.region}
         play={play}
         seat={seat}
         orders={orders}
         field={field}
         moving={moving}
         refused={refused}
+        refusedAt={refusedAt}
+        live={settled}
         busy={busy}
         region={region}
         name={name}
@@ -374,11 +498,30 @@ export function PreparePanel({
           brief
         />
       )}
-      <div className="stock-row" data-testid="prepare-stock">
+      <div
+        className={[
+          'stock-row',
+          ...(arriving ? arriving.kinds.map((kind) => `receive-${kind}`) : []),
+        ].join(' ')}
+        style={
+          arriving
+            ? ({
+                '--receive-at': `${arriving.delayMs}ms`,
+                '--receive-ms': `${arriving.durationMs}ms`,
+              } as CSSProperties)
+            : undefined
+        }
+        data-testid="prepare-stock"
+      >
         {/* Das Wort trüge die Zeile bei zweistelligen Vorräten über den Rand: nur für Screenreader */}
         <span className="visually-hidden">{t('realm.prepare.stock')}</span>
-        <Amount kind="bread" value={left.bread} label={t('realm.bread')} size={19} />
-        <Amount kind="material" value={left.material} label={t('realm.material')} size={19} />
+        <Amount kind="bread" value={stockValue('bread')} label={t('realm.bread')} size={19} />
+        <Amount
+          kind="material"
+          value={stockValue('material')}
+          label={t('realm.material')}
+          size={19}
+        />
         {done ? null : (
           <button
             type="button"
@@ -406,14 +549,17 @@ export function PreparePanel({
       >
         {/* Der Hinweis steht in der Zeile der Überschrift: So wächst das Blatt nie */}
         {note ? (
-          <p
+          <Fresh
+            key={note.kind}
+            tag="p"
+            live={settled}
             className="orders-note"
             data-testid={note.kind === 'NO_TARGET' ? 'prepare-no-target' : 'prepare-dropped'}
             role="status"
           >
             <span aria-hidden="true">{note.short}</span>
             <span className="visually-hidden">{note.text}</span>
-          </p>
+          </Fresh>
         ) : (
           <h3>{t('realm.prepare.orders')}</h3>
         )}
@@ -432,12 +578,13 @@ export function PreparePanel({
               const inner = (
                 <>
                   <MarkIcon kind={chip.icon} size={15} />
-                  <span className={`order-text order-${chip.kind}`}>{chip.text}</span>
+                  <Ticked className={`order-text order-${chip.kind}`} text={chip.text} />
                   {chip.tail ? <MarkIcon kind={chip.tail} size={15} /> : null}
                 </>
               );
               return (
-                <li key={chip.index}>
+                // Der Name des Befehls ist der Schlüssel: Nur ein neues Plättchen springt herein
+                <Fresh key={keys[chip.index] ?? chip.index} tag="li" live={settled}>
                   {done ? (
                     <span className="order-chip" aria-label={chip.label}>
                       {inner}
@@ -456,7 +603,7 @@ export function PreparePanel({
                       </span>
                     </button>
                   )}
-                </li>
+                </Fresh>
               );
             })}
           </ul>
@@ -474,7 +621,11 @@ export function PreparePanel({
           data-no-attack={noTarget ? 'true' : undefined}
           onClick={onSubmit}
         >
-          {noTarget ? t('realm.prepare.doneNoAttack') : t('realm.prepare.done')}
+          {/* Die Aufschrift warnt, sobald der Entwurf keinen Angriff mehr zulässt: Sie tickt dabei */}
+          <Ticked
+            className="go-label"
+            text={noTarget ? t('realm.prepare.doneNoAttack') : t('realm.prepare.done')}
+          />
         </button>
       )}
     </section>
@@ -520,8 +671,14 @@ function Act({
   readonly children?: ReactNode;
   readonly [data: `data-${string}`]: string | number | undefined;
 }) {
+  // Wechselt die Zeile ihren Zustand (eben befohlen), antwortet sie einmal; beim Aufbau nicht
+  const changed = useChanged(state);
   return (
-    <li className={`act${state ? ` ${state}` : ''}`} data-act={act} {...data}>
+    <li
+      className={`act${state ? ` ${state}` : ''}${changed ? ' changed' : ''}`}
+      data-act={act}
+      {...data}
+    >
       <MarkIcon kind={icon} size={18} />
       <span className="act-what">
         <span className="act-title">
@@ -547,6 +704,8 @@ function FieldBody({
   field,
   moving,
   refused,
+  refusedAt,
+  live,
   busy,
   region,
   name,
@@ -559,6 +718,9 @@ function FieldBody({
   readonly field: FieldOptions;
   readonly moving: boolean;
   readonly refused: MoveRefusal | null;
+  readonly refusedAt: number | null;
+  /** Das Blatt steht schon: Was jetzt erscheint, antwortet auf einen Tipp. */
+  readonly live: boolean;
   readonly busy: boolean;
   readonly region: RegionName;
   readonly name: (seat: number) => string;
@@ -789,7 +951,9 @@ function FieldBody({
       </div>
       {moving ? (
         // „Ziehen“ ist offen: Der nächste Tipp gehört der Karte, die drei Zeilen machen so lange Platz
-        <div
+        <Fresh
+          tag="div"
+          live={live}
           className="act-move"
           data-testid="prepare-moving"
           data-act="move"
@@ -808,11 +972,16 @@ function FieldBody({
               {t('realm.prepare.moveCancel')}
             </button>
           </div>
-          <p className={`act-move-text${refused ? ' act-refused' : ''}`} aria-live="polite">
+          {/* Jedes abgelehnte Feld ist ein neuer Satz: So ruckt das Nein mit jedem Tipp */}
+          <p
+            key={refused ? `${refused.kind}:${refusedAt ?? ''}` : 'hint'}
+            className={`act-move-text${refused ? ' act-refused' : ''}`}
+            aria-live="polite"
+          >
             {refused ? refusalText(refused, name) : t('realm.prepare.moveHint')}
           </p>
           <p className="act-move-ready">{tp('realm.prepare.readyLong', field.movable)}</p>
-        </div>
+        </Fresh>
       ) : (
         <ul className="acts" data-testid="prepare-acts">
           {buildRow}

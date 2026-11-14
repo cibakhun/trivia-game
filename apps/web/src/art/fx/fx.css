@@ -1,0 +1,420 @@
+/*
+ * Effekte über der Karte (art/fx, ADR-070). Jedes Teilchen ist ohne Animation unsichtbar: Die
+ * Karte darunter zeigt schon das Endbild. Gerechnet wird nur mit transform und opacity, damit der
+ * Browser die Teilchen bewegt, ohne die Karte neu zu zeichnen. Variablen je Teilchen (FxLayer):
+ * --s Größe, --dx/--dy Weg, --lift Bogen, --rot Drehung, --d Beginn, --t Dauer, --c Farbe.
+ */
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.fx-p {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: fx-show var(--t) var(--d) linear both;
+}
+.fx-p > b,
+.fx-p > i > b {
+  position: absolute;
+  left: calc(var(--s) / -2);
+  top: calc(var(--s) / -2);
+  width: var(--s);
+  height: var(--s);
+}
+.fx-p > i {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Sichtbar während des Laufs; das Ausblenden macht jede Art selbst */
+@keyframes fx-show {
+  0% {
+    opacity: 0;
+  }
+  0.1%,
+  99.9% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Fliegende Teilchen: waagrecht gleichmäßig, senkrecht im Bogen (Schwerkraft) ---------- */
+.fx-shards,
+.fx-debris,
+.fx-splash {
+  animation:
+    fx-show var(--t) var(--d) linear both,
+    fx-fly-x var(--t) var(--d) cubic-bezier(0.25, 0.6, 0.45, 1) both;
+}
+.fx-shards > i,
+.fx-debris > i,
+.fx-splash > i {
+  animation: fx-fly-y var(--t) var(--d) linear both;
+}
+@keyframes fx-fly-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--dx));
+  }
+}
+@keyframes fx-fly-y {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.5, 1);
+  }
+  38% {
+    transform: translateY(var(--lift));
+    animation-timing-function: cubic-bezier(0.55, 0, 0.85, 0.4);
+  }
+  100% {
+    transform: translateY(var(--dy));
+  }
+}
+
+/* Splitter: kantige Scherben in der Farbe des Wappens mit dunkler Kante */
+.fx-shards b {
+  background: var(--c, var(--map-gold));
+  box-shadow: inset 0 0 0 calc(var(--s) * 0.08) color-mix(in srgb, var(--map-ink) 70%, transparent);
+  animation: fx-spin-out var(--t) var(--d) linear both;
+}
+.fx-shards.v0 b {
+  clip-path: polygon(50% 0, 100% 80%, 10% 100%);
+}
+.fx-shards.v1 b {
+  clip-path: polygon(0 20%, 90% 0, 70% 100%);
+}
+.fx-shards.v2 b {
+  clip-path: polygon(20% 0, 100% 40%, 60% 100%, 0 70%);
+}
+.fx-shards.v3 b {
+  clip-path: polygon(0 0, 100% 30%, 30% 100%);
+}
+@keyframes fx-spin-out {
+  0% {
+    transform: rotate(0) scale(1);
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--rot)) scale(0.55);
+    opacity: 0;
+  }
+}
+
+/* Steine: unregelmäßig, in der Farbe des Felsens, mit heller Kante oben */
+.fx-debris b {
+  background: linear-gradient(
+    160deg,
+    var(--map-coin) -40%,
+    var(--c, var(--map-rock)) 45%,
+    var(--map-ink) 160%
+  );
+  border-radius: 30% 45% 35% 50%;
+  animation: fx-tumble var(--t) var(--d) linear both;
+}
+.fx-debris.v1 b {
+  border-radius: 45% 25% 50% 30%;
+}
+.fx-debris.v2 b {
+  clip-path: polygon(10% 20%, 70% 0, 100% 60%, 60% 100%, 0 80%);
+  border-radius: 0;
+}
+.fx-debris.v3 b {
+  clip-path: polygon(0 30%, 50% 0, 100% 35%, 85% 100%, 15% 90%);
+  border-radius: 0;
+}
+@keyframes fx-tumble {
+  0% {
+    transform: rotate(0);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+/* Tintentropfen: rund, landen und verblassen langsam */
+.fx-splash b {
+  background: var(--c, var(--map-ink));
+  border-radius: 50%;
+  animation: fx-drop var(--t) var(--d) linear both;
+}
+@keyframes fx-drop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.95;
+  }
+  30% {
+    transform: scale(1.15, 0.9);
+  }
+  60% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.25, 0.85);
+    opacity: 0;
+  }
+}
+
+/* ---------- Von oben gesehen: Splitter und Spritzer gleiten flach davon und werden gebremst ---------- */
+.fx-chips,
+.fx-spatter {
+  animation:
+    fx-show var(--t) var(--d) linear both,
+    fx-slide var(--t) var(--d) cubic-bezier(0.12, 0.75, 0.3, 1) both;
+}
+@keyframes fx-slide {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(var(--dx), var(--dy));
+  }
+}
+
+/* Splitter eines Wappens: kantig, mit dunkler Kante, kreiseln und verglimmen */
+.fx-chips b {
+  background: var(--c, var(--map-gold));
+  box-shadow: inset 0 0 0 calc(var(--s) * 0.09) color-mix(in srgb, var(--map-ink) 75%, transparent);
+  animation: fx-chip var(--t) var(--d) linear both;
+}
+.fx-chips.v0 b {
+  clip-path: polygon(50% 0, 100% 80%, 10% 100%);
+}
+.fx-chips.v1 b {
+  clip-path: polygon(0 20%, 90% 0, 70% 100%);
+}
+.fx-chips.v2 b {
+  clip-path: polygon(20% 0, 100% 40%, 60% 100%, 0 70%);
+}
+.fx-chips.v3 b {
+  clip-path: polygon(0 0, 100% 30%, 30% 100%);
+}
+@keyframes fx-chip {
+  0% {
+    transform: rotate(0) scale(1.15);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--rot)) scale(0.55);
+    opacity: 0;
+  }
+}
+
+/* Tintentropfen von oben: langgezogen im Flug, rund, wo sie landen, dann verblassen sie */
+.fx-spatter b {
+  background: var(--c, var(--map-ink));
+  border-radius: 50%;
+  animation: fx-spat var(--t) var(--d) linear both;
+}
+@keyframes fx-spat {
+  0% {
+    transform: rotate(var(--rot)) scale(2.1, 0.55);
+    opacity: 0.95;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  40% {
+    transform: rotate(var(--rot)) scale(1.25, 0.95);
+    opacity: 0.95;
+  }
+  62% {
+    transform: rotate(var(--rot)) scale(1.1, 1.05);
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(var(--rot)) scale(1.2, 1.15);
+    opacity: 0;
+  }
+}
+
+/* ---------- Staub: quillt auf, rollt nach außen, verweht ---------- */
+.fx-dust b {
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--c, var(--map-rock)) 70%, var(--map-coin)) 0%,
+    color-mix(in srgb, var(--c, var(--map-rock)) 45%, transparent) 55%,
+    transparent 100%
+  );
+  animation: fx-puff var(--t) var(--d) cubic-bezier(0.15, 0.6, 0.35, 1) both;
+}
+@keyframes fx-puff {
+  0% {
+    transform: translate(0, 0) scale(0.35) rotate(0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(1.9) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+/* ---------- Funken: helle Striche, strahlenförmig, schnell ---------- */
+.fx-sparks b {
+  height: calc(var(--s) * 0.16);
+  top: calc(var(--s) * -0.08);
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--c, var(--map-gold)) 40%, #fff8e0);
+  transform-origin: 0 50%;
+  animation: fx-spark var(--t) var(--d) cubic-bezier(0.1, 0.7, 0.3, 1) both;
+}
+@keyframes fx-spark {
+  0% {
+    transform: rotate(var(--rot)) translateX(0) scaleX(0.2);
+    opacity: 1;
+  }
+  45% {
+    transform: rotate(var(--rot)) translateX(calc(var(--dx) * 0.6)) scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--rot)) translateX(var(--dx)) scaleX(0.3);
+    opacity: 0;
+  }
+}
+
+/* ---------- Druckwelle ---------- */
+.fx-ring b {
+  border-radius: 50%;
+  border: calc(var(--s) * 0.07) solid var(--c, var(--map-ink));
+  animation: fx-ring var(--t) var(--d) cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+@keyframes fx-ring {
+  from {
+    transform: scale(0.25);
+    opacity: 0.9;
+    border-width: calc(var(--s) * 0.12);
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+    border-width: calc(var(--s) * 0.01);
+  }
+}
+
+/* ---------- Glanzpunkte: vierzackige Sterne, die kurz aufblitzen ---------- */
+.fx-glints b {
+  background: radial-gradient(closest-side, #fffbe8, var(--c, var(--map-gold)) 55%, transparent);
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+  animation: fx-glint var(--t) var(--d) ease-in-out both;
+}
+@keyframes fx-glint {
+  0% {
+    transform: rotate(var(--rot)) scale(0);
+    opacity: 0;
+  }
+  40% {
+    transform: rotate(calc(var(--rot) + 45deg)) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(calc(var(--rot) + 90deg)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* ---------- Bewegungsstriche ---------- */
+.fx-streaks b {
+  height: calc(var(--s) * 0.07);
+  top: calc(var(--s) * -0.035);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--c, var(--map-ink)), transparent);
+  transform-origin: 0 50%;
+  animation: fx-streak var(--t) var(--d) ease-out both;
+}
+@keyframes fx-streak {
+  0% {
+    transform: translate(0, 0) rotate(var(--rot)) scaleX(1);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scaleX(0.2);
+    opacity: 0;
+  }
+}
+
+/* ---------- Beben der Karte: der Rahmen ruckt kurz, leicht vergrößert, damit kein Rand blitzt ---------- */
+.board-frame.quake-light {
+  animation: board-quake-light 0.32s var(--quake-at, 0ms) linear both;
+}
+.board-frame.quake-heavy {
+  animation: board-quake-heavy 0.55s var(--quake-at, 0ms) linear both;
+}
+@keyframes board-quake-light {
+  0%,
+  100% {
+    transform: none;
+  }
+  15% {
+    transform: translate(0, 2.5px) scale(1.008);
+  }
+  40% {
+    transform: translate(-1.5px, -1.5px) scale(1.006);
+  }
+  65% {
+    transform: translate(1px, 1px) scale(1.003);
+  }
+}
+@keyframes board-quake-heavy {
+  0%,
+  100% {
+    transform: none;
+  }
+  8% {
+    transform: translate(0, 6px) scale(1.022);
+  }
+  20% {
+    transform: translate(-4px, -3px) scale(1.018);
+  }
+  34% {
+    transform: translate(3.5px, 2px) scale(1.014);
+  }
+  50% {
+    transform: translate(-2px, 1.5px) scale(1.009);
+  }
+  68% {
+    transform: translate(1px, -1px) scale(1.004);
+  }
+  84% {
+    transform: translate(-0.5px, 0.5px) scale(1.001);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-layer {
+    display: none;
+  }
+  .board-frame.quake-light,
+  .board-frame.quake-heavy {
+    animation: none;
+  }
+}
