@@ -1289,16 +1289,17 @@ html.match-playing body {
   left: calc(var(--safe-l) + var(--rail-l));
   right: calc(var(--safe-r) + var(--rail-r));
   top: calc(10 * var(--u));
+  bottom: max(var(--safe-b), calc(10 * var(--u)));
   display: grid;
   justify-items: center;
+  align-items: start;
   pointer-events: none;
 }
 
-/* Steht ein Duell in der oberen Hälfte der Karte, weicht das Band an den unteren Rand */
-.stage[data-state='announce']:has(.map-art[data-duel-high]) .stage-banner,
-.stage[data-beat='outcome']:has(.map-art[data-duel-high]) .stage-banner {
-  top: auto;
-  bottom: max(var(--safe-b), calc(10 * var(--u)));
+/* Spielt ein Duell in der oberen Hälfte der Karte, steht das Band am unteren Rand. Wo es steht,
+   legt es fest, wenn es erscheint (`MomentBanner`), und bleibt dort */
+.turn-banner.low {
+  align-self: end;
 }
 
 /*
