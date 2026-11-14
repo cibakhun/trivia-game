@@ -314,7 +314,7 @@ export function RealmStage({
   }
   const incoming = incomeSeq !== null && incomePlan?.seq === incomeSeq ? incomePlan.plans : null;
   // Wessen Vorrat mit diesem Einkommen nur hochzählt (alle außer dem eigenen, wenn dorthin geflogen
-  // wird): Diese Tafeln schimmern (ADR-069)
+  // wird): Diese Tafeln schimmern (ADR-068)
   const gaining =
     incomeRising !== null && income?.seq === incomeRising
       ? income.payload.income

@@ -10,7 +10,7 @@ import { wheelBlur, wheelClacks, type WheelClack } from './wheel-motion.ts';
  * ungestellte Frage fehlen. Das Rad rollt aus, läuft ein Stück über die gezogene Kategorie hinaus
  * und federt zurück (ADR-067). An jeder Feldgrenze sitzt ein Stift; solange das Rad schnell dreht,
  * ist die Scheibe ein Wirbel und der Zeiger lehnt angedrückt, danach klackert er an jedem Stift,
- * der unter ihm durchläuft (ADR-069). Steht das Rad, flammt das gezogene Feld auf. Mit „Bewegung
+ * der unter ihm durchläuft (ADR-068). Steht das Rad, flammt das gezogene Feld auf. Mit „Bewegung
  * reduzieren“ steht es sofort dort. Nur Zierde: Was gezogen wurde, sagt das Blatt.
  */
 

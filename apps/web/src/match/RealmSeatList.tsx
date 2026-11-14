@@ -16,7 +16,7 @@ import type { RealmPlay } from './realm-model.ts';
  * Vorräte zählen sichtbar hoch und herunter, wenn sie sich ändern; das Einkommen einer Runde zeigen
  * sie erst, wenn deren Rüstzeit beginnt (ADR-067). Kommt es im eigenen Vorrat an, heben sich die
  * Zeichen mit dem ersten Zeichen und federn mit dem letzten zurück, je mit einem goldenen Ring; die
- * Tafeln der anderen Reiche zeigen ihren Zuwachs mit einem Schimmer (ADR-069).
+ * Tafeln der anderen Reiche zeigen ihren Zuwachs mit einem Schimmer (ADR-068).
  */
 
 /** So lange zählt ein Vorrat, wenn er sich ändert. */

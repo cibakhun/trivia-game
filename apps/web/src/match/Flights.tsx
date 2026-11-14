@@ -11,7 +11,7 @@ import {
  * Zeichen, die einmal über die Bühne fliegen (ADR-067): Brot und Baustoff von den Feldern in den
  * Vorrat, die Kategorie vom Rad ins Blatt. Start und Ziel sind Elemente der Bühne; gemessen wird
  * einmal, wenn der Flug beginnt. Jedes Zeichen springt mit einem kleinen Ring ab und zieht ein, zwei
- * goldene Glanzpunkte hinter sich her, die denselben Bogen etwas später fliegen (ADR-069). Die
+ * goldene Glanzpunkte hinter sich her, die denselben Bogen etwas später fliegen (ADR-068). Die
  * Ebene nimmt keine Tipps an und verschiebt nichts. Ohne Animation (laufende Frage, „Bewegung
  * reduzieren“) bleibt sie unsichtbar: Das Endbild steht schon.
  */
