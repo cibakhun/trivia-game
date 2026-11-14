@@ -451,7 +451,8 @@ export function RealmStage({
       motion: live ? revealMotion(revealed) : null,
     };
   } else if (aimed !== null) {
-    layer = { regions, selected: aimed };
+    // Mit „Angreifen“ übernimmt der Rand der abgeschickten Wahl und setzt sich noch einmal
+    layer = { regions, selected: pendingPick === aimed ? null : aimed };
   } else if (refusedTarget !== null) {
     layer = { regions, refused: refusedTarget };
   } else if (state === 'announce' && live && pickMotion(shownPick(events))) {
@@ -684,6 +685,7 @@ export function RealmStage({
             selected={prep.selected}
             moving={moving}
             refused={refused}
+            refusedAt={refused === null ? null : prep.refused}
             trading={prep.trading}
             dropped={prep.dropped}
             waiting={waiting}

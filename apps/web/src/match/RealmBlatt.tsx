@@ -412,7 +412,9 @@ export function RealmBlatt({
             ) : (
               <>
                 {refusedReach === 'NO_ARMY' || refusedReach === 'FAR' ? (
+                  // Jedes abgelehnte Feld ist ein neuer Satz: So ruckt das Nein mit jedem Tipp
                   <p
+                    key={refusedTarget}
                     className="act-info act-refused"
                     data-testid="match-target-refused"
                     data-reach={refusedReach}
