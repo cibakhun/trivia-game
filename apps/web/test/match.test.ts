@@ -329,6 +329,13 @@ describe('Zustand des Bildschirms', () => {
     expect(revealPlan(0, null, 6000)).toEqual({ outcomeAt: 4000, settledAt: 5500 });
     // Kaum noch Zeit: Die Karte steht gleich im Ergebnis
     expect(revealPlan(1000, 1500, 6000)).toBeNull();
+    // Die Seite erfuhr erst 4 s später davon: Der Ausgang rückt zusammen, das Ergebnis steht
+    // noch vor dem Ende der Auflösung
+    expect(revealPlan(1000, 3000, 6000)).toEqual({ outcomeAt: 2000, settledAt: 2667 });
+    for (const left of [800, 1200, 2000, 3000, 4400, 5900, 6000]) {
+      const plan = revealPlan(0, left, 6000);
+      expect(plan && plan.outcomeAt < plan.settledAt && plan.settledAt < left).toBe(true);
+    }
   });
 
   it('Auflösung mit Duell: Im ersten Takt sieht die Bühne nur die Antworten (ADR-069)', () => {
