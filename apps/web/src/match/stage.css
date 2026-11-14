@@ -707,6 +707,29 @@ html.match-playing body {
   }
 }
 
+/* Die Sekunden der Restzeit sitzen am Blatt selbst (oben rechts neben der Überschrift). Verschöbe
+   sich ihre Zeile, säßen sie so lange an ihr und sprängen danach zurück: Die Restzeit blendet
+   deshalb nur ein */
+.stage-right[data-turn='a'] > .blatt > .countdown {
+  animation-name: blatt-fade-a;
+}
+
+.stage-right[data-turn='b'] > .blatt > .countdown {
+  animation-name: blatt-fade-b;
+}
+
+@keyframes blatt-fade-a {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes blatt-fade-b {
+  from {
+    opacity: 0;
+  }
+}
+
 @keyframes blatt-settle-a {
   to {
     opacity: 1;
