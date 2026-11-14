@@ -665,6 +665,12 @@ html.match-playing body {
   .stage-right:has(> .blatt.outcome.outcome-none) > .blatt-ring {
     --tone: var(--border-strong);
   }
+
+  /* Ohne Blatt (Abrechnung, Abbruch) gibt es keinen Rand: Er geht im selben Bild wie das Blatt,
+     statt leer neben der Abrechnung nachzublenden */
+  .stage-right:not(:has(> .blatt)) > .blatt-ring {
+    transition: none;
+  }
 }
 
 /*
@@ -715,6 +721,12 @@ html.match-playing body {
 
 :where(.stage-right[data-turn] > .blatt > :nth-child(n + 6)) {
   animation-delay: calc(var(--blatt-at, 0ms) + 200ms);
+}
+
+/* Der Kasten des Duells stand schon auf der Seite davor (Aufmarsch, Glücksrad, Auflösung): Er
+   bleibt stehen, nur der Rest der Seite schreibt sich neu ein (`useKept` in stage-live.ts) */
+.stage-right[data-turn] > .blatt > .duel-box.kept {
+  animation: none;
 }
 
 /* Ohne Ausbau hat die Karte des Ausgangs ihre eigene Bewegung: Auch sie wartet auf den Schlag */

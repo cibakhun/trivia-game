@@ -67,7 +67,14 @@ import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { RoundFlow } from './RoundFlow.tsx';
 import { useSent } from './sent-action.ts';
-import { blattScene, impactHoldMs, StageLive, useAfterImpact, useBlattTurn } from './stage-live.ts';
+import {
+  BlattPage,
+  blattScene,
+  impactHoldMs,
+  StageLive,
+  useAfterImpact,
+  useBlattTurn,
+} from './stage-live.ts';
 import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
@@ -834,7 +841,11 @@ export function RealmStage({
     </main>
   );
   // Was unter der Bühne erscheint, erfährt so, ob sie schon einen Wechsel miterlebt hat
-  return <StageLive value={live}>{scene}</StageLive>;
+  return (
+    <StageLive value={live}>
+      <BlattPage value={page.count}>{scene}</BlattPage>
+    </StageLive>
+  );
 }
 
 /** Höhe des Bogens, in dem der Baustoff in den Vorrat fliegt (Einheiten der Bühne). */

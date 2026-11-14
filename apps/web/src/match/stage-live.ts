@@ -38,6 +38,20 @@ export function useBorn(): boolean {
   return born;
 }
 
+/** Die wievielte Seite das Blatt rechts gerade zeigt (zählt nur miterlebte Wechsel). */
+export const BlattPage = createContext(0);
+
+/**
+ * `true`, wenn dieses Element schon auf einer Seite davor im Blatt stand: Beim Umschlagen bleibt
+ * es stehen, statt sich mit dem Rest der Seite neu einzuschreiben. So steht der Kasten des Duells
+ * (wer gegen wen, um welches Feld) vom Aufmarsch über das Glücksrad bis zur Auflösung durch.
+ */
+export function useKept(): boolean {
+  const page = useContext(BlattPage);
+  const [first] = useState(page);
+  return page !== first;
+}
+
 /** Woran das Blatt rechts erkennt, dass es eine neue Seite aufschlägt. */
 export interface BlattSceneStep {
   readonly kind: string;
@@ -99,13 +113,13 @@ export type BlattTurn = 'a' | 'b';
 
 /**
  * Meldet, dass das Blatt eben umgeschlagen hat (`turn`), bis die Bewegung dazu vorbei ist
- * (`settle`, vom Ende der CSS-Animation gerufen). Danach trägt die Bühne die Klasse nicht mehr:
+ * (`settle`, vom Ende der CSS-Animation gerufen), und zählt die Seiten (`count`, für `BlattPage`). Danach trägt die Bühne die Klasse nicht mehr:
  * Was später auf derselben Seite erscheint, läuft nicht mit ein. Nur für miterlebte Wechsel.
  */
 export function useBlattTurn(
   scene: string,
   live: boolean,
-): { readonly turn: BlattTurn | null; readonly settle: () => void } {
+): { readonly turn: BlattTurn | null; readonly count: number; readonly settle: () => void } {
   const [seen, setSeen] = useState<{
     readonly scene: string;
     readonly count: number;
@@ -120,7 +134,7 @@ export function useBlattTurn(
     () => setSeen((current) => (current.open ? { ...current, open: false } : current)),
     [],
   );
-  return { turn: now.open ? (now.count % 2 === 1 ? 'a' : 'b') : null, settle };
+  return { turn: now.open ? (now.count % 2 === 1 ? 'a' : 'b') : null, count: now.count, settle };
 }
 
 /** Der Schlag eines Duells sitzt 0,41 s nach Beginn des Ausgangs (Einschlag 0,35 s, Treffer-Stopp). */
