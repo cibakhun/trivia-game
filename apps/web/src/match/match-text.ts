@@ -136,6 +136,8 @@ export function questionContext(
       return t('realm.question.startContext');
     case 'LAND_ESTIMATE':
       return t('match.question.land', { round: step.round ?? 1 });
+    // Im Aufmarsch vor dem Glücksrad (ADR-071) steht das Duell schon fest: derselbe Satz
+    case 'DUEL_WHEEL':
     case 'DUEL_TRIVIA':
       if (step.attacker === null || step.region === null) return null;
       // Freies Feld (O-37): Nur der Angreifer wird gefragt
@@ -159,7 +161,6 @@ export function questionContext(
     case 'LAND_PICK':
     case 'PREPARE':
     case 'CAMPAIGN_TARGET':
-    case 'DUEL_WHEEL':
     case 'FINISHED':
       return null;
   }
