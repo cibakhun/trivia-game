@@ -6,7 +6,7 @@ import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
 import type { RealmPlay } from './realm-model.ts';
-import { PlaqueOut, PlaqueState } from './SeatList.tsx';
+import { PlaqueLives, PlaqueOut, PlaqueState } from './SeatList.tsx';
 
 /**
  * Spielstand der Partie mit Ausbau links auf dem Meer (MATCH_RULES §11): je Reich eine Tafel mit
@@ -137,16 +137,22 @@ export function RealmSeatList({
                 <CountUp value={s.points} render={formatNumber} />
                 <span className="visually-hidden"> {t('match.result.pointsColumn')}</span>
               </span>
-              {s.eliminated || maxLives === 0 ? null : maxLives <= SHIELDS_MAX ? (
-                <span className="plaque-lives">
-                  <LifeShields left={s.castleLivesLeft} max={maxLives} label={lives} />
-                </span>
-              ) : (
-                <span className="plaque-lives many">
-                  <LifeShields left={1} max={1} label={lives} />
-                  <span aria-hidden="true">{s.castleLivesLeft}</span>
-                </span>
-              )}
+              <PlaqueLives
+                eliminated={s.eliminated}
+                left={s.castleLivesLeft}
+                max={maxLives <= SHIELDS_MAX ? maxLives : 0}
+              >
+                {maxLives === 0 ? null : maxLives <= SHIELDS_MAX ? (
+                  <span className="plaque-lives">
+                    <LifeShields left={s.castleLivesLeft} max={maxLives} label={lives} />
+                  </span>
+                ) : (
+                  <span className="plaque-lives many">
+                    <LifeShields left={1} max={1} label={lives} />
+                    <span aria-hidden="true">{s.castleLivesLeft}</span>
+                  </span>
+                )}
+              </PlaqueLives>
               <span className="plaque-foot">
                 {s.eliminated ? (
                   <PlaqueOut />

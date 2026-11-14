@@ -372,6 +372,19 @@ html.match-playing body {
   }
 }
 
+/* Das Reich scheidet aus (PlaqueLives): Seine letzten Leben laufen noch leer wie jedes verlorene,
+   dann verblasst die Reihe. Ohne Bewegung ist sie gleich fort */
+.plaque-lives.leaving {
+  opacity: 0;
+  animation: lives-out 0.3s ease-in 0.52s both;
+}
+
+@keyframes lives-out {
+  from {
+    opacity: 1;
+  }
+}
+
 /* Zugfolge: eine schmale Zeile, immer gleich hoch */
 .turn-order {
   flex: none;
@@ -2528,10 +2541,12 @@ html.match-playing body {
   .plaque-state.arriving,
   .plaque-out.arriving,
   .turn-index.arriving,
+  .plaque-lives.leaving,
   .plaque .seat-lives .life-off.lost,
   .plaque .seat-lives .life-off.lost::after,
   .stage-right[data-turn],
   .stage-right[data-turn] > .blatt > *,
+  .stage-right[data-turn] > .blatt > .countdown,
   .blatt .announce-line.arriving {
     animation: none;
   }

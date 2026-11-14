@@ -1,5 +1,6 @@
 import type { MatchView } from '@rdw/protocol';
 import { DEFAULT_MATCH_RULES } from '@rdw/protocol';
+import { useState, type ReactNode } from 'react';
 import { CountUp } from '../art/CountUp.tsx';
 import { LifeShields } from '../art/LifeShields.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
@@ -53,14 +54,16 @@ export function SeatList({ view, name }: { readonly view: MatchView; readonly na
               <CountUp value={s.points} render={formatNumber} />
               <span className="visually-hidden"> {t('match.result.pointsColumn')}</span>
             </span>
-            {s.capital !== null && !s.eliminated ? (
-              <span className="plaque-lives">
-                <LifeShields
-                  left={s.capitalLivesLeft}
-                  max={maxLives}
-                  label={tp('match.board.lives', s.capitalLivesLeft)}
-                />
-              </span>
+            {s.capital !== null ? (
+              <PlaqueLives eliminated={s.eliminated} left={s.capitalLivesLeft} max={maxLives}>
+                <span className="plaque-lives">
+                  <LifeShields
+                    left={s.capitalLivesLeft}
+                    max={maxLives}
+                    label={tp('match.board.lives', s.capitalLivesLeft)}
+                  />
+                </span>
+              </PlaqueLives>
             ) : null}
             <span className="plaque-foot">
               {s.eliminated ? (
@@ -74,6 +77,39 @@ export function SeatList({ view, name }: { readonly view: MatchView; readonly na
         ))}
       </ul>
     </section>
+  );
+}
+
+/**
+ * Leben auf einer Tafel (`children`: die Schilde eines lebenden Reichs). Scheidet das Reich aus,
+ * während die Tafel steht, läuft sein letztes Leben noch leer wie jedes verlorene, dann verblasst
+ * die Reihe (stage.css). Eine Tafel, die schon gefallen erscheint, zeigt keine Leben. `max`: Zahl
+ * der Schilde; 0, wenn die Tafel keine einzelnen Schilde zeigt (dann fällt die Reihe einfach weg).
+ */
+export function PlaqueLives({
+  eliminated,
+  left,
+  max,
+  children,
+}: {
+  readonly eliminated: boolean;
+  readonly left: number;
+  readonly max: number;
+  readonly children: ReactNode;
+}) {
+  // Stand vor dem Ausscheiden (Merken während des Renderns)
+  const [last, setLast] = useState(eliminated ? null : { left, max });
+  if (!eliminated && (last?.left !== left || last.max !== max)) setLast({ left, max });
+  if (!eliminated) return children;
+  if (!last || last.max === 0) return null;
+  return (
+    <span className="plaque-lives leaving" aria-hidden="true">
+      <span className="seat-lives">
+        {Array.from({ length: last.max }, (_, i) => (
+          <span key={i} className={i < last.left ? 'life-off lost' : 'life-off'} />
+        ))}
+      </span>
+    </span>
   );
 }
 
