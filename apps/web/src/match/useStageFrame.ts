@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from 'react';
-import { stageFrame, type StageFrame } from '../art/stage-frame.ts';
+import { isLowStage, stageFrame, type StageFrame } from '../art/stage-frame.ts';
 
 /** Abstand des Landes zu den Rändern links und rechts und zum oberen und unteren Bildschirmrand. */
 const GAP_X = 8;
@@ -10,23 +10,30 @@ const GAP_Y = 5;
  * (`data-stage-rail="left"`, Spielstand) und den Rand rechts (`data-stage-rail="right"`, Blatt)
  * passt. Beide Ränder sind immer gleich breit, also ändert sich der Ausschnitt nur, wenn sich der
  * Bildschirm ändert (Drehen, Fenstergröße, Leiste des Browsers).
+ *
+ * `low` sagt, ob die Bühne niedrig ist (`isLowStage`), gemessen an ihr selbst und auch ohne Karte
+ * (`land === null`, Aufstellung): Danach richtet sich das Blatt, nicht nach einer Medienabfrage.
  */
 export function useStageFrame(land: string | null): {
   readonly stage: RefObject<HTMLElement | null>;
   readonly frame: StageFrame | null;
+  readonly low: boolean;
 } {
   const stage = useRef<HTMLElement | null>(null);
   const [frame, setFrame] = useState<StageFrame | null>(null);
+  const [low, setLow] = useState(false);
 
   useLayoutEffect(() => {
     const element = stage.current;
-    if (!element || land === null) return;
+    if (!element) return;
     const rails = [
       element.querySelector('[data-stage-rail="left"]'),
       element.querySelector('[data-stage-rail="right"]'),
     ] as const;
     const measure = () => {
       const box = element.getBoundingClientRect();
+      setLow(isLowStage(box.width, box.height));
+      if (land === null) return;
       const left = rails[0]?.getBoundingClientRect();
       const right = rails[1]?.getBoundingClientRect();
       const next = stageFrame(
@@ -56,5 +63,5 @@ export function useStageFrame(land: string | null): {
     };
   }, [land]);
 
-  return { stage, frame };
+  return { stage, frame, low };
 }
