@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { duelContact, duelContactOf, duelLayout } from '../src/art/attack.ts';
 import { fxParticles } from '../src/art/fx/fx.ts';
 import { mapArt } from '../src/art/map-art.ts';
-import { boardFx, duelFx, HIT_STOP_MS, IMPACT_MS } from '../src/match/board-fx.ts';
+import { boardFx, duelFx, fxWitness, HIT_STOP_MS, IMPACT_MS } from '../src/match/board-fx.ts';
 import type { DuelStage } from '../src/match/match-model.ts';
 
 /** Effekte des Duells auf der Karte (ADR-070): Anlauf, Einschlag und je Ausgang ein eigenes Bild. */
@@ -149,5 +149,19 @@ describe('duelContact', () => {
     expect(shaft[2]).toBeGreaterThan(head[0]!);
     expect(shaft[2]).toBeLessThan(layout.tip);
     expect(layout.tip - layout.start).toBeGreaterThan(0);
+  });
+});
+
+describe('fxWitness', () => {
+  it('legt beim Erscheinen fest, ob ein Satz Effekte spielt', () => {
+    // Beim Laden lief der Ausgang schon: Auch eingeschwungen bleibt er ohne Effekte
+    const loaded = fxWitness(null, 'duel:2:12', false);
+    expect(loaded.live).toBe(false);
+    expect(fxWitness(loaded, 'duel:2:12', true)).toBe(loaded);
+    // Ein neuer Ausgang, den die Seite kommen sah, spielt
+    expect(fxWitness(loaded, 'duel:0:7', true)).toEqual({ key: 'duel:0:7', live: true });
+    // Ohne Effekte dazwischen fragt derselbe Schlüssel später neu
+    const none = fxWitness(loaded, '', true);
+    expect(fxWitness(none, 'duel:2:12', true).live).toBe(true);
   });
 });

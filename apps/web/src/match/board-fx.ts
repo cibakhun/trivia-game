@@ -36,6 +36,21 @@ export function boardFx(input: BoardFxInput): BoardFx {
   };
 }
 
+/** Ob die Seite den Wechsel zu einem Satz Effekte miterlebt hat, mit dem Schlüssel des Satzes. */
+export interface FxWitness {
+  readonly key: string;
+  readonly live: boolean;
+}
+
+/**
+ * Ob ein Satz Effekte spielen darf, steht fest, wenn er erscheint (ADR-070): Ein Ausgang, der beim
+ * Laden der Seite schon lief, bekommt auch beim nächsten Rendern keine Effekte, wenn die Seite
+ * inzwischen „eingeschwungen“ ist. Erst ein neuer Schlüssel fragt wieder nach.
+ */
+export function fxWitness(prev: FxWitness | null, key: string, live: boolean): FxWitness {
+  return prev !== null && prev.key === key ? prev : { key, live };
+}
+
 function strongest(a: FxQuake | null, b: FxQuake | null): FxQuake | null {
   if (!a) return b;
   if (!b) return a;

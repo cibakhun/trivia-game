@@ -23,13 +23,14 @@ import {
   type DuelContact,
   type DuelLayout,
 } from '../art/attack.ts';
+import { NO_FX } from '../art/fx/fx.ts';
 import { FxLayer } from '../art/fx/FxLayer.tsx';
 import { inkBlob, inkBox, inkOrigin, inkReach, inkStyle } from '../art/ink.ts';
 import { frontiers, mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
 import { COMPACT_SCALE, seaDepth, type StageFrame } from '../art/stage-frame.ts';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
-import { boardFx } from './board-fx.ts';
+import { boardFx, fxWitness, type FxWitness } from './board-fx.ts';
 import type { DuelStage } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import {
@@ -333,11 +334,17 @@ export function MatchBoard({
       ? { ['--wave' as string]: `${Math.min(3, hexDistance(from, to)) * 0.12}s` }
       : undefined;
   };
-  // Effekte über der Karte (ADR-070): nur für Wechsel, die die Seite miterlebt hat
-  const fx = useMemo(
-    () => boardFx({ art, duel, layout, castle, realm, live: settled }),
-    [art, duel, layout, castle, realm, settled],
+  // Effekte über der Karte (ADR-070): nur für Wechsel, die die Seite miterlebt hat. Ob, steht
+  // fest, wenn ein Satz Effekte erscheint (`fxWitness`): Lief ein Ausgang schon beim Laden, bleibt
+  // er auch beim nächsten Rendern ohne Teilchen und Beben
+  const fxAll = useMemo(
+    () => boardFx({ art, duel, layout, castle, realm, live: true }),
+    [art, duel, layout, castle, realm],
   );
+  const [witness, setWitness] = useState<FxWitness | null>(null);
+  const seen = fxWitness(witness, fxAll.key, settled);
+  if (seen !== witness) setWitness(seen);
+  const fx = seen.live ? fxAll : NO_FX;
   const quake: CSSProperties | undefined = fx.quake
     ? { ['--quake-at' as string]: `${fx.quake.atMs}ms` }
     : undefined;
