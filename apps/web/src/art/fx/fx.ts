@@ -25,7 +25,14 @@ export type FxKind =
   /** Goldene Glanzpunkte, die kurz aufblitzen (fertig gebaut, Gold kommt an). */
   | 'glints'
   /** Bewegungsstriche hinter etwas, das schnell zieht. */
-  | 'streaks';
+  | 'streaks'
+  /**
+   * Splitter, die flach über die Karte davonspritzen (von oben gesehen, ohne Bogen) und sich
+   * dabei drehen: ein Wappen, das im Treffer zerspringt.
+   */
+  | 'chips'
+  /** Tintenspritzer von oben: Tropfen schießen langgezogen davon und landen als runde Kleckse. */
+  | 'spatter';
 
 export interface FxPoint {
   readonly x: number;
@@ -143,6 +150,20 @@ const SPEC: Readonly<Record<FxKind, KindSpec>> = {
     durationMs: [240, 340],
     jitterMs: 40,
   },
+  chips: {
+    count: 10,
+    reach: [0.55, 1.25],
+    grain: [0.1, 0.2],
+    durationMs: [420, 640],
+    jitterMs: 25,
+  },
+  spatter: {
+    count: 10,
+    reach: [0.3, 0.95],
+    grain: [0.05, 0.12],
+    durationMs: [560, 820],
+    jitterMs: 30,
+  },
 };
 
 const round = (n: number) => Math.round(n * 100) / 100;
@@ -204,6 +225,14 @@ export function fxParticles(burst: FxBurst): FxParticle[] {
       case 'ring':
         dx = 0;
         dy = 0;
+        break;
+      case 'chips':
+        // Von oben gesehen: gerade hinaus, von der Reibung gebremst, und dabei kreiselnd
+        rot = (rand() < 0.5 ? -1 : 1) * (240 + 380 * rand());
+        break;
+      case 'spatter':
+        // Der Tropfen fliegt in Richtung seines Wegs langgezogen
+        rot = (angle * 180) / Math.PI;
         break;
       case 'glints':
         // Glanzpunkte stehen, statt zu fliegen
