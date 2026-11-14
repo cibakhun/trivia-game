@@ -683,6 +683,7 @@ export function MatchBoard({
             size={s}
             level="under"
             live={settled}
+            home={home}
           />
         ) : null}
 

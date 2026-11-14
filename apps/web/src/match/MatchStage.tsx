@@ -1,5 +1,5 @@
 import type { MatchBotStrengthCode, MatchView, ParsedMatchEvent } from '@rdw/protocol';
-import { useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { HeroMap } from '../art/HeroMap.tsx';
 import { mapArt } from '../art/map-art.ts';
 import { SeatCrest } from '../art/SeatCrest.tsx';
@@ -23,7 +23,7 @@ import {
   type WatchedQuestion,
 } from './match-model.ts';
 import { mapOfView, regionNames, seatNames, stepLabel } from './match-text.ts';
-import type { Moment } from './moments.ts';
+import { momentWeight } from './moments.ts';
 import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
@@ -32,10 +32,19 @@ import { useSent } from './sent-action.ts';
 import { sheetVeil, type SheetKind } from './sheet-swap.ts';
 import { StageBlatt } from './StageBlatt.tsx';
 import { StageCentre } from './StageCentre.tsx';
+import {
+  blattScene,
+  impactHoldMs,
+  StageLive,
+  useAfterImpact,
+  useBlattTurn,
+  useBorn,
+  useLive,
+} from './stage-live.ts';
 import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
-import { useMoments } from './useMoments.ts';
+import { useMoments, type ShownMoment } from './useMoments.ts';
 import { useRevealBeats } from './useRevealBeats.ts';
 import { useStageFrame } from './useStageFrame.ts';
 import './stage.css';
@@ -98,18 +107,10 @@ export function MatchStage({
   const state = screenStateOf(view, local);
   // Eine abgeschickte Wahl bleibt am Feld stehen, bis der Stand sie zeigt (`sent-action`)
   const sent = useSent(feedView?.lastEventSeq ?? null, actionError);
-  // Die Abrechnung baut sich nur auf, wenn diese Seite das Ende miterlebt hat: Wer in die fertige
-  // Partie lädt, sieht sofort das Endbild (Merken während des Renderns, wie in `RealmStage`).
-  // Das Laden selbst ist kein Stand: Miterlebt ist erst ein Wechsel nach der ersten Ansicht.
-  const [entered, setEntered] = useState({ first: state, live: false });
-  if (!entered.live && state !== entered.first) {
-    setEntered(
-      entered.first === 'loading'
-        ? { first: state, live: false }
-        : { first: entered.first, live: true },
-    );
-  }
-  const live = entered.live || (entered.first !== 'loading' && state !== entered.first);
+  // Hat diese Seite schon einen Wechsel miterlebt (`stage-live.ts`)? Nur dann schlägt das Blatt
+  // rechts um, und nur dann baut sich die Abrechnung auf: Wer in die fertige Partie lädt, sieht
+  // sofort das Endbild. Das Laden selbst ist kein Stand
+  const live = useLive(state);
   const seq = view?.question?.seq ?? null;
   const board = view?.board ?? null;
 
@@ -126,6 +127,25 @@ export function MatchStage({
   const resolved = duelResolved(reveal);
   // Das Duell steht von der Ansage bis zum Ende der Auflösung auf der Karte
   const duel = view ? duelStage(view, state, reveal, beat === 'outcome') : null;
+  // Wechsel am Rand (stage-live.ts): Der Spielstand folgt dem Schlag des Duells, das Band oben
+  // links bleibt bis zum Ende der Auflösung bei dessen Runde, das Blatt rechts schlägt um
+  const decided = state === 'reveal' && beat !== null && !late ? seq : null;
+  const railView = useAfterImpact(
+    view,
+    beat === 'outcome' ? decided : null,
+    impactHoldMs(view?.match.timers.revealMs ?? 0),
+  );
+  const calmView = useAfterImpact(view, decided, Number.POSITIVE_INFINITY);
+  const page = useBlattTurn(
+    blattScene(
+      state,
+      board?.step ?? null,
+      seq,
+      resolved?.type === 'DUEL_RESOLVED',
+      state === 'announce' ? (shownPick(events)?.type ?? null) : null,
+    ),
+    live,
+  );
   // Das Blatt mit Frage und Antworten: ohne Duell die ganze Auflösung, sonst im ersten Takt
   const answering = beat === null || beat === 'answers' || late;
   // Was ein Bot eben gewählt hat, trägt während der Ansage einen Ring
@@ -241,10 +261,10 @@ export function MatchStage({
   }
   // Im Duell tritt die Karte schon selbst zurück: Dann liegt kein zweiter Schleier darüber
   const veil = sheetVeil(sheetKind, duel?.scene ?? null);
-  const label = stepLabel(view);
+  const label = stepLabel(calmView ?? view);
   const closed = state === 'finished' || state === 'abandoned';
 
-  return (
+  const scene = (
     <main ref={stage} className="stage" {...attributes}>
       <div className="stage-map">
         <MatchBoard
@@ -270,13 +290,9 @@ export function MatchStage({
       />
 
       <div className="stage-rail stage-left" data-stage-rail="left">
-        {label ? (
-          <p className="round-ribbon" data-testid="match-step">
-            {label}
-          </p>
-        ) : null}
-        <SeatList view={view} name={name} />
-        <TurnOrder view={view} name={name} />
+        {label ? <StepRibbon label={label} /> : null}
+        <SeatList view={railView ?? view} name={name} />
+        <TurnOrder view={railView ?? view} name={name} />
         <div className="stage-tools">
           <SoundToggle />
           <button type="button" className="tool" onClick={() => navigate({ name: 'start' })}>
@@ -285,7 +301,14 @@ export function MatchStage({
         </div>
       </div>
 
-      <aside className="stage-rail stage-right" data-stage-rail="right">
+      <aside
+        className="stage-rail stage-right"
+        data-stage-rail="right"
+        data-turn={page.turn ?? undefined}
+        onAnimationEnd={(e) => {
+          if (e.target === e.currentTarget) page.settle();
+        }}
+      >
         <StageBlatt
           view={view}
           state={state}
@@ -306,10 +329,11 @@ export function MatchStage({
             if (asked && rawInput !== null) onAnswer(asked, { rawInput });
           }}
         />
+        <span className="blatt-ring" aria-hidden="true" />
       </aside>
 
       <div className="stage-banner" aria-hidden="true">
-        {moment ? <MomentBanner key={moment.key} moment={moment} /> : null}
+        {moment ? <MomentBanner key={moment.moment.key} shown={moment} /> : null}
       </div>
 
       <StageCentre kind={sheetKind} className={closed ? 'wide' : ''}>
@@ -319,24 +343,61 @@ export function MatchStage({
       <RotateHint />
     </main>
   );
+  // Was unter der Bühne erscheint, erfährt so, ob sie schon einen Wechsel miterlebt hat
+  return <StageLive value={live}>{scene}</StageLive>;
 }
 
 /**
  * Kurzes Band über der Karte: „Du bist dran!“, der Beginn eines Abschnitts oder der Fall eines
- * Reichs. Nur Zierde: Was zu tun ist, liest das Blatt daneben vor (aria-live).
+ * Reichs. Eine kleine Schriftrolle, die sich von der Mitte her entrollt und wieder einrollt
+ * (stage.css); wie lange sie steht, sagt `momentTiming`. Nur Zierde: Was zu tun ist, liest das
+ * Blatt daneben vor (aria-live).
  */
-export function MomentBanner({ moment }: { readonly moment: Moment }) {
+export function MomentBanner({ shown }: { readonly shown: ShownMoment }) {
+  const { moment, leadMs, showMs } = shown;
+  const grand = momentWeight(moment) === 'grand';
+  const style: CSSProperties = {
+    ['--band-lead' as string]: `${leadMs}ms`,
+    ['--band-ms' as string]: `${showMs}ms`,
+  };
   return (
-    <div className={`turn-banner moment-${moment.tone}`}>
+    <div className={`turn-banner moment-${moment.tone}${grand ? ' grand' : ''}`} style={style}>
       <span className="moment-ribbon" data-seat={moment.seat ?? undefined}>
-        {moment.tone === 'seat' && moment.seat !== null ? (
-          <SeatCrest seat={moment.seat} size={34} />
-        ) : null}
-        <span className="moment-title">{moment.title}</span>
+        <span className="ribbon-shade" />
+        <span className="ribbon-cloth">
+          {moment.tone === 'seat' && moment.seat !== null ? (
+            <SeatCrest seat={moment.seat} size={34} />
+          ) : null}
+          <span className="moment-title">{moment.title}</span>
+        </span>
+        {/* Die beiden Stäbe der Rolle: Sie fahren mit den Kanten des Tuchs auseinander */}
+        <span className="ribbon-rod rod-l">
+          <i />
+        </span>
+        <span className="ribbon-rod rod-r">
+          <i />
+        </span>
       </span>
       {moment.detail ? <span className="moment-detail">{moment.detail}</span> : null}
     </div>
   );
+}
+
+/**
+ * Abschnitt der Partie im Band oben links. Wechselt der Text, während die Bühne zusieht, schreibt
+ * er sich neu ein; das Band selbst bleibt stehen.
+ */
+export function StepRibbon({ label }: { readonly label: string }) {
+  return (
+    <p className="round-ribbon" data-testid="match-step">
+      <StepText key={label} label={label} />
+    </p>
+  );
+}
+
+function StepText({ label }: { readonly label: string }) {
+  const born = useBorn();
+  return <span className={born ? 'arriving' : undefined}>{label}</span>;
 }
 
 export function AbandonedPanel({
