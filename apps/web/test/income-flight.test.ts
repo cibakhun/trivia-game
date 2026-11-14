@@ -112,8 +112,10 @@ describe('Einkommen zwischen Verbuchen und Rüstzeit', () => {
 });
 
 /**
- * Ankunft im Vorrat (ADR-070): Nur die Zeichen, die wirklich ankommen, heben sich; die Tafeln der
- * anderen schimmern, wenn ihr Vorrat nur hochzählt. Bei vielen Feldern bleibt die Spur schmal.
+ * Ankunft im Vorrat (ADR-070): Das Einkommen fliegt in den Vorrat im Blatt der Rüstzeit rechts. Nur
+ * die Zeichen, die wirklich ankommen, heben sich dort; die eigene Tafel links zählt nur mit, die
+ * Tafeln der anderen schimmern, wenn ihr Vorrat hochzählt. Bei vielen Feldern bleibt die Spur
+ * schmal.
  */
 describe('Tafeln beim Einkommen', () => {
   const view = realmViewOf();
@@ -127,14 +129,10 @@ describe('Tafeln beim Einkommen', () => {
   const tag = (html: string, seat: number) =>
     new RegExp(`<li class="(plaque realm seat-${seat}(?: [^"]*)?)"`).exec(html)?.[1] ?? '';
 
-  it('hebt nur die Zeichen, die ankommen, und kennt die Dauer der Ankünfte', () => {
-    const html = render({ receiving: { delayMs: 990, durationMs: 760, kinds: ['bread'] } });
-    expect(tag(html, mine)).toContain('receiving receive-bread');
-    expect(tag(html, mine)).not.toContain('receive-material');
-    expect(html).toContain('--receive-ms:760ms');
-    // Ohne Angabe kommt beides an
-    const both = render({ receiving: { delayMs: 990, durationMs: 760 } });
-    expect(tag(both, mine)).toContain('receive-bread receive-material');
+  it('hebt auf der eigenen Tafel nichts: Das Einkommen landet im Blatt rechts', () => {
+    const html = render({ receiving: { delayMs: 990, durationMs: 760 } });
+    expect(tag(html, mine)).not.toContain('receiv');
+    expect(html).not.toContain('--receive-');
   });
 
   it('lässt die anderen Reiche schimmern, nie das eigene, in das gerade geflogen wird', () => {

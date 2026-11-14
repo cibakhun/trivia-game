@@ -13,7 +13,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import type { LocalQuestion, MatchScreenState, WatchedQuestion } from '../src/match/match-model.ts';
 import { regionNames, seatNames } from '../src/match/match-text.ts';
-import { PreparePanel } from '../src/match/PreparePanel.tsx';
+import { PreparePanel, type StockArrival } from '../src/match/PreparePanel.tsx';
 import { RealmBlatt } from '../src/match/RealmBlatt.tsx';
 import { RealmLobby, type RealmLobbyInitial } from '../src/match/RealmLobby.tsx';
 import {
@@ -307,12 +307,11 @@ describe('Spielstand der Partie mit Ausbau', () => {
         receiving: { delayMs: 990, durationMs: 760 },
       }),
     );
+    // Die Plättchen landen im Blatt rechts: Die eigene Tafel zählt nur mit und zeigt bis dahin den
+    // neuen Stand noch nicht als Bewegung an sich selbst
     const mine = tagOf(html, 'plaque realm seat-2 me');
-    expect(mine).toContain('plaque realm seat-2 me receiving');
-    expect(mine).toContain('--receive-at:990ms');
-    expect(count(html, ' receiving')).toBe(1);
-    // Ohne Einkommen unterwegs trägt keine Tafel die Marke
-    expect(seats(view)).not.toContain('receiving');
+    expect(mine).not.toContain('receiv');
+    expect(textOf(plaque(html, ME))).toContain('7 Brot');
   });
 
   it('zeigt den Stand vor dem Einkommen, solange dessen Rüstzeit nicht begonnen hat (ADR-067)', () => {
@@ -408,6 +407,8 @@ describe('Blatt der Rüstzeit', () => {
     readonly trading?: boolean;
     readonly dropped?: boolean;
     readonly busy?: boolean;
+    /** Einkommen, das gerade in den Vorrat des Blatts fliegt. */
+    readonly arriving?: StockArrival;
   }
 
   function prepare(props: Prep = {}): string {
@@ -434,6 +435,7 @@ describe('Blatt der Rüstzeit', () => {
         error: null,
         region: regionNames(play.map),
         name: seatNames(view),
+        arriving: props.arriving ?? null,
         onOrders: noop,
         onMoving: noop,
         onTrading: noop,
@@ -460,6 +462,26 @@ describe('Blatt der Rüstzeit', () => {
       : '';
     return { long: textOf(field.replace(short, '')), short };
   };
+
+  it('empfängt das Einkommen im Vorrat: Stand davor, nur die Zeichen heben sich, die ankommen (ADR-070)', () => {
+    const arriving = { bread: 4, material: 5, delayMs: 990, durationMs: 760 };
+    const html = prepare({ arriving: { ...arriving, kinds: ['bread'] } });
+    const row = tagOf(html, 'data-testid="prepare-stock"');
+    expect(row).toContain('class="stock-row receive-bread"');
+    expect(row).toContain('--receive-at:990ms');
+    expect(row).toContain('--receive-ms:760ms');
+    // Der Vorrat erscheint mit dem Stand vor dem Einkommen; die Zahlen zählen dann hoch
+    expect(stock(html)).toContain('Vorrat 3 Brot 5 Baustoff');
+    const both = prepare({ arriving: { ...arriving, kinds: ['bread', 'material'] } });
+    expect(tagOf(both, 'data-testid="prepare-stock"')).toContain(
+      'class="stock-row receive-bread receive-material"',
+    );
+    // Ohne Einkommen unterwegs steht der Vorrat still da
+    const still = tagOf(prepare(), 'data-testid="prepare-stock"');
+    expect(still).toContain('class="stock-row"');
+    expect(still).not.toContain('--receive');
+    expect(stock(prepare())).toContain('Vorrat 7 Brot 10 Baustoff');
+  });
 
   it('zeigt zu Beginn Vorrat, Einkommen und wozu die drei Zeilen gut sind', () => {
     const html = prepare();

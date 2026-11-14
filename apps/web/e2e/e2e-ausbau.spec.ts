@@ -443,6 +443,10 @@ async function prepare(
       quick,
     );
     const stock = page.getByTestId('prepare-stock');
+    // Das Einkommen der Runde fliegt zu Beginn in diesen Vorrat (ADR-070): erst wenn es angekommen
+    // ist, steht die Zahl, mit der der Test rechnet
+    await expect(stock).not.toHaveClass(/receive-/, { timeout: 6_000 });
+    await expect(stock.locator('.counting')).toHaveCount(0, quick);
     const before = await stock.textContent();
     await build();
     if (built !== null) {

@@ -280,7 +280,8 @@ export function RealmStage({
   const land = play ? mapArt(play.map).tightViewBox : null;
   const { stage, frame, low } = useStageFrame(land);
 
-  // ---- Einkommen: Brot und Baustoff wandern von den eigenen Feldern in den Vorrat (ADR-067) ----
+  // ---- Einkommen: Brot und Baustoff wandern von den eigenen Feldern in den Vorrat im Blatt
+  // der Rüstzeit rechts (ADR-067, ADR-070) ----
   const sources = useMemo(
     () => (play && mySeat !== null ? incomeSources(play, mySeat) : []),
     [play, mySeat],
@@ -312,8 +313,24 @@ export function RealmStage({
     setIncomePlan({ seq: incomeSeq, plans: incomeFlights(sources) });
   }
   const incoming = incomeSeq !== null && incomePlan?.seq === incomeSeq ? incomePlan.plans : null;
-  // Wessen Vorrat mit diesem Einkommen nur hochzählt (alle außer dem eigenen, wenn dorthin geflogen
-  // wird): Diese Tafeln schimmern (ADR-070)
+  // Was davon im Vorrat des Blatts rechts ankommt: Dort zählen die Zahlen mit den Plättchen hoch
+  const myIncome =
+    incoming && income ? income.payload.income.find((entry) => entry.seat === mySeat) : undefined;
+  const arriving = useMemo(
+    () =>
+      myIncome
+        ? {
+            bread: myIncome.bread,
+            material: myIncome.material,
+            delayMs: incomeTime.countAtMs,
+            durationMs: incomeTime.countMs,
+            kinds: [...new Set(sources.map((source) => source.kind))],
+          }
+        : null,
+    [myIncome, incomeTime, sources],
+  );
+  // Wessen Vorrat mit diesem Einkommen nur hochzählt (alle außer dem eigenen, wenn es fliegt: Die
+  // eigene Tafel zählt dann mit den Ankünften im Blatt rechts): Diese Tafeln schimmern (ADR-070)
   const gaining =
     incomeRising !== null && income?.seq === incomeRising
       ? income.payload.income
@@ -613,13 +630,7 @@ export function RealmStage({
           play={play}
           name={name}
           receiving={
-            incoming
-              ? {
-                  delayMs: incomeTime.countAtMs,
-                  durationMs: incomeTime.countMs,
-                  kinds: [...new Set(sources.map((source) => source.kind))],
-                }
-              : null
+            incoming ? { delayMs: incomeTime.countAtMs, durationMs: incomeTime.countMs } : null
           }
           gaining={gaining}
           pending={incomeWaits && income ? income.payload.income : null}
@@ -666,6 +677,7 @@ export function RealmStage({
             error={actionError}
             region={region}
             name={name}
+            arriving={arriving}
             onOrders={(orders, dropped) => setPrep((p) => ({ ...p, orders, dropped }))}
             onMoving={(open) => setPrep((p) => ({ ...p, moving: open, refused: null }))}
             onTrading={(open) =>
@@ -748,15 +760,23 @@ export function RealmStage({
   );
 }
 
-/** Flüge des Einkommens: je Feld ein Zeichen in den eigenen Vorrat; eine Burg schickt zwei. */
+/** Höhe des Bogens, in dem der Baustoff in den Vorrat fliegt (Einheiten der Bühne). */
+const MATERIAL_LIFT = 46;
+
+/**
+ * Flüge des Einkommens: je Feld ein Zeichen in den Vorrat oben im Blatt der Rüstzeit rechts; eine
+ * Burg schickt zwei.
+ */
 function incomeFlights(sources: readonly IncomeSource[]): FlightPlan[] {
   const perField = new Map<number, number>();
   for (const source of sources) perField.set(source.region, (perField.get(source.region) ?? 0) + 1);
   return sources.map((source) => ({
     key: `${source.region}-${source.kind}`,
     from: `[data-region="${source.region}"]`,
-    to: `.plaque.me .amount-${source.kind}`,
-    at: 'start' as const,
+    to: `.stock-row .amount-${source.kind} .glyph`,
+    // Der Baustoff steht rechts vom Brot: Sein Bogen ist höher, damit er von oben auf sein Zeichen
+    // fällt und nicht über die Zahl des Brots fliegt
+    ...(source.kind === 'material' ? { lift: MATERIAL_LIFT } : {}),
     icon: <MarkIcon kind={source.kind} size={14} />,
     // Zwei Zeichen vom selben Feld starten nebeneinander
     shift: (perField.get(source.region) ?? 1) > 1 ? (source.kind === 'bread' ? -8 : 8) : 0,

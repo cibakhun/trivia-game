@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Einkommen als Bewegung (ADR-067): Zu Beginn der Rüstzeit wandern Brot und Baustoff von den
- * eigenen Feldern in den eigenen Vorrat links, die Zahlen dort zählen hoch, wenn die ersten
- * Zeichen ankommen. Gezeigt wird nur ein Einkommen, das diese Seite hat kommen sehen. Verbucht ist
- * es beim Server schon vorher, mit dem Ende der Runde davor: Solange die Rüstzeit nicht begonnen
- * hat, zeigen die Vorräte aller Reiche noch den Stand davor.
+ * Einkommen als Bewegung (ADR-067, ADR-070): Zu Beginn der Rüstzeit wandern Brot und Baustoff von
+ * den eigenen Feldern in den Vorrat oben im Blatt der Rüstzeit rechts, die Zahlen dort und auf der
+ * eigenen Tafel links zählen hoch, wenn die ersten Zeichen ankommen. Gezeigt wird nur ein Einkommen,
+ * das diese Seite hat kommen sehen. Verbucht ist es beim Server schon vorher, mit dem Ende der Runde
+ * davor: Solange die Rüstzeit nicht begonnen hat, zeigen die Vorräte aller Reiche noch den Stand
+ * davor.
  */
 export interface IncomeTiming {
   /** Wartezeit vor dem ersten Abflug: Der Bildschirm der Rüstzeit steht dann. */

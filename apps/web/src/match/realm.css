@@ -158,66 +158,11 @@
   color: var(--success);
 }
 
-/* Das Einkommen kommt an (ADR-067, ADR-070): Mit dem ersten Zeichen hebt sich das Zeichen im
-   eigenen Vorrat, ein goldener Ring geht von ihm aus, und es glimmt, solange Zeichen kommen; mit
-   dem letzten federt es zurück, wieder mit einem Ring, und das Glimmen verlischt. Die Zahl daneben
-   zählt mit den Ankünften und leuchtet dabei golden. Ohne Bewegung steht alles still im Endbild.
-   Zwei Animationen je Teil: Die spätere gilt erst ab ihrem Beginn (nur `forwards`), davor hält
-   die frühere ihr Ende */
-.plaque.receiving .amount {
-  position: relative;
-  isolation: isolate;
-}
-.plaque.receive-bread .amount-bread .glyph,
-.plaque.receive-material .amount-material .glyph {
-  animation:
-    amount-lift 280ms cubic-bezier(0.3, 1.7, 0.5, 1) var(--receive-at, 0ms) forwards,
-    amount-settle 560ms cubic-bezier(0.25, 1.9, 0.45, 1)
-      calc(var(--receive-at, 0ms) + var(--receive-ms, 300ms)) forwards;
-}
-.plaque.receive-bread .amount-bread::before,
-.plaque.receive-bread .amount-bread::after,
-.plaque.receive-material .amount-material::before,
-.plaque.receive-material .amount-material::after {
-  content: '';
-  position: absolute;
-  left: calc(7.5 * var(--u));
-  top: 50%;
-  translate: -50% -50%;
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-}
-/* Glimmen hinter dem Zeichen */
-.plaque.receive-bread .amount-bread::before,
-.plaque.receive-material .amount-material::before {
-  z-index: -1;
-  width: calc(32 * var(--u));
-  height: calc(32 * var(--u));
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--map-glow) 95%, transparent),
-    color-mix(in srgb, var(--map-gold) 45%, transparent) 55%,
-    transparent
-  );
-  animation:
-    amount-glow-in 260ms ease-out var(--receive-at, 0ms) forwards,
-    amount-glow-out 620ms ease-in calc(var(--receive-at, 0ms) + var(--receive-ms, 300ms) + 120ms)
-      forwards;
-}
-/* Ring mit dem ersten und, größer, mit dem letzten Zeichen */
-.plaque.receive-bread .amount-bread::after,
-.plaque.receive-material .amount-material::after {
-  width: calc(34 * var(--u));
-  height: calc(34 * var(--u));
-  border: calc(1.8 * var(--u)) solid var(--map-gold);
-  box-shadow: 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-glow) 80%, transparent);
-  animation:
-    amount-ring 560ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--receive-at, 0ms) both,
-    amount-ring-last 720ms cubic-bezier(0.2, 0.7, 0.3, 1)
-      calc(var(--receive-at, 0ms) + var(--receive-ms, 300ms)) forwards;
-}
-.plaque.realm .amount-value .counting {
+/* Das Einkommen kommt im Vorrat des Blatts der Rüstzeit an (ADR-067, ADR-070; die Regeln dazu
+   stehen bei `.stock-row`). Die eigene Tafel zählt im selben Takt mit, ihre Zahl leuchtet dabei
+   golden */
+.plaque.realm .amount-value .counting,
+.stock-row .amount-value .counting {
   color: var(--accent);
 }
 @keyframes amount-lift {
@@ -443,6 +388,68 @@
 
 .stock-row > * {
   flex: none;
+}
+
+/* Das Einkommen kommt an (ADR-067, ADR-070): Die Plättchen von den eigenen Feldern landen auf den
+   Zeichen des Vorrats. Mit dem ersten hebt sich das Zeichen, ein goldener Ring geht von ihm aus,
+   und es glimmt, solange Plättchen kommen; mit dem letzten federt es zurück, wieder mit einem
+   Ring, und das Glimmen verlischt. Die Zahl daneben zählt mit den Ankünften und leuchtet dabei
+   golden. Ohne Bewegung steht alles still im Endbild. Zwei Animationen je Teil: Die spätere gilt
+   erst ab ihrem Beginn (nur `forwards`), davor hält die frühere ihr Ende */
+.stock-row.receive-bread .amount-bread,
+.stock-row.receive-material .amount-material {
+  position: relative;
+  isolation: isolate;
+}
+.stock-row.receive-bread .amount-bread .glyph,
+.stock-row.receive-material .amount-material .glyph {
+  animation:
+    amount-lift 280ms cubic-bezier(0.3, 1.7, 0.5, 1) var(--receive-at, 0ms) forwards,
+    amount-settle 560ms cubic-bezier(0.25, 1.9, 0.45, 1)
+      calc(var(--receive-at, 0ms) + var(--receive-ms, 300ms)) forwards;
+}
+.stock-row.receive-bread .amount-bread::before,
+.stock-row.receive-bread .amount-bread::after,
+.stock-row.receive-material .amount-material::before,
+.stock-row.receive-material .amount-material::after {
+  content: '';
+  position: absolute;
+  /* Mitte des Zeichens (19 Einheiten breit) */
+  left: calc(9.5 * var(--u));
+  top: 50%;
+  translate: -50% -50%;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+/* Glimmen hinter dem Zeichen */
+.stock-row.receive-bread .amount-bread::before,
+.stock-row.receive-material .amount-material::before {
+  z-index: -1;
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--map-glow) 95%, transparent),
+    color-mix(in srgb, var(--map-gold) 45%, transparent) 55%,
+    transparent
+  );
+  animation:
+    amount-glow-in 260ms ease-out var(--receive-at, 0ms) forwards,
+    amount-glow-out 620ms ease-in calc(var(--receive-at, 0ms) + var(--receive-ms, 300ms) + 120ms)
+      forwards;
+}
+/* Ring mit dem ersten und, größer, mit dem letzten Plättchen */
+.stock-row.receive-bread .amount-bread::after,
+.stock-row.receive-material .amount-material::after {
+  width: calc(34 * var(--u));
+  height: calc(34 * var(--u));
+  border: calc(1.8 * var(--u)) solid var(--map-gold);
+  box-shadow: 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-glow) 80%, transparent);
+  animation:
+    amount-ring 560ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--receive-at, 0ms) both,
+    amount-ring-last 720ms cubic-bezier(0.2, 0.7, 0.3, 1)
+      calc(var(--receive-at, 0ms) + var(--receive-ms, 300ms)) forwards;
 }
 
 .trade {
@@ -2023,12 +2030,12 @@ span.order-chip {
 @media (prefers-reduced-motion: reduce) {
   .flight,
   .flight-arc,
-  .plaque.receive-bread .amount-bread .glyph,
-  .plaque.receive-material .amount-material .glyph,
-  .plaque.receive-bread .amount-bread::before,
-  .plaque.receive-bread .amount-bread::after,
-  .plaque.receive-material .amount-material::before,
-  .plaque.receive-material .amount-material::after,
+  .stock-row.receive-bread .amount-bread .glyph,
+  .stock-row.receive-material .amount-material .glyph,
+  .stock-row.receive-bread .amount-bread::before,
+  .stock-row.receive-bread .amount-bread::after,
+  .stock-row.receive-material .amount-material::before,
+  .stock-row.receive-material .amount-material::after,
   .plaque.gaining .amount::after,
   .stage[data-state='wheel'] .wheel-sheet,
   .wheel.spinning .wheel-disc,

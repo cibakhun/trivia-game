@@ -1,5 +1,13 @@
 import type { RealmOrderDto } from '@rdw/protocol';
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
+import { CountUp } from '../art/CountUp.tsx';
 import { Amount, MarkIcon, type Mark } from '../art/RealmIcons.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
@@ -41,8 +49,24 @@ import {
  * Zeilen (Ausbauen, Armeen kaufen, Armeen ziehen), jede mit Preis und eigenem Knopf oder mit dem
  * Grund, aus dem sie gerade nichts anbietet; darunter die eigenen Befehle als Plättchen zum
  * Zurücknehmen und „Fertig“. Gerechnet wird mit den Regeln des Servers (`realm-model`); abgegeben
- * ist erst, was „Fertig“ schickt. Das Blatt ist immer gleich groß.
+ * ist erst, was „Fertig“ schickt. Das Blatt ist immer gleich groß. Zu Beginn der Rüstzeit landet
+ * hier oben das Einkommen (ADR-070): Der Vorrat erscheint mit dem Stand davor, und seine Zahlen
+ * zählen hoch, während die Plättchen von den eigenen Feldern ankommen.
  */
+
+/** Einkommen, das gerade von den eigenen Feldern in den Vorrat dieses Blatts fliegt. */
+export interface StockArrival {
+  readonly bread: number;
+  readonly material: number;
+  /** Ab wann und wie lange die Zahlen mit den Ankünften hochzählen. */
+  readonly delayMs: number;
+  readonly durationMs: number;
+  /** Was ankommt: Nur diese Zeichen heben sich. */
+  readonly kinds: readonly ('bread' | 'material')[];
+}
+
+/** So lange zählt der Vorrat, wenn ein Befehl ihn ändert. */
+const STOCK_COUNT_MS = 350;
 
 function noop() {
   // Ablauf der Rüstzeit: Den nächsten Schritt bringt die Abfrage
@@ -158,6 +182,7 @@ export function PreparePanel({
   error,
   region,
   name,
+  arriving = null,
   onOrders,
   onMoving,
   onTrading,
@@ -185,6 +210,8 @@ export function PreparePanel({
   readonly error: unknown;
   readonly region: RegionName;
   readonly name: (seat: number) => string;
+  /** Das Einkommen dieser Runde ist noch unterwegs in den Vorrat oben im Blatt. */
+  readonly arriving?: StockArrival | null;
   readonly onOrders: (orders: RealmOrderDto[], dropped: boolean) => void;
   readonly onMoving: (open: boolean) => void;
   readonly onTrading: (open: boolean) => void;
@@ -197,6 +224,19 @@ export function PreparePanel({
   const left = plan.ok
     ? { bread: plan.bread, material: plan.material }
     : { bread: stock?.bread ?? 0, material: stock?.material ?? 0 };
+  // Solange noch kein Befehl geplant ist, zählt der Vorrat mit den Ankünften; ein Befehl mitten im
+  // Flug rechnet sofort, ohne auf die Plättchen zu warten
+  const landing = arriving !== null && orders.length === 0 ? arriving : null;
+  const stockValue = (kind: 'bread' | 'material') => (
+    <CountUp
+      value={left[kind]}
+      render={String}
+      {...(arriving ? { from: Math.max(0, left[kind] - arriving[kind]) } : {})}
+      durationMs={landing?.durationMs ?? STOCK_COUNT_MS}
+      delayMs={landing?.delayMs ?? 0}
+      steady={landing !== null}
+    />
+  );
   const chips = orderChips(play, orders, region);
   const strip = useOrderStrip(chips.length);
   const field = selected === null || done ? null : fieldOptions(play, seat, orders, selected);
@@ -374,11 +414,30 @@ export function PreparePanel({
           brief
         />
       )}
-      <div className="stock-row" data-testid="prepare-stock">
+      <div
+        className={[
+          'stock-row',
+          ...(arriving ? arriving.kinds.map((kind) => `receive-${kind}`) : []),
+        ].join(' ')}
+        style={
+          arriving
+            ? ({
+                '--receive-at': `${arriving.delayMs}ms`,
+                '--receive-ms': `${arriving.durationMs}ms`,
+              } as CSSProperties)
+            : undefined
+        }
+        data-testid="prepare-stock"
+      >
         {/* Das Wort trüge die Zeile bei zweistelligen Vorräten über den Rand: nur für Screenreader */}
         <span className="visually-hidden">{t('realm.prepare.stock')}</span>
-        <Amount kind="bread" value={left.bread} label={t('realm.bread')} size={19} />
-        <Amount kind="material" value={left.material} label={t('realm.material')} size={19} />
+        <Amount kind="bread" value={stockValue('bread')} label={t('realm.bread')} size={19} />
+        <Amount
+          kind="material"
+          value={stockValue('material')}
+          label={t('realm.material')}
+          size={19}
+        />
         {done ? null : (
           <button
             type="button"
