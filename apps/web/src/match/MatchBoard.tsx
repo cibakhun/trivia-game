@@ -7,7 +7,9 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type FocusEvent,
   type KeyboardEvent,
+  type PointerEvent,
   type ReactNode,
 } from 'react';
 import { ArtDefs, symbolRef, type SymbolId } from '../art/ArtDefs.tsx';
@@ -122,6 +124,18 @@ function useSettled(): boolean {
   return settled.current;
 }
 
+/**
+ * Zeigt der Browser den Fokus dieses Elements (Tastatur)? Nach einem Tipp oder Klick nicht. Kennt
+ * er die Abfrage nicht, gilt der Fokus als sichtbar.
+ */
+function focusShown(element: Element): boolean {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    return true;
+  }
+}
+
 /** Wo ein Duell spielt: Region, aus der der Angreifer zieht, und ob das Ziel eine Hauptstadt ist. */
 interface DuelGround {
   readonly source: number | null;
@@ -166,6 +180,7 @@ export function MatchBoard({
   duel,
   spot,
   busy,
+  pending = null,
   onPick,
   frame,
   realm: realmLayer = null,
@@ -191,6 +206,11 @@ export function MatchBoard({
   /** Eben gewählte Region, die eine Ansage zeigt. */
   readonly spot: number | null;
   readonly busy: boolean;
+  /**
+   * Eigene Wahl, die abgeschickt ist und auf den Server wartet (`pendingPick`): Das Feld trägt
+   * schon den festen goldenen Rand, die übrigen Markierungen ruhen so lange.
+   */
+  readonly pending?: number | null;
   readonly onPick: (region: number) => void;
   /**
    * Ausschnitt der Bühne (ADR-059): Die Karte füllt den Bildschirm, das Meer läuft bis zum Rand.
@@ -218,8 +238,17 @@ export function MatchBoard({
     [art, ownerKey],
   );
   const [hot, setHot] = useState<number | null>(null);
-  const choosable = new Set(busy ? [] : legal);
-  const tappable = new Set(busy ? [] : selectable);
+  // Solange eine Wahl unterwegs ist, nimmt die Karte keinen Tipp an
+  const waiting = busy || pending !== null;
+  const choosable = new Set(waiting ? [] : legal);
+  const tappable = new Set(waiting ? [] : selectable);
+  // Jeder Tipp bekommt seine Antwort im selben Bild: Die Fläche des Felds blitzt einmal auf
+  // (`tap-press`). Die Nummer zählt die Tipps, damit auch ein zweiter auf dasselbe Feld neu anläuft
+  const [tap, setTap] = useState<{ readonly region: number; readonly seq: number } | null>(null);
+  const press = (region: number) => {
+    setTap((last) => ({ region, seq: (last?.seq ?? 0) + 1 }));
+    onPick(region);
+  };
   const maxLives = Math.max(
     DEFAULT_MATCH_RULES.capital.lives,
     ...board.seats.map((s) => s.capitalLivesLeft),
@@ -235,7 +264,7 @@ export function MatchBoard({
   function onKey(event: KeyboardEvent, region: number) {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      onPick(region);
+      press(region);
     }
   }
 
@@ -350,6 +379,9 @@ export function MatchBoard({
     : undefined;
   const hotArt =
     hot !== null && (choosable.has(hot) || tappable.has(hot)) ? art.regions[hot] : undefined;
+  const tapArt = tap === null ? undefined : art.regions[tap.region];
+  // Nur solange das Feld noch zur Wahl steht: Ist der neue Stand da, übernimmt der Ring der Ansage
+  const pendingArt = pending !== null && legal.includes(pending) ? art.regions[pending] : undefined;
   const spotArt = spot === null ? undefined : art.regions[spot];
   const spotOwner = spot === null ? null : (board.regions[spot]?.owner ?? null);
 
@@ -536,11 +568,17 @@ export function MatchBoard({
                       tabIndex: 0,
                       'aria-label': canPick ? region.name : label,
                       'aria-pressed': !canPick && realm ? realm.selected === region.id : undefined,
-                      onClick: () => onPick(region.id),
+                      onClick: () => press(region.id),
                       onKeyDown: (event: KeyboardEvent) => onKey(event, region.id),
-                      onPointerEnter: () => setHot(region.id),
+                      // Der Rand unter dem Zeiger gehört der Maus und der Tastatur: Ein Finger
+                      // hat keinen Zeiger, und nach einem Tipp bliebe der Rand am Feld hängen
+                      onPointerEnter: (event: PointerEvent) => {
+                        if (event.pointerType === 'mouse') setHot(region.id);
+                      },
                       onPointerLeave: () => setHot((h) => (h === region.id ? null : h)),
-                      onFocus: () => setHot(region.id),
+                      onFocus: (event: FocusEvent) => {
+                        if (focusShown(event.currentTarget)) setHot(region.id);
+                      },
                       onBlur: () => setHot((h) => (h === region.id ? null : h)),
                     }
                   : { role: 'img', 'aria-label': label })}
@@ -644,8 +682,26 @@ export function MatchBoard({
             owners={board.regions.map((r) => r.owner)}
             size={s}
             level="under"
+            live={settled}
           />
         ) : null}
+
+        {/* Antwort auf einen Tipp und die abgeschickte Wahl: unter den Beschriftungen */}
+        <g className="board-press" aria-hidden="true">
+          {tapArt && tap ? (
+            <path
+              key={tap.seq}
+              d={tapArt.d}
+              className={`tap-press${realm?.refused === tap.region ? ' refused' : ''}`}
+            />
+          ) : null}
+          {pendingArt ? (
+            <Born key={pendingArt.id} className="pick-ring" motion="land" live={settled}>
+              <path d={pendingArt.d} className="ring-casing" />
+              <path d={pendingArt.d} className="ring-line" />
+            </Born>
+          ) : null}
+        </g>
 
         <g className="region-art" aria-hidden="true">
           {art.regions.map((region) => {
@@ -700,6 +756,7 @@ export function MatchBoard({
             owners={board.regions.map((r) => r.owner)}
             size={s}
             level="over"
+            live={settled}
           />
         ) : null}
 
@@ -735,6 +792,7 @@ export function MatchBoard({
             owners={board.regions.map((r) => r.owner)}
             size={s}
             level="top"
+            live={settled}
           />
         ) : null}
       </svg>
@@ -1008,7 +1066,10 @@ function RegionArt({
             >
               {use('castle', castleX, cy + (realm ? REALM_CASTLE.y : 0.02) * s, castleSize)}
             </Born>
-            <g className="lives" style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}>
+            <g
+              className={`lives${motion?.placed === true ? ' placed' : ''}`}
+              style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
+            >
               {Array.from({ length: maxLives }, (_, i) => {
                 const left = i < lives;
                 const x = livesX + (i - (maxLives - 1) / 2) * REALM_CASTLE.livesGap * s;
@@ -1043,6 +1104,7 @@ function RegionArt({
             castle={capital}
             size={s}
             layer={realm}
+            live={settled}
           />
         ) : owner !== null ? (
           <g className="owner-badge">

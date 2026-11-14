@@ -38,6 +38,7 @@ import {
   layerRegions,
   outcomeMotion,
   outcomeSign,
+  pickMotion,
   planLayer,
   realmBoardState,
   revealLayer,
@@ -63,6 +64,7 @@ import { ResultPanel } from './ResultPanel.tsx';
 import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { RoundFlow } from './RoundFlow.tsx';
+import { useSent } from './sent-action.ts';
 import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
@@ -257,6 +259,12 @@ export function RealmStage({
     if (!aiming && !initial) setTarget(null);
   }, [aiming, initial]);
 
+  // Eine abgeschickte Wahl oder Abgabe gilt als unterwegs, bis der Stand sie zeigt (`sent-action`):
+  // Solange nimmt die Bühne nichts an, und nichts springt zurück in den Zustand davor
+  const sent = useSent(feedView?.lastEventSeq ?? null, actionError);
+  const sending = busy || sent.pending !== null;
+  const pendingPick = state === 'pick' ? (sent.pending?.region ?? null) : null;
+
   // Wer bis kurz vor Schluss nicht „Fertig“ tippt, gibt seinen Entwurf trotzdem ab: Ohne Abgabe
   // täte sein Reich in dieser Runde nichts
   const submit = useRef<() => void>(() => undefined);
@@ -420,14 +428,21 @@ export function RealmStage({
       ...planLayer(play, mySeat, prep.orders),
       selected: prep.trading ? null : prep.selected,
       targets: moveTargets,
+      refused: refused === null ? null : prep.refused,
       hint:
         prep.selected === null && !prep.trading
           ? board.regions.flatMap((r, id) => (r.owner === mySeat ? [id] : []))
           : [],
       focusSeat: mySeat,
+      planning: true,
     };
   } else if (state === 'prepared' && mySeat !== null) {
-    layer = { regions, ...planLayer(play, mySeat, realm.myOrders ?? []), focusSeat: mySeat };
+    layer = {
+      regions,
+      ...planLayer(play, mySeat, realm.myOrders ?? []),
+      focusSeat: mySeat,
+      planning: true,
+    };
   } else if (state === 'orders') {
     const revealed = revealedOrders(events, revealedRound(events) ?? step.round ?? 1);
     layer = {
@@ -437,6 +452,11 @@ export function RealmStage({
     };
   } else if (aimed !== null) {
     layer = { regions, selected: aimed };
+  } else if (refusedTarget !== null) {
+    layer = { regions, refused: refusedTarget };
+  } else if (state === 'announce' && live && pickMotion(shownPick(events))) {
+    // Eben gesetzt: Burg oder Dorf wächst aus dem Boden, die Armeen der Burg treten heraus
+    layer = { regions, motion: pickMotion(shownPick(events)) };
   } else if (state === 'reveal' && realmDuel) {
     layer = {
       regions,
@@ -494,6 +514,7 @@ export function RealmStage({
       setTarget(id);
       return;
     }
+    sent.mark(id);
     onPick(id);
   };
 
@@ -594,7 +615,8 @@ export function RealmStage({
           home={mySeat}
           duel={duel}
           spot={spot}
-          busy={busy}
+          busy={sending}
+          pending={pendingPick}
           onPick={tapRegion}
           frame={frame}
         />
@@ -648,7 +670,11 @@ export function RealmStage({
         </div>
       </div>
 
-      <aside className="stage-rail stage-right" data-stage-rail="right">
+      <aside
+        className="stage-rail stage-right"
+        data-stage-rail="right"
+        data-busy={sending ? 'true' : undefined}
+      >
         {(state === 'prepare' || state === 'prepared') && mySeat !== null ? (
           <PreparePanel
             play={play}
@@ -662,7 +688,7 @@ export function RealmStage({
             dropped={prep.dropped}
             waiting={waiting}
             phaseDeadline={phaseDeadline}
-            busy={busy}
+            busy={sending}
             error={actionError}
             region={region}
             name={name}
@@ -672,6 +698,7 @@ export function RealmStage({
               setPrep((p) => ({ ...p, trading: open, moving: false, refused: null }))
             }
             onSubmit={() => {
+              sent.mark(null);
               void onSubmitOrders(prep.orders).then((accepted) => {
                 if (accepted) setEditing(false);
               });
@@ -690,7 +717,7 @@ export function RealmStage({
             watching={watching !== null}
             phaseDeadline={phaseDeadline}
             estimate={estimate}
-            busy={busy}
+            busy={sending}
             events={events}
             reveal={reveal}
             outcome={realmDuel}
@@ -706,7 +733,9 @@ export function RealmStage({
               if (asked && rawInput !== null) onAnswer(asked, { rawInput });
             }}
             onAttack={() => {
-              if (aimed !== null) onPick(aimed);
+              if (aimed === null) return;
+              sent.mark(aimed);
+              onPick(aimed);
             }}
           />
         )}

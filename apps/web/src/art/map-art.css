@@ -356,8 +356,13 @@
 .map-art .board-region.legal {
   cursor: pointer;
 }
-.map-art .board-region.legal:focus {
+/* Den Fokus zeigt die Karte selbst (`hot-ring`, nur für die Tastatur): Der Rahmen des Browsers wäre
+   ein Rechteck um das ganze Feld, und er erschiene auch nach jedem Tipp */
+.map-art .board-region:focus {
   outline: none;
+}
+.map-art .board-region[role='button'] {
+  cursor: pointer;
 }
 .map-art .legal-glow {
   fill: var(--map-glow);
@@ -402,6 +407,66 @@
   from {
     stroke-width: 13;
     fill-opacity: 0.45;
+  }
+}
+
+/*
+ * Antwort auf einen Tipp (MatchBoard `press`): Die Fläche des Felds blitzt einmal golden auf, im
+ * Bild des Tipps am stärksten, und klingt in 0,28 s ab. Ein Tipp, der gerade nichts auswählt
+ * (`refused`), blitzt in Tinte und schwächer. Ohne Animation ist die Fläche unsichtbar.
+ */
+.map-art .board-press {
+  pointer-events: none;
+}
+.map-art .tap-press {
+  --press: 0.4;
+  fill: var(--map-gold);
+  opacity: 0;
+  animation: tap-press 0.28s cubic-bezier(0.3, 0.6, 0.35, 1) both;
+}
+.map-art .tap-press.refused {
+  --press: 0.2;
+  fill: var(--map-ink);
+}
+@keyframes tap-press {
+  from {
+    opacity: var(--press);
+  }
+}
+
+/*
+ * Fester goldener Rand: das gewählte Feld der Rüstzeit, das angetippte Ziel (`plan-selected`) und
+ * die eigene Wahl, solange sie zum Server unterwegs ist (`pick-ring`). Die dunkle Fassung darunter
+ * ist eine eigene Form statt eines Filters (WebKit). Mit dem Tipp setzt sich der Rand: Er steht
+ * sofort ganz da, breit, und zieht sich in 0,24 s auf sein Maß zusammen (`ring-land`).
+ */
+.map-art .ring-casing {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-opacity: 0.34;
+  stroke-width: 9.5;
+  stroke-linejoin: round;
+}
+.map-art .ring-line {
+  fill: none;
+  stroke: var(--map-gold);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+.map-art :is(.pick-ring, .plan-selected).land .ring-line {
+  animation: ring-land 0.24s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.map-art :is(.pick-ring, .plan-selected).land .ring-casing {
+  animation: ring-land-casing 0.24s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes ring-land {
+  from {
+    stroke-width: 13;
+  }
+}
+@keyframes ring-land-casing {
+  from {
+    stroke-width: 16.5;
   }
 }
 
@@ -1697,6 +1762,51 @@
   stroke-width: 3.5;
   stroke-dasharray: 8 6;
   stroke-linejoin: round;
+  /* „Ziehen“ ist offen, der nächste Tipp gehört der Karte: Der Strichrand läuft wie bei jeder Wahl */
+  animation: march 1.2s linear infinite;
+}
+/* Mit „Ziehen“ leuchten die Ziele einmal auf (0,3 s) */
+.map-art .plan-target.lit {
+  animation:
+    target-lit 0.3s ease-out both,
+    march 1.2s linear infinite;
+}
+@keyframes target-lit {
+  from {
+    fill-opacity: 0.46;
+    stroke-width: 6;
+  }
+}
+/* Kein Ziel: gepunkteter Tintenrand, solange das Blatt sagt, warum; mit dem Tipp ruckt er einmal
+   (0,3 s, ±4 Einheiten), das klassische Nein */
+.map-art .plan-refused {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-opacity: 0.78;
+  stroke-width: 5;
+  stroke-dasharray: 0.1 10.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.map-art .plan-refused.shaken {
+  animation: refuse-shake 0.3s ease-out both;
+}
+@keyframes refuse-shake {
+  0% {
+    transform: translateX(0);
+  }
+  22% {
+    transform: translateX(-4px);
+  }
+  48% {
+    transform: translateX(4px);
+  }
+  74% {
+    transform: translateX(-2px);
+  }
+  100% {
+    transform: none;
+  }
 }
 /* Rüstzeit, noch nichts gewählt: Die eigenen Felder leuchten zweimal auf und sind dann wieder still */
 .map-art .plan-hint {
@@ -1707,12 +1817,89 @@
   opacity: 0;
   animation: plan-hint 1.1s ease-in-out 0.25s 2;
 }
-.map-art .plan-selected {
-  fill: none;
-  stroke: var(--map-gold);
-  stroke-width: 6;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 2px var(--map-ink));
+/* Das gewählte Feld trägt den festen goldenen Rand (`ring-casing`, `ring-line` oben bei der Wahl) */
+
+/* Eben gesetzte Burg (Wahl am Anfang): Ihre Lebensschilde folgen, wenn sie aus dem Boden
+   gewachsen ist (`building-rise` ab `--rise-at`), statt schon unter dem leeren Feld zu stehen */
+.map-art .lives.placed {
+  transform-box: fill-box;
+  animation: lives-in 0.26s calc(var(--rise-at) + 0.4s) ease-out both;
+}
+@keyframes lives-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+/*
+ * Pläne der Rüstzeit setzen sich mit dem Tipp in Szene, kurz und anders als die Tatsachen beim
+ * Aufdecken (dort wachsen Gebäude aus dem Boden und der Zug zieht sich als fester Strich). Alles
+ * steht schon im Bild des Tipps da; die Grundwerte sind das Endbild.
+ *   Geplanter Bau    die blasse Skizze senkt sich aufs Feld (0,22 s), das goldene Plus stempelt sich
+ *   Geplanter Kauf   das Plättchen „+N“ stempelt sich, bei jeder Änderung der Zahl neu (0,2 s)
+ *   Geplanter Zug    der Pfeil schießt vom Start zum Ziel (0,2 s), Spitze und Zahl stempeln sich;
+ *                    die Zahl steht auf Gold und stempelt sich mit jeder weiteren Armee neu
+ */
+.map-art .building.ghost.sketched .ghost-house {
+  transform-box: fill-box;
+  transform-origin: 50% 92%;
+  animation: plan-sketch 0.22s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes plan-sketch {
+  from {
+    transform: translateY(-5px) scale(1.08);
+    opacity: 0.4;
+  }
+}
+.map-art :is(.ghost-plus, .army-plus, .move-badge, .move-head) {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.map-art .building.ghost.sketched .ghost-plus {
+  animation: plan-stamp 0.24s 0.04s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+.map-art .army-plus.stamped {
+  animation: plan-stamp 0.2s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+@keyframes plan-stamp {
+  from {
+    transform: scale(1.7);
+  }
+}
+/* Die Zahl eines geplanten Zugs steht auf Gold, wie das Plus eines geplanten Baus und Kaufs */
+.map-art .plan-move.planned .move-disc {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 1.5;
+}
+.map-art .plan-move.planned.run :is(.move-halo, .move-line) {
+  stroke-dasharray: 1;
+  animation: move-draw 0.2s cubic-bezier(0.3, 0.6, 0.3, 1) both;
+}
+.map-art .plan-move.planned.run .move-head {
+  animation: plan-stamp-small 0.22s 0.08s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+.map-art .plan-move.planned .move-badge.stamped {
+  animation: plan-stamp-small 0.22s cubic-bezier(0.25, 1.3, 0.45, 1) both;
+}
+@keyframes plan-stamp-small {
+  from {
+    transform: scale(1.45);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-art .tap-press,
+  .map-art .ring-line,
+  .map-art .ring-casing,
+  .map-art .plan-target,
+  .map-art .plan-refused,
+  .map-art .building.ghost *,
+  .map-art .lives.placed,
+  .map-art .army-plus,
+  .map-art .plan-move.planned * {
+    animation: none !important;
+  }
 }
 
 /* Zug: Pfeil in der Farbe des Reichs, in der Mitte die Zahl der Armeen */
