@@ -702,6 +702,16 @@ function tip(fromX: number, fromY: number, x: number, y: number, size: number): 
 
 const round = (n: number) => Math.round(n * 10) / 10;
 
+/** Wie weit der Stützpunkt eines Zugpfeils neben der geraden Linie liegt (in Feldgrößen). */
+const MOVE_BOW = 0.34;
+
+/** Name eines Felds an seinem Ort auf der Karte. */
+export interface PlanLabel {
+  readonly x: number;
+  readonly y: number;
+  readonly text: string;
+}
+
 /** Ebene der Pläne: Auswahl und mögliche Ziele unter, Pfeile und Schilder über der Beschriftung. */
 export function RealmPlanArt({
   prefix,
@@ -712,6 +722,7 @@ export function RealmPlanArt({
   level,
   live: settled,
   home = null,
+  label,
 }: {
   readonly prefix: string;
   readonly art: MapArt;
@@ -728,6 +739,8 @@ export function RealmPlanArt({
   readonly level: 'under' | 'over' | 'top';
   /** Eigener Sitz: Seine Felder treten in der Rüstzeit nicht zurück. */
   readonly home?: number | null;
+  /** Beschriftung eines Felds (Ort und Name): Sie bleibt über den Pfeilen der Züge lesbar. */
+  readonly label?: (region: number) => PlanLabel | null;
 }) {
   const at = (id: number) => art.regions[id];
   if (level === 'under') {
@@ -813,6 +826,40 @@ export function RealmPlanArt({
       </g>
     );
   }
+  // Züge: Der Pfeil springt im Bogen von Feld zu Feld; seine Zahl sitzt außen am Scheitel,
+  // neben der Zeile der Namen statt auf ihr
+  const moves = (layer.moves ?? []).flatMap((move) => {
+    const a = at(move.from);
+    const b = at(move.to);
+    if (!a || !b) return [];
+    const live = layer.motion?.kind === 'orders';
+    const dx = b.cx - a.cx;
+    const dy = b.cy - a.cy;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const x1 = a.cx + ux * 0.46 * s;
+    const y1 = a.cy + uy * 0.46 * s;
+    const x2 = b.cx - ux * 0.56 * s;
+    const y2 = b.cy - uy * 0.56 * s;
+    const mx = (x1 + x2) / 2 - uy * MOVE_BOW * s;
+    const my = (y1 + y2) / 2 + ux * MOVE_BOW * s;
+    // Scheitel des Bogens liegt auf halbem Weg zum Stützpunkt; die Zahl berührt ihn von außen
+    const out = (MOVE_BOW / 2 + 0.19) * s;
+    return [
+      {
+        move,
+        live,
+        // Geplant (Rüstzeit) schießt der Pfeil mit dem Tipp aufs Ziel, und seine Zahl steht auf
+        // Gold; aufgedeckt zieht er sich wie ein Federstrich (`drawn`)
+        planning: layer.planning === true && !live,
+        curve: `M${round(x1)} ${round(y1)}Q${round(mx)} ${round(my)} ${round(x2)} ${round(y2)}`,
+        tipPath: tip(mx, my, x2, y2, 0.26 * s),
+        badgeX: (x1 + x2) / 2 - uy * out,
+        badgeY: (y1 + y2) / 2 + ux * out,
+      },
+    ];
+  });
   return (
     <g className="realm-plan" aria-hidden="true">
       {Object.entries(layer.recruits ?? {}).map(([key, plus]) => {
@@ -839,58 +886,53 @@ export function RealmPlanArt({
           </Fresh>
         );
       })}
-      {(layer.moves ?? []).map((move) => {
-        const a = at(move.from);
-        const b = at(move.to);
-        if (!a || !b) return null;
-        const live = layer.motion?.kind === 'orders';
-        const dx = b.cx - a.cx;
-        const dy = b.cy - a.cy;
-        const len = Math.hypot(dx, dy) || 1;
-        const ux = dx / len;
-        const uy = dy / len;
-        // Der Pfeil beginnt und endet vor den Beschriftungen und biegt sich leicht
-        const x1 = a.cx + ux * 0.46 * s;
-        const y1 = a.cy + uy * 0.46 * s;
-        const x2 = b.cx - ux * 0.56 * s;
-        const y2 = b.cy - uy * 0.56 * s;
-        const mx = (x1 + x2) / 2 - uy * 0.16 * s;
-        const my = (y1 + y2) / 2 + ux * 0.16 * s;
-        const curve = `M${round(x1)} ${round(y1)}Q${round(mx)} ${round(my)} ${round(x2)} ${round(y2)}`;
-        const midX = (x1 + 2 * mx + x2) / 4;
-        const midY = (y1 + 2 * my + y2) / 4;
-        // Geplant (Rüstzeit) schießt der Pfeil mit dem Tipp aufs Ziel, und seine Zahl steht auf
-        // Gold; aufgedeckt zieht er sich wie ein Federstrich (`drawn`)
-        const planning = layer.planning === true && !live;
-        const measured = live || planning ? 1 : undefined;
-        return (
-          <Fresh
-            key={`${move.seat}:${move.from}:${move.to}`}
-            className={`plan-move${live ? ' drawn' : ''}${planning ? ' planned' : ''}`}
-            motion={planning ? 'run' : ''}
-            live={settled}
-            style={{ ['--flag' as string]: `var(--seat-${move.seat})` }}
-          >
-            <path d={curve} className="move-halo" pathLength={measured} />
-            <path d={curve} className="move-line" pathLength={measured} />
-            <g className="move-head">
-              <path d={tip(mx, my, x2, y2, 0.26 * s)} className="move-tip" />
-            </g>
-            {/* Zieht noch eine Armee denselben Weg, stempelt sich nur die Zahl neu */}
-            <Fresh
-              key={planning ? move.count : 'badge'}
-              className="move-badge"
-              motion={planning ? 'stamped' : ''}
-              live={settled}
-            >
-              <circle cx={midX} cy={midY} r={0.19 * s} className="move-disc" />
-              <text x={midX} y={midY} className="move-count">
-                {move.count}
+      {/* Züge in drei Lagen: erst die Pfeile, dann die Namen der Felder, die sie berühren, dann
+          die Zahlen. So liegt kein Pfeil auf einem Namen und keine Zahl unter einem */}
+      {moves.map(({ move, curve, tipPath, live, planning }) => (
+        <Fresh
+          key={`${move.seat}:${move.from}:${move.to}`}
+          className={`plan-move${live ? ' drawn' : ''}${planning ? ' planned' : ''}`}
+          motion={planning ? 'run' : ''}
+          live={settled}
+          style={{ ['--flag' as string]: `var(--seat-${move.seat})` }}
+        >
+          <path d={curve} className="move-halo" pathLength={live || planning ? 1 : undefined} />
+          <path d={curve} className="move-line" pathLength={live || planning ? 1 : undefined} />
+          <g className="move-head">
+            <path d={tipPath} className="move-tip" />
+          </g>
+        </Fresh>
+      ))}
+      {label
+        ? [...new Set(moves.flatMap(({ move }) => [move.from, move.to]))].map((id) => {
+            const name = label(id);
+            return name ? (
+              <text key={id} x={name.x} y={name.y} className="board-name">
+                {name.text}
               </text>
-            </Fresh>
+            ) : null;
+          })
+        : null}
+      {moves.map(({ move, badgeX, badgeY, live, planning }) => (
+        <g
+          key={`${move.seat}:${move.from}:${move.to}`}
+          className={`plan-move${live ? ' drawn' : ''}${planning ? ' planned' : ''}`}
+          style={{ ['--flag' as string]: `var(--seat-${move.seat})` }}
+        >
+          {/* Zieht noch eine Armee denselben Weg, stempelt sich nur die Zahl neu */}
+          <Fresh
+            key={planning ? move.count : 'badge'}
+            className="move-badge"
+            motion={planning ? 'stamped' : ''}
+            live={settled}
+          >
+            <circle cx={badgeX} cy={badgeY} r={0.19 * s} className="move-disc" />
+            <text x={badgeX} y={badgeY} className="move-count">
+              {move.count}
+            </text>
           </Fresh>
-        );
-      })}
+        </g>
+      ))}
       {layer.motion?.kind === 'orders'
         ? (layer.moves ?? []).map((move) => {
             const a = at(move.from);

@@ -262,6 +262,29 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     expect(html).toContain('data-switch="in"');
   });
 
+  it('legt den Pfeil eines Zugs unter die Namen seiner Felder und die Zahl darüber', () => {
+    const from = WENDELMARK.regions[0]!.name;
+    const to = WENDELMARK.regions[1]!.name;
+    const html = render({
+      realm: layer({
+        armies: { 0: 3 },
+        moves: [{ from: 0, to: 1, count: 2, seat: 0 }],
+        planning: true,
+      }),
+    });
+    // Reihenfolge im Bild: Pfeil, dann beide Namen noch einmal, dann die Zahl
+    const arrow = html.indexOf('class="move-line"');
+    const badge = html.indexOf('class="move-disc"');
+    expect(arrow).toBeGreaterThan(-1);
+    expect(badge).toBeGreaterThan(arrow);
+    const between = html.slice(arrow, badge);
+    expect(between).toContain(`class="board-name">${from}<`);
+    expect(between).toContain(`class="board-name">${to}<`);
+    // Jeder der beiden Namen steht genau zweimal: am Feld und über dem Pfeil
+    expect(count(html, `class="board-name">${to}<`)).toBe(2);
+    expect(count(html, `class="board-name">${WENDELMARK.regions[2]!.name}<`)).toBe(1);
+  });
+
   it('zeigt den Bannerträger eines geräumten Felds noch, bis er aufbricht', () => {
     const html = render({
       realm: layer({

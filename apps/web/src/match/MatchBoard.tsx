@@ -758,6 +758,17 @@ export function MatchBoard({
             size={s}
             level="over"
             live={settled}
+            label={(id) => {
+              const region = art.regions[id];
+              const state = board.regions[id];
+              return region && state
+                ? {
+                    x: region.cx,
+                    y: nameY(region.cy, state.capitalOf !== null, true, s),
+                    text: region.name,
+                  }
+                : null;
+            }}
           />
         ) : null}
 
@@ -939,6 +950,11 @@ function RegionDecor({
   );
 }
 
+/** Höhe, auf der der Name eines Felds steht: über einer Startburg, sonst in der Mitte. */
+function nameY(cy: number, capital: boolean, realm: boolean, s: number): number {
+  return capital ? cy - (realm ? 0.56 : 0.47) * s : realm ? cy : cy - 0.06 * s;
+}
+
 function RegionArt({
   prefix,
   region,
@@ -1024,7 +1040,7 @@ function RegionArt({
       : cy + 0.3 * s;
   // Mit Ausbau steht der Wert nur, wo eine gehaltene Verteidigung ihn über das Übliche hebt (§11.7)
   const showCoin = realm === null || (realm.regions[region.id]?.held ?? 0) > 0;
-  const nameY = capital ? cy - (realm ? 0.56 : 0.47) * s : realm ? cy : cy - 0.06 * s;
+  const nameAt = nameY(cy, capital, realm !== null, s);
   const livesX = realm ? castleX : cx;
   // Fällt hier eben ein Gebäude eine Stufe, kehrt die Beschriftung sofort zurück: Man soll es fallen sehen
   const prompt = motion?.fell !== undefined && motion.fell !== 'CASTLE';
@@ -1099,14 +1115,14 @@ function RegionArt({
           // Gruppe, wie alles Bewegte auf der Karte)
           <g
             className="name-rise"
-            style={{ ['--rise' as string]: `${Math.round((cy - nameY) * 10) / 10}px` }}
+            style={{ ['--rise' as string]: `${Math.round((cy - nameAt) * 10) / 10}px` }}
           >
-            <text x={cx} y={nameY} className="board-name">
+            <text x={cx} y={nameAt} className="board-name">
               {region.name}
             </text>
           </g>
         ) : (
-          <text x={cx} y={nameY} className="board-name">
+          <text x={cx} y={nameAt} className="board-name">
             {region.name}
           </text>
         )}
