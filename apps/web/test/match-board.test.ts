@@ -3,6 +3,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { MatchBoard, type BoardState } from '../src/match/MatchBoard.tsx';
+import type { DuelStage } from '../src/match/match-model.ts';
 import {
   armiesBefore,
   armySwitch,
@@ -55,6 +56,7 @@ interface Options {
   readonly realm?: RealmLayer | null;
   readonly home?: number | null;
   readonly legal?: readonly number[];
+  readonly duel?: DuelStage | null;
 }
 
 function render(options: Options = {}): string {
@@ -66,7 +68,7 @@ function render(options: Options = {}): string {
       legal: options.legal ?? [],
       realm: options.realm ?? null,
       home: options.home ?? null,
-      duel: null,
+      duel: options.duel ?? null,
       spot: null,
       busy: false,
       onPick: () => undefined,
@@ -301,5 +303,58 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     expect(html).toContain('class="army-count was">2<');
     expect(html).toContain(`class="army gone seat-${ME}"`);
     expect(count(html, 'data-switch="loss"')).toBe(2);
+  });
+});
+
+describe('Karte der Partie: Ausgang eines Duells', () => {
+  // Ich (Sitz 2) greife aus Birkental (5) Falkenwacht (1) von Sitz 0 an
+  const won = (scene: DuelStage['scene'], partial: Partial<DuelStage> = {}): DuelStage => ({
+    attacker: ME,
+    defender: 0,
+    region: 1,
+    scene,
+    winner: ME,
+    repelled: false,
+    effect: 'CONQUERED',
+    ...partial,
+  });
+  const taken: BoardState = {
+    ...boardOf(),
+    regions: boardOf().regions.map((r, id) => (id === 1 ? { ...r, owner: ME } : r)),
+  };
+
+  it('lässt die alte Farbe unter der einlaufenden weichen und färbt mit ihr den Rand um', () => {
+    const html = render({ board: taken, duel: won('outcome') });
+    // Die eroberte Region trägt die Farbe des Verteidigers als weichende Schicht, mit dem Klecks
+    const old = html.match(/<g class="wash wash-old" style="([^"]*)"/);
+    expect(old?.[1]).toContain('--old:var(--seat-0)');
+    expect(old?.[1]).toContain('--ink-5:');
+    expect(count(html, 'class="wash wash-old"')).toBe(1);
+    expect(html).toContain('board-region seat-2 contested flooded');
+    // Der Rand nimmt die Farbe des Siegers dort an, wo die Tinte ihn erreicht
+    const ring = html.match(/<g class="duel-ring-ink" style="([^"]*)">(.*?)<\/g>/);
+    expect(ring?.[1]).toContain('--ink-0:');
+    expect(ring?.[2]).toContain('class="duel-ring target"');
+    // Alle beschnittenen Schichten tragen denselben unsichtbaren Rahmen
+    expect(ring?.[2]).toContain('class="ink-frame"');
+    expect(html).toMatch(/class="wash wash-old"[^>]*>(?:(?!<\/g>).)*class="ink-frame"/);
+  });
+
+  it('hält die Verteidigung, bleibt der Rand ein ganzer Ring', () => {
+    const html = render({
+      duel: won('outcome', { winner: 0, repelled: true, effect: 'FORTIFIED' }),
+    });
+    expect(html).not.toContain('duel-ring-ink');
+    expect(html).not.toContain('wash-old');
+    expect(count(html, 'class="duel-ring target"')).toBe(1);
+    expect(count(html, 'class="duel-ring target before"')).toBe(1);
+  });
+
+  it('steht nach dem Ausgang im Endbild: kein weichender Rest', () => {
+    const html = render({ board: taken, duel: won('settled') });
+    expect(html).not.toContain('wash-old');
+    expect(html).not.toContain('duel-ring-ink');
+    expect(html).not.toContain('duel-ring target before');
+    expect(count(html, 'class="duel-ring target"')).toBe(1);
   });
 });

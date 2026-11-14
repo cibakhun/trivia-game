@@ -27,6 +27,8 @@ describe('fxParticles', () => {
       'ring',
       'glints',
       'streaks',
+      'chips',
+      'spatter',
     ] as const) {
       const particles = fxParticles(burst(kind));
       expect(particles.length).toBeGreaterThan(0);
@@ -53,5 +55,26 @@ describe('fxParticles', () => {
 
   it('richtet sich nach der Zahl', () => {
     expect(fxParticles(burst('dust', { count: 3 }))).toHaveLength(3);
+  });
+
+  it('läuft mit `tempo` schneller, auf denselben Wegen', () => {
+    const slow = fxParticles(burst('chips'));
+    const fast = fxParticles(burst('chips', { tempo: 2 }));
+    expect(fast).toHaveLength(slow.length);
+    fast.forEach((p, i) => {
+      expect(Math.abs(p.durationMs - slow[i]!.durationMs / 2)).toBeLessThanOrEqual(1);
+      expect(p.dx).toBe(slow[i]!.dx);
+      expect(p.dy).toBe(slow[i]!.dy);
+    });
+  });
+
+  it('Splitter und Spritzer gleiten flach aus, ohne zu fallen', () => {
+    for (const kind of ['chips', 'spatter'] as const) {
+      for (const p of fxParticles(burst(kind, { dir: { x: 0, y: -1 }, spread: 60 }))) {
+        // Nach oben gerichtet bleiben sie oben: keine Schwerkraft auf der Karte von oben
+        expect(p.dy).toBeLessThan(0);
+        expect(p.lift).toBe(0);
+      }
+    }
   });
 });

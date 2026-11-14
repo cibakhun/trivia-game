@@ -175,6 +175,81 @@
   }
 }
 
+/* ---------- Von oben gesehen: Splitter und Spritzer gleiten flach davon und werden gebremst ---------- */
+.fx-chips,
+.fx-spatter {
+  animation:
+    fx-show var(--t) var(--d) linear both,
+    fx-slide var(--t) var(--d) cubic-bezier(0.12, 0.75, 0.3, 1) both;
+}
+@keyframes fx-slide {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(var(--dx), var(--dy));
+  }
+}
+
+/* Splitter eines Wappens: kantig, mit dunkler Kante, kreiseln und verglimmen */
+.fx-chips b {
+  background: var(--c, var(--map-gold));
+  box-shadow: inset 0 0 0 calc(var(--s) * 0.09) color-mix(in srgb, var(--map-ink) 75%, transparent);
+  animation: fx-chip var(--t) var(--d) linear both;
+}
+.fx-chips.v0 b {
+  clip-path: polygon(50% 0, 100% 80%, 10% 100%);
+}
+.fx-chips.v1 b {
+  clip-path: polygon(0 20%, 90% 0, 70% 100%);
+}
+.fx-chips.v2 b {
+  clip-path: polygon(20% 0, 100% 40%, 60% 100%, 0 70%);
+}
+.fx-chips.v3 b {
+  clip-path: polygon(0 0, 100% 30%, 30% 100%);
+}
+@keyframes fx-chip {
+  0% {
+    transform: rotate(0) scale(1.15);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.15, 0.7, 0.35, 1);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--rot)) scale(0.55);
+    opacity: 0;
+  }
+}
+
+/* Tintentropfen von oben: langgezogen im Flug, rund, wo sie landen, dann verblassen sie */
+.fx-spatter b {
+  background: var(--c, var(--map-ink));
+  border-radius: 50%;
+  animation: fx-spat var(--t) var(--d) linear both;
+}
+@keyframes fx-spat {
+  0% {
+    transform: rotate(var(--rot)) scale(2.1, 0.55);
+    opacity: 0.95;
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1);
+  }
+  40% {
+    transform: rotate(var(--rot)) scale(1.25, 0.95);
+    opacity: 0.95;
+  }
+  62% {
+    transform: rotate(var(--rot)) scale(1.1, 1.05);
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(var(--rot)) scale(1.2, 1.15);
+    opacity: 0;
+  }
+}
+
 /* ---------- Staub: quillt auf, rollt nach außen, verweht ---------- */
 .fx-dust b {
   border-radius: 50%;

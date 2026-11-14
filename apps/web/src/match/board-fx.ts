@@ -1,4 +1,4 @@
-import type { DuelLayout } from '../art/attack.ts';
+import { DUEL_BACK, duelContact, duelContactOf, type DuelLayout } from '../art/attack.ts';
 import { NO_FX, type BoardFx, type FxBurst, type FxQuake } from '../art/fx/fx.ts';
 import type { MapArt } from '../art/map-art.ts';
 import type { DuelStage } from './match-model.ts';
@@ -41,65 +41,225 @@ function strongest(a: FxQuake | null, b: FxQuake | null): FxQuake | null {
   return a.strength === 'heavy' || b.strength !== 'heavy' ? a : b;
 }
 
-/** Ausgang eines Duells auf der Karte: Einschlag, Splitter, Tinte. */
-export function duelFx({ art, duel, layout }: BoardFxInput): BoardFx {
+/** Treffer-Stopp: So lange stehen beide Wappen nach dem Einschlag still (map-art.css). */
+export const HIT_STOP_MS = 60;
+
+/** Anlauf: Bis hierhin holt der Angreifer Schwung, dann stürmt er bis zum Einschlag. */
+const WINDUP_MS = 100;
+
+/**
+ * Wo das stürmende Wappen zur Zeit `ms` steht, als Anteil des Wegs vom Ausholen bis zum
+ * Einschlag: dieselbe Kurve wie in `duel-charge-*` (map-art.css), immer schneller.
+ */
+function chargeAt(ms: number): number {
+  const t = Math.min(1, Math.max(0, (ms - WINDUP_MS) / (IMPACT_MS - WINDUP_MS)));
+  return cubicBezier(0.42, 0, 0.78, 0.6, t);
+}
+
+/** Wert einer CSS-Kurve `cubic-bezier(x1, y1, x2, y2)` an der Stelle `t` (Zeitanteil). */
+function cubicBezier(x1: number, y1: number, x2: number, y2: number, t: number): number {
+  const at = (a: number, b: number, u: number) =>
+    3 * a * u * (1 - u) ** 2 + 3 * b * u * u * (1 - u) + u ** 3;
+  // Den Kurvenparameter zur Zeit suchen (die x-Werte steigen streng)
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2;
+    if (at(x1, x2, mid) < t) lo = mid;
+    else hi = mid;
+  }
+  return at(y1, y2, (lo + hi) / 2);
+}
+
+/**
+ * Ausgang eines Duells auf der Karte: Bewegungsstriche beim Sturm, im Einschlag eine doppelte
+ * Druckwelle (Tinte, dann die Farbe des Siegers) und ein Beben; dann je nach Ausgang Splitter des
+ * Verteidigers und Tintenspritzer (erobert), goldene Funken und Splitter des Pfeils (gehalten),
+ * Funken und Steinsplitter (Burg oder Gebäude getroffen). Die Wege stimmen mit den Wappen in
+ * map-art.css überein (`duelContact`).
+ */
+export function duelFx({ art, duel, layout, castle, realm }: BoardFxInput): BoardFx {
   if (!duel || duel.scene !== 'outcome' || !layout) return NO_FX;
   const key = `duel:${duel.attacker}:${duel.region}`;
   const s = art.size;
-  const target = layout.target;
+  const { dir, source, target, radius: r, unit } = layout;
+  const contact = duelContactOf(duel, castle);
+  const hit = duelContact(layout, contact, s);
+  const along = (d: number) => ({ x: source.x + dir.x * d, y: source.y + dir.y * d });
+  // Vorderkante des Angreifers im Einschlag; auf einem freien Feld setzt er in der Mitte auf
+  const impact = contact === 'field' ? target : along(hit + r);
+  const back = { x: -dir.x, y: -dir.y };
+  const attacker = `var(--seat-${duel.attacker})`;
   const winner = duel.winner === null ? 'var(--map-ink)' : `var(--seat-${duel.winner})`;
   const bursts: FxBurst[] = [];
-  if (duel.repelled) {
-    // Der Angriff zerschellt: Funken fliegen zum Angreifer zurück
-    const at = {
-      x: target.x - layout.dir.x * layout.radius,
-      y: target.y - layout.dir.y * layout.radius,
-    };
+  // Bewegungsstriche hinter dem stürmenden Wappen, dort, wo es gerade ist
+  const start = DUEL_BACK * unit;
+  [190, 255, 315].forEach((ms, i) => {
+    bursts.push({
+      key: `${key}:streak${i}`,
+      kind: 'streaks',
+      ...along(start + (hit - start) * chargeAt(ms)),
+      size: 1.1 * s,
+      atMs: ms,
+      color: attacker,
+      dir,
+      count: 2 + (i > 0 ? 1 : 0),
+      power: 0.85 + 0.15 * i,
+    });
+  });
+  // Erste Druckwelle in Tinte, wo es kracht
+  bursts.push({
+    key: `${key}:ring`,
+    kind: 'ring',
+    ...impact,
+    size: 0.5 * s,
+    atMs: IMPACT_MS,
+    color: duel.repelled && duel.defender !== null ? 'var(--map-gold)' : 'var(--map-ink)',
+  });
+
+  if (duel.effect === 'CAPITAL_HIT') {
+    // Gegen Mauer oder Gebäude: Funken und kleine Steinsplitter prallen zurück
     bursts.push(
       {
         key: `${key}:sparks`,
         kind: 'sparks',
-        ...at,
-        size: s,
-        atMs: 170,
-        dir: { x: -layout.dir.x, y: -layout.dir.y },
-        spread: 150,
+        ...impact,
+        size: 1.2 * s,
+        atMs: IMPACT_MS,
+        dir: back,
+        spread: 170,
+        count: 10,
       },
       {
-        key: `${key}:ring`,
-        kind: 'ring',
-        ...at,
-        size: 0.45 * s,
-        atMs: 170,
-        color: 'var(--map-gold)',
+        key: `${key}:debris`,
+        kind: 'debris',
+        ...impact,
+        size: 1.3 * s,
+        atMs: IMPACT_MS + 10,
+        dir: back,
+        spread: 200,
+        count: 7,
+        power: 0.7,
+        tempo: 1.2,
       },
     );
-    return { key, bursts, quake: { strength: 'light', atMs: 170 } };
+    return { key, bursts, quake: { strength: 'light', atMs: IMPACT_MS } };
   }
+
+  if (duel.repelled) {
+    if (duel.defender !== null) {
+      // Der goldene Schild wirft den Angriff zurück: Funken sprühen zum Angreifer
+      bursts.push({
+        key: `${key}:sparks`,
+        kind: 'sparks',
+        ...impact,
+        size: 1.3 * s,
+        atMs: IMPACT_MS,
+        dir: back,
+        spread: 140,
+        count: 12,
+      });
+    } else {
+      // Ein freies Feld bleibt frei: Der Angriff verspritzt nur Tinte
+      bursts.push({
+        key: `${key}:splash`,
+        kind: 'spatter',
+        ...impact,
+        size: s,
+        atMs: IMPACT_MS,
+        color: 'var(--map-ink)',
+        dir: back,
+        spread: 170,
+        count: 8,
+      });
+    }
+    // Der Pfeil splittert
+    bursts.push({
+      key: `${key}:arrow`,
+      kind: 'chips',
+      ...impact,
+      size: 0.85 * s,
+      atMs: IMPACT_MS + 5,
+      color: attacker,
+      dir: back,
+      spread: 170,
+      count: 7,
+    });
+    return { key, bursts, quake: { strength: 'light', atMs: IMPACT_MS } };
+  }
+
+  // Erobert: zweite Druckwelle in der Farbe des Siegers, Tinte spritzt in die Region
   bursts.push(
-    { key: `${key}:ring`, kind: 'ring', ...target, size: 0.5 * s, atMs: IMPACT_MS, color: winner },
+    {
+      key: `${key}:wave`,
+      kind: 'ring',
+      ...target,
+      size: 0.8 * s,
+      atMs: IMPACT_MS + 40,
+      color: winner,
+    },
     {
       key: `${key}:splash`,
-      kind: 'splash',
-      ...target,
-      size: s,
+      kind: 'spatter',
+      ...impact,
+      size: 1.2 * s,
       atMs: IMPACT_MS,
       color: winner,
-      dir: layout.dir,
-      spread: 200,
+      dir,
+      spread: 150,
+      count: 9,
     },
   );
-  if (duel.defender !== null) {
-    bursts.push({
-      key: `${key}:shards`,
-      kind: 'shards',
-      ...target,
-      size: s,
-      atMs: IMPACT_MS - 30,
-      color: `var(--seat-${duel.defender})`,
-      dir: layout.dir,
-      spread: 140,
-    });
+  if (contact === 'token' && duel.defender !== null) {
+    // Nach dem Treffer-Stopp zerspringt das Wappen des Verteidigers: Schild und Scheibe
+    bursts.push(
+      {
+        key: `${key}:shards`,
+        kind: 'chips',
+        ...target,
+        size: 1.1 * s,
+        atMs: IMPACT_MS + HIT_STOP_MS - 5,
+        color: `var(--seat-${duel.defender})`,
+        dir,
+        spread: 250,
+        count: 8,
+      },
+      {
+        key: `${key}:disc`,
+        kind: 'chips',
+        ...target,
+        size: 0.9 * s,
+        atMs: IMPACT_MS + HIT_STOP_MS,
+        color: 'var(--map-coin)',
+        dir,
+        spread: 300,
+        count: 5,
+      },
+    );
+  }
+  if (contact === 'wall' && realm === null && duel.effect === 'TAKEOVER') {
+    // Ohne Ausbau fällt die Burg der Hauptstadt hier (DuelStageArt): Steine und Staub
+    const foot = { x: target.x - 0.12 * s, y: target.y + 0.24 * s };
+    bursts.push(
+      {
+        key: `${key}:debris`,
+        kind: 'debris',
+        ...foot,
+        size: 0.8 * s,
+        atMs: IMPACT_MS + HIT_STOP_MS + 60,
+        count: 8,
+      },
+      {
+        key: `${key}:dust`,
+        kind: 'dust',
+        ...foot,
+        size: 0.8 * s,
+        atMs: IMPACT_MS + HIT_STOP_MS + 140,
+        count: 5,
+        // Verflogen, bevor der Ausgang endet: Danach nimmt die Karte die Effekte ab
+        tempo: 1.7,
+      },
+    );
   }
   const heavy = duel.effect === 'TAKEOVER';
   return { key, bursts, quake: { strength: heavy ? 'heavy' : 'light', atMs: IMPACT_MS } };
