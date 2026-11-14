@@ -702,7 +702,9 @@ export function RealmStage({
             incoming ? { delayMs: incomeTime.countAtMs, durationMs: incomeTime.countMs } : null
           }
           gaining={gaining}
-          pending={incomeWaits && income ? income.payload.income : null}
+          // Solange der Spielstand noch den Stand vor dem Schlag zeigt, ist das Einkommen darin
+          // noch nicht verbucht: Dann gibt es nichts zurückzuhalten
+          pending={incomeWaits && income && railView === view ? income.payload.income : null}
         />
         <TurnOrder view={railView ?? view} name={name} skipped={skipped} />
         <div className="stage-tools three">
