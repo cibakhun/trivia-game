@@ -16,7 +16,9 @@ export interface IncomeTiming {
   /** Ab wann und wie lange die Vorräte hochzählen. */
   readonly countAtMs: number;
   readonly countMs: number;
-  /** Danach ist alles vorbei, die Ebene wird abgeräumt. */
+  /** Bis dahin sind alle Zeichen angekommen. */
+  readonly landedMs: number;
+  /** Danach ist alles vorbei, auch das Nachfedern im Vorrat; die Ebene wird abgeräumt. */
   readonly totalMs: number;
 }
 
@@ -25,6 +27,11 @@ const FLIGHT_MS = 800;
 const STAGGER_MS = 80;
 /** So lange dürfen die Abflüge zusammen höchstens auseinanderliegen. */
 const SPREAD_MS = 640;
+/**
+ * So lange federt der Vorrat nach dem letzten Zeichen nach (Ring und Verlöschen in `realm.css`):
+ * Erst danach darf die Ebene weg, sonst bräche die Bewegung mitten ab.
+ */
+const SETTLE_MS = 780;
 
 export function incomeTiming(count: number): IncomeTiming {
   const gaps = Math.max(0, count - 1);
@@ -33,13 +40,15 @@ export function incomeTiming(count: number): IncomeTiming {
   // Die Zahlen laufen mit den Ankünften mit: vom ersten Zeichen bis zum letzten
   const countAtMs = START_MS + FLIGHT_MS - 60;
   const countMs = Math.max(300, spread + 120);
+  const landedMs = START_MS + spread + FLIGHT_MS;
   return {
     startMs: START_MS,
     flightMs: FLIGHT_MS,
     staggerMs,
     countAtMs,
     countMs,
-    totalMs: Math.max(START_MS + spread + FLIGHT_MS, countAtMs + countMs) + 300,
+    landedMs,
+    totalMs: Math.max(landedMs, countAtMs + countMs + SETTLE_MS) + 80,
   };
 }
 
@@ -49,6 +58,12 @@ export interface IncomeWatch {
   readonly seen: number;
   /** Nummer des Einkommens, das gerade fliegt. */
   readonly playing: number | null;
+  /**
+   * Nummer des Einkommens, dessen Zahlen gerade sichtbar hochzählen, weil die Seite seine Freigabe
+   * miterlebt hat: mit eigenem Flug oder ohne (Zuschauer, gefallenes Reich). Die Tafeln der anderen
+   * schimmern dann (ADR-069).
+   */
+  readonly rising: number | null;
 }
 
 /**
@@ -67,8 +82,9 @@ export function incomeWatch(
   live: boolean,
 ): IncomeWatch {
   if (incomeSeq <= now.seen) return now;
-  if (ready) return { seen: incomeSeq, playing: live ? incomeSeq : null };
-  if (moved) return { seen: incomeSeq, playing: null };
+  const rising = live ? incomeSeq : null;
+  if (ready) return { seen: incomeSeq, playing: rising, rising };
+  if (moved) return { seen: incomeSeq, playing: null, rising };
   return now;
 }
 
@@ -82,6 +98,8 @@ export interface IncomeFlight {
   readonly playing: number | null;
   /** Die Vorräte zeigen noch den Stand vor dem jüngsten Einkommen. */
   readonly held: boolean;
+  /** Nummer des Einkommens, dessen Zahlen gerade sichtbar hochzählen, sonst `null`. */
+  readonly rising: number | null;
 }
 
 /**
@@ -95,18 +113,28 @@ export function useIncomeFlight(
   live: boolean,
   totalMs: number,
 ): IncomeFlight {
-  const [flight, setFlight] = useState<IncomeWatch>(() => ({ seen: incomeSeq, playing: null }));
+  const [flight, setFlight] = useState<IncomeWatch>(() => ({
+    seen: incomeSeq,
+    playing: null,
+    rising: null,
+  }));
   // Merken während des Renderns: Die Vorräte zählen von Anfang an mit der Wartezeit
   const next = incomeWatch(flight, incomeSeq, ready, moved, live);
   if (next !== flight) setFlight(next);
-  const playing = flight.playing;
+  // Flug und Schimmer beginnen zusammen und sind nach derselben Zeit vorbei
+  const rising = flight.rising;
   useEffect(() => {
-    if (playing === null) return;
+    if (rising === null) return;
     const timer = setTimeout(
-      () => setFlight((now) => (now.playing === playing ? { ...now, playing: null } : now)),
+      () =>
+        setFlight((now) => (now.rising === rising ? { ...now, playing: null, rising: null } : now)),
       totalMs,
     );
     return () => clearTimeout(timer);
-  }, [playing, totalMs]);
-  return { playing: ready ? next.playing : null, held: incomeHeld(next, incomeSeq) };
+  }, [rising, totalMs]);
+  return {
+    playing: ready ? next.playing : null,
+    held: incomeHeld(next, incomeSeq),
+    rising: next.rising,
+  };
 }

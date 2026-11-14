@@ -1,4 +1,5 @@
 import {
+  Fragment,
   useLayoutEffect,
   useState,
   type CSSProperties,
@@ -9,8 +10,10 @@ import {
 /**
  * Zeichen, die einmal über die Bühne fliegen (ADR-067): Brot und Baustoff von den Feldern in den
  * Vorrat, die Kategorie vom Rad ins Blatt. Start und Ziel sind Elemente der Bühne; gemessen wird
- * einmal, wenn der Flug beginnt. Die Ebene nimmt keine Tipps an und verschiebt nichts. Ohne
- * Animation (laufende Frage, „Bewegung reduzieren“) bleibt sie unsichtbar: Das Endbild steht schon.
+ * einmal, wenn der Flug beginnt. Jedes Zeichen springt mit einem kleinen Ring ab und zieht ein, zwei
+ * goldene Glanzpunkte hinter sich her, die denselben Bogen etwas später fliegen (ADR-069). Die
+ * Ebene nimmt keine Tipps an und verschiebt nichts. Ohne Animation (laufende Frage, „Bewegung
+ * reduzieren“) bleibt sie unsichtbar: Das Endbild steht schon.
  */
 export interface FlightPlan {
   readonly key: string;
@@ -34,6 +37,15 @@ interface Flight {
   readonly dx: number;
   readonly dy: number;
   readonly span: number;
+}
+
+/** Ab so vielen Zeichen zieht jedes nur noch einen Glanzpunkt nach: Es soll ruhig bleiben. */
+const BUSY = 10;
+
+/** Glanzpunkte hinter einem Zeichen: die Scheibe vom Rad drei, Plättchen zwei, viele nur einen. */
+export function flightTrail(tone: 'token' | 'coin', count: number): number {
+  if (tone === 'coin') return 3;
+  return count > BUSY ? 1 : 2;
 }
 
 function centre(box: DOMRect, at: 'centre' | 'start' = 'centre'): { x: number; y: number } {
@@ -97,6 +109,7 @@ export function Flights({
   }, [stage, plans, nearestFirst]);
 
   if (flights.length === 0) return null;
+  const trail = flightTrail(tone, flights.length);
   return (
     <div
       className={`flight-layer tone-${tone}`}
@@ -104,17 +117,49 @@ export function Flights({
       aria-hidden="true"
     >
       {flights.map((flight) => {
+        const at = Math.round(startMs + flight.span * staggerMs);
+        const left = Math.round(flight.x);
+        const top = Math.round(flight.y);
         const style: CSSProperties = {
-          left: `${Math.round(flight.x)}px`,
-          top: `${Math.round(flight.y)}px`,
+          left: `${left}px`,
+          top: `${top}px`,
           ['--dx' as string]: `${Math.round(flight.dx)}px`,
           ['--dy' as string]: `${Math.round(flight.dy)}px`,
-          ['--flight-at' as string]: `${Math.round(startMs + flight.span * staggerMs)}ms`,
+          ['--flight-at' as string]: `${at}ms`,
         };
         return (
-          <span key={flight.key} className="flight" style={style}>
-            <span className="flight-arc">{flight.icon}</span>
-          </span>
+          <Fragment key={flight.key}>
+            {/* Absprung: ein Ring am Start, dann die Glanzpunkte unter dem Zeichen */}
+            <span
+              className="flight-ring"
+              style={{ ...style, ['--ring-at' as string]: `${at}ms` }}
+            />
+            {Array.from({ length: trail }, (_, index) => (
+              <span
+                key={index}
+                className="flight trail"
+                style={{ ...style, ['--trail' as string]: index + 1 }}
+              >
+                <span className="flight-arc">
+                  <i />
+                </span>
+              </span>
+            ))}
+            <span className="flight" style={style}>
+              <span className="flight-arc">{flight.icon}</span>
+            </span>
+            {tone === 'coin' ? (
+              // Die Scheibe kommt im Blatt mit einem Ring an; Plättchen fangen die Vorräte selbst
+              <span
+                className="flight-ring land"
+                style={{
+                  left: `${Math.round(flight.x + flight.dx)}px`,
+                  top: `${Math.round(flight.y + flight.dy)}px`,
+                  ['--ring-at' as string]: `${at + flightMs - 40}ms`,
+                }}
+              />
+            ) : null}
+          </Fragment>
         );
       })}
     </div>
