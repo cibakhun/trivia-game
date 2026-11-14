@@ -84,7 +84,7 @@ function maxDurationMs({ rules, landRounds, freeAfterLandGrab }: Plan): number {
   const claimed = matchMap(rules.map).regions.length - 2 * seats - freeAfterLandGrab;
   const pick = t.pickMs + (t.pickShowMs ?? 0);
   const estimate = t.estimateMs + t.revealMs;
-  const duel = t.pickMs + e.wheelMs + t.triviaMs + t.revealMs + estimate;
+  const duel = t.pickMs + (t.announceMs ?? 0) + e.wheelMs + t.triviaMs + t.revealMs + estimate;
   return (
     (1 + landRounds) * estimate +
     (2 * seats + claimed) * pick +
@@ -322,7 +322,7 @@ for (const plan of PLANS) {
         expect(skipped / attacks).toBeLessThan(0.02);
       });
 
-      it('dauert typisch gut zehn Minuten (zu zweit knapp neun)', () => {
+      it('dauert typisch gut elf Minuten (zu zweit knapp neun)', () => {
         const mean = runs.reduce((s, r) => s + r.durationMs.typical, 0) / BALANCE_MATCHES / 60_000;
         expect(mean).toBeLessThanOrEqual(seats === 3 ? 12 : 9.5);
       });

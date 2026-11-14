@@ -1069,6 +1069,36 @@ describe('Blatt der Phase in der Partie mit Ausbau', () => {
     );
   });
 
+  it('nennt im Aufmarsch vor dem Glücksrad, wer wen wo angreift (ADR-071)', () => {
+    // Das Ziel steht, das Rad ist noch nicht gedreht: Schritt DUEL_WHEEL ohne Kategorie
+    const march = (attacker: number, mySeat: number | null = ME) => {
+      const view = duelView('ANNOUNCE', 'DUEL_TRIVIA', attacker);
+      const step = { ...playOf(view).board.step, kind: 'DUEL_WHEEL' as const, category: null };
+      return realmViewOf(
+        { step, turns: attacker === ME ? MY_ATTACK : THEIR_ATTACK },
+        { phase: phaseOf('ANNOUNCE'), mySeat },
+      );
+    };
+    const mine = blatt(march(ME), 'announce');
+    expect(mine).toContain('data-testid="match-announce"');
+    expect(mine).toContain('class="blatt turn"');
+    expect(textOf(mine)).toContain('Dein Angriff');
+    expect(textOf(part(mine, 'data-testid="match-duel"', '</div>'))).toContain(
+      'Angriff auf das Dorf Kranichsee',
+    );
+    expect(textOf(mine)).toContain('Gleich dreht sich das Glücksrad.');
+    // Die Lose und das Rad kommen erst danach
+    expect(textOf(mine)).not.toContain('Lose im Rad');
+    expect(mine).not.toContain('data-testid="match-wheel"');
+    // Wer angegriffen wird, liest es in seiner Farbe; wer zuschaut, ohne
+    const attacked = blatt(march(0, 1), 'announce');
+    expect(attacked).toContain('class="blatt attacked"');
+    expect(textOf(attacked)).toContain('Du wirst angegriffen');
+    const watching = blatt(march(0), 'announce');
+    expect(watching).toContain('class="blatt"');
+    expect(textOf(watching)).toContain('Duell');
+  });
+
   it('zeigt am Glücksrad die Lose und wem die gezogene Kategorie liegt', () => {
     const html = blatt(duelView('ANNOUNCE', 'DUEL_TRIVIA', ME), 'wheel');
     expect(html).toContain('data-testid="match-wheel"');
