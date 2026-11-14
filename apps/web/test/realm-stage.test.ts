@@ -472,6 +472,10 @@ describe('Blatt der Rüstzeit', () => {
     expect(row).toContain('--receive-ms:760ms');
     // Der Vorrat erscheint mit dem Stand vor dem Einkommen; die Zahlen zählen dann hoch
     expect(stock(html)).toContain('Vorrat 3 Brot 5 Baustoff');
+    // Jede Zahl hält schon den Platz ihres Endwerts: Wächst sie um eine Stelle (5 auf 10), rückt
+    // das Zeichen daneben nicht weg, auf das die Plättchen zufliegen
+    expect(html).toContain('<span class="count-room" data-room="3"><span>3</span></span>');
+    expect(html).toContain('<span class="count-room" data-room="10"><span>5</span></span>');
     const both = prepare({ arriving: { ...arriving, kinds: ['bread', 'material'] } });
     expect(tagOf(both, 'data-testid="prepare-stock"')).toContain(
       'class="stock-row receive-bread receive-material"',

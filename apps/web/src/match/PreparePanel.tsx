@@ -225,8 +225,13 @@ export function PreparePanel({
     ? { bread: plan.bread, material: plan.material }
     : { bread: stock?.bread ?? 0, material: stock?.material ?? 0 };
   // Solange noch kein Befehl geplant ist, zählt der Vorrat mit den Ankünften; ein Befehl mitten im
-  // Flug rechnet sofort, ohne auf die Plättchen zu warten
-  const landing = arriving !== null && orders.length === 0 ? arriving : null;
+  // Flug rechnet sofort, ohne auf die Plättchen zu warten. Danach bleibt es dabei, auch wenn der
+  // Befehl wieder geht: Sonst wartete die Zahl noch einmal von vorn, obwohl die Plättchen landen
+  const [edited, setEdited] = useState(false);
+  if (arriving === null ? edited : !edited && orders.length > 0) setEdited(arriving !== null);
+  const landing = arriving !== null && orders.length === 0 && !edited ? arriving : null;
+  // Die Zahl hält von Anfang an den Platz ihres Endwerts (`room`): Wüchse das Brot beim Zählen um
+  // eine Stelle, rückte das Zeichen des Baustoffs weg, auf das die Plättchen schon zufliegen
   const stockValue = (kind: 'bread' | 'material') => (
     <CountUp
       value={left[kind]}
@@ -235,6 +240,7 @@ export function PreparePanel({
       durationMs={landing?.durationMs ?? STOCK_COUNT_MS}
       delayMs={landing?.delayMs ?? 0}
       steady={landing !== null}
+      room
     />
   );
   const chips = orderChips(play, orders, region);

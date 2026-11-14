@@ -390,6 +390,23 @@
   flex: none;
 }
 
+/* Zahl, die den Platz ihres längeren Werts hält (CountUp mit `room`): Der Wert steht unsichtbar
+   in derselben Zelle. So rückt das Zeichen daneben nicht, wenn die Zahl um eine Stelle wächst,
+   während die Plättchen des Einkommens darauf zufliegen */
+.count-room {
+  display: inline-grid;
+}
+
+.count-room > span,
+.count-room::after {
+  grid-area: 1 / 1;
+}
+
+.count-room::after {
+  content: attr(data-room);
+  visibility: hidden;
+}
+
 /* Das Einkommen kommt an (ADR-067, ADR-070): Die Plättchen von den eigenen Feldern landen auf den
    Zeichen des Vorrats. Mit dem ersten hebt sich das Zeichen, ein goldener Ring geht von ihm aus,
    und es glimmt, solange Plättchen kommen; mit dem letzten federt es zurück, wieder mit einem

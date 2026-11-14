@@ -8,7 +8,9 @@ import { useEffect, useRef, useState } from 'react';
  * mitläuft, das Stück für Stück ankommt. `from`: Mit diesem Wert erscheint die Zahl und zählt von
  * dort zum Endwert (ein Vorrat, der mit dem Blatt erscheint, während sein Zuwachs noch unterwegs
  * ist). Ändert sich der Endwert mitten im Zählen, geht es vom gerade gezeigten Wert weiter: Die
- * Zahl springt nie.
+ * Zahl springt nie. `room`: Die Zahl hält schon beim Warten den Platz ihres längeren Werts
+ * (`.count-room` in `match/realm.css`): Wächst sie um eine Stelle, schiebt sie nicht mitten im
+ * Zählen weg, was neben ihr steht.
  */
 export function CountUp({
   value,
@@ -17,6 +19,7 @@ export function CountUp({
   delayMs = 0,
   steady = false,
   from,
+  room = false,
 }: {
   readonly value: number;
   readonly render: (value: number) => string;
@@ -24,10 +27,12 @@ export function CountUp({
   readonly delayMs?: number;
   readonly steady?: boolean;
   readonly from?: number;
+  readonly room?: boolean;
 }) {
   const [shown, setShown] = useState(from ?? value);
-  // Wartet die alte Zahl noch auf ihren Beginn, zählt sie noch nicht
-  const [waiting, setWaiting] = useState(false);
+  // Wartet die alte Zahl noch auf ihren Beginn, zählt sie noch nicht. Das gilt schon im ersten
+  // Bild: Eine Zahl, die mit ihrem alten Stand erscheint, leuchtet nicht kurz auf
+  const [waiting, setWaiting] = useState(from !== undefined && from !== value && delayMs > 0);
   // Was gerade zu sehen ist: Von dort zählt die nächste Änderung weiter
   const seen = useRef(from ?? value);
 
@@ -65,7 +70,19 @@ export function CountUp({
     };
   }, [value, durationMs, delayMs, steady]);
 
-  return (
-    <span className={shown === value || waiting ? undefined : 'counting'}>{render(shown)}</span>
-  );
+  const text = render(shown);
+  const counting = shown !== value && !waiting;
+  if (room) {
+    // Der längere der beiden Werte steht unsichtbar in derselben Zelle und gibt die Breite vor
+    const target = render(value);
+    return (
+      <span
+        className={`count-room${counting ? ' counting' : ''}`}
+        data-room={target.length > text.length ? target : text}
+      >
+        <span>{text}</span>
+      </span>
+    );
+  }
+  return <span className={counting ? 'counting' : undefined}>{text}</span>;
 }
