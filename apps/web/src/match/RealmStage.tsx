@@ -397,7 +397,7 @@ export function RealmStage({
               initial={initial?.favorites}
             />
           ) : view && state === 'abandoned' ? (
-            <AbandonedPanel view={view} events={events} />
+            <AbandonedPanel view={view} events={events} live={live} />
           ) : feedError ? null : (
             <p className="sheet plain-sheet">{t('app.loading')}</p>
           )}
@@ -554,10 +554,15 @@ export function RealmStage({
     sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
     sheet = (
-      <ResultPanel view={view} finished={lastOf(events, 'REALM_MATCH_FINISHED')} name={name} />
+      <ResultPanel
+        view={view}
+        finished={lastOf(events, 'REALM_MATCH_FINISHED')}
+        name={name}
+        live={live}
+      />
     );
   } else if (state === 'abandoned') {
-    sheet = <AbandonedPanel view={view} events={events} />;
+    sheet = <AbandonedPanel view={view} events={events} live={live} />;
   }
   // Beim Aufdecken zählt die aufgedeckte Runde: Fielen alle Angriffe aus, ist der Schritt schon in
   // der nächsten (ADR-064)

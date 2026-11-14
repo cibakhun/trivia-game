@@ -1,5 +1,5 @@
 import type { MatchBotStrengthCode, MatchView, ParsedMatchEvent } from '@rdw/protocol';
-import { useLayoutEffect, useMemo, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { HeroMap } from '../art/HeroMap.tsx';
 import { mapArt } from '../art/map-art.ts';
 import { SeatCrest } from '../art/SeatCrest.tsx';
@@ -93,6 +93,18 @@ export function MatchStage({
   // (ADR-069): Solange zeigt die Bühne den Stand vor dem Ausgang
   const { view, events, beat, late } = useRevealBeats(feedView, feedEvents, phaseDeadline);
   const state = screenStateOf(view, local);
+  // Die Abrechnung baut sich nur auf, wenn diese Seite das Ende miterlebt hat: Wer in die fertige
+  // Partie lädt, sieht sofort das Endbild (Merken während des Renderns, wie in `RealmStage`).
+  // Das Laden selbst ist kein Stand: Miterlebt ist erst ein Wechsel nach der ersten Ansicht.
+  const [entered, setEntered] = useState({ first: state, live: false });
+  if (!entered.live && state !== entered.first) {
+    setEntered(
+      entered.first === 'loading'
+        ? { first: state, live: false }
+        : { first: entered.first, live: true },
+    );
+  }
+  const live = entered.live || (entered.first !== 'loading' && state !== entered.first);
   const seq = view?.question?.seq ?? null;
   const board = view?.board ?? null;
 
@@ -157,7 +169,7 @@ export function MatchStage({
               onSetBot={onSetBot}
             />
           ) : view && state === 'abandoned' ? (
-            <AbandonedPanel view={view} events={events} />
+            <AbandonedPanel view={view} events={events} live={live} />
           ) : feedError ? null : (
             <p className="sheet plain-sheet">{t('app.loading')}</p>
           )}
@@ -205,9 +217,16 @@ export function MatchStage({
     // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
     sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
-    sheet = <ResultPanel view={view} finished={lastOf(events, 'MATCH_FINISHED')} name={name} />;
+    sheet = (
+      <ResultPanel
+        view={view}
+        finished={lastOf(events, 'MATCH_FINISHED')}
+        name={name}
+        live={live}
+      />
+    );
   } else if (state === 'abandoned') {
-    sheet = <AbandonedPanel view={view} events={events} />;
+    sheet = <AbandonedPanel view={view} events={events} live={live} />;
   }
   const label = stepLabel(view);
   const closed = state === 'finished' || state === 'abandoned';
@@ -301,10 +320,15 @@ export function MomentBanner({ moment }: { readonly moment: Moment }) {
 export function AbandonedPanel({
   view,
   events,
+  live = false,
 }: {
   readonly view: MatchView;
   readonly events: readonly ParsedMatchEvent[];
+  /** Die Seite hat den Abbruch miterlebt: Nur dann erscheint das Blatt mit einer Bewegung. */
+  readonly live?: boolean;
 }) {
+  // Steht beim Erscheinen fest: Ein späteres Rendern stößt nichts neu an
+  const [entrance] = useState(live);
   const reason = lastOf(events, 'MATCH_ABANDONED')?.payload.reason;
   const known =
     reason === 'HOST_LEFT' ||
@@ -312,7 +336,10 @@ export function AbandonedPanel({
     reason === 'NO_QUESTION_AVAILABLE' ||
     reason === 'INTERNAL_ERROR';
   return (
-    <section className="sheet plain-sheet" data-testid="match-abandoned">
+    <section
+      className={`sheet plain-sheet${entrance ? ' entrance' : ''}`}
+      data-testid="match-abandoned"
+    >
       <h2>{t('match.abandoned.title')}</h2>
       {known ? <p>{t(`match.abandoned.reason.${reason}`)}</p> : null}
       {view.match.kind === 'TEST' ? <p className="muted">{t('match.result.test')}</p> : null}
