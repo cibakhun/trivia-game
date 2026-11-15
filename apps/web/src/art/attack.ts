@@ -56,6 +56,18 @@ export interface DuelLayout {
   readonly arrow: string;
   /** Länge, auf die sich Stöße der Animation beziehen (Sechseckgröße mal Maßstab). */
   readonly unit: number;
+  /** Richtung des Angriffs in Grad (0 = nach rechts, im Uhrzeigersinn). */
+  readonly angle: number;
+  /**
+   * Derselbe Pfeil im eigenen Rahmen: Ursprung in der Mitte des Angreifers, x zeigt zum Ziel.
+   * Schaft und Spitze getrennt, damit er sich wie ein Pinselstrich vom Schaft zur Spitze ziehen
+   * und beim Einschlag nach vorn stoßen kann (`DuelStageArt`).
+   */
+  readonly shaft: string;
+  readonly head: string;
+  /** Anfang und Spitze des Pfeils entlang der Richtung, gemessen ab der Mitte des Angreifers. */
+  readonly start: number;
+  readonly tip: number;
 }
 
 /** Wappen und Pfeil relativ zur Sechseckgröße; auf schmalen Bildschirmen etwas größer. */
@@ -114,6 +126,9 @@ export function duelLayout(
   const arrow =
     `M${at(start, tail)}L${at(neck, shaft)}L${at(neck, wing)}L${at(tip, 0)}` +
     `L${at(neck, -wing)}L${at(neck, -shaft)}L${at(start, -tail)}Z`;
+  // Im eigenen Rahmen reicht der Schaft ein Stück in die Spitze, damit keine Fuge bleibt
+  const local = (x: number, y: number) => `${round(x)} ${round(y)}`;
+  const shaftEnd = neck + 0.06 * unit;
   return {
     source: { x: a.cx, y: a.cy },
     target: { x: b.cx, y: b.cy },
@@ -122,5 +137,54 @@ export function duelLayout(
     radius: round(radius),
     arrow,
     unit,
+    angle: round((Math.atan2(u.y, u.x) * 180) / Math.PI),
+    shaft:
+      `M${local(start, -tail)}L${local(shaftEnd, -shaft)}` +
+      `L${local(shaftEnd, shaft)}L${local(start, tail)}Z`,
+    head: `M${local(neck, -wing)}L${local(tip, 0)}L${local(neck, wing)}Z`,
+    start: round(start),
+    tip: round(tip),
   };
+}
+
+/** So weit holt der Angreifer vor dem Sturm Schwung, in Längen des Duells (`unit`), rückwärts. */
+export const DUEL_BACK = -0.16;
+
+/** Halbmesser des goldenen Schilds vor dem Verteidiger, in Radien seines Plättchens. */
+export const DUEL_GUARD = 1.42;
+
+/**
+ * Wogegen der Angreifer im Ausgang stößt: das Wappen des Verteidigers (`token`), den goldenen
+ * Schild davor, wenn die Verteidigung hält (`guard`), die Mauer einer Burg (`wall`) oder ein
+ * freies Feld, auf dem er in der Mitte aufsetzt (`field`).
+ */
+export type DuelContact = 'token' | 'guard' | 'wall' | 'field';
+
+/**
+ * Wie weit die Mitte des Angreifers bis zum Einschlag kommt, gemessen ab seiner Mitte entlang
+ * der Richtung. Nie weniger als ein kurzer Anlauf, auch wenn die Regionen dicht beieinander
+ * liegen. `size` ist die Sechseckgröße der Karte (die Burg ist so groß gezeichnet).
+ */
+export function duelContact(layout: DuelLayout, contact: DuelContact, size: number): number {
+  const { distance, radius: r } = layout;
+  const reach =
+    contact === 'token'
+      ? // Die Plättchen überlappen beim Aufprall ein wenig: Das sieht nach Wucht aus
+        distance - 1.85 * r
+      : contact === 'guard'
+        ? distance - DUEL_GUARD * r - 0.9 * r
+        : contact === 'wall'
+          ? distance - r - 0.36 * size
+          : distance;
+  return round(Math.max(0.6 * r, reach));
+}
+
+/** Wogegen der Angreifer in diesem Ausgang stößt; `castle`: Das Ziel ist eine Burg. */
+export function duelContactOf(
+  duel: { readonly defender: number | null; readonly repelled: boolean },
+  castle: boolean,
+): DuelContact {
+  if (castle) return 'wall';
+  if (duel.repelled) return 'guard';
+  return duel.defender === null ? 'field' : 'token';
 }

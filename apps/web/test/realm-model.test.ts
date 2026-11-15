@@ -11,6 +11,7 @@ import {
   moveRefusal,
   planOrders,
   plannedRegion,
+  orderKeys,
   plannedTargets,
   realmPlayOf,
   realmScreenStateOf,
@@ -89,6 +90,33 @@ describe('Entwurf der Befehle', () => {
     orders = withMove(orders, 2, 6, 0);
     orders = withTrade(orders, 'BREAD', 0);
     expect(orders).toEqual([]);
+  });
+
+  it('nennt jeden Befehl gleich, solange er derselbe bleibt (Plättchen der Rüstzeit)', () => {
+    let orders: RealmOrderDto[] = [];
+    orders = withRecruit(orders, 2, 1);
+    orders = withBuild(orders, 0, true);
+    orders = withMove(orders, 2, 6, 1);
+    expect(orderKeys(orders)).toEqual(['RECRUIT:2', 'BUILD:0', 'MOVE:2>6']);
+    // Mehr Armeen, ein zweiter Zug, die Gegenrichtung: Die alten Namen bleiben
+    orders = withMove(withMove(withRecruit(orders, 2, 3), 2, 6, 2), 6, 2, 1);
+    expect(orderKeys(orders)).toEqual(['RECRUIT:2', 'BUILD:0', 'MOVE:2>6', 'MOVE:6>2']);
+    // Ein Tausch rückt nach vorn, die anderen behalten ihren Namen
+    orders = tradesFirst(withTrade(orders, 'MATERIAL', 1));
+    expect(orderKeys(orders)).toEqual([
+      'TRADE:MATERIAL',
+      'RECRUIT:2',
+      'BUILD:0',
+      'MOVE:2>6',
+      'MOVE:6>2',
+    ]);
+    // Käme ein Befehl doch doppelt (Stand des Servers), bleiben die Namen verschieden
+    expect(
+      orderKeys([
+        { kind: 'BUILD', region: 0 },
+        { kind: 'BUILD', region: 0 },
+      ]),
+    ).toEqual(['BUILD:0', 'BUILD:0#1']);
   });
 
   it('lässt andere Felder und die Gegenrichtung eines Zugs stehen', () => {

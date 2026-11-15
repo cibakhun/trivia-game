@@ -133,3 +133,48 @@ export async function answerRight(
   const accepted = answerAccepted(page, matchId, seq);
   return (await succeeds(key('Antwort abgeben'))) && (await accepted);
 }
+
+/** Abbild eines Blatts, das eben von der Mitte der Karte ging (`StageCentre`, ADR-070). */
+export interface SheetGhost {
+  /**
+   * Wie es geht: `stay` (vergeht unter dem neuen Blatt), `turn` (dreht sich weg) oder `lift` (hebt
+   * sich ab), siehe `sheetSwap`.
+   */
+  readonly leave: string;
+  /** Kennungen im Abbild (`data-testid`, `id`): Es darf keine tragen. */
+  readonly marks: number;
+  /** So weiß das neue Blatt, wie es kam: `stayed`, `turned` oder leer. */
+  readonly arrival: string;
+}
+
+/**
+ * Lässt die Seite jedes Abbild mitschreiben, sobald es erscheint: Es steht nur 0,13 bis 0,34 s, zu
+ * kurz für eine Abfrage von außen. Gilt für die Seite, wie sie steht, und nach jedem Neuladen.
+ */
+export async function recordGhosts(page: Page): Promise<void> {
+  const record = () => {
+    const ghosts: SheetGhost[] = [];
+    (window as unknown as { ghosts: SheetGhost[] }).ghosts = ghosts;
+    new MutationObserver((records) => {
+      for (const { addedNodes } of records) {
+        for (const node of addedNodes) {
+          if (!(node instanceof Element) || !node.classList.contains('sheet-ghost')) continue;
+          // Ohne Bewegung misst die Mitte nur am Abbild (`probe`); gezeichnet wird es nie
+          if (node.classList.contains('probe')) continue;
+          ghosts.push({
+            leave: [...node.classList].find((c) => c.startsWith('leave-'))?.slice(6) ?? '',
+            marks: node.querySelectorAll('[data-testid], [id]').length,
+            arrival:
+              ['stayed', 'turned'].find((c) => document.querySelector(`.stage-centre.${c}`)) ?? '',
+          });
+        }
+      }
+    }).observe(document, { subtree: true, childList: true });
+  };
+  await page.addInitScript(record);
+  await page.evaluate(record);
+}
+
+export function ghostsBy(page: Page): Promise<SheetGhost[]> {
+  return page.evaluate(() => (window as unknown as { ghosts?: SheetGhost[] }).ghosts ?? []);
+}

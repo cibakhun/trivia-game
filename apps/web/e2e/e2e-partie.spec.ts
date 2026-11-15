@@ -1,6 +1,14 @@
 import { expect, test, type Page } from '@playwright/test';
 import { closeAnswerDb, testDb } from './answers.ts';
-import { answerRight, matchIdOf, newPlayer, pickFirst, succeeds } from './match-kit.ts';
+import {
+  answerRight,
+  ghostsBy,
+  matchIdOf,
+  newPlayer,
+  pickFirst,
+  recordGhosts,
+  succeeds,
+} from './match-kit.ts';
 
 /**
  * Partie im Browser (Abnahme M4, TEST_PLAN §5): eine ganze Testpartie zu dritt gegen zwei Bots,
@@ -33,8 +41,13 @@ interface Shown {
   readonly scene: string | null;
   /** Aufstellung auf der Karte: Wappen des Angreifers und Pfeil zum Ziel. */
   readonly arrow: boolean;
-  /** Plättchen mit Wappen: an den Antworten der Auflösung oder in der Ansage. */
+  /** Plättchen mit Wappen: in der Ansage, an den Schätzungen der Auflösung, bei „keine Antwort“. */
   readonly chips: number;
+  /**
+   * Sitze, die in der Auflösung an ihrer Antwort stehen: als Plättchen (Schätzfrage, keine
+   * Antwort) oder als Farbe im Feld der Wissensfrage, das keinen Namen trägt (ADR-070 Punkt 9).
+   */
+  readonly seats: number;
   /** Das Band „Du bist dran!“ steht noch über der Karte. */
   readonly turnBanner: boolean;
   /** Auflösung einer Wissensfrage mit markierter richtiger Antwort. */
@@ -84,6 +97,7 @@ async function recordShown(page: Page): Promise<void> {
           document.querySelector('.duel-stage .duel-token.attacker') !== null &&
           document.querySelector('.duel-stage .duel-arrow') !== null,
         chips: card.querySelectorAll('.seat-chip').length,
+        seats: card.querySelectorAll('.seat-chip, .reveal-fill i').length,
         turnBanner: document.querySelector('.turn-banner.moment-gold') !== null,
         correctOption: card.querySelector('.reveal-option.correct') !== null,
         step: document.querySelector('[data-testid="match-step"]')?.textContent ?? '',
@@ -173,6 +187,7 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   test.setTimeout(240_000);
   const page = await newPlayer(browser);
   await recordShown(page);
+  await recordGhosts(page);
   const setup = page.getByTestId('test-match');
   await setup.getByLabel('Zu dritt').check();
   await setup.getByLabel('Bot 1').selectOption('EASY');
@@ -248,12 +263,25 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   // Die Zugfolge ist erst mit dem Ausgang abgehakt, nicht schon mit den Antworten
   expect(shown.findIndex((s) => s.allDone)).toBe(lastAt);
   expect(shown.slice(lastAt + 1).every((s) => s.state === 'settled' && s.allDone)).toBe(true);
-  // Auflösungen: Jeder Sitz der Frage steht mit seinem Wappen an seiner Antwort
+  // Auflösungen: Jeder Sitz der Frage steht an seiner Antwort, mit seinem Wappen an der Schätzung
+  // oder mit seiner Farbe im Feld der Wissensfrage
   const reveals = shown.filter((s) => s.state === 'reveal');
   expect(reveals.length).toBeGreaterThan(5);
-  expect(reveals.every((s) => s.chips >= 2 && s.chips <= 3)).toBe(true);
+  expect(reveals.every((s) => s.seats >= 2 && s.seats <= 3)).toBe(true);
   expect(reveals.some((s) => s.correctOption)).toBe(true);
   expect(reveals.some((s) => s.text.includes('Richtige Antwort:'))).toBe(true);
+  // Mitte der Karte (ADR-070): Löst sich eine Wissensfrage auf, die hier zu lesen war, bleibt die
+  // Karte liegen und die Auflösung legt sich darauf; bei einer Schätzfrage dreht sich die Karte um.
+  // Geht die Auflösung, hebt sie sich ab. Das Abbild des alten Blatts trägt nichts, was Tests oder
+  // Vorleser fänden, und ist danach wieder fort
+  const ghosts = await ghostsBy(page);
+  expect(ghosts.some((g) => g.leave === 'stay' && g.arrival === 'stayed')).toBe(true);
+  expect(ghosts.some((g) => g.leave === 'turn' && g.arrival === 'turned')).toBe(true);
+  expect(ghosts.some((g) => g.leave === 'lift')).toBe(true);
+  expect(ghosts.filter((g) => g.marks > 0 || !['stay', 'turn', 'lift'].includes(g.leave))).toEqual(
+    [],
+  );
+  await expect(page.locator('.sheet-ghost')).toHaveCount(0);
 
   const result = page.getByTestId('match-result');
   await expect(result.locator('tbody tr')).toHaveCount(3);
@@ -648,7 +676,9 @@ test('Partie: Wer zuschaut, liest die Frage mit; die Auflösung malt die Antwort
 }) => {
   test.setTimeout(240_000);
   const host = await newPlayer(browser);
-  const guest = await newPlayer(browser);
+  // Der Gast hat „Bewegung reduzieren“ an: Bei ihm wechseln die Blätter ohne Abbild (ADR-070)
+  const guest = await newPlayer(browser, { reducedMotion: 'reduce' });
+  for (const page of [host, guest]) await recordGhosts(page);
 
   const create = host.getByRole('region', { name: 'Neue Partie' });
   await create.getByLabel(/^Kurze Zeiten/).check();
@@ -697,4 +727,8 @@ test('Partie: Wer zuschaut, liest die Frage mit; die Auflösung malt die Antwort
       expect(Number(parts)).toBe(seats.split(' ').length);
     }
   }
+  // Mit Bewegung legt sich die Auflösung einer Wissensfrage auf die Karte, ohne Bewegung gibt es
+  // kein Abbild: Das Blatt steht gleich an der Stelle der Frage
+  expect((await ghostsBy(host)).some((g) => g.leave === 'stay')).toBe(true);
+  expect(await ghostsBy(guest)).toEqual([]);
 });

@@ -35,6 +35,7 @@ import {
 } from './realm-model.ts';
 import { categoryName, placeName, revealedParts, targetWinKey, wheelFits } from './realm-text.ts';
 import { latestLine } from './StageBlatt.tsx';
+import { useKept } from './stage-live.ts';
 
 /**
  * Das Blatt rechts auf dem Meer in der Partie mit Ausbau (MATCH_RULES §11, ADR-060): sagt in jeder
@@ -66,8 +67,10 @@ function DuelBox({
   /** Ganzer Satz für Screenreader. */
   readonly sentence: string | null;
 }) {
+  // Stand der Kasten schon auf der Seite davor, bleibt er beim Umschlagen stehen (`stage-live.ts`)
+  const kept = useKept();
   return (
-    <div className="duel-box" data-testid="match-duel">
+    <div className={kept ? 'duel-box kept' : 'duel-box'} data-testid="match-duel">
       {sentence ? <p className="visually-hidden">{sentence}</p> : null}
       <p className="duel-box-sides" aria-hidden="true">
         <span className="duel-who">
@@ -412,7 +415,9 @@ export function RealmBlatt({
             ) : (
               <>
                 {refusedReach === 'NO_ARMY' || refusedReach === 'FAR' ? (
+                  // Jedes abgelehnte Feld ist ein neuer Satz: So ruckt das Nein mit jedem Tipp
                   <p
+                    key={refusedTarget}
                     className="act-info act-refused"
                     data-testid="match-target-refused"
                     data-reach={refusedReach}

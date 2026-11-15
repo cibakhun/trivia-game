@@ -11,7 +11,8 @@ import { showEstimate } from './estimate-input.ts';
  * Kategorie, die das Glücksrad gezogen hat. Nach der eigenen Antwort bleibt die Karte stehen,
  * die gewählte Antwort ist markiert: So springt nichts, bis die Auflösung kommt. Ohne Bewegung,
  * weil die Fragezeit läuft (ARCHITECTURE §15). Wer nicht gefragt ist, liest dieselbe Karte mit
- * (`WatchedQuestionCard`, ADR-065).
+ * (`WatchedQuestionCard`, ADR-065). Die Antwortfelder sind der Anker (`data-anchor`): Auf sie legt
+ * sich die Auflösung einer Wissensfrage, Feld auf Feld (`StageCentre`, ADR-070 Punkt 10).
  */
 
 const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
@@ -28,12 +29,15 @@ function noop() {
   // Nach der eigenen Antwort läuft die Zeit nur noch zur Anzeige
 }
 
-/** Band oben links: die Kategorie aus dem Glücksrad, sonst die Art der Frage. */
-function QuestionKind({
-  question,
+/**
+ * Band oben links: die Kategorie aus dem Glücksrad, sonst die Art der Frage. Die Auflösung trägt
+ * als Rückseite der Karte dasselbe Band (`RevealPanel`).
+ */
+export function QuestionKind({
+  kind,
   category,
 }: {
-  readonly question: MatchPresentedQuestion;
+  readonly kind: MatchPresentedQuestion['kind'];
   readonly category: QuestionCategory | null;
 }) {
   return (
@@ -43,7 +47,7 @@ function QuestionKind({
           <CategoryIcon category={category} size={18} />
           {t(`realm.category.${category}`)}
         </>
-      ) : question.kind === 'TRIVIA' ? (
+      ) : kind === 'TRIVIA' ? (
         t('quiz.trivia')
       ) : (
         t('quiz.estimate')
@@ -82,7 +86,7 @@ export function WatchedQuestionCard({
       data-kind={question.kind}
     >
       <header className="sheet-head">
-        <QuestionKind question={question} category={category} />
+        <QuestionKind kind={question.kind} category={category} />
         <span className="sheet-tag">{t('match.watch.tag')}</span>
       </header>
       <Countdown deadline={deadline} totalMs={question.timeLimitMs} onExpire={noop} brief />
@@ -90,7 +94,7 @@ export function WatchedQuestionCard({
         {question.prompt}
       </h2>
       {question.kind === 'TRIVIA' ? (
-        <ul className="sheet-options">
+        <ul className="sheet-options" data-anchor="">
           {question.options.map((option, i) => (
             <li key={option.token}>
               <span className="option-read">
@@ -163,7 +167,7 @@ export function StageQuestion({
       data-kind={question.kind}
     >
       <header className="sheet-head">
-        <QuestionKind question={question} category={category} />
+        <QuestionKind kind={question.kind} category={category} />
       </header>
       <Countdown
         deadline={deadline}
@@ -176,7 +180,7 @@ export function StageQuestion({
         {question.prompt}
       </h2>
       {question.kind === 'TRIVIA' ? (
-        <ul className="sheet-options">
+        <ul className="sheet-options" data-anchor="">
           {question.options.map((option, i) => (
             <li key={option.token}>
               <button

@@ -1,6 +1,7 @@
 import { WENDELMARK } from '@rdw/game-core';
 import { useId, useMemo } from 'react';
 import { ArtDefs, symbolRef } from './ArtDefs.tsx';
+import { inkBlob, inkBox, inkOrigin, inkReach, inkStyle } from './ink.ts';
 import { mapArt } from './map-art.ts';
 import './map-art.css';
 
@@ -30,6 +31,18 @@ const SCENE: Readonly<Record<number, number>> = {
  */
 export function HeroMap({ cover = false }: { readonly cover?: boolean }) {
   const art = useMemo(() => mapArt(WENDELMARK), []);
+  // Die Farben laufen als nasse Tinte von der Mitte ihrer Region ein (ink.ts)
+  const inks = useMemo(
+    () =>
+      art.regions.map((region) => {
+        const origin = inkOrigin(region.outline, inkBox(region.outline), {
+          x: region.cx,
+          y: region.cy,
+        });
+        return inkStyle(inkBlob(`hero:${region.id}`, origin, inkReach(origin)));
+      }),
+    [art],
+  );
   const prefix = `hero${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
     <svg
@@ -66,7 +79,7 @@ export function HeroMap({ cover = false }: { readonly cover?: boolean }) {
             {owner !== undefined ? (
               <g
                 className="wash ink-in"
-                style={{ animationDelay: `${0.3 + (region.id % 7) * 0.12}s` }}
+                style={{ ...inks[region.id], animationDelay: `${0.3 + (region.id % 7) * 0.12}s` }}
               >
                 <path d={region.d} className="wash-fill" />
                 <path

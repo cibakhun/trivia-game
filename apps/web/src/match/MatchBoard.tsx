@@ -7,28 +7,45 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type FocusEvent,
   type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
 } from 'react';
 import { ArtDefs, symbolRef, type SymbolId } from '../art/ArtDefs.tsx';
 import {
   attackSource,
+  DUEL_BACK,
+  DUEL_GUARD,
+  duelContact,
+  duelContactOf,
   duelLayout,
   duelScale,
   inUpperHalf,
+  type DuelContact,
   type DuelLayout,
 } from '../art/attack.ts';
+import { NO_FX } from '../art/fx/fx.ts';
+import { FxLayer } from '../art/fx/FxLayer.tsx';
+import { inkBlob, inkBox, inkOrigin, inkReach, inkStyle } from '../art/ink.ts';
 import { frontiers, mapArt, type ArtRegion, type MapArt } from '../art/map-art.ts';
 import { COMPACT_SCALE, seaDepth, type StageFrame } from '../art/stage-frame.ts';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
+import { boardFx, fxWitness, type FxWitness } from './board-fx.ts';
 import type { DuelStage } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import {
+  armiesBefore as armiesBeforeMotion,
   hasBuilding,
   REALM_CASTLE,
   RealmPlanArt,
   RealmRegionArt,
+  RealmRoutArt,
   RealmRuinArt,
+  routed,
+  ShieldShatter,
+  useOutcomeMotion,
   type RealmLayer,
 } from './RealmBoardArt.tsx';
 
@@ -66,6 +83,38 @@ const SEA = 3000;
 const FAR_COLUMNS = 12;
 const FAR_ROWS = 9;
 
+/**
+ * Gruppe (oder mit `path` ein Pfad), deren Bewegung `motion` nur abspielt, wenn sie nach dem ersten
+ * Aufbau der Karte erschienen ist. Das steht beim Erscheinen fest: Ein späteres Rendern hängt die
+ * Klasse nicht nachträglich an, sonst liefe die Animation nach dem Laden mitten im Spiel an. Ein
+ * neuer Stand braucht deshalb einen neuen Schlüssel (`key`).
+ */
+function Born({
+  className,
+  motion,
+  live,
+  style,
+  path,
+  children,
+}: {
+  readonly className: string;
+  readonly motion: string;
+  readonly live: boolean;
+  readonly style?: CSSProperties;
+  readonly path?: string;
+  readonly children?: ReactNode;
+}) {
+  const [born] = useState(live);
+  const classes = born && motion ? `${className} ${motion}` : className;
+  return path === undefined ? (
+    <g className={classes} style={style}>
+      {children}
+    </g>
+  ) : (
+    <path d={path} className={classes} style={style} />
+  );
+}
+
 /** `true` ab dem zweiten Rendern: Beim ersten Aufbau läuft keine Änderungsanimation. */
 function useSettled(): boolean {
   const settled = useRef(false);
@@ -73,6 +122,18 @@ function useSettled(): boolean {
     settled.current = true;
   }, []);
   return settled.current;
+}
+
+/**
+ * Zeigt der Browser den Fokus dieses Elements (Tastatur)? Nach einem Tipp oder Klick nicht. Kennt
+ * er die Abfrage nicht, gilt der Fokus als sichtbar.
+ */
+function focusShown(element: Element): boolean {
+  try {
+    return element.matches(':focus-visible');
+  } catch {
+    return true;
+  }
 }
 
 /** Wo ein Duell spielt: Region, aus der der Angreifer zieht, und ob das Ziel eine Hauptstadt ist. */
@@ -119,9 +180,10 @@ export function MatchBoard({
   duel,
   spot,
   busy,
+  pending = null,
   onPick,
   frame,
-  realm = null,
+  realm: realmLayer = null,
   home = null,
   selectable = NONE,
 }: {
@@ -144,6 +206,11 @@ export function MatchBoard({
   /** Eben gewählte Region, die eine Ansage zeigt. */
   readonly spot: number | null;
   readonly busy: boolean;
+  /**
+   * Eigene Wahl, die abgeschickt ist und auf den Server wartet (`pendingPick`): Das Feld trägt
+   * schon den festen goldenen Rand, die übrigen Markierungen ruhen so lange.
+   */
+  readonly pending?: number | null;
   readonly onPick: (region: number) => void;
   /**
    * Ausschnitt der Bühne (ADR-059): Die Karte füllt den Bildschirm, das Meer läuft bis zum Rand.
@@ -154,6 +221,9 @@ export function MatchBoard({
   const art = useMemo(() => mapArt(map), [map]);
   const prefix = `map${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const settled = useSettled();
+  // Der Ausgang mit Ausbau spielt, wenn die Szene `outcome` kommt, nicht schon mit der Auflösung
+  const realm = useOutcomeMotion(realmLayer, duel);
+  const svg = useRef<SVGSVGElement>(null);
   // Kleines Land (Handy): größere Schrift, weniger Zierde
   const narrow = frame === null || frame.scale < COMPACT_SCALE;
   const far = useMemo(() => farSea(art), [art]);
@@ -168,8 +238,17 @@ export function MatchBoard({
     [art, ownerKey],
   );
   const [hot, setHot] = useState<number | null>(null);
-  const choosable = new Set(busy ? [] : legal);
-  const tappable = new Set(busy ? [] : selectable);
+  // Solange eine Wahl unterwegs ist, nimmt die Karte keinen Tipp an
+  const waiting = busy || pending !== null;
+  const choosable = new Set(waiting ? [] : legal);
+  const tappable = new Set(waiting ? [] : selectable);
+  // Jeder Tipp bekommt seine Antwort im selben Bild: Die Fläche des Felds blitzt einmal auf
+  // (`tap-press`). Die Nummer zählt die Tipps, damit auch ein zweiter auf dasselbe Feld neu anläuft
+  const [tap, setTap] = useState<{ readonly region: number; readonly seq: number } | null>(null);
+  const press = (region: number) => {
+    setTap((last) => ({ region, seq: (last?.seq ?? 0) + 1 }));
+    onPick(region);
+  };
   const maxLives = Math.max(
     DEFAULT_MATCH_RULES.capital.lives,
     ...board.seats.map((s) => s.capitalLivesLeft),
@@ -185,7 +264,7 @@ export function MatchBoard({
   function onKey(event: KeyboardEvent, region: number) {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      onPick(region);
+      press(region);
     }
   }
 
@@ -209,8 +288,21 @@ export function MatchBoard({
     if (!deciding) ownersBefore.current = board.regions.map((r) => r.owner);
   });
   const before = deciding ? ownersBefore.current : null;
+  // Die Außengrenzen der Reiche folgen der einlaufenden Farbe: Im Ausgang stehen die alten noch
+  // und gehen erst in die neuen über, wenn die Tinte die Region gefüllt hat
+  const beforeKey = before ? before.map((owner) => owner ?? '-').join(',') : null;
+  const realmsBefore = useMemo(
+    () =>
+      beforeKey === null || beforeKey === ownerKey
+        ? null
+        : frontiers(
+            art,
+            beforeKey.split(',').map((owner) => (owner === '-' ? null : Number(owner))),
+          ),
+    [art, beforeKey, ownerKey],
+  );
   // Armeen vor dem Ausgang: Ein genommenes Feld verliert alle, das Ereignis nennt nur eine
-  const resolving = realm?.motion?.kind === 'outcome';
+  const resolving = realmLayer?.motion?.kind === 'outcome';
   const armiesBefore = useRef<readonly number[] | null>(null);
   useEffect(() => {
     if (!resolving) armiesBefore.current = realm?.regions.map((r) => r.armies) ?? null;
@@ -219,13 +311,33 @@ export function MatchBoard({
   // Der Sieger nimmt die Region: Seine Farbe läuft von der Grenze her ein, über die er kam
   const conquest =
     duel?.scene === 'outcome' && (duel.effect === 'CONQUERED' || duel.effect === 'TAKEOVER');
-  const flood: CSSProperties | undefined =
-    conquest && layout
-      ? {
-          ['--flood-x' as string]: `${Math.round(50 - layout.dir.x * 45)}%`,
-          ['--flood-y' as string]: `${Math.round(50 - layout.dir.y * 45)}%`,
-        }
-      : undefined;
+  const flood = conquest && layout !== null && source !== null;
+  // Fällt ein Reich, läuft die Farbe von der genommenen Hauptstadt aus durch seine Regionen
+  const fallen = duel?.effect === 'TAKEOVER' ? duel.region : null;
+  // Nasse Tinte je Region (`ink-spread`): ein fest gewürfelter Klecks, der von der Grenze her
+  // einläuft, über die der Sieger kam, beim Fall eines Reichs von der Seite der Hauptstadt her,
+  // sonst von der Mitte aus. Ursprung und Reichweite stecken in Variablen, der Name bleibt
+  const boxes = useMemo(() => art.regions.map((r) => inkBox(r.outline)), [art]);
+  const inks = useMemo(
+    () =>
+      art.regions.map((region) => {
+        const box = boxes[region.id] ?? inkBox(region.outline);
+        const entry =
+          flood && source !== null && region.id === contested
+            ? art.regions[source]
+            : fallen !== null && region.id !== fallen
+              ? art.regions[fallen]
+              : undefined;
+        const origin = inkOrigin(
+          region.outline,
+          box,
+          { x: region.cx, y: region.cy },
+          entry ? { x: entry.cx, y: entry.cy } : null,
+        );
+        return inkStyle(inkBlob(`${map.id}:${region.id}`, origin, inkReach(origin)));
+      }),
+    [art, boxes, map.id, flood, contested, source, fallen],
+  );
   // Wo ein Wappen steht, weichen Name, Münze und Burg; vor einer angegriffenen Burg nur der Name
   const standing = layout !== null && (duel?.scene === 'announce' || duel?.scene === 'duel');
   const staged = (region: number): 'all' | 'name' | null =>
@@ -246,10 +358,30 @@ export function MatchBoard({
     if (duel?.effect !== 'TAKEOVER') return undefined;
     const from = map.regions[duel.region]?.cell;
     const to = map.regions[region]?.cell;
-    return from && to ? { ['--wave' as string]: `${hexDistance(from, to) * 0.12}s` } : undefined;
+    // Höchstens drei Schritte: Die letzte Region ist gefüllt, bevor der Ausgang endet
+    return from && to
+      ? { ['--wave' as string]: `${Math.min(3, hexDistance(from, to)) * 0.12}s` }
+      : undefined;
   };
+  // Effekte über der Karte (ADR-070): nur für Wechsel, die die Seite miterlebt hat. Ob, steht
+  // fest, wenn ein Satz Effekte erscheint (`fxWitness`): Lief ein Ausgang schon beim Laden, bleibt
+  // er auch beim nächsten Rendern ohne Teilchen und Beben
+  const fxAll = useMemo(
+    () => boardFx({ art, duel, layout, castle, realm, live: true }),
+    [art, duel, layout, castle, realm],
+  );
+  const [witness, setWitness] = useState<FxWitness | null>(null);
+  const seen = fxWitness(witness, fxAll.key, settled);
+  if (seen !== witness) setWitness(seen);
+  const fx = seen.live ? fxAll : NO_FX;
+  const quake: CSSProperties | undefined = fx.quake
+    ? { ['--quake-at' as string]: `${fx.quake.atMs}ms` }
+    : undefined;
   const hotArt =
     hot !== null && (choosable.has(hot) || tappable.has(hot)) ? art.regions[hot] : undefined;
+  const tapArt = tap === null ? undefined : art.regions[tap.region];
+  // Nur solange das Feld noch zur Wahl steht: Ist der neue Stand da, übernimmt der Ring der Ansage
+  const pendingArt = pending !== null && legal.includes(pending) ? art.regions[pending] : undefined;
   const spotArt = spot === null ? undefined : art.regions[spot];
   const spotOwner = spot === null ? null : (board.regions[spot]?.owner ?? null);
 
@@ -263,8 +395,9 @@ export function MatchBoard({
   // Der Rahmen ist das Rasterfeld, die Karte füllt ihn: Als Rasterfeld mit `height: 100%` wird das
   // SVG in WebKit (iPhone) so hoch wie das ganze Raster und rutscht unter das Blatt.
   return (
-    <div className="board-frame">
+    <div className={`board-frame${fx.quake ? ` quake-${fx.quake.strength}` : ''}`} style={quake}>
       <svg
+        ref={svg}
         className={`board map-art${narrow ? ' narrow' : ''}`}
         viewBox={viewBox}
         preserveAspectRatio="xMidYMid slice"
@@ -322,6 +455,13 @@ export function MatchBoard({
           </clipPath>
           {realms.map((r) => (
             <clipPath key={r.seat} id={`${prefix}-realm-${r.seat}`}>
+              {r.regions.map((id) => (
+                <path key={id} d={art.regions[id]?.d} />
+              ))}
+            </clipPath>
+          ))}
+          {realmsBefore?.map((r) => (
+            <clipPath key={r.seat} id={`${prefix}-was-${r.seat}`}>
               {r.regions.map((id) => (
                 <path key={id} d={art.regions[id]?.d} />
               ))}
@@ -400,8 +540,11 @@ export function MatchBoard({
                 });
             const capitalOf = state.capitalOf;
             const lives = livesAt(region.id, capitalOf);
-            // Eben verloren: Die Farbe des alten Besitzers weicht erst unter der neuen
-            const was = before?.[region.id] ?? null;
+            // Eben verloren: Die Farbe des alten Besitzers weicht erst unter der neuen. Das
+            // umkämpfte Feld gehörte dem Verteidiger, auch wenn die Karte das nicht mehr weiß
+            const was =
+              before?.[region.id] ??
+              (conquest && region.id === contested ? (duel?.defender ?? null) : null);
             const lost = was !== null && was !== owner ? was : null;
             const classes = [
               'board-region',
@@ -418,18 +561,24 @@ export function MatchBoard({
                 key={region.id}
                 className={classes}
                 data-region={region.id}
-                style={contested === region.id && flood ? flood : wave(region.id)}
+                style={wave(region.id)}
                 {...(canTap
                   ? {
                       role: 'button',
                       tabIndex: 0,
                       'aria-label': canPick ? region.name : label,
                       'aria-pressed': !canPick && realm ? realm.selected === region.id : undefined,
-                      onClick: () => onPick(region.id),
+                      onClick: () => press(region.id),
                       onKeyDown: (event: KeyboardEvent) => onKey(event, region.id),
-                      onPointerEnter: () => setHot(region.id),
+                      // Der Rand unter dem Zeiger gehört der Maus und der Tastatur: Ein Finger
+                      // hat keinen Zeiger, und nach einem Tipp bliebe der Rand am Feld hängen
+                      onPointerEnter: (event: PointerEvent) => {
+                        if (event.pointerType === 'mouse') setHot(region.id);
+                      },
                       onPointerLeave: () => setHot((h) => (h === region.id ? null : h)),
-                      onFocus: () => setHot(region.id),
+                      onFocus: (event: FocusEvent) => {
+                        if (focusShown(event.currentTarget)) setHot(region.id);
+                      },
                       onBlur: () => setHot((h) => (h === region.id ? null : h)),
                     }
                   : { role: 'img', 'aria-label': label })}
@@ -443,33 +592,34 @@ export function MatchBoard({
                 </title>
                 <path d={region.d} className={`land terrain-${region.terrain}`} />
                 {lost !== null ? (
-                  <g className="wash wash-old">
-                    <path
-                      d={region.d}
-                      className="wash-fill"
-                      style={{ fill: `var(--seat-${lost})` }}
-                    />
-                    <path
-                      d={region.d}
-                      className="wash-pattern"
-                      fill={`url(#${prefix}-pattern-${lost})`}
-                    />
-                  </g>
-                ) : null}
-                {owner !== null ? (
-                  <g key={`wash-${owner}`} className={`wash${settled ? ' ink-in' : ''}`}>
+                  // Die alte Farbe weicht genau dort, wo die neue schon steht (`ink-recede`)
+                  <g
+                    className="wash wash-old"
+                    style={{ ...inks[region.id], ['--old' as string]: `var(--seat-${lost})` }}
+                  >
                     <path d={region.d} className="wash-fill" />
                     <path
                       d={region.d}
                       className="wash-pattern"
-                      fill={`url(#${prefix}-pattern-${owner})`}
+                      fill={`url(#${prefix}-pattern-${lost})`}
                     />
                     <path
                       d={region.d}
                       className="wash-edge"
                       clipPath={`url(#${prefix}-clip-${region.id})`}
                     />
+                    <path d={region.d} className="ink-frame" />
                   </g>
+                ) : null}
+                {owner !== null ? (
+                  <Wash
+                    key={`wash-${owner}`}
+                    prefix={prefix}
+                    region={region}
+                    owner={owner}
+                    ink={inks[region.id]}
+                    live={settled}
+                  />
                 ) : null}
                 {canPick ? <path d={region.d} className="legal-glow" /> : null}
               </g>
@@ -484,20 +634,15 @@ export function MatchBoard({
           clipPath={`url(#${prefix}-land)`}
           aria-hidden="true"
         />
-        <g className="frontiers" aria-hidden="true">
-          {realms.map((r) => (
-            <g key={r.seat} className={`frontier seat-${r.seat}${r.seat === home ? ' home' : ''}`}>
-              <path
-                d={r.d}
-                className="frontier-band"
-                clipPath={`url(#${prefix}-realm-${r.seat})`}
-              />
-              {/* Dunkle Fassung unter der hellen Linie des eigenen Reichs, ohne Filter (WebKit) */}
-              {r.seat === home ? <path d={r.d} className="frontier-casing" /> : null}
-              <path d={r.d} className="frontier-line" />
-            </g>
-          ))}
-        </g>
+        {realmsBefore ? (
+          <Frontiers realms={realmsBefore} clip={`${prefix}-was`} home={home} turning="was" />
+        ) : null}
+        <Frontiers
+          realms={realms}
+          clip={`${prefix}-realm`}
+          home={home}
+          turning={realmsBefore ? 'now' : null}
+        />
 
         <g className="region-borders" aria-hidden="true">
           {art.regions.map((region) => (
@@ -537,8 +682,27 @@ export function MatchBoard({
             owners={board.regions.map((r) => r.owner)}
             size={s}
             level="under"
+            live={settled}
+            home={home}
           />
         ) : null}
+
+        {/* Antwort auf einen Tipp und die abgeschickte Wahl: unter den Beschriftungen */}
+        <g className="board-press" aria-hidden="true">
+          {tapArt && tap ? (
+            <path
+              key={tap.seq}
+              d={tapArt.d}
+              className={`tap-press${realm?.refused === tap.region ? ' refused' : ''}`}
+            />
+          ) : null}
+          {pendingArt ? (
+            <Born key={pendingArt.id} className="pick-ring" motion="land" live={settled}>
+              <path d={pendingArt.d} className="ring-casing" />
+              <path d={pendingArt.d} className="ring-line" />
+            </Born>
+          ) : null}
+        </g>
 
         <g className="region-art" aria-hidden="true">
           {art.regions.map((region) => {
@@ -574,11 +738,13 @@ export function MatchBoard({
             ))}
           {hotArt ? <path d={hotArt.d} className="hot-ring" /> : null}
           {spotArt ? (
-            <path
+            <Born
               key={spotArt.id}
-              d={spotArt.d}
-              className={`spot-ring${settled ? ' draw' : ''}`}
+              className="spot-ring"
+              motion="draw"
+              live={settled}
               style={{ ['--spot' as string]: `var(--seat-${spotOwner ?? 0})` }}
+              path={spotArt.d}
             />
           ) : null}
         </g>
@@ -591,6 +757,18 @@ export function MatchBoard({
             owners={board.regions.map((r) => r.owner)}
             size={s}
             level="over"
+            live={settled}
+            label={(id) => {
+              const region = art.regions[id];
+              const state = board.regions[id];
+              return region && state
+                ? {
+                    x: region.cx,
+                    y: nameY(region.cy, state.capitalOf !== null, true, s),
+                    text: region.name,
+                  }
+                : null;
+            }}
           />
         ) : null}
 
@@ -606,8 +784,15 @@ export function MatchBoard({
             layout={layout}
             castle={castle}
             fallingCastle={realm === null}
+            razed={
+              realm
+                ? realm.motion?.kind === 'outcome' &&
+                  realm.motion.fields[duel.region]?.fell === 'CASTLE'
+                : castle && duel.effect === 'TAKEOVER'
+            }
             size={s}
             enter={settled}
+            ink={flood && contested !== null ? inks[contested] : undefined}
           />
         ) : null}
 
@@ -619,10 +804,82 @@ export function MatchBoard({
             owners={board.regions.map((r) => r.owner)}
             size={s}
             level="top"
+            live={settled}
           />
         ) : null}
       </svg>
+      {fx.bursts.length > 0 ? <FxLayer key={fx.key} svg={svg} bursts={fx.bursts} /> : null}
     </div>
+  );
+}
+
+/**
+ * Je Reich ein Farbband entlang seiner Außengrenze. Im Ausgang eines Duells gehen die Grenzen von
+ * vorher (`was`) in die neuen (`now`) über, sobald die Farbe des Siegers eingelaufen ist.
+ */
+function Frontiers({
+  realms,
+  clip,
+  home,
+  turning,
+}: {
+  readonly realms: ReturnType<typeof frontiers>;
+  /** Anfang der Kennung der Beschneidung je Reich. */
+  readonly clip: string;
+  readonly home: number | null;
+  readonly turning: 'was' | 'now' | null;
+}) {
+  return (
+    <g className={`frontiers${turning ? ` turning-${turning}` : ''}`} aria-hidden="true">
+      {realms.map((r) => (
+        <g key={r.seat} className={`frontier seat-${r.seat}${r.seat === home ? ' home' : ''}`}>
+          <path d={r.d} className="frontier-band" clipPath={`url(#${clip}-${r.seat})`} />
+          {/* Dunkle Fassung unter der hellen Linie des eigenen Reichs, ohne Filter (WebKit) */}
+          {r.seat === home ? <path d={r.d} className="frontier-casing" /> : null}
+          <path d={r.d} className="frontier-line" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/**
+ * Farbe eines Besitzers auf seiner Region, wie mit Aquarell lasiert. Kommt sie neu hinzu, läuft
+ * sie als nasse Tinte ein (`ink-spread`) und trägt dabei eine dunklere nasse Kante, die beim
+ * Trocknen verblasst (`ink-wet`). Ob sie einläuft, steht beim Erscheinen fest: Eine Farbe, die
+ * schon beim ersten Aufbau der Karte da war, läuft auch später nicht mehr ein.
+ */
+function Wash({
+  prefix,
+  region,
+  owner,
+  ink,
+  live,
+}: {
+  readonly prefix: string;
+  readonly region: ArtRegion;
+  readonly owner: number;
+  /** Schlüsselbilder des Kleckses als Variablen (`inkStyle`). */
+  readonly ink: CSSProperties | undefined;
+  /** Die Seite hat den Wechsel miterlebt. */
+  readonly live: boolean;
+}) {
+  const [inking] = useState(live);
+  return (
+    <>
+      <g className={`wash${inking ? ' ink-in' : ''}`} style={inking ? ink : undefined}>
+        <path d={region.d} className="wash-fill" />
+        <path d={region.d} className="wash-pattern" fill={`url(#${prefix}-pattern-${owner})`} />
+        <path d={region.d} className="wash-edge" clipPath={`url(#${prefix}-clip-${region.id})`} />
+        {inking ? <path d={region.d} className="ink-frame" /> : null}
+      </g>
+      {inking ? (
+        <g className="wash-wet" style={ink}>
+          <path d={region.d} className="wet-fill" />
+          <path d={region.d} className="ink-frame" />
+        </g>
+      ) : null}
+    </>
   );
 }
 
@@ -693,6 +950,11 @@ function RegionDecor({
   );
 }
 
+/** Höhe, auf der der Name eines Felds steht: über einer Startburg, sonst in der Mitte. */
+function nameY(cy: number, capital: boolean, realm: boolean, s: number): number {
+  return capital ? cy - (realm ? 0.56 : 0.47) * s : realm ? cy : cy - 0.06 * s;
+}
+
 function RegionArt({
   prefix,
   region,
@@ -742,8 +1004,14 @@ function RegionArt({
     />
   );
   const armies = realm?.regions[region.id]?.armies ?? 0;
+  const motion = realm?.motion?.fields[region.id];
+  // Solange eine Armee noch aufbricht oder fällt, bleibt ihr Platz neben der Burg
   const withArmy =
-    realm !== null && owner !== null && (armies > 0 || (realm.recruits?.[region.id] ?? 0) > 0);
+    realm !== null &&
+    owner !== null &&
+    (armies > 0 ||
+      (realm.recruits?.[region.id] ?? 0) > 0 ||
+      armiesBeforeMotion(armies, motion ?? null) > 0);
   // Mit Ausbau: Gebäude oben, Name in der Mitte, Bannerträger unten; neben einer Burg steht er rechts
   const castleX = realm
     ? withArmy
@@ -772,13 +1040,14 @@ function RegionArt({
       : cy + 0.3 * s;
   // Mit Ausbau steht der Wert nur, wo eine gehaltene Verteidigung ihn über das Übliche hebt (§11.7)
   const showCoin = realm === null || (realm.regions[region.id]?.held ?? 0) > 0;
-  const nameY = capital ? cy - (realm ? 0.56 : 0.47) * s : realm ? cy : cy - 0.06 * s;
+  const nameAt = nameY(cy, capital, realm !== null, s);
   const livesX = realm ? castleX : cx;
   // Fällt hier eben ein Gebäude eine Stufe, kehrt die Beschriftung sofort zurück: Man soll es fallen sehen
-  const motion = realm?.motion?.fields[region.id];
   const prompt = motion?.fell !== undefined && motion.fell !== 'CASTLE';
   // Eine genommene Burg ist im neuen Stand schon fort: Sie stürzt ein, wo sie stand
   const ruin = motion?.fell === 'CASTLE' && !capital ? motion : null;
+  // Mit Ausbau trifft der Schlag die Burg in der Szene `outcome`; ohne Ausbau zeigt es der Wechsel
+  const struck = realm ? motion?.hit === true : settled && lives < maxLives;
   return (
     <>
       {ruin ? (
@@ -791,43 +1060,72 @@ function RegionArt({
           armiesSeen={armiesSeen}
         />
       ) : null}
+      {motion && routed(motion, owner) ? (
+        <RealmRoutArt
+          prefix={prefix}
+          region={region}
+          size={s}
+          motion={motion}
+          armiesSeen={armiesSeen}
+        />
+      ) : null}
       <g
         className={`region-label${owner === null ? ' free' : ` seat-${owner}`}${staged ? ` staged-${staged}` : ''}${arriving ? ' arriving' : ''}${prompt ? ' prompt' : ''}`}
       >
         {capital ? (
           <>
-            <g
+            <Born
               key={`castle-${lives}`}
-              className={`castle${rising ? ' rising' : settled && lives < maxLives ? ' hit' : ''}`}
+              className={`castle${rising ? ' rising' : realm && struck ? ' hit shaken' : ''}`}
+              motion={!realm && !rising && struck ? 'hit' : ''}
+              live={settled}
               style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
             >
               {use('castle', castleX, cy + (realm ? REALM_CASTLE.y : 0.02) * s, castleSize)}
-            </g>
-            <g className="lives">
+            </Born>
+            <g
+              className={`lives${motion?.placed === true ? ' placed' : ''}`}
+              style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
+            >
               {Array.from({ length: maxLives }, (_, i) => {
                 const left = i < lives;
                 const x = livesX + (i - (maxLives - 1) / 2) * REALM_CASTLE.livesGap * s;
+                const y = cy + (realm ? REALM_CASTLE.livesY : 0.5) * s;
                 return (
-                  <g
-                    key={`${i}-${left ? 'on' : 'off'}`}
-                    className={`life ${left ? 'life-on' : `life-off${settled ? ' breaking' : ''}`}`}
-                    style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
-                  >
-                    {use(
-                      'shield',
-                      x,
-                      cy + (realm ? REALM_CASTLE.livesY : 0.5) * s,
-                      REALM_CASTLE.life * s,
-                    )}
+                  <g key={`${i}-${left ? 'on' : 'off'}`}>
+                    <Born
+                      className={`life ${left ? 'life-on' : 'life-off'}`}
+                      motion={!realm && !left ? 'breaking' : ''}
+                      live={settled}
+                    >
+                      {use('shield', x, y, REALM_CASTLE.life * s)}
+                    </Born>
+                    {/* Mit Ausbau zerbricht das eben verlorene Schild in zwei Hälften */}
+                    {realm && motion?.hit === true && i === lives ? (
+                      <ShieldShatter prefix={prefix} x={x} y={y} size={REALM_CASTLE.life * s} />
+                    ) : null}
                   </g>
                 );
               })}
             </g>
           </>
         ) : null}
-        <text x={cx} y={nameY} className="board-name">
-          {region.name}
-        </text>
+        {capital && realm && motion?.placed === true ? (
+          // Eben gesetzte Burg: Der Name rückt von der Mitte nach oben, während sie wächst (als
+          // Gruppe, wie alles Bewegte auf der Karte)
+          <g
+            className="name-rise"
+            style={{ ['--rise' as string]: `${Math.round((cy - nameAt) * 10) / 10}px` }}
+          >
+            <text x={cx} y={nameAt} className="board-name">
+              {region.name}
+            </text>
+          </g>
+        ) : (
+          <text x={cx} y={nameAt} className="board-name">
+            {region.name}
+          </text>
+        )}
         {realm ? (
           <RealmRegionArt
             prefix={prefix}
@@ -836,7 +1134,7 @@ function RegionArt({
             castle={capital}
             size={s}
             layer={realm}
-            armiesSeen={armiesSeen}
+            live={settled}
           />
         ) : owner !== null ? (
           <g className="owner-badge">
@@ -851,12 +1149,12 @@ function RegionArt({
           </g>
         ) : null}
         {showCoin ? (
-          <g key={`coin-${value}`} className={`coin${settled ? ' pop' : ''}`}>
+          <Born key={`coin-${value}`} className="coin" motion="pop" live={settled}>
             <circle cx={coinX} cy={coinY} r={(realm ? 0.17 : 0.2) * s} />
             <text x={coinX} y={coinY + 0.01 * s} className="board-value">
               {formatNumber(value)}
             </text>
-          </g>
+          </Born>
         ) : null}
       </g>
     </>
@@ -865,12 +1163,16 @@ function RegionArt({
 
 /**
  * Bühne eines Duells (docs/ART_DIRECTION.md §4). Vier Bilder nacheinander:
- * `announce` Aufmarsch: Schleier über allem Übrigen, das Wappen des Angreifers setzt sich in seine
- * Region, der Pfeil schießt über die Grenze, das Wappen des Verteidigers stellt sich.
+ * `announce` Aufmarsch: Schleier über allem Übrigen, das Wappen des Angreifers stempelt sich in
+ * seine Region, der Pfeil zieht sich wie ein Pinselstrich über die Grenze, der Verteidiger stellt
+ * sich.
  * `duel` dasselbe als stehendes Bild, solange gefragt wird.
- * `outcome` Ausgang: Der Sieger stößt durch oder wehrt ab, der Verlierer weicht.
+ * `outcome` Ausgang: Der Angreifer holt Schwung, stürmt den Pfeil entlang und schlägt ein (bei
+ * `IMPACT_MS`); dann zerspringt der Verteidiger, oder sein Schild wirft den Angreifer zurück,
+ * oder der Angreifer prallt von der Burg ab und kehrt heim.
  * `settled` Rest der Auflösung: nur noch der Rand in der Farbe des Siegers.
- * Ohne Animation (laufende Frage, „Bewegung reduzieren“) steht überall das Endbild.
+ * Ohne Animation (laufende Frage, „Bewegung reduzieren“) steht überall das Endbild. Splitter,
+ * Funken, Druckwellen und Beben liegen in der Effektebene über der Karte (`duelFx`).
  */
 function DuelStageArt({
   prefix,
@@ -880,8 +1182,10 @@ function DuelStageArt({
   layout,
   castle,
   fallingCastle,
+  razed,
   size: s,
   enter,
+  ink,
 }: {
   readonly prefix: string;
   readonly art: MapArt;
@@ -893,9 +1197,16 @@ function DuelStageArt({
   readonly castle: boolean;
   /** Die Burg einer eingenommenen Hauptstadt fällt hier; mit Ausbau lässt die Karte sie einstürzen. */
   readonly fallingCastle: boolean;
+  /**
+   * Im Ausgang stürzt auf dem Ziel eine Burg ein. Der Sieger setzt sich dann nicht als Siegel
+   * darüber: Er prallt am Wall ab und tritt zurück, damit der Einsturz frei vor dem Auge liegt.
+   */
+  readonly razed: boolean;
   readonly size: number;
   /** Aufmarsch abspielen (nicht beim ersten Aufbau der Seite). */
   readonly enter: boolean;
+  /** Klecks der einlaufenden Farbe auf dem Ziel, wenn der Sieger es nimmt (`inkStyle`). */
+  readonly ink: CSSProperties | undefined;
 }) {
   const target = art.regions[duel.region];
   if (!target) return null;
@@ -903,10 +1214,8 @@ function DuelStageArt({
   // Schleier über das Land mit Löchern für die zwei Regionen des Duells. Das Meer füllt den ganzen
   // Bildschirm und bleibt hell (ADR-059)
   const veil = `${art.coast}${target.d}${from ? from.d : ''}`;
-  const px = (n: number) => `${Math.round(n * 10) / 10}px`;
-  // Schlag auf eine Burg: bis kurz vor die Mauer, nicht darüber
-  const strike = layout ? Math.max(0, layout.distance - layout.radius - 0.36 * art.size) : 0;
-  const impact = layout ? strike + layout.radius : 0;
+  const outcome = duel.scene === 'outcome';
+  const contact = duelContactOf(duel, castle);
   const style: CSSProperties = {
     ['--attacker' as string]: `var(--seat-${duel.attacker})`,
     // Freies Feld: kein Verteidiger; bleibt es frei, hat der Rand die Farbe der Tinte
@@ -918,51 +1227,60 @@ function DuelStageArt({
         : duel.repelled
           ? 'var(--map-ink)'
           : undefined,
-    ...(layout
-      ? {
-          ['--ux' as string]: layout.dir.x.toFixed(3),
-          ['--uy' as string]: layout.dir.y.toFixed(3),
-          ['--unit' as string]: px(layout.unit),
-          // Wege des Angreiferwappens: in die Mitte des Ziels, vor die Burg
-          ['--into-x' as string]: px(layout.target.x - layout.source.x),
-          ['--into-y' as string]: px(layout.target.y - layout.source.y),
-          ['--strike-x' as string]: px(layout.dir.x * strike),
-          ['--strike-y' as string]: px(layout.dir.y * strike),
-        }
-      : {}),
+    ...(layout ? duelMotion(layout, contact, art.size) : {}),
   };
-  const won = duel.winner === duel.attacker ? ' attack-won' : duel.repelled ? ' held' : '';
-  const classes = `duel-stage scene-${duel.scene}${won}${enter && duel.scene === 'announce' ? ' enter' : ''}`;
+  // Ausgang: erobert, getroffen (Burg oder Gebäude, das Feld bleibt) oder gehalten
+  const ending =
+    duel.effect === 'CAPITAL_HIT'
+      ? ' struck'
+      : duel.winner === duel.attacker
+        ? ' attack-won'
+        : duel.repelled
+          ? ' held'
+          : '';
+  const classes = `duel-stage scene-${duel.scene}${ending} contact-${contact}${razed ? ' razed' : ''}${enter && duel.scene === 'announce' ? ' enter' : ''}`;
+  // Hält die Verteidigung, blitzt vor dem Wappen ein goldener Schild auf
+  const guard =
+    layout && outcome && duel.repelled && duel.defender !== null && !castle
+      ? guardArc(layout)
+      : null;
   return (
     <g className={classes} style={style} aria-hidden="true">
       <path d={veil} fillRule="evenodd" className="duel-veil" />
       {from && duel.scene !== 'settled' ? <path d={from.d} className="duel-ring source" /> : null}
-      <path d={target.d} className="duel-ring target" />
+      {/* Bis der Schlag sitzt, pulst das Ziel noch rot; dann nimmt der Rand die Farbe des Siegers an */}
+      {outcome ? <path d={target.d} className="duel-ring target before" /> : null}
+      {outcome && ink ? (
+        // Nimmt der Sieger die Region, färbt die einlaufende Tinte auch ihren Rand um
+        <g className="duel-ring-ink" style={ink}>
+          <path d={target.d} className="duel-ring target" />
+          <path d={target.d} className="ink-frame" />
+        </g>
+      ) : (
+        <path d={target.d} className="duel-ring target" />
+      )}
       {layout && duel.scene !== 'settled' ? (
         <>
-          {duel.scene === 'outcome' ? (
-            // Der Schlag: ein Ring, der sich vom Treffer aus weitet
-            <circle
-              cx={
-                duel.effect === 'CAPITAL_HIT'
-                  ? layout.source.x + layout.dir.x * impact
-                  : layout.target.x
-              }
-              cy={
-                duel.effect === 'CAPITAL_HIT'
-                  ? layout.source.y + layout.dir.y * impact
-                  : layout.target.y
-              }
-              r={layout.radius}
-              className="duel-burst"
-            />
-          ) : null}
-          <g className="duel-arrow">
-            <path d={layout.arrow} />
+          <g transform={`translate(${layout.source.x} ${layout.source.y}) rotate(${layout.angle})`}>
+            <g className="duel-arrow">
+              {/* Erst beide Umrisse, dann beide Flächen: So bleibt zwischen Schaft und Spitze keine Naht */}
+              <g className="arrow-shaft">
+                <path d={layout.shaft} className="arrow-outline" />
+              </g>
+              <g className="arrow-head">
+                <path d={layout.head} className="arrow-outline" />
+              </g>
+              <g className="arrow-shaft">
+                <path d={layout.shaft} className="arrow-fill" />
+              </g>
+              <g className="arrow-head">
+                <path d={layout.head} className="arrow-fill" />
+              </g>
+            </g>
           </g>
           {castle ? (
             // Die Burg einer eingenommenen Hauptstadt ist auf der Karte schon fort: Hier fällt sie
-            fallingCastle && duel.scene === 'outcome' && duel.effect === 'TAKEOVER' ? (
+            fallingCastle && outcome && duel.effect === 'TAKEOVER' ? (
               <g className="duel-castle" style={{ ['--flag' as string]: 'var(--defender)' }}>
                 <use
                   href={symbolRef(prefix, 'castle')}
@@ -981,6 +1299,7 @@ function DuelStageArt({
               x={layout.target.x}
               y={layout.target.y}
               r={layout.radius}
+              guard={guard}
             />
           )}
           <DuelToken
@@ -997,10 +1316,64 @@ function DuelStageArt({
   );
 }
 
+const px = (n: number) => `${Math.round(n * 10) / 10}px`;
+
+/**
+ * Wege des Ausgangs als Variablen der CSS, in Karteneinheiten (`px` im SVG): Schwung holen
+ * (`--back`), Einschlag (`--hit`), Mitte des Ziels (`--into`), zurückgeworfen (`--thrown`).
+ * Der Pfeil stößt im eigenen Rahmen nach vorn und wird dabei von hinten zusammengeschoben: Sein
+ * Ende bleibt am Rand des stürmenden Wappens (`--arrow-pull`, `--arrow-thrust`, `--arrow-squeeze`).
+ */
+function duelMotion(layout: DuelLayout, contact: DuelContact, size: number): CSSProperties {
+  const { dir, unit, radius: r } = layout;
+  const along = (n: number, name: string) => ({
+    [`--${name}-x`]: px(dir.x * n),
+    [`--${name}-y`]: px(dir.y * n),
+  });
+  const back = DUEL_BACK * unit;
+  const hit = duelContact(layout, contact, size);
+  const front = hit + r;
+  // Vor dem Verteidiger fährt die Spitze unter sein Wappen; sonst bleibt sie am stürmenden Wappen
+  const tipAt = contact === 'token' ? layout.distance - 0.15 * unit : front + 0.04 * unit;
+  const length = layout.tip - layout.start;
+  // Beim Ausholen bleibt das Ende des Pfeils am Wappen
+  const pull = back + r - layout.start;
+  return {
+    ['--ux' as string]: dir.x.toFixed(3),
+    ['--uy' as string]: dir.y.toFixed(3),
+    ['--unit' as string]: px(unit),
+    ['--ang' as string]: `${layout.angle}deg`,
+    ...along(back, 'back'),
+    ...along(hit, 'hit'),
+    ...along(-0.3 * unit, 'thrown'),
+    ...along(hit - 0.2 * unit, 'recoil'),
+    ['--into-x' as string]: px(layout.target.x - layout.source.x),
+    ['--into-y' as string]: px(layout.target.y - layout.source.y),
+    ['--arrow-pull' as string]: px(pull),
+    ['--arrow-thrust' as string]: px(tipAt - layout.tip),
+    ['--arrow-squeeze' as string]: Math.max(0.04, (tipAt - front) / length).toFixed(3),
+  };
+}
+
+/**
+ * Goldener Schild vor dem Verteidiger: ein Bogen um sein Wappen, zum Angreifer hin. Dazu ein
+ * unsichtbarer Kreis, damit die Gruppe um die Mitte des Wappens wächst (`transform-box: fill-box`).
+ */
+function guardArc(layout: DuelLayout): { readonly arc: string; readonly r: number } {
+  const r = DUEL_GUARD * layout.radius;
+  const facing = Math.atan2(-layout.dir.y, -layout.dir.x);
+  const open = (62 * Math.PI) / 180;
+  const at = (angle: number) =>
+    `${Math.round((layout.target.x + r * Math.cos(angle)) * 10) / 10} ${Math.round((layout.target.y + r * Math.sin(angle)) * 10) / 10}`;
+  return { arc: `M${at(facing - open)}A${r} ${r} 0 0 1 ${at(facing + open)}`, r };
+}
+
 /**
  * Wappenplättchen eines Sitzes auf der Karte: helle Scheibe mit Rand in der Sitzfarbe, darauf
  * Schild und Wappenbild. Die Gruppen sind verschachtelt, weil jede Bewegung ihre eigene braucht:
- * Weg im Ausgang, Stoß im Takt, Größe.
+ * Weg im Ausgang, Stoß im Takt, Größe, Stauchen in Laufrichtung. Daneben stehen der Tintenring
+ * des Aufmarschs, der goldene Ring des Siegers und der goldene Schild einer Abwehr; ohne Bewegung
+ * sind sie unsichtbar.
  */
 function DuelToken({
   prefix,
@@ -1009,6 +1382,7 @@ function DuelToken({
   x,
   y,
   r,
+  guard = null,
 }: {
   readonly prefix: string;
   readonly role: 'attacker' | 'defender';
@@ -1016,32 +1390,48 @@ function DuelToken({
   readonly x: number;
   readonly y: number;
   readonly r: number;
+  readonly guard?: { readonly arc: string; readonly r: number } | null;
 }) {
   const shield = r * 1.3;
   const emblem = r * 0.52;
   return (
     <g className={`duel-token ${role} seat-${seat}`}>
       <g className="token-nudge">
+        <circle cx={x} cy={y} r={r * 1.08} className="token-stamp" />
         <g className="token-body">
-          <circle cx={x} cy={y + r * 0.14} r={r * 1.04} className="token-shadow" />
-          <circle cx={x} cy={y} r={r} className="token-disc" />
-          <use
-            href={symbolRef(prefix, 'shield')}
-            x={x - shield / 2}
-            y={y - shield / 2 + r * 0.04}
-            width={shield}
-            height={shield}
-            className={`token-shield seat-fill-${seat}`}
-          />
-          <use
-            href={symbolRef(prefix, `emblem-${seat}` as SymbolId)}
-            x={x - emblem / 2}
-            y={y - emblem / 2 - r * 0.04}
-            width={emblem}
-            height={emblem}
-            className="token-emblem"
-          />
+          <g className="token-squash">
+            <circle cx={x} cy={y + r * 0.14} r={r * 1.04} className="token-shadow" />
+            <circle cx={x} cy={y} r={r} className="token-disc" />
+            <use
+              href={symbolRef(prefix, 'shield')}
+              x={x - shield / 2}
+              y={y - shield / 2 + r * 0.04}
+              width={shield}
+              height={shield}
+              className={`token-shield seat-fill-${seat}`}
+            />
+            <use
+              href={symbolRef(prefix, `emblem-${seat}` as SymbolId)}
+              x={x - emblem / 2}
+              y={y - emblem / 2 - r * 0.04}
+              width={emblem}
+              height={emblem}
+              className="token-emblem"
+            />
+            <circle cx={x} cy={y} r={r * 1.02} className="token-flash" />
+          </g>
         </g>
+        <g className="token-seal">
+          <circle cx={x} cy={y} r={r * 1.22} className="seal-glow" />
+          <circle cx={x} cy={y} r={r * 1.22} className="seal-ring" />
+        </g>
+        {guard ? (
+          <g className="token-guard">
+            <circle cx={x} cy={y} r={guard.r} className="guard-room" />
+            <path d={guard.arc} className="guard-glow" />
+            <path d={guard.arc} className="guard-arc" />
+          </g>
+        ) : null}
       </g>
     </g>
   );

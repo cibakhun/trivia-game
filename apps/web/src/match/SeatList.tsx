@@ -1,15 +1,19 @@
 import type { MatchView } from '@rdw/protocol';
 import { DEFAULT_MATCH_RULES } from '@rdw/protocol';
+import { useState, type ReactNode } from 'react';
 import { CountUp } from '../art/CountUp.tsx';
 import { LifeShields } from '../art/LifeShields.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
+import { useBorn } from './stage-live.ts';
 
 /**
  * Spielstand links auf dem Meer (ADR-059): je Sitz eine Tafel mit Wappen (Farbe und Bild), Name,
  * Punkten als Münze mit Zahl (zählen bei Änderungen hoch) und Hauptstadtleben als Schilde, darunter
- * die Zahl der Regionen. Wer gerade wählt, trägt einen goldenen Rand und „am Zug“.
+ * die Zahl der Regionen. Wer gerade wählt, trägt einen goldenen Rand und „am Zug“. Was sich hier
+ * ändert, während die Bühne zusieht, zeigt sich ruhig (stage.css): Der Rand blendet, „am Zug“ und
+ * „ausgeschieden“ setzen sich, ein verlorenes Leben läuft leer, eine gefallene Tafel verblasst.
  */
 export function SeatList({ view, name }: { readonly view: MatchView; readonly name: SeatName }) {
   const board = view.board;
@@ -50,28 +54,81 @@ export function SeatList({ view, name }: { readonly view: MatchView; readonly na
               <CountUp value={s.points} render={formatNumber} />
               <span className="visually-hidden"> {t('match.result.pointsColumn')}</span>
             </span>
-            {s.capital !== null && !s.eliminated ? (
-              <span className="plaque-lives">
-                <LifeShields
-                  left={s.capitalLivesLeft}
-                  max={maxLives}
-                  label={tp('match.board.lives', s.capitalLivesLeft)}
-                />
-              </span>
+            {s.capital !== null ? (
+              <PlaqueLives eliminated={s.eliminated} left={s.capitalLivesLeft} max={maxLives}>
+                <span className="plaque-lives">
+                  <LifeShields
+                    left={s.capitalLivesLeft}
+                    max={maxLives}
+                    label={tp('match.board.lives', s.capitalLivesLeft)}
+                  />
+                </span>
+              </PlaqueLives>
             ) : null}
             <span className="plaque-foot">
               {s.eliminated ? (
-                <span className="plaque-out">{t('match.seats.eliminated')}</span>
+                <PlaqueOut />
               ) : (
                 <span className="plaque-regions">{tp('match.seats.regions', s.regions)}</span>
               )}
-              {chooser === s.seat ? (
-                <span className="plaque-state">{t('match.seats.turn')}</span>
-              ) : null}
+              {chooser === s.seat ? <PlaqueState text={t('match.seats.turn')} /> : null}
             </span>
           </li>
         ))}
       </ul>
     </section>
+  );
+}
+
+/**
+ * Leben auf einer Tafel (`children`: die Schilde eines lebenden Reichs). Scheidet das Reich aus,
+ * während die Tafel steht, läuft sein letztes Leben noch leer wie jedes verlorene, dann verblasst
+ * die Reihe (stage.css). Eine Tafel, die schon gefallen erscheint, zeigt keine Leben. `max`: Zahl
+ * der Schilde; 0, wenn die Tafel keine einzelnen Schilde zeigt (dann fällt die Reihe einfach weg).
+ */
+export function PlaqueLives({
+  eliminated,
+  left,
+  max,
+  children,
+}: {
+  readonly eliminated: boolean;
+  readonly left: number;
+  readonly max: number;
+  readonly children: ReactNode;
+}) {
+  // Stand vor dem Ausscheiden (Merken während des Renderns)
+  const [last, setLast] = useState(eliminated ? null : { left, max });
+  if (!eliminated && (last?.left !== left || last.max !== max)) setLast({ left, max });
+  if (!eliminated) return children;
+  if (!last || last.max === 0) return null;
+  return (
+    <span className="plaque-lives leaving" aria-hidden="true">
+      <span className="seat-lives">
+        {Array.from({ length: last.max }, (_, i) => (
+          <span key={i} className={i < last.left ? 'life-off lost' : 'life-off'} />
+        ))}
+      </span>
+    </span>
+  );
+}
+
+/** Stand eines Sitzes als Plättchen („am Zug“, in der Rüstzeit „fertig“ oder „rüstet“). */
+export function PlaqueState({ text, status }: { readonly text: string; readonly status?: string }) {
+  const born = useBorn();
+  return (
+    <span className={`plaque-state${status ? ` ${status}` : ''}${born ? ' arriving' : ''}`}>
+      {text}
+    </span>
+  );
+}
+
+/** „ausgeschieden“ im Fuß einer gefallenen Tafel. */
+export function PlaqueOut() {
+  const born = useBorn();
+  return (
+    <span className={born ? 'plaque-out arriving' : 'plaque-out'}>
+      {t('match.seats.eliminated')}
+    </span>
   );
 }

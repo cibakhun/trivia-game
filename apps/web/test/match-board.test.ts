@@ -3,6 +3,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { MatchBoard, type BoardState } from '../src/match/MatchBoard.tsx';
+import type { DuelStage } from '../src/match/match-model.ts';
 import {
   armiesBefore,
   armySwitch,
@@ -55,6 +56,7 @@ interface Options {
   readonly realm?: RealmLayer | null;
   readonly home?: number | null;
   readonly legal?: readonly number[];
+  readonly duel?: DuelStage | null;
 }
 
 function render(options: Options = {}): string {
@@ -66,7 +68,7 @@ function render(options: Options = {}): string {
       legal: options.legal ?? [],
       realm: options.realm ?? null,
       home: options.home ?? null,
-      duel: null,
+      duel: options.duel ?? null,
       spot: null,
       busy: false,
       onPick: () => undefined,
@@ -165,7 +167,21 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     fresh: options.fresh ?? [],
     motion: options.motion ?? null,
   });
-  const MOVING = ['rising', 'falling', 'counting', 'arriving', 'army gone', 'marcher', 'drawn'];
+  const MOVING = [
+    'rising',
+    'falling',
+    'counting',
+    'arriving',
+    'army gone',
+    'marcher',
+    'drawn',
+    'piece',
+    'shatter',
+    'shaken',
+    'army-dust',
+    'gate-light',
+    'after-fall',
+  ];
 
   it('rechnet aus der Bewegung zurück, wie viele Armeen vorher auf dem Feld standen', () => {
     expect(armiesBefore(3, null)).toBe(3);
@@ -246,6 +262,28 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     expect(html).toContain('data-switch="in"');
   });
 
+  it('legt den Pfeil eines Zugs unter die Namen seiner Felder und die Zahl darüber', () => {
+    const from = WENDELMARK.regions[0]!.name;
+    const to = WENDELMARK.regions[1]!.name;
+    const html = render({
+      realm: {
+        ...layer({ armies: { 0: 3 }, moves: [{ from: 0, to: 1, count: 2, seat: 0 }] }),
+        planning: true,
+      },
+    });
+    // Reihenfolge im Bild: Pfeil, dann beide Namen noch einmal, dann die Zahl
+    const arrow = html.indexOf('class="move-line"');
+    const badge = html.indexOf('class="move-disc"');
+    expect(arrow).toBeGreaterThan(-1);
+    expect(badge).toBeGreaterThan(arrow);
+    const between = html.slice(arrow, badge);
+    expect(between).toContain(`class="board-name">${from}<`);
+    expect(between).toContain(`class="board-name">${to}<`);
+    // Jeder der beiden Namen steht genau zweimal: am Feld und über dem Pfeil
+    expect(count(html, `class="board-name">${to}<`)).toBe(2);
+    expect(count(html, `class="board-name">${WENDELMARK.regions[2]!.name}<`)).toBe(1);
+  });
+
   it('zeigt den Bannerträger eines geräumten Felds noch, bis er aufbricht', () => {
     const html = render({
       realm: layer({
@@ -267,9 +305,36 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     });
     expect(html).toContain('class="building falling"');
     expect(html).toContain('data-fell="TOWN"');
-    expect(html.match(/class="ruin"><use[^>]*-town"/g)).toHaveLength(1);
+    // Bis zum Bruch steht die Stadt ganz, dann fallen drei Stücke entlang fester Bruchlinien
+    expect(html.match(/class="whole"><use[^>]*-town"/g)).toHaveLength(1);
+    expect(count(html, 'class="piece piece-')).toBe(3);
+    expect(html.match(/clip-path="url\(#[^)]*-crack-[012]\)"><use[^>]*-town"/g)).toHaveLength(3);
+    // Danach steigt das Dorf aus dem Staub, sein Schein erst mit ihm
     expect(html).toContain('class="building fresh settling"');
+    expect(html).toContain('class="fresh-glow after-fall"');
     expect(count(html, ' prompt"')).toBe(1);
+  });
+
+  it('lässt eine getroffene Burg beben und ihr verlorenes Schild in zwei Hälften zerbrechen', () => {
+    const base = layer({
+      buildings: { 0: 'CASTLE' },
+      motion: { kind: 'outcome', fields: { 0: { hit: true } } },
+    });
+    const html = render({
+      board: {
+        ...boardOf(),
+        regions: boardOf().regions.map((r, i) => (i === 0 ? { ...r, capitalOf: 0 } : r)),
+      },
+      realm: {
+        ...base,
+        regions: base.regions.map((r, i) => (i === 0 ? { ...r, castleLives: 2 } : r)),
+      },
+    });
+    expect(html).toContain('class="castle hit shaken"');
+    expect(count(html, 'class="life life-shatter"')).toBe(1);
+    expect(
+      html.match(/class="half half-[01]"><g clip-path="url\(#[^)]*-half-[01]\)"/g),
+    ).toHaveLength(2);
   });
 
   it('lässt eine genommene Burg mit ihren Schilden und ihrem Bannerträger einstürzen', () => {
@@ -281,10 +346,14 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
       }),
     });
     expect(count(html, 'class="castle falling"')).toBe(1);
-    expect(html.match(/class="ruin"><use[^>]*-castle"/g)).toHaveLength(1);
-    expect(count(html, 'class="life life-off"')).toBe(3);
+    expect(html.match(/class="whole"><use[^>]*-castle"/g)).toHaveLength(1);
+    expect(html.match(/clip-path="url\(#[^)]*-tower-[012]\)"><use[^>]*-castle"/g)).toHaveLength(3);
+    // Das letzte Schild zerspringt, die leeren fallen nacheinander mit
+    expect(count(html, 'class="life life-shatter"')).toBe(1);
+    expect(count(html, 'class="life life-off drop drop-')).toBe(2);
     expect(html).toContain('class="army gone seat-0" style="--flag:var(--seat-0)"');
     expect(html).toContain('data-switch="ruin"');
+    expect(count(html, 'class="army-dust"')).toBe(1);
     // Die Beschriftung des Felds wartet wie bei jeder Eroberung
     expect(html).not.toContain(' prompt"');
   });
@@ -301,5 +370,78 @@ describe('Karte der Partie: Bewegung beim Aufdecken und im Ausgang (ADR-067)', (
     expect(html).toContain('class="army-count was">2<');
     expect(html).toContain(`class="army gone seat-${ME}"`);
     expect(count(html, 'data-switch="loss"')).toBe(2);
+    // Wo der Träger getroffen wird oder fällt, wirbelt Staub auf
+    expect(count(html, 'class="army-dust"')).toBe(2);
+  });
+
+  it('lässt den Träger auf einem eben genommenen Feld außerhalb der wartenden Beschriftung fallen', () => {
+    // Feld 5 gehört nach dem Sieg mir (Sitz 2); dort verlor Sitz 1 seine Armee
+    const html = render({
+      realm: layer({
+        armies: { 5: 1 },
+        motion: { kind: 'outcome', fields: { 5: { lost: 1 } } },
+      }),
+    });
+    expect(count(html, 'class="army gone rout seat-1"')).toBe(1);
+    expect(html).toContain('data-switch="rout"');
+    // Er steht vor der Beschriftung des Felds, nicht in ihr
+    const rout = html.indexOf('class="army gone rout');
+    const label = html.indexOf('class="region-label', rout);
+    expect(rout).toBeGreaterThan(-1);
+    expect(label).toBeGreaterThan(rout);
+    expect(html.slice(rout, label)).not.toContain('region-label');
+  });
+});
+
+describe('Karte der Partie: Ausgang eines Duells', () => {
+  // Ich (Sitz 2) greife aus Birkental (5) Falkenwacht (1) von Sitz 0 an
+  const won = (scene: DuelStage['scene'], partial: Partial<DuelStage> = {}): DuelStage => ({
+    attacker: ME,
+    defender: 0,
+    region: 1,
+    scene,
+    winner: ME,
+    repelled: false,
+    effect: 'CONQUERED',
+    ...partial,
+  });
+  const taken: BoardState = {
+    ...boardOf(),
+    regions: boardOf().regions.map((r, id) => (id === 1 ? { ...r, owner: ME } : r)),
+  };
+
+  it('lässt die alte Farbe unter der einlaufenden weichen und färbt mit ihr den Rand um', () => {
+    const html = render({ board: taken, duel: won('outcome') });
+    // Die eroberte Region trägt die Farbe des Verteidigers als weichende Schicht, mit dem Klecks
+    const old = html.match(/<g class="wash wash-old" style="([^"]*)"/);
+    expect(old?.[1]).toContain('--old:var(--seat-0)');
+    expect(old?.[1]).toContain('--ink-5:');
+    expect(count(html, 'class="wash wash-old"')).toBe(1);
+    expect(html).toContain('board-region seat-2 contested flooded');
+    // Der Rand nimmt die Farbe des Siegers dort an, wo die Tinte ihn erreicht
+    const ring = html.match(/<g class="duel-ring-ink" style="([^"]*)">(.*?)<\/g>/);
+    expect(ring?.[1]).toContain('--ink-0:');
+    expect(ring?.[2]).toContain('class="duel-ring target"');
+    // Alle beschnittenen Schichten tragen denselben unsichtbaren Rahmen
+    expect(ring?.[2]).toContain('class="ink-frame"');
+    expect(html).toMatch(/class="wash wash-old"[^>]*>(?:(?!<\/g>).)*class="ink-frame"/);
+  });
+
+  it('hält die Verteidigung, bleibt der Rand ein ganzer Ring', () => {
+    const html = render({
+      duel: won('outcome', { winner: 0, repelled: true, effect: 'FORTIFIED' }),
+    });
+    expect(html).not.toContain('duel-ring-ink');
+    expect(html).not.toContain('wash-old');
+    expect(count(html, 'class="duel-ring target"')).toBe(1);
+    expect(count(html, 'class="duel-ring target before"')).toBe(1);
+  });
+
+  it('steht nach dem Ausgang im Endbild: kein weichender Rest', () => {
+    const html = render({ board: taken, duel: won('settled') });
+    expect(html).not.toContain('wash-old');
+    expect(html).not.toContain('duel-ring-ink');
+    expect(html).not.toContain('duel-ring target before');
+    expect(count(html, 'class="duel-ring target"')).toBe(1);
   });
 });

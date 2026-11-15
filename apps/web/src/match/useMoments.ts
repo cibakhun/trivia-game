@@ -8,25 +8,30 @@ import {
   holdSkips,
   isCalm,
   momentsBetween,
+  momentTiming,
   pruneMoments,
   type Moment,
   type MomentSnapshot,
+  type MomentTiming,
 } from './moments.ts';
 
-/** Wie lange ein Band steht; die CSS-Animation `banner` ist genauso lang. */
-export const MOMENT_MS = 1500;
+/** Das Band, das gerade über der Karte steht, mit seinen Zeiten (`momentTiming`). */
+export interface ShownMoment extends MomentTiming {
+  readonly moment: Moment;
+}
 
 /**
- * Warteschlange der großen Momente: Jeder Moment steht `MOMENT_MS` lang, danach der nächste.
- * Während einer Frage wird nichts gezeigt (ARCHITECTURE §15); Ankündigungen verfallen dann.
- * „Du bist dran“ verfällt, sobald die eigene Wahl vorbei ist.
+ * Warteschlange der großen Momente: Jeder Moment steht so lange, wie `momentTiming` sagt (die
+ * CSS-Animation des Bands bekommt dieselben Zeiten), danach der nächste. Während einer Frage wird
+ * nichts gezeigt (ARCHITECTURE §15); Ankündigungen verfallen dann. „Du bist dran“ verfällt, sobald
+ * die eigene Wahl vorbei ist.
  */
 export function useMoments(
   view: MatchView | null,
   state: MatchScreenState,
   events: readonly ParsedMatchEvent[],
   name: SeatName,
-): Moment | null {
+): ShownMoment | null {
   const previous = useRef<MomentSnapshot | null>(null);
   // Ausgefallene Angriffe, die während einer Auflösung kamen: Ihr Band folgt, sobald sie vorbei
   // ist, nach dem letzten Duell der Partie über der Abrechnung; vor einer Frage verfallen sie
@@ -76,16 +81,33 @@ export function useMoments(
     // Nur bei neuem Stand vergleichen; Namen und Ereignisliste ändern sich mit ihm
   }, [lastSeq, state, step?.kind, step?.round, step !== null]);
 
+  // Die Zeiten eines Bands stehen fest, sobald es erscheint: mit dem Zustand, in dem es das tut
+  // (Merken während des Renderns). Eine Frage blendet es aus; danach beginnt es neu
+  const head = state === 'question' ? null : (queue[0] ?? null);
+  const [timed, setTimed] = useState<{ key: string; timing: MomentTiming } | null>(null);
+  if (head ? timed?.key !== head.key : timed !== null) {
+    setTimed(head ? { key: head.key, timing: momentTiming(head, state) } : null);
+  }
+  const timing = head ? (timed?.key === head.key ? timed.timing : momentTiming(head, state)) : null;
+  const headMs = timing ? timing.leadMs + timing.showMs : 0;
+
+  // Die Zeit läuft je Band, nicht je Stand der Schlange: Wechselt unter einem Band die Phase oder
+  // verfällt eines dahinter, beginnt sie nicht neu (sonst stünde das nächste Band später da, als
+  // das laufende verschwunden ist)
+  const headKey = head?.key ?? null;
   useEffect(() => {
-    if (queue.length === 0 || state === 'question') return;
-    const timer = setTimeout(() => setQueue((q) => q.slice(1)), MOMENT_MS);
+    if (headKey === null) return;
+    const timer = setTimeout(
+      () => setQueue((q) => (q[0]?.key === headKey ? q.slice(1) : q)),
+      headMs,
+    );
     return () => clearTimeout(timer);
-  }, [queue, state]);
+  }, [headKey, headMs]);
 
   // Eine Frage beginnt oder die eigene Wahl ist vorbei: Überholte Bänder verfallen
   useEffect(() => {
     setQueue((q) => pruneMoments(q, state));
   }, [state]);
 
-  return state === 'question' ? null : (queue[0] ?? null);
+  return head && timing ? { moment: head, ...timing } : null;
 }

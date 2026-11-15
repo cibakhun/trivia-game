@@ -6,6 +6,7 @@ import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
 import type { RealmPlay } from './realm-model.ts';
+import { PlaqueLives, PlaqueOut, PlaqueState } from './SeatList.tsx';
 
 /**
  * Spielstand der Partie mit Ausbau links auf dem Meer (MATCH_RULES §11): je Reich eine Tafel mit
@@ -14,7 +15,9 @@ import type { RealmPlay } from './realm-model.ts';
  * gerade wählt, trägt einen goldenen Rand und „am Zug“. Das eigene Reich ist getönt und nennt an
  * dieser Stelle, was die nächste Runde bringt: Den eigenen Rüststand zeigt schon das Blatt rechts.
  * Vorräte zählen sichtbar hoch und herunter, wenn sie sich ändern; das Einkommen einer Runde zeigen
- * sie erst, wenn deren Rüstzeit beginnt (ADR-067).
+ * sie erst, wenn deren Rüstzeit beginnt (ADR-067). Das eigene Einkommen fliegt in den Vorrat im
+ * Blatt der Rüstzeit rechts; die eigene Tafel zählt im selben Takt mit, ohne weitere Bewegung. Die
+ * Tafeln der anderen Reiche zeigen ihren Zuwachs mit einem Schimmer (ADR-070).
  */
 
 /** So lange zählt ein Vorrat, wenn er sich ändert. */
@@ -30,16 +33,22 @@ export function RealmSeatList({
   play,
   name,
   receiving = null,
+  gaining = null,
   pending = null,
 }: {
   readonly view: MatchView;
   readonly play: RealmPlay;
   readonly name: SeatName;
   /**
-   * Das Einkommen wandert gerade von den eigenen Feldern in den eigenen Vorrat: Dort zählen die
-   * Zahlen erst hoch, wenn es ankommt.
+   * Das Einkommen wandert gerade von den eigenen Feldern in den Vorrat im Blatt rechts: Die Zahlen
+   * der eigenen Tafel zählen erst hoch, wenn es dort ankommt, im selben Takt.
    */
-  readonly receiving?: { readonly delayMs: number; readonly durationMs: number } | null;
+  readonly receiving?: {
+    readonly delayMs: number;
+    readonly durationMs: number;
+  } | null;
+  /** Reiche, deren Vorrat gerade mit dem Einkommen hochzählt, ohne dass etwas fliegt: Sie schimmern. */
+  readonly gaining?: readonly number[] | null;
   /**
    * Einkommen, das der Server schon verbucht hat, das aber erst mit der Rüstzeit gezeigt wird (es
    * kommt mit dem Ende der Runde davor): Bis dahin steht in den Vorräten noch der Stand davor.
@@ -95,12 +104,11 @@ export function RealmSeatList({
                 `seat-${s.seat}`,
                 status === 'turn' ? 'turn' : '',
                 mine ? 'me' : '',
-                arriving ? 'receiving' : '',
+                !arriving && gaining?.includes(s.seat) ? 'gaining' : '',
                 s.eliminated ? 'eliminated' : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
-              style={arriving ? { ['--receive-at' as string]: `${arriving.delayMs}ms` } : undefined}
               data-seat={s.seat}
               data-status={status ?? undefined}
             >
@@ -115,19 +123,25 @@ export function RealmSeatList({
                 <CountUp value={s.points} render={formatNumber} />
                 <span className="visually-hidden"> {t('match.result.pointsColumn')}</span>
               </span>
-              {s.eliminated || maxLives === 0 ? null : maxLives <= SHIELDS_MAX ? (
-                <span className="plaque-lives">
-                  <LifeShields left={s.castleLivesLeft} max={maxLives} label={lives} />
-                </span>
-              ) : (
-                <span className="plaque-lives many">
-                  <LifeShields left={1} max={1} label={lives} />
-                  <span aria-hidden="true">{s.castleLivesLeft}</span>
-                </span>
-              )}
+              <PlaqueLives
+                eliminated={s.eliminated}
+                left={s.castleLivesLeft}
+                max={maxLives <= SHIELDS_MAX ? maxLives : 0}
+              >
+                {maxLives === 0 ? null : maxLives <= SHIELDS_MAX ? (
+                  <span className="plaque-lives">
+                    <LifeShields left={s.castleLivesLeft} max={maxLives} label={lives} />
+                  </span>
+                ) : (
+                  <span className="plaque-lives many">
+                    <LifeShields left={1} max={1} label={lives} />
+                    <span aria-hidden="true">{s.castleLivesLeft}</span>
+                  </span>
+                )}
+              </PlaqueLives>
               <span className="plaque-foot">
                 {s.eliminated ? (
-                  <span className="plaque-out">{t('match.seats.eliminated')}</span>
+                  <PlaqueOut />
                 ) : (
                   <>
                     <Amount
@@ -163,9 +177,11 @@ export function RealmSeatList({
                 )}
               </span>
               {pill ? (
-                <span className={`plaque-state ${status}`}>
-                  {status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
-                </span>
+                <PlaqueState
+                  key={status}
+                  status={status}
+                  text={status === 'turn' ? t('match.seats.turn') : t(`realm.seats.${status}`)}
+                />
               ) : null}
             </li>
           );
