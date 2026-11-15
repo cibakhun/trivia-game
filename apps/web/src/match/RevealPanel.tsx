@@ -13,11 +13,12 @@ import { QuestionKind } from './StageQuestion.tsx';
  * Rückseite der Fragekarte, mit demselben Aufbau wie ihre Vorderseite. Oben dasselbe Band
  * (Kategorie oder Art der Frage), darunter die Frage und die Antworten an derselben Stelle.
  *
- * Wissensfrage: Die Felder einer Reihe sind gleich hoch. Oben steht die Antwort mit ihrem
- * Buchstaben aus der Frage; auf ihn setzt sich der Stempel (richtig oder falsch gewählt). Darunter
- * läuft ein Band in der Farbe dessen ein, der sie gewählt hat, mit Wappen und Namen darauf; wählten
- * zwei dasselbe, teilen sie sich das Band zu gleichen Teilen (ADR-065). Richtig und falsch sagen Stempel und Rand, wer wo steht,
- * sagt das Band: Die Farbe eines Spielers bedeutet so nie „falsch“ oder „richtig“.
+ * Wissensfrage: Jede Antwort ist ein Feld wie auf der Vorderseite, die Antwort steht in seiner
+ * Mitte. Links sitzt die Münze mit dem Buchstaben aus der Frage; auf sie setzt sich der Stempel
+ * (richtig oder falsch gewählt). Wer eine Antwort gewählt hat, sagt allein die Farbe: Sie füllt das
+ * ganze Feld, wählten zwei dasselbe, teilen sie es sich zu gleichen Teilen (ADR-065). Namen stehen
+ * dort keine, die Farben erklärt der Spielstand links; ein Vorleser bekommt sie als Text. Richtig
+ * und falsch sagen Stempel und Rand, nie die Füllung.
  *
  * Schätzfrage: Die Lösung steht in derselben Tafel, in die vorn die eigene Zahl geschrieben
  * wurde, die Schätzungen darunter in Rangfolge, ihre Zahlen in einer Spalte mit der Lösung.
@@ -186,10 +187,10 @@ function Figure({ value, unit }: { readonly value: string | null; readonly unit:
 }
 
 /**
- * Antworten einer Wissensfrage: jede Option ein Feld an ihrer Stelle aus der Frage. Oben die
- * Antwort mit ihrem Buchstaben, auf dem der Stempel sitzt, darunter das Band derer, die sie gewählt
- * haben: je Sitz ein gleich breites Stück in seiner Farbe, darauf Wappen und Name. Die Farbe ist
- * nie der einzige Träger.
+ * Antworten einer Wissensfrage: jede Option ein Feld an ihrer Stelle aus der Frage, die Antwort in
+ * der Mitte, links die Münze mit ihrem Buchstaben, auf der der Stempel sitzt. Das Feld füllt sich
+ * mit der Farbe derer, die es gewählt haben: je Sitz ein gleich breites Stück. Sichtbar steht kein
+ * Name im Feld (Wunsch des Product Owners, ADR-070 Punkt 9); für Vorleser steht er als Text dabei.
  */
 function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly name: SeatName }) {
   const q = reveal.resolved.payload;
@@ -209,32 +210,31 @@ function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly nam
               className={`reveal-option${correct ? ' correct' : chosen ? ' wrong' : ''}${chosen ? ' chosen' : ''}`}
               data-chosen-by={chosenBy.map((a) => a.seat).join(' ')}
             >
-              <span className="reveal-answer">
-                <span className="reveal-mark" aria-hidden="true">
-                  {OPTION_KEYS[i] ?? ''}
-                  {correct || chosen ? <Stamp kind={correct ? 'right' : 'wrong'} /> : null}
-                </span>
-                <span className="reveal-option-text">
-                  {option.text}
-                  {correct ? (
-                    <span className="visually-hidden"> ({t('match.reveal.correctOption')})</span>
-                  ) : null}
-                </span>
-              </span>
               {chosen ? (
-                <span className="reveal-band">
-                  <span className="reveal-fill" aria-hidden="true">
-                    {chosenBy.map((a) => (
-                      <i key={a.seat} className={`seat-${a.seat}`} />
-                    ))}
-                  </span>
-                  <span className="reveal-chips">
-                    {chosenBy.map((a) => (
-                      <SeatChip key={a.seat} seat={a.seat} name={name} />
-                    ))}
-                  </span>
+                <span className="reveal-fill" aria-hidden="true">
+                  {chosenBy.map((a) => (
+                    <i key={a.seat} className={`seat-${a.seat}`} />
+                  ))}
                 </span>
               ) : null}
+              <span className="reveal-mark" aria-hidden="true">
+                {OPTION_KEYS[i] ?? ''}
+                {correct || chosen ? <Stamp kind={correct ? 'right' : 'wrong'} /> : null}
+              </span>
+              <span className="reveal-option-text">
+                {option.text}
+                {correct ? (
+                  <span className="visually-hidden"> ({t('match.reveal.correctOption')})</span>
+                ) : null}
+                {chosen ? (
+                  <span className="visually-hidden">
+                    {', '}
+                    {t('match.reveal.chosenBy', {
+                      names: chosenBy.map((a) => name(a.seat)).join(', '),
+                    })}
+                  </span>
+                ) : null}
+              </span>
             </li>
           );
         })}

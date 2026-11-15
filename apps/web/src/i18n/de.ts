@@ -575,6 +575,7 @@ export const de = {
       noAnswer: 'keine Antwort',
       noAnswerBy: 'Keine Antwort:',
       correctOption: 'richtig',
+      chosenBy: 'gewählt von {names}',
       exact: 'genau',
       off: '{value} daneben',
       tie: 'Gleichstand',

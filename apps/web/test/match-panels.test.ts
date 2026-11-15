@@ -46,7 +46,18 @@ function spokenOf(html: string): string {
     .trim();
 }
 
-/** Sitze, deren Farbe das Band eines Antwortfelds füllt, von links nach rechts (ADR-065). */
+/** Antwort eines Felds, wie sie ein Vorleser hört: mit „richtig“ und denen, die sie wählten. */
+function answerOf(row: string): string {
+  const text = /<span class="reveal-option-text">([\s\S]*)<\/span>\s*<\/li>/.exec(row)?.[1] ?? '';
+  return spokenOf(text);
+}
+
+/** Sichtbarer Text eines Felds: ohne das, was nur ein Vorleser hört. */
+function shownOf(row: string): string {
+  return textOf(row.replace(/<span class="visually-hidden">[\s\S]*?<\/span>/g, ''));
+}
+
+/** Sitze, deren Farbe ein Antwortfeld füllt, von links nach rechts (ADR-065). */
 function fillOf(row: string): number[] {
   const fill =
     /<span class="reveal-fill" aria-hidden="true">([\s\S]*?)<\/span>/.exec(row)?.[1] ?? '';
@@ -134,7 +145,7 @@ function reveal(events: ParsedMatchEvent[], seq: number): string {
 }
 
 describe('Auflösung: wer was geantwortet hat', () => {
-  it('Wissensfrage im Duell: Wappen an der gewählten Antwort, Stempel auf richtig und falsch', () => {
+  it('Wissensfrage im Duell: Farbe im gewählten Feld, Stempel auf richtig und falsch', () => {
     const html = reveal(
       [
         opened(20, 5, 'DUEL_TRIVIA', [2, 1]),
@@ -147,7 +158,8 @@ describe('Auflösung: wer was geantwortet hat', () => {
       5,
     );
     const rows = rowsOf(html);
-    expect(rows.map((row) => chipsIn(row))).toEqual([[], [2], [], [1]]);
+    // Im Feld steht kein Name und kein Wappen: Wer es wählte, sagt die Farbe (ADR-070 Punkt 9)
+    expect(rows.map((row) => chipsIn(row))).toEqual([[], [], [], []]);
     expect(rows.map((row) => /class="reveal-option([^"]*)"/.exec(row)?.[1]?.trim())).toEqual([
       '',
       'correct chosen',
@@ -156,11 +168,18 @@ describe('Auflösung: wer was geantwortet hat', () => {
     ]);
     // Jedes Feld behält den Buchstaben aus der Frage; auf die richtige Antwort setzt sich der
     // Haken, auf die falsch gewählte das Kreuz
-    expect(textOf(rows[1] ?? '')).toBe('B Blau (richtig) Bot (schwer)');
-    expect(textOf(rows[3] ?? '')).toBe('D Gelb Anna (du)');
+    expect(shownOf(rows[1] ?? '')).toBe('B Blau');
+    expect(shownOf(rows[3] ?? '')).toBe('D Gelb');
     expect(rows.map(stampOf)).toEqual([null, 'right', null, 'wrong']);
-    // Unter jeder gewählten Antwort läuft das Band in der Farbe dessen, der sie wählte (ADR-065)
+    // Jedes gewählte Feld füllt sich mit der Farbe dessen, der es wählte (ADR-065)
     expect(rows.map(fillOf)).toEqual([[], [2], [], [1]]);
+    // Die Farbe ist nicht der einzige Träger: Ein Vorleser hört, wer was gewählt hat
+    expect(rows.map(answerOf)).toEqual([
+      'Grün',
+      'Blau (richtig), gewählt von Bot (schwer)',
+      'Rot',
+      'Gelb, gewählt von Anna (du)',
+    ]);
     expect(rows.map((row) => /data-chosen-by="([^"]*)"/.exec(row)?.[1])).toEqual([
       '',
       '2',
@@ -181,7 +200,7 @@ describe('Auflösung: wer was geantwortet hat', () => {
     expect(textOf(html)).toContain('Erklärung: Das Licht wird gestreut.');
   });
 
-  it('gleiche Antwort: beide Wappen an einer Zeile; wer schwieg, steht darunter', () => {
+  it('gleiche Antwort: beide Farben in einem Feld; wer schwieg, steht darunter', () => {
     const both = reveal(
       [
         opened(20, 5, 'DUEL_TRIVIA', [2, 1]),
@@ -192,9 +211,12 @@ describe('Auflösung: wer was geantwortet hat', () => {
       ],
       5,
     );
-    expect(rowsOf(both).map((row) => chipsIn(row))).toEqual([[], [2, 1], [], []]);
-    // Beide teilen sich das Band zu gleichen Teilen, der Angreifer links wie im Kopf des Duells
+    expect(rowsOf(both).map((row) => chipsIn(row))).toEqual([[], [], [], []]);
+    // Beide teilen sich das Feld zu gleichen Teilen, der Angreifer links wie im Kopf des Duells
     expect(rowsOf(both).map(fillOf)).toEqual([[], [2, 1], [], []]);
+    expect(answerOf(rowsOf(both)[1] ?? '')).toBe(
+      'Blau (richtig), gewählt von Bot (schwer), Anna (du)',
+    );
     expect(rowsOf(both)[1]).toContain('data-chosen-by="2 1"');
     // Noch kein Ausgang: Das Stechen folgt. Das steht unter den Antworten (ADR-069), nicht darüber
     const next = /<p class="reveal-next"[\s\S]*?<\/p>/.exec(both)?.[0] ?? '';
@@ -215,7 +237,8 @@ describe('Auflösung: wer was geantwortet hat', () => {
       ],
       5,
     );
-    expect(rowsOf(silent).map((row) => chipsIn(row))).toEqual([[], [], [2], []]);
+    expect(rowsOf(silent).map((row) => chipsIn(row))).toEqual([[], [], [], []]);
+    expect(answerOf(rowsOf(silent)[2] ?? '')).toBe('Rot, gewählt von Bot (schwer)');
     // Die richtige Antwort wählte niemand: Sie bleibt ohne Farbe, ist aber als richtig markiert
     expect(rowsOf(silent).map(fillOf)).toEqual([[], [], [2], []]);
     expect(rowsOf(silent)[1]).toContain('class="reveal-option correct"');

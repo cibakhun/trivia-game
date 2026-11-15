@@ -41,8 +41,13 @@ interface Shown {
   readonly scene: string | null;
   /** Aufstellung auf der Karte: Wappen des Angreifers und Pfeil zum Ziel. */
   readonly arrow: boolean;
-  /** Plättchen mit Wappen: an den Antworten der Auflösung oder in der Ansage. */
+  /** Plättchen mit Wappen: in der Ansage, an den Schätzungen der Auflösung, bei „keine Antwort“. */
   readonly chips: number;
+  /**
+   * Sitze, die in der Auflösung an ihrer Antwort stehen: als Plättchen (Schätzfrage, keine
+   * Antwort) oder als Farbe im Feld der Wissensfrage, das keinen Namen trägt (ADR-070 Punkt 9).
+   */
+  readonly seats: number;
   /** Das Band „Du bist dran!“ steht noch über der Karte. */
   readonly turnBanner: boolean;
   /** Auflösung einer Wissensfrage mit markierter richtiger Antwort. */
@@ -92,6 +97,7 @@ async function recordShown(page: Page): Promise<void> {
           document.querySelector('.duel-stage .duel-token.attacker') !== null &&
           document.querySelector('.duel-stage .duel-arrow') !== null,
         chips: card.querySelectorAll('.seat-chip').length,
+        seats: card.querySelectorAll('.seat-chip, .reveal-fill i').length,
         turnBanner: document.querySelector('.turn-banner.moment-gold') !== null,
         correctOption: card.querySelector('.reveal-option.correct') !== null,
         step: document.querySelector('[data-testid="match-step"]')?.textContent ?? '',
@@ -257,10 +263,11 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   // Die Zugfolge ist erst mit dem Ausgang abgehakt, nicht schon mit den Antworten
   expect(shown.findIndex((s) => s.allDone)).toBe(lastAt);
   expect(shown.slice(lastAt + 1).every((s) => s.state === 'settled' && s.allDone)).toBe(true);
-  // Auflösungen: Jeder Sitz der Frage steht mit seinem Wappen an seiner Antwort
+  // Auflösungen: Jeder Sitz der Frage steht an seiner Antwort, mit seinem Wappen an der Schätzung
+  // oder mit seiner Farbe im Feld der Wissensfrage
   const reveals = shown.filter((s) => s.state === 'reveal');
   expect(reveals.length).toBeGreaterThan(5);
-  expect(reveals.every((s) => s.chips >= 2 && s.chips <= 3)).toBe(true);
+  expect(reveals.every((s) => s.seats >= 2 && s.seats <= 3)).toBe(true);
   expect(reveals.some((s) => s.correctOption)).toBe(true);
   expect(reveals.some((s) => s.text.includes('Richtige Antwort:'))).toBe(true);
   // Mitte der Karte (ADR-070): Löst sich eine Frage auf, die hier zu lesen war, dreht sich die
