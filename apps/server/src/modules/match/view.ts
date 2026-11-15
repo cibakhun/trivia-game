@@ -401,6 +401,7 @@ export async function matchView(
       inviteCode: match.status === 'LOBBY' ? match.inviteCode : null,
       rulesPreset: match.rulesPreset,
       seats: match.rules?.seats ?? match.testSeats,
+      campaignRounds: rules.campaign.rounds,
       timers: {
         triviaMs: timers.triviaMs,
         estimateMs: timers.estimateMs,

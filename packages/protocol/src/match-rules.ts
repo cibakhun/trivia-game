@@ -200,6 +200,13 @@ export const matchRulesSchema = z
 export type MatchRules = z.infer<typeof matchRulesSchema>;
 
 /**
+ * Feldzugrunden jeder Partie, mit und ohne Ausbau: zehn auf Wunsch des Product Owners vom
+ * 2026-11-15 (ADR-073); vorher vier ohne und fünf mit Ausbau. Partien speichern ihre Regeln beim
+ * Start, laufende Partien behalten ihre Rundenzahl.
+ */
+export const MATCH_CAMPAIGN_ROUNDS = 10;
+
+/**
  * Standardwerte aus dem Plan vom 2026-11-10 für drei Spieler (ADR-047); für zwei über
  * `matchRulesForSeats`. Nach dem ersten Spieltest nachjustieren.
  */
@@ -209,7 +216,7 @@ export const DEFAULT_MATCH_RULES: MatchRules = Object.freeze({
   seats: 3,
   capital: { lives: 3, minDistance: 2 },
   landGrab: { picksByPlace: [2, 1, 0] },
-  campaign: { rounds: 4 },
+  campaign: { rounds: MATCH_CAMPAIGN_ROUNDS },
   values: { region: 100, capital: 300, defenseBonus: 50 },
   timers: {
     triviaMs: 15 * SECOND_MS,
@@ -299,19 +306,19 @@ export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
 });
 
 /**
- * Partie mit Ausbau zu dritt (O-31: fünf Feldzugrunden); zu zweit über `matchRulesForSeats`, das
- * den Ausbau übernimmt.
+ * Partie mit Ausbau zu dritt (zehn Feldzugrunden wie ohne Ausbau, ADR-073; vorher fünf nach O-31);
+ * zu zweit über `matchRulesForSeats`, das den Ausbau übernimmt.
  */
 export const DEFAULT_REALM_RULES: RealmRules = Object.freeze({
   ...DEFAULT_MATCH_RULES,
-  campaign: { rounds: 5 },
+  campaign: { rounds: MATCH_CAMPAIGN_ROUNDS },
   economy: DEFAULT_MATCH_ECONOMY,
 });
 
 /** Ausbau mit verkürzten Zeiten für Tests und schnelle Spieltests. */
 export const PLAYTEST_REALM_RULES: RealmRules = Object.freeze({
   ...PLAYTEST_MATCH_RULES,
-  campaign: { rounds: 5 },
+  campaign: { rounds: MATCH_CAMPAIGN_ROUNDS },
   economy: {
     ...DEFAULT_MATCH_ECONOMY,
     timers: { prepareMs: 15 * SECOND_MS, ordersRevealMs: 500, wheelMs: 1000 },

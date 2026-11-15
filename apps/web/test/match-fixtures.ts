@@ -46,6 +46,8 @@ export function viewOf(
       inviteCode: null,
       rulesPreset: 'PLAYTEST',
       seats: 3,
+      // Gespeicherte Regeln der Partie: bewusst nicht die heutigen Standardwerte (ADR-073)
+      campaignRounds: 4,
       timers: {
         triviaMs: 8000,
         estimateMs: 10000,
@@ -287,7 +289,7 @@ export function realmViewOf(
   };
   return matchViewSchema.parse({
     ...base,
-    match: { ...base.match, mode: 'REALM' },
+    match: { ...base.match, mode: 'REALM', campaignRounds: 5 },
     // Ich bin der Mensch der Runde: Anna sitzt hier auf Sitz 2, der Bot von dort auf Sitz 1
     players: base.players.map((player) => {
       const seat = player.seat === 1 ? 2 : player.seat === 2 ? 1 : player.seat;

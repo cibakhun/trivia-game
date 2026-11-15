@@ -66,6 +66,8 @@ import {
 
 const THREE: RealmRules = DEFAULT_REALM_RULES;
 const TWO: RealmRules = matchRulesForSeats(DEFAULT_REALM_RULES, 2);
+/** Letzte Feldzugrunde der Standardregeln (zehn seit ADR-073). */
+const LAST = TWO.campaign.rounds;
 const CATEGORIES: QuestionCategory[] = [...QUESTION_CATEGORIES];
 const FAV: QuestionCategory[][] = [
   ['HISTORY', 'GEOGRAPHY', 'SCIENCE', 'TECHNOLOGY'],
@@ -1058,7 +1060,7 @@ describe('Angriff nur mit Armee (ADR-064)', () => {
     expect(middle.state.step).toMatchObject({ kind: 'PREPARE', round: 3 });
     expect(middle.state.duels).toBe(0);
 
-    const last = ok(applyRealmInput(prepare(campaign(), 5), { kind: 'CLOSE_PREPARE' }));
+    const last = ok(applyRealmInput(prepare(campaign(), LAST), { kind: 'CLOSE_PREPARE' }));
     expect(last.events.filter((e) => e.kind === 'ATTACK_SKIPPED')).toHaveLength(2);
     expect(last.state.step).toMatchObject({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' });
     expect(last.events.at(-1)).toMatchObject({ kind: 'MATCH_FINISHED' });
@@ -1107,9 +1109,13 @@ describe('Reihenfolge und Ende', () => {
     const ahead = campaign({ 8: { value: 200, fortifications: 2, armies: 1 } });
     expect(realmAttackOrder(ahead, 1)).toEqual([0, 1]);
     expect(realmAttackOrder(ahead, 2)).toEqual([1, 0]);
-    expect(realmAttackOrder(ahead, 5)).toEqual([1, 0]);
-    expect(realmAttackOrder(campaign({ 7: { value: 200, fortifications: 2 } }), 5)).toEqual([0, 1]);
-    const closed = ok(applyRealmInput(prepare(ahead, 5), { kind: 'CLOSE_PREPARE' }));
+    // Vorletzte Runde: Reihenfolge der Runde (Sitz 0 beginnt in ungeraden Runden)
+    expect(realmAttackOrder(ahead, LAST - 1)).toEqual([0, 1]);
+    expect(realmAttackOrder(ahead, LAST)).toEqual([1, 0]);
+    expect(realmAttackOrder(campaign({ 7: { value: 200, fortifications: 2 } }), LAST)).toEqual([
+      0, 1,
+    ]);
+    const closed = ok(applyRealmInput(prepare(ahead, LAST), { kind: 'CLOSE_PREPARE' }));
     expect(closed.state.step).toMatchObject({
       kind: 'CAMPAIGN_TARGET',
       attacker: 1,
@@ -1117,10 +1123,11 @@ describe('Reihenfolge und Ende', () => {
     });
   });
 
-  it('nach der fünften Runde wird abgerechnet, sonst folgt Einkommen und Rüstzeit', () => {
+  it('nach der letzten (zehnten) Runde wird abgerechnet, sonst folgt Einkommen und Rüstzeit', () => {
+    expect(LAST).toBe(10);
     const last = campaign(
       { 7: { armies: 1 } },
-      { kind: 'CAMPAIGN_TARGET', round: 5, attacker: 0, attackers: [1, 0], queue: [] },
+      { kind: 'CAMPAIGN_TARGET', round: LAST, attacker: 0, attackers: [1, 0], queue: [] },
     );
     const done = ok(
       applyRealmInput(attack(last, 8), {
@@ -1132,7 +1139,7 @@ describe('Reihenfolge und Ende', () => {
     expect(done.state.step).toEqual({
       kind: 'FINISHED',
       reason: 'ROUNDS_COMPLETE',
-      round: 5,
+      round: LAST,
       attackers: [1, 0],
     });
     expect(done.events.at(-1)).toMatchObject({ kind: 'MATCH_FINISHED', reason: 'ROUNDS_COMPLETE' });

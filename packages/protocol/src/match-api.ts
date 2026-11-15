@@ -413,6 +413,11 @@ export const matchViewSchema = z
         rulesPreset: matchRulesPresetSchema,
         /** Plätze: beim Start festgelegt; Testpartien kennen sie vorher. */
         seats: z.number().int().min(2).max(3).nullable(),
+        /**
+         * Feldzugrunden aus den Regeln der Partie: ab dem Start die gespeicherten, vorher die der
+         * Spielart. Mit Ausbau steht derselbe Wert auch in `realm.campaignRounds`.
+         */
+        campaignRounds: z.number().int().min(1),
         timers: matchTimersSchema,
         createdAt: timestampSchema,
         startedAt: timestampSchema.nullable(),

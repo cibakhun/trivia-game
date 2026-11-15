@@ -221,12 +221,13 @@ describe('Aufstellung mit Ausbau', () => {
     const host = await newHuman();
     const matchId = await createMatch(host, { kind: 'STANDARD', mode: 'REALM', rules: 'PLAYTEST' });
     const lobby = await view(host, matchId);
-    expect(lobby.match).toMatchObject({ mode: 'REALM', status: 'LOBBY' });
+    // Zehn Feldzugrunden (ADR-073), vor dem Start aus den Regeln der Spielart
+    expect(lobby.match).toMatchObject({ mode: 'REALM', status: 'LOBBY', campaignRounds: 10 });
     expect(lobby.board).toBeNull();
     expect(lobby.realm).toMatchObject({
       categories: WHEEL,
       favoritesCount: 4,
-      campaignRounds: 5,
+      campaignRounds: 10,
       economy: ECONOMY,
       board: null,
       myOrders: null,
@@ -370,7 +371,7 @@ describe('Aufstellung mit Ausbau', () => {
 describe('Ganze Partie mit Ausbau gegen Bots', () => {
   const auditSchema = z.object({ theta: z.number(), strength: z.string() });
 
-  it('zu dritt: Startfrage, Burgen, Dörfer, Landnahme, fünf Runden mit Rüstzeit und Glücksrad', async () => {
+  it('zu dritt: Startfrage, Burgen, Dörfer, Landnahme, zehn Runden mit Rüstzeit und Glücksrad', async () => {
     const human = await newHuman();
     const matchId = await startRealmTest(human, ['MEDIUM', 'HARD']);
     const phases = new Set<string>();
@@ -470,9 +471,11 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     // Runden: Einkommen, dann Rüstzeit, dann wird aufgedeckt, dann die Angriffe
     const finished = eventsOf(all, 'REALM_MATCH_FINISHED')[0]?.payload;
     const rounds = count('INCOME');
+    const planned = PLAYTEST_REALM_RULES.campaign.rounds;
+    expect(planned).toBe(10);
     expect(rounds).toBeGreaterThanOrEqual(1);
-    expect(rounds).toBeLessThanOrEqual(5);
-    if (finished?.reason === 'ROUNDS_COMPLETE') expect(rounds).toBe(5);
+    expect(rounds).toBeLessThanOrEqual(planned);
+    if (finished?.reason === 'ROUNDS_COMPLETE') expect(rounds).toBe(planned);
     for (const income of eventsOf(all, 'INCOME')) {
       const { round } = income.payload;
       const revealed = eventsOf(all, 'ORDERS_REVEALED').filter((e) => e.payload.round === round);
