@@ -8,13 +8,13 @@ T|POL|2|richtlinienkompetenz|Wer bestimmt laut Grundgesetz die Richtlinien der P
 T|POL|2|wahlperiode-bundestag|Wie lange dauert eine reguläre Wahlperiode des Bundestages?|4 Jahre|3 Jahre;5 Jahre;6 Jahre|Deutscher Bundestag|vier Jahre
 T|POL|2|sitz-bundestag|In welchem Gebäude hat der Deutsche Bundestag seinen Sitz?|Reichstagsgebäude|Schloss Bellevue;Bundeskanzleramt;Preußisches Herrenhaus|Reichstagsgebäude|Bundestag
 T|POL|2|sitz-bundespraesident|Wie heißt der Amtssitz des Bundespräsidenten in Berlin?|Schloss Bellevue|Schloss Charlottenburg;Reichstagsgebäude;Bundeskanzleramt|Schloss Bellevue|Bundespräsident
-T|POL|4|bundestag-umzug|In welchem Jahr nahm der Bundestag seine Arbeit im Berliner Reichstagsgebäude auf?|1999|1990;1994;2002|Reichstagsgebäude|1999
+T|POL|4|bundestag-umzug|Seit welchem Jahr hat der Deutsche Bundestag seinen Sitz in Berlin?|1999|1990;1994;2002|Reichstagsgebäude|1999
 T|POL|3|bundestag-sitze-2025|Wie viele Sitze hat der 2025 gewählte Bundestag?|630|598;709;736|Bundestagswahl 2025|630
 T|POL|2|bundesrat-laender|Über welches Verfassungsorgan wirken die Länder bei der Gesetzgebung des Bundes mit?|Bundesrat|Bundestag;Bundesversammlung;Bundesverfassungsgericht|Bundesrat (Deutschland)|Länder
 T|POL|3|vermittlungsausschuss|Welches Gremium sucht einen Kompromiss, wenn Bundestag und Bundesrat über ein Gesetz streiten?|Vermittlungsausschuss|Ältestenrat;Gemeinsamer Ausschuss;Bundesversammlung|Vermittlungsausschuss|Bundesrat
 T|POL|1|sitz-bverfg|In welcher Stadt hat das Bundesverfassungsgericht seinen Sitz?|Karlsruhe|Berlin;Leipzig;Bonn|Bundesverfassungsgericht|Karlsruhe
 T|POL|4|richter-senat-bverfg|Wie viele Richter gehören jedem der beiden Senate des Bundesverfassungsgerichts an?|8|6;9;12|Bundesverfassungsgericht|acht
-T|POL|4|sitz-bverwg|In welcher Stadt hat das Bundesverwaltungsgericht seinen Sitz?|Leipzig|Karlsruhe;Kassel;Erfurt|Bundesverwaltungsgericht|Leipzig
+T|POL|4|sitz-bverwg|In welcher Stadt hat das Bundesverwaltungsgericht seinen Sitz?|Leipzig|Karlsruhe;Kassel;Erfurt|Bundesverwaltungsgericht (Deutschland)|Leipzig
 T|POL|3|sitz-bundesagentur-arbeit|In welcher Stadt hat die Bundesagentur für Arbeit ihren Hauptsitz?|Nürnberg|Berlin;Frankfurt am Main;Köln|Bundesagentur für Arbeit|Nürnberg
 T|POL|4|sitz-bka|In welcher Stadt hat das Bundeskriminalamt seinen Hauptsitz?|Wiesbaden|Karlsruhe;Köln;Mainz|Bundeskriminalamt (Deutschland)|Wiesbaden
 T|POL|4|bendlerblock|Welches Bundesministerium hat einen Dienstsitz im Berliner Bendlerblock?|Bundesministerium der Verteidigung|Auswärtiges Amt;Bundesministerium des Innern;Bundesministerium der Finanzen|Bendlerblock|Verteidigung
@@ -35,14 +35,14 @@ T|POL|1|bundeswappen|Welches Tier zeigt das Bundeswappen?|Adler|Löwe;Bär;Greif
 T|POL|2|hymne-strophe|Welche Strophe des „Liedes der Deutschen“ ist die Nationalhymne?|Die dritte|Die erste;Die zweite;Alle drei|Das Lied der Deutschen|dritte Strophe
 T|POL|3|hymne-text|Wer schrieb den Text des „Liedes der Deutschen“?|August Heinrich Hoffmann von Fallersleben|Ernst Moritz Arndt;Friedrich Schiller;Ludwig Uhland|Das Lied der Deutschen|Hoffmann von Fallersleben
 T|POL|2|stadtstaaten-zahl|Wie viele der deutschen Länder sind Stadtstaaten?|Drei|Zwei;Vier;Fünf|Stadtstaat|Bremen
-T|POL|3|freistaaten|Welche drei Länder führen die Bezeichnung „Freistaat“?|Bayern, Sachsen und Thüringen|Bayern, Sachsen und Brandenburg;Bayern, Thüringen und Baden-Württemberg;Sachsen, Thüringen und Sachsen-Anhalt|Freistaat|Thüringen
-T|POL|3|buergerschaft|Welche Länder nennen ihr Landesparlament „Bürgerschaft“?|Hamburg und Bremen|Berlin und Hamburg;Berlin und Bremen;Bremen und Saarland|Bürgerschaft|Bremen
+T|POL|3|freistaaten|Welche drei Länder führen die Bezeichnung „Freistaat“?|Bayern, Sachsen und Thüringen|Bayern, Sachsen und Brandenburg;Bayern, Thüringen und Baden-Württemberg;Sachsen, Thüringen und Sachsen-Anhalt|Freistaat (Republik)|Thüringen
+T|POL|3|buergerschaft|Welche Länder nennen ihr Landesparlament „Bürgerschaft“?|Hamburg und Bremen|Berlin und Hamburg;Berlin und Bremen;Bremen und Saarland|Bürgerschaft (Vertretungsorgan)|Landesparlament
 T|POL|3|abgeordnetenhaus|Wie heißt das Landesparlament von Berlin?|Abgeordnetenhaus|Senat;Bürgerschaft;Landtag|Abgeordnetenhaus von Berlin|Landesparlament
 T|POL|2|frauenwahlrecht|In welchem Jahr wurde in Deutschland das Frauenwahlrecht eingeführt?|1918|1871;1908;1949|Frauenwahlrecht|1918
-T|POL|2|mindestlohn|Seit welchem Jahr gilt in Deutschland ein allgemeiner gesetzlicher Mindestlohn?|2015|2009;2012;2018|Mindestlohn in Deutschland|2015
+T|POL|2|mindestlohn|Seit welchem Jahr gilt in Deutschland ein allgemeiner gesetzlicher Mindestlohn?|2015|2009;2012;2018|Mindestlohn|1. Januar 2015
 T|POL|2|wehrpflicht-ausgesetzt|In welchem Jahr wurde die allgemeine Wehrpflicht in Deutschland ausgesetzt?|2011|2001;2008;2014|Wehrpflicht in Deutschland|2011
 T|POL|3|strafmuendigkeit|Ab welchem Alter ist man in Deutschland strafmündig?|14|12;16;18|Strafmündigkeit|14
-T|POL|3|krankenversicherung-bismarck|Unter welchem Reichskanzler wurde 1883 die gesetzliche Krankenversicherung eingeführt?|Otto von Bismarck|Leo von Caprivi;Bernhard von Bülow;Theobald von Bethmann Hollweg|Gesetzliche Krankenversicherung (Deutschland)|1883
+T|POL|3|krankenversicherung-bismarck|Unter welchem Reichskanzler wurde 1883 die gesetzliche Krankenversicherung eingeführt?|Otto von Bismarck|Leo von Caprivi;Bernhard von Bülow;Theobald von Bethmann Hollweg|Gesetzliche Krankenversicherung|15. Juni 1883
 T|POL|2|dgb|Wofür steht die Abkürzung „DGB“?|Deutscher Gewerkschaftsbund|Deutscher Gemeindebund;Deutscher Genossenschaftsbund;Deutscher Grundbesitzerbund|Deutscher Gewerkschaftsbund|DGB
 T|POL|1|eu-mitglieder|Wie viele Mitgliedstaaten hat die Europäische Union seit dem Austritt des Vereinigten Königreichs?|27|25;28;30|Europäische Union|27
 T|POL|2|brexit-jahr|In welchem Jahr trat das Vereinigte Königreich aus der Europäischen Union aus?|2020|2016;2019;2021|Brexit|31. Januar 2020

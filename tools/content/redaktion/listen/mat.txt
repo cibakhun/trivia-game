@@ -17,7 +17,7 @@ T|MAT|2|billion-deutsch|Wie schreibt man eine deutsche Billion als Zahl?|1.000.0
 T|MAT|3|googol|Wie heißt die Zahl, die aus einer Eins mit 100 Nullen besteht?|Googol|Googolplex;Zentillion;Dezillion|Googol|100
 T|MAT|1|roemisch-50|Welche römische Zahl steht für 50?|L|C;D;X|Römische Zahlschrift|L
 T|MAT|2|roemisch-500|Welche römische Zahl steht für 500?|D|C;L;M|Römische Zahlschrift|D
-T|MAT|3|roemisch-1989|Welche Jahreszahl ist MCMLXXXIX?|1989|1979;1991;2009|Römische Zahlschrift|Römische Zahlschrift
+T|MAT|3|roemisch-1989|Welche Jahreszahl ist MCMLXXXIX?|1989|1979;1991;2009|Römische Zahlschrift|M (1000)
 T|MAT|1|pi-ziffern|Mit welchen Ziffern beginnt die Kreiszahl π?|3,14159|3,14259;3,14169;3,15149|Kreiszahl|3,14159
 T|MAT|3|eulersche-zahl|Welchen ungefähren Wert hat die Eulersche Zahl e?|2,718|1,414;1,618;3,142|Eulersche Zahl|2,718
 T|MAT|3|goldener-schnitt|Welchen ungefähren Wert hat das Verhältnis des Goldenen Schnitts?|1,618|1,414;2,718;3,142|Goldener Schnitt|1,618
@@ -25,8 +25,8 @@ T|MAT|1|winkelsumme-dreieck|Wie groß ist die Winkelsumme in einem ebenen Dreiec
 T|MAT|2|winkelsumme-viereck|Wie groß ist die Winkelsumme in einem ebenen Viereck?|360 Grad|180 Grad;270 Grad;540 Grad|Viereck|360
 T|MAT|1|rechter-winkel|Wie viel Grad hat ein rechter Winkel?|90 Grad|45 Grad;100 Grad;180 Grad|Rechter Winkel|90
 T|MAT|2|hypotenuse|Wie heißt im rechtwinkligen Dreieck die Seite gegenüber dem rechten Winkel?|Hypotenuse|Kathete;Ankathete;Höhe|Hypotenuse|rechten Winkel
-T|MAT|1|pythagoras|Wie lautet der Satz des Pythagoras?|a² + b² = c²|a + b = c;a² − b² = c²;2a + 2b = c|Satz des Pythagoras|Pythagoras
-T|MAT|2|kreisflaeche|Mit welcher Formel berechnet man den Flächeninhalt eines Kreises?|π · r²|2 · π · r;π · d;π · r³|Kreisfläche|Flächeninhalt
+T|MAT|1|pythagoras|Wie lautet der Satz des Pythagoras?|a² + b² = c²|a + b = c;a² − b² = c²;2a + 2b = c|Satz des Pythagoras|a2+b2=c2
+T|MAT|2|kreisflaeche|Mit welcher Formel berechnet man den Flächeninhalt eines Kreises?|π · r²|2 · π · r;π · d;π · r³|Kreis|A=πr2
 T|MAT|1|wuerfel-ecken|Wie viele Ecken hat ein Würfel?|8|6;10;12|Würfel (Geometrie)|Ecken
 T|MAT|2|wuerfel-kanten|Wie viele Kanten hat ein Würfel?|12|8;10;14|Würfel (Geometrie)|Kanten
 T|MAT|3|platonische-koerper|Wie viele platonische Körper gibt es?|5|4;6;7|Platonischer Körper|fünf

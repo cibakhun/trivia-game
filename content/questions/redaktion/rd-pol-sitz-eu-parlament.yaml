@@ -1,4 +1,4 @@
-# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: rd-pol-sitz-eu-parlament
 kind: TRIVIA
@@ -6,14 +6,23 @@ category: POLITICS_SOCIETY
 difficulty: 3
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:redaktion
 sources:
   - title: "Wikipedia: Europäisches Parlament"
     url: https://de.wikipedia.org/wiki/Europ%C3%A4isches_Parlament
-    accessed: 2026-11-12
-reviews: []
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Straßburg“ im Artikel „Europäisches Parlament“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -23,7 +32,7 @@ trivia:
   correct: a
 translations:
   de:
-    status: DRAFT
+    status: APPROVED
     prompt: "Welche Stadt ist der offizielle Sitz des Europäischen Parlaments?"
     options:
       a: "Straßburg"

@@ -12,7 +12,7 @@ T|GEO|3|landeshauptstadt-sachsen-anhalt|Wie heißt die Landeshauptstadt von Sach
 T|GEO|2|landeshauptstadt-thueringen|Wie heißt die Landeshauptstadt von Thüringen?|Erfurt|Jena;Weimar;Gera|Thüringen|Erfurt
 T|GEO|2|landeshauptstadt-brandenburg|Wie heißt die Landeshauptstadt von Brandenburg?|Potsdam|Cottbus;Frankfurt (Oder);Brandenburg an der Havel|Brandenburg|Potsdam
 T|GEO|2|landeshauptstadt-saarland|Wie heißt die Landeshauptstadt des Saarlandes?|Saarbrücken|Saarlouis;Neunkirchen;Homburg|Saarland|Saarbrücken
-T|GEO|1|zugspitze-hoechster-berg|Wie heißt der höchste Berg Deutschlands?|Zugspitze|Watzmann;Feldberg;Brocken|Zugspitze|höchste Berg Deutschlands
+T|GEO|1|zugspitze-hoechster-berg|Wie heißt der höchste Berg Deutschlands?|Zugspitze|Watzmann;Feldberg;Brocken|Zugspitze|höchster Berg
 T|GEO|3|rhein-laengste-strecke|Welcher Fluss legt die längste Strecke in Deutschland zurück?|Rhein|Donau;Main;Weser|Rhein|865
 T|GEO|3|mueritz|Welcher ist der größte See, der vollständig in Deutschland liegt?|Müritz|Bodensee;Chiemsee;Starnberger See|Müritz|größte
 T|GEO|2|nachbarstaaten-anzahl|An wie viele Staaten grenzt Deutschland?|9|7;8;10|Deutschland|neun
@@ -26,14 +26,14 @@ T|GEO|2|donau-muendung|In welches Meer mündet die Donau?|Schwarzes Meer|Mittelm
 T|GEO|2|oder-muendung|In welches Meer mündet die Oder?|Ostsee|Nordsee;Schwarzes Meer;Adria|Oder|Ostsee
 T|GEO|1|fluss-dresden|Welcher Fluss fließt durch Dresden?|Elbe|Oder;Saale;Spree|Dresden|Elbe
 T|GEO|2|fluss-muenchen|Welcher Fluss fließt durch München?|Isar|Inn;Lech;Donau|München|Isar
-T|GEO|2|fluss-berlin|Welcher Fluss fließt durch das Berliner Regierungsviertel?|Spree|Elbe;Oder;Saale|Spree|Regierungsviertel
+T|GEO|2|fluss-berlin|Welcher Fluss fließt durch das Berliner Regierungsviertel?|Spree|Elbe;Oder;Saale|Spreebogen|Spree
 T|GEO|2|fluss-stuttgart|Welcher Fluss fließt durch Stuttgart?|Neckar|Main;Rhein;Donau|Stuttgart|Neckar
 T|GEO|3|fluss-hannover|Welcher Fluss fließt durch Hannover?|Leine|Weser;Aller;Ems|Hannover|Leine
 T|GEO|2|fluss-bremen|Welcher Fluss fließt durch Bremen?|Weser|Elbe;Ems;Aller|Bremen|Weser
-T|GEO|4|fluss-nuernberg|Welcher Fluss fließt durch die Altstadt von Nürnberg?|Pegnitz|Regnitz;Altmühl;Fränkische Saale|Pegnitz|Nürnberg
+T|GEO|4|fluss-nuernberg|Welcher Fluss fließt durch die Altstadt von Nürnberg?|Pegnitz|Regnitz;Altmühl;Fränkische Saale|Pegnitz (Fluss)|Nürnberg
 T|GEO|2|brocken-harz|In welchem Mittelgebirge liegt der Brocken?|Harz|Erzgebirge;Thüringer Wald;Rhön|Brocken|Harz
 T|GEO|2|feldberg-schwarzwald|Wie heißt der höchste Berg des Schwarzwalds?|Feldberg|Belchen;Kandel;Hornisgrinde|Feldberg (Schwarzwald)|höchste
-T|GEO|3|fichtelberg-erzgebirge|In welchem Gebirge liegt der Fichtelberg, der höchste Berg Sachsens?|Erzgebirge|Fichtelgebirge;Harz;Elbsandsteingebirge|Fichtelberg|Erzgebirge
+T|GEO|3|fichtelberg-erzgebirge|In welchem Gebirge liegt der Fichtelberg, der höchste Berg Sachsens?|Erzgebirge|Fichtelgebirge;Harz;Elbsandsteingebirge|Fichtelberg (Erzgebirge)|Erzgebirge
 T|GEO|3|arber-bayerischer-wald|Wie heißt der höchste Berg des Bayerischen Waldes?|Großer Arber|Großer Rachel;Lusen;Dreisessel|Großer Arber|höchste
 T|GEO|3|wasserkuppe-rhoen|Die Wasserkuppe ist der höchste Berg welches Mittelgebirges?|Rhön|Vogelsberg;Taunus;Spessart|Wasserkuppe|Rhön
 T|GEO|2|bodensee-anrainer|Welches dieser Länder grenzt nicht an den Bodensee?|Liechtenstein|Deutschland;Österreich;Schweiz|Bodensee|Österreich;Schweiz
@@ -46,7 +46,7 @@ T|GEO|1|groesstes-land|Welches ist das flächenmäßig größte Land der Erde?|R
 T|GEO|1|kleinster-staat|Welches ist der kleinste Staat der Erde?|Vatikanstadt|Monaco;San Marino;Liechtenstein|Vatikanstadt|kleinste
 T|GEO|3|kontinent-meiste-staaten|Auf welchem Kontinent liegen die meisten Staaten?|Afrika|Asien;Europa;Südamerika|Afrika|54
 T|GEO|3|aequator-kenia|Durch welches dieser Länder verläuft der Äquator?|Kenia|Ägypten;Nigeria;Südafrika|Äquator|Kenia
-T|GEO|1|groesste-insel|Welche ist die größte Insel der Erde?|Grönland|Neuguinea;Borneo;Madagaskar|Grönland|größte Insel
+T|GEO|1|groesste-insel|Welche ist die größte Insel der Erde?|Grönland|Neuguinea;Borneo;Madagaskar|Grönland|größten Insel der Erde
 T|GEO|2|baikalsee|Welcher ist der tiefste See der Erde?|Baikalsee|Tanganjikasee;Kaspisches Meer;Titicacasee|Baikalsee|tiefste
 T|GEO|2|strasse-von-gibraltar|Welche Meerenge trennt Spanien von Marokko?|Straße von Gibraltar|Bosporus;Ärmelkanal;Straße von Messina|Straße von Gibraltar|Marokko
 T|GEO|2|bosporus|An welcher Meerenge liegt Istanbul?|Bosporus|Dardanellen;Straße von Otranto;Straße von Hormus|Bosporus|Istanbul
@@ -57,19 +57,19 @@ T|GEO|2|zweitgroesste-stadt|Welche ist nach Berlin die zweitgrößte Stadt Deuts
 T|GEO|2|nord-und-ostsee|Welches Bundesland grenzt sowohl an die Nordsee als auch an die Ostsee?|Schleswig-Holstein|Niedersachsen;Mecklenburg-Vorpommern;Hamburg|Schleswig-Holstein|Nordsee;Ostsee
 T|GEO|4|niedersachsen-nachbarn|Welches Bundesland grenzt an die meisten anderen Bundesländer?|Niedersachsen|Bayern;Hessen;Thüringen|Niedersachsen|neun
 T|GEO|2|sylt-bundesland|In welchem Bundesland liegt die Insel Sylt?|Schleswig-Holstein|Niedersachsen;Hamburg;Mecklenburg-Vorpommern|Sylt|Schleswig-Holstein
-T|GEO|2|deutsches-eck|An welchem Ort fließen Rhein und Mosel zusammen?|Koblenz|Mainz;Bonn;Trier|Deutsches Eck|Koblenz
+T|GEO|2|deutsches-eck|An welchem Ort fließen Rhein und Mosel zusammen?|Koblenz|Mainz;Bonn;Trier|Koblenz|Deutschen Eck
 T|GEO|1|nord-ostsee-kanal|Welcher Kanal verbindet Nordsee und Ostsee?|Nord-Ostsee-Kanal|Mittellandkanal;Elbe-Lübeck-Kanal;Dortmund-Ems-Kanal|Nord-Ostsee-Kanal|Nordsee
 T|GEO|2|zugspitze-grenze|An welches Land grenzt Deutschland auf dem Gipfel der Zugspitze?|Österreich|Schweiz;Italien;Liechtenstein|Zugspitze|Österreich
 T|GEO|3|loreley-fluss|An welchem Fluss liegt der Loreley-Felsen?|Rhein|Mosel;Main;Neckar|Loreley|Rhein
 T|GEO|2|ostfriesische-inseln|Zu welcher Inselgruppe gehören Borkum, Norderney und Juist?|Ostfriesische Inseln|Nordfriesische Inseln;Westfriesische Inseln;Halligen|Ostfriesische Inseln|Norderney
 T|GEO|3|wattenmeer|Welches Gebiet an der Nordseeküste ist seit 2009 UNESCO-Weltnaturerbe?|Wattenmeer|Lüneburger Heide;Spreewald;Sächsische Schweiz|Wattenmeer (Nordsee)|Weltnaturerbe
 T|GEO|2|spreewald|Wie heißt die Landschaft in Brandenburg, die man auf Kähnen über Kanäle erkundet und die für Gurken bekannt ist?|Spreewald|Uckermark;Havelland;Prignitz|Spreewald|Gurke
-T|GEO|3|saechsische-schweiz|Wie heißt das Felsengebirge an der Elbe südöstlich von Dresden mit der Bastei?|Elbsandsteingebirge|Erzgebirge;Zittauer Gebirge;Fichtelgebirge|Bastei (Sächsische Schweiz)|Elbsandsteingebirge
+T|GEO|3|saechsische-schweiz|Zu welchem Gebirge gehört die Felsformation Bastei in der Sächsischen Schweiz?|Elbsandsteingebirge|Erzgebirge;Zittauer Gebirge;Fichtelgebirge|Elbsandsteingebirge|Bastei
 T|GEO|1|kontinent-aegypten|Auf welchem Kontinent liegt Ägypten zum größten Teil?|Afrika|Asien;Europa;Australien|Ägypten|Afrika
 T|GEO|2|amazonas-land|Durch welches Land fließt der größte Teil des Amazonas?|Brasilien|Peru;Kolumbien;Venezuela|Amazonas|Brasilien
 T|GEO|2|nil-muendung|In welches Meer mündet der Nil?|Mittelmeer|Rotes Meer;Indischer Ozean;Atlantischer Ozean|Nil|Mittelmeer
 T|GEO|3|anden|Wie heißt das längste Gebirge der Erde über dem Meeresspiegel?|Anden|Rocky Mountains;Himalaya;Ural|Anden|längste
-T|GEO|2|ural-grenze|Welches Gebirge gilt als Grenze zwischen Europa und Asien?|Ural|Kaukasus;Karpaten;Altai|Ural (Gebirge)|Europa
+T|GEO|2|ural-grenze|Welches Gebirge gilt als Grenze zwischen Europa und Asien?|Ural|Kaukasus;Karpaten;Altai|Ural|Europa und Asien
 T|GEO|2|kanaren|Zu welchem Land gehören die Kanarischen Inseln?|Spanien|Portugal;Marokko;Frankreich|Kanarische Inseln|Spanien
 T|GEO|2|mallorca-inselgruppe|Zu welcher Inselgruppe gehört Mallorca?|Balearen|Kanarische Inseln;Azoren;Kykladen|Mallorca|Balearen
 T|GEO|2|toskana-land|In welchem Land liegt die Toskana?|Italien|Frankreich;Spanien;Griechenland|Toskana|Italien

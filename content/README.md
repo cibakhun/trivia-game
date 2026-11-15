@@ -35,8 +35,8 @@ Die 40 Testfragen sind von Claude entworfen (`AI_ASSISTED`, `DRAFT`). Fakten und
 
 1. `pnpm content:wikidata:fetch` holt die Abfragen aus `tools/content/wikidata/queries/` und speichert je Abfrage `content/wikidata/<name>.json` (braucht Zugang zu `query.wikidata.org`; das Skript läuft auch allein mit `node tools/content/src/wikidata/fetch.ts`).
 2. `pnpm content:wikidata` erzeugt daraus die Entwürfe unter `questions/wikidata/`. Vorhandene Dateien bleiben unverändert (`--force` erzeugt sie neu), `--dry-run` prüft nur, `--report=DATEI` schreibt eine Übersicht zum Gegenlesen.
-3. Prüfen (ADR-072): `pnpm content:wikidata --dry-run --json=fragen.json` listet alle Fragen; `node tools/content/src/wikipedia/artikel-holen.ts` holt die Artikel zu ihren Wikidata-Nummern (Eingabe `[{"qid": "Q…"}]`, braucht Zugang zu Wikipedia); `python3 -I tools/content/wikidata/abgleich.py fragen.json tools/content/wikidata/freigabe.json bericht.tsv artikel.json.gz` gleicht ab und schreibt die Freigabeliste. Abweichungen im Bericht lesen und in `templates.ts` ausschließen oder mit dem Wert der deutschen Wikipedia setzen, dann wiederholen.
-4. `pnpm content:wikidata --force --freigabe=tools/content/wikidata/freigabe.json` schreibt die Dateien; die gelisteten sind freigegeben. Weicht eine Frage vom geprüften Wortlaut ab, bricht der Lauf ab.
+3. Prüfen (ADR-072): `pnpm content:wikidata --dry-run --json=fragen.json` listet alle Fragen; `node tools/content/src/wikipedia/artikel-holen.ts` holt die Artikel zu ihren Wikidata-Nummern (Eingabe `[{"qid": "Q…"}]`, braucht Zugang zu Wikipedia); `python3 -I tools/content/wikidata/abgleich.py fragen.json tools/content/wikidata/freigabe.json bericht.tsv artikel.json.gz` gleicht ab und schreibt die Freigabeliste. Abweichungen im Bericht lesen und in `templates.ts` unter `drop` der Vorlage mit Grund streichen oder mit dem Wert der deutschen Wikipedia setzen, dann wiederholen. `drop` wirkt erst nach der Auswahl: Die übrigen, schon geprüften Fragen bleiben dieselben. Ein Ausschluss im Auszug (`extract`) zieht dagegen neue Gegenstände nach, die wieder geprüft werden müssen.
+4. `pnpm content:wikidata --force --freigabe=tools/content/wikidata/freigabe.json` schreibt die Dateien; die gelisteten sind freigegeben. Weicht eine Frage vom geprüften Wortlaut ab, bricht der Lauf ab. Pfade in `--freigabe`, `--report` und `--json` gelten ab dem Ordner, aus dem `pnpm` aufgerufen wird.
 
 ## Redaktionsfragen (ADR-072)
 
@@ -44,7 +44,7 @@ Eigene Fragen von Claude für Themen ohne gute Wikidata-Daten (Bräuche, Geschic
 
 1. `python3 tools/content/redaktion/build.py titel titel.json` listet die Artikel, `node tools/content/src/wikipedia/artikel-holen.ts titel.json artikel.json.gz` holt sie.
 2. `python3 -I tools/content/redaktion/pruefen.py artikel.json.gz > bericht.txt` sucht Antwort und Prüfwörter im Artikel und zeigt den Beleg; was nicht wörtlich steht, liest Claude nach und entscheidet.
-3. Geprüfte Fragen kommen mit Fragetext und Antwort in `tools/content/redaktion/freigabe.json`; `python3 tools/content/redaktion/build.py write` schreibt `questions/redaktion/` neu.
+3. Geprüfte Fragen kommen mit Fragetext und Antwort in `tools/content/redaktion/freigabe.json`; `python3 tools/content/redaktion/build.py write` schreibt `questions/redaktion/` neu. Ändert sich danach Fragetext oder richtige Antwort, bricht `write` ab, bis die Frage erneut geprüft ist.
 
 Regeln beim Schreiben: nichts, was sich seit Mitte 2025 ändern konnte (laufende Rekorde, kommende Turniere), keine strittigen „Erfinder“ und „Ersten“, keine Frage verrät die Antwort einer anderen, keine Doppelungen mit den Wikidata-Vorlagen.
 

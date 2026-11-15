@@ -21,7 +21,7 @@ T|KUL|2|beethoven-sinfonien|Wie viele Sinfonien vollendete Ludwig van Beethoven?
 T|KUL|1|mozart-geburtsort|In welcher Stadt wurde Wolfgang Amadeus Mozart geboren?|Salzburg|Wien;Linz;Innsbruck|Wolfgang Amadeus Mozart|Salzburg
 T|KUL|2|bach-thomaskantor|In welcher Stadt war Johann Sebastian Bach Thomaskantor?|Leipzig|Dresden;Weimar;Eisenach|Thomaskantor|Leipzig
 T|KUL|2|weihnachtsoratorium|Wer komponierte das „Weihnachtsoratorium“, das 1734 erstmals erklang?|Johann Sebastian Bach|Georg Friedrich Händel;Georg Philipp Telemann;Joseph Haydn|Weihnachtsoratorium|Bach
-T|KUL|2|messias|Wer komponierte das Oratorium „Der Messias“?|Georg Friedrich Händel|Johann Sebastian Bach;Joseph Haydn;Henry Purcell|Der Messias (Händel)|Händel
+T|KUL|2|messias|Wer komponierte das Oratorium „Der Messias“?|Georg Friedrich Händel|Johann Sebastian Bach;Joseph Haydn;Henry Purcell|Messiah|Händel
 T|KUL|3|hymne-melodie|Wer komponierte die Melodie der deutschen Nationalhymne?|Joseph Haydn|Ludwig van Beethoven;Wolfgang Amadeus Mozart;Johannes Brahms|Das Lied der Deutschen|Haydn
 T|KUL|2|blaue-donau|Wer komponierte den Walzer „An der schönen blauen Donau“?|Johann Strauss (Sohn)|Franz Schubert;Joseph Lanner;Franz Lehár|An der schönen blauen Donau|Strauss
 T|KUL|2|bayreuth|In welcher Stadt finden jedes Jahr die Richard-Wagner-Festspiele statt?|Bayreuth|Salzburg;München;Weimar|Bayreuther Festspiele|Wagner

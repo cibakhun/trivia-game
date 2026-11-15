@@ -156,6 +156,30 @@ describe('Schätzfragen', () => {
     expect(questions.map((q) => q.question.key)).toEqual(['wd-land-einwohner-q31']);
   });
 
+  it('gestrichene Fakten (drop) fallen erst nach der Auswahl weg, die übrige Auswahl bleibt gleich', () => {
+    const rows = [
+      { item: 'Q31', label: 'Belgien', sitelinks: '300', value: '11825551', date: '2024-01-01T00:00:00Z' },
+      { item: 'Q39', label: 'Schweiz', sitelinks: '290', value: '9104063', date: '2025-01-01T00:00:00Z' },
+      { item: 'Q55', label: 'Niederlande', sitelinks: '280', value: '17942942', date: '2024-01-01T00:00:00Z' },
+    ];
+    const base = template('land-einwohner');
+    const keys = (t: Template): string[] =>
+      generateFromTemplate(t, snap('laender-einwohner', rows)).map((q) => q.question.key);
+    const all = keys({ ...base, drop: {} });
+    expect(all).toContain('wd-land-einwohner-q39');
+    const dropped = keys({ ...base, drop: { Q39: 'Test: Wert weicht ab' } });
+    expect(dropped).toEqual(all.filter((k) => k !== 'wd-land-einwohner-q39'));
+  });
+
+  it('Köln steht auf der Streichliste der Städte (Wikidata weicht von der Wikipedia ab)', () => {
+    const rows = [
+      { item: 'Q365', label: 'Köln', sitelinks: '250', value: '1084831', date: '2023-12-31T00:00:00Z' },
+      { item: 'Q1726', label: 'München', sitelinks: '200', value: '1512491', date: '2023-12-31T00:00:00Z' },
+    ];
+    const questions = generateFromTemplate(template('stadt-einwohner'), snap('staedte-einwohner-de', rows));
+    expect(questions.map((q) => q.question.key)).toEqual(['wd-stadt-einwohner-q1726']);
+  });
+
   it('Einwohner: neuester Stichtag, Stichtag steht in der Frage', () => {
     const rows = [
       { item: 'Q1726', label: 'München', sitelinks: '200', value: '1488202', date: '2022-12-31T00:00:00Z' },

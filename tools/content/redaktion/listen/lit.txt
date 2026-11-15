@@ -24,18 +24,18 @@ T|LIT|3|der-vorleser|Wer schrieb den Roman „Der Vorleser“?|Bernhard Schlink|
 T|LIT|3|vermessung-der-welt|Wer schrieb den Roman „Die Vermessung der Welt“?|Daniel Kehlmann|Patrick Süskind;Juli Zeh;Uwe Tellkamp|Die Vermessung der Welt|Kehlmann
 T|LIT|4|vermessung-forscher|Welche beiden Forscher stehen im Mittelpunkt von „Die Vermessung der Welt“?|Gauß und Humboldt|Kepler und Galilei;Darwin und Humboldt;Gauß und Leibniz|Die Vermessung der Welt|Humboldt
 T|LIT|1|winnetou-autor|Wer erfand die Figur Winnetou?|Karl May|Friedrich Gerstäcker;James Fenimore Cooper;Balduin Möllhausen|Winnetou|Karl May
-T|LIT|2|old-shatterhand|Wie heißt Winnetous weißer Blutsbruder?|Old Shatterhand|Old Surehand;Old Firehand;Sam Hawkens|Old Shatterhand|Winnetou
+T|LIT|2|old-shatterhand|Wie heißt Winnetous weißer Blutsbruder?|Old Shatterhand|Old Surehand;Old Firehand;Sam Hawkens|Old Shatterhand (Romanfigur)|Winnetou
 T|LIT|1|max-und-moritz|Wer schuf „Max und Moritz“?|Wilhelm Busch|Heinrich Hoffmann;Christian Morgenstern;Joachim Ringelnatz|Max und Moritz|Wilhelm Busch
 T|LIT|2|struwwelpeter|Wer schrieb den „Struwwelpeter“?|Heinrich Hoffmann|Wilhelm Busch;Hans Christian Andersen;Christian Morgenstern|Struwwelpeter|Heinrich Hoffmann
 T|LIT|3|brueder-grimm-vornamen|Wie hießen die Brüder Grimm, die die „Kinder- und Hausmärchen“ herausgaben, mit Vornamen?|Jacob und Wilhelm|Jacob und Ludwig;Wilhelm und Ludwig;Hans und Wilhelm|Brüder Grimm|Jacob
 T|LIT|2|emil-detektive|Wer schrieb „Emil und die Detektive“?|Erich Kästner|Michael Ende;Otfried Preußler;James Krüss|Emil und die Detektive|Kästner
-T|LIT|1|unendliche-geschichte|Wer schrieb „Die unendliche Geschichte“?|Michael Ende|Cornelia Funke;Erich Kästner;Otfried Preußler|Die unendliche Geschichte|Michael Ende
+T|LIT|1|unendliche-geschichte|Wer schrieb „Die unendliche Geschichte“?|Michael Ende|Cornelia Funke;Erich Kästner;Otfried Preußler|Die unendliche Geschichte (Roman)|Michael Ende
 T|LIT|3|momo-graue-herren|Wie heißen die Zeitdiebe in Michael Endes „Momo“?|Die grauen Herren|Die schwarzen Reiter;Die Schattenmänner;Die Zeitwächter|Momo (Roman)|grauen Herren
-T|LIT|2|hotzenplotz|Wer schrieb „Der Räuber Hotzenplotz“?|Otfried Preußler|Michael Ende;James Krüss;Paul Maar|Der Räuber Hotzenplotz|Preußler
+T|LIT|2|hotzenplotz|Wer schrieb „Der Räuber Hotzenplotz“?|Otfried Preußler|Michael Ende;James Krüss;Paul Maar|Räuber Hotzenplotz|Preußler
 T|LIT|3|krabat|Wer schrieb den Jugendroman „Krabat“?|Otfried Preußler|Michael Ende;Cornelia Funke;Wolfgang Herrndorf|Krabat (Roman)|Preußler
 T|LIT|3|sams|Wer schrieb die Bücher über „Das Sams“?|Paul Maar|Kirsten Boie;Otfried Preußler;Cornelia Funke|Paul Maar|Sams
-T|LIT|3|tintenherz|Wer schrieb „Tintenherz“?|Cornelia Funke|Kirsten Boie;Michael Ende;Andreas Steinhöfel|Tintenherz|Funke
-T|LIT|3|tschick|Wer schrieb den Jugendroman „Tschick“?|Wolfgang Herrndorf|Andreas Steinhöfel;Cornelia Funke;Daniel Kehlmann|Tschick|Herrndorf
+T|LIT|3|tintenherz|Wer schrieb „Tintenherz“?|Cornelia Funke|Kirsten Boie;Michael Ende;Andreas Steinhöfel|Tintenherz (Roman)|Funke
+T|LIT|3|tschick|Wer schrieb den Jugendroman „Tschick“?|Wolfgang Herrndorf|Andreas Steinhöfel;Cornelia Funke;Daniel Kehlmann|Tschick (Roman)|Herrndorf
 T|LIT|1|pippi-autorin|Wer schrieb die Bücher über Pippi Langstrumpf?|Astrid Lindgren|Selma Lagerlöf;Tove Jansson;Enid Blyton|Pippi Langstrumpf|Lindgren
 T|LIT|3|pippi-pferd|Wie heißt das Pferd von Pippi Langstrumpf?|Kleiner Onkel|Herr Nilsson;Fury;Jolly Jumper|Pippi Langstrumpf|Kleiner Onkel
 T|LIT|2|nils-holgersson|Wer schrieb „Die wunderbare Reise des kleinen Nils Holgersson mit den Wildgänsen“?|Selma Lagerlöf|Astrid Lindgren;Hans Christian Andersen;Johanna Spyri|Selma Lagerlöf|Nils Holgersson
@@ -49,5 +49,5 @@ T|LIT|2|poirot|Welcher belgische Detektiv stammt von Agatha Christie?|Hercule Po
 T|LIT|2|watson|Wie heißt der Freund und Chronist von Sherlock Holmes?|Dr. Watson|Dr. Jekyll;Inspector Lestrade;Professor Moriarty|Sherlock Holmes|Watson
 T|LIT|3|nemo-nautilus|Wie heißt das U-Boot von Kapitän Nemo bei Jules Verne?|Nautilus|Pequod;Hispaniola;Albatros|Zwanzigtausend Meilen unter dem Meer|Nautilus
 T|LIT|3|robinson-freitag|Wie nennt Robinson Crusoe seinen Gefährten auf der Insel?|Freitag|Sonntag;Montag;Samstag|Robinson Crusoe|Freitag
-T|LIT|2|pinocchio-nase|Was passiert mit Pinocchios Nase, wenn er lügt?|Sie wird länger|Sie wird rot;Sie schrumpft;Sie fällt ab|Die Abenteuer des Pinocchio|Nase
+T|LIT|2|pinocchio-nase|Was passiert mit Pinocchios Nase, wenn er lügt?|Sie wird länger|Sie wird rot;Sie schrumpft;Sie fällt ab|Pinocchio|Nase wächst
 T|LIT|1|odysseus-heimat|Auf welche Insel will Odysseus in Homers „Odyssee“ heimkehren?|Ithaka|Kreta;Rhodos;Zypern|Odyssee|Ithaka

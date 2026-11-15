@@ -1,4 +1,4 @@
-# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: rd-geo-deutsches-eck
 kind: TRIVIA
@@ -6,14 +6,23 @@ category: GEOGRAPHY
 difficulty: 2
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:redaktion
 sources:
-  - title: "Wikipedia: Deutsches Eck"
-    url: https://de.wikipedia.org/wiki/Deutsches_Eck
-    accessed: 2026-11-12
-reviews: []
+  - title: "Wikipedia: Koblenz"
+    url: https://de.wikipedia.org/wiki/Koblenz
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Belegt im Artikel „Koblenz“ der deutschen Wikipedia: „Koblenz liegt am Deutschen Eck, einer durch Mosel und Rhein gebildeten Mündungsspitze.“"
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -23,7 +32,7 @@ trivia:
   correct: c
 translations:
   de:
-    status: DRAFT
+    status: APPROVED
     prompt: "An welchem Ort fließen Rhein und Mosel zusammen?"
     options:
       a: "Mainz"

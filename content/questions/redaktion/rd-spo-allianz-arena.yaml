@@ -1,4 +1,4 @@
-# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: rd-spo-allianz-arena
 kind: TRIVIA
@@ -6,14 +6,23 @@ category: SPORTS
 difficulty: 1
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:redaktion
 sources:
   - title: "Wikipedia: Allianz Arena"
     url: https://de.wikipedia.org/wiki/Allianz_Arena
-    accessed: 2026-11-12
-reviews: []
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Allianz Arena“ und Prüfwort „FC Bayern“ im Artikel „Allianz Arena“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -23,8 +32,8 @@ trivia:
   correct: c
 translations:
   de:
-    status: DRAFT
-    prompt: "Wie heißt das Stadion des FC Bayern München?"
+    status: APPROVED
+    prompt: "Wie heißt das Heimstadion des FC Bayern?"
     options:
       a: "Olympiastadion"
       b: "Veltins-Arena"

@@ -11,7 +11,7 @@ T|GES|1|kanzler-der-einheit|Wer war Bundeskanzler zur Zeit der deutschen Wiederv
 T|GES|1|zweiter-weltkrieg-beginn|In welchem Jahr begann der Zweite Weltkrieg in Europa?|1939|1938;1940;1941|Zweiter Weltkrieg|1. September 1939
 T|GES|1|erster-weltkrieg-dauer|Von wann bis wann dauerte der Erste Weltkrieg?|1914 bis 1918|1912 bis 1915;1916 bis 1920;1910 bis 1914|Erster Weltkrieg|1914;1918
 T|GES|1|thesen-luther|Wer veröffentlichte 1517 die 95 Thesen gegen den Ablasshandel?|Martin Luther|Philipp Melanchthon;Johannes Calvin;Huldrych Zwingli|95 Thesen|Martin Luther
-T|GES|2|thesen-stadt|In welcher Stadt veröffentlichte Martin Luther 1517 seine 95 Thesen?|Wittenberg|Worms;Eisenach;Erfurt|95 Thesen|Wittenberg
+T|GES|2|thesen-stadt|In welcher Stadt wurden 1517 die 95 Thesen gegen den Ablasshandel veröffentlicht?|Wittenberg|Worms;Eisenach;Erfurt|95 Thesen|Wittenberg
 T|GES|3|varusschlacht-arminius|Unter welchem germanischen Anführer wurden die Römer im Jahr 9 n. Chr. in der Varusschlacht geschlagen?|Arminius|Vercingetorix;Marbod;Alarich|Varusschlacht|Arminius
 T|GES|2|kaiserkroenung-800|Wer wurde im Jahr 800 in Rom zum Kaiser gekrönt?|Karl der Große|Otto der Große;Ludwig der Fromme;Friedrich Barbarossa|Karl der Große|800
 T|GES|3|barbarossa|Welcher Kaiser trug den Beinamen „Barbarossa“?|Friedrich I.|Otto I.;Heinrich IV.;Karl IV.|Friedrich I. (HRR)|Barbarossa
@@ -30,7 +30,7 @@ T|GES|1|kolumbus-1492|Wer erreichte 1492 im Auftrag der spanischen Krone Amerika
 T|GES|2|franzoesische-revolution|In welchem Jahr begann die Französische Revolution?|1789|1776;1799;1815|Französische Revolution|1789
 T|GES|1|waterloo-napoleon|Wer wurde 1815 in der Schlacht bei Waterloo endgültig besiegt?|Napoleon Bonaparte|Ludwig XVI.;Napoleon III.;Karl X.|Schlacht bei Waterloo|Napoleon
 T|GES|1|gutenberg|Wer erfand in Mainz den Buchdruck mit beweglichen Metalllettern?|Johannes Gutenberg|Albrecht Dürer;Martin Luther;Nikolaus Kopernikus|Johannes Gutenberg|Mainz
-T|GES|2|weltwunder-erhalten|Welches der sieben Weltwunder der Antike ist bis heute erhalten?|Cheops-Pyramide|Koloss von Rhodos;Leuchtturm von Pharos;Hängende Gärten der Semiramis|Sieben Weltwunder der Antike|Cheops
+T|GES|2|weltwunder-erhalten|Welches der sieben Weltwunder der Antike ist bis heute erhalten?|Cheops-Pyramide|Koloss von Rhodos;Leuchtturm von Pharos;Hängende Gärten der Semiramis|Cheops-Pyramide|Sieben Weltwunder der Antike
 T|GES|1|erste-kanzlerin|Wer war die erste Bundeskanzlerin Deutschlands?|Angela Merkel|Ursula von der Leyen;Annegret Kramp-Karrenbauer;Hannelore Kraft|Angela Merkel|Bundeskanzlerin
 T|GES|2|euro-bargeld|In welchem Jahr wurde der Euro in Deutschland als Bargeld eingeführt?|2002|1999;2000;2001|Euro|2002
 T|GES|2|kanzler-schroeder|Wer war von 1998 bis 2005 Bundeskanzler?|Gerhard Schröder|Helmut Kohl;Angela Merkel;Joschka Fischer|Gerhard Schröder|1998
@@ -46,13 +46,13 @@ T|GES|2|hanse|Wie hieß der mittelalterliche Bund von Kaufleuten und Städten, z
 T|GES|3|hanse-koenigin|Welche Stadt wurde als „Königin der Hanse“ bezeichnet?|Lübeck|Hamburg;Bremen;Rostock|Lübeck|Königin der Hanse
 T|GES|2|kleopatra|Über welches Land herrschte Kleopatra VII.?|Ägypten|Persien;Griechenland;Karthago|Kleopatra VII.|Ägypten
 T|GES|3|magna-carta|In welchem Land wurde die Magna Carta besiegelt?|England|Frankreich;Schottland;Kastilien|Magna Carta|1215
-T|GES|2|kalter-krieg-mauer|Wie wurde die Grenze zwischen dem Ostblock und dem Westen im Kalten Krieg oft bildhaft genannt?|Eiserner Vorhang|Großer Graben;Rote Linie;Stählerne Mauer|Eiserner Vorhang (Politik)|Eiserner Vorhang
+T|GES|2|kalter-krieg-mauer|Wie wurde die Grenze zwischen dem Ostblock und dem Westen im Kalten Krieg oft bildhaft genannt?|Eiserner Vorhang|Großer Graben;Rote Linie;Stählerne Mauer|Eiserner Vorhang|Eiserner Vorhang
 T|GES|4|augsburger-religionsfriede|Welcher Vertrag erlaubte 1555 den Landesherren im Reich, zwischen katholischem und lutherischem Bekenntnis zu wählen?|Augsburger Religionsfriede|Westfälischer Friede;Wormser Konkordat;Goldene Bulle|Augsburger Religionsfrieden|1555
 T|GES|3|goldene-bulle|Welches Gesetz regelte ab 1356 die Wahl des römisch-deutschen Königs durch die Kurfürsten?|Goldene Bulle|Magna Carta;Wormser Konkordat;Sachsenspiegel|Goldene Bulle|1356
 T|GES|4|canossa|Wohin zog König Heinrich IV. 1077, um vom Papst die Lösung vom Kirchenbann zu erbitten?|Canossa|Avignon;Worms;Ravenna|Gang nach Canossa|1077
 T|GES|3|stauffenberg|Wer verübte am 20. Juli 1944 das Bombenattentat auf Adolf Hitler?|Claus Schenk Graf von Stauffenberg|Georg Elser;Wilhelm Canaris;Erwin Rommel|Attentat vom 20. Juli 1944|Stauffenberg
 T|GES|3|weisse-rose|Wie hieß die Widerstandsgruppe um Hans und Sophie Scholl?|Weiße Rose|Rote Kapelle;Kreisauer Kreis;Edelweißpiraten|Weiße Rose|Sophie Scholl
-T|GES|2|kriegsende-europa|An welchem Tag endete der Zweite Weltkrieg in Europa mit der bedingungslosen Kapitulation der Wehrmacht?|8. Mai 1945|1. September 1945;9. November 1945;6. August 1945|Ende des Zweiten Weltkrieges in Europa|8. Mai 1945
+T|GES|2|kriegsende-europa|An welchem Tag endete der Zweite Weltkrieg in Europa mit der bedingungslosen Kapitulation der Wehrmacht?|8. Mai 1945|1. September 1945;9. November 1945;6. August 1945|Bedingungslose Kapitulation der Wehrmacht|8. Mai 1945
 T|GES|3|nuernberger-prozesse|In welcher Stadt wurde ab 1945 den Hauptkriegsverbrechern des NS-Regimes der Prozess gemacht?|Nürnberg|München;Berlin;Frankfurt am Main|Nürnberger Prozesse|Nürnberg
 T|GES|2|ddr-gruendung|In welchem Jahr wurde die DDR gegründet?|1949|1945;1953;1961|Deutsche Demokratische Republik|7. Oktober 1949
 T|GES|3|montagsdemonstrationen|In welcher Stadt begannen 1989 die Montagsdemonstrationen gegen die DDR-Führung?|Leipzig|Dresden;Ost-Berlin;Rostock|Montagsdemonstrationen 1989/1990 in der DDR|Leipzig

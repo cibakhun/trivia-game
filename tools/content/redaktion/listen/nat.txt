@@ -2,9 +2,9 @@
 T|NAT|1|merkur-sonne|Welcher Planet ist der Sonne am nächsten?|Merkur|Venus;Mars;Erde|Merkur (Planet)|sonnennächste
 T|NAT|1|jupiter-groesster|Welcher ist der größte Planet unseres Sonnensystems?|Jupiter|Saturn;Neptun;Uranus|Jupiter (Planet)|größte
 T|NAT|1|roter-planet|Welcher Planet wird „der Rote Planet“ genannt?|Mars|Venus;Jupiter;Merkur|Mars (Planet)|Roter Planet
-T|NAT|3|venus-heissester|Welcher Planet ist der heißeste unseres Sonnensystems?|Venus|Merkur;Mars;Jupiter|Venus (Planet)|heißeste
+T|NAT|3|venus-heissester|Welcher Planet unseres Sonnensystems hat die heißeste Oberfläche?|Venus|Merkur;Mars;Jupiter|Venus (Planet)|464 °C
 T|NAT|1|planeten-zahl|Wie viele Planeten hat unser Sonnensystem?|8|7;9;10|Sonnensystem|acht
-T|NAT|3|pluto-2006|In welchem Jahr wurde Pluto der Status als Planet aberkannt?|2006|1999;2010;2015|Pluto (Zwergplanet)|2006
+T|NAT|3|pluto-2006|In welchem Jahr wurde Pluto der Status als Planet aberkannt?|2006|1999;2010;2015|Pluto|24. August 2006
 T|NAT|2|licht-sonne-erde|Wie lange braucht das Licht von der Sonne bis zur Erde ungefähr?|8 Minuten|8 Sekunden;1 Stunde;1 Tag|Sonne|Minuten
 T|NAT|2|lichtgeschwindigkeit|Wie schnell ist Licht im Vakuum ungefähr?|300.000 km pro Sekunde|30.000 km pro Sekunde;150.000 km pro Sekunde;3.000.000 km pro Sekunde|Lichtgeschwindigkeit|299.792
 T|NAT|1|milchstrasse|Wie heißt die Galaxie, zu der unser Sonnensystem gehört?|Milchstraße|Andromedagalaxie;Große Magellansche Wolke;Sombrerogalaxie|Milchstraße|Sonnensystem
@@ -41,7 +41,7 @@ T|NAT|2|knochen-zahl|Wie viele Knochen hat ein erwachsener Mensch ungefähr?|206
 T|NAT|2|oberschenkelknochen|Welcher ist der längste Knochen des Menschen?|Oberschenkelknochen|Schienbein;Oberarmknochen;Wadenbein|Oberschenkelknochen|längste
 T|NAT|3|steigbuegel|Welcher ist der kleinste Knochen des Menschen?|Steigbügel|Hammer;Amboss;Kniescheibe|Steigbügel (Anatomie)|kleinste
 T|NAT|2|haut-organ|Welches ist das größte Organ des Menschen?|Haut|Leber;Lunge;Darm|Haut|größte
-T|NAT|2|zaehne-erwachsen|Wie viele Zähne hat das vollständige Gebiss eines Erwachsenen mit Weisheitszähnen?|32|28;30;36|Gebiss des Menschen|32
+T|NAT|2|zaehne-erwachsen|Wie viele Zähne hat das vollständige Gebiss eines Erwachsenen mit Weisheitszähnen?|32|28;30;36|Zahn|32 bleibende Zähne
 T|NAT|3|universalspender|Welche Blutgruppe gilt als Universalspender für rote Blutkörperchen?|0 negativ|AB positiv;A negativ;B positiv|Blutgruppe|0
 T|NAT|2|insulin|Welches Organ bildet das Hormon Insulin?|Bauchspeicheldrüse|Leber;Niere;Schilddrüse|Insulin|Bauchspeicheldrüse
 T|NAT|2|vitamin-d|Welches Vitamin bildet der Körper mithilfe von Sonnenlicht in der Haut?|Vitamin D|Vitamin C;Vitamin A;Vitamin B12|Vitamin D|Haut
@@ -53,4 +53,4 @@ T|NAT|2|seismologie|Wie heißt die Wissenschaft von den Erdbeben?|Seismologie|Vu
 E|NAT|3|mond-entfernung|Wie weit ist der Mond im Mittel von der Erde entfernt (in Kilometern)?|384400|km|Kilometer|1000|10000000|LOG|0.3|Mond|384.400
 E|NAT|4|sonne-temperatur|Wie heiß ist die sichtbare Oberfläche der Sonne ungefähr (in Grad Celsius)?|5500|celsius|Grad Celsius|100|100000|LOG|0.3|Sonne|5778
 E|GEO|3|everest-erstbesteigung|In welchem Jahr wurde der Mount Everest zum ersten Mal bestiegen?|1953|year|Jahr|1800|2026|LINEAR|15|Mount Everest|1953
-E|NAT|3|erde-alter|Wie alt ist die Erde ungefähr (in Millionen Jahren)?|4600|million_years|Millionen Jahre|1|100000|LOG|0.3|Erde|4,6
+E|NAT|3|erde-alter|Wie alt ist die Erde ungefähr (in Millionen Jahren)?|4540|million_years|Millionen Jahre|1|100000|LOG|0.3|Erde|4,54 Milliarden Jahre

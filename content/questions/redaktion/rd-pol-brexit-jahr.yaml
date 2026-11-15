@@ -1,4 +1,4 @@
-# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; Fakten gegen die genannte Quelle geprüft.
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: rd-pol-brexit-jahr
 kind: TRIVIA
@@ -6,14 +6,23 @@ category: POLITICS_SOCIETY
 difficulty: 2
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:redaktion
 sources:
   - title: "Wikipedia: Brexit"
     url: https://de.wikipedia.org/wiki/Brexit
-    accessed: 2026-11-12
-reviews: []
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „2020“ und Prüfwort „31. Januar 2020“ im Artikel „Brexit“ der deutschen Wikipedia (Weiterleitung auf „EU-Austritt des Vereinigten Königreichs“) gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -23,7 +32,7 @@ trivia:
   correct: a
 translations:
   de:
-    status: DRAFT
+    status: APPROVED
     prompt: "In welchem Jahr trat das Vereinigte Königreich aus der Europäischen Union aus?"
     options:
       a: "2020"

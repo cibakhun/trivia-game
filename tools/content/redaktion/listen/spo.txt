@@ -15,7 +15,7 @@ T|SPO|2|bundesliga-start|In welchem Jahr startete die Fußball-Bundesliga?|1963|
 T|SPO|1|bundesliga-vereine|Wie viele Vereine spielen in der Fußball-Bundesliga?|18|16;20;22|Fußball-Bundesliga|18
 T|SPO|1|rekordmeister|Welcher Verein ist deutscher Rekordmeister im Fußball der Männer?|FC Bayern München|Borussia Dortmund;1. FC Nürnberg;FC Schalke 04|FC Bayern München|Rekordmeister
 T|SPO|2|bundesliga-rekordtorschuetze|Welcher Spieler erzielte die meisten Tore in der Geschichte der Fußball-Bundesliga?|Gerd Müller|Robert Lewandowski;Klaus Fischer;Jupp Heynckes|Gerd Müller|365
-T|SPO|1|allianz-arena|Wie heißt das Stadion des FC Bayern München?|Allianz Arena|Olympiastadion;Signal Iduna Park;Veltins-Arena|Allianz Arena|FC Bayern
+T|SPO|1|allianz-arena|Wie heißt das Heimstadion des FC Bayern?|Allianz Arena|Olympiastadion;Signal Iduna Park;Veltins-Arena|Allianz Arena|FC Bayern
 T|SPO|3|die-knappen|Welcher Verein trägt den Spitznamen „Die Knappen“?|FC Schalke 04|Borussia Dortmund;VfL Bochum;Rot-Weiss Essen|FC Schalke 04|Knappen
 T|SPO|3|die-fohlen|Welcher Verein wird „Die Fohlen“ genannt?|Borussia Mönchengladbach|Eintracht Frankfurt;Hannover 96;1. FC Köln|Borussia Mönchengladbach|Fohlen
 T|SPO|2|titan-kahn|Welcher deutsche Torwart wurde „Der Titan“ genannt?|Oliver Kahn|Jens Lehmann;Manuel Neuer;Sepp Maier|Oliver Kahn|Titan
@@ -28,7 +28,7 @@ T|SPO|2|volleyball-spieler|Wie viele Spieler einer Mannschaft stehen beim Volley
 T|SPO|2|basketball-spieler|Wie viele Spieler einer Mannschaft stehen beim Basketball gleichzeitig auf dem Feld?|5|4;6;7|Basketball|fünf
 T|SPO|3|basketball-korbhoehe|In welcher Höhe hängt ein Basketballkorb?|3,05 Meter|2,85 Meter;3,25 Meter;3,50 Meter|Basketball|3,05
 T|SPO|2|eishockey-drittel|In wie viele Spielabschnitte ist ein Eishockeyspiel eingeteilt?|3|2;4;5|Eishockey|Drittel
-T|SPO|3|touchdown-punkte|Wie viele Punkte bringt ein Touchdown im American Football?|6|3;5;7|Touchdown|sechs
+T|SPO|3|touchdown-punkte|Wie viele Punkte bringt ein Touchdown im American Football?|6|3;5;7|Touchdown (Sport)|sechs Punkten
 T|SPO|3|tischtennis-satz|Bis zu wie vielen Punkten wird ein Satz im Tischtennis gespielt?|11|15;20;21|Tischtennis|11
 T|SPO|2|wimbledon-rasen|Welches Grand-Slam-Turnier im Tennis wird auf Rasen gespielt?|Wimbledon|French Open;US Open;Australian Open|Wimbledon Championships|Rasen
 T|SPO|2|french-open-belag|Auf welchem Belag werden die French Open gespielt?|Sand|Rasen;Hartplatz;Teppich|French Open|Sand
@@ -54,7 +54,7 @@ T|SPO|2|katarina-witt|Welche Eiskunstläuferin aus der DDR gewann 1984 und 1988 
 T|SPO|2|tour-gelbes-trikot|Welche Farbe hat das Trikot des Gesamtführenden der Tour de France?|Gelb|Grün;Rosa;Weiß|Tour de France|Gelbe Trikot
 T|SPO|3|tour-bergtrikot|Welches Trikot trägt der beste Bergfahrer der Tour de France?|Weiß mit roten Punkten|Grün;Gelb;Rosa|Tour de France|gepunktet
 T|SPO|2|ullrich-1997|Welcher Deutsche gewann 1997 die Tour de France?|Jan Ullrich|Erik Zabel;Andreas Klöden;Jens Voigt|Jan Ullrich|1997
-T|SPO|2|golf-loecher|Wie viele Löcher hat ein regulärer Golfplatz?|18|9;12;24|Golf|18
+T|SPO|2|golf-loecher|Über wie viele Löcher wird eine komplette Golfrunde regulär gespielt?|18|12;16;24|Golfplatz|18 Löcher
 T|SPO|2|darts-501|Mit wie vielen Punkten beginnt jeder Spieler ein Leg im üblichen Darts-Spiel?|501|301;401;601|Darts|501
 T|SPO|2|darts-180|Wie viele Punkte kann man mit drei Darts höchstens erzielen?|180|150;171;200|Darts|180
 T|SPO|3|snooker-schwarz|Welche Farbe hat beim Snooker die Kugel mit dem höchsten Wert?|Schwarz|Pink;Blau;Grün|Snooker|Schwarz
