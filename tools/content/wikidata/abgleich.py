@@ -11,7 +11,7 @@ Fragetext und falsche Antworten liest Claude vorher selbst (Notiz `lang`).
 """
 import datetime, gzip, json, re, sys, unicodedata
 
-fragen = json.load(open(sys.argv[1]))
+fragen = json.load(open(sys.argv[1], encoding='utf-8'))
 out_freigabe, out_bericht = sys.argv[2], sys.argv[3]
 pages, tq = {}, {}
 for f in sys.argv[4:]:
@@ -20,6 +20,8 @@ for f in sys.argv[4:]:
         if 'extract' in p or t not in pages:
             pages[t] = p
     tq.update({k: v for k, v in d.get('titleByQid', {}).items() if v})
+# Artikel, die über ihren Titel geholt wurden, kennen ihre Wikidata-Nummer selbst
+by_qid = {p['qid']: t for t, p in pages.items() if p.get('qid') and 'extract' in p}
 
 DATE = datetime.date.today().isoformat()
 LANG = ('Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, '
@@ -184,6 +186,8 @@ def check_other(q, p, title):
 freigabe, bericht = {}, []
 for q in fragen:
     title = tq.get(q['qid'])
+    if 'extract' not in pages.get(title or '', {}):
+        title = by_qid.get(q['qid'], title)
     p = pages.get(title) if title else None
     if not p or 'extract' not in p:
         bericht.append(('FEHLT', q, title or '-', 'Artikel nicht abgerufen'))
@@ -197,8 +201,8 @@ for q in fragen:
         freigabe[q['key']] = {'date': DATE, 'fact': note, 'lang': LANG_EST if q.get('unit') else LANG,
                               'prompt': q['prompt'], 'answer': q['answer']}
 
-json.dump(freigabe, open(out_freigabe, 'w'), ensure_ascii=False, indent=1, sort_keys=True)
-with open(out_bericht, 'w') as fh:
+json.dump(freigabe, open(out_freigabe, 'w', encoding='utf-8'), ensure_ascii=False, indent=1, sort_keys=True)
+with open(out_bericht, 'w', encoding='utf-8') as fh:
     for st, q, title, note in bericht:
         fh.write(f"{st}\t{q['template']}\t{q['key']}\t{q['prompt']}\t{q['answer']}\t{note}\n")
 import collections

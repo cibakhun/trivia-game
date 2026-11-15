@@ -40,6 +40,7 @@ def answer_found(text, answer):
     words = [w for w in re.findall(r"[\wäöüß.'-]+", norm(answer)) if len(w) >= 4]
     return bool(words) and all(find(text, w) >= 0 for w in words)
 
+sys.stdout.reconfigure(encoding='utf-8')  # Windows schreibt sonst in der Codepage der Konsole
 pages = {}
 for f in sys.argv[1:]:
     data = json.loads(gzip.open(f).read())
