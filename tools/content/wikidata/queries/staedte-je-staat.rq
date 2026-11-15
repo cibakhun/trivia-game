@@ -1,0 +1,13 @@
+# Bekannte Großstädte je Staat: falsche Antworten für die Hauptstadt-Frage („Kanada: Ottawa,
+# Toronto, Montreal, Vancouver“). Bewusst schlicht, weil umfangreichere Fassungen (mehr Klassen,
+# Prüfung von Staat und Hauptstadt in der Abfrage) zweimal in die Zeitgrenze liefen: die
+# Hauptstadt fällt in der Vorlage als richtige Antwort weg, Städte mit mehreren Staaten
+# (umstrittene Gebiete) und Staaten ohne Hauptstadtfrage sortiert die Vorlage aus.
+SELECT ?country ?item ?label ?sitelinks WHERE {
+  ?item wdt:P31 wd:Q1549591;
+        wikibase:sitelinks ?sitelinks.
+  FILTER(?sitelinks >= 60)
+  ?item wdt:P17 ?country.
+  ?item rdfs:label ?label.
+  FILTER(LANG(?label) = "de")
+}

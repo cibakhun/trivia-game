@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-mondscheinsonate
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Klaviersonate Nr. 14 (Beethoven)"
+    url: https://de.wikipedia.org/wiki/Klaviersonate_Nr._14_(Beethoven)
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Ludwig van Beethoven“ und Prüfwort „Mondscheinsonate“ im Artikel „Klaviersonate Nr. 14 (Beethoven)“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wer komponierte die „Mondscheinsonate“?"
+    options:
+      a: "Wolfgang Amadeus Mozart"
+      b: "Frédéric Chopin"
+      c: "Ludwig van Beethoven"
+      d: "Franz Schubert"

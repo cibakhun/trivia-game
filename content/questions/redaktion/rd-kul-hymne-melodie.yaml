@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-hymne-melodie
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Das Lied der Deutschen"
+    url: https://de.wikipedia.org/wiki/Das_Lied_der_Deutschen
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Joseph Haydn“ und Prüfwort „Haydn“ im Artikel „Das Lied der Deutschen“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wer komponierte die Melodie der deutschen Nationalhymne?"
+    options:
+      a: "Johannes Brahms"
+      b: "Joseph Haydn"
+      c: "Ludwig van Beethoven"
+      d: "Wolfgang Amadeus Mozart"

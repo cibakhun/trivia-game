@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-land-einwohner-q769
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:land-einwohner
+sources:
+  - title: "Wikidata: Grenada (Q769)"
+    url: https://www.wikidata.org/wiki/Q769
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Wert aus Wikidata mit dem Artikel „Grenada“ der deutschen Wikipedia abgeglichen (Infobox: 112.579 <small>(187.) (2019; Schätzung)</small>; Abweichung 1.5 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "114299"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1000"
+  input_max: "2000000000"
+  scale_type: LOG
+  scale: 0.4
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie viele Menschen lebten im Jahr 2023 in Grenada?
+    unit_label: Einwohner

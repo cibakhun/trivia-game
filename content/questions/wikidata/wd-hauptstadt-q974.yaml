@@ -1,5 +1,5 @@
-# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
-# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: wd-hauptstadt-q974
 kind: TRIVIA
@@ -7,7 +7,7 @@ category: GEOGRAPHY
 difficulty: 3
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:wikidata
   - vorlage:hauptstadt
@@ -15,7 +15,16 @@ sources:
   - title: "Wikidata: Demokratische Republik Kongo (Q974)"
     url: https://www.wikidata.org/wiki/Q974
     accessed: 2026-11-11
-reviews: []
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Hauptstadt aus Wikidata mit dem Artikel „Demokratische Republik Kongo“ der deutschen Wikipedia abgeglichen (Infobox: Kinshasa)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -25,10 +34,10 @@ trivia:
   correct: b
 translations:
   de:
-    status: DRAFT
+    status: APPROVED
     prompt: Wie heißt die Hauptstadt der Demokratischen Republik Kongo?
     options:
-      a: Tripolis
+      a: Kisangani
       b: Kinshasa
-      c: Accra
-      d: Tunis
+      c: Lubumbashi
+      d: Tripolis

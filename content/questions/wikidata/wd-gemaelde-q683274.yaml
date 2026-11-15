@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-gemaelde-q683274
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:gemaelde
+sources:
+  - title: "Wikidata: Bal du moulin de la Galette (Q683274)"
+    url: https://www.wikidata.org/wiki/Q683274
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Maler aus Wikidata mit dem Artikel „Bal du moulin de la Galette“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: Wer malte das Gemälde „Bal du moulin de la Galette“?
+    options:
+      a: Ilja Repin
+      b: Pierre-Auguste Renoir
+      c: Eugène Delacroix
+      d: Gustav Klimt

@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-lindenberg-atlantic
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Udo Lindenberg"
+    url: https://de.wikipedia.org/wiki/Udo_Lindenberg
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Hotel Atlantic“ und Prüfwort „Atlantic“ im Artikel „Udo Lindenberg“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: APPROVED
+    prompt: "In welchem Hamburger Hotel lebt Udo Lindenberg seit vielen Jahren?"
+    options:
+      a: "Hotel Reichshof"
+      b: "Hotel Louis C. Jacob"
+      c: "Hotel Atlantic"
+      d: "Hotel Vier Jahreszeiten"

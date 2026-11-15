@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-tec-siemens-dynamo
+kind: TRIVIA
+category: TECHNOLOGY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Werner von Siemens"
+    url: https://de.wikipedia.org/wiki/Werner_von_Siemens
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Werner von Siemens“ und Prüfwort „dynamoelektrisch“ im Artikel „Werner von Siemens“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: "Welcher Unternehmer entdeckte 1866 das dynamoelektrische Prinzip?"
+    options:
+      a: "Emil Rathenau"
+      b: "Werner von Siemens"
+      c: "Robert Bosch"
+      d: "Georg Simon Ohm"

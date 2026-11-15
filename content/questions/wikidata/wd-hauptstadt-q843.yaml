@@ -1,13 +1,13 @@
-# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
-# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: wd-hauptstadt-q843
 kind: TRIVIA
 category: GEOGRAPHY
-difficulty: 3
+difficulty: 2
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:wikidata
   - vorlage:hauptstadt
@@ -15,7 +15,16 @@ sources:
   - title: "Wikidata: Pakistan (Q843)"
     url: https://www.wikidata.org/wiki/Q843
     accessed: 2026-11-11
-reviews: []
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Hauptstadt aus Wikidata mit dem Artikel „Pakistan“ der deutschen Wikipedia abgeglichen (Infobox: Islamabad)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -25,10 +34,10 @@ trivia:
   correct: c
 translations:
   de:
-    status: DRAFT
+    status: APPROVED
     prompt: Wie heißt die Hauptstadt von Pakistan?
     options:
-      a: Jerewan
-      b: Baku
+      a: Karatschi
+      b: Lahore
       c: Islamabad
-      d: Seoul
+      d: Bangkok
