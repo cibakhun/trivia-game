@@ -65,6 +65,9 @@ async function exists(file: string): Promise<boolean> {
   );
 }
 
+/** Dateiangaben gelten ab dem Ordner, in dem `pnpm` aufgerufen wurde (sonst ab `tools/content`). */
+const fromCaller = (file: string): string => path.resolve(process.env['INIT_CWD'] ?? process.cwd(), file);
+
 async function main(): Promise<number> {
   const args = process.argv.slice(2);
   const contentDir = path.resolve(args.find((a) => !a.startsWith('--')) ?? 'content');
@@ -73,7 +76,7 @@ async function main(): Promise<number> {
   const reportPath = args.find((a) => a.startsWith('--report='))?.slice('--report='.length);
   const jsonPath = args.find((a) => a.startsWith('--json='))?.slice('--json='.length);
   const approvalPath = args.find((a) => a.startsWith('--freigabe='))?.slice('--freigabe='.length);
-  const approvals: ApprovalList = approvalPath ? await readApprovalList(path.resolve(approvalPath)) : {};
+  const approvals: ApprovalList = approvalPath ? await readApprovalList(fromCaller(approvalPath)) : {};
 
   const snapshotDir = path.join(contentDir, 'wikidata');
   const outDir = path.join(contentDir, 'questions', 'wikidata');
@@ -152,7 +155,7 @@ async function main(): Promise<number> {
   const unknown = Object.keys(approvals).filter((key) => !generated.some((g) => g.question.key === key));
   for (const key of unknown) console.log(`FEHLER Freigabe für ${key}: Frage wird nicht mehr erzeugt`);
   errors += unknown.length;
-  if (reportPath) await writeFile(path.resolve(reportPath), report(generated), 'utf8');
+  if (reportPath) await writeFile(fromCaller(reportPath), report(generated), 'utf8');
   if (jsonPath) {
     const list = generated.map(({ template, question }) => ({
       template,
@@ -162,12 +165,12 @@ async function main(): Promise<number> {
       answer: answerOf(question),
       unit: question.estimate?.answer_unit ?? null,
     }));
-    await writeFile(path.resolve(jsonPath), JSON.stringify(list, null, 1) + '\n', 'utf8');
+    await writeFile(fromCaller(jsonPath), JSON.stringify(list, null, 1) + '\n', 'utf8');
   }
 
   const estimates = generated.filter((g) => g.question.kind === 'ESTIMATE').length;
   console.log(
-    `\n${generated.length} Entwürfe (${estimates} Schätzung, ${generated.length - estimates} Auswahl): ` +
+    `\n${generated.length} Fragen (${estimates} Schätzung, ${generated.length - estimates} Auswahl): ` +
       `${written} geschrieben, ${kept} vorhanden und unverändert, ${approved} freigegeben, ${errors} Prüffehler` +
       (missing > 0 ? `, ${missing} ${missing === 1 ? 'Datenstand fehlt' : 'Datenstände fehlen'}` : ''),
   );

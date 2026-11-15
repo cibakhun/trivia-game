@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-olympia-q9642
+kind: TRIVIA
+category: SPORTS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:olympia
+sources:
+  - title: "Wikidata: Olympischen Winterspiele 1968 (Q9642)"
+    url: https://www.wikidata.org/wiki/Q9642
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Austragungsort aus Wikidata mit dem Artikel „Olympische Winterspiele 1968“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: APPROVED
+    prompt: In welcher Stadt fanden die Olympischen Winterspiele 1968 statt?
+    options:
+      a: Grenoble
+      b: Cortina d’Ampezzo
+      c: Lake Placid
+      d: Calgary

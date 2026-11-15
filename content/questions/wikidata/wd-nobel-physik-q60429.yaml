@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-nobel-physik-q60429
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:nobel
+sources:
+  - title: "Wikidata: C. V. Raman (Q60429)"
+    url: https://www.wikidata.org/wiki/Q60429
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Jahr des Nobelpreises aus Wikidata mit dem Artikel „C. V. Raman“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "1930"
+  answer_precision: 0
+  answer_unit: year
+  input_min: "1901"
+  input_max: "2026"
+  scale_type: LINEAR
+  scale: 15
+translations:
+  de:
+    status: APPROVED
+    prompt: Für welches Jahr erhielt C. V. Raman den Nobelpreis für Physik?
+    unit_label: Jahr

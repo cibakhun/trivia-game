@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-12); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-bundesland-flaeche-q1194
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:bundesland-flaeche
+sources:
+  - title: "Wikidata: Schleswig-Holstein (Q1194)"
+    url: https://www.wikidata.org/wiki/Q1194
+    accessed: 2026-11-12
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Wert aus Wikidata mit dem Artikel „Schleswig-Holstein“ der deutschen Wikipedia abgeglichen (Infobox: 15.799,65; Abweichung 0.0 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "15804"
+  answer_precision: 0
+  answer_unit: km2
+  input_min: "1"
+  input_max: "1000000"
+  scale_type: LOG
+  scale: 0.4
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie groß ist Schleswig-Holstein (in Quadratkilometern)?
+    unit_label: Quadratkilometer

@@ -242,6 +242,8 @@ const RIVER_LENGTHS_DE: Readonly<Record<string, number>> = {
   Q45403: 3100, // Brahmaputra (2900)
   Q131792: 2010, // Orinoco (2140)
   Q2251: 1953, // Columbia River (2000)
+  Q181475: 2160, // Oranje (2200)
+  Q153945: 220, // Lippe (255)
 };
 
 const flussLaenge: EstimateTemplate = {
@@ -263,6 +265,7 @@ const flussLaenge: EstimateTemplate = {
     ),
   prompt: (f) => `Wie lang ist ${nominative(f.label, 'der Fluss')} (in Kilometern)?`,
   difficulty: familiar,
+  drop: { Q127892: 'Paraná: 4880 km mit dem Quellfluss Paranaíba, in der deutschen Wikipedia 3200 km' },
 };
 
 /** Staaten, deren Fläche je nach Zählweise stark schwankt (Wikidata gegen deutsche Wikipedia). */
@@ -311,6 +314,7 @@ const landFlaeche: EstimateTemplate = {
   scale: 0.4,
   extract: (rows) => singleValueFacts(rows, AREA_EXCLUSIONS, (m2) => m2 / 1_000_000, { rename: countryName }),
   prompt: (f) => `Wie groß ist die Fläche ${ofCountry(f.label)} (in Quadratkilometern)?`,
+  drop: { Q398: 'Bahrain: wächst durch Landgewinnung (750 oder 787 km²)' },
 };
 
 const landEinwohner: EstimateTemplate = {
@@ -329,6 +333,20 @@ const landEinwohner: EstimateTemplate = {
   // nur Zahlen ab 2020: ältere Stände („im Jahr 2017“) wirken in einer neuen Frage veraltet
   extract: (rows) => latestValueFacts(rows, POPULATION_EXCLUSIONS, countryName).filter((f) => (f.asOf ?? 0) >= 2020),
   prompt: (f) => `Wie viele Menschen lebten ${f.context ?? ''} ${inCountry(f.label)}?`.replace(/ {2,}/g, ' '),
+  // Abgleich 2026-11-15: mehr als 2,5 % neben der deutschen Wikipedia, meist anderer Stichtag
+  drop: {
+    Q796: 'Irak: 43,5 Mio. (2026) gegen 47 Mio. (2025)',
+    Q657: 'Tschad: 19,3 Mio. (2023) gegen 21,0 Mio. (2025)',
+    Q945: 'Togo: 12,4 Mio. (2026) gegen 8,6 Mio. (2025)',
+    Q929: 'Zentralafrikanische Republik: 5,15 Mio. (2023) gegen 5,51 Mio. (2025)',
+    Q874: 'Turkmenistan: 6,12 Mio. (2021) gegen 7,06 Mio. (Zensus 2022)',
+    Q1014: 'Liberia: 5,21 Mio. (2021) gegen 5,73 Mio. (2025)',
+    Q574: 'Osttimor: 1,40 Mio. (2024) gegen 1,34 Mio. (Zensus 2022)',
+    Q970: 'Komoren: 900.000 (2026) gegen 870.000 (2020)',
+    Q778: 'Bahamas: 399.440 (2023) gegen 410.000 (2022)',
+    Q244: 'Barbados: 303.431 (2023) gegen 282.000 (2022)',
+    Q760: 'St. Lucia: 167.591 (2023) gegen 188.000',
+  },
 };
 
 const stadtEinwohner: EstimateTemplate = {
@@ -346,6 +364,7 @@ const stadtEinwohner: EstimateTemplate = {
   scale: 0.3,
   extract: (rows) => latestValueFacts(rows, {}),
   prompt: (f) => `Wie viele Einwohner hatte ${f.label} ${f.context ?? ''}?`.replace(/ {2,}/g, ' '),
+  drop: { Q365: 'Köln: kein Wert im Artikel höchstens 1 % neben Wikidata (amtliche Zahl gegen Melderegister)' },
 };
 
 const bauwerkHoehe: EstimateTemplate = {
@@ -641,6 +660,7 @@ const NOT_A_FALSE_CAPITAL: ReadonlySet<string> = new Set([
   'Colombo', // Sri Lanka: Hauptstadt und Regierungssitz getrennt
   'Sri Jayawardenepura Kotte',
   'Tel Aviv-Jaffa',
+  'Bujumbura', // bis 2019 Hauptstadt Burundis, in vielen Nachschlagewerken noch so genannt
 ]);
 
 const hauptstadt: ChoiceTemplate = {

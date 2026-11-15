@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-land-flaeche-q805
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:land-flaeche
+sources:
+  - title: "Wikidata: Jemen (Q805)"
+    url: https://www.wikidata.org/wiki/Q805
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Wert aus Wikidata mit dem Artikel „Jemen“ der deutschen Wikipedia abgeglichen (Infobox: 455.503; Abweichung 0.0 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "455503"
+  answer_precision: 0
+  answer_unit: km2
+  input_min: "1"
+  input_max: "20000000"
+  scale_type: LOG
+  scale: 0.4
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie groß ist die Fläche des Jemen (in Quadratkilometern)?
+    unit_label: Quadratkilometer

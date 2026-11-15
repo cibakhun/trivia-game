@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-autor-q202975
+kind: TRIVIA
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:autor
+sources:
+  - title: "Wikidata: Sturmhöhe (Q202975)"
+    url: https://www.wikidata.org/wiki/Q202975
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Autor aus Wikidata mit dem Artikel „Sturmhöhe“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: Wer schrieb „Sturmhöhe“?
+    options:
+      a: Charlotte Brontë
+      b: Charles Dickens
+      c: Gustave Flaubert
+      d: Emily Brontë

@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-autor-q11678
+kind: TRIVIA
+category: LITERATURE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:autor
+sources:
+  - title: "Wikidata: Die Tribute von Panem – Tödliche Spiele (Q11678)"
+    url: https://www.wikidata.org/wiki/Q11678
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Autor aus Wikidata mit dem Artikel „Die Tribute von Panem – Tödliche Spiele“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: Wer schrieb „Die Tribute von Panem – Tödliche Spiele“?
+    options:
+      a: Stephenie Meyer
+      b: Suzanne Collins
+      c: George R. R. Martin
+      d: J. K. Rowling

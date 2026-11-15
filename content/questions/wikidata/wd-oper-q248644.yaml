@@ -1,5 +1,5 @@
-# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
-# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: wd-oper-q248644
 kind: TRIVIA
@@ -7,15 +7,24 @@ category: ARTS_CULTURE
 difficulty: 2
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:wikidata
   - vorlage:oper
 sources:
-  - title: "Wikidata: Pagliacci (Q248644)"
+  - title: "Wikidata: Der Bajazzo (Q248644)"
     url: https://www.wikidata.org/wiki/Q248644
     accessed: 2026-11-11
-reviews: []
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Komponist aus Wikidata mit dem Artikel „Pagliacci“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -25,10 +34,10 @@ trivia:
   correct: c
 translations:
   de:
-    status: DRAFT
-    prompt: Wer komponierte die Oper „Pagliacci“?
+    status: APPROVED
+    prompt: Wer komponierte die Oper „Der Bajazzo“?
     options:
       a: Richard Strauss
-      b: Antonín Dvořák
+      b: Pjotr Tschaikowski
       c: Ruggero Leoncavallo
       d: Giacomo Puccini

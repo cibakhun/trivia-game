@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-bauwerk-hoehe-q181324
+kind: ESTIMATE
+category: TECHNOLOGY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:bauwerk-hoehe
+sources:
+  - title: "Wikidata: Fernsehturm Ostankino (Q181324)"
+    url: https://www.wikidata.org/wiki/Q181324
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Wert aus Wikidata mit dem Artikel „Fernsehturm Ostankino“ der deutschen Wikipedia abgeglichen (im Text 540 m; Abweichung 0.0 %).
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "540"
+  answer_precision: 0
+  answer_unit: m
+  input_min: "1"
+  input_max: "1000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie hoch ist der Fernsehturm Ostankino in Moskau (in Metern)?
+    unit_label: Meter

@@ -46,6 +46,12 @@ export interface EstimateTemplate {
   readonly prompt: (fact: EstimateFact) => string;
   /** Feste Schwierigkeit statt der aus der Bekanntheit (undefined: aus der Bekanntheit). */
   readonly difficulty?: (fact: EstimateFact) => 2 | 3 | 4 | undefined;
+  /**
+   * Nach der Auswahl gestrichen, mit Grund: Fakten, die der Abgleich mit der deutschen Wikipedia
+   * nicht bestätigt (ADR-072). Anders als ein Ausschluss im Auszug verschiebt das die Auswahl der
+   * übrigen Fragen nicht, deren Prüfung also gültig bleibt.
+   */
+  readonly drop?: Readonly<Record<string, string>>;
 }
 
 /** Ein Fakt für eine Auswahlfrage. */
@@ -72,6 +78,12 @@ export interface ChoiceTemplate {
   readonly prompt: (fact: ChoiceFact) => string;
   /** Zweiter Datenstand nur für falsche Antworten (z. B. Städte je Staat zur Hauptstadt-Frage). */
   readonly support?: string;
+  /**
+   * Nach der Auswahl gestrichen, mit Grund: Fakten, die der Abgleich mit der deutschen Wikipedia
+   * nicht bestätigt (ADR-072). Anders als ein Ausschluss im Auszug verschiebt das die Auswahl der
+   * übrigen Fragen nicht, deren Prüfung also gültig bleibt.
+   */
+  readonly drop?: Readonly<Record<string, string>>;
   /**
    * Kandidaten für falsche Antworten, die besten zuerst; Standard: andere Antworten derselben
    * Vorlage. `support` sind die Zeilen des zweiten Datenstands (leer ohne `support`).
@@ -219,6 +231,14 @@ function ranked<T extends { rank: number; label: string }>(facts: readonly T[]):
   return [...facts].sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label, 'de'));
 }
 
+/** Auswahl ohne die gestrichenen Fakten der Vorlage (`drop`). */
+function kept<T extends { readonly qid: string }>(
+  template: Template,
+  picks: readonly { item: T; share: number }[],
+): { item: T; share: number }[] {
+  return picks.filter(({ item }) => template.drop?.[item.qid] === undefined);
+}
+
 /** Erzeugt die Fragen einer Vorlage aus ihrem Datenstand. */
 export function generateFromTemplate(
   template: Template,
@@ -230,7 +250,7 @@ export function generateFromTemplate(
     const facts = ranked(template.extract(snapshot.rows)).filter(
       (f) => f.value >= template.inputMin && f.value <= template.inputMax,
     );
-    return spreadPick(facts, template.count, template.window, template.id).map(({ item, share }) => ({
+    return kept(template, spreadPick(facts, template.count, template.window, template.id)).map(({ item, share }) => ({
       template: template.id,
       sourceLabel: item.label,
       question: buildEstimate(template, item, template.difficulty?.(item) ?? difficultyFromShare(share), accessed),
@@ -238,7 +258,7 @@ export function generateFromTemplate(
   }
   const facts = ranked(template.extract(snapshot.rows));
   const result: GeneratedQuestion[] = [];
-  for (const { item, share } of spreadPick(facts, template.count, template.window, template.id)) {
+  for (const { item, share } of kept(template, spreadPick(facts, template.count, template.window, template.id))) {
     const rng = createRng(`wd-${template.id}-${item.qid}:distractors`);
     const pool = template.distractorPool
       ? template.distractorPool(item, facts, snapshot.rows, support?.rows ?? []).map((answer, rank) => ({ answer, rank }))

@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-geburtsjahr-q254
+kind: ESTIMATE
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:geburtsjahr
+sources:
+  - title: "Wikidata: Wolfgang Amadeus Mozart (Q254)"
+    url: https://www.wikidata.org/wiki/Q254
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Geburtsjahr aus Wikidata mit dem Artikel „Wolfgang Amadeus Mozart“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "1756"
+  answer_precision: 0
+  answer_unit: year
+  input_min: "1000"
+  input_max: "2026"
+  scale_type: LINEAR
+  scale: 40
+translations:
+  de:
+    status: APPROVED
+    prompt: In welchem Jahr wurde der Komponist Wolfgang Amadeus Mozart geboren?
+    unit_label: Jahr

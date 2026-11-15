@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-land-einwohner-q1049
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:land-einwohner
+sources:
+  - title: "Wikidata: Sudan (Q1049)"
+    url: https://www.wikidata.org/wiki/Q1049
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Wert aus Wikidata mit dem Artikel „Sudan“ der deutschen Wikipedia abgeglichen (Infobox: 48,1 Millionen <small>(30.) (2023; Schätzung)</small>; Abweichung 1.7 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "48945000"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1000"
+  input_max: "2000000000"
+  scale_type: LOG
+  scale: 0.4
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie viele Menschen lebten im Jahr 2025 im Sudan?
+    unit_label: Einwohner

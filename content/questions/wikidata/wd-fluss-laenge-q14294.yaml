@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-fluss-laenge-q14294
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:fluss-laenge
+sources:
+  - title: "Wikidata: Tajo (Q14294)"
+    url: https://www.wikidata.org/wiki/Q14294
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Wert aus Wikidata mit dem Artikel „Tajo“ der deutschen Wikipedia abgeglichen (Infobox: 1007; Abweichung 0.0 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "1007"
+  answer_precision: 0
+  answer_unit: km
+  input_min: "1"
+  input_max: "10000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie lang ist der Tajo (in Kilometern)?
+    unit_label: Kilometer

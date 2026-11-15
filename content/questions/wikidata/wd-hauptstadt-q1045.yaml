@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-hauptstadt-q1045
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:hauptstadt
+sources:
+  - title: "Wikidata: Somalia (Q1045)"
+    url: https://www.wikidata.org/wiki/Q1045
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Hauptstadt aus Wikidata mit dem Artikel „Somalia“ der deutschen Wikipedia abgeglichen (Infobox: Mogadischu)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie heißt die Hauptstadt von Somalia?
+    options:
+      a: Mogadischu
+      b: Tunis
+      c: Luanda
+      d: Accra

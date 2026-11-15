@@ -1,0 +1,9232 @@
+{
+ "name": "staedte-je-staat",
+ "fetchedAt": "2026-11-15T12:54:48.750Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Bekannte Großstädte je Staat: falsche Antworten für die Hauptstadt-Frage („Kanada: Ottawa,\n# Toronto, Montreal, Vancouver“). Bewusst schlicht, weil umfangreichere Fassungen (mehr Klassen,\n# Prüfung von Staat und Hauptstadt in der Abfrage) zweimal in die Zeitgrenze liefen: die\n# Hauptstadt fällt in der Vorlage als richtige Antwort weg, Städte mit mehreren Staaten\n# (umstrittene Gebiete) und Staaten ohne Hauptstadtfrage sortiert die Vorlage aus.\nSELECT ?country ?item ?label ?sitelinks WHERE {\n  ?item wdt:P31 wd:Q1549591;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 60)\n  ?item wdt:P17 ?country.\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\n",
+ "rowCount": 1537,
+ "rows": [
+  {
+   "item": "Q2910",
+   "country": "Q183",
+   "sitelinks": "100",
+   "label": "Ludwigshafen am Rhein"
+  },
+  {
+   "item": "Q1709",
+   "country": "Q183",
+   "sitelinks": "122",
+   "label": "Schwerin"
+  },
+  {
+   "item": "Q1711",
+   "country": "Q183",
+   "sitelinks": "152",
+   "label": "Potsdam"
+  },
+  {
+   "item": "Q12439",
+   "country": "Q30",
+   "sitelinks": "175",
+   "label": "Detroit"
+  },
+  {
+   "item": "Q2933",
+   "country": "Q733",
+   "sitelinks": "177",
+   "label": "Asunción"
+  },
+  {
+   "item": "Q12886",
+   "country": "Q31",
+   "sitelinks": "68",
+   "label": "Anderlecht"
+  },
+  {
+   "item": "Q169134",
+   "country": "Q17",
+   "sitelinks": "97",
+   "label": "Nara"
+  },
+  {
+   "item": "Q13329",
+   "country": "Q38",
+   "sitelinks": "112",
+   "label": "Piacenza"
+  },
+  {
+   "item": "Q12994",
+   "country": "Q31",
+   "sitelinks": "120",
+   "label": "Brügge"
+  },
+  {
+   "item": "Q170115",
+   "country": "Q668",
+   "sitelinks": "97",
+   "label": "Srinagar"
+  },
+  {
+   "item": "Q1718",
+   "country": "Q183",
+   "sitelinks": "174",
+   "label": "Düsseldorf"
+  },
+  {
+   "item": "Q4301",
+   "country": "Q924",
+   "sitelinks": "80",
+   "label": "Arusha"
+  },
+  {
+   "item": "Q2936",
+   "country": "Q183",
+   "sitelinks": "100",
+   "label": "Oldenburg"
+  },
+  {
+   "item": "Q4454",
+   "country": "Q159",
+   "sitelinks": "122",
+   "label": "Chabarowsk"
+  },
+  {
+   "item": "Q13298",
+   "country": "Q40",
+   "sitelinks": "155",
+   "label": "Graz"
+  },
+  {
+   "item": "Q25413",
+   "country": "Q34",
+   "sitelinks": "101",
+   "label": "Linköping"
+  },
+  {
+   "item": "Q1715",
+   "country": "Q183",
+   "sitelinks": "172",
+   "label": "Hannover"
+  },
+  {
+   "item": "Q13367",
+   "country": "Q38",
+   "sitelinks": "98",
+   "label": "Forlì"
+  },
+  {
+   "item": "Q4469",
+   "country": "Q298",
+   "sitelinks": "76",
+   "label": "Talca"
+  },
+  {
+   "item": "Q2916",
+   "country": "Q183",
+   "sitelinks": "106",
+   "label": "Osnabrück"
+  },
+  {
+   "item": "Q4629",
+   "country": "Q668",
+   "sitelinks": "109",
+   "label": "Surat"
+  },
+  {
+   "item": "Q4361",
+   "country": "Q155",
+   "sitelinks": "259",
+   "label": "Curitiba"
+  },
+  {
+   "item": "Q170247",
+   "country": "Q148",
+   "sitelinks": "105",
+   "label": "Jinan"
+  },
+  {
+   "item": "Q169997",
+   "country": "Q668",
+   "sitelinks": "93",
+   "label": "Darjeeling"
+  },
+  {
+   "item": "Q13377",
+   "country": "Q38",
+   "sitelinks": "108",
+   "label": "Prato"
+  },
+  {
+   "item": "Q1720",
+   "country": "Q183",
+   "sitelinks": "150",
+   "label": "Mainz"
+  },
+  {
+   "item": "Q1724",
+   "country": "Q183",
+   "sitelinks": "134",
+   "label": "Saarbrücken"
+  },
+  {
+   "item": "Q13360",
+   "country": "Q38",
+   "sitelinks": "106",
+   "label": "Reggio nell'Emilia"
+  },
+  {
+   "item": "Q13666",
+   "country": "Q38",
+   "sitelinks": "139",
+   "label": "Messina"
+  },
+  {
+   "item": "Q25412",
+   "country": "Q34",
+   "sitelinks": "98",
+   "label": "Västerås"
+  },
+  {
+   "item": "Q4709",
+   "country": "Q717",
+   "sitelinks": "70",
+   "label": "Barquisimeto"
+  },
+  {
+   "item": "Q4582",
+   "country": "Q298",
+   "sitelinks": "84",
+   "label": "Rancagua"
+  },
+  {
+   "item": "Q13369",
+   "country": "Q38",
+   "sitelinks": "117",
+   "label": "Rimini"
+  },
+  {
+   "item": "Q13379",
+   "country": "Q159",
+   "sitelinks": "83",
+   "label": "Kurgan"
+  },
+  {
+   "item": "Q13670",
+   "country": "Q38",
+   "sitelinks": "120",
+   "label": "Syrakus"
+  },
+  {
+   "item": "Q13364",
+   "country": "Q38",
+   "sitelinks": "127",
+   "label": "Ravenna"
+  },
+  {
+   "item": "Q4970",
+   "country": "Q148",
+   "sitelinks": "131",
+   "label": "Hangzhou"
+  },
+  {
+   "item": "Q13695",
+   "country": "Q96",
+   "sitelinks": "88",
+   "label": "Tenochtitlan"
+  },
+  {
+   "item": "Q14960",
+   "country": "Q213",
+   "sitelinks": "147",
+   "label": "Brünn"
+  },
+  {
+   "item": "Q170047",
+   "country": "Q796",
+   "sitelinks": "92",
+   "label": "Samarra"
+  },
+  {
+   "item": "Q170287",
+   "country": "Q403",
+   "sitelinks": "77",
+   "label": "Subotica"
+  },
+  {
+   "item": "Q170457",
+   "country": "Q43",
+   "sitelinks": "82",
+   "label": "Aydın"
+  },
+  {
+   "item": "Q13498",
+   "country": "Q38",
+   "sitelinks": "125",
+   "label": "Tarent"
+  },
+  {
+   "item": "Q13629",
+   "country": "Q38",
+   "sitelinks": "108",
+   "label": "Sassari"
+  },
+  {
+   "item": "Q170513",
+   "country": "Q159",
+   "sitelinks": "97",
+   "label": "Taganrog"
+  },
+  {
+   "item": "Q13362",
+   "country": "Q38",
+   "sitelinks": "114",
+   "label": "Ferrara"
+  },
+  {
+   "item": "Q170497",
+   "country": "Q145",
+   "sitelinks": "91",
+   "label": "Gloucester"
+  },
+  {
+   "item": "Q170415",
+   "country": "Q219",
+   "sitelinks": "82",
+   "label": "Stara Sagora"
+  },
+  {
+   "item": "Q25410",
+   "country": "Q35",
+   "sitelinks": "110",
+   "label": "Aalborg"
+  },
+  {
+   "item": "Q25411",
+   "country": "Q34",
+   "sitelinks": "98",
+   "label": "Helsingborg"
+  },
+  {
+   "item": "Q170322",
+   "country": "Q148",
+   "sitelinks": "109",
+   "label": "Qingdao"
+  },
+  {
+   "item": "Q26430",
+   "country": "Q55",
+   "sitelinks": "97",
+   "label": "Tilburg"
+  },
+  {
+   "item": "Q170315",
+   "country": "Q843",
+   "sitelinks": "66",
+   "label": "Abbottabad"
+  },
+  {
+   "item": "Q15470",
+   "country": "Q29",
+   "sitelinks": "91",
+   "label": "L’Hospitalet de Llobregat"
+  },
+  {
+   "item": "Q1726",
+   "country": "Q183",
+   "sitelinks": "240",
+   "label": "München"
+  },
+  {
+   "item": "Q14440",
+   "country": "Q298",
+   "sitelinks": "95",
+   "label": "Iquique"
+  },
+  {
+   "item": "Q170366",
+   "country": "Q794",
+   "sitelinks": "94",
+   "label": "Ahvaz"
+  },
+  {
+   "item": "Q170454",
+   "country": "Q668",
+   "sitelinks": "99",
+   "label": "Agartala"
+  },
+  {
+   "item": "Q15760",
+   "country": "Q159",
+   "sitelinks": "95",
+   "label": "Noworossijsk"
+  },
+  {
+   "item": "Q5087",
+   "country": "Q668",
+   "sitelinks": "62",
+   "label": "Shiliguri"
+  },
+  {
+   "item": "Q25475",
+   "country": "Q230",
+   "sitelinks": "122",
+   "label": "Batumi"
+  },
+  {
+   "item": "Q15174",
+   "country": "Q148",
+   "sitelinks": "136",
+   "label": "Shenzhen"
+  },
+  {
+   "item": "Q1729",
+   "country": "Q183",
+   "sitelinks": "143",
+   "label": "Erfurt"
+  },
+  {
+   "item": "Q170762",
+   "country": "Q155",
+   "sitelinks": "88",
+   "label": "Cuiabá"
+  },
+  {
+   "item": "Q1731",
+   "country": "Q183",
+   "sitelinks": "183",
+   "label": "Dresden"
+  },
+  {
+   "item": "Q5083",
+   "country": "Q30",
+   "sitelinks": "189",
+   "label": "Seattle"
+  },
+  {
+   "item": "Q170616",
+   "country": "Q17",
+   "sitelinks": "94",
+   "label": "Chiba"
+  },
+  {
+   "item": "Q5206",
+   "country": "Q159",
+   "sitelinks": "98",
+   "label": "Stawropol"
+  },
+  {
+   "item": "Q15468",
+   "country": "Q29",
+   "sitelinks": "91",
+   "label": "Badalona"
+  },
+  {
+   "item": "Q5168",
+   "country": "Q159",
+   "sitelinks": "118",
+   "label": "Machatschkala"
+  },
+  {
+   "item": "Q15674",
+   "country": "Q17",
+   "sitelinks": "90",
+   "label": "Kagoshima"
+  },
+  {
+   "item": "Q170578",
+   "country": "Q155",
+   "sitelinks": "82",
+   "label": "Aracaju"
+  },
+  {
+   "item": "Q15767",
+   "country": "Q159",
+   "sitelinks": "75",
+   "label": "Armawir"
+  },
+  {
+   "item": "Q28301",
+   "country": "Q155",
+   "sitelinks": "75",
+   "label": "Olinda"
+  },
+  {
+   "item": "Q5343",
+   "country": "Q159",
+   "sitelinks": "104",
+   "label": "Saransk"
+  },
+  {
+   "item": "Q1733",
+   "country": "Q183",
+   "sitelinks": "141",
+   "label": "Magdeburg"
+  },
+  {
+   "item": "Q170532",
+   "country": "Q43",
+   "sitelinks": "95",
+   "label": "Amasya"
+  },
+  {
+   "item": "Q170521",
+   "country": "Q148",
+   "sitelinks": "94",
+   "label": "Kaxgar"
+  },
+  {
+   "item": "Q5196",
+   "country": "Q159",
+   "sitelinks": "127",
+   "label": "Grosny"
+  },
+  {
+   "item": "Q28260",
+   "country": "Q30",
+   "sitelinks": "129",
+   "label": "Lincoln"
+  },
+  {
+   "item": "Q14467",
+   "country": "Q298",
+   "sitelinks": "104",
+   "label": "La Serena"
+  },
+  {
+   "item": "Q15092",
+   "country": "Q29",
+   "sitelinks": "84",
+   "label": "Castelló de la Plana"
+  },
+  {
+   "item": "Q5332",
+   "country": "Q159",
+   "sitelinks": "148",
+   "label": "Saratow"
+  },
+  {
+   "item": "Q28218",
+   "country": "Q30",
+   "sitelinks": "134",
+   "label": "Baton Rouge"
+  },
+  {
+   "item": "Q26600",
+   "country": "Q17",
+   "sitelinks": "127",
+   "label": "Fukuoka"
+  },
+  {
+   "item": "Q25804",
+   "country": "Q20",
+   "sitelinks": "126",
+   "label": "Trondheim"
+  },
+  {
+   "item": "Q26590",
+   "country": "Q96",
+   "sitelinks": "90",
+   "label": "Ciudad Juárez"
+  },
+  {
+   "item": "Q25732",
+   "country": "Q34",
+   "sitelinks": "103",
+   "label": "Örebro"
+  },
+  {
+   "item": "Q26887",
+   "country": "Q30",
+   "sitelinks": "82",
+   "label": "Davenport"
+  },
+  {
+   "item": "Q5326",
+   "country": "Q159",
+   "sitelinks": "82",
+   "label": "Tscherkessk"
+  },
+  {
+   "item": "Q26793",
+   "country": "Q20",
+   "sitelinks": "150",
+   "label": "Bergen"
+  },
+  {
+   "item": "Q26418",
+   "country": "Q17",
+   "sitelinks": "81",
+   "label": "Hakodate"
+  },
+  {
+   "item": "Q1735",
+   "country": "Q40",
+   "sitelinks": "150",
+   "label": "Innsbruck"
+  },
+  {
+   "item": "Q170919",
+   "country": "Q869",
+   "sitelinks": "99",
+   "label": "Pattaya"
+  },
+  {
+   "item": "Q14773",
+   "country": "Q148",
+   "sitelinks": "226",
+   "label": "Macau"
+  },
+  {
+   "item": "Q16553",
+   "country": "Q30",
+   "sitelinks": "151",
+   "label": "San José"
+  },
+  {
+   "item": "Q5449",
+   "country": "Q159",
+   "sitelinks": "94",
+   "label": "Joschkar-Ola"
+  },
+  {
+   "item": "Q16555",
+   "country": "Q30",
+   "sitelinks": "192",
+   "label": "Houston"
+  },
+  {
+   "item": "Q170996",
+   "country": "Q218",
+   "sitelinks": "89",
+   "label": "Galați"
+  },
+  {
+   "item": "Q16557",
+   "country": "Q30",
+   "sitelinks": "177",
+   "label": "Dallas"
+  },
+  {
+   "item": "Q16552",
+   "country": "Q30",
+   "sitelinks": "164",
+   "label": "San Diego"
+  },
+  {
+   "item": "Q16559",
+   "country": "Q30",
+   "sitelinks": "169",
+   "label": "Austin"
+  },
+  {
+   "item": "Q1757",
+   "country": "Q33",
+   "sitelinks": "293",
+   "label": "Helsinki"
+  },
+  {
+   "item": "Q28441",
+   "country": "Q155",
+   "sitelinks": "87",
+   "label": "São Luís"
+  },
+  {
+   "item": "Q5426",
+   "country": "Q159",
+   "sitelinks": "106",
+   "label": "Ischewsk"
+  },
+  {
+   "item": "Q171031",
+   "country": "Q43",
+   "sitelinks": "76",
+   "label": "Isparta"
+  },
+  {
+   "item": "Q29888",
+   "country": "Q79",
+   "sitelinks": "101",
+   "label": "Assuan"
+  },
+  {
+   "item": "Q170967",
+   "country": "Q43",
+   "sitelinks": "92",
+   "label": "Denizli"
+  },
+  {
+   "item": "Q28587",
+   "country": "Q794",
+   "sitelinks": "86",
+   "label": "Hamadan"
+  },
+  {
+   "item": "Q28237",
+   "country": "Q30",
+   "sitelinks": "126",
+   "label": "Lansing"
+  },
+  {
+   "item": "Q1764",
+   "country": "Q189",
+   "sitelinks": "218",
+   "label": "Reykjavík"
+  },
+  {
+   "item": "Q1754",
+   "country": "Q34",
+   "sitelinks": "279",
+   "label": "Stockholm"
+  },
+  {
+   "item": "Q28729",
+   "country": "Q668",
+   "sitelinks": "89",
+   "label": "Kozhikode"
+  },
+  {
+   "item": "Q1761",
+   "country": "Q27",
+   "sitelinks": "238",
+   "label": "Dublin"
+  },
+  {
+   "item": "Q29364",
+   "country": "Q30",
+   "sitelinks": "145",
+   "label": "Montgomery"
+  },
+  {
+   "item": "Q28198",
+   "country": "Q30",
+   "sitelinks": "136",
+   "label": "Jackson"
+  },
+  {
+   "item": "Q5465",
+   "country": "Q258",
+   "sitelinks": "219",
+   "label": "Kapstadt"
+  },
+  {
+   "item": "Q28515",
+   "country": "Q30",
+   "sitelinks": "137",
+   "label": "Springfield"
+  },
+  {
+   "item": "Q5337",
+   "country": "Q159",
+   "sitelinks": "105",
+   "label": "Orenburg"
+  },
+  {
+   "item": "Q16558",
+   "country": "Q30",
+   "sitelinks": "130",
+   "label": "Fort Worth"
+  },
+  {
+   "item": "Q16562",
+   "country": "Q30",
+   "sitelinks": "122",
+   "label": "El Paso"
+  },
+  {
+   "item": "Q5470",
+   "country": "Q159",
+   "sitelinks": "105",
+   "label": "Tscheboksary"
+  },
+  {
+   "item": "Q5468",
+   "country": "Q258",
+   "sitelinks": "136",
+   "label": "Durban"
+  },
+  {
+   "item": "Q16556",
+   "country": "Q30",
+   "sitelinks": "181",
+   "label": "Phoenix"
+  },
+  {
+   "item": "Q1748",
+   "country": "Q35",
+   "sitelinks": "245",
+   "label": "Kopenhagen"
+  },
+  {
+   "item": "Q1770",
+   "country": "Q191",
+   "sitelinks": "230",
+   "label": "Tallinn"
+  },
+  {
+   "item": "Q170688",
+   "country": "Q750",
+   "sitelinks": "91",
+   "label": "Santa Cruz de la Sierra"
+  },
+  {
+   "item": "Q29962",
+   "country": "Q79",
+   "sitelinks": "74",
+   "label": "Asyut"
+  },
+  {
+   "item": "Q31487",
+   "country": "Q36",
+   "sitelinks": "185",
+   "label": "Krakau"
+  },
+  {
+   "item": "Q16565",
+   "country": "Q30",
+   "sitelinks": "127",
+   "label": "Charlotte"
+  },
+  {
+   "item": "Q30340",
+   "country": "Q148",
+   "sitelinks": "139",
+   "label": "Zhengzhou"
+  },
+  {
+   "item": "Q5713",
+   "country": "Q874",
+   "sitelinks": "70",
+   "label": "Mary"
+  },
+  {
+   "item": "Q1780",
+   "country": "Q214",
+   "sitelinks": "226",
+   "label": "Bratislava"
+  },
+  {
+   "item": "Q30974",
+   "country": "Q142",
+   "sitelinks": "156",
+   "label": "Rouen"
+  },
+  {
+   "item": "Q16568",
+   "country": "Q30",
+   "sitelinks": "139",
+   "label": "Jacksonville"
+  },
+  {
+   "item": "Q5384",
+   "country": "Q159",
+   "sitelinks": "97",
+   "label": "Kirow"
+  },
+  {
+   "item": "Q28848",
+   "country": "Q30",
+   "sitelinks": "136",
+   "label": "Saint Paul"
+  },
+  {
+   "item": "Q1792",
+   "country": "Q36",
+   "sitelinks": "172",
+   "label": "Danzig"
+  },
+  {
+   "item": "Q16563",
+   "country": "Q30",
+   "sitelinks": "139",
+   "label": "Memphis"
+  },
+  {
+   "item": "Q5627",
+   "country": "Q159",
+   "sitelinks": "111",
+   "label": "Uljanowsk"
+  },
+  {
+   "item": "Q16572",
+   "country": "Q148",
+   "sitelinks": "171",
+   "label": "Guangzhou"
+  },
+  {
+   "item": "Q16554",
+   "country": "Q30",
+   "sitelinks": "186",
+   "label": "Denver"
+  },
+  {
+   "item": "Q16567",
+   "country": "Q30",
+   "sitelinks": "159",
+   "label": "Columbus"
+  },
+  {
+   "item": "Q1794",
+   "country": "Q183",
+   "sitelinks": "212",
+   "label": "Frankfurt am Main"
+  },
+  {
+   "item": "Q171223",
+   "country": "Q28",
+   "sitelinks": "90",
+   "label": "Nyíregyháza"
+  },
+  {
+   "item": "Q171223",
+   "country": "Q16410",
+   "sitelinks": "90",
+   "label": "Nyíregyháza"
+  },
+  {
+   "item": "Q171223",
+   "country": "Q28513",
+   "sitelinks": "90",
+   "label": "Nyíregyháza"
+  },
+  {
+   "item": "Q171223",
+   "country": "Q600018",
+   "sitelinks": "90",
+   "label": "Nyíregyháza"
+  },
+  {
+   "item": "Q171223",
+   "country": "Q940741",
+   "sitelinks": "90",
+   "label": "Nyíregyháza"
+  },
+  {
+   "item": "Q5764",
+   "country": "Q265",
+   "sitelinks": "128",
+   "label": "Buchara"
+  },
+  {
+   "item": "Q16739",
+   "country": "Q30",
+   "sitelinks": "113",
+   "label": "Long Beach"
+  },
+  {
+   "item": "Q1773",
+   "country": "Q211",
+   "sitelinks": "225",
+   "label": "Riga"
+  },
+  {
+   "item": "Q16868",
+   "country": "Q30",
+   "sitelinks": "80",
+   "label": "Laredo"
+  },
+  {
+   "item": "Q5540",
+   "country": "Q159",
+   "sitelinks": "100",
+   "label": "Pensa"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q28",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q16410",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q28513",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q243652",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q253094",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q516160",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q600018",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q940741",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q16056854",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171357",
+   "country": "Q16985296",
+   "sitelinks": "94",
+   "label": "Kecskemét"
+  },
+  {
+   "item": "Q171612",
+   "country": "Q155",
+   "sitelinks": "85",
+   "label": "Rio Branco"
+  },
+  {
+   "item": "Q171617",
+   "country": "Q155",
+   "sitelinks": "83",
+   "label": "Campinas"
+  },
+  {
+   "item": "Q16666",
+   "country": "Q148",
+   "sitelinks": "142",
+   "label": "Nanjing"
+  },
+  {
+   "item": "Q5753",
+   "country": "Q265",
+   "sitelinks": "148",
+   "label": "Samarqand"
+  },
+  {
+   "item": "Q5917",
+   "country": "Q30",
+   "sitelinks": "74",
+   "label": "Huntington Beach"
+  },
+  {
+   "item": "Q6014",
+   "country": "Q159",
+   "sitelinks": "105",
+   "label": "Barnaul"
+  },
+  {
+   "item": "Q16910",
+   "country": "Q298",
+   "sitelinks": "66",
+   "label": "Los Ángeles"
+  },
+  {
+   "item": "Q171714",
+   "country": "Q794",
+   "sitelinks": "81",
+   "label": "Kerman"
+  },
+  {
+   "item": "Q33292",
+   "country": "Q212",
+   "sitelinks": "72",
+   "label": "Berdjansk"
+  },
+  {
+   "item": "Q171632",
+   "country": "Q717",
+   "sitelinks": "94",
+   "label": "Maracaibo"
+  },
+  {
+   "item": "Q33345",
+   "country": "Q159",
+   "sitelinks": "82",
+   "label": "Jewpatorija"
+  },
+  {
+   "item": "Q33345",
+   "country": "Q212",
+   "sitelinks": "82",
+   "label": "Jewpatorija"
+  },
+  {
+   "item": "Q5869",
+   "country": "Q148",
+   "sitelinks": "136",
+   "label": "Lhasa"
+  },
+  {
+   "item": "Q5826",
+   "country": "Q148",
+   "sitelinks": "143",
+   "label": "Xi’an"
+  },
+  {
+   "item": "Q33486",
+   "country": "Q30",
+   "sitelinks": "141",
+   "label": "Hartford"
+  },
+  {
+   "item": "Q6346",
+   "country": "Q30",
+   "sitelinks": "165",
+   "label": "Indianapolis"
+  },
+  {
+   "item": "Q33935",
+   "country": "Q801",
+   "sitelinks": "191",
+   "label": "Tel Aviv-Jaffa"
+  },
+  {
+   "item": "Q33405",
+   "country": "Q30",
+   "sitelinks": "147",
+   "label": "Little Rock"
+  },
+  {
+   "item": "Q1842",
+   "country": "Q32",
+   "sitelinks": "176",
+   "label": "Luxemburg"
+  },
+  {
+   "item": "Q172415",
+   "country": "Q230",
+   "sitelinks": "108",
+   "label": "Kutaissi"
+  },
+  {
+   "item": "Q172438",
+   "country": "Q145",
+   "sitelinks": "84",
+   "label": "Peterborough"
+  },
+  {
+   "item": "Q17042",
+   "country": "Q30",
+   "sitelinks": "131",
+   "label": "Oakland"
+  },
+  {
+   "item": "Q171771",
+   "country": "Q668",
+   "sitelinks": "104",
+   "label": "Bhubaneswar"
+  },
+  {
+   "item": "Q1800",
+   "country": "Q668",
+   "sitelinks": "113",
+   "label": "Kochi"
+  },
+  {
+   "item": "Q6252",
+   "country": "Q38",
+   "sitelinks": "115",
+   "label": "Monza"
+  },
+  {
+   "item": "Q16959",
+   "country": "Q148",
+   "sitelinks": "123",
+   "label": "Ürümqi"
+  },
+  {
+   "item": "Q6106",
+   "country": "Q30",
+   "sitelinks": "141",
+   "label": "Portland"
+  },
+  {
+   "item": "Q6046",
+   "country": "Q38",
+   "sitelinks": "107",
+   "label": "Novara"
+  },
+  {
+   "item": "Q1829",
+   "country": "Q159",
+   "sitelinks": "157",
+   "label": "Kaliningrad"
+  },
+  {
+   "item": "Q171639",
+   "country": "Q801",
+   "sitelinks": "98",
+   "label": "Aschdod"
+  },
+  {
+   "item": "Q17943",
+   "country": "Q30",
+   "sitelinks": "98",
+   "label": "Arlington"
+  },
+  {
+   "item": "Q33986",
+   "country": "Q298",
+   "sitelinks": "239",
+   "label": "Valparaíso"
+  },
+  {
+   "item": "Q6441",
+   "country": "Q142",
+   "sitelinks": "147",
+   "label": "Montpellier"
+  },
+  {
+   "item": "Q171866",
+   "country": "Q145",
+   "sitelinks": "84",
+   "label": "Middlesbrough"
+  },
+  {
+   "item": "Q6225",
+   "country": "Q145",
+   "sitelinks": "106",
+   "label": "Coventry"
+  },
+  {
+   "item": "Q33959",
+   "country": "Q142",
+   "sitelinks": "175",
+   "label": "Nizza"
+  },
+  {
+   "item": "Q171943",
+   "country": "Q148",
+   "sitelinks": "97",
+   "label": "Nanchang"
+  },
+  {
+   "item": "Q17139",
+   "country": "Q17",
+   "sitelinks": "81",
+   "label": "Akita"
+  },
+  {
+   "item": "Q17151",
+   "country": "Q41",
+   "sitelinks": "159",
+   "label": "Thessaloniki"
+  },
+  {
+   "item": "Q34370",
+   "country": "Q55",
+   "sitelinks": "170",
+   "label": "Rotterdam"
+  },
+  {
+   "item": "Q1850",
+   "country": "Q424",
+   "sitelinks": "181",
+   "label": "Phnom Penh"
+  },
+  {
+   "item": "Q34261",
+   "country": "Q790",
+   "sitelinks": "158",
+   "label": "Port-au-Prince"
+  },
+  {
+   "item": "Q1854",
+   "country": "Q881",
+   "sitelinks": "257",
+   "label": "Ho-Chi-Minh-Stadt"
+  },
+  {
+   "item": "Q172637",
+   "country": "Q159",
+   "sitelinks": "68",
+   "label": "Nischnewartowsk"
+  },
+  {
+   "item": "Q6487",
+   "country": "Q43",
+   "sitelinks": "136",
+   "label": "Antalya"
+  },
+  {
+   "item": "Q18383",
+   "country": "Q30",
+   "sitelinks": "134",
+   "label": "Providence"
+  },
+  {
+   "item": "Q172512",
+   "country": "Q155",
+   "sitelinks": "77",
+   "label": "Porto Velho"
+  },
+  {
+   "item": "Q34109",
+   "country": "Q30",
+   "sitelinks": "99",
+   "label": "Fargo"
+  },
+  {
+   "item": "Q18808",
+   "country": "Q423",
+   "sitelinks": "202",
+   "label": "Pjöngjang"
+  },
+  {
+   "item": "Q18013",
+   "country": "Q30",
+   "sitelinks": "177",
+   "label": "Sacramento"
+  },
+  {
+   "item": "Q18575",
+   "country": "Q30",
+   "sitelinks": "124",
+   "label": "Tucson"
+  },
+  {
+   "item": "Q34600",
+   "country": "Q17",
+   "sitelinks": "260",
+   "label": "Kyōto"
+  },
+  {
+   "item": "Q172455",
+   "country": "Q142",
+   "sitelinks": "98",
+   "label": "Boulogne-Billancourt"
+  },
+  {
+   "item": "Q1858",
+   "country": "Q881",
+   "sitelinks": "203",
+   "label": "Hanoi"
+  },
+  {
+   "item": "Q34116",
+   "country": "Q16",
+   "sitelinks": "65",
+   "label": "Thunder Bay"
+  },
+  {
+   "item": "Q172601",
+   "country": "Q159",
+   "sitelinks": "66",
+   "label": "Neftekamsk"
+  },
+  {
+   "item": "Q1861",
+   "country": "Q869",
+   "sitelinks": "263",
+   "label": "Bangkok"
+  },
+  {
+   "item": "Q1861",
+   "country": "Q841364",
+   "sitelinks": "263",
+   "label": "Bangkok"
+  },
+  {
+   "item": "Q1861",
+   "country": "Q1062422",
+   "sitelinks": "263",
+   "label": "Bangkok"
+  },
+  {
+   "item": "Q1861",
+   "country": "Q1115291",
+   "sitelinks": "263",
+   "label": "Bangkok"
+  },
+  {
+   "item": "Q1861",
+   "country": "Q1155700",
+   "sitelinks": "263",
+   "label": "Bangkok"
+  },
+  {
+   "item": "Q34412",
+   "country": "Q148",
+   "sitelinks": "81",
+   "label": "Foshan"
+  },
+  {
+   "item": "Q19491",
+   "country": "Q881",
+   "sitelinks": "163",
+   "label": "Nha Trang"
+  },
+  {
+   "item": "Q6509",
+   "country": "Q219",
+   "sitelinks": "106",
+   "label": "Burgas"
+  },
+  {
+   "item": "Q1867",
+   "country": "Q865",
+   "sitelinks": "200",
+   "label": "Taipeh"
+  },
+  {
+   "item": "Q173731",
+   "country": "Q889",
+   "sitelinks": "84",
+   "label": "Ghazni"
+  },
+  {
+   "item": "Q174091",
+   "country": "Q148",
+   "sitelinks": "106",
+   "label": "Changsha"
+  },
+  {
+   "item": "Q6526",
+   "country": "Q38",
+   "sitelinks": "122",
+   "label": "Bozen"
+  },
+  {
+   "item": "Q19313",
+   "country": "Q184",
+   "sitelinks": "68",
+   "label": "Baryssau"
+  },
+  {
+   "item": "Q18094",
+   "country": "Q30",
+   "sitelinks": "192",
+   "label": "Honolulu"
+  },
+  {
+   "item": "Q172657",
+   "country": "Q159",
+   "sitelinks": "65",
+   "label": "Nischnekamsk"
+  },
+  {
+   "item": "Q173270",
+   "country": "Q96",
+   "sitelinks": "85",
+   "label": "Veracruz"
+  },
+  {
+   "item": "Q34664",
+   "country": "Q17",
+   "sitelinks": "159",
+   "label": "Hiroshima"
+  },
+  {
+   "item": "Q34404",
+   "country": "Q30",
+   "sitelinks": "175",
+   "label": "New Orleans"
+  },
+  {
+   "item": "Q173545",
+   "country": "Q858",
+   "sitelinks": "89",
+   "label": "Hama"
+  },
+  {
+   "item": "Q173591",
+   "country": "Q218",
+   "sitelinks": "89",
+   "label": "Arad"
+  },
+  {
+   "item": "Q6548",
+   "country": "Q142",
+   "sitelinks": "123",
+   "label": "Orléans"
+  },
+  {
+   "item": "Q1877",
+   "country": "Q881",
+   "sitelinks": "230",
+   "label": "Đồng Hới"
+  },
+  {
+   "item": "Q34713",
+   "country": "Q40",
+   "sitelinks": "161",
+   "label": "Salzburg"
+  },
+  {
+   "item": "Q1930",
+   "country": "Q16",
+   "sitelinks": "233",
+   "label": "Ottawa"
+  },
+  {
+   "item": "Q19316",
+   "country": "Q881",
+   "sitelinks": "83",
+   "label": "Biên Hòa"
+  },
+  {
+   "item": "Q6576",
+   "country": "Q159",
+   "sitelinks": "131",
+   "label": "Irkutsk"
+  },
+  {
+   "item": "Q6602",
+   "country": "Q142",
+   "sitelinks": "194",
+   "label": "Straßburg"
+  },
+  {
+   "item": "Q19566",
+   "country": "Q212",
+   "sitelinks": "125",
+   "label": "Simferopol"
+  },
+  {
+   "item": "Q174684",
+   "country": "Q225",
+   "sitelinks": "85",
+   "label": "Tuzla"
+  },
+  {
+   "item": "Q21197",
+   "country": "Q217",
+   "sitelinks": "195",
+   "label": "Kischinau"
+  },
+  {
+   "item": "Q174744",
+   "country": "Q298",
+   "sitelinks": "60",
+   "label": "Villa Alemana"
+  },
+  {
+   "item": "Q20714",
+   "country": "Q884",
+   "sitelinks": "86",
+   "label": "Suwon"
+  },
+  {
+   "item": "Q174461",
+   "country": "Q668",
+   "sitelinks": "95",
+   "label": "Ranchi"
+  },
+  {
+   "item": "Q34932",
+   "country": "Q408",
+   "sitelinks": "168",
+   "label": "Brisbane"
+  },
+  {
+   "item": "Q178373",
+   "country": "Q794",
+   "sitelinks": "87",
+   "label": "Rasht"
+  },
+  {
+   "item": "Q6730",
+   "country": "Q142",
+   "sitelinks": "116",
+   "label": "Perpignan"
+  },
+  {
+   "item": "Q1865",
+   "country": "Q833",
+   "sitelinks": "214",
+   "label": "Kuala Lumpur"
+  },
+  {
+   "item": "Q20921",
+   "country": "Q884",
+   "sitelinks": "96",
+   "label": "Daejeon"
+  },
+  {
+   "item": "Q19660",
+   "country": "Q218",
+   "sitelinks": "238",
+   "label": "Bukarest"
+  },
+  {
+   "item": "Q35135",
+   "country": "Q155",
+   "sitelinks": "97",
+   "label": "Catalão"
+  },
+  {
+   "item": "Q34647",
+   "country": "Q258",
+   "sitelinks": "188",
+   "label": "Johannesburg"
+  },
+  {
+   "item": "Q20929",
+   "country": "Q884",
+   "sitelinks": "61",
+   "label": "Sejong"
+  },
+  {
+   "item": "Q7525",
+   "country": "Q212",
+   "sitelinks": "151",
+   "label": "Sewastopol"
+  },
+  {
+   "item": "Q34820",
+   "country": "Q786",
+   "sitelinks": "153",
+   "label": "Santo Domingo"
+  },
+  {
+   "item": "Q6761",
+   "country": "Q38",
+   "sitelinks": "121",
+   "label": "Livorno"
+  },
+  {
+   "item": "Q1880",
+   "country": "Q298",
+   "sitelinks": "228",
+   "label": "Concepción"
+  },
+  {
+   "item": "Q6640",
+   "country": "Q837",
+   "sitelinks": "78",
+   "label": "Pokhara"
+  },
+  {
+   "item": "Q6647",
+   "country": "Q837",
+   "sitelinks": "63",
+   "label": "Lalitpur"
+  },
+  {
+   "item": "Q6537",
+   "country": "Q38",
+   "sitelinks": "113",
+   "label": "Vicenza"
+  },
+  {
+   "item": "Q175323",
+   "country": "Q43",
+   "sitelinks": "82",
+   "label": "Adapazarı"
+  },
+  {
+   "item": "Q34692",
+   "country": "Q766",
+   "sitelinks": "160",
+   "label": "Kingston"
+  },
+  {
+   "item": "Q1947",
+   "country": "Q958",
+   "sitelinks": "151",
+   "label": "Juba"
+  },
+  {
+   "item": "Q34739",
+   "country": "Q30",
+   "sitelinks": "89",
+   "label": "Dayton"
+  },
+  {
+   "item": "Q6816",
+   "country": "Q159",
+   "sitelinks": "102",
+   "label": "Ulan-Ude"
+  },
+  {
+   "item": "Q34804",
+   "country": "Q30",
+   "sitelinks": "138",
+   "label": "Albuquerque"
+  },
+  {
+   "item": "Q178405",
+   "country": "Q41",
+   "sitelinks": "89",
+   "label": "Larisa"
+  },
+  {
+   "item": "Q173310",
+   "country": "Q796",
+   "sitelinks": "89",
+   "label": "Kirkuk"
+  },
+  {
+   "item": "Q1895",
+   "country": "Q159",
+   "sitelinks": "105",
+   "label": "Petrosawodsk"
+  },
+  {
+   "item": "Q34863",
+   "country": "Q30",
+   "sitelinks": "156",
+   "label": "Oklahoma City"
+  },
+  {
+   "item": "Q1953",
+   "country": "Q399",
+   "sitelinks": "213",
+   "label": "Jerewan"
+  },
+  {
+   "item": "Q2044",
+   "country": "Q38",
+   "sitelinks": "214",
+   "label": "Florenz"
+  },
+  {
+   "item": "Q20927",
+   "country": "Q884",
+   "sitelinks": "108",
+   "label": "Daegu"
+  },
+  {
+   "item": "Q1963",
+   "country": "Q1049",
+   "sitelinks": "185",
+   "label": "Chartum"
+  },
+  {
+   "item": "Q174916",
+   "country": "Q858",
+   "sitelinks": "71",
+   "label": "Tartus"
+  },
+  {
+   "item": "Q175161",
+   "country": "Q159",
+   "sitelinks": "60",
+   "label": "Nowomoskowsk"
+  },
+  {
+   "item": "Q23154",
+   "country": "Q145",
+   "sitelinks": "145",
+   "label": "Bristol"
+  },
+  {
+   "item": "Q175452",
+   "country": "Q159",
+   "sitelinks": "72",
+   "label": "Nowotscherkassk"
+  },
+  {
+   "item": "Q178385",
+   "country": "Q219",
+   "sitelinks": "75",
+   "label": "Sliwen"
+  },
+  {
+   "item": "Q35784",
+   "country": "Q1016",
+   "sitelinks": "91",
+   "label": "al-Baida"
+  },
+  {
+   "item": "Q22690",
+   "country": "Q142",
+   "sitelinks": "123",
+   "label": "Metz"
+  },
+  {
+   "item": "Q1903",
+   "country": "Q38",
+   "sitelinks": "139",
+   "label": "Catania"
+  },
+  {
+   "item": "Q178725",
+   "country": "Q155",
+   "sitelinks": "69",
+   "label": "Niterói"
+  },
+  {
+   "item": "Q2028",
+   "country": "Q38",
+   "sitelinks": "142",
+   "label": "Verona"
+  },
+  {
+   "item": "Q8385",
+   "country": "Q213",
+   "sitelinks": "116",
+   "label": "Ostrava"
+  },
+  {
+   "item": "Q7550",
+   "country": "Q212",
+   "sitelinks": "96",
+   "label": "Luzk"
+  },
+  {
+   "item": "Q7003",
+   "country": "Q142",
+   "sitelinks": "136",
+   "label": "Dijon"
+  },
+  {
+   "item": "Q174691",
+   "country": "Q17",
+   "sitelinks": "90",
+   "label": "Shizuoka"
+  },
+  {
+   "item": "Q21194",
+   "country": "Q881",
+   "sitelinks": "144",
+   "label": "Vũng Tàu"
+  },
+  {
+   "item": "Q7880",
+   "country": "Q142",
+   "sitelinks": "176",
+   "label": "Toulouse"
+  },
+  {
+   "item": "Q35775",
+   "country": "Q30",
+   "sitelinks": "142",
+   "label": "Boise"
+  },
+  {
+   "item": "Q175433",
+   "country": "Q159",
+   "sitelinks": "62",
+   "label": "Nowotscheboksarsk"
+  },
+  {
+   "item": "Q23197",
+   "country": "Q30",
+   "sitelinks": "155",
+   "label": "Nashville"
+  },
+  {
+   "item": "Q178067",
+   "country": "Q1019",
+   "sitelinks": "62",
+   "label": "Toamasina"
+  },
+  {
+   "item": "Q8471",
+   "country": "Q38",
+   "sitelinks": "119",
+   "label": "Reggio Calabria"
+  },
+  {
+   "item": "Q22595",
+   "country": "Q30",
+   "sitelinks": "71",
+   "label": "Aurora"
+  },
+  {
+   "item": "Q8621",
+   "country": "Q38",
+   "sitelinks": "106",
+   "label": "Terni"
+  },
+  {
+   "item": "Q7859",
+   "country": "Q159",
+   "sitelinks": "85",
+   "label": "Juschno-Sachalinsk"
+  },
+  {
+   "item": "Q23185",
+   "country": "Q159",
+   "sitelinks": "72",
+   "label": "Mytischtschi"
+  },
+  {
+   "item": "Q35178",
+   "country": "Q817",
+   "sitelinks": "169",
+   "label": "Kuweit-Stadt"
+  },
+  {
+   "item": "Q35045",
+   "country": "Q750",
+   "sitelinks": "85",
+   "label": "Potosí"
+  },
+  {
+   "item": "Q178663",
+   "country": "Q1028",
+   "sitelinks": "95",
+   "label": "Meknès"
+  },
+  {
+   "item": "Q8660",
+   "country": "Q843",
+   "sitelinks": "206",
+   "label": "Karatschi"
+  },
+  {
+   "item": "Q35381",
+   "country": "Q854",
+   "sitelinks": "153",
+   "label": "Colombo"
+  },
+  {
+   "item": "Q35246",
+   "country": "Q750",
+   "sitelinks": "62",
+   "label": "Oruro"
+  },
+  {
+   "item": "Q8673",
+   "country": "Q1033",
+   "sitelinks": "191",
+   "label": "Lagos"
+  },
+  {
+   "item": "Q23438",
+   "country": "Q874",
+   "sitelinks": "187",
+   "label": "Aşgabat"
+  },
+  {
+   "item": "Q178993",
+   "country": "Q155",
+   "sitelinks": "72",
+   "label": "Palmas"
+  },
+  {
+   "item": "Q35484",
+   "country": "Q851",
+   "sitelinks": "164",
+   "label": "Medina"
+  },
+  {
+   "item": "Q2079",
+   "country": "Q183",
+   "sitelinks": "169",
+   "label": "Leipzig"
+  },
+  {
+   "item": "Q2090",
+   "country": "Q183",
+   "sitelinks": "158",
+   "label": "Nürnberg"
+  },
+  {
+   "item": "Q23443",
+   "country": "Q30",
+   "sitelinks": "80",
+   "label": "Provo"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q131964",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q153136",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q179585",
+   "country": "Q218",
+   "sitelinks": "85",
+   "label": "Ploiești"
+  },
+  {
+   "item": "Q8646",
+   "country": "Q148",
+   "sitelinks": "304",
+   "label": "Hongkong"
+  },
+  {
+   "item": "Q60",
+   "country": "Q30",
+   "sitelinks": "326",
+   "label": "New York City"
+  },
+  {
+   "item": "Q179691",
+   "country": "Q17",
+   "sitelinks": "92",
+   "label": "Niigata"
+  },
+  {
+   "item": "Q179608",
+   "country": "Q148",
+   "sitelinks": "92",
+   "label": "Nanning"
+  },
+  {
+   "item": "Q2119",
+   "country": "Q183",
+   "sitelinks": "128",
+   "label": "Mannheim"
+  },
+  {
+   "item": "Q23436",
+   "country": "Q145",
+   "sitelinks": "192",
+   "label": "Edinburgh"
+  },
+  {
+   "item": "Q23551",
+   "country": "Q717",
+   "sitelinks": "118",
+   "label": "Mérida"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q212",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q15180",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q28513",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q8678",
+   "country": "Q155",
+   "sitelinks": "303",
+   "label": "Rio de Janeiro"
+  },
+  {
+   "item": "Q2096",
+   "country": "Q16",
+   "sitelinks": "137",
+   "label": "Edmonton"
+  },
+  {
+   "item": "Q2082",
+   "country": "Q16",
+   "sitelinks": "98",
+   "label": "St. John's"
+  },
+  {
+   "item": "Q2066",
+   "country": "Q183",
+   "sitelinks": "134",
+   "label": "Essen"
+  },
+  {
+   "item": "Q61",
+   "country": "Q30",
+   "sitelinks": "299",
+   "label": "Washington, D.C."
+  },
+  {
+   "item": "Q2103",
+   "country": "Q183",
+   "sitelinks": "110",
+   "label": "Bochum"
+  },
+  {
+   "item": "Q48320",
+   "country": "Q17",
+   "sitelinks": "134",
+   "label": "Kōbe"
+  },
+  {
+   "item": "Q48338",
+   "country": "Q43",
+   "sitelinks": "117",
+   "label": "Kayseri"
+  },
+  {
+   "item": "Q8686",
+   "country": "Q148",
+   "sitelinks": "251",
+   "label": "Shanghai"
+  },
+  {
+   "item": "Q179665",
+   "country": "Q794",
+   "sitelinks": "85",
+   "label": "Urmia"
+  },
+  {
+   "item": "Q2145",
+   "country": "Q16",
+   "sitelinks": "149",
+   "label": "Québec"
+  },
+  {
+   "item": "Q23564",
+   "country": "Q236",
+   "sitelinks": "192",
+   "label": "Podgorica"
+  },
+  {
+   "item": "Q2123",
+   "country": "Q16",
+   "sitelinks": "93",
+   "label": "Regina"
+  },
+  {
+   "item": "Q2107",
+   "country": "Q183",
+   "sitelinks": "115",
+   "label": "Wuppertal"
+  },
+  {
+   "item": "Q9326",
+   "country": "Q819",
+   "sitelinks": "175",
+   "label": "Vientiane"
+  },
+  {
+   "item": "Q180921",
+   "country": "Q1049",
+   "sitelinks": "70",
+   "label": "Omdurman"
+  },
+  {
+   "item": "Q2100",
+   "country": "Q183",
+   "sitelinks": "127",
+   "label": "Duisburg"
+  },
+  {
+   "item": "Q180215",
+   "country": "Q155",
+   "sitelinks": "74",
+   "label": "Macapá"
+  },
+  {
+   "item": "Q180522",
+   "country": "Q810",
+   "sitelinks": "88",
+   "label": "Aqaba"
+  },
+  {
+   "item": "Q9125",
+   "country": "Q39",
+   "sitelinks": "101",
+   "label": "Winterthur"
+  },
+  {
+   "item": "Q8969",
+   "country": "Q96",
+   "sitelinks": "105",
+   "label": "Cancún"
+  },
+  {
+   "item": "Q2135",
+   "country": "Q16",
+   "sitelinks": "131",
+   "label": "Winnipeg"
+  },
+  {
+   "item": "Q180078",
+   "country": "Q794",
+   "sitelinks": "85",
+   "label": "Kermanschah"
+  },
+  {
+   "item": "Q24639",
+   "country": "Q16",
+   "sitelinks": "183",
+   "label": "Vancouver"
+  },
+  {
+   "item": "Q9022",
+   "country": "Q96",
+   "sitelinks": "183",
+   "label": "Guadalajara"
+  },
+  {
+   "item": "Q23556",
+   "country": "Q30",
+   "sitelinks": "209",
+   "label": "Atlanta"
+  },
+  {
+   "item": "Q23661",
+   "country": "Q664",
+   "sitelinks": "187",
+   "label": "Wellington"
+  },
+  {
+   "item": "Q23768",
+   "country": "Q30",
+   "sitelinks": "197",
+   "label": "Las Vegas"
+  },
+  {
+   "item": "Q48278",
+   "country": "Q739",
+   "sitelinks": "151",
+   "label": "Medellín"
+  },
+  {
+   "item": "Q2112",
+   "country": "Q183",
+   "sitelinks": "118",
+   "label": "Bielefeld"
+  },
+  {
+   "item": "Q2132",
+   "country": "Q16",
+   "sitelinks": "117",
+   "label": "Victoria"
+  },
+  {
+   "item": "Q48256",
+   "country": "Q212",
+   "sitelinks": "145",
+   "label": "Dnipro"
+  },
+  {
+   "item": "Q2143",
+   "country": "Q159",
+   "sitelinks": "96",
+   "label": "Syktywkar"
+  },
+  {
+   "item": "Q9270",
+   "country": "Q917",
+   "sitelinks": "170",
+   "label": "Thimphu"
+  },
+  {
+   "item": "Q70",
+   "country": "Q39",
+   "sitelinks": "207",
+   "label": "Bern"
+  },
+  {
+   "item": "Q62",
+   "country": "Q30",
+   "sitelinks": "239",
+   "label": "San Francisco"
+  },
+  {
+   "item": "Q24603",
+   "country": "Q30",
+   "sitelinks": "70",
+   "label": "Independence"
+  },
+  {
+   "item": "Q2203",
+   "country": "Q298",
+   "sitelinks": "102",
+   "label": "Arica"
+  },
+  {
+   "item": "Q78",
+   "country": "Q39",
+   "sitelinks": "150",
+   "label": "Basel"
+  },
+  {
+   "item": "Q2235",
+   "country": "Q159",
+   "sitelinks": "125",
+   "label": "Weliki Nowgorod"
+  },
+  {
+   "item": "Q48370",
+   "country": "Q30",
+   "sitelinks": "87",
+   "label": "Manchester"
+  },
+  {
+   "item": "Q2211",
+   "country": "Q34",
+   "sitelinks": "149",
+   "label": "Malmö"
+  },
+  {
+   "item": "Q9347",
+   "country": "Q826",
+   "sitelinks": "155",
+   "label": "Malé"
+  },
+  {
+   "item": "Q9733",
+   "country": "Q142",
+   "sitelinks": "100",
+   "label": "Nouméa"
+  },
+  {
+   "item": "Q25262",
+   "country": "Q881",
+   "sitelinks": "107",
+   "label": "Cà Mau"
+  },
+  {
+   "item": "Q9361",
+   "country": "Q813",
+   "sitelinks": "187",
+   "label": "Bischkek"
+  },
+  {
+   "item": "Q49158",
+   "country": "Q30",
+   "sitelinks": "91",
+   "label": "Springfield"
+  },
+  {
+   "item": "Q179833",
+   "country": "Q227",
+   "sitelinks": "89",
+   "label": "Sumqayıt"
+  },
+  {
+   "item": "Q180057",
+   "country": "Q145",
+   "sitelinks": "87",
+   "label": "Lincoln"
+  },
+  {
+   "item": "Q85",
+   "country": "Q79",
+   "sitelinks": "262",
+   "label": "Kairo"
+  },
+  {
+   "item": "Q9885",
+   "country": "Q668",
+   "sitelinks": "91",
+   "label": "Coimbatore"
+  },
+  {
+   "item": "Q87",
+   "country": "Q79",
+   "sitelinks": "177",
+   "label": "Alexandria"
+  },
+  {
+   "item": "Q49145",
+   "country": "Q30",
+   "sitelinks": "108",
+   "label": "New Haven"
+  },
+  {
+   "item": "Q24879",
+   "country": "Q183",
+   "sitelinks": "164",
+   "label": "Bremen"
+  },
+  {
+   "item": "Q2280",
+   "country": "Q184",
+   "sitelinks": "232",
+   "label": "Minsk"
+  },
+  {
+   "item": "Q71",
+   "country": "Q39",
+   "sitelinks": "200",
+   "label": "Genf"
+  },
+  {
+   "item": "Q49221",
+   "country": "Q30",
+   "sitelinks": "85",
+   "label": "Scottsdale"
+  },
+  {
+   "item": "Q49222",
+   "country": "Q30",
+   "sitelinks": "74",
+   "label": "Chesapeake"
+  },
+  {
+   "item": "Q2214",
+   "country": "Q159",
+   "sitelinks": "112",
+   "label": "Pskow"
+  },
+  {
+   "item": "Q49162",
+   "country": "Q30",
+   "sitelinks": "81",
+   "label": "Lowell"
+  },
+  {
+   "item": "Q2467",
+   "country": "Q778",
+   "sitelinks": "143",
+   "label": "Nassau"
+  },
+  {
+   "item": "Q9832",
+   "country": "Q55",
+   "sitelinks": "116",
+   "label": "Eindhoven"
+  },
+  {
+   "item": "Q9863",
+   "country": "Q668",
+   "sitelinks": "63",
+   "label": "Salem"
+  },
+  {
+   "item": "Q49174",
+   "country": "Q30",
+   "sitelinks": "101",
+   "label": "Bridgeport"
+  },
+  {
+   "item": "Q24826",
+   "country": "Q145",
+   "sitelinks": "184",
+   "label": "Liverpool"
+  },
+  {
+   "item": "Q2288",
+   "country": "Q159",
+   "sitelinks": "107",
+   "label": "Twer"
+  },
+  {
+   "item": "Q49169",
+   "country": "Q30",
+   "sitelinks": "80",
+   "label": "Stamford"
+  },
+  {
+   "item": "Q174",
+   "country": "Q155",
+   "sitelinks": "256",
+   "label": "São Paulo"
+  },
+  {
+   "item": "Q2337",
+   "country": "Q159",
+   "sitelinks": "125",
+   "label": "Smolensk"
+  },
+  {
+   "item": "Q24861",
+   "country": "Q30",
+   "sitelinks": "135",
+   "label": "Albany"
+  },
+  {
+   "item": "Q100",
+   "country": "Q30",
+   "sitelinks": "217",
+   "label": "Boston"
+  },
+  {
+   "item": "Q2471",
+   "country": "Q805",
+   "sitelinks": "173",
+   "label": "Sanaa"
+  },
+  {
+   "item": "Q49233",
+   "country": "Q30",
+   "sitelinks": "133",
+   "label": "Orlando"
+  },
+  {
+   "item": "Q2423",
+   "country": "Q159",
+   "sitelinks": "120",
+   "label": "Jaroslawl"
+  },
+  {
+   "item": "Q25270",
+   "country": "Q1246",
+   "sitelinks": "158",
+   "label": "Pristina"
+  },
+  {
+   "item": "Q49227",
+   "country": "Q30",
+   "sitelinks": "78",
+   "label": "Winston-Salem"
+  },
+  {
+   "item": "Q2634",
+   "country": "Q38",
+   "sitelinks": "207",
+   "label": "Neapel"
+  },
+  {
+   "item": "Q9920",
+   "country": "Q55",
+   "sitelinks": "109",
+   "label": "Haarlem"
+  },
+  {
+   "item": "Q49236",
+   "country": "Q30",
+   "sitelinks": "97",
+   "label": "St. Petersburg"
+  },
+  {
+   "item": "Q49220",
+   "country": "Q30",
+   "sitelinks": "82",
+   "label": "Fremont"
+  },
+  {
+   "item": "Q49225",
+   "country": "Q30",
+   "sitelinks": "99",
+   "label": "Reno"
+  },
+  {
+   "item": "Q10690",
+   "country": "Q145",
+   "sitelinks": "163",
+   "label": "Cardiff"
+  },
+  {
+   "item": "Q10002",
+   "country": "Q55",
+   "sitelinks": "95",
+   "label": "Enschede"
+  },
+  {
+   "item": "Q2678",
+   "country": "Q184",
+   "sitelinks": "99",
+   "label": "Homel"
+  },
+  {
+   "item": "Q2683",
+   "country": "Q38",
+   "sitelinks": "125",
+   "label": "Parma"
+  },
+  {
+   "item": "Q2684",
+   "country": "Q159",
+   "sitelinks": "109",
+   "label": "Wladimir"
+  },
+  {
+   "item": "Q10686",
+   "country": "Q145",
+   "sitelinks": "163",
+   "label": "Belfast"
+  },
+  {
+   "item": "Q2656",
+   "country": "Q38",
+   "sitelinks": "175",
+   "label": "Palermo"
+  },
+  {
+   "item": "Q172",
+   "country": "Q16",
+   "sitelinks": "225",
+   "label": "Toronto"
+  },
+  {
+   "item": "Q49238",
+   "country": "Q30",
+   "sitelinks": "84",
+   "label": "Greensboro"
+  },
+  {
+   "item": "Q216",
+   "country": "Q37",
+   "sitelinks": "230",
+   "label": "Vilnius"
+  },
+  {
+   "item": "Q10717",
+   "country": "Q734",
+   "sitelinks": "146",
+   "label": "Georgetown"
+  },
+  {
+   "item": "Q25319",
+   "country": "Q35",
+   "sitelinks": "128",
+   "label": "Aarhus"
+  },
+  {
+   "item": "Q25331",
+   "country": "Q35",
+   "sitelinks": "115",
+   "label": "Odense"
+  },
+  {
+   "item": "Q25395",
+   "country": "Q30",
+   "sitelinks": "116",
+   "label": "Newark"
+  },
+  {
+   "item": "Q49178",
+   "country": "Q30",
+   "sitelinks": "66",
+   "label": "Waterbury"
+  },
+  {
+   "item": "Q220",
+   "country": "Q38",
+   "sitelinks": "344",
+   "label": "Rom"
+  },
+  {
+   "item": "Q2742",
+   "country": "Q183",
+   "sitelinks": "126",
+   "label": "Münster"
+  },
+  {
+   "item": "Q11194",
+   "country": "Q225",
+   "sitelinks": "218",
+   "label": "Sarajevo"
+  },
+  {
+   "item": "Q25315",
+   "country": "Q881",
+   "sitelinks": "97",
+   "label": "Phan Thiết"
+  },
+  {
+   "item": "Q10086",
+   "country": "Q668",
+   "sitelinks": "97",
+   "label": "Mysuru"
+  },
+  {
+   "item": "Q49218",
+   "country": "Q30",
+   "sitelinks": "104",
+   "label": "Rochester"
+  },
+  {
+   "item": "Q49219",
+   "country": "Q30",
+   "sitelinks": "81",
+   "label": "Irvine"
+  },
+  {
+   "item": "Q25282",
+   "country": "Q881",
+   "sitelinks": "141",
+   "label": "Đà Nẵng"
+  },
+  {
+   "item": "Q25287",
+   "country": "Q34",
+   "sitelinks": "161",
+   "label": "Göteborg"
+  },
+  {
+   "item": "Q239",
+   "country": "Q31",
+   "sitelinks": "240",
+   "label": "Brüssel"
+  },
+  {
+   "item": "Q2706",
+   "country": "Q183",
+   "sitelinks": "100",
+   "label": "Bremerhaven"
+  },
+  {
+   "item": "Q2765",
+   "country": "Q183",
+   "sitelinks": "111",
+   "label": "Gelsenkirchen"
+  },
+  {
+   "item": "Q49179",
+   "country": "Q30",
+   "sitelinks": "88",
+   "label": "Worcester"
+  },
+  {
+   "item": "Q49241",
+   "country": "Q30",
+   "sitelinks": "101",
+   "label": "Lexington"
+  },
+  {
+   "item": "Q268",
+   "country": "Q36",
+   "sitelinks": "142",
+   "label": "Posen"
+  },
+  {
+   "item": "Q11568",
+   "country": "Q408",
+   "sitelinks": "134",
+   "label": "Darwin"
+  },
+  {
+   "item": "Q160320",
+   "country": "Q851",
+   "sitelinks": "84",
+   "label": "Dammam"
+  },
+  {
+   "item": "Q49239",
+   "country": "Q30",
+   "sitelinks": "93",
+   "label": "Toledo"
+  },
+  {
+   "item": "Q49229",
+   "country": "Q30",
+   "sitelinks": "79",
+   "label": "Durham"
+  },
+  {
+   "item": "Q279",
+   "country": "Q38",
+   "sitelinks": "119",
+   "label": "Modena"
+  },
+  {
+   "item": "Q25409",
+   "country": "Q214",
+   "sitelinks": "108",
+   "label": "Košice"
+  },
+  {
+   "item": "Q160450",
+   "country": "Q43",
+   "sitelinks": "92",
+   "label": "Samsun"
+  },
+  {
+   "item": "Q25563103",
+   "country": "Q668",
+   "sitelinks": "66",
+   "label": "Varangal"
+  },
+  {
+   "item": "Q159835",
+   "country": "Q43",
+   "sitelinks": "89",
+   "label": "Batman"
+  },
+  {
+   "item": "Q49255",
+   "country": "Q30",
+   "sitelinks": "127",
+   "label": "Tampa"
+  },
+  {
+   "item": "Q49247",
+   "country": "Q30",
+   "sitelinks": "112",
+   "label": "Anaheim"
+  },
+  {
+   "item": "Q160687",
+   "country": "Q298",
+   "sitelinks": "86",
+   "label": "Valdivia"
+  },
+  {
+   "item": "Q11854",
+   "country": "Q668",
+   "sitelinks": "77",
+   "label": "Rajkot"
+  },
+  {
+   "item": "Q49244",
+   "country": "Q30",
+   "sitelinks": "97",
+   "label": "Santa Ana"
+  },
+  {
+   "item": "Q49240",
+   "country": "Q30",
+   "sitelinks": "84",
+   "label": "Stockton"
+  },
+  {
+   "item": "Q11736",
+   "country": "Q148",
+   "sitelinks": "156",
+   "label": "Tianjin"
+  },
+  {
+   "item": "Q49246",
+   "country": "Q30",
+   "sitelinks": "84",
+   "label": "Aurora"
+  },
+  {
+   "item": "Q49242",
+   "country": "Q30",
+   "sitelinks": "94",
+   "label": "Corpus Christi"
+  },
+  {
+   "item": "Q2746",
+   "country": "Q159",
+   "sitelinks": "106",
+   "label": "Rjasan"
+  },
+  {
+   "item": "Q162548",
+   "country": "Q232",
+   "sitelinks": "75",
+   "label": "Öskemen"
+  },
+  {
+   "item": "Q10737004",
+   "country": "Q218",
+   "sitelinks": "76",
+   "label": "Bacău"
+  },
+  {
+   "item": "Q12829733",
+   "country": "Q155",
+   "sitelinks": "110",
+   "label": "Belém"
+  },
+  {
+   "item": "Q2795",
+   "country": "Q183",
+   "sitelinks": "122",
+   "label": "Chemnitz"
+  },
+  {
+   "item": "Q270",
+   "country": "Q36",
+   "sitelinks": "288",
+   "label": "Warschau"
+  },
+  {
+   "item": "Q334",
+   "country": "Q334",
+   "sitelinks": "333",
+   "label": "Singapur"
+  },
+  {
+   "item": "Q2773",
+   "country": "Q183",
+   "sitelinks": "117",
+   "label": "Braunschweig"
+  },
+  {
+   "item": "Q2749",
+   "country": "Q183",
+   "sitelinks": "125",
+   "label": "Augsburg"
+  },
+  {
+   "item": "Q49258",
+   "country": "Q30",
+   "sitelinks": "115",
+   "label": "Colorado Springs"
+  },
+  {
+   "item": "Q160173",
+   "country": "Q219",
+   "sitelinks": "92",
+   "label": "Russe"
+  },
+  {
+   "item": "Q11711",
+   "country": "Q424",
+   "sitelinks": "84",
+   "label": "Siem Reap"
+  },
+  {
+   "item": "Q162677",
+   "country": "Q159",
+   "sitelinks": "77",
+   "label": "Murom"
+  },
+  {
+   "item": "Q2770",
+   "country": "Q159",
+   "sitelinks": "102",
+   "label": "Tula"
+  },
+  {
+   "item": "Q11720",
+   "country": "Q148",
+   "sitelinks": "118",
+   "label": "Shenyang"
+  },
+  {
+   "item": "Q2758",
+   "country": "Q183",
+   "sitelinks": "103",
+   "label": "Mönchengladbach"
+  },
+  {
+   "item": "Q160544",
+   "country": "Q41",
+   "sitelinks": "101",
+   "label": "Heraklion"
+  },
+  {
+   "item": "Q11739",
+   "country": "Q843",
+   "sitelinks": "144",
+   "label": "Lahore"
+  },
+  {
+   "item": "Q385",
+   "country": "Q36",
+   "sitelinks": "106",
+   "label": "Gdynia"
+  },
+  {
+   "item": "Q161176",
+   "country": "Q17",
+   "sitelinks": "84",
+   "label": "Fukushima"
+  },
+  {
+   "item": "Q49243",
+   "country": "Q30",
+   "sitelinks": "92",
+   "label": "Riverside"
+  },
+  {
+   "item": "Q12193",
+   "country": "Q142",
+   "sitelinks": "121",
+   "label": "Brest"
+  },
+  {
+   "item": "Q288",
+   "country": "Q142",
+   "sitelinks": "119",
+   "label": "Tours"
+  },
+  {
+   "item": "Q49259",
+   "country": "Q30",
+   "sitelinks": "105",
+   "label": "Virginia Beach"
+  },
+  {
+   "item": "Q350",
+   "country": "Q145",
+   "sitelinks": "149",
+   "label": "Cambridge"
+  },
+  {
+   "item": "Q49256",
+   "country": "Q30",
+   "sitelinks": "103",
+   "label": "Bakersfield"
+  },
+  {
+   "item": "Q12258",
+   "country": "Q29",
+   "sitelinks": "83",
+   "label": "Sabadell"
+  },
+  {
+   "item": "Q11959",
+   "country": "Q29",
+   "sitelinks": "111",
+   "label": "Alicante"
+  },
+  {
+   "item": "Q384",
+   "country": "Q221",
+   "sitelinks": "197",
+   "label": "Skopje"
+  },
+  {
+   "item": "Q2805",
+   "country": "Q183",
+   "sitelinks": "101",
+   "label": "Krefeld"
+  },
+  {
+   "item": "Q393",
+   "country": "Q36",
+   "sitelinks": "146",
+   "label": "Stettin"
+  },
+  {
+   "item": "Q49266",
+   "country": "Q30",
+   "sitelinks": "112",
+   "label": "Wichita"
+  },
+  {
+   "item": "Q11977",
+   "country": "Q36",
+   "sitelinks": "77",
+   "label": "Tychy"
+  },
+  {
+   "item": "Q2837",
+   "country": "Q159",
+   "sitelinks": "103",
+   "label": "Kaluga"
+  },
+  {
+   "item": "Q11909",
+   "country": "Q668",
+   "sitelinks": "93",
+   "label": "Vadodara"
+  },
+  {
+   "item": "Q49261",
+   "country": "Q30",
+   "sitelinks": "97",
+   "label": "Mesa"
+  },
+  {
+   "item": "Q163132",
+   "country": "Q30",
+   "sitelinks": "95",
+   "label": "Akron"
+  },
+  {
+   "item": "Q11910",
+   "country": "Q668",
+   "sitelinks": "89",
+   "label": "Gandhinagar"
+  },
+  {
+   "item": "Q2833",
+   "country": "Q183",
+   "sitelinks": "127",
+   "label": "Freiburg im Breisgau"
+  },
+  {
+   "item": "Q2801",
+   "country": "Q159",
+   "sitelinks": "96",
+   "label": "Brjansk"
+  },
+  {
+   "item": "Q546",
+   "country": "Q38",
+   "sitelinks": "138",
+   "label": "Triest"
+  },
+  {
+   "item": "Q163490",
+   "country": "Q822",
+   "sitelinks": "92",
+   "label": "Sidon"
+  },
+  {
+   "item": "Q437",
+   "country": "Q215",
+   "sitelinks": "206",
+   "label": "Ljubljana"
+  },
+  {
+   "item": "Q406",
+   "country": "Q43",
+   "sitelinks": "290",
+   "label": "Istanbul"
+  },
+  {
+   "item": "Q165420",
+   "country": "Q219",
+   "sitelinks": "83",
+   "label": "Plewen"
+  },
+  {
+   "item": "Q163798",
+   "country": "Q668",
+   "sitelinks": "65",
+   "label": "Thrissur"
+  },
+  {
+   "item": "Q165204",
+   "country": "Q96",
+   "sitelinks": "86",
+   "label": "Mérida"
+  },
+  {
+   "item": "Q365",
+   "country": "Q183",
+   "sitelinks": "190",
+   "label": "Köln"
+  },
+  {
+   "item": "Q2844",
+   "country": "Q155",
+   "sitelinks": "226",
+   "label": "Brasília"
+  },
+  {
+   "item": "Q11746",
+   "country": "Q148",
+   "sitelinks": "180",
+   "label": "Wuhan"
+  },
+  {
+   "item": "Q2865",
+   "country": "Q183",
+   "sitelinks": "119",
+   "label": "Kassel"
+  },
+  {
+   "item": "Q49270",
+   "country": "Q30",
+   "sitelinks": "75",
+   "label": "Chula Vista"
+  },
+  {
+   "item": "Q50054",
+   "country": "Q30",
+   "sitelinks": "65",
+   "label": "Garden Grove"
+  },
+  {
+   "item": "Q49274",
+   "country": "Q30",
+   "sitelinks": "72",
+   "label": "Garland"
+  },
+  {
+   "item": "Q582",
+   "country": "Q142",
+   "sitelinks": "86",
+   "label": "Villeurbanne"
+  },
+  {
+   "item": "Q580",
+   "country": "Q36",
+   "sitelinks": "139",
+   "label": "Łódź"
+  },
+  {
+   "item": "Q50816",
+   "country": "Q16",
+   "sitelinks": "84",
+   "label": "Mississauga"
+  },
+  {
+   "item": "Q588",
+   "country": "Q36",
+   "sitelinks": "163",
+   "label": "Katowice"
+  },
+  {
+   "item": "Q49276",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Hialeah"
+  },
+  {
+   "item": "Q490",
+   "country": "Q38",
+   "sitelinks": "226",
+   "label": "Mailand"
+  },
+  {
+   "item": "Q167715",
+   "country": "Q668",
+   "sitelinks": "111",
+   "label": "Thiruvananthapuram"
+  },
+  {
+   "item": "Q2814",
+   "country": "Q183",
+   "sitelinks": "122",
+   "label": "Halle (Saale)"
+  },
+  {
+   "item": "Q49268",
+   "country": "Q30",
+   "sitelinks": "96",
+   "label": "Fort Wayne"
+  },
+  {
+   "item": "Q166304",
+   "country": "Q30",
+   "sitelinks": "99",
+   "label": "Billings"
+  },
+  {
+   "item": "Q168197",
+   "country": "Q43",
+   "sitelinks": "84",
+   "label": "Adıyaman"
+  },
+  {
+   "item": "Q2843",
+   "country": "Q183",
+   "sitelinks": "136",
+   "label": "Lübeck"
+  },
+  {
+   "item": "Q167394",
+   "country": "Q403",
+   "sitelinks": "87",
+   "label": "Kragujevac"
+  },
+  {
+   "item": "Q168376",
+   "country": "Q155",
+   "sitelinks": "78",
+   "label": "Vitória"
+  },
+  {
+   "item": "Q586",
+   "country": "Q183",
+   "sitelinks": "163",
+   "label": "Bonn"
+  },
+  {
+   "item": "Q167436",
+   "country": "Q155",
+   "sitelinks": "79",
+   "label": "João Pessoa"
+  },
+  {
+   "item": "Q2838",
+   "country": "Q183",
+   "sitelinks": "101",
+   "label": "Oberhausen"
+  },
+  {
+   "item": "Q2868",
+   "country": "Q419",
+   "sitelinks": "220",
+   "label": "Lima"
+  },
+  {
+   "item": "Q49273",
+   "country": "Q30",
+   "sitelinks": "83",
+   "label": "Lubbock"
+  },
+  {
+   "item": "Q2880",
+   "country": "Q183",
+   "sitelinks": "93",
+   "label": "Hamm"
+  },
+  {
+   "item": "Q456",
+   "country": "Q142",
+   "sitelinks": "197",
+   "label": "Lyon"
+  },
+  {
+   "item": "Q49272",
+   "country": "Q30",
+   "sitelinks": "81",
+   "label": "Chandler"
+  },
+  {
+   "item": "Q168057",
+   "country": "Q218",
+   "sitelinks": "94",
+   "label": "Craiova"
+  },
+  {
+   "item": "Q2871",
+   "country": "Q183",
+   "sitelinks": "92",
+   "label": "Hagen"
+  },
+  {
+   "item": "Q165444",
+   "country": "Q796",
+   "sitelinks": "87",
+   "label": "Tikrit"
+  },
+  {
+   "item": "Q51682",
+   "country": "Q30",
+   "sitelinks": "84",
+   "label": "Glendale"
+  },
+  {
+   "item": "Q2841",
+   "country": "Q739",
+   "sitelinks": "284",
+   "label": "Bogotá"
+  },
+  {
+   "item": "Q2899",
+   "country": "Q183",
+   "sitelinks": "94",
+   "label": "Mülheim an der Ruhr"
+  },
+  {
+   "item": "Q168193",
+   "country": "Q796",
+   "sitelinks": "89",
+   "label": "Nadschaf"
+  },
+  {
+   "item": "Q50189",
+   "country": "Q142",
+   "sitelinks": "99",
+   "label": "Annecy"
+  },
+  {
+   "item": "Q271771",
+   "country": "Q79",
+   "sitelinks": "64",
+   "label": "Tanta"
+  },
+  {
+   "item": "Q51599",
+   "country": "Q298",
+   "sitelinks": "103",
+   "label": "Punta Arenas"
+  },
+  {
+   "item": "Q2887",
+   "country": "Q298",
+   "sitelinks": "276",
+   "label": "Santiago de Chile"
+  },
+  {
+   "item": "Q2904",
+   "country": "Q183",
+   "sitelinks": "85",
+   "label": "Herne"
+  },
+  {
+   "item": "Q51685",
+   "country": "Q30",
+   "sitelinks": "72",
+   "label": "Tempe"
+  },
+  {
+   "item": "Q51103",
+   "country": "Q739",
+   "sitelinks": "115",
+   "label": "Cali"
+  },
+  {
+   "item": "Q272093",
+   "country": "Q794",
+   "sitelinks": "73",
+   "label": "Sanandadsch"
+  },
+  {
+   "item": "Q272471",
+   "country": "Q241",
+   "sitelinks": "65",
+   "label": "Matanzas"
+  },
+  {
+   "item": "Q617",
+   "country": "Q38",
+   "sitelinks": "134",
+   "label": "Padua"
+  },
+  {
+   "item": "Q165341",
+   "country": "Q155",
+   "sitelinks": "81",
+   "label": "Teresina"
+  },
+  {
+   "item": "Q271911",
+   "country": "Q668",
+   "sitelinks": "79",
+   "label": "Dispur"
+  },
+  {
+   "item": "Q495",
+   "country": "Q38",
+   "sitelinks": "180",
+   "label": "Turin"
+  },
+  {
+   "item": "Q273880",
+   "country": "Q17",
+   "sitelinks": "63",
+   "label": "Beppu"
+  },
+  {
+   "item": "Q51689",
+   "country": "Q30",
+   "sitelinks": "90",
+   "label": "Plano"
+  },
+  {
+   "item": "Q271619",
+   "country": "Q833",
+   "sitelinks": "74",
+   "label": "Ipoh"
+  },
+  {
+   "item": "Q51697",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "McKinney"
+  },
+  {
+   "item": "Q168652",
+   "country": "Q34754",
+   "sitelinks": "96",
+   "label": "Hargeysa"
+  },
+  {
+   "item": "Q274584",
+   "country": "Q783",
+   "sitelinks": "65",
+   "label": "San Pedro Sula"
+  },
+  {
+   "item": "Q641",
+   "country": "Q38",
+   "sitelinks": "232",
+   "label": "Venedig"
+  },
+  {
+   "item": "Q271417",
+   "country": "Q17",
+   "sitelinks": "63",
+   "label": "Funabashi"
+  },
+  {
+   "item": "Q168929",
+   "country": "Q155",
+   "sitelinks": "86",
+   "label": "Campo Grande"
+  },
+  {
+   "item": "Q51690",
+   "country": "Q30",
+   "sitelinks": "74",
+   "label": "Irving"
+  },
+  {
+   "item": "Q51691",
+   "country": "Q30",
+   "sitelinks": "83",
+   "label": "Amarillo"
+  },
+  {
+   "item": "Q644",
+   "country": "Q79",
+   "sitelinks": "87",
+   "label": "Scharm asch-Schaich"
+  },
+  {
+   "item": "Q51686",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Peoria"
+  },
+  {
+   "item": "Q272795",
+   "country": "Q419",
+   "sitelinks": "61",
+   "label": "Tacna"
+  },
+  {
+   "item": "Q598",
+   "country": "Q36",
+   "sitelinks": "101",
+   "label": "Rzeszów"
+  },
+  {
+   "item": "Q53139",
+   "country": "Q159",
+   "sitelinks": "94",
+   "label": "Tschita"
+  },
+  {
+   "item": "Q612",
+   "country": "Q878",
+   "sitelinks": "219",
+   "label": "Dubai"
+  },
+  {
+   "item": "Q56037",
+   "country": "Q16957",
+   "sitelinks": "73",
+   "label": "Ost-Berlin"
+  },
+  {
+   "item": "Q52842",
+   "country": "Q36",
+   "sitelinks": "73",
+   "label": "Kalisz"
+  },
+  {
+   "item": "Q53077",
+   "country": "Q96",
+   "sitelinks": "76",
+   "label": "Saltillo"
+  },
+  {
+   "item": "Q2907",
+   "country": "Q750",
+   "sitelinks": "152",
+   "label": "Sucre"
+  },
+  {
+   "item": "Q648",
+   "country": "Q142",
+   "sitelinks": "162",
+   "label": "Lille"
+  },
+  {
+   "item": "Q311321",
+   "country": "Q858",
+   "sitelinks": "62",
+   "label": "Al-Hasaka"
+  },
+  {
+   "item": "Q316887",
+   "country": "Q142",
+   "sitelinks": "60",
+   "label": "Saint-Paul"
+  },
+  {
+   "item": "Q328941",
+   "country": "Q30",
+   "sitelinks": "71",
+   "label": "Clarksville"
+  },
+  {
+   "item": "Q628",
+   "country": "Q38",
+   "sitelinks": "132",
+   "label": "Bergamo"
+  },
+  {
+   "item": "Q273779",
+   "country": "Q1041",
+   "sitelinks": "67",
+   "label": "Saint-Louis"
+  },
+  {
+   "item": "Q168843",
+   "country": "Q794",
+   "sitelinks": "79",
+   "label": "Sāri"
+  },
+  {
+   "item": "Q168866",
+   "country": "Q43",
+   "sitelinks": "95",
+   "label": "Eskişehir"
+  },
+  {
+   "item": "Q51694",
+   "country": "Q30",
+   "sitelinks": "66",
+   "label": "Grand Prairie"
+  },
+  {
+   "item": "Q323414",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Simi Valley"
+  },
+  {
+   "item": "Q727",
+   "country": "Q55",
+   "sitelinks": "285",
+   "label": "Amsterdam"
+  },
+  {
+   "item": "Q320934",
+   "country": "Q17",
+   "sitelinks": "60",
+   "label": "Kurume"
+  },
+  {
+   "item": "Q317946",
+   "country": "Q794",
+   "sitelinks": "63",
+   "label": "Bodschnurd"
+  },
+  {
+   "item": "Q57970",
+   "country": "Q148",
+   "sitelinks": "66",
+   "label": "Changzhou"
+  },
+  {
+   "item": "Q54108",
+   "country": "Q414",
+   "sitelinks": "62",
+   "label": "Bahía Blanca"
+  },
+  {
+   "item": "Q649",
+   "country": "Q159",
+   "sitelinks": "338",
+   "label": "Moskau"
+  },
+  {
+   "item": "Q57719",
+   "country": "Q148",
+   "sitelinks": "62",
+   "label": "Xuzhou"
+  },
+  {
+   "item": "Q328518",
+   "country": "Q739",
+   "sitelinks": "66",
+   "label": "Armenia"
+  },
+  {
+   "item": "Q58422",
+   "country": "Q148",
+   "sitelinks": "70",
+   "label": "Tangshan"
+  },
+  {
+   "item": "Q323432",
+   "country": "Q30",
+   "sitelinks": "61",
+   "label": "Fairfield"
+  },
+  {
+   "item": "Q51693",
+   "country": "Q30",
+   "sitelinks": "74",
+   "label": "Brownsville"
+  },
+  {
+   "item": "Q321079",
+   "country": "Q1033",
+   "sitelinks": "61",
+   "label": "Jos"
+  },
+  {
+   "item": "Q321475",
+   "country": "Q668",
+   "sitelinks": "70",
+   "label": "Kollam"
+  },
+  {
+   "item": "Q55630",
+   "country": "Q403",
+   "sitelinks": "110",
+   "label": "Novi Sad"
+  },
+  {
+   "item": "Q52028",
+   "country": "Q869",
+   "sitelinks": "92",
+   "label": "Chiang Mai"
+  },
+  {
+   "item": "Q57906",
+   "country": "Q148",
+   "sitelinks": "63",
+   "label": "Yangzhou"
+  },
+  {
+   "item": "Q58584",
+   "country": "Q148",
+   "sitelinks": "60",
+   "label": "Baoding"
+  },
+  {
+   "item": "Q193443",
+   "country": "Q159",
+   "sitelinks": "69",
+   "label": "Salawat"
+  },
+  {
+   "item": "Q749",
+   "country": "Q55",
+   "sitelinks": "115",
+   "label": "Groningen"
+  },
+  {
+   "item": "Q326956",
+   "country": "Q17",
+   "sitelinks": "60",
+   "label": "Uji"
+  },
+  {
+   "item": "Q318156",
+   "country": "Q843",
+   "sitelinks": "61",
+   "label": "Bahawalpur"
+  },
+  {
+   "item": "Q320015",
+   "country": "Q739",
+   "sitelinks": "61",
+   "label": "Pasto"
+  },
+  {
+   "item": "Q333074",
+   "country": "Q657",
+   "sitelinks": "60",
+   "label": "Moundou"
+  },
+  {
+   "item": "Q656",
+   "country": "Q159",
+   "sitelinks": "273",
+   "label": "Sankt Petersburg"
+  },
+  {
+   "item": "Q715",
+   "country": "Q183",
+   "sitelinks": "103",
+   "label": "Heilbronn"
+  },
+  {
+   "item": "Q690",
+   "country": "Q55",
+   "sitelinks": "106",
+   "label": "Delft"
+  },
+  {
+   "item": "Q57278",
+   "country": "Q408",
+   "sitelinks": "100",
+   "label": "Newcastle"
+  },
+  {
+   "item": "Q335506",
+   "country": "Q77",
+   "sitelinks": "68",
+   "label": "Salto"
+  },
+  {
+   "item": "Q793",
+   "country": "Q55",
+   "sitelinks": "103",
+   "label": "Zwolle"
+  },
+  {
+   "item": "Q283368",
+   "country": "Q858",
+   "sitelinks": "83",
+   "label": "Raqqa"
+  },
+  {
+   "item": "Q342043",
+   "country": "Q30",
+   "sitelinks": "60",
+   "label": "Hampton"
+  },
+  {
+   "item": "Q348972",
+   "country": "Q794",
+   "sitelinks": "63",
+   "label": "Saqqez"
+  },
+  {
+   "item": "Q52465",
+   "country": "Q30",
+   "sitelinks": "61",
+   "label": "West Valley City"
+  },
+  {
+   "item": "Q289693",
+   "country": "Q878",
+   "sitelinks": "86",
+   "label": "Schardscha"
+  },
+  {
+   "item": "Q332319",
+   "country": "Q115",
+   "sitelinks": "70",
+   "label": "Mekele"
+  },
+  {
+   "item": "Q320792",
+   "country": "Q983",
+   "sitelinks": "63",
+   "label": "Bata"
+  },
+  {
+   "item": "Q194165",
+   "country": "Q810",
+   "sitelinks": "61",
+   "label": "Irbid"
+  },
+  {
+   "item": "Q52607",
+   "country": "Q414",
+   "sitelinks": "87",
+   "label": "Mar del Plata"
+  },
+  {
+   "item": "Q194332",
+   "country": "Q155",
+   "sitelinks": "61",
+   "label": "Mogi das Cruzes"
+  },
+  {
+   "item": "Q887",
+   "country": "Q159",
+   "sitelinks": "150",
+   "label": "Jekaterinburg"
+  },
+  {
+   "item": "Q330531",
+   "country": "Q668",
+   "sitelinks": "71",
+   "label": "Kota"
+  },
+  {
+   "item": "Q331078",
+   "country": "Q794",
+   "sitelinks": "80",
+   "label": "Amol"
+  },
+  {
+   "item": "Q900",
+   "country": "Q159",
+   "sitelinks": "164",
+   "label": "Kasan"
+  },
+  {
+   "item": "Q331104",
+   "country": "Q30",
+   "sitelinks": "65",
+   "label": "Fayetteville"
+  },
+  {
+   "item": "Q894",
+   "country": "Q159",
+   "sitelinks": "137",
+   "label": "Samara"
+  },
+  {
+   "item": "Q883",
+   "country": "Q159",
+   "sitelinks": "159",
+   "label": "Nowosibirsk"
+  },
+  {
+   "item": "Q58401",
+   "country": "Q148",
+   "sitelinks": "95",
+   "label": "Shijiazhuang"
+  },
+  {
+   "item": "Q193806",
+   "country": "Q794",
+   "sitelinks": "63",
+   "label": "Birdschand"
+  },
+  {
+   "item": "Q334577",
+   "country": "Q774",
+   "sitelinks": "65",
+   "label": "Quetzaltenango"
+  },
+  {
+   "item": "Q335017",
+   "country": "Q30",
+   "sitelinks": "78",
+   "label": "Newport News"
+  },
+  {
+   "item": "Q372454",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "Escondido"
+  },
+  {
+   "item": "Q196486",
+   "country": "Q159",
+   "sitelinks": "70",
+   "label": "Stary Oskol"
+  },
+  {
+   "item": "Q994",
+   "country": "Q230",
+   "sitelinks": "228",
+   "label": "Tiflis"
+  },
+  {
+   "item": "Q956",
+   "country": "Q148",
+   "sitelinks": "306",
+   "label": "Peking"
+  },
+  {
+   "item": "Q336431",
+   "country": "Q17",
+   "sitelinks": "60",
+   "label": "Toyohashi"
+  },
+  {
+   "item": "Q761",
+   "country": "Q36",
+   "sitelinks": "109",
+   "label": "Białystok"
+  },
+  {
+   "item": "Q372773",
+   "country": "Q668",
+   "sitelinks": "96",
+   "label": "Raipur"
+  },
+  {
+   "item": "Q193486",
+   "country": "Q115",
+   "sitelinks": "76",
+   "label": "Dire Dawa"
+  },
+  {
+   "item": "Q193965",
+   "country": "Q212",
+   "sitelinks": "77",
+   "label": "Kamjanez-Podilskyj"
+  },
+  {
+   "item": "Q898",
+   "country": "Q159",
+   "sitelinks": "138",
+   "label": "Omsk"
+  },
+  {
+   "item": "Q193802",
+   "country": "Q1028",
+   "sitelinks": "75",
+   "label": "Oujda"
+  },
+  {
+   "item": "Q1010",
+   "country": "Q215",
+   "sitelinks": "105",
+   "label": "Maribor"
+  },
+  {
+   "item": "Q199575",
+   "country": "Q43",
+   "sitelinks": "74",
+   "label": "Ağrı"
+  },
+  {
+   "item": "Q807",
+   "country": "Q39",
+   "sitelinks": "140",
+   "label": "Lausanne"
+  },
+  {
+   "item": "Q373808",
+   "country": "Q863",
+   "sitelinks": "82",
+   "label": "Chudschand"
+  },
+  {
+   "item": "Q459360",
+   "country": "Q916",
+   "sitelinks": "68",
+   "label": "Cabinda"
+  },
+  {
+   "item": "Q386991",
+   "country": "Q96",
+   "sitelinks": "60",
+   "label": "Torreón"
+  },
+  {
+   "item": "Q392599",
+   "country": "Q30",
+   "sitelinks": "66",
+   "label": "Everett"
+  },
+  {
+   "item": "Q199712",
+   "country": "Q43",
+   "sitelinks": "93",
+   "label": "Çanakkale"
+  },
+  {
+   "item": "Q919",
+   "country": "Q159",
+   "sitelinks": "123",
+   "label": "Krasnojarsk"
+  },
+  {
+   "item": "Q335135",
+   "country": "Q739",
+   "sitelinks": "63",
+   "label": "Popayán"
+  },
+  {
+   "item": "Q196489",
+   "country": "Q159",
+   "sitelinks": "72",
+   "label": "Sterlitamak"
+  },
+  {
+   "item": "Q198748",
+   "country": "Q159",
+   "sitelinks": "73",
+   "label": "Engels"
+  },
+  {
+   "item": "Q336438",
+   "country": "Q17",
+   "sitelinks": "65",
+   "label": "Takasaki"
+  },
+  {
+   "item": "Q376903",
+   "country": "Q739",
+   "sitelinks": "61",
+   "label": "Valledupar"
+  },
+  {
+   "item": "Q198989",
+   "country": "Q232",
+   "sitelinks": "83",
+   "label": "Aqtau"
+  },
+  {
+   "item": "Q891",
+   "country": "Q159",
+   "sitelinks": "146",
+   "label": "Nischni Nowgorod"
+  },
+  {
+   "item": "Q459553",
+   "country": "Q96",
+   "sitelinks": "67",
+   "label": "Chetumal"
+  },
+  {
+   "item": "Q199909",
+   "country": "Q796",
+   "sitelinks": "92",
+   "label": "Kerbela"
+  },
+  {
+   "item": "Q199723",
+   "country": "Q43",
+   "sitelinks": "75",
+   "label": "Balıkesir"
+  },
+  {
+   "item": "Q199440",
+   "country": "Q96",
+   "sitelinks": "89",
+   "label": "Mexicali"
+  },
+  {
+   "item": "Q199500",
+   "country": "Q399",
+   "sitelinks": "100",
+   "label": "Gjumri"
+  },
+  {
+   "item": "Q199605",
+   "country": "Q668",
+   "sitelinks": "97",
+   "label": "Guwahati"
+  },
+  {
+   "item": "Q194146",
+   "country": "Q43",
+   "sitelinks": "69",
+   "label": "Niğde"
+  },
+  {
+   "item": "Q1154",
+   "country": "Q668",
+   "sitelinks": "67",
+   "label": "Jamnagar"
+  },
+  {
+   "item": "Q386649",
+   "country": "Q794",
+   "sitelinks": "63",
+   "label": "Schahr-e Kord"
+  },
+  {
+   "item": "Q374365",
+   "country": "Q851",
+   "sitelinks": "162",
+   "label": "Dschidda"
+  },
+  {
+   "item": "Q193722",
+   "country": "Q159",
+   "sitelinks": "72",
+   "label": "Sergijew Possad"
+  },
+  {
+   "item": "Q200017",
+   "country": "Q668",
+   "sitelinks": "86",
+   "label": "Vijayawada"
+  },
+  {
+   "item": "Q200077",
+   "country": "Q17",
+   "sitelinks": "78",
+   "label": "Morioka"
+  },
+  {
+   "item": "Q1289",
+   "country": "Q142",
+   "sitelinks": "144",
+   "label": "Grenoble"
+  },
+  {
+   "item": "Q472925",
+   "country": "Q265",
+   "sitelinks": "63",
+   "label": "Urganch"
+  },
+  {
+   "item": "Q199528",
+   "country": "Q668",
+   "sitelinks": "93",
+   "label": "Dehradun"
+  },
+  {
+   "item": "Q477232",
+   "country": "Q232",
+   "sitelinks": "83",
+   "label": "Aqtöbe"
+  },
+  {
+   "item": "Q478207",
+   "country": "Q1028",
+   "sitelinks": "63",
+   "label": "Kénitra"
+  },
+  {
+   "item": "Q462789",
+   "country": "Q30",
+   "sitelinks": "64",
+   "label": "Cape Coral"
+  },
+  {
+   "item": "Q199609",
+   "country": "Q17",
+   "sitelinks": "71",
+   "label": "Ōita"
+  },
+  {
+   "item": "Q914",
+   "country": "Q159",
+   "sitelinks": "159",
+   "label": "Wolgograd"
+  },
+  {
+   "item": "Q200022",
+   "country": "Q17",
+   "sitelinks": "81",
+   "label": "Matsuyama"
+  },
+  {
+   "item": "Q1017",
+   "country": "Q183",
+   "sitelinks": "144",
+   "label": "Aachen"
+  },
+  {
+   "item": "Q1085",
+   "country": "Q213",
+   "sitelinks": "270",
+   "label": "Prag"
+  },
+  {
+   "item": "Q383129",
+   "country": "Q794",
+   "sitelinks": "61",
+   "label": "Yasudsch"
+  },
+  {
+   "item": "Q200049",
+   "country": "Q668",
+   "sitelinks": "88",
+   "label": "Ajmer"
+  },
+  {
+   "item": "Q915",
+   "country": "Q159",
+   "sitelinks": "135",
+   "label": "Perm"
+  },
+  {
+   "item": "Q976",
+   "country": "Q159",
+   "sitelinks": "114",
+   "label": "Tomsk"
+  },
+  {
+   "item": "Q199797",
+   "country": "Q30",
+   "sitelinks": "98",
+   "label": "Tacoma"
+  },
+  {
+   "item": "Q383622",
+   "country": "Q819",
+   "sitelinks": "60",
+   "label": "Pakse"
+  },
+  {
+   "item": "Q483331",
+   "country": "Q43",
+   "sitelinks": "81",
+   "label": "Iğdır"
+  },
+  {
+   "item": "Q467421",
+   "country": "Q155",
+   "sitelinks": "69",
+   "label": "Americana"
+  },
+  {
+   "item": "Q1055",
+   "country": "Q183",
+   "sitelinks": "230",
+   "label": "Hamburg"
+  },
+  {
+   "item": "Q200019",
+   "country": "Q668",
+   "sitelinks": "95",
+   "label": "Jodhpur"
+  },
+  {
+   "item": "Q1022",
+   "country": "Q183",
+   "sitelinks": "183",
+   "label": "Stuttgart"
+  },
+  {
+   "item": "Q200054",
+   "country": "Q668",
+   "sitelinks": "82",
+   "label": "Jamshedpur"
+  },
+  {
+   "item": "Q484678",
+   "country": "Q30",
+   "sitelinks": "100",
+   "label": "Berkeley"
+  },
+  {
+   "item": "Q466216",
+   "country": "Q805",
+   "sitelinks": "66",
+   "label": "Taizz"
+  },
+  {
+   "item": "Q200078",
+   "country": "Q17",
+   "sitelinks": "85",
+   "label": "Okayama"
+  },
+  {
+   "item": "Q199889",
+   "country": "Q17",
+   "sitelinks": "90",
+   "label": "Kumamoto"
+  },
+  {
+   "item": "Q485172",
+   "country": "Q30",
+   "sitelinks": "90",
+   "label": "Ann Arbor"
+  },
+  {
+   "item": "Q485176",
+   "country": "Q30",
+   "sitelinks": "101",
+   "label": "Pasadena"
+  },
+  {
+   "item": "Q1083",
+   "country": "Q38",
+   "sitelinks": "110",
+   "label": "Salerno"
+  },
+  {
+   "item": "Q1040",
+   "country": "Q183",
+   "sitelinks": "133",
+   "label": "Karlsruhe"
+  },
+  {
+   "item": "Q200028",
+   "country": "Q664",
+   "sitelinks": "79",
+   "label": "Hamilton"
+  },
+  {
+   "item": "Q776965",
+   "country": "Q37",
+   "sitelinks": "127",
+   "label": "Klaipėda"
+  },
+  {
+   "item": "Q462804",
+   "country": "Q30",
+   "sitelinks": "67",
+   "label": "Lakewood"
+  },
+  {
+   "item": "Q466046",
+   "country": "Q1028",
+   "sitelinks": "70",
+   "label": "Salé"
+  },
+  {
+   "item": "Q1309",
+   "country": "Q55",
+   "sitelinks": "128",
+   "label": "Maastricht"
+  },
+  {
+   "item": "Q484706",
+   "country": "Q232",
+   "sitelinks": "103",
+   "label": "Qaraghandy"
+  },
+  {
+   "item": "Q200235",
+   "country": "Q668",
+   "sitelinks": "88",
+   "label": "Nashik"
+  },
+  {
+   "item": "Q200030",
+   "country": "Q858",
+   "sitelinks": "87",
+   "label": "Latakia"
+  },
+  {
+   "item": "Q1297",
+   "country": "Q30",
+   "sitelinks": "279",
+   "label": "Chicago"
+  },
+  {
+   "item": "Q466221",
+   "country": "Q902",
+   "sitelinks": "71",
+   "label": "Sylhet"
+  },
+  {
+   "item": "Q200119",
+   "country": "Q668",
+   "sitelinks": "81",
+   "label": "Ujjain"
+  },
+  {
+   "item": "Q200878",
+   "country": "Q668",
+   "sitelinks": "83",
+   "label": "Jabalpur"
+  },
+  {
+   "item": "Q200942",
+   "country": "Q145",
+   "sitelinks": "73",
+   "label": "Swindon"
+  },
+  {
+   "item": "Q200237",
+   "country": "Q668",
+   "sitelinks": "85",
+   "label": "Meerut"
+  },
+  {
+   "item": "Q200166",
+   "country": "Q16",
+   "sitelinks": "69",
+   "label": "Kitchener"
+  },
+  {
+   "item": "Q1342",
+   "country": "Q30",
+   "sitelinks": "150",
+   "label": "Pittsburgh"
+  },
+  {
+   "item": "Q200251",
+   "country": "Q17",
+   "sitelinks": "69",
+   "label": "Kōchi"
+  },
+  {
+   "item": "Q1295",
+   "country": "Q183",
+   "sitelinks": "153",
+   "label": "Dortmund"
+  },
+  {
+   "item": "Q200740",
+   "country": "Q17",
+   "sitelinks": "69",
+   "label": "Asahikawa"
+  },
+  {
+   "item": "Q1070",
+   "country": "Q668",
+   "sitelinks": "145",
+   "label": "Ahmedabad"
+  },
+  {
+   "item": "Q1646181",
+   "country": "Q145",
+   "sitelinks": "85",
+   "label": "Worcester"
+  },
+  {
+   "item": "Q201095",
+   "country": "Q43",
+   "sitelinks": "74",
+   "label": "Giresun"
+  },
+  {
+   "item": "Q1461",
+   "country": "Q928",
+   "sitelinks": "207",
+   "label": "Manila"
+  },
+  {
+   "item": "Q1640079",
+   "country": "Q843",
+   "sitelinks": "79",
+   "label": "Hyderabad"
+  },
+  {
+   "item": "Q721455",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "Miami Gardens"
+  },
+  {
+   "item": "Q748336",
+   "country": "Q424",
+   "sitelinks": "65",
+   "label": "Battambang"
+  },
+  {
+   "item": "Q1435",
+   "country": "Q224",
+   "sitelinks": "218",
+   "label": "Zagreb"
+  },
+  {
+   "item": "Q1425428",
+   "country": "Q145",
+   "sitelinks": "120",
+   "label": "Newcastle upon Tyne"
+  },
+  {
+   "item": "Q5582862",
+   "country": "Q419",
+   "sitelinks": "117",
+   "label": "Cusco"
+  },
+  {
+   "item": "Q2222874",
+   "country": "Q924",
+   "sitelinks": "66",
+   "label": "Sansibar Stadt"
+  },
+  {
+   "item": "Q200707",
+   "country": "Q17",
+   "sitelinks": "71",
+   "label": "Takamatsu"
+  },
+  {
+   "item": "Q200267",
+   "country": "Q17",
+   "sitelinks": "76",
+   "label": "Kamakura"
+  },
+  {
+   "item": "Q485496",
+   "country": "Q232",
+   "sitelinks": "96",
+   "label": "Schymkent"
+  },
+  {
+   "item": "Q720937",
+   "country": "Q794",
+   "sitelinks": "76",
+   "label": "Qaem-Schahr"
+  },
+  {
+   "item": "Q5584396",
+   "country": "Q668",
+   "sitelinks": "65",
+   "label": "Gorakhpur"
+  },
+  {
+   "item": "Q760714",
+   "country": "Q668",
+   "sitelinks": "64",
+   "label": "Bhagalpur"
+  },
+  {
+   "item": "Q200951",
+   "country": "Q43",
+   "sitelinks": "76",
+   "label": "Bolu"
+  },
+  {
+   "item": "Q200747",
+   "country": "Q17",
+   "sitelinks": "70",
+   "label": "Wakayama"
+  },
+  {
+   "item": "Q1476",
+   "country": "Q142",
+   "sitelinks": "104",
+   "label": "Le Mans"
+  },
+  {
+   "item": "Q200340",
+   "country": "Q668",
+   "sitelinks": "84",
+   "label": "Udaipur"
+  },
+  {
+   "item": "Q1449",
+   "country": "Q38",
+   "sitelinks": "180",
+   "label": "Genua"
+  },
+  {
+   "item": "Q2722762",
+   "country": "Q668",
+   "sitelinks": "61",
+   "label": "Alwar"
+  },
+  {
+   "item": "Q2766547",
+   "country": "Q55",
+   "sitelinks": "102",
+   "label": "Herzogenbusch"
+  },
+  {
+   "item": "Q1479",
+   "country": "Q142",
+   "sitelinks": "184",
+   "label": "Bordeaux"
+  },
+  {
+   "item": "Q201101",
+   "country": "Q43",
+   "sitelinks": "76",
+   "label": "Rize"
+  },
+  {
+   "item": "Q202907",
+   "country": "Q17",
+   "sitelinks": "70",
+   "label": "Ōtsu"
+  },
+  {
+   "item": "Q1362",
+   "country": "Q843",
+   "sitelinks": "196",
+   "label": "Islamabad"
+  },
+  {
+   "item": "Q1296",
+   "country": "Q31",
+   "sitelinks": "147",
+   "label": "Gent"
+  },
+  {
+   "item": "Q200713",
+   "country": "Q668",
+   "sitelinks": "86",
+   "label": "Aurangabad"
+  },
+  {
+   "item": "Q200718",
+   "country": "Q668",
+   "sitelinks": "74",
+   "label": "Bikaner"
+  },
+  {
+   "item": "Q202139",
+   "country": "Q668",
+   "sitelinks": "67",
+   "label": "Asansol"
+  },
+  {
+   "item": "Q202453",
+   "country": "Q403",
+   "sitelinks": "63",
+   "label": "Novi Pazar"
+  },
+  {
+   "item": "Q203027",
+   "country": "Q17",
+   "sitelinks": "64",
+   "label": "Tsu"
+  },
+  {
+   "item": "Q200805",
+   "country": "Q96",
+   "sitelinks": "78",
+   "label": "Aguascalientes"
+  },
+  {
+   "item": "Q1490",
+   "country": "Q17",
+   "sitelinks": "303",
+   "label": "Tokio"
+  },
+  {
+   "item": "Q200578",
+   "country": "Q17",
+   "sitelinks": "69",
+   "label": "Yokosuka"
+  },
+  {
+   "item": "Q200589",
+   "country": "Q17",
+   "sitelinks": "66",
+   "label": "Utsunomiya"
+  },
+  {
+   "item": "Q204150",
+   "country": "Q184",
+   "sitelinks": "68",
+   "label": "Pinsk"
+  },
+  {
+   "item": "Q204234",
+   "country": "Q145",
+   "sitelinks": "70",
+   "label": "Milton Keynes"
+  },
+  {
+   "item": "Q200731",
+   "country": "Q17",
+   "sitelinks": "68",
+   "label": "Tottori"
+  },
+  {
+   "item": "Q201117",
+   "country": "Q17",
+   "sitelinks": "71",
+   "label": "Toyota"
+  },
+  {
+   "item": "Q203045",
+   "country": "Q794",
+   "sitelinks": "63",
+   "label": "Semnan"
+  },
+  {
+   "item": "Q201932",
+   "country": "Q17",
+   "sitelinks": "67",
+   "label": "Kōfu"
+  },
+  {
+   "item": "Q200663",
+   "country": "Q668",
+   "sitelinks": "82",
+   "label": "Faridabad"
+  },
+  {
+   "item": "Q1520",
+   "country": "Q232",
+   "sitelinks": "218",
+   "label": "Astana"
+  },
+  {
+   "item": "Q204271",
+   "country": "Q96",
+   "sitelinks": "71",
+   "label": "San Luis Potosí"
+  },
+  {
+   "item": "Q3015863",
+   "country": "Q794",
+   "sitelinks": "66",
+   "label": "Piranschahr"
+  },
+  {
+   "item": "Q4115712",
+   "country": "Q37",
+   "sitelinks": "144",
+   "label": "Kaunas"
+  },
+  {
+   "item": "Q201404",
+   "country": "Q218",
+   "sitelinks": "64",
+   "label": "Buzau"
+  },
+  {
+   "item": "Q201618",
+   "country": "Q17",
+   "sitelinks": "67",
+   "label": "Fukui"
+  },
+  {
+   "item": "Q204561",
+   "country": "Q30",
+   "sitelinks": "78",
+   "label": "Modesto"
+  },
+  {
+   "item": "Q1530",
+   "country": "Q796",
+   "sitelinks": "251",
+   "label": "Bagdad"
+  },
+  {
+   "item": "Q1489",
+   "country": "Q96",
+   "sitelinks": "260",
+   "label": "Mexiko-Stadt"
+  },
+  {
+   "item": "Q1533",
+   "country": "Q717",
+   "sitelinks": "216",
+   "label": "Caracas"
+  },
+  {
+   "item": "Q203263",
+   "country": "Q30",
+   "sitelinks": "80",
+   "label": "Athens"
+  },
+  {
+   "item": "Q1491",
+   "country": "Q750",
+   "sitelinks": "158",
+   "label": "La Paz"
+  },
+  {
+   "item": "Q204266",
+   "country": "Q17",
+   "sitelinks": "74",
+   "label": "Toyama"
+  },
+  {
+   "item": "Q203299",
+   "country": "Q79",
+   "sitelinks": "64",
+   "label": "al-Fayyūm"
+  },
+  {
+   "item": "Q201832",
+   "country": "Q668",
+   "sitelinks": "80",
+   "label": "Aligarh"
+  },
+  {
+   "item": "Q201812",
+   "country": "Q145",
+   "sitelinks": "69",
+   "label": "Huddersfield"
+  },
+  {
+   "item": "Q203308",
+   "country": "Q17",
+   "sitelinks": "68",
+   "label": "Shimonoseki"
+  },
+  {
+   "item": "Q204249",
+   "country": "Q17",
+   "sitelinks": "68",
+   "label": "Mito"
+  },
+  {
+   "item": "Q1524",
+   "country": "Q41",
+   "sitelinks": "289",
+   "label": "Athen"
+  },
+  {
+   "item": "Q1707",
+   "country": "Q183",
+   "sitelinks": "142",
+   "label": "Kiel"
+  },
+  {
+   "item": "Q204308",
+   "country": "Q17",
+   "sitelinks": "68",
+   "label": "Miyazaki"
+  },
+  {
+   "item": "Q1647",
+   "country": "Q224",
+   "sitelinks": "107",
+   "label": "Rijeka"
+  },
+  {
+   "item": "Q1555",
+   "country": "Q774",
+   "sitelinks": "156",
+   "label": "Guatemala-Stadt"
+  },
+  {
+   "item": "Q220445",
+   "country": "Q833",
+   "sitelinks": "82",
+   "label": "Kuching"
+  },
+  {
+   "item": "Q202973",
+   "country": "Q16",
+   "sitelinks": "76",
+   "label": "Kingston"
+  },
+  {
+   "item": "Q203476",
+   "country": "Q668",
+   "sitelinks": "84",
+   "label": "Sri Vijaya Puram"
+  },
+  {
+   "item": "Q203476",
+   "country": "Q129286",
+   "sitelinks": "84",
+   "label": "Sri Vijaya Puram"
+  },
+  {
+   "item": "Q1663",
+   "country": "Q224",
+   "sitelinks": "115",
+   "label": "Split"
+  },
+  {
+   "item": "Q1020637",
+   "country": "Q794",
+   "sitelinks": "73",
+   "label": "Dschahrom"
+  },
+  {
+   "item": "Q221051",
+   "country": "Q96",
+   "sitelinks": "74",
+   "label": "Xalapa-Enríquez"
+  },
+  {
+   "item": "Q221436",
+   "country": "Q1033",
+   "sitelinks": "69",
+   "label": "Maiduguri"
+  },
+  {
+   "item": "Q234600",
+   "country": "Q878",
+   "sitelinks": "79",
+   "label": "Al-Ain"
+  },
+  {
+   "item": "Q221914",
+   "country": "Q916",
+   "sitelinks": "60",
+   "label": "Moçâmedes"
+  },
+  {
+   "item": "Q234453",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Hollywood"
+  },
+  {
+   "item": "Q205119",
+   "country": "Q419",
+   "sitelinks": "62",
+   "label": "Cajamarca"
+  },
+  {
+   "item": "Q1022488",
+   "country": "Q145",
+   "sitelinks": "62",
+   "label": "Brighton and Hove"
+  },
+  {
+   "item": "Q222755",
+   "country": "Q739",
+   "sitelinks": "65",
+   "label": "Ibagué"
+  },
+  {
+   "item": "Q223517",
+   "country": "Q668",
+   "sitelinks": "65",
+   "label": "Ahmednagar"
+  },
+  {
+   "item": "Q235190",
+   "country": "Q739",
+   "sitelinks": "66",
+   "label": "Manizales"
+  },
+  {
+   "item": "Q36160",
+   "country": "Q881",
+   "sitelinks": "62",
+   "label": "Hội An"
+  },
+  {
+   "item": "Q36168",
+   "country": "Q244",
+   "sitelinks": "146",
+   "label": "Bridgetown"
+  },
+  {
+   "item": "Q4093",
+   "country": "Q145",
+   "sitelinks": "176",
+   "label": "Glasgow"
+  },
+  {
+   "item": "Q231765",
+   "country": "Q408",
+   "sitelinks": "77",
+   "label": "Geelong"
+  },
+  {
+   "item": "Q239870",
+   "country": "Q30",
+   "sitelinks": "78",
+   "label": "Columbus"
+  },
+  {
+   "item": "Q1113311",
+   "country": "Q843",
+   "sitelinks": "109",
+   "label": "Peschawar"
+  },
+  {
+   "item": "Q36312",
+   "country": "Q16",
+   "sitelinks": "147",
+   "label": "Calgary"
+  },
+  {
+   "item": "Q232226",
+   "country": "Q16",
+   "sitelinks": "64",
+   "label": "Kelowna"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q172107",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q207272",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q577867",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q696908",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q1108445",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q1649871",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q36036",
+   "country": "Q104863335",
+   "sitelinks": "177",
+   "label": "Lwiw"
+  },
+  {
+   "item": "Q219583",
+   "country": "Q1028",
+   "sitelinks": "65",
+   "label": "El Jadida"
+  },
+  {
+   "item": "Q237655",
+   "country": "Q184",
+   "sitelinks": "64",
+   "label": "Baranawitschy"
+  },
+  {
+   "item": "Q223587",
+   "country": "Q79",
+   "sitelinks": "62",
+   "label": "al-Mansura"
+  },
+  {
+   "item": "Q219656",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Macon"
+  },
+  {
+   "item": "Q205327",
+   "country": "Q974",
+   "sitelinks": "63",
+   "label": "Kananga"
+  },
+  {
+   "item": "Q205526",
+   "country": "Q17",
+   "sitelinks": "69",
+   "label": "Yamagata"
+  },
+  {
+   "item": "Q1513",
+   "country": "Q668",
+   "sitelinks": "104",
+   "label": "Nagpur"
+  },
+  {
+   "item": "Q221734",
+   "country": "Q423",
+   "sitelinks": "60",
+   "label": "Rasŏn"
+  },
+  {
+   "item": "Q242895",
+   "country": "Q668",
+   "sitelinks": "61",
+   "label": "Saharanpur"
+  },
+  {
+   "item": "Q223920",
+   "country": "Q971",
+   "sitelinks": "70",
+   "label": "Pointe-Noire"
+  },
+  {
+   "item": "Q232842",
+   "country": "Q419",
+   "sitelinks": "62",
+   "label": "Puno"
+  },
+  {
+   "item": "Q234053",
+   "country": "Q30",
+   "sitelinks": "75",
+   "label": "Vancouver"
+  },
+  {
+   "item": "Q228405",
+   "country": "Q668",
+   "sitelinks": "96",
+   "label": "Madurai"
+  },
+  {
+   "item": "Q36091",
+   "country": "Q30",
+   "sitelinks": "146",
+   "label": "Minneapolis"
+  },
+  {
+   "item": "Q1515",
+   "country": "Q1008",
+   "sitelinks": "158",
+   "label": "Abidjan"
+  },
+  {
+   "item": "Q234061",
+   "country": "Q30",
+   "sitelinks": "78",
+   "label": "Erie"
+  },
+  {
+   "item": "Q223966",
+   "country": "Q419",
+   "sitelinks": "63",
+   "label": "Piura"
+  },
+  {
+   "item": "Q37836",
+   "country": "Q30",
+   "sitelinks": "141",
+   "label": "Milwaukee"
+  },
+  {
+   "item": "Q36647",
+   "country": "Q27",
+   "sitelinks": "114",
+   "label": "Cork"
+  },
+  {
+   "item": "Q225641",
+   "country": "Q114",
+   "sitelinks": "118",
+   "label": "Mombasa"
+  },
+  {
+   "item": "Q240475",
+   "country": "Q794",
+   "sitelinks": "65",
+   "label": "Kaschan"
+  },
+  {
+   "item": "Q237847",
+   "country": "Q668",
+   "sitelinks": "70",
+   "label": "Solapur"
+  },
+  {
+   "item": "Q242995",
+   "country": "Q668",
+   "sitelinks": "76",
+   "label": "Jhansi"
+  },
+  {
+   "item": "Q243319",
+   "country": "Q924",
+   "sitelinks": "60",
+   "label": "Morogoro"
+  },
+  {
+   "item": "Q242144",
+   "country": "Q668",
+   "sitelinks": "61",
+   "label": "Bhilai"
+  },
+  {
+   "item": "Q36433",
+   "country": "Q45",
+   "sitelinks": "141",
+   "label": "Porto"
+  },
+  {
+   "item": "Q243322",
+   "country": "Q843",
+   "sitelinks": "68",
+   "label": "Gujranwala"
+  },
+  {
+   "item": "Q243853",
+   "country": "Q17",
+   "sitelinks": "62",
+   "label": "Nishinomiya"
+  },
+  {
+   "item": "Q37043",
+   "country": "Q30",
+   "sitelinks": "143",
+   "label": "Tallahassee"
+  },
+  {
+   "item": "Q38380",
+   "country": "Q142",
+   "sitelinks": "126",
+   "label": "Angers"
+  },
+  {
+   "item": "Q238217",
+   "country": "Q858",
+   "sitelinks": "65",
+   "label": "Daraa"
+  },
+  {
+   "item": "Q238508",
+   "country": "Q668",
+   "sitelinks": "69",
+   "label": "Gurugram"
+  },
+  {
+   "item": "Q243325",
+   "country": "Q902",
+   "sitelinks": "66",
+   "label": "Khulna"
+  },
+  {
+   "item": "Q270041",
+   "country": "Q805",
+   "sitelinks": "63",
+   "label": "Al-Hudaida"
+  },
+  {
+   "item": "Q244232",
+   "country": "Q851",
+   "sitelinks": "68",
+   "label": "Tabuk"
+  },
+  {
+   "item": "Q243766",
+   "country": "Q739",
+   "sitelinks": "75",
+   "label": "Bucaramanga"
+  },
+  {
+   "item": "Q37320",
+   "country": "Q30",
+   "sitelinks": "139",
+   "label": "Cleveland"
+  },
+  {
+   "item": "Q39121",
+   "country": "Q145",
+   "sitelinks": "136",
+   "label": "Leeds"
+  },
+  {
+   "item": "Q36526",
+   "country": "Q691",
+   "sitelinks": "154",
+   "label": "Port Moresby"
+  },
+  {
+   "item": "Q59173",
+   "country": "Q148",
+   "sitelinks": "60",
+   "label": "Huizhou"
+  },
+  {
+   "item": "Q37995",
+   "country": "Q836",
+   "sitelinks": "152",
+   "label": "Rangun"
+  },
+  {
+   "item": "Q37995",
+   "country": "Q2376315",
+   "sitelinks": "152",
+   "label": "Rangun"
+  },
+  {
+   "item": "Q239097",
+   "country": "Q858",
+   "sitelinks": "71",
+   "label": "Deir ez-Zor"
+  },
+  {
+   "item": "Q251329",
+   "country": "Q668",
+   "sitelinks": "73",
+   "label": "Gaya"
+  },
+  {
+   "item": "Q244004",
+   "country": "Q262",
+   "sitelinks": "69",
+   "label": "Sétif"
+  },
+  {
+   "item": "Q244146",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Clearwater"
+  },
+  {
+   "item": "Q36214",
+   "country": "Q298",
+   "sitelinks": "101",
+   "label": "Puerto Montt"
+  },
+  {
+   "item": "Q38968",
+   "country": "Q148",
+   "sitelinks": "60",
+   "label": "Liuzhou"
+  },
+  {
+   "item": "Q37776",
+   "country": "Q142",
+   "sitelinks": "135",
+   "label": "Besançon"
+  },
+  {
+   "item": "Q38811",
+   "country": "Q796",
+   "sitelinks": "64",
+   "label": "Nasiriya"
+  },
+  {
+   "item": "Q270176",
+   "country": "Q668",
+   "sitelinks": "67",
+   "label": "Belgaum"
+  },
+  {
+   "item": "Q271000",
+   "country": "Q1008",
+   "sitelinks": "61",
+   "label": "Bouaké"
+  },
+  {
+   "item": "Q260911",
+   "country": "Q419",
+   "sitelinks": "69",
+   "label": "Chiclayo"
+  },
+  {
+   "item": "Q37333",
+   "country": "Q36",
+   "sitelinks": "124",
+   "label": "Lublin"
+  },
+  {
+   "item": "Q37400",
+   "country": "Q836",
+   "sitelinks": "158",
+   "label": "Naypyidaw"
+  },
+  {
+   "item": "Q37701",
+   "country": "Q258",
+   "sitelinks": "144",
+   "label": "Bloemfontein"
+  },
+  {
+   "item": "Q36405",
+   "country": "Q145",
+   "sitelinks": "129",
+   "label": "Aberdeen"
+  },
+  {
+   "item": "Q262579",
+   "country": "Q43",
+   "sitelinks": "78",
+   "label": "Karaman"
+  },
+  {
+   "item": "Q59218",
+   "country": "Q148",
+   "sitelinks": "85",
+   "label": "Dongguan"
+  },
+  {
+   "item": "Q59227",
+   "country": "Q148",
+   "sitelinks": "61",
+   "label": "Chaozhou"
+  },
+  {
+   "item": "Q66568",
+   "country": "Q668",
+   "sitelinks": "109",
+   "label": "Kanpur"
+  },
+  {
+   "item": "Q244154",
+   "country": "Q241",
+   "sitelinks": "64",
+   "label": "Holguín"
+  },
+  {
+   "item": "Q59095",
+   "country": "Q148",
+   "sitelinks": "75",
+   "label": "Zhuhai"
+  },
+  {
+   "item": "Q66616",
+   "country": "Q668",
+   "sitelinks": "101",
+   "label": "Indore"
+  },
+  {
+   "item": "Q59132",
+   "country": "Q148",
+   "sitelinks": "62",
+   "label": "Jiangmen"
+  },
+  {
+   "item": "Q68695",
+   "country": "Q148",
+   "sitelinks": "66",
+   "label": "Quanzhou"
+  },
+  {
+   "item": "Q245023",
+   "country": "Q865",
+   "sitelinks": "80",
+   "label": "Taichung"
+  },
+  {
+   "item": "Q68481",
+   "country": "Q148",
+   "sitelinks": "103",
+   "label": "Fuzhou"
+  },
+  {
+   "item": "Q58976",
+   "country": "Q41",
+   "sitelinks": "98",
+   "label": "Piräus"
+  },
+  {
+   "item": "Q59975",
+   "country": "Q262",
+   "sitelinks": "69",
+   "label": "Bejaia"
+  },
+  {
+   "item": "Q60956",
+   "country": "Q801",
+   "sitelinks": "87",
+   "label": "Aschkelon"
+  },
+  {
+   "item": "Q61944",
+   "country": "Q232",
+   "sitelinks": "77",
+   "label": "Semei"
+  },
+  {
+   "item": "Q62823",
+   "country": "Q739",
+   "sitelinks": "103",
+   "label": "Barranquilla"
+  },
+  {
+   "item": "Q37951",
+   "country": "Q17",
+   "sitelinks": "161",
+   "label": "Sapporo"
+  },
+  {
+   "item": "Q61092",
+   "country": "Q833",
+   "sitelinks": "81",
+   "label": "George Town"
+  },
+  {
+   "item": "Q39450",
+   "country": "Q30",
+   "sitelinks": "139",
+   "label": "Anchorage"
+  },
+  {
+   "item": "Q59223",
+   "country": "Q148",
+   "sitelinks": "63",
+   "label": "Zhongshan"
+  },
+  {
+   "item": "Q59100",
+   "country": "Q148",
+   "sitelinks": "78",
+   "label": "Shantou"
+  },
+  {
+   "item": "Q69060",
+   "country": "Q148",
+   "sitelinks": "88",
+   "label": "Xining"
+  },
+  {
+   "item": "Q61301",
+   "country": "Q96",
+   "sitelinks": "72",
+   "label": "Campeche"
+  },
+  {
+   "item": "Q62868",
+   "country": "Q36",
+   "sitelinks": "77",
+   "label": "Koszalin"
+  },
+  {
+   "item": "Q63049",
+   "country": "Q794",
+   "sitelinks": "83",
+   "label": "Abadan"
+  },
+  {
+   "item": "Q61302",
+   "country": "Q96",
+   "sitelinks": "84",
+   "label": "Chihuahua"
+  },
+  {
+   "item": "Q38022",
+   "country": "Q30",
+   "sitelinks": "138",
+   "label": "St. Louis"
+  },
+  {
+   "item": "Q66485",
+   "country": "Q668",
+   "sitelinks": "146",
+   "label": "Jaipur"
+  },
+  {
+   "item": "Q61320",
+   "country": "Q96",
+   "sitelinks": "67",
+   "label": "Colima"
+  },
+  {
+   "item": "Q79815",
+   "country": "Q142",
+   "sitelinks": "115",
+   "label": "Mülhausen"
+  },
+  {
+   "item": "Q40898",
+   "country": "Q142",
+   "sitelinks": "122",
+   "label": "Nancy"
+  },
+  {
+   "item": "Q40738",
+   "country": "Q43",
+   "sitelinks": "137",
+   "label": "Bursa"
+  },
+  {
+   "item": "Q59670",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Columbia"
+  },
+  {
+   "item": "Q61445",
+   "country": "Q668",
+   "sitelinks": "73",
+   "label": "Navi Mumbai"
+  },
+  {
+   "item": "Q40269",
+   "country": "Q155",
+   "sitelinks": "126",
+   "label": "Porto Alegre"
+  },
+  {
+   "item": "Q39561",
+   "country": "Q30",
+   "sitelinks": "92",
+   "label": "Burbank"
+  },
+  {
+   "item": "Q75026",
+   "country": "Q148",
+   "sitelinks": "63",
+   "label": "Fushun"
+  },
+  {
+   "item": "Q75110",
+   "country": "Q148",
+   "sitelinks": "63",
+   "label": "Dandong"
+  },
+  {
+   "item": "Q79857",
+   "country": "Q43",
+   "sitelinks": "115",
+   "label": "Konya"
+  },
+  {
+   "item": "Q41057",
+   "country": "Q30",
+   "sitelinks": "135",
+   "label": "Topeka"
+  },
+  {
+   "item": "Q68744",
+   "country": "Q148",
+   "sitelinks": "85",
+   "label": "Xiamen"
+  },
+  {
+   "item": "Q79875",
+   "country": "Q30",
+   "sitelinks": "97",
+   "label": "Mobile"
+  },
+  {
+   "item": "Q40347",
+   "country": "Q30",
+   "sitelinks": "74",
+   "label": "Norman"
+  },
+  {
+   "item": "Q72818",
+   "country": "Q881",
+   "sitelinks": "91",
+   "label": "Hải Phòng"
+  },
+  {
+   "item": "Q40844",
+   "country": "Q55",
+   "sitelinks": "103",
+   "label": "Breda"
+  },
+  {
+   "item": "Q80517",
+   "country": "Q30",
+   "sitelinks": "84",
+   "label": "Shreveport"
+  },
+  {
+   "item": "Q40345",
+   "country": "Q30",
+   "sitelinks": "69",
+   "label": "Joliet"
+  },
+  {
+   "item": "Q40435",
+   "country": "Q30",
+   "sitelinks": "122",
+   "label": "Buffalo"
+  },
+  {
+   "item": "Q40816",
+   "country": "Q1016",
+   "sitelinks": "104",
+   "label": "Bengasi"
+  },
+  {
+   "item": "Q79808",
+   "country": "Q218",
+   "sitelinks": "109",
+   "label": "Constanța"
+  },
+  {
+   "item": "Q72259",
+   "country": "Q145",
+   "sitelinks": "111",
+   "label": "Portsmouth"
+  },
+  {
+   "item": "Q39709",
+   "country": "Q30",
+   "sitelinks": "145",
+   "label": "Des Moines"
+  },
+  {
+   "item": "Q41876",
+   "country": "Q142",
+   "sitelinks": "124",
+   "label": "Reims"
+  },
+  {
+   "item": "Q80561",
+   "country": "Q43",
+   "sitelinks": "114",
+   "label": "Antakya"
+  },
+  {
+   "item": "Q80989",
+   "country": "Q668",
+   "sitelinks": "121",
+   "label": "Bhopal"
+  },
+  {
+   "item": "Q72778",
+   "country": "Q148",
+   "sitelinks": "93",
+   "label": "Taiyuan"
+  },
+  {
+   "item": "Q79848",
+   "country": "Q145",
+   "sitelinks": "119",
+   "label": "Southampton"
+  },
+  {
+   "item": "Q40236",
+   "country": "Q155",
+   "sitelinks": "129",
+   "label": "Manaus"
+  },
+  {
+   "item": "Q41329",
+   "country": "Q40",
+   "sitelinks": "143",
+   "label": "Linz"
+  },
+  {
+   "item": "Q72125",
+   "country": "Q38",
+   "sitelinks": "83",
+   "label": "Giugliano in Campania"
+  },
+  {
+   "item": "Q81033",
+   "country": "Q96",
+   "sitelinks": "122",
+   "label": "Monterrey"
+  },
+  {
+   "item": "Q81398",
+   "country": "Q96",
+   "sitelinks": "110",
+   "label": "Acapulco"
+  },
+  {
+   "item": "Q41621",
+   "country": "Q801",
+   "sitelinks": "134",
+   "label": "Haifa"
+  },
+  {
+   "item": "Q72877",
+   "country": "Q148",
+   "sitelinks": "62",
+   "label": "Datong"
+  },
+  {
+   "item": "Q74881",
+   "country": "Q148",
+   "sitelinks": "104",
+   "label": "Dalian"
+  },
+  {
+   "item": "Q80004",
+   "country": "Q155",
+   "sitelinks": "76",
+   "label": "Coronel Fabriciano"
+  },
+  {
+   "item": "Q80484",
+   "country": "Q668",
+   "sitelinks": "119",
+   "label": "Patna"
+  },
+  {
+   "item": "Q74957",
+   "country": "Q148",
+   "sitelinks": "64",
+   "label": "Anshan"
+  },
+  {
+   "item": "Q42108",
+   "country": "Q884",
+   "sitelinks": "62",
+   "label": "Seongnam"
+  },
+  {
+   "item": "Q838785",
+   "country": "Q30",
+   "sitelinks": "60",
+   "label": "Temecula"
+  },
+  {
+   "item": "Q41753",
+   "country": "Q40",
+   "sitelinks": "117",
+   "label": "Klagenfurt am Wörthersee"
+  },
+  {
+   "item": "Q41843",
+   "country": "Q801",
+   "sitelinks": "99",
+   "label": "Be’er Scheva"
+  },
+  {
+   "item": "Q41819",
+   "country": "Q30",
+   "sitelinks": "123",
+   "label": "Kansas City"
+  },
+  {
+   "item": "Q41087",
+   "country": "Q30",
+   "sitelinks": "136",
+   "label": "Raleigh"
+  },
+  {
+   "item": "Q181578",
+   "country": "Q794",
+   "sitelinks": "77",
+   "label": "Qazvin"
+  },
+  {
+   "item": "Q848638",
+   "country": "Q232",
+   "sitelinks": "69",
+   "label": "Türkistan"
+  },
+  {
+   "item": "Q81137",
+   "country": "Q213",
+   "sitelinks": "102",
+   "label": "Olmütz"
+  },
+  {
+   "item": "Q41183",
+   "country": "Q858",
+   "sitelinks": "150",
+   "label": "Aleppo"
+  },
+  {
+   "item": "Q868527",
+   "country": "Q148",
+   "sitelinks": "66",
+   "label": "Turpan"
+  },
+  {
+   "item": "Q181966",
+   "country": "Q17",
+   "sitelinks": "89",
+   "label": "Naha"
+  },
+  {
+   "item": "Q81581",
+   "country": "Q28",
+   "sitelinks": "113",
+   "label": "Szeged"
+  },
+  {
+   "item": "Q83065",
+   "country": "Q145",
+   "sitelinks": "115",
+   "label": "Leicester"
+  },
+  {
+   "item": "Q41185",
+   "country": "Q142",
+   "sitelinks": "119",
+   "label": "Caen"
+  },
+  {
+   "item": "Q182009",
+   "country": "Q43",
+   "sitelinks": "78",
+   "label": "Tekirdağ"
+  },
+  {
+   "item": "Q79990",
+   "country": "Q664",
+   "sitelinks": "128",
+   "label": "Christchurch"
+  },
+  {
+   "item": "Q182625",
+   "country": "Q16",
+   "sitelinks": "82",
+   "label": "Windsor"
+  },
+  {
+   "item": "Q41262",
+   "country": "Q145",
+   "sitelinks": "123",
+   "label": "Nottingham"
+  },
+  {
+   "item": "Q42097",
+   "country": "Q884",
+   "sitelinks": "60",
+   "label": "Gyeongju"
+  },
+  {
+   "item": "Q41496",
+   "country": "Q668",
+   "sitelinks": "64",
+   "label": "Thanjavur"
+  },
+  {
+   "item": "Q82070",
+   "country": "Q822",
+   "sitelinks": "103",
+   "label": "Tyros"
+  },
+  {
+   "item": "Q182092",
+   "country": "Q1016",
+   "sitelinks": "69",
+   "label": "Tobruk"
+  },
+  {
+   "item": "Q83178",
+   "country": "Q55",
+   "sitelinks": "101",
+   "label": "Almere"
+  },
+  {
+   "item": "Q182521",
+   "country": "Q230",
+   "sitelinks": "79",
+   "label": "Rustawi"
+  },
+  {
+   "item": "Q83324",
+   "country": "Q218",
+   "sitelinks": "106",
+   "label": "Hermannstadt"
+  },
+  {
+   "item": "Q81882",
+   "country": "Q155",
+   "sitelinks": "94",
+   "label": "Santos"
+  },
+  {
+   "item": "Q181056",
+   "country": "Q155",
+   "sitelinks": "75",
+   "label": "Boa Vista"
+  },
+  {
+   "item": "Q182059",
+   "country": "Q117",
+   "sitelinks": "95",
+   "label": "Kumasi"
+  },
+  {
+   "item": "Q41278",
+   "country": "Q884",
+   "sitelinks": "92",
+   "label": "Ulsan"
+  },
+  {
+   "item": "Q42053",
+   "country": "Q794",
+   "sitelinks": "142",
+   "label": "Isfahan"
+  },
+  {
+   "item": "Q181379",
+   "country": "Q43",
+   "sitelinks": "77",
+   "label": "Osmaniye"
+  },
+  {
+   "item": "Q83061",
+   "country": "Q43",
+   "sitelinks": "94",
+   "label": "Van"
+  },
+  {
+   "item": "Q182640",
+   "country": "Q851",
+   "sitelinks": "78",
+   "label": "Ta'if"
+  },
+  {
+   "item": "Q82128",
+   "country": "Q298",
+   "sitelinks": "101",
+   "label": "Temuco"
+  },
+  {
+   "item": "Q82174",
+   "country": "Q218",
+   "sitelinks": "102",
+   "label": "Brașov"
+  },
+  {
+   "item": "Q83285",
+   "country": "Q222",
+   "sitelinks": "176",
+   "label": "Durrës"
+  },
+  {
+   "item": "Q41211",
+   "country": "Q30",
+   "sitelinks": "117",
+   "label": "San Juan"
+  },
+  {
+   "item": "Q182852",
+   "country": "Q148",
+   "sitelinks": "110",
+   "label": "Kunming"
+  },
+  {
+   "item": "Q79867",
+   "country": "Q30",
+   "sitelinks": "118",
+   "label": "Birmingham"
+  },
+  {
+   "item": "Q82765",
+   "country": "Q36",
+   "sitelinks": "93",
+   "label": "Olsztyn"
+  },
+  {
+   "item": "Q93358",
+   "country": "Q218",
+   "sitelinks": "100",
+   "label": "Oradea"
+  },
+  {
+   "item": "Q182984",
+   "country": "Q1033",
+   "sitelinks": "87",
+   "label": "Kano"
+  },
+  {
+   "item": "Q83317",
+   "country": "Q796",
+   "sitelinks": "119",
+   "label": "Mossul"
+  },
+  {
+   "item": "Q183002",
+   "country": "Q159",
+   "sitelinks": "76",
+   "label": "Surgut"
+  },
+  {
+   "item": "Q181376",
+   "country": "Q184",
+   "sitelinks": "102",
+   "label": "Hrodna"
+  },
+  {
+   "item": "Q182394",
+   "country": "Q794",
+   "sitelinks": "91",
+   "label": "Yazd"
+  },
+  {
+   "item": "Q183124",
+   "country": "Q750",
+   "sitelinks": "82",
+   "label": "Cochabamba"
+  },
+  {
+   "item": "Q41252",
+   "country": "Q36",
+   "sitelinks": "112",
+   "label": "Bydgoszcz"
+  },
+  {
+   "item": "Q183298",
+   "country": "Q1033",
+   "sitelinks": "79",
+   "label": "Ibadan"
+  },
+  {
+   "item": "Q41283",
+   "country": "Q884",
+   "sitelinks": "98",
+   "label": "Gwangju"
+  },
+  {
+   "item": "Q79860",
+   "country": "Q30",
+   "sitelinks": "94",
+   "label": "Huntsville"
+  },
+  {
+   "item": "Q83813",
+   "country": "Q30",
+   "sitelinks": "89",
+   "label": "Savannah"
+  },
+  {
+   "item": "Q183651",
+   "country": "Q43",
+   "sitelinks": "83",
+   "label": "Tokat"
+  },
+  {
+   "item": "Q183651",
+   "country": "Q12544",
+   "sitelinks": "83",
+   "label": "Tokat"
+  },
+  {
+   "item": "Q101625",
+   "country": "Q1028",
+   "sitelinks": "142",
+   "label": "Marrakesch"
+  },
+  {
+   "item": "Q83387",
+   "country": "Q43",
+   "sitelinks": "101",
+   "label": "Diyarbakır"
+  },
+  {
+   "item": "Q102350",
+   "country": "Q36",
+   "sitelinks": "80",
+   "label": "Bytom"
+  },
+  {
+   "item": "Q184046",
+   "country": "Q225",
+   "sitelinks": "77",
+   "label": "Zenica"
+  },
+  {
+   "item": "Q92161",
+   "country": "Q148",
+   "sitelinks": "106",
+   "label": "Changchun"
+  },
+  {
+   "item": "Q83404",
+   "country": "Q218",
+   "sitelinks": "115",
+   "label": "Timișoara"
+  },
+  {
+   "item": "Q185084",
+   "country": "Q43",
+   "sitelinks": "76",
+   "label": "Siirt"
+  },
+  {
+   "item": "Q104712",
+   "country": "Q36",
+   "sitelinks": "77",
+   "label": "Elbląg"
+  },
+  {
+   "item": "Q184090",
+   "country": "Q145",
+   "sitelinks": "73",
+   "label": "Preston"
+  },
+  {
+   "item": "Q102397",
+   "country": "Q28",
+   "sitelinks": "108",
+   "label": "Miskolc"
+  },
+  {
+   "item": "Q102217",
+   "country": "Q184",
+   "sitelinks": "107",
+   "label": "Witebsk"
+  },
+  {
+   "item": "Q184409",
+   "country": "Q155",
+   "sitelinks": "70",
+   "label": "Guarulhos"
+  },
+  {
+   "item": "Q95041",
+   "country": "Q159",
+   "sitelinks": "77",
+   "label": "Nabereschnyje Tschelny"
+  },
+  {
+   "item": "Q185582",
+   "country": "Q30",
+   "sitelinks": "91",
+   "label": "Knoxville"
+  },
+  {
+   "item": "Q100188",
+   "country": "Q218",
+   "sitelinks": "123",
+   "label": "Cluj-Napoca"
+  },
+  {
+   "item": "Q184345",
+   "country": "Q298",
+   "sitelinks": "75",
+   "label": "Viña del Mar"
+  },
+  {
+   "item": "Q102667",
+   "country": "Q159",
+   "sitelinks": "77",
+   "label": "Bijsk"
+  },
+  {
+   "item": "Q102317",
+   "country": "Q36",
+   "sitelinks": "89",
+   "label": "Kielce"
+  },
+  {
+   "item": "Q92277",
+   "country": "Q148",
+   "sitelinks": "63",
+   "label": "Jilin"
+  },
+  {
+   "item": "Q83786",
+   "country": "Q668",
+   "sitelinks": "96",
+   "label": "Shimla"
+  },
+  {
+   "item": "Q101254",
+   "country": "Q145",
+   "sitelinks": "92",
+   "label": "Newport"
+  },
+  {
+   "item": "Q103217",
+   "country": "Q36",
+   "sitelinks": "95",
+   "label": "Częstochowa"
+  },
+  {
+   "item": "Q183303",
+   "country": "Q889",
+   "sitelinks": "78",
+   "label": "Dschalalabad"
+  },
+  {
+   "item": "Q184579",
+   "country": "Q145",
+   "sitelinks": "73",
+   "label": "Bolton"
+  },
+  {
+   "item": "Q185332",
+   "country": "Q218",
+   "sitelinks": "75",
+   "label": "Satu Mare"
+  },
+  {
+   "item": "Q185453",
+   "country": "Q843",
+   "sitelinks": "80",
+   "label": "Multan"
+  },
+  {
+   "item": "Q185125",
+   "country": "Q17",
+   "sitelinks": "87",
+   "label": "Hamamatsu"
+  },
+  {
+   "item": "Q184403",
+   "country": "Q155",
+   "sitelinks": "63",
+   "label": "São Bernardo do Campo"
+  },
+  {
+   "item": "Q98967",
+   "country": "Q159",
+   "sitelinks": "78",
+   "label": "Nischni Tagil"
+  },
+  {
+   "item": "Q98995",
+   "country": "Q159",
+   "sitelinks": "62",
+   "label": "Wolschski"
+  },
+  {
+   "item": "Q183584",
+   "country": "Q148",
+   "sitelinks": "98",
+   "label": "Lanzhou"
+  },
+  {
+   "item": "Q104725",
+   "country": "Q36",
+   "sitelinks": "74",
+   "label": "Płock"
+  },
+  {
+   "item": "Q92561",
+   "country": "Q16",
+   "sitelinks": "86",
+   "label": "London"
+  },
+  {
+   "item": "Q103483",
+   "country": "Q159",
+   "sitelinks": "76",
+   "label": "Almetjewsk"
+  },
+  {
+   "item": "Q185280",
+   "country": "Q218",
+   "sitelinks": "76",
+   "label": "Baia Mare"
+  },
+  {
+   "item": "Q185134",
+   "country": "Q262",
+   "sitelinks": "63",
+   "label": "Tlemcen"
+  },
+  {
+   "item": "Q185518",
+   "country": "Q836",
+   "sitelinks": "100",
+   "label": "Mandalay"
+  },
+  {
+   "item": "Q105060",
+   "country": "Q36",
+   "sitelinks": "90",
+   "label": "Sosnowiec"
+  },
+  {
+   "item": "Q105084",
+   "country": "Q36",
+   "sitelinks": "85",
+   "label": "Gleiwitz"
+  },
+  {
+   "item": "Q104560",
+   "country": "Q159",
+   "sitelinks": "66",
+   "label": "Balakowo"
+  },
+  {
+   "item": "Q93338",
+   "country": "Q43",
+   "sitelinks": "120",
+   "label": "Gaziantep"
+  },
+  {
+   "item": "Q104649",
+   "country": "Q159",
+   "sitelinks": "64",
+   "label": "Bataisk"
+  },
+  {
+   "item": "Q185156",
+   "country": "Q241",
+   "sitelinks": "76",
+   "label": "Guantánamo"
+  },
+  {
+   "item": "Q184587",
+   "country": "Q30",
+   "sitelinks": "91",
+   "label": "Grand Rapids"
+  },
+  {
+   "item": "Q104731",
+   "country": "Q36",
+   "sitelinks": "79",
+   "label": "Gorzów Wielkopolski"
+  },
+  {
+   "item": "Q186234",
+   "country": "Q796",
+   "sitelinks": "77",
+   "label": "Kufa"
+  },
+  {
+   "item": "Q103892",
+   "country": "Q36",
+   "sitelinks": "79",
+   "label": "Zabrze"
+  },
+  {
+   "item": "Q104740",
+   "country": "Q36",
+   "sitelinks": "81",
+   "label": "Radom"
+  },
+  {
+   "item": "Q104232",
+   "country": "Q159",
+   "sitelinks": "72",
+   "label": "Atschinsk"
+  },
+  {
+   "item": "Q110218",
+   "country": "Q924",
+   "sitelinks": "67",
+   "label": "Mwanza"
+  },
+  {
+   "item": "Q187346",
+   "country": "Q262",
+   "sitelinks": "91",
+   "label": "Constantine"
+  },
+  {
+   "item": "Q185684",
+   "country": "Q148",
+   "sitelinks": "96",
+   "label": "Hefei"
+  },
+  {
+   "item": "Q187826",
+   "country": "Q29",
+   "sitelinks": "76",
+   "label": "Móstoles"
+  },
+  {
+   "item": "Q185632",
+   "country": "Q229",
+   "sitelinks": "94",
+   "label": "Limassol"
+  },
+  {
+   "item": "Q104302",
+   "country": "Q36",
+   "sitelinks": "76",
+   "label": "Chorzów"
+  },
+  {
+   "item": "Q109356",
+   "country": "Q423",
+   "sitelinks": "66",
+   "label": "Hamhŭng"
+  },
+  {
+   "item": "Q105444",
+   "country": "Q159",
+   "sitelinks": "60",
+   "label": "Kamensk-Uralski"
+  },
+  {
+   "item": "Q106583",
+   "country": "Q36",
+   "sitelinks": "80",
+   "label": "Bielitz-Biala"
+  },
+  {
+   "item": "Q187284",
+   "country": "Q79",
+   "sitelinks": "87",
+   "label": "Hurghada"
+  },
+  {
+   "item": "Q117040",
+   "country": "Q241",
+   "sitelinks": "90",
+   "label": "Santiago de Cuba"
+  },
+  {
+   "item": "Q187593",
+   "country": "Q974",
+   "sitelinks": "79",
+   "label": "Lubumbashi"
+  },
+  {
+   "item": "Q112813",
+   "country": "Q96",
+   "sitelinks": "71",
+   "label": "Victoria de Durango"
+  },
+  {
+   "item": "Q105002",
+   "country": "Q159",
+   "sitelinks": "61",
+   "label": "Beresniki"
+  },
+  {
+   "item": "Q105037",
+   "country": "Q419",
+   "sitelinks": "77",
+   "label": "Callao"
+  },
+  {
+   "item": "Q188022",
+   "country": "Q43",
+   "sitelinks": "78",
+   "label": "Mardin"
+  },
+  {
+   "item": "Q108672",
+   "country": "Q36",
+   "sitelinks": "69",
+   "label": "Dąbrowa Górnicza"
+  },
+  {
+   "item": "Q187895",
+   "country": "Q43",
+   "sitelinks": "73",
+   "label": "Zonguldak"
+  },
+  {
+   "item": "Q188693",
+   "country": "Q1020",
+   "sitelinks": "80",
+   "label": "Blantyre"
+  },
+  {
+   "item": "Q187938",
+   "country": "Q218",
+   "sitelinks": "78",
+   "label": "Pitești"
+  },
+  {
+   "item": "Q106636",
+   "country": "Q794",
+   "sitelinks": "67",
+   "label": "Bam"
+  },
+  {
+   "item": "Q189128",
+   "country": "Q96",
+   "sitelinks": "80",
+   "label": "León"
+  },
+  {
+   "item": "Q125434",
+   "country": "Q258",
+   "sitelinks": "99",
+   "label": "Gqeberha"
+  },
+  {
+   "item": "Q108679",
+   "country": "Q36",
+   "sitelinks": "69",
+   "label": "Ruda Śląska"
+  },
+  {
+   "item": "Q188304",
+   "country": "Q145",
+   "sitelinks": "81",
+   "label": "Sunderland"
+  },
+  {
+   "item": "Q189133",
+   "country": "Q408",
+   "sitelinks": "83",
+   "label": "Cairns"
+  },
+  {
+   "item": "Q188155",
+   "country": "Q794",
+   "sitelinks": "77",
+   "label": "Gorgan"
+  },
+  {
+   "item": "Q106681",
+   "country": "Q36",
+   "sitelinks": "66",
+   "label": "Włocławek"
+  },
+  {
+   "item": "Q186349",
+   "country": "Q218",
+   "sitelinks": "74",
+   "label": "Târgu Mureș"
+  },
+  {
+   "item": "Q110017",
+   "country": "Q155",
+   "sitelinks": "62",
+   "label": "Caxias do Sul"
+  },
+  {
+   "item": "Q115329",
+   "country": "Q241",
+   "sitelinks": "76",
+   "label": "Camagüey"
+  },
+  {
+   "item": "Q186141",
+   "country": "Q668",
+   "sitelinks": "99",
+   "label": "Gangtok"
+  },
+  {
+   "item": "Q188901",
+   "country": "Q155",
+   "sitelinks": "61",
+   "label": "Sorocaba"
+  },
+  {
+   "item": "Q189043",
+   "country": "Q155",
+   "sitelinks": "71",
+   "label": "Petrópolis"
+  },
+  {
+   "item": "Q122803",
+   "country": "Q43",
+   "sitelinks": "94",
+   "label": "Erzurum"
+  },
+  {
+   "item": "Q187805",
+   "country": "Q30",
+   "sitelinks": "90",
+   "label": "Spokane"
+  },
+  {
+   "item": "Q187136",
+   "country": "Q148",
+   "sitelinks": "88",
+   "label": "Luoyang"
+  },
+  {
+   "item": "Q118995",
+   "country": "Q43",
+   "sitelinks": "79",
+   "label": "Muş"
+  },
+  {
+   "item": "Q109374",
+   "country": "Q423",
+   "sitelinks": "62",
+   "label": "Wŏnsan"
+  },
+  {
+   "item": "Q109386",
+   "country": "Q423",
+   "sitelinks": "65",
+   "label": "Namp’o"
+  },
+  {
+   "item": "Q126148",
+   "country": "Q1028",
+   "sitelinks": "125",
+   "label": "Tanger"
+  },
+  {
+   "item": "Q109336",
+   "country": "Q423",
+   "sitelinks": "63",
+   "label": "Ch’ŏngjin"
+  },
+  {
+   "item": "Q188892",
+   "country": "Q155",
+   "sitelinks": "61",
+   "label": "Ribeirão Preto"
+  },
+  {
+   "item": "Q189134",
+   "country": "Q43",
+   "sitelinks": "72",
+   "label": "Uşak"
+  },
+  {
+   "item": "Q110732",
+   "country": "Q36",
+   "sitelinks": "70",
+   "label": "Wałbrzych"
+  },
+  {
+   "item": "Q188806",
+   "country": "Q17",
+   "sitelinks": "92",
+   "label": "Kitakyūshū"
+  },
+  {
+   "item": "Q192213",
+   "country": "Q801",
+   "sitelinks": "65",
+   "label": "Cholon"
+  },
+  {
+   "item": "Q192213",
+   "country": "Q193714",
+   "sitelinks": "65",
+   "label": "Cholon"
+  },
+  {
+   "item": "Q127041",
+   "country": "Q668",
+   "sitelinks": "89",
+   "label": "Mangaluru"
+  },
+  {
+   "item": "Q186702",
+   "country": "Q30",
+   "sitelinks": "86",
+   "label": "Chattanooga"
+  },
+  {
+   "item": "Q190005",
+   "country": "Q241",
+   "sitelinks": "71",
+   "label": "Cienfuegos"
+  },
+  {
+   "item": "Q128849",
+   "country": "Q17",
+   "sitelinks": "98",
+   "label": "Nagano"
+  },
+  {
+   "item": "Q128891",
+   "country": "Q30",
+   "sitelinks": "65",
+   "label": "Lafayette"
+  },
+  {
+   "item": "Q128282",
+   "country": "Q30",
+   "sitelinks": "70",
+   "label": "Beaumont"
+  },
+  {
+   "item": "Q118958",
+   "country": "Q31",
+   "sitelinks": "94",
+   "label": "Löwen"
+  },
+  {
+   "item": "Q189383",
+   "country": "Q79",
+   "sitelinks": "70",
+   "label": "Damiette"
+  },
+  {
+   "item": "Q189633",
+   "country": "Q148",
+   "sitelinks": "79",
+   "label": "Guilin"
+  },
+  {
+   "item": "Q189138",
+   "country": "Q96",
+   "sitelinks": "78",
+   "label": "Hermosillo"
+  },
+  {
+   "item": "Q189697",
+   "country": "Q43",
+   "sitelinks": "71",
+   "label": "Karabük"
+  },
+  {
+   "item": "Q123709",
+   "country": "Q145",
+   "sitelinks": "101",
+   "label": "Dundee"
+  },
+  {
+   "item": "Q130191",
+   "country": "Q145",
+   "sitelinks": "102",
+   "label": "Norwich"
+  },
+  {
+   "item": "Q188478",
+   "country": "Q218",
+   "sitelinks": "78",
+   "label": "Brăila"
+  },
+  {
+   "item": "Q590849",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Arvada"
+  },
+  {
+   "item": "Q593022",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Olathe"
+  },
+  {
+   "item": "Q128349",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "Wichita Falls"
+  },
+  {
+   "item": "Q193250",
+   "country": "Q954",
+   "sitelinks": "80",
+   "label": "Bulawayo"
+  },
+  {
+   "item": "Q190021",
+   "country": "Q408",
+   "sitelinks": "70",
+   "label": "Townsville"
+  },
+  {
+   "item": "Q192225",
+   "country": "Q801",
+   "sitelinks": "75",
+   "label": "Netanja"
+  },
+  {
+   "item": "Q128244",
+   "country": "Q30",
+   "sitelinks": "71",
+   "label": "Waco"
+  },
+  {
+   "item": "Q633036",
+   "country": "Q869",
+   "sitelinks": "64",
+   "label": "Nakhon Ratchasima"
+  },
+  {
+   "item": "Q644008",
+   "country": "Q265",
+   "sitelinks": "63",
+   "label": "Qarshi"
+  },
+  {
+   "item": "Q192961",
+   "country": "Q796",
+   "sitelinks": "61",
+   "label": "Ramadi"
+  },
+  {
+   "item": "Q193019",
+   "country": "Q155",
+   "sitelinks": "60",
+   "label": "Juiz de Fora"
+  },
+  {
+   "item": "Q193428",
+   "country": "Q17",
+   "sitelinks": "71",
+   "label": "Sakai"
+  },
+  {
+   "item": "Q192235",
+   "country": "Q733",
+   "sitelinks": "72",
+   "label": "Ciudad del Este"
+  },
+  {
+   "item": "Q192271",
+   "country": "Q148",
+   "sitelinks": "91",
+   "label": "Guiyang"
+  },
+  {
+   "item": "Q190948",
+   "country": "Q851",
+   "sitelinks": "62",
+   "label": "Abha"
+  },
+  {
+   "item": "Q129259",
+   "country": "Q403",
+   "sitelinks": "98",
+   "label": "Niš"
+  },
+  {
+   "item": "Q130469",
+   "country": "Q889",
+   "sitelinks": "92",
+   "label": "Masar-e Scharif"
+  },
+  {
+   "item": "Q193413",
+   "country": "Q159",
+   "sitelinks": "75",
+   "label": "Rybinsk"
+  },
+  {
+   "item": "Q128306",
+   "country": "Q30",
+   "sitelinks": "65",
+   "label": "Denton"
+  },
+  {
+   "item": "Q651131",
+   "country": "Q833",
+   "sitelinks": "67",
+   "label": "Kota Bharu"
+  },
+  {
+   "item": "Q128269",
+   "country": "Q30",
+   "sitelinks": "60",
+   "label": "Frisco"
+  },
+  {
+   "item": "Q128295",
+   "country": "Q30",
+   "sitelinks": "77",
+   "label": "Abilene"
+  },
+  {
+   "item": "Q191130",
+   "country": "Q17",
+   "sitelinks": "91",
+   "label": "Kanazawa"
+  },
+  {
+   "item": "Q504657",
+   "country": "Q858",
+   "sitelinks": "69",
+   "label": "Idlib"
+  },
+  {
+   "item": "Q530171",
+   "country": "Q878",
+   "sitelinks": "62",
+   "label": "Adschman"
+  },
+  {
+   "item": "Q192387",
+   "country": "Q155",
+   "sitelinks": "60",
+   "label": "Londrina"
+  },
+  {
+   "item": "Q192517",
+   "country": "Q30",
+   "sitelinks": "88",
+   "label": "Boulder"
+  },
+  {
+   "item": "Q535534",
+   "country": "Q148",
+   "sitelinks": "83",
+   "label": "Hohhot"
+  },
+  {
+   "item": "Q191204",
+   "country": "Q796",
+   "sitelinks": "75",
+   "label": "Sulaimaniyya"
+  },
+  {
+   "item": "Q595550",
+   "country": "Q30",
+   "sitelinks": "60",
+   "label": "El Monte"
+  },
+  {
+   "item": "Q569766",
+   "country": "Q265",
+   "sitelinks": "81",
+   "label": "Shahrisabz"
+  },
+  {
+   "item": "Q190184",
+   "country": "Q115",
+   "sitelinks": "75",
+   "label": "Harar"
+  },
+  {
+   "item": "Q191652",
+   "country": "Q155",
+   "sitelinks": "64",
+   "label": "Santo André"
+  },
+  {
+   "item": "Q191914",
+   "country": "Q17",
+   "sitelinks": "60",
+   "label": "Hachinohe"
+  },
+  {
+   "item": "Q189823",
+   "country": "Q148",
+   "sitelinks": "90",
+   "label": "Haikou"
+  },
+  {
+   "item": "Q193380",
+   "country": "Q159",
+   "sitelinks": "61",
+   "label": "Rubzowsk"
+  },
+  {
+   "item": "Q130514",
+   "country": "Q79",
+   "sitelinks": "106",
+   "label": "Luxor"
+  },
+  {
+   "item": "Q193289",
+   "country": "Q419",
+   "sitelinks": "74",
+   "label": "Iquitos"
+  },
+  {
+   "item": "Q667749",
+   "country": "Q30",
+   "sitelinks": "61",
+   "label": "Port St. Lucie"
+  },
+  {
+   "item": "Q131694",
+   "country": "Q805",
+   "sitelinks": "110",
+   "label": "Aden"
+  },
+  {
+   "item": "Q671314",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "Elk Grove"
+  },
+  {
+   "item": "Q671458",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "Pompano Beach"
+  },
+  {
+   "item": "Q657461",
+   "country": "Q739",
+   "sitelinks": "117",
+   "label": "Cartagena"
+  },
+  {
+   "item": "Q3001",
+   "country": "Q730",
+   "sitelinks": "161",
+   "label": "Paramaribo"
+  },
+  {
+   "item": "Q569907",
+   "country": "Q148",
+   "sitelinks": "66",
+   "label": "Baotou"
+  },
+  {
+   "item": "Q675576",
+   "country": "Q30",
+   "sitelinks": "72",
+   "label": "Pueblo"
+  },
+  {
+   "item": "Q131127",
+   "country": "Q225",
+   "sitelinks": "98",
+   "label": "Banja Luka"
+  },
+  {
+   "item": "Q131350",
+   "country": "Q794",
+   "sitelinks": "89",
+   "label": "Nischapur"
+  },
+  {
+   "item": "Q661038",
+   "country": "Q17",
+   "sitelinks": "63",
+   "label": "Fukuyama"
+  },
+  {
+   "item": "Q2978",
+   "country": "Q183",
+   "sitelinks": "122",
+   "label": "Regensburg"
+  },
+  {
+   "item": "Q599416",
+   "country": "Q43",
+   "sitelinks": "87",
+   "label": "Sinop"
+  },
+  {
+   "item": "Q133073",
+   "country": "Q664",
+   "sitelinks": "86",
+   "label": "Dunedin"
+  },
+  {
+   "item": "Q133116",
+   "country": "Q16",
+   "sitelinks": "96",
+   "label": "Hamilton"
+  },
+  {
+   "item": "Q131290",
+   "country": "Q227",
+   "sitelinks": "101",
+   "label": "Gəncə"
+  },
+  {
+   "item": "Q133118",
+   "country": "Q43",
+   "sitelinks": "100",
+   "label": "Şanlıurfa"
+  },
+  {
+   "item": "Q2938",
+   "country": "Q183",
+   "sitelinks": "100",
+   "label": "Leverkusen"
+  },
+  {
+   "item": "Q2999",
+   "country": "Q183",
+   "sitelinks": "120",
+   "label": "Würzburg"
+  },
+  {
+   "item": "Q3037",
+   "country": "Q837",
+   "sitelinks": "199",
+   "label": "Kathmandu"
+  },
+  {
+   "item": "Q131818",
+   "country": "Q262",
+   "sitelinks": "115",
+   "label": "Oran"
+  },
+  {
+   "item": "Q2971",
+   "country": "Q183",
+   "sitelinks": "102",
+   "label": "Paderborn"
+  },
+  {
+   "item": "Q131416",
+   "country": "Q159",
+   "sitelinks": "101",
+   "label": "Derbent"
+  },
+  {
+   "item": "Q131335",
+   "country": "Q30",
+   "sitelinks": "96",
+   "label": "Sioux Falls"
+  },
+  {
+   "item": "Q132572",
+   "country": "Q217",
+   "sitelinks": "110",
+   "label": "Tiraspol"
+  },
+  {
+   "item": "Q132572",
+   "country": "Q907112",
+   "sitelinks": "110",
+   "label": "Tiraspol"
+  },
+  {
+   "item": "Q133123",
+   "country": "Q41",
+   "sitelinks": "100",
+   "label": "Patras"
+  },
+  {
+   "item": "Q134121",
+   "country": "Q31",
+   "sitelinks": "105",
+   "label": "Namur"
+  },
+  {
+   "item": "Q132679",
+   "country": "Q25279",
+   "sitelinks": "93",
+   "label": "Willemstad"
+  },
+  {
+   "item": "Q2942",
+   "country": "Q183",
+   "sitelinks": "95",
+   "label": "Solingen"
+  },
+  {
+   "item": "Q134287",
+   "country": "Q43",
+   "sitelinks": "86",
+   "label": "Tarsus"
+  },
+  {
+   "item": "Q132997",
+   "country": "Q155",
+   "sitelinks": "93",
+   "label": "Florianópolis"
+  },
+  {
+   "item": "Q131620",
+   "country": "Q155",
+   "sitelinks": "98",
+   "label": "Natal"
+  },
+  {
+   "item": "Q2948",
+   "country": "Q183",
+   "sitelinks": "96",
+   "label": "Neuss"
+  },
+  {
+   "item": "Q3004",
+   "country": "Q183",
+   "sitelinks": "112",
+   "label": "Ingolstadt"
+  },
+  {
+   "item": "Q3070",
+   "country": "Q800",
+   "sitelinks": "151",
+   "label": "San José"
+  },
+  {
+   "item": "Q132754",
+   "country": "Q796",
+   "sitelinks": "105",
+   "label": "Erbil"
+  },
+  {
+   "item": "Q136217",
+   "country": "Q43",
+   "sitelinks": "82",
+   "label": "Erzincan"
+  },
+  {
+   "item": "Q135285",
+   "country": "Q159",
+   "sitelinks": "65",
+   "label": "Dimitrowgrad"
+  },
+  {
+   "item": "Q2966",
+   "country": "Q183",
+   "sitelinks": "147",
+   "label": "Heidelberg"
+  },
+  {
+   "item": "Q131301",
+   "country": "Q858",
+   "sitelinks": "110",
+   "label": "Homs"
+  },
+  {
+   "item": "Q134902",
+   "country": "Q145",
+   "sitelinks": "88",
+   "label": "Stoke-on-Trent"
+  },
+  {
+   "item": "Q3012",
+   "country": "Q183",
+   "sitelinks": "127",
+   "label": "Ulm"
+  },
+  {
+   "item": "Q140304",
+   "country": "Q79",
+   "sitelinks": "63",
+   "label": "Zagazig"
+  },
+  {
+   "item": "Q3014",
+   "country": "Q183",
+   "sitelinks": "110",
+   "label": "Wolfsburg"
+  },
+  {
+   "item": "Q134509",
+   "country": "Q79",
+   "sitelinks": "92",
+   "label": "Port Said"
+  },
+  {
+   "item": "Q131323",
+   "country": "Q1016",
+   "sitelinks": "76",
+   "label": "Misrata"
+  },
+  {
+   "item": "Q132830",
+   "country": "Q1009",
+   "sitelinks": "102",
+   "label": "Douala"
+  },
+  {
+   "item": "Q3050",
+   "country": "Q183",
+   "sitelinks": "91",
+   "label": "Recklinghausen"
+  },
+  {
+   "item": "Q3042",
+   "country": "Q183",
+   "sitelinks": "108",
+   "label": "Offenbach am Main"
+  },
+  {
+   "item": "Q3104",
+   "country": "Q183",
+   "sitelinks": "116",
+   "label": "Koblenz"
+  },
+  {
+   "item": "Q134703",
+   "country": "Q43",
+   "sitelinks": "90",
+   "label": "Kahramanmaraş"
+  },
+  {
+   "item": "Q3033",
+   "country": "Q183",
+   "sitelinks": "125",
+   "label": "Göttingen"
+  },
+  {
+   "item": "Q3069",
+   "country": "Q183",
+   "sitelinks": "88",
+   "label": "Bottrop"
+  },
+  {
+   "item": "Q134514",
+   "country": "Q79",
+   "sitelinks": "91",
+   "label": "Sues"
+  },
+  {
+   "item": "Q135615",
+   "country": "Q30",
+   "sitelinks": "79",
+   "label": "Springfield"
+  },
+  {
+   "item": "Q140631",
+   "country": "Q865",
+   "sitelinks": "81",
+   "label": "Tainan"
+  },
+  {
+   "item": "Q141810",
+   "country": "Q16",
+   "sitelinks": "67",
+   "label": "Laval"
+  },
+  {
+   "item": "Q3085",
+   "country": "Q183",
+   "sitelinks": "98",
+   "label": "Reutlingen"
+  },
+  {
+   "item": "Q3130",
+   "country": "Q408",
+   "sitelinks": "266",
+   "label": "Sydney"
+  },
+  {
+   "item": "Q3075",
+   "country": "Q183",
+   "sitelinks": "99",
+   "label": "Fürth"
+  },
+  {
+   "item": "Q3097",
+   "country": "Q183",
+   "sitelinks": "89",
+   "label": "Remscheid"
+  },
+  {
+   "item": "Q134712",
+   "country": "Q37",
+   "sitelinks": "98",
+   "label": "Šiauliai"
+  },
+  {
+   "item": "Q140147",
+   "country": "Q184",
+   "sitelinks": "103",
+   "label": "Brest"
+  },
+  {
+   "item": "Q145507",
+   "country": "Q159",
+   "sitelinks": "68",
+   "label": "Kaspijsk"
+  },
+  {
+   "item": "Q3117",
+   "country": "Q183",
+   "sitelinks": "90",
+   "label": "Bergisch Gladbach"
+  },
+  {
+   "item": "Q134635",
+   "country": "Q17",
+   "sitelinks": "103",
+   "label": "Saitama"
+  },
+  {
+   "item": "Q3110",
+   "country": "Q792",
+   "sitelinks": "150",
+   "label": "San Salvador"
+  },
+  {
+   "item": "Q3046",
+   "country": "Q183",
+   "sitelinks": "100",
+   "label": "Pforzheim"
+  },
+  {
+   "item": "Q140075",
+   "country": "Q408",
+   "sitelinks": "93",
+   "label": "Gold Coast"
+  },
+  {
+   "item": "Q139473",
+   "country": "Q16",
+   "sitelinks": "60",
+   "label": "Sherbrooke"
+  },
+  {
+   "item": "Q144170",
+   "country": "Q159",
+   "sitelinks": "63",
+   "label": "Kamyschin"
+  },
+  {
+   "item": "Q3114",
+   "country": "Q408",
+   "sitelinks": "213",
+   "label": "Canberra"
+  },
+  {
+   "item": "Q134291",
+   "country": "Q43",
+   "sitelinks": "96",
+   "label": "Mersin"
+  },
+  {
+   "item": "Q3150",
+   "country": "Q183",
+   "sitelinks": "115",
+   "label": "Jena"
+  },
+  {
+   "item": "Q147756",
+   "country": "Q159",
+   "sitelinks": "74",
+   "label": "Chassawjurt"
+  },
+  {
+   "item": "Q141844",
+   "country": "Q16",
+   "sitelinks": "72",
+   "label": "Gatineau"
+  },
+  {
+   "item": "Q140087",
+   "country": "Q159",
+   "sitelinks": "68",
+   "label": "Slatoust"
+  },
+  {
+   "item": "Q156711",
+   "country": "Q212",
+   "sitelinks": "102",
+   "label": "Uschhorod"
+  },
+  {
+   "item": "Q3159",
+   "country": "Q159",
+   "sitelinks": "108",
+   "label": "Kursk"
+  },
+  {
+   "item": "Q143782",
+   "country": "Q30",
+   "sitelinks": "67",
+   "label": "North Las Vegas"
+  },
+  {
+   "item": "Q3183",
+   "country": "Q408",
+   "sitelinks": "177",
+   "label": "Perth"
+  },
+  {
+   "item": "Q134672",
+   "country": "Q145",
+   "sitelinks": "94",
+   "label": "Exeter"
+  },
+  {
+   "item": "Q147402",
+   "country": "Q96",
+   "sitelinks": "98",
+   "label": "Zapopan"
+  },
+  {
+   "item": "Q154835",
+   "country": "Q184",
+   "sitelinks": "98",
+   "label": "Mahiljou"
+  },
+  {
+   "item": "Q140561",
+   "country": "Q794",
+   "sitelinks": "75",
+   "label": "Zahedan"
+  },
+  {
+   "item": "Q157065",
+   "country": "Q159",
+   "sitelinks": "90",
+   "label": "Kertsch"
+  },
+  {
+   "item": "Q157065",
+   "country": "Q212",
+   "sitelinks": "90",
+   "label": "Kertsch"
+  },
+  {
+   "item": "Q146723",
+   "country": "Q974",
+   "sitelinks": "71",
+   "label": "Kisangani"
+  },
+  {
+   "item": "Q3323",
+   "country": "Q159",
+   "sitelinks": "106",
+   "label": "Belgorod"
+  },
+  {
+   "item": "Q3141",
+   "country": "Q408",
+   "sitelinks": "210",
+   "label": "Melbourne"
+  },
+  {
+   "item": "Q146351",
+   "country": "Q213",
+   "sitelinks": "91",
+   "label": "Reichenberg"
+  },
+  {
+   "item": "Q3200",
+   "country": "Q183",
+   "sitelinks": "83",
+   "label": "Salzgitter"
+  },
+  {
+   "item": "Q3126",
+   "country": "Q183",
+   "sitelinks": "105",
+   "label": "Erlangen"
+  },
+  {
+   "item": "Q3415",
+   "country": "Q38",
+   "sitelinks": "122",
+   "label": "Ancona"
+  },
+  {
+   "item": "Q3167",
+   "country": "Q183",
+   "sitelinks": "92",
+   "label": "Siegen"
+  },
+  {
+   "item": "Q155557",
+   "country": "Q155",
+   "sitelinks": "62",
+   "label": "Blumenau"
+  },
+  {
+   "item": "Q3214",
+   "country": "Q183",
+   "sitelinks": "102",
+   "label": "Cottbus"
+  },
+  {
+   "item": "Q3306",
+   "country": "Q804",
+   "sitelinks": "160",
+   "label": "Panama-Stadt"
+  },
+  {
+   "item": "Q146790",
+   "country": "Q17",
+   "sitelinks": "82",
+   "label": "Aomori"
+  },
+  {
+   "item": "Q154814",
+   "country": "Q794",
+   "sitelinks": "85",
+   "label": "Bandar Abbas"
+  },
+  {
+   "item": "Q155915",
+   "country": "Q43",
+   "sitelinks": "70",
+   "label": "Kastamonu"
+  },
+  {
+   "item": "Q156743",
+   "country": "Q212",
+   "sitelinks": "99",
+   "label": "Ternopil"
+  },
+  {
+   "item": "Q146699",
+   "country": "Q794",
+   "sitelinks": "69",
+   "label": "Zandschan"
+  },
+  {
+   "item": "Q157137",
+   "country": "Q212",
+   "sitelinks": "97",
+   "label": "Krywyj Rih"
+  },
+  {
+   "item": "Q3132",
+   "country": "Q183",
+   "sitelinks": "88",
+   "label": "Moers"
+  },
+  {
+   "item": "Q3138",
+   "country": "Q183",
+   "sitelinks": "130",
+   "label": "Trier"
+  },
+  {
+   "item": "Q158928",
+   "country": "Q794",
+   "sitelinks": "75",
+   "label": "Buschehr"
+  },
+  {
+   "item": "Q156760",
+   "country": "Q212",
+   "sitelinks": "65",
+   "label": "Nikopol"
+  },
+  {
+   "item": "Q3238",
+   "country": "Q783",
+   "sitelinks": "159",
+   "label": "Tegucigalpa"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q212",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q15180",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q28513",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q131964",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q153136",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q172107",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q207272",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q156726",
+   "country": "Q457167",
+   "sitelinks": "98",
+   "label": "Iwano-Frankiwsk"
+  },
+  {
+   "item": "Q3551",
+   "country": "Q1028",
+   "sitelinks": "191",
+   "label": "Rabat"
+  },
+  {
+   "item": "Q156819",
+   "country": "Q155",
+   "sitelinks": "61",
+   "label": "Joinville"
+  },
+  {
+   "item": "Q157144",
+   "country": "Q212",
+   "sitelinks": "103",
+   "label": "Winnyzja"
+  },
+  {
+   "item": "Q3426",
+   "country": "Q159",
+   "sitelinks": "119",
+   "label": "Woronesch"
+  },
+  {
+   "item": "Q3544",
+   "country": "Q159",
+   "sitelinks": "95",
+   "label": "Tambow"
+  },
+  {
+   "item": "Q3185",
+   "country": "Q183",
+   "sitelinks": "101",
+   "label": "Hildesheim"
+  },
+  {
+   "item": "Q158467",
+   "country": "Q668",
+   "sitelinks": "91",
+   "label": "Gwalior"
+  },
+  {
+   "item": "Q159260",
+   "country": "Q30",
+   "sitelinks": "84",
+   "label": "Santa Clara"
+  },
+  {
+   "item": "Q486168",
+   "country": "Q30",
+   "sitelinks": "88",
+   "label": "San Bernardino"
+  },
+  {
+   "item": "Q486459",
+   "country": "Q30",
+   "sitelinks": "82",
+   "label": "Evansville"
+  },
+  {
+   "item": "Q606564",
+   "country": "Q794",
+   "sitelinks": "82",
+   "label": "Bukan"
+  },
+  {
+   "item": "Q486472",
+   "country": "Q30",
+   "sitelinks": "92",
+   "label": "Kansas City"
+  },
+  {
+   "item": "Q3437",
+   "country": "Q38",
+   "sitelinks": "129",
+   "label": "Perugia"
+  },
+  {
+   "item": "Q486868",
+   "country": "Q30",
+   "sitelinks": "67",
+   "label": "Pomona"
+  },
+  {
+   "item": "Q157725",
+   "country": "Q212",
+   "sitelinks": "105",
+   "label": "Czernowitz"
+  },
+  {
+   "item": "Q3674",
+   "country": "Q1032",
+   "sitelinks": "163",
+   "label": "Niamey"
+  },
+  {
+   "item": "Q486329",
+   "country": "Q265",
+   "sitelinks": "82",
+   "label": "Fargʻona"
+  },
+  {
+   "item": "Q621549",
+   "country": "Q30",
+   "sitelinks": "75",
+   "label": "Inglewood"
+  },
+  {
+   "item": "Q3612",
+   "country": "Q298",
+   "sitelinks": "121",
+   "label": "Antofagasta"
+  },
+  {
+   "item": "Q3579",
+   "country": "Q1016",
+   "sitelinks": "189",
+   "label": "Tripolis"
+  },
+  {
+   "item": "Q3579",
+   "country": "Q284568",
+   "sitelinks": "189",
+   "label": "Tripolis"
+  },
+  {
+   "item": "Q3579",
+   "country": "Q3433694",
+   "sitelinks": "189",
+   "label": "Tripolis"
+  },
+  {
+   "item": "Q157835",
+   "country": "Q212",
+   "sitelinks": "125",
+   "label": "Saporischschja"
+  },
+  {
+   "item": "Q3572",
+   "country": "Q948",
+   "sitelinks": "184",
+   "label": "Tunis"
+  },
+  {
+   "item": "Q486282",
+   "country": "Q232",
+   "sitelinks": "79",
+   "label": "Pawlodar"
+  },
+  {
+   "item": "Q486479",
+   "country": "Q30",
+   "sitelinks": "72",
+   "label": "Rochester"
+  },
+  {
+   "item": "Q159273",
+   "country": "Q419",
+   "sitelinks": "106",
+   "label": "Arequipa"
+  },
+  {
+   "item": "Q486439",
+   "country": "Q30",
+   "sitelinks": "84",
+   "label": "Cedar Rapids"
+  },
+  {
+   "item": "Q486877",
+   "country": "Q30",
+   "sitelinks": "80",
+   "label": "South Bend"
+  },
+  {
+   "item": "Q485716",
+   "country": "Q30",
+   "sitelinks": "88",
+   "label": "Glendale"
+  },
+  {
+   "item": "Q487439",
+   "country": "Q232",
+   "sitelinks": "76",
+   "label": "Oral"
+  },
+  {
+   "item": "Q488924",
+   "country": "Q30",
+   "sitelinks": "71",
+   "label": "Oceanside"
+  },
+  {
+   "item": "Q3604",
+   "country": "Q977",
+   "sitelinks": "149",
+   "label": "Dschibuti"
+  },
+  {
+   "item": "Q487656",
+   "country": "Q265",
+   "sitelinks": "79",
+   "label": "Andijon"
+  },
+  {
+   "item": "Q488940",
+   "country": "Q30",
+   "sitelinks": "65",
+   "label": "Palmdale"
+  },
+  {
+   "item": "Q3659",
+   "country": "Q657",
+   "sitelinks": "166",
+   "label": "N’Djamena"
+  },
+  {
+   "item": "Q3642",
+   "country": "Q986",
+   "sitelinks": "167",
+   "label": "Asmara"
+  },
+  {
+   "item": "Q486545",
+   "country": "Q232",
+   "sitelinks": "76",
+   "label": "Taras"
+  },
+  {
+   "item": "Q488379",
+   "country": "Q232",
+   "sitelinks": "65",
+   "label": "Petropawl"
+  },
+  {
+   "item": "Q3688",
+   "country": "Q1025",
+   "sitelinks": "156",
+   "label": "Nouakchott"
+  },
+  {
+   "item": "Q3718",
+   "country": "Q1041",
+   "sitelinks": "177",
+   "label": "Dakar"
+  },
+  {
+   "item": "Q486913",
+   "country": "Q232",
+   "sitelinks": "82",
+   "label": "Atyrau"
+  },
+  {
+   "item": "Q488125",
+   "country": "Q30",
+   "sitelinks": "76",
+   "label": "Salinas"
+  },
+  {
+   "item": "Q491879",
+   "country": "Q265",
+   "sitelinks": "68",
+   "label": "Termiz"
+  },
+  {
+   "item": "Q490643",
+   "country": "Q232",
+   "sitelinks": "63",
+   "label": "Kökschetau"
+  },
+  {
+   "item": "Q490643",
+   "country": "Q15180",
+   "sitelinks": "63",
+   "label": "Kökschetau"
+  },
+  {
+   "item": "Q490643",
+   "country": "Q34266",
+   "sitelinks": "63",
+   "label": "Kökschetau"
+  },
+  {
+   "item": "Q487672",
+   "country": "Q874",
+   "sitelinks": "67",
+   "label": "Daşoguz"
+  },
+  {
+   "item": "Q487684",
+   "country": "Q874",
+   "sitelinks": "73",
+   "label": "Türkmenabat"
+  },
+  {
+   "item": "Q489197",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Torrance"
+  },
+  {
+   "item": "Q3711",
+   "country": "Q403",
+   "sitelinks": "230",
+   "label": "Belgrad"
+  },
+  {
+   "item": "Q488990",
+   "country": "Q232",
+   "sitelinks": "70",
+   "label": "Qostanai"
+  },
+  {
+   "item": "Q3748",
+   "country": "Q1014",
+   "sitelinks": "164",
+   "label": "Monrovia"
+  },
+  {
+   "item": "Q3766",
+   "country": "Q858",
+   "sitelinks": "243",
+   "label": "Damaskus"
+  },
+  {
+   "item": "Q487999",
+   "country": "Q30",
+   "sitelinks": "76",
+   "label": "Gainesville"
+  },
+  {
+   "item": "Q491128",
+   "country": "Q30",
+   "sitelinks": "69",
+   "label": "Fontana"
+  },
+  {
+   "item": "Q489898",
+   "country": "Q265",
+   "sitelinks": "88",
+   "label": "Nukus"
+  },
+  {
+   "item": "Q491132",
+   "country": "Q30",
+   "sitelinks": "70",
+   "label": "Santa Clarita"
+  },
+  {
+   "item": "Q491340",
+   "country": "Q30",
+   "sitelinks": "64",
+   "label": "Roseville"
+  },
+  {
+   "item": "Q3768",
+   "country": "Q1008",
+   "sitelinks": "156",
+   "label": "Yamoussoukro"
+  },
+  {
+   "item": "Q3751",
+   "country": "Q1011",
+   "sitelinks": "158",
+   "label": "Praia"
+  },
+  {
+   "item": "Q492552",
+   "country": "Q265",
+   "sitelinks": "74",
+   "label": "Namangan"
+  },
+  {
+   "item": "Q491123",
+   "country": "Q232",
+   "sitelinks": "73",
+   "label": "Qysylorda"
+  },
+  {
+   "item": "Q3780",
+   "country": "Q1044",
+   "sitelinks": "157",
+   "label": "Freetown"
+  },
+  {
+   "item": "Q3764",
+   "country": "Q183",
+   "sitelinks": "75",
+   "label": "Witten"
+  },
+  {
+   "item": "Q490434",
+   "country": "Q30",
+   "sitelinks": "67",
+   "label": "Ventura"
+  },
+  {
+   "item": "Q3752",
+   "country": "Q159",
+   "sitelinks": "105",
+   "label": "Maikop"
+  },
+  {
+   "item": "Q491099",
+   "country": "Q30",
+   "sitelinks": "70",
+   "label": "Carlsbad"
+  },
+  {
+   "item": "Q490441",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Concord"
+  },
+  {
+   "item": "Q490584",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Flint"
+  },
+  {
+   "item": "Q491350",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "Orange"
+  },
+  {
+   "item": "Q3774",
+   "country": "Q298",
+   "sitelinks": "88",
+   "label": "Chillán"
+  },
+  {
+   "item": "Q3750",
+   "country": "Q183",
+   "sitelinks": "97",
+   "label": "Gera"
+  },
+  {
+   "item": "Q494707",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Corona"
+  },
+  {
+   "item": "Q3792",
+   "country": "Q945",
+   "sitelinks": "165",
+   "label": "Lomé"
+  },
+  {
+   "item": "Q3761",
+   "country": "Q117",
+   "sitelinks": "202",
+   "label": "Accra"
+  },
+  {
+   "item": "Q490732",
+   "country": "Q30",
+   "sitelinks": "72",
+   "label": "Fort Collins"
+  },
+  {
+   "item": "Q3777",
+   "country": "Q965",
+   "sitelinks": "170",
+   "label": "Ouagadougou"
+  },
+  {
+   "item": "Q3818",
+   "country": "Q983",
+   "sitelinks": "158",
+   "label": "Malabo"
+  },
+  {
+   "item": "Q494720",
+   "country": "Q30",
+   "sitelinks": "64",
+   "label": "Moreno Valley"
+  },
+  {
+   "item": "Q494723",
+   "country": "Q30",
+   "sitelinks": "64",
+   "label": "Fullerton"
+  },
+  {
+   "item": "Q494711",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "Lancaster"
+  },
+  {
+   "item": "Q488134",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Ontario"
+  },
+  {
+   "item": "Q491114",
+   "country": "Q30",
+   "sitelinks": "68",
+   "label": "Hayward"
+  },
+  {
+   "item": "Q3739",
+   "country": "Q1007",
+   "sitelinks": "169",
+   "label": "Bissau"
+  },
+  {
+   "item": "Q3805",
+   "country": "Q810",
+   "sitelinks": "194",
+   "label": "Amman"
+  },
+  {
+   "item": "Q3854",
+   "country": "Q967",
+   "sitelinks": "156",
+   "label": "Bujumbura"
+  },
+  {
+   "item": "Q494728",
+   "country": "Q30",
+   "sitelinks": "62",
+   "label": "West Covina"
+  },
+  {
+   "item": "Q495353",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Victorville"
+  },
+  {
+   "item": "Q495365",
+   "country": "Q30",
+   "sitelinks": "64",
+   "label": "Rancho Cucamonga"
+  },
+  {
+   "item": "Q3832",
+   "country": "Q929",
+   "sitelinks": "159",
+   "label": "Bangui"
+  },
+  {
+   "item": "Q500481",
+   "country": "Q30",
+   "sitelinks": "70",
+   "label": "Overland Park"
+  },
+  {
+   "item": "Q3882",
+   "country": "Q398",
+   "sitelinks": "169",
+   "label": "Manama"
+  },
+  {
+   "item": "Q3909",
+   "country": "Q1013",
+   "sitelinks": "154",
+   "label": "Maseru"
+  },
+  {
+   "item": "Q3820",
+   "country": "Q822",
+   "sitelinks": "213",
+   "label": "Beirut"
+  },
+  {
+   "item": "Q3856",
+   "country": "Q229",
+   "sitelinks": "204",
+   "label": "Nikosia"
+  },
+  {
+   "item": "Q502212",
+   "country": "Q794",
+   "sitelinks": "71",
+   "label": "Chorramabad"
+  },
+  {
+   "item": "Q3844",
+   "country": "Q971",
+   "sitelinks": "172",
+   "label": "Brazzaville"
+  },
+  {
+   "item": "Q3915",
+   "country": "Q1019",
+   "sitelinks": "164",
+   "label": "Antananarivo"
+  },
+  {
+   "item": "Q495373",
+   "country": "Q30",
+   "sitelinks": "67",
+   "label": "Visalia"
+  },
+  {
+   "item": "Q499401",
+   "country": "Q30",
+   "sitelinks": "65",
+   "label": "Warren"
+  },
+  {
+   "item": "Q500033",
+   "country": "Q833",
+   "sitelinks": "68",
+   "label": "Shah Alam"
+  },
+  {
+   "item": "Q3889",
+   "country": "Q1029",
+   "sitelinks": "166",
+   "label": "Maputo"
+  },
+  {
+   "item": "Q3870",
+   "country": "Q114",
+   "sitelinks": "239",
+   "label": "Nairobi"
+  },
+  {
+   "item": "Q3866",
+   "country": "Q924",
+   "sitelinks": "159",
+   "label": "Dodoma"
+  },
+  {
+   "item": "Q495357",
+   "country": "Q30",
+   "sitelinks": "61",
+   "label": "Antioch"
+  },
+  {
+   "item": "Q3901",
+   "country": "Q970",
+   "sitelinks": "145",
+   "label": "Moroni"
+  },
+  {
+   "item": "Q499196",
+   "country": "Q30",
+   "sitelinks": "60",
+   "label": "Costa Mesa"
+  },
+  {
+   "item": "Q3868",
+   "country": "Q298",
+   "sitelinks": "78",
+   "label": "Copiapó"
+  },
+  {
+   "item": "Q948129",
+   "country": "Q30",
+   "sitelinks": "61",
+   "label": "Westminster"
+  },
+  {
+   "item": "Q3859",
+   "country": "Q1037",
+   "sitelinks": "164",
+   "label": "Kigali"
+  },
+  {
+   "item": "Q3929",
+   "country": "Q1027",
+   "sitelinks": "155",
+   "label": "Port Louis"
+  },
+  {
+   "item": "Q42140",
+   "country": "Q884",
+   "sitelinks": "63",
+   "label": "Jeonju"
+  },
+  {
+   "item": "Q3826",
+   "country": "Q842",
+   "sitelinks": "159",
+   "label": "Maskat"
+  },
+  {
+   "item": "Q3881",
+   "country": "Q953",
+   "sitelinks": "166",
+   "label": "Lusaka"
+  },
+  {
+   "item": "Q42780",
+   "country": "Q148",
+   "sitelinks": "79",
+   "label": "Ningbo"
+  },
+  {
+   "item": "Q42168",
+   "country": "Q142",
+   "sitelinks": "124",
+   "label": "Clermont-Ferrand"
+  },
+  {
+   "item": "Q3876",
+   "country": "Q1020",
+   "sitelinks": "155",
+   "label": "Lilongwe"
+  },
+  {
+   "item": "Q3935",
+   "country": "Q1030",
+   "sitelinks": "174",
+   "label": "Windhoek"
+  },
+  {
+   "item": "Q3919",
+   "country": "Q963",
+   "sitelinks": "164",
+   "label": "Gaborone"
+  },
+  {
+   "item": "Q42635",
+   "country": "Q148",
+   "sitelinks": "66",
+   "label": "Wenzhou"
+  },
+  {
+   "item": "Q42807",
+   "country": "Q142",
+   "sitelinks": "119",
+   "label": "Nîmes"
+  },
+  {
+   "item": "Q3894",
+   "country": "Q1036",
+   "sitelinks": "184",
+   "label": "Kampala"
+  },
+  {
+   "item": "Q42810",
+   "country": "Q142",
+   "sitelinks": "125",
+   "label": "Le Havre"
+  },
+  {
+   "item": "Q42941",
+   "country": "Q668",
+   "sitelinks": "141",
+   "label": "Agra"
+  },
+  {
+   "item": "Q3897",
+   "country": "Q916",
+   "sitelinks": "187",
+   "label": "Luanda"
+  },
+  {
+   "item": "Q3926",
+   "country": "Q258",
+   "sitelinks": "194",
+   "label": "Pretoria"
+  },
+  {
+   "item": "Q43433",
+   "country": "Q668",
+   "sitelinks": "121",
+   "label": "Chandigarh"
+  },
+  {
+   "item": "Q3921",
+   "country": "Q954",
+   "sitelinks": "175",
+   "label": "Harare"
+  },
+  {
+   "item": "Q42651",
+   "country": "Q148",
+   "sitelinks": "76",
+   "label": "Wuxi"
+  },
+  {
+   "item": "Q3927",
+   "country": "Q159",
+   "sitelinks": "130",
+   "label": "Astrachan"
+  },
+  {
+   "item": "Q43453",
+   "country": "Q213",
+   "sitelinks": "120",
+   "label": "Pilsen"
+  },
+  {
+   "item": "Q43196",
+   "country": "Q30",
+   "sitelinks": "135",
+   "label": "Cincinnati"
+  },
+  {
+   "item": "Q42448",
+   "country": "Q145",
+   "sitelinks": "122",
+   "label": "Sheffield"
+  },
+  {
+   "item": "Q43788",
+   "country": "Q30",
+   "sitelinks": "128",
+   "label": "Madison"
+  },
+  {
+   "item": "Q43199",
+   "country": "Q30",
+   "sitelinks": "126",
+   "label": "Omaha"
+  },
+  {
+   "item": "Q44206",
+   "country": "Q414",
+   "sitelinks": "69",
+   "label": "Resistencia"
+  },
+  {
+   "item": "Q43301",
+   "country": "Q30",
+   "sitelinks": "120",
+   "label": "Fresno"
+  },
+  {
+   "item": "Q42462",
+   "country": "Q145",
+   "sitelinks": "129",
+   "label": "York"
+  },
+  {
+   "item": "Q3977",
+   "country": "Q159",
+   "sitelinks": "103",
+   "label": "Elista"
+  },
+  {
+   "item": "Q43475",
+   "country": "Q145",
+   "sitelinks": "100",
+   "label": "Derby"
+  },
+  {
+   "item": "Q44211",
+   "country": "Q414",
+   "sitelinks": "65",
+   "label": "Corrientes"
+  },
+  {
+   "item": "Q44214",
+   "country": "Q414",
+   "sitelinks": "60",
+   "label": "Formosa"
+  },
+  {
+   "item": "Q44213",
+   "country": "Q414",
+   "sitelinks": "75",
+   "label": "Paraná"
+  },
+  {
+   "item": "Q42716",
+   "country": "Q142",
+   "sitelinks": "124",
+   "label": "Saint-Étienne"
+  },
+  {
+   "item": "Q43509",
+   "country": "Q736",
+   "sitelinks": "116",
+   "label": "Guayaquil"
+  },
+  {
+   "item": "Q45656",
+   "country": "Q142",
+   "sitelinks": "110",
+   "label": "Limoges"
+  },
+  {
+   "item": "Q44217",
+   "country": "Q414",
+   "sitelinks": "61",
+   "label": "San Salvador de Jujuy"
+  },
+  {
+   "item": "Q44236",
+   "country": "Q414",
+   "sitelinks": "65",
+   "label": "La Rioja"
+  },
+  {
+   "item": "Q43421",
+   "country": "Q30",
+   "sitelinks": "134",
+   "label": "Richmond"
+  },
+  {
+   "item": "Q45942",
+   "country": "Q262",
+   "sitelinks": "86",
+   "label": "Annaba"
+  },
+  {
+   "item": "Q46400",
+   "country": "Q218",
+   "sitelinks": "72",
+   "label": "Suceava"
+  },
+  {
+   "item": "Q43595",
+   "country": "Q962",
+   "sitelinks": "113",
+   "label": "Cotonou"
+  },
+  {
+   "item": "Q42622",
+   "country": "Q148",
+   "sitelinks": "100",
+   "label": "Suzhou"
+  },
+  {
+   "item": "Q44237",
+   "country": "Q414",
+   "sitelinks": "94",
+   "label": "Mendoza"
+  },
+  {
+   "item": "Q44239",
+   "country": "Q414",
+   "sitelinks": "65",
+   "label": "Neuquén"
+  },
+  {
+   "item": "Q43668",
+   "country": "Q30",
+   "sitelinks": "117",
+   "label": "Louisville"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q28",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q16410",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q28513",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q156506",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q253094",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q600018",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q940741",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q1470101",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q15102440",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q45779",
+   "country": "Q16056854",
+   "sitelinks": "110",
+   "label": "Pécs"
+  },
+  {
+   "item": "Q43382",
+   "country": "Q145",
+   "sitelinks": "110",
+   "label": "Plymouth"
+  },
+  {
+   "item": "Q44238",
+   "country": "Q414",
+   "sitelinks": "64",
+   "label": "Posadas"
+  },
+  {
+   "item": "Q47916",
+   "country": "Q668",
+   "sitelinks": "126",
+   "label": "Lucknow"
+  },
+  {
+   "item": "Q46852",
+   "country": "Q218",
+   "sitelinks": "108",
+   "label": "Iași"
+  },
+  {
+   "item": "Q47166",
+   "country": "Q159",
+   "sitelinks": "72",
+   "label": "Orsk"
+  },
+  {
+   "item": "Q43387",
+   "country": "Q43",
+   "sitelinks": "283",
+   "label": "Edirne"
+  },
+  {
+   "item": "Q45604",
+   "country": "Q889",
+   "sitelinks": "111",
+   "label": "Kandahar"
+  },
+  {
+   "item": "Q47045",
+   "country": "Q142",
+   "sitelinks": "103",
+   "label": "Saint-Denis"
+  },
+  {
+   "item": "Q44989",
+   "country": "Q30",
+   "sitelinks": "110",
+   "label": "Tulsa"
+  },
+  {
+   "item": "Q47282",
+   "country": "Q813",
+   "sitelinks": "101",
+   "label": "Osch"
+  },
+  {
+   "item": "Q44241",
+   "country": "Q414",
+   "sitelinks": "64",
+   "label": "San Juan"
+  },
+  {
+   "item": "Q44253",
+   "country": "Q414",
+   "sitelinks": "69",
+   "label": "Santiago del Estero"
+  },
+  {
+   "item": "Q205922",
+   "country": "Q148",
+   "sitelinks": "63",
+   "label": "Qiqihar"
+  },
+  {
+   "item": "Q47465",
+   "country": "Q142",
+   "sitelinks": "107",
+   "label": "Aix-en-Provence"
+  },
+  {
+   "item": "Q44012",
+   "country": "Q16",
+   "sitelinks": "63",
+   "label": "Trois-Rivières"
+  },
+  {
+   "item": "Q44059",
+   "country": "Q414",
+   "sitelinks": "97",
+   "label": "La Plata"
+  },
+  {
+   "item": "Q48195",
+   "country": "Q796",
+   "sitelinks": "105",
+   "label": "Basra"
+  },
+  {
+   "item": "Q47772",
+   "country": "Q414",
+   "sitelinks": "60",
+   "label": "Bariloche"
+  },
+  {
+   "item": "Q45301",
+   "country": "Q43",
+   "sitelinks": "121",
+   "label": "Trabzon"
+  },
+  {
+   "item": "Q47492",
+   "country": "Q219060",
+   "sitelinks": "128",
+   "label": "Gaza"
+  },
+  {
+   "item": "Q44198",
+   "country": "Q16",
+   "sitelinks": "74",
+   "label": "Brampton"
+  },
+  {
+   "item": "Q206879",
+   "country": "Q43",
+   "sitelinks": "73",
+   "label": "Nevşehir"
+  },
+  {
+   "item": "Q208162",
+   "country": "Q668",
+   "sitelinks": "63",
+   "label": "Patiala"
+  },
+  {
+   "item": "Q207324",
+   "country": "Q668",
+   "sitelinks": "68",
+   "label": "Cuttack"
+  },
+  {
+   "item": "Q207429",
+   "country": "Q96",
+   "sitelinks": "62",
+   "label": "Tuxtla Gutiérrez"
+  },
+  {
+   "item": "Q207876",
+   "country": "Q17",
+   "sitelinks": "66",
+   "label": "Yamaguchi"
+  },
+  {
+   "item": "Q47554",
+   "country": "Q36",
+   "sitelinks": "102",
+   "label": "Toruń"
+  },
+  {
+   "item": "Q208471",
+   "country": "Q148",
+   "sitelinks": "68",
+   "label": "Kaifeng"
+  },
+  {
+   "item": "Q208472",
+   "country": "Q43",
+   "sitelinks": "81",
+   "label": "Bingöl"
+  },
+  {
+   "item": "Q208447",
+   "country": "Q30",
+   "sitelinks": "64",
+   "label": "Thousand Oaks"
+  },
+  {
+   "item": "Q45798",
+   "country": "Q17",
+   "sitelinks": "80",
+   "label": "Gifu"
+  },
+  {
+   "item": "Q207749",
+   "country": "Q668",
+   "sitelinks": "77",
+   "label": "Thane"
+  },
+  {
+   "item": "Q210661",
+   "country": "Q17",
+   "sitelinks": "60",
+   "label": "Musashino"
+  },
+  {
+   "item": "Q208445",
+   "country": "Q30",
+   "sitelinks": "63",
+   "label": "Vallejo"
+  },
+  {
+   "item": "Q208459",
+   "country": "Q30",
+   "sitelinks": "70",
+   "label": "Sunnyvale"
+  },
+  {
+   "item": "Q47837",
+   "country": "Q1028",
+   "sitelinks": "111",
+   "label": "El Aaiún"
+  },
+  {
+   "item": "Q47837",
+   "country": "Q40362",
+   "sitelinks": "111",
+   "label": "El Aaiún"
+  },
+  {
+   "item": "Q208262",
+   "country": "Q145",
+   "sitelinks": "71",
+   "label": "Eastbourne"
+  },
+  {
+   "item": "Q207754",
+   "country": "Q668",
+   "sitelinks": "79",
+   "label": "Tiruchirappalli"
+  },
+  {
+   "item": "Q206881",
+   "country": "Q43",
+   "sitelinks": "71",
+   "label": "Kilis"
+  },
+  {
+   "item": "Q206885",
+   "country": "Q43",
+   "sitelinks": "71",
+   "label": "Düzce"
+  },
+  {
+   "item": "Q207756",
+   "country": "Q664",
+   "sitelinks": "67",
+   "label": "Tauranga"
+  },
+  {
+   "item": "Q208725",
+   "country": "Q801",
+   "sitelinks": "64",
+   "label": "Bat Jam"
+  },
+  {
+   "item": "Q207799",
+   "country": "Q668",
+   "sitelinks": "74",
+   "label": "Puri"
+  },
+  {
+   "item": "Q207098",
+   "country": "Q668",
+   "sitelinks": "78",
+   "label": "Ghaziabad"
+  },
+  {
+   "item": "Q208863",
+   "country": "Q17",
+   "sitelinks": "62",
+   "label": "Hachiōji"
+  },
+  {
+   "item": "Q207972",
+   "country": "Q96",
+   "sitelinks": "64",
+   "label": "Tepic"
+  },
+  {
+   "item": "Q208005",
+   "country": "Q43",
+   "sitelinks": "72",
+   "label": "Kırşehir"
+  },
+  {
+   "item": "Q206484",
+   "country": "Q1033",
+   "sitelinks": "61",
+   "label": "Abeokuta"
+  },
+  {
+   "item": "Q47716",
+   "country": "Q30",
+   "sitelinks": "91",
+   "label": "Charleston"
+  },
+  {
+   "item": "Q210493",
+   "country": "Q148",
+   "sitelinks": "64",
+   "label": "Yantai"
+  },
+  {
+   "item": "Q208318",
+   "country": "Q1033",
+   "sitelinks": "61",
+   "label": "Kaduna"
+  },
+  {
+   "item": "Q207801",
+   "country": "Q225",
+   "sitelinks": "65",
+   "label": "Bijeljina"
+  },
+  {
+   "item": "Q45313",
+   "country": "Q889",
+   "sitelinks": "107",
+   "label": "Herat"
+  },
+  {
+   "item": "Q208097",
+   "country": "Q668",
+   "sitelinks": "87",
+   "label": "Imphal"
+  },
+  {
+   "item": "Q214173",
+   "country": "Q419",
+   "sitelinks": "93",
+   "label": "Trujillo"
+  },
+  {
+   "item": "Q214248",
+   "country": "Q916",
+   "sitelinks": "66",
+   "label": "Benguela"
+  },
+  {
+   "item": "Q205942",
+   "country": "Q43",
+   "sitelinks": "75",
+   "label": "Yalova"
+  },
+  {
+   "item": "Q206891",
+   "country": "Q43",
+   "sitelinks": "67",
+   "label": "Kırıkkale"
+  },
+  {
+   "item": "Q206988",
+   "country": "Q145",
+   "sitelinks": "65",
+   "label": "Cheltenham"
+  },
+  {
+   "item": "Q210886",
+   "country": "Q96",
+   "sitelinks": "68",
+   "label": "Villahermosa"
+  },
+  {
+   "item": "Q211590",
+   "country": "Q241",
+   "sitelinks": "69",
+   "label": "Santa Clara"
+  },
+  {
+   "item": "Q212628",
+   "country": "Q794",
+   "sitelinks": "78",
+   "label": "Arak"
+  },
+  {
+   "item": "Q208718",
+   "country": "Q1049",
+   "sitelinks": "66",
+   "label": "Bur Sudan"
+  },
+  {
+   "item": "Q205914",
+   "country": "Q148",
+   "sitelinks": "64",
+   "label": "Lijiang"
+  },
+  {
+   "item": "Q213318",
+   "country": "Q17",
+   "sitelinks": "66",
+   "label": "Amagasaki"
+  },
+  {
+   "item": "Q213324",
+   "country": "Q17",
+   "sitelinks": "65",
+   "label": "Matsumoto"
+  },
+  {
+   "item": "Q207309",
+   "country": "Q17",
+   "sitelinks": "70",
+   "label": "Tokushima"
+  },
+  {
+   "item": "Q207294",
+   "country": "Q184",
+   "sitelinks": "73",
+   "label": "Babrujsk"
+  },
+  {
+   "item": "Q211243",
+   "country": "Q148",
+   "sitelinks": "80",
+   "label": "Yinchuan"
+  },
+  {
+   "item": "Q214215",
+   "country": "Q96",
+   "sitelinks": "69",
+   "label": "La Paz"
+  },
+  {
+   "item": "Q209016",
+   "country": "Q739",
+   "sitelinks": "82",
+   "label": "Santa Marta"
+  },
+  {
+   "item": "Q217432",
+   "country": "Q1033",
+   "sitelinks": "74",
+   "label": "Port Harcourt"
+  },
+  {
+   "item": "Q209766",
+   "country": "Q17",
+   "sitelinks": "65",
+   "label": "Saga"
+  },
+  {
+   "item": "Q207321",
+   "country": "Q17",
+   "sitelinks": "65",
+   "label": "Matsue"
+  },
+  {
+   "item": "Q211867",
+   "country": "Q16",
+   "sitelinks": "65",
+   "label": "Oshawa"
+  },
+  {
+   "item": "Q211907",
+   "country": "Q145",
+   "sitelinks": "67",
+   "label": "Slough"
+  },
+  {
+   "item": "Q215733",
+   "country": "Q145",
+   "sitelinks": "60",
+   "label": "Warrington"
+  },
+  {
+   "item": "Q216075",
+   "country": "Q881",
+   "sitelinks": "82",
+   "label": "Cần Thơ"
+  },
+  {
+   "item": "Q209034",
+   "country": "Q96",
+   "sitelinks": "88",
+   "label": "Toluca"
+  },
+  {
+   "item": "Q212332",
+   "country": "Q668",
+   "sitelinks": "62",
+   "label": "Kanchipuram"
+  },
+  {
+   "item": "Q214485",
+   "country": "Q114",
+   "sitelinks": "68",
+   "label": "Kisumu"
+  },
+  {
+   "item": "Q217040",
+   "country": "Q117",
+   "sitelinks": "61",
+   "label": "Tamale"
+  },
+  {
+   "item": "Q214164",
+   "country": "Q30",
+   "sitelinks": "72",
+   "label": "Bellevue"
+  },
+  {
+   "item": "Q209338",
+   "country": "Q30",
+   "sitelinks": "73",
+   "label": "Oxnard"
+  },
+  {
+   "item": "Q212991",
+   "country": "Q30",
+   "sitelinks": "71",
+   "label": "Santa Rosa"
+  },
+  {
+   "item": "Q218861",
+   "country": "Q115",
+   "sitelinks": "68",
+   "label": "Gonder"
+  },
+  {
+   "item": "Q217156",
+   "country": "Q79",
+   "sitelinks": "70",
+   "label": "Ismailia"
+  },
+  {
+   "item": "Q207322",
+   "country": "Q916",
+   "sitelinks": "70",
+   "label": "Huambo"
+  },
+  {
+   "item": "Q213026",
+   "country": "Q668",
+   "sitelinks": "67",
+   "label": "Bareilly"
+  },
+  {
+   "item": "Q209779",
+   "country": "Q17",
+   "sitelinks": "72",
+   "label": "Sagamihara"
+  },
+  {
+   "item": "Q214655",
+   "country": "Q43",
+   "sitelinks": "62",
+   "label": "Çorlu"
+  },
+  {
+   "item": "Q209801",
+   "country": "Q17",
+   "sitelinks": "69",
+   "label": "Himeji"
+  },
+  {
+   "item": "Q210292",
+   "country": "Q43",
+   "sitelinks": "68",
+   "label": "Yozgat"
+  }
+ ]
+}

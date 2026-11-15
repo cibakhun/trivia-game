@@ -1,5 +1,5 @@
-# Entwurf aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
-# Fakten- und Sprachprüfung stehen aus (Brief §5.6), deshalb origin AI_ASSISTED und status DRAFT.
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
 schema_version: 1
 key: wd-oper-q753152
 kind: TRIVIA
@@ -7,15 +7,24 @@ category: ARTS_CULTURE
 difficulty: 4
 origin: AI_ASSISTED
 license_note: null
-status: DRAFT
+status: APPROVED
 tags:
   - quelle:wikidata
   - vorlage:oper
 sources:
-  - title: "Wikidata: Samson et Dalila (Q753152)"
+  - title: "Wikidata: Samson und Dalila (Q753152)"
     url: https://www.wikidata.org/wiki/Q753152
     accessed: 2026-11-11
-reviews: []
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Komponist aus Wikidata mit dem Artikel „Samson et Dalila“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
 trivia:
   options:
     - a
@@ -25,8 +34,8 @@ trivia:
   correct: b
 translations:
   de:
-    status: DRAFT
-    prompt: Wer komponierte die Oper „Samson et Dalila“?
+    status: APPROVED
+    prompt: Wer komponierte die Oper „Samson und Dalila“?
     options:
       a: Modest Mussorgski
       b: Camille Saint-Saëns
