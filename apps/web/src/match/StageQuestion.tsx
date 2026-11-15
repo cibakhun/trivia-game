@@ -11,7 +11,8 @@ import { showEstimate } from './estimate-input.ts';
  * Kategorie, die das Glücksrad gezogen hat. Nach der eigenen Antwort bleibt die Karte stehen,
  * die gewählte Antwort ist markiert: So springt nichts, bis die Auflösung kommt. Ohne Bewegung,
  * weil die Fragezeit läuft (ARCHITECTURE §15). Wer nicht gefragt ist, liest dieselbe Karte mit
- * (`WatchedQuestionCard`, ADR-065).
+ * (`WatchedQuestionCard`, ADR-065). Die Antwortfelder sind der Anker (`data-anchor`): Auf sie legt
+ * sich die Auflösung einer Wissensfrage, Feld auf Feld (`StageCentre`, ADR-070 Punkt 10).
  */
 
 const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
@@ -93,7 +94,7 @@ export function WatchedQuestionCard({
         {question.prompt}
       </h2>
       {question.kind === 'TRIVIA' ? (
-        <ul className="sheet-options">
+        <ul className="sheet-options" data-anchor="">
           {question.options.map((option, i) => (
             <li key={option.token}>
               <span className="option-read">
@@ -179,7 +180,7 @@ export function StageQuestion({
         {question.prompt}
       </h2>
       {question.kind === 'TRIVIA' ? (
-        <ul className="sheet-options">
+        <ul className="sheet-options" data-anchor="">
           {question.options.map((option, i) => (
             <li key={option.token}>
               <button

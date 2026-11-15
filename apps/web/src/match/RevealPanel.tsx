@@ -1,5 +1,5 @@
 import type { MatchEventOf } from '@rdw/protocol';
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
 import { formatDecimal, formatNumber, t, tp } from '../i18n/i18n.ts';
@@ -9,9 +9,12 @@ import { SeatChip } from './SeatChip.tsx';
 import { QuestionKind } from './StageQuestion.tsx';
 
 /**
- * Auflösung einer Frage für alle Sitze, auch für Zuschauer (docs/ART_DIRECTION.md §4): die
- * Rückseite der Fragekarte, mit demselben Aufbau wie ihre Vorderseite. Oben dasselbe Band
- * (Kategorie oder Art der Frage), darunter die Frage und die Antworten an derselben Stelle.
+ * Auflösung einer Frage für alle Sitze, auch für Zuschauer (docs/ART_DIRECTION.md §4), mit
+ * demselben Aufbau wie die Fragekarte. Oben dasselbe Band (Kategorie oder Art der Frage), darunter
+ * die Frage und die Antworten an derselben Stelle. Bei einer Wissensfrage ist es dieselbe Karte,
+ * die liegen bleibt (ADR-070 Punkt 10): Zeile für Zeile so gebaut wie vorn, und die Antwortfelder
+ * sind der Anker, an dem `StageCentre` sie auf die Frage legt. Bei einer Schätzfrage ist es die
+ * Rückseite der Karte.
  *
  * Wissensfrage: Jede Antwort ist ein Feld wie auf der Vorderseite, die Antwort steht in seiner
  * Mitte. Links sitzt die Münze mit dem Buchstaben aus der Frage; auf sie setzt sich der Stempel
@@ -42,6 +45,39 @@ function byEstimate(a: Answer, b: Answer): number {
   const distance = magnitude(a.distance) - magnitude(b.distance);
   if (distance !== 0 && !Number.isNaN(distance)) return distance;
   return (a.effectiveMs ?? Number.POSITIVE_INFINITY) - (b.effectiveMs ?? Number.POSITIVE_INFINITY);
+}
+
+/**
+ * Passt die Auflösung nicht ganz ins Blatt (lange Frage und Antworten, dazu Gleichstand oder
+ * Schweigende und eine Erklärung, auf der niedrigsten Bühne), gibt sie in zwei Stufen nach
+ * (`data-fit`): Erst fällt die Erklärung weg (`trim`), dann wird auch die Frage kleiner und der
+ * Platz der Lunte fällt weg (`tight`). Nur auf der zweiten Stufe weicht sie oben vom Aufbau der
+ * Fragekarte ab; `StageCentre` legt sie dann nicht Feld auf Feld, sondern blendet sie an ihrer
+ * Stelle über.
+ */
+function useSnug(sheet: RefObject<HTMLElement | null>): void {
+  useLayoutEffect(() => {
+    const node = sheet.current;
+    if (!node) return;
+    const fit = () => {
+      node.removeAttribute('data-fit');
+      for (const step of ['trim', 'tight']) {
+        if (node.scrollHeight <= node.clientHeight + 1) return;
+        node.setAttribute('data-fit', step);
+      }
+    };
+    fit();
+    // Kommt die Schrift erst nach dem Blatt, bricht der Text danach anders um
+    let live = true;
+    void document.fonts?.ready.then(() => {
+      if (live) fit();
+    });
+    window.addEventListener('resize', fit);
+    return () => {
+      live = false;
+      window.removeEventListener('resize', fit);
+    };
+  }, [sheet]);
 }
 
 /** Lange Fragen und Antworten bekommen eine kleinere Schrift, wie auf der Vorderseite. */
@@ -101,9 +137,12 @@ export function RevealPanel({
   const winner = duel ? duelWinner(duel.payload) : null;
   // Wissensfrage eines Duells ohne Ausgang: Beide lagen richtig, das Stechen folgt
   const tie = !duel && !ranked && opened?.payload.purpose === 'DUEL_TRIVIA';
+  const self = useRef<HTMLElement>(null);
+  useSnug(self);
 
   return (
     <section
+      ref={self}
       className={`sheet resolution reveal${density(q.prompt, q.options)}`}
       aria-labelledby="reveal-title"
       data-testid="match-reveal"
@@ -198,7 +237,7 @@ function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly nam
   const silent = q.answers.filter((a) => !a.answered);
   return (
     <>
-      <ul className="reveal-options">
+      <ul className="reveal-options" data-anchor="">
         {q.options.map((option, i) => {
           const correct = option.token === correctToken;
           // In der Reihenfolge der Frage: im Duell der Angreifer links, wie im Kopf des Duells

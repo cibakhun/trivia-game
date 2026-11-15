@@ -36,7 +36,7 @@ import { RevealPanel } from './RevealPanel.tsx';
 import { RotateHint } from './RotateHint.tsx';
 import { SeatList } from './SeatList.tsx';
 import { useSent } from './sent-action.ts';
-import { sheetVeil, type SheetKind } from './sheet-swap.ts';
+import { sheetVeil, type SheetFace, type SheetKind } from './sheet-swap.ts';
 import { StageBlatt } from './StageBlatt.tsx';
 import { StageCentre } from './StageCentre.tsx';
 import {
@@ -223,8 +223,10 @@ export function MatchStage({
   const watching = watchedFor(state, seq, watched);
   let sheet: ReactNode = null;
   let sheetKind: SheetKind | null = null;
+  let sheetFace: SheetFace | null = null;
   if (asked) {
     sheetKind = 'question';
+    sheetFace = asked.question.kind;
     sheet = (
       <StageQuestion
         key={asked.seq}
@@ -241,6 +243,7 @@ export function MatchStage({
     );
   } else if (watching) {
     sheetKind = 'question';
+    sheetFace = watching.question.kind;
     sheet = (
       <WatchedQuestionCard
         key={watching.seq}
@@ -251,6 +254,7 @@ export function MatchStage({
   } else if (state === 'reveal' && reveal && answering) {
     // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
     sheetKind = 'reveal';
+    sheetFace = reveal.resolved.payload.kind;
     sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
   } else if (state === 'finished') {
     sheetKind = 'result';
@@ -343,7 +347,7 @@ export function MatchStage({
         {moment ? <MomentBanner key={moment.moment.key} shown={moment} /> : null}
       </div>
 
-      <StageCentre kind={sheetKind} className={closed ? 'wide' : ''}>
+      <StageCentre kind={sheetKind} face={sheetFace} className={closed ? 'wide' : ''}>
         {sheet}
       </StageCentre>
       {toast}

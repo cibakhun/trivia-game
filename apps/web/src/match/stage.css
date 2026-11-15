@@ -1765,10 +1765,17 @@ html.match-playing body {
  * Wechsel der Blätter (StageCentre, sheet-swap.ts). Das Blatt, das geht, ist ein stilles Abbild
  * in `.sheet-ghosts`: an derselben Stelle, ohne eigene Bewegung, nicht zu tippen.
  *
- *   Frage → Auflösung   Die Karte dreht sich um ihre waagrechte Mitte: 0–0,13 s kippt die Frage
- *                       auf die Kante, 0,13–0,45 s kommt die Rückseite mit den Antworten und
- *                       setzt mit leichtem Nachschwingen auf. Beide Blätter sind gleich breit:
- *                       Auf der Kante sind sie dieselbe Linie.
+ *   Wissensfrage →      Die Karte bleibt liegen (ADR-070 Punkt 10). Die Auflösung hat denselben
+ *   Auflösung           Aufbau wie die Frage und liegt so, dass ihre Antwortfelder auf denen der
+ *                       Frage liegen. In 0,2 s blendet sie über das Abbild: Was gleich bleibt,
+ *                       steht still, nur Lunte, Zahl und die eigene Wahl vergehen, das Schild
+ *                       „Auflösung“ kommt. Danach geht das Abbild darunter in 0,14 s, und ihr
+ *                       Schatten kommt (sonst lägen zwei Schatten übereinander). Ab 0,22 s setzen
+ *                       sich Stempel und Farben auf die Felder.
+ *   Schätzfrage →       Die Karte dreht sich um ihre waagrechte Mitte, denn hinten steht anderes:
+ *   Auflösung           0–0,13 s kippt die Frage auf die Kante, 0,13–0,45 s kommt die Rückseite
+ *                       mit Lösung und Rangfolge und setzt mit leichtem Nachschwingen auf. Beide
+ *                       Blätter sind gleich breit: Auf der Kante sind sie dieselbe Linie.
  *   Auflösung geht      Das Blatt hebt sich in 0,18 s von der Karte ab und gibt sie frei.
  */
 .sheet-ghosts {
@@ -1799,6 +1806,11 @@ html.match-playing body {
   opacity: 0;
 }
 
+/* Ohne Bewegung misst die Mitte nur am Abbild, wo das alte Blatt stand (StageCentre) */
+.sheet-ghost.probe {
+  visibility: hidden;
+}
+
 .sheet-ghost.leave-turn,
 .stage-centre.turned {
   perspective: calc(900 * var(--u));
@@ -1810,6 +1822,42 @@ html.match-playing body {
 
 .sheet-ghost.leave-lift > * {
   animation: sheet-lift 0.18s cubic-bezier(0.4, 0, 0.9, 0.6) both !important;
+}
+
+.sheet-ghost.leave-stay > * {
+  animation: sheet-stay-out 0.34s linear both !important;
+}
+
+/* Das Abbild bleibt ganz da, bis das neue Blatt es deckt; was dann noch vorsteht, vergeht */
+@keyframes sheet-stay-out {
+  0%,
+  59% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/*
+ * Das neue Blatt kommt ohne Schatten und bekommt ihn erst, wenn das Abbild mit seinem Schatten
+ * geht: So wird es um die Karte nie dunkler.
+ */
+@keyframes sheet-stay-in {
+  from {
+    opacity: 0;
+    box-shadow:
+      0 0 0 calc(4 * var(--u)) transparent,
+      0 calc(10 * var(--u)) calc(28 * var(--u)) transparent;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
+  }
+  59% {
+    opacity: 1;
+    box-shadow:
+      0 0 0 calc(4 * var(--u)) transparent,
+      0 calc(10 * var(--u)) calc(28 * var(--u)) transparent;
+    animation-timing-function: linear;
+  }
 }
 
 /* Wer sich vom Licht wegdreht, wird dunkler: Das macht aus dem Stauchen eine Drehung */
@@ -1957,20 +2005,34 @@ html.match-playing body {
 }
 
 .sheet-options {
+  --key: calc(30 * var(--u));
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: calc(8 * var(--u));
 }
 
+/*
+ * Ein Antwortfeld: links die Münze mit dem Buchstaben, die Antwort in der Mitte des ganzen Felds.
+ * Rechts hält ein leeres Stück der Münze die Waage; braucht eine lange Antwort den Platz, gibt es
+ * als Erstes nach (`flex-shrink`). Die Auflösung hat dasselbe Feld (`.reveal-option`).
+ */
 .sheet-options .option {
   height: 100%;
   min-height: calc(50 * var(--u));
   padding: calc(5 * var(--u)) calc(9 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u));
-  gap: calc(9 * var(--u));
+  gap: 0;
   font-size: calc(17 * var(--u));
   line-height: 1.15;
+  text-align: center;
   border-radius: calc(9 * var(--u));
   box-shadow: 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.2);
+}
+
+.sheet-options .option::after,
+.sheet-options .option-read::after {
+  content: '';
+  flex: 0 1000 calc(var(--key) + (8 * var(--u)));
+  min-width: 0;
 }
 
 /* Antworten zum Mitlesen: dasselbe Feld wie die Schaltfläche, aber nichts zum Antippen */
@@ -1980,10 +2042,10 @@ html.match-playing body {
   height: 100%;
   min-height: calc(50 * var(--u));
   padding: calc(5 * var(--u)) calc(9 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u));
-  gap: calc(9 * var(--u));
   font-size: calc(17 * var(--u));
   font-weight: 600;
   line-height: 1.15;
+  text-align: center;
   color: var(--text);
   background: linear-gradient(var(--surface), var(--surface-2));
   border: 1px solid var(--border-strong);
@@ -1991,13 +2053,16 @@ html.match-playing body {
 }
 
 .sheet-options .option-key {
-  width: calc(30 * var(--u));
-  height: calc(30 * var(--u));
+  width: var(--key);
+  height: var(--key);
+  margin-right: calc(9 * var(--u));
   font-size: calc(15 * var(--u));
 }
 
 .sheet-options .option-text {
+  flex: 0 1 auto;
   min-width: 0;
+  margin-inline: auto;
   overflow-wrap: break-word;
 }
 
@@ -2011,10 +2076,13 @@ html.match-playing body {
   font-size: calc(12.5 * var(--u));
 }
 
+.options-mid .sheet-options,
+.options-long .sheet-options {
+  --key: calc(26 * var(--u));
+}
+
 .options-mid .sheet-options .option-key,
 .options-long .sheet-options .option-key {
-  width: calc(26 * var(--u));
-  height: calc(26 * var(--u));
   font-size: calc(13.5 * var(--u));
 }
 
@@ -2107,10 +2175,48 @@ html.match-playing body {
   animation: sheet-in 0.3s ease-out both;
 }
 
-/* Kam die Auflösung aus der Fragekarte, ist sie deren Rückseite (siehe „Wechsel der Blätter“) */
+/* Kam die Auflösung aus der Fragekarte, liegt sie auf ihr oder ist ihre Rückseite (siehe „Wechsel der Blätter“) */
+/*
+ * Wohin sie rückt (`translate`), gilt ab dem ersten Bild: ohne Übergang, auch wenn „Bewegung
+ * reduzieren“ allen Übergängen eine Dauer gibt
+ */
+.stage-centre.stayed .sheet.reveal {
+  --reveal-at: 0.22s;
+  animation: sheet-stay-in 0.34s both;
+  transition: none;
+}
+
 .stage-centre.turned .sheet.reveal {
   --reveal-at: 0.3s;
   animation: sheet-turn-in 0.32s 0.13s both;
+}
+
+/*
+ * Wissensfrage: Zeile für Zeile der Aufbau der Fragekarte, damit beim Wechsel nichts springt. Wo
+ * vorn die Lunte brannte, ist nun Platz; die Frage hat dieselbe Schrift, die Felder dieselben Maße.
+ */
+.sheet.reveal[data-kind='TRIVIA'] {
+  gap: calc(8 * var(--u));
+}
+
+.sheet.reveal[data-kind='TRIVIA'] > .sheet-head {
+  margin-bottom: calc(16 * var(--u));
+}
+
+/*
+ * Passt sie so nicht ins Blatt (RevealPanel, `useSnug`), fällt erst die Erklärung weg, dann rückt
+ * sie oben enger: ohne den Platz der Lunte, mit kleinerer Frage.
+ */
+.sheet.reveal[data-fit] .reveal-explanation {
+  display: none;
+}
+
+.sheet.reveal[data-kind='TRIVIA'][data-fit='tight'] {
+  gap: calc(7 * var(--u));
+}
+
+.sheet.reveal[data-kind='TRIVIA'][data-fit='tight'] > .sheet-head {
+  margin-bottom: 0;
 }
 
 .sheet.reveal .sheet-head {
@@ -2177,32 +2283,50 @@ html.match-playing body {
   font-size: calc(15 * var(--u));
 }
 
-/* ----- Wissensfrage: vier gleich hohe Felder an ihrer Stelle aus der Frage ----- */
+/* Wissensfrage: die Frage wie auf der Vorderseite (`.sheet-prompt`, eine Überschrift) */
+.stage .reveal[data-kind='TRIVIA'] .reveal-prompt {
+  padding: calc(3 * var(--u)) calc(3 * var(--u)) calc(1 * var(--u));
+  font-size: calc(21 * var(--u));
+  letter-spacing: 0.01em;
+}
+
+.stage .reveal.prompt-long[data-kind='TRIVIA'] .reveal-prompt {
+  font-size: calc(18 * var(--u));
+}
+
+.stage .reveal[data-kind='TRIVIA'][data-fit='tight'] .reveal-prompt {
+  padding: 0 calc(3 * var(--u));
+  font-size: calc(18 * var(--u));
+}
+
+.stage .reveal.prompt-long[data-kind='TRIVIA'][data-fit='tight'] .reveal-prompt {
+  font-size: calc(15 * var(--u));
+}
+
+/* ----- Wissensfrage: die Felder an ihrer Stelle aus der Frage ----- */
 
 .stage .reveal-options {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-auto-rows: 1fr;
   gap: calc(8 * var(--u));
   padding: 0;
   list-style: none;
 }
 
 /*
- * Ein Feld wie auf der Vorderseite: links die Münze mit dem Buchstaben, die Antwort in der Mitte
- * des ganzen Felds. Rechts hält ein leeres Stück der Münze die Waage; braucht eine lange Antwort
- * den Platz, gibt es als Erstes nach (`flex-shrink`), und die Antwort bricht wie auf der
- * Vorderseite um. Wer das Feld gewählt hat, sagt die Füllung dahinter.
+ * Dasselbe Feld wie auf der Vorderseite (`.sheet-options .option`), Maß für Maß: Münze, Abstand,
+ * Schrift und Gegengewicht rechts. So bricht eine Antwort an derselben Stelle um, und beim Wechsel
+ * steht sie still. Wer das Feld gewählt hat, sagt die Füllung dahinter.
  */
 .stage .reveal-option {
-  --coin: calc(27 * var(--u));
-  --coin-gap: calc(7 * var(--u));
+  --coin: calc(30 * var(--u));
+  --coin-gap: calc(9 * var(--u));
   position: relative;
   isolation: isolate;
   display: flex;
   align-items: center;
   min-height: calc(50 * var(--u));
-  padding: calc(5 * var(--u)) calc(8 * var(--u));
+  padding: calc(5 * var(--u)) calc(9 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u));
   overflow: hidden;
   font-size: calc(17 * var(--u));
   font-weight: 600;
@@ -2216,14 +2340,14 @@ html.match-playing body {
 
 .stage .reveal-option::after {
   content: '';
-  flex: 0 1000 calc(var(--coin) + var(--coin-gap));
+  flex: 0 1000 calc(var(--coin) + (8 * var(--u)));
   min-width: 0;
 }
 
 /* Lange Antworten: kleinere Schrift und Münze, wie auf der Vorderseite */
 .stage .reveal.options-mid .reveal-option,
 .stage .reveal.options-long .reveal-option {
-  --coin: calc(24 * var(--u));
+  --coin: calc(26 * var(--u));
   font-size: calc(14.5 * var(--u));
 }
 
@@ -2234,10 +2358,6 @@ html.match-playing body {
 /* Weder richtig noch gewählt: tritt zurück */
 .stage .reveal-option:not(.correct, .chosen) {
   opacity: 0.6;
-}
-
-.stage .reveal-option.chosen {
-  font-weight: 700;
 }
 
 /*
@@ -2285,6 +2405,16 @@ html.match-playing body {
 .stage .reveal-solution .reveal-mark {
   background: none;
   border-color: transparent;
+}
+
+/* Der Buchstabe einer Antwort so groß wie auf der Vorderseite */
+.stage .reveal-option .reveal-mark {
+  font-size: calc(15 * var(--u));
+}
+
+.stage .reveal.options-mid .reveal-option .reveal-mark,
+.stage .reveal.options-long .reveal-option .reveal-mark {
+  font-size: calc(13.5 * var(--u));
 }
 
 .stage .reveal-stamp {
@@ -3626,11 +3756,13 @@ html.match-playing body {
   .stage .reveal-rank,
   .stage .reveal-rank.best::after,
   .stage .reveal-next,
-  .stage-centre.turned .sheet.reveal {
+  .stage-centre.turned .sheet.reveal,
+  .stage-centre.stayed .sheet.reveal {
     animation: none;
   }
 
+  /* Ein Abbild steht hier nur für einen Messpunkt da (StageCentre) und wird nie gezeichnet */
   .sheet-ghosts {
-    display: none;
+    visibility: hidden;
   }
 }

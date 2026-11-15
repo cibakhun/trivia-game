@@ -270,13 +270,15 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   expect(reveals.every((s) => s.seats >= 2 && s.seats <= 3)).toBe(true);
   expect(reveals.some((s) => s.correctOption)).toBe(true);
   expect(reveals.some((s) => s.text.includes('Richtige Antwort:'))).toBe(true);
-  // Mitte der Karte (ADR-070): Löst sich eine Frage auf, die hier zu lesen war, dreht sich die
-  // Karte um; geht die Auflösung, hebt sie sich ab. Das Abbild des alten Blatts trägt nichts, was
-  // Tests oder Vorleser fänden, und ist danach wieder fort
+  // Mitte der Karte (ADR-070): Löst sich eine Wissensfrage auf, die hier zu lesen war, bleibt die
+  // Karte liegen und die Auflösung legt sich darauf; bei einer Schätzfrage dreht sich die Karte um.
+  // Geht die Auflösung, hebt sie sich ab. Das Abbild des alten Blatts trägt nichts, was Tests oder
+  // Vorleser fänden, und ist danach wieder fort
   const ghosts = await ghostsBy(page);
-  expect(ghosts.some((g) => g.leave === 'turn' && g.turned)).toBe(true);
+  expect(ghosts.some((g) => g.leave === 'stay' && g.arrival === 'stayed')).toBe(true);
+  expect(ghosts.some((g) => g.leave === 'turn' && g.arrival === 'turned')).toBe(true);
   expect(ghosts.some((g) => g.leave === 'lift')).toBe(true);
-  expect(ghosts.filter((g) => g.marks > 0 || (g.leave !== 'turn' && g.leave !== 'lift'))).toEqual(
+  expect(ghosts.filter((g) => g.marks > 0 || !['stay', 'turn', 'lift'].includes(g.leave))).toEqual(
     [],
   );
   await expect(page.locator('.sheet-ghost')).toHaveCount(0);
@@ -725,7 +727,8 @@ test('Partie: Wer zuschaut, liest die Frage mit; die Auflösung malt die Antwort
       expect(Number(parts)).toBe(seats.split(' ').length);
     }
   }
-  // Mit Bewegung dreht sich die Karte zur Auflösung um, ohne Bewegung gibt es kein Abbild
-  expect((await ghostsBy(host)).some((g) => g.leave === 'turn')).toBe(true);
+  // Mit Bewegung legt sich die Auflösung einer Wissensfrage auf die Karte, ohne Bewegung gibt es
+  // kein Abbild: Das Blatt steht gleich an der Stelle der Frage
+  expect((await ghostsBy(host)).some((g) => g.leave === 'stay')).toBe(true);
   expect(await ghostsBy(guest)).toEqual([]);
 });

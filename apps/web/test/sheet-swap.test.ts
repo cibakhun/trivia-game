@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { sheetSwap, sheetVeil, type SheetKind } from '../src/match/sheet-swap.ts';
+import { sheetSwap, sheetVeil, type SheetFace, type SheetKind } from '../src/match/sheet-swap.ts';
 import { StageCentre } from '../src/match/StageCentre.tsx';
 
 const KINDS: readonly (SheetKind | null)[] = [
@@ -13,29 +13,47 @@ const KINDS: readonly (SheetKind | null)[] = [
   'closed',
 ];
 
+const FACES: readonly (SheetFace | null)[] = [null, 'TRIVIA', 'ESTIMATE'];
+
 describe('Wechsel der Blätter mitten auf der Karte', () => {
-  it('dreht die Fragekarte zur Auflösung um', () => {
-    expect(sheetSwap('question', 'reveal')).toBe('turn');
+  const at = (kind: SheetKind | null, face: SheetFace | null = null) => ({ kind, face });
+
+  it('lässt die Karte einer Wissensfrage liegen: Die Auflösung legt sich darauf', () => {
+    expect(sheetSwap(at('question', 'TRIVIA'), at('reveal', 'TRIVIA'))).toBe('stay');
+  });
+
+  it('dreht die Karte einer Schätzfrage um: Hinten stehen Lösung und Rangfolge', () => {
+    expect(sheetSwap(at('question', 'ESTIMATE'), at('reveal', 'ESTIMATE'))).toBe('turn');
+    // Passen Frage und Auflösung nicht zusammen, gibt es nichts, was liegen bleiben könnte
+    expect(sheetSwap(at('question', 'TRIVIA'), at('reveal', 'ESTIMATE'))).toBe('turn');
+    expect(sheetSwap(at('question', 'ESTIMATE'), at('reveal', 'TRIVIA'))).toBe('turn');
+    expect(sheetSwap(at('question'), at('reveal'))).toBe('turn');
   });
 
   it('hebt die Auflösung ab, wenn die Karte, die Abrechnung oder das Rad folgt', () => {
-    expect(sheetSwap('reveal', null)).toBe('lift');
-    expect(sheetSwap('reveal', 'result')).toBe('lift');
-    expect(sheetSwap('reveal', 'closed')).toBe('lift');
-    expect(sheetSwap('reveal', 'wheel')).toBe('lift');
+    for (const face of ['TRIVIA', 'ESTIMATE'] as const) {
+      expect(sheetSwap(at('reveal', face), at(null))).toBe('lift');
+      expect(sheetSwap(at('reveal', face), at('result'))).toBe('lift');
+      expect(sheetSwap(at('reveal', face), at('closed'))).toBe('lift');
+      expect(sheetSwap(at('reveal', face), at('wheel'))).toBe('lift');
+    }
   });
 
   it('bewegt nichts, wenn eine Frage beginnt (die Antwortzeit läuft)', () => {
-    for (const from of KINDS) expect(sheetSwap(from, 'question')).toBeNull();
+    for (const from of KINDS) {
+      for (const face of FACES) expect(sheetSwap(at(from, face), at('question', face))).toBeNull();
+    }
   });
 
   it('lässt alle anderen Wechsel harte Schnitte', () => {
     for (const from of KINDS) {
       for (const to of KINDS) {
-        const moved =
-          (from === 'question' && to === 'reveal') ||
-          (from === 'reveal' && to !== 'reveal' && to !== 'question');
-        expect(sheetSwap(from, to) !== null, `${from} → ${to}`).toBe(moved);
+        for (const face of FACES) {
+          const moved =
+            (from === 'question' && to === 'reveal') ||
+            (from === 'reveal' && to !== 'reveal' && to !== 'question');
+          expect(sheetSwap(at(from, face), at(to, face)) !== null, `${from} → ${to}`).toBe(moved);
+        }
       }
     }
   });
@@ -87,6 +105,7 @@ describe('Mitte der Bühne', () => {
       '<div class="stage-centre"><section class="sheet">Blatt</section></div>',
     );
     expect(html).not.toContain('turned');
+    expect(html).not.toContain('stayed');
     expect(centre('result', 'wide')).toContain('class="stage-centre wide"');
   });
 });
