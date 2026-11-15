@@ -1,0 +1,394 @@
+{
+ "name": "berge-de",
+ "fetchedAt": "2026-11-12T19:53:42.942Z",
+ "endpoint": "https://query.wikidata.org/sparql",
+ "license": "CC0 1.0 (Wikidata, https://www.wikidata.org/wiki/Wikidata:Licensing)",
+ "query": "# Berge in Deutschland mit Höhe über dem Meer (normalisiert in Metern), für deutsche Spieler.\nSELECT ?item ?label ?sitelinks ?value WHERE {\n  VALUES ?class { wd:Q8502 wd:Q8072 }\n  ?item wdt:P31 ?class;\n        wdt:P17 wd:Q183;\n        wikibase:sitelinks ?sitelinks.\n  FILTER(?sitelinks >= 12)\n  ?item p:P2044 ?statement.\n  ?statement a wikibase:BestRank;\n             psn:P2044/wikibase:quantityAmount ?value.\n  ?item rdfs:label ?label.\n  FILTER(LANG(?label) = \"de\")\n}\nORDER BY DESC(?sitelinks)\nLIMIT 120\n",
+ "rowCount": 64,
+ "rows": [
+  {
+   "item": "Q3375",
+   "value": "2962.06",
+   "sitelinks": "75",
+   "label": "Zugspitze"
+  },
+  {
+   "item": "Q155721",
+   "value": "1141.2",
+   "sitelinks": "42",
+   "label": "Brocken"
+  },
+  {
+   "item": "Q316401",
+   "value": "1494.2",
+   "sitelinks": "39",
+   "label": "Feldberg"
+  },
+  {
+   "item": "Q255743",
+   "value": "2744",
+   "sitelinks": "33",
+   "label": "Hochwanner"
+  },
+  {
+   "item": "Q260073",
+   "value": "1456",
+   "sitelinks": "32",
+   "label": "Großer Arber"
+  },
+  {
+   "item": "Q164561",
+   "value": "1214.88",
+   "sitelinks": "24",
+   "label": "Fichtelberg"
+  },
+  {
+   "item": "Q701516",
+   "value": "557",
+   "sitelinks": "23",
+   "label": "Kaiserstuhl"
+  },
+  {
+   "item": "Q703922",
+   "value": "320.7",
+   "sitelinks": "22",
+   "label": "Drachenfels"
+  },
+  {
+   "item": "Q700092",
+   "value": "696",
+   "sitelinks": "22",
+   "label": "Hohentwiel"
+  },
+  {
+   "item": "Q247726",
+   "value": "950",
+   "sitelinks": "20",
+   "label": "Wasserkuppe"
+  },
+  {
+   "item": "Q27114",
+   "value": "570.3",
+   "sitelinks": "19",
+   "label": "Königstuhl"
+  },
+  {
+   "item": "Q650549",
+   "value": "1284",
+   "sitelinks": "19",
+   "label": "Schauinsland"
+  },
+  {
+   "item": "Q679080",
+   "value": "2874",
+   "sitelinks": "19",
+   "label": "Schneefernerkopf"
+  },
+  {
+   "item": "Q692712",
+   "value": "867",
+   "sitelinks": "18",
+   "label": "Hegau"
+  },
+  {
+   "item": "Q3428",
+   "value": "168",
+   "sitelinks": "17",
+   "label": "Bungsberg"
+  },
+  {
+   "item": "Q549503",
+   "value": "2522",
+   "sitelinks": "17",
+   "label": "Hoher Göll"
+  },
+  {
+   "item": "Q585796",
+   "value": "2682",
+   "sitelinks": "17",
+   "label": "Dreitorspitze"
+  },
+  {
+   "item": "Q565442",
+   "value": "2086",
+   "sitelinks": "16",
+   "label": "Krottenkopf"
+  },
+  {
+   "item": "Q252743",
+   "value": "2628",
+   "sitelinks": "16",
+   "label": "Alpspitze"
+  },
+  {
+   "item": "Q650402",
+   "value": "1164.4",
+   "sitelinks": "16",
+   "label": "Hornisgrinde"
+  },
+  {
+   "item": "Q564771",
+   "value": "276.5",
+   "sitelinks": "15",
+   "label": "Glauberg"
+  },
+  {
+   "item": "Q819671",
+   "value": "1838",
+   "sitelinks": "15",
+   "label": "Wendelstein"
+  },
+  {
+   "item": "Q22547",
+   "value": "686",
+   "sitelinks": "15",
+   "label": "Donnersberg"
+  },
+  {
+   "item": "Q677873",
+   "value": "879",
+   "sitelinks": "15",
+   "label": "Großer Feldberg"
+  },
+  {
+   "item": "Q457636",
+   "value": "1333",
+   "sitelinks": "14",
+   "label": "Dreisesselberg"
+  },
+  {
+   "item": "Q460690",
+   "value": "1415.6",
+   "sitelinks": "14",
+   "label": "Herzogenhorn"
+  },
+  {
+   "item": "Q573647",
+   "value": "2609",
+   "sitelinks": "14",
+   "label": "Bockkarkopf"
+  },
+  {
+   "item": "Q565025",
+   "value": "2594",
+   "sitelinks": "14",
+   "label": "Großer Hundstod"
+  },
+  {
+   "item": "Q315335",
+   "value": "2649",
+   "sitelinks": "14",
+   "label": "Hochfrottspitze"
+  },
+  {
+   "item": "Q151200",
+   "value": "245",
+   "sitelinks": "14",
+   "label": "Neroberg"
+  },
+  {
+   "item": "Q833896",
+   "value": "1780",
+   "sitelinks": "14",
+   "label": "Wank"
+  },
+  {
+   "item": "Q315110",
+   "value": "746",
+   "sitelinks": "13",
+   "label": "Hohe Acht"
+  },
+  {
+   "item": "Q450837",
+   "value": "2594",
+   "sitelinks": "13",
+   "label": "Trettachspitze"
+  },
+  {
+   "item": "Q265375",
+   "value": "2743",
+   "sitelinks": "13",
+   "label": "Höllentalspitzen"
+  },
+  {
+   "item": "Q561875",
+   "value": "841.9",
+   "sitelinks": "13",
+   "label": "Kahler Asten"
+  },
+  {
+   "item": "Q470068",
+   "value": "2746",
+   "sitelinks": "13",
+   "label": "Wetterspitzen"
+  },
+  {
+   "item": "Q504504",
+   "value": "2599",
+   "sitelinks": "13",
+   "label": "Biberkopf"
+  },
+  {
+   "item": "Q515385",
+   "value": "1414",
+   "sitelinks": "13",
+   "label": "Belchen"
+  },
+  {
+   "item": "Q454128",
+   "value": "1961",
+   "sitelinks": "13",
+   "label": "Sonntagshorn"
+  },
+  {
+   "item": "Q554414",
+   "value": "2037",
+   "sitelinks": "13",
+   "label": "Fellhorn"
+  },
+  {
+   "item": "Q573703",
+   "value": "2047",
+   "sitelinks": "13",
+   "label": "Säuling"
+  },
+  {
+   "item": "Q314228",
+   "value": "843.5",
+   "sitelinks": "13",
+   "label": "Langenberg"
+  },
+  {
+   "item": "Q314735",
+   "value": "971.3",
+   "sitelinks": "13",
+   "label": "Wurmberg"
+  },
+  {
+   "item": "Q314735",
+   "value": "971.2",
+   "sitelinks": "13",
+   "label": "Wurmberg"
+  },
+  {
+   "item": "Q314735",
+   "value": "968",
+   "sitelinks": "13",
+   "label": "Wurmberg"
+  },
+  {
+   "item": "Q315124",
+   "value": "118",
+   "sitelinks": "13",
+   "label": "Königsstuhl"
+  },
+  {
+   "item": "Q315270",
+   "value": "1731",
+   "sitelinks": "13",
+   "label": "Herzogstand"
+  },
+  {
+   "item": "Q159671",
+   "value": "792",
+   "sitelinks": "13",
+   "label": "Lausche"
+  },
+  {
+   "item": "Q186527",
+   "value": "1015.7",
+   "sitelinks": "13",
+   "label": "Lemberg"
+  },
+  {
+   "item": "Q256209",
+   "value": "2277",
+   "sitelinks": "13",
+   "label": "Waxenstein"
+  },
+  {
+   "item": "Q323562",
+   "value": "2121",
+   "sitelinks": "12",
+   "label": "Lahnerkopf"
+  },
+  {
+   "item": "Q883041",
+   "value": "2606.9",
+   "sitelinks": "12",
+   "label": "Hochkalter"
+  },
+  {
+   "item": "Q464548",
+   "value": "767",
+   "sitelinks": "12",
+   "label": "Bussen"
+  },
+  {
+   "item": "Q472226",
+   "value": "2286",
+   "sitelinks": "12",
+   "label": "Stadelhorn"
+  },
+  {
+   "item": "Q571702",
+   "value": "1771",
+   "sitelinks": "12",
+   "label": "Hochstaufen"
+  },
+  {
+   "item": "Q314903",
+   "value": "816.32",
+   "sitelinks": "12",
+   "label": "Erbeskopf"
+  },
+  {
+   "item": "Q315922",
+   "value": "2474",
+   "sitelinks": "12",
+   "label": "Wörner"
+  },
+  {
+   "item": "Q152933",
+   "value": "335.9",
+   "sitelinks": "12",
+   "label": "Petersberg"
+  },
+  {
+   "item": "Q25630",
+   "value": "1165",
+   "sitelinks": "12",
+   "label": "Blauen"
+  },
+  {
+   "item": "Q205820",
+   "value": "384.5",
+   "sitelinks": "12",
+   "label": "Zirkelstein"
+  },
+  {
+   "item": "Q870721",
+   "value": "2703",
+   "sitelinks": "12",
+   "label": "Hochblassen"
+  },
+  {
+   "item": "Q884705",
+   "value": "1453",
+   "sitelinks": "12",
+   "label": "Großer Rachel"
+  },
+  {
+   "item": "Q896523",
+   "value": "982.9",
+   "sitelinks": "12",
+   "label": "Großer Beerberg"
+  },
+  {
+   "item": "Q896982",
+   "value": "1373",
+   "sitelinks": "12",
+   "label": "Lusen"
+  }
+ ]
+}

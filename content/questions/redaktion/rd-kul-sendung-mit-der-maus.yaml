@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-sendung-mit-der-maus
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die Sendung mit der Maus"
+    url: https://de.wikipedia.org/wiki/Die_Sendung_mit_der_Maus
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Die Sendung mit der Maus“ und Prüfwort „1971“ im Artikel „Die Sendung mit der Maus“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: "Welche Kindersendung mit einer orangen Maus läuft seit 1971?"
+    options:
+      a: "Sesamstraße"
+      b: "Pumuckl"
+      c: "Löwenzahn"
+      d: "Die Sendung mit der Maus"

@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-fluss-laenge-q3140
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:fluss-laenge
+sources:
+  - title: "Wikidata: Hudson River (Q3140)"
+    url: https://www.wikidata.org/wiki/Q3140
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Wert aus Wikidata mit dem Artikel „Hudson River“ der deutschen Wikipedia abgeglichen (Infobox: 493; Abweichung 0.2 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "492"
+  answer_precision: 0
+  answer_unit: km
+  input_min: "1"
+  input_max: "10000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie lang ist der Hudson River (in Kilometern)?
+    unit_label: Kilometer

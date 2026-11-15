@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-tie-wels-groesster
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Europäischer Wels"
+    url: https://de.wikipedia.org/wiki/Europ%C3%A4ischer_Wels
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Belegt im Artikel „Europäischer Wels“ der deutschen Wikipedia: „der größte reine Süßwasserfisch Europas“. Frage an diesen Wortlaut angepasst."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: "Welcher ist der größte reine Süßwasserfisch Europas?"
+    options:
+      a: "Hecht"
+      b: "Wels"
+      c: "Karpfen"
+      d: "Zander"

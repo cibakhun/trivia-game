@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-pol-mdb
+kind: TRIVIA
+category: POLITICS_SOCIETY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Mitglied des Deutschen Bundestages"
+    url: https://de.wikipedia.org/wiki/Mitglied_des_Deutschen_Bundestages
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Mitglied des Bundestages“ und Prüfwort „MdB“ im Artikel „Mitglied des Deutschen Bundestages“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wofür steht die Abkürzung „MdB“?"
+    options:
+      a: "Ministerium des Bundes"
+      b: "Mitglied des Bundesrates"
+      c: "Minister der Bundesregierung"
+      d: "Mitglied des Bundestages"

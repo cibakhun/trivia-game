@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-augsburger-religionsfriede
+kind: TRIVIA
+category: HISTORY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Augsburger Religionsfrieden"
+    url: https://de.wikipedia.org/wiki/Augsburger_Religionsfrieden
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Augsburger Religionsfriede“ und Prüfwort „1555“ im Artikel „Augsburger Religionsfrieden“ der deutschen Wikipedia (Weiterleitung auf „Augsburger Reichs- und Religionsfrieden“) gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: "Welcher Vertrag erlaubte 1555 den Landesherren im Reich, zwischen katholischem und lutherischem Bekenntnis zu wählen?"
+    options:
+      a: "Wormser Konkordat"
+      b: "Augsburger Religionsfriede"
+      c: "Goldene Bulle"
+      d: "Westfälischer Friede"

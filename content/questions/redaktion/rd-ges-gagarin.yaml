@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-gagarin
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Juri Gagarin"
+    url: https://de.wikipedia.org/wiki/Juri_Gagarin
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Juri Gagarin“ und Prüfwort „1961“ im Artikel „Juri Gagarin“ der deutschen Wikipedia (Weiterleitung auf „Juri Alexejewitsch Gagarin“) gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wer war 1961 der erste Mensch im Weltraum?"
+    options:
+      a: "John Glenn"
+      b: "Neil Armstrong"
+      c: "Alexei Leonow"
+      d: "Juri Gagarin"

@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-erster-us-praesident
+kind: TRIVIA
+category: HISTORY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: George Washington"
+    url: https://de.wikipedia.org/wiki/George_Washington
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „George Washington“ und Prüfwort „erste Präsident“ im Artikel „George Washington“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wer war der erste Präsident der Vereinigten Staaten?"
+    options:
+      a: "Benjamin Franklin"
+      b: "George Washington"
+      c: "John Adams"
+      d: "Thomas Jefferson"

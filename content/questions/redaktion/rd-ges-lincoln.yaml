@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-lincoln
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Abraham Lincoln"
+    url: https://de.wikipedia.org/wiki/Abraham_Lincoln
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Abraham Lincoln“ und Prüfwort „1865“ im Artikel „Abraham Lincoln“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: APPROVED
+    prompt: "Welcher US-Präsident führte die Nordstaaten durch den Bürgerkrieg und wurde 1865 ermordet?"
+    options:
+      a: "Ulysses S. Grant"
+      b: "Andrew Jackson"
+      c: "Abraham Lincoln"
+      d: "Thomas Jefferson"

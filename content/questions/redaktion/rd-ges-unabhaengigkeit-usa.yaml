@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-unabhaengigkeit-usa
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Unabhängigkeitserklärung der Vereinigten Staaten"
+    url: https://de.wikipedia.org/wiki/Unabh%C3%A4ngigkeitserkl%C3%A4rung_der_Vereinigten_Staaten
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „1776“ im Artikel „Unabhängigkeitserklärung der Vereinigten Staaten“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: APPROVED
+    prompt: "In welchem Jahr erklärten die Vereinigten Staaten ihre Unabhängigkeit?"
+    options:
+      a: "1776"
+      b: "1789"
+      c: "1765"
+      d: "1812"

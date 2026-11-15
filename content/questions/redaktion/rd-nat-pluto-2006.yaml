@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-nat-pluto-2006
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Pluto"
+    url: https://de.wikipedia.org/wiki/Pluto
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Belegt im Artikel „Pluto“ der deutschen Wikipedia: galt bis zur Neudefinition des Begriffs „Planet“ am 24. August 2006 durch die IAU als neunter Planet."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: APPROVED
+    prompt: "In welchem Jahr wurde Pluto der Status als Planet aberkannt?"
+    options:
+      a: "2015"
+      b: "2010"
+      c: "2006"
+      d: "1999"

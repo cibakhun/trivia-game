@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-lit-unendliche-geschichte
+kind: TRIVIA
+category: LITERATURE
+difficulty: 1
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Die unendliche Geschichte (Roman)"
+    url: https://de.wikipedia.org/wiki/Die_unendliche_Geschichte_(Roman)
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Belegt im Artikel „Die unendliche Geschichte (Roman)“ der deutschen Wikipedia: Roman von Michael Ende (1979)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wer schrieb „Die unendliche Geschichte“?"
+    options:
+      a: "Michael Ende"
+      b: "Erich Kästner"
+      c: "Cornelia Funke"
+      d: "Otfried Preußler"

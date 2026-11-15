@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-hauptstadt-q733
+kind: TRIVIA
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:hauptstadt
+sources:
+  - title: "Wikidata: Paraguay (Q733)"
+    url: https://www.wikidata.org/wiki/Q733
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Hauptstadt aus Wikidata mit dem Artikel „Paraguay“ der deutschen Wikipedia abgeglichen (Infobox: Asunción)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie heißt die Hauptstadt von Paraguay?
+    options:
+      a: Ciudad del Este
+      b: Montevideo
+      c: Lima
+      d: Asunción

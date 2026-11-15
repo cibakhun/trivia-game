@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-olympia-q9678
+kind: TRIVIA
+category: SPORTS
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:olympia
+sources:
+  - title: "Wikidata: Olympischen Winterspiele 2014 (Q9678)"
+    url: https://www.wikidata.org/wiki/Q9678
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Austragungsort aus Wikidata mit dem Artikel „Olympische Winterspiele 2014“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: In welcher Stadt fanden die Olympischen Winterspiele 2014 statt?
+    options:
+      a: Salt Lake City
+      b: Sotschi
+      c: Vancouver
+      d: Turin

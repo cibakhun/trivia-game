@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-all-himmelfahrt
+kind: TRIVIA
+category: GENERAL
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Christi Himmelfahrt"
+    url: https://de.wikipedia.org/wiki/Christi_Himmelfahrt
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Christi Himmelfahrt“ und Prüfwort „40. Tag“ im Artikel „Christi Himmelfahrt“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: APPROVED
+    prompt: "Welcher Feiertag wird am 40. Tag der Osterzeit gefeiert?"
+    options:
+      a: "Allerheiligen"
+      b: "Fronleichnam"
+      c: "Christi Himmelfahrt"
+      d: "Pfingsten"

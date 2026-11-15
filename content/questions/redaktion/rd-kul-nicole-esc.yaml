@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-nicole-esc
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Ein bißchen Frieden"
+    url: https://de.wikipedia.org/wiki/Ein_bi%C3%9Fchen_Frieden
+    accessed: 2026-11-15
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Antwort „Ein bißchen Frieden“ und Prüfwort „Nicole“ im Artikel „Ein bißchen Frieden“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: "Mit welchem Lied gewann Nicole 1982 den Grand Prix Eurovision?"
+    options:
+      a: "Satellite"
+      b: "Theater"
+      c: "Johnny Blue"
+      d: "Ein bißchen Frieden"

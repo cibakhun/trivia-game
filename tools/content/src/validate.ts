@@ -126,7 +126,7 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     }
   }
 
-  // Freigabe: nur nach dokumentierter menschlicher Fakten- und Sprachprüfung (Brief §5.6)
+  // Freigabe: nur nach dokumentierter Fakten- und Sprachprüfung (Brief §5.6, ADR-072)
   if (q.status === 'APPROVED') {
     if (!q.reviews.some((r) => r.kind === 'FACT')) error('APPROVED ohne dokumentierte Faktenprüfung');
     for (const locale of LOCALES) {

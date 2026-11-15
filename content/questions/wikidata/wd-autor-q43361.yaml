@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-autor-q43361
+kind: TRIVIA
+category: LITERATURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:autor
+sources:
+  - title: "Wikidata: Harry Potter und der Stein der Weisen (Q43361)"
+    url: https://www.wikidata.org/wiki/Q43361
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Autor aus Wikidata mit dem Artikel „Harry Potter und der Stein der Weisen“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: Wer schrieb „Harry Potter und der Stein der Weisen“?
+    options:
+      a: Jostein Gaarder
+      b: John Green
+      c: Stephenie Meyer
+      d: J. K. Rowling

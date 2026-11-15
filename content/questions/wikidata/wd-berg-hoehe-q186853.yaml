@@ -1,0 +1,40 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-berg-hoehe-q186853
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:berg-hoehe
+sources:
+  - title: "Wikidata: Gasherbrum II (Q186853)"
+    url: https://www.wikidata.org/wiki/Q186853
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Wert aus Wikidata mit dem Artikel „Gasherbrum II“ der deutschen Wikipedia abgeglichen (Infobox: 8034; Abweichung 0.0 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "8034"
+  answer_precision: 0
+  answer_unit: m
+  input_min: "1"
+  input_max: "9000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: Wie hoch ist der Gasherbrum II (in Metern über dem Meeresspiegel)?
+    unit_label: Meter

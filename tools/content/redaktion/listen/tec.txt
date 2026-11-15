@@ -1,0 +1,45 @@
+# Technik (keine umstrittenen „Erfinder“-Fragen wie Telefon oder Glühbirne)
+T|TEC|1|benz-patent|Wer meldete 1886 einen Motorwagen mit Verbrennungsmotor zum Patent an?|Carl Benz|Gottlieb Daimler;Wilhelm Maybach;Rudolf Diesel|Benz Patent-Motorwagen Nummer 1|1886
+T|TEC|1|dieselmotor|Welcher Ingenieur entwickelte in den 1890er-Jahren den nach ihm benannten Selbstzündermotor?|Rudolf Diesel|Nikolaus August Otto;Felix Wankel;Carl Benz|Rudolf Diesel|Motor
+T|TEC|3|wankelmotor|Wer entwickelte den Kreiskolbenmotor?|Felix Wankel|Rudolf Diesel;Nikolaus August Otto;Ferdinand Porsche|Felix Wankel|Kreiskolbenmotor
+T|TEC|2|otto-viertakt|Wie viele Takte hat der Ottomotor, den Nikolaus August Otto 1876 baute?|Vier|Zwei;Drei;Sechs|Nikolaus August Otto|Viertakt
+T|TEC|3|bosch-gruendung|Welcher Schwabe eröffnete 1886 in Stuttgart eine Werkstatt für Feinmechanik und Elektrotechnik, aus der ein Weltkonzern wurde?|Robert Bosch|Gottlieb Daimler;Werner von Siemens;Carl Zeiss|Robert Bosch|1886
+T|TEC|4|siemens-dynamo|Welcher Unternehmer entdeckte 1866 das dynamoelektrische Prinzip?|Werner von Siemens|Robert Bosch;Emil Rathenau;Georg Simon Ohm|Werner von Siemens|dynamoelektrisch
+T|TEC|1|vw-sitz|In welcher Stadt hat Volkswagen seinen Hauptsitz?|Wolfsburg|Ingolstadt;Stuttgart;Zwickau|Volkswagen AG|Wolfsburg
+T|TEC|2|audi-sitz|In welcher Stadt hat Audi seinen Hauptsitz?|Ingolstadt|Wolfsburg;Regensburg;Rüsselsheim am Main|Audi|Ingolstadt
+T|TEC|2|opel-sitz|Welcher Autohersteller hat seinen Stammsitz in Rüsselsheim am Main?|Opel|Ford;Audi;Porsche|Opel|Rüsselsheim
+T|TEC|2|bmw-name|Wofür steht die Abkürzung „BMW“?|Bayerische Motoren Werke|Berliner Maschinen-Werke;Bayerische Metallwerke;Bremer Motorenwerke|BMW|Bayerische Motoren Werke
+T|TEC|1|mercedes-stern|Wie viele Zacken hat der Mercedes-Stern?|3|4;5;6|Mercedes-Benz|Stern
+T|TEC|2|lilienthal|Welcher deutsche Flugpionier unternahm ab 1891 Gleitflüge mit selbst gebauten Gleitern?|Otto Lilienthal|Ferdinand von Zeppelin;Hugo Junkers;August Euler|Otto Lilienthal|1891
+T|TEC|2|zeppelin|Nach wem sind die Starrluftschiffe benannt, die ab 1900 am Bodensee gebaut wurden?|Ferdinand von Zeppelin|Otto Lilienthal;Hugo Junkers;Claude Dornier|Ferdinand von Zeppelin|Luftschiff
+T|TEC|3|hindenburg|Wie hieß das Luftschiff, das 1937 bei der Landung in Lakehurst verbrannte?|LZ 129 Hindenburg|LZ 127 Graf Zeppelin;LZ 120 Bodensee;LZ 10 Schwaben|LZ 129|Lakehurst
+T|TEC|3|ludwigsbahn-jahr|In welchem Jahr fuhr die erste deutsche Eisenbahn zwischen Nürnberg und Fürth?|1835|1825;1848;1871|Bayerische Ludwigsbahn|1835
+T|TEC|3|adler-lok|Wie hieß die Lokomotive der ersten deutschen Eisenbahn zwischen Nürnberg und Fürth?|Adler|Rocket;Saxonia;Pfeil|Adler (Lokomotive)|Nürnberg
+T|TEC|2|ice-name|Wofür steht die Abkürzung „ICE“ bei der Deutschen Bahn?|Intercity-Express|Intercity-Electric;International City Express;Intercontinental Express|Intercity-Express|Intercity-Express
+T|TEC|2|gotthard-tunnel|Welcher ist der längste Eisenbahntunnel der Erde?|Gotthard-Basistunnel|Seikan-Tunnel;Eurotunnel;Lötschberg-Basistunnel|Gotthard-Basistunnel|längste
+T|TEC|2|zuse-z3|Welcher deutsche Ingenieur stellte 1941 den Rechner Z3 vor?|Konrad Zuse|Heinz Nixdorf;Wernher von Braun;Karl Steinbuch|Zuse Z3|1941
+T|TEC|2|enigma|Wie hieß die Verschlüsselungsmaschine der Wehrmacht, deren Code in Bletchley Park geknackt wurde?|Enigma|Sigaba;Typex;Purple|Enigma (Maschine)|Bletchley Park
+T|TEC|2|turing-enigma|Welcher britische Mathematiker trug maßgeblich zur Entschlüsselung der Enigma bei?|Alan Turing|John von Neumann;Charles Babbage;Isaac Newton|Alan Turing|Enigma
+T|TEC|2|ada-lovelace|Welche Mathematikerin gilt als erste Programmiererin der Geschichte?|Ada Lovelace|Grace Hopper;Marie Curie;Hedy Lamarr|Ada Lovelace|Programmiererin
+T|TEC|4|hedy-lamarr|Welche Schauspielerin entwickelte im Zweiten Weltkrieg ein Frequenzsprungverfahren mit?|Hedy Lamarr|Marlene Dietrich;Greta Garbo;Ingrid Bergman|Hedy Lamarr|Frequenzsprung
+T|TEC|1|www|Wofür steht die Abkürzung „WWW“?|World Wide Web|World Wide Window;Wide World Web;Web World Wide|World Wide Web|World Wide Web
+T|TEC|2|berners-lee|Wer gilt als Erfinder des World Wide Web?|Tim Berners-Lee|Bill Gates;Vint Cerf;Steve Jobs|Tim Berners-Lee|World Wide Web
+T|TEC|3|www-cern|An welcher Forschungseinrichtung entstand das World Wide Web?|CERN|MIT;Stanford University;Fraunhofer-Gesellschaft|World Wide Web|CERN
+T|TEC|2|mp3-fraunhofer|Welches Audioformat wurde maßgeblich am Fraunhofer-Institut in Erlangen entwickelt?|MP3|WAV;FLAC;Ogg Vorbis|MP3|Fraunhofer
+T|TEC|1|byte-bit|Wie viele Bit hat ein Byte?|8|4;10;16|Byte|8 Bit
+T|TEC|2|usb|Wofür steht die Abkürzung „USB“?|Universal Serial Bus|Unified System Bus;Universal Signal Board;United Serial Bridge|Universal Serial Bus|Universal Serial Bus
+T|TEC|1|cpu|Wofür steht die Abkürzung „CPU“?|Central Processing Unit|Computer Power Unit;Central Program Utility;Core Processing Usage|Prozessor|Central Processing Unit
+T|TEC|2|pdf|Wofür steht die Abkürzung „PDF“?|Portable Document Format|Printable Data File;Public Document Format;Portable Data Form|Portable Document Format|Portable Document Format
+T|TEC|2|gps|Wofür steht die Abkürzung „GPS“?|Global Positioning System|General Position Service;Global Path Signal;Geo Positioning Satellite|Global Positioning System|Global Positioning System
+T|TEC|3|galileo|Wie heißt das europäische Satellitennavigationssystem?|Galileo|GLONASS;Beidou;Copernicus|Galileo (Satellitennavigation)|europäische
+T|TEC|2|led|Wofür steht die Abkürzung „LED“?|Light-Emitting Diode|Low Energy Display;Light Electric Device;Laser Emitting Diode|Leuchtdiode|light-emitting diode
+T|TEC|3|dpi|Wofür steht die Angabe „dpi“ bei Druckern und Scannern?|dots per inch|data per inch;digits per image;dots per image|Punktdichte|dots per inch
+T|TEC|2|hertz-takt|In welcher Einheit wird die Taktfrequenz eines Prozessors angegeben?|Hertz|Watt;Byte;Volt|Taktsignal|Hertz
+T|TEC|2|silizium-chips|Aus welchem Element bestehen die meisten Computerchips im Kern?|Silizium|Germanium;Kupfer;Kohlenstoff|Silicium|Halbleiter
+T|TEC|2|iphone-jahr|In welchem Jahr kam das erste iPhone auf den Markt?|2007|2005;2008;2010|iPhone (1. Generation)|2007
+T|TEC|1|microsoft-gruender|Wer gründete Microsoft zusammen mit Paul Allen?|Bill Gates|Steve Jobs;Steve Wozniak;Larry Ellison|Microsoft|Bill Gates
+T|TEC|3|python-name|Welche Programmiersprache ist nach einer britischen Komikergruppe benannt?|Python|Ruby;Java;Perl|Python (Programmiersprache)|Monty Python
+T|TEC|3|jaehn|Wer war der erste Deutsche im Weltraum?|Sigmund Jähn|Ulf Merbold;Alexander Gerst;Thomas Reiter|Sigmund Jähn|erste Deutsche
+T|TEC|3|von-braun|Welcher deutsche Raketeningenieur leitete später die Entwicklung der Mondrakete Saturn V?|Wernher von Braun|Hermann Oberth;Eugen Sänger;Walter Dornberger|Wernher von Braun|Saturn
+T|TEC|3|saturn-v|Mit welcher Rakete startete Apollo 11 zum Mond?|Saturn V|Atlas;Titan II;Ariane 1|Apollo 11|Saturn V
+T|TEC|3|dlr|Wofür steht die Abkürzung „DLR“?|Deutsches Zentrum für Luft- und Raumfahrt|Deutsche Luft- und Raumfahrtagentur;Deutsches Labor für Raketentechnik;Deutscher Luft- und Raketenverband|Deutsches Zentrum für Luft- und Raumfahrt|DLR

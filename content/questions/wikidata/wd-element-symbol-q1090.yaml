@@ -1,0 +1,43 @@
+# Aus Wikidata-Fakten (CC0, abgerufen am 2026-11-11); Text und falsche Antworten vom Generator.
+# Von Claude gegen die deutsche Wikipedia geprüft und freigegeben (ADR-072); vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: wd-element-symbol-q1090
+kind: TRIVIA
+category: SCIENCE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:wikidata
+  - vorlage:element-symbol
+sources:
+  - title: "Wikidata: Ag (Q1090)"
+    url: https://www.wikidata.org/wiki/Q1090
+    accessed: 2026-11-11
+reviews:
+  - kind: FACT
+    reviewer: Claude
+    date: 2026-11-15
+    note: Elementsymbol aus Wikidata mit dem Artikel „Silber“ der deutschen Wikipedia abgeglichen.
+  - kind: LANGUAGE
+    locale: de
+    reviewer: Claude
+    date: 2026-11-15
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich, eindeutig, deutsche Namensformen; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: APPROVED
+    prompt: Welches chemische Element hat das Symbol „Ag“?
+    options:
+      a: Silber
+      b: Aluminium
+      c: Arsen
+      d: Antimon
