@@ -674,6 +674,26 @@ describe('Partie zu zweit', () => {
     expect(winner).toBe(final.mySeat);
     expect(await statistics(active.userId)).toEqual({ matches_played: 1, matches_won: 1 });
     expect(await statistics(idle.userId)).toEqual({ matches_played: 1, matches_won: 0 });
+
+    // Chronik im Hauptmenü: Platz, Mitspieler und eigene Wissensfragen je Partie, dazu die Bilanz
+    const won = matchListResponseSchema.parse((await active.client.get('/matches')).json());
+    const lost = matchListResponseSchema.parse((await idle.client.get('/matches')).json());
+    expect(won.matches[0]).toMatchObject({ id: matchId, status: 'FINISHED', place: 1 });
+    expect(lost.matches[0]).toMatchObject({ id: matchId, status: 'FINISHED', place: 2 });
+    expect(won.matches[0]?.finishedAt).toBe(final.match.finishedAt);
+    expect(won.matches[0]?.opponents).toHaveLength(1);
+    expect(won.matches[0]?.opponents[0]?.botStrength).toBeNull();
+    expect(won.matches[0]?.answered).toBeGreaterThan(0);
+    expect(won.matches[0]?.correct).toBeLessThanOrEqual(won.matches[0]?.answered ?? 0);
+    // Wer nie antwortet, hat keine gewertete Antwort
+    expect(lost.matches[0]).toMatchObject({ answered: 0, correct: 0 });
+    expect(won.record).toEqual({
+      played: 1,
+      won: 1,
+      answered: won.matches[0]?.answered,
+      correct: won.matches[0]?.correct,
+    });
+    expect(lost.record).toEqual({ played: 1, won: 0, answered: 0, correct: 0 });
   });
 });
 

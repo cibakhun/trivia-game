@@ -23,6 +23,7 @@ import {
 import {
   isRealmRules,
   type MatchBoard,
+  type MatchBotStrengthCode,
   type MatchListResponse,
   type MatchQuestionInfo,
   type MatchRealmView,
@@ -456,6 +457,59 @@ export async function matchView(
   };
 }
 
+/** Ereignisse, die eine Partie mit Abrechnung beenden; ihr Inhalt trägt die Plätze. */
+const FINISH_EVENTS = ['MATCH_FINISHED', 'REALM_MATCH_FINISHED'] as const;
+
+/** Eigener Platz aus der Abrechnung (`standings` im Ereignis); `null`, wenn er dort fehlt. */
+export function placeOf(payload: unknown, seat: number | null): number | null {
+  if (seat === null || typeof payload !== 'object' || payload === null) return null;
+  const standings = (payload as { standings?: unknown }).standings;
+  if (!Array.isArray(standings)) return null;
+  for (const entry of standings as unknown[]) {
+    if (typeof entry !== 'object' || entry === null) continue;
+    const { seat: s, place } = entry as { seat?: unknown; place?: unknown };
+    if (s === seat && typeof place === 'number' && Number.isInteger(place) && place >= 1) {
+      return Math.min(3, place);
+    }
+  }
+  return null;
+}
+
+/** Eigene Wissensfragen je Partie: beantwortet mit Wertung und davon richtig. */
+async function triviaCounts(
+  db: Db,
+  userId: string,
+  matchIds: readonly string[] | null,
+): Promise<Map<string, { answered: number; correct: number }>> {
+  let query = db
+    .selectFrom('match_answers as a')
+    .innerJoin('match_players as me', (join) =>
+      join
+        .onRef('me.match_id', '=', 'a.match_id')
+        .onRef('me.seat', '=', 'a.seat')
+        .on('me.user_id', '=', userId),
+    )
+    .innerJoin('match_questions as q', (join) =>
+      join.onRef('q.match_id', '=', 'a.match_id').onRef('q.seq', '=', 'a.seq'),
+    )
+    .innerJoin('matches as m', 'm.id', 'a.match_id')
+    .select((eb) => [
+      'a.match_id',
+      eb.fn.countAll<string>().as('answered'),
+      eb.fn.count<string>('a.is_correct').filterWhere('a.is_correct', '=', true).as('correct'),
+    ])
+    .where('q.kind', '=', 'TRIVIA')
+    .where('a.is_correct', 'is not', null)
+    .groupBy('a.match_id');
+  if (matchIds === null) query = query.where('m.status', '=', 'FINISHED');
+  else if (matchIds.length === 0) return new Map();
+  else query = query.where('a.match_id', 'in', matchIds);
+  const rows = await query.execute();
+  return new Map(
+    rows.map((r) => [r.match_id, { answered: Number(r.answered), correct: Number(r.correct) }]),
+  );
+}
+
 export async function listMatches(
   db: Db,
   ctx: MatchContext,
@@ -466,7 +520,7 @@ export async function listMatches(
     .innerJoin('match_players as me', (join) =>
       join.onRef('me.match_id', '=', 'm.id').on('me.user_id', '=', userId),
     )
-    .select((eb) => [
+    .select([
       'm.id',
       'm.kind',
       'm.mode',
@@ -474,26 +528,98 @@ export async function listMatches(
       'm.invite_code',
       'm.host_user_id',
       'm.created_at',
-      eb
-        .selectFrom('match_players as p')
-        .select((inner) => inner.fn.countAll<string>().as('n'))
-        .whereRef('p.match_id', '=', 'm.id')
-        .as('players'),
+      'm.finished_at',
+      'me.seat',
+      'me.join_order',
     ])
     .orderBy('m.created_at', 'desc')
     .limit(FINISHED_IN_LIST + 1)
     .execute();
+  const ids = rows.map((r) => r.id);
+  const players =
+    ids.length === 0
+      ? []
+      : await db
+          .selectFrom('match_players as p')
+          .leftJoin('player_profiles as pp', 'pp.user_id', 'p.user_id')
+          .select(['p.match_id', 'p.join_order', 'p.user_id', 'p.bot_strength', 'pp.display_name'])
+          .where('p.match_id', 'in', ids)
+          .orderBy('p.join_order')
+          .execute();
+  const finals =
+    ids.length === 0
+      ? []
+      : await db
+          .selectFrom('match_events')
+          .select(['match_id', 'payload'])
+          .where('match_id', 'in', ids)
+          .where('type', 'in', FINISH_EVENTS)
+          .execute();
+  const finalOf = new Map(finals.map((f) => [f.match_id, f.payload]));
+  const trivia = await triviaCounts(db, userId, ids);
+
+  // Eigene Zahlen über alle beendeten Partien (nicht nur die gelisteten)
+  const done = await db
+    .selectFrom('matches as m')
+    .innerJoin('match_players as me', (join) =>
+      join.onRef('me.match_id', '=', 'm.id').on('me.user_id', '=', userId),
+    )
+    .leftJoin('match_events as e', (join) =>
+      join.onRef('e.match_id', '=', 'm.id').on('e.type', 'in', FINISH_EVENTS),
+    )
+    .select(['m.id', 'me.seat', 'e.payload'])
+    .where('m.status', '=', 'FINISHED')
+    .execute();
+  const allTrivia = await triviaCounts(db, userId, null);
+  let answered = 0;
+  let correct = 0;
+  for (const counts of allTrivia.values()) {
+    answered += counts.answered;
+    correct += counts.correct;
+  }
+
   return {
-    matches: rows.map((row) => ({
-      id: row.id,
-      kind: row.kind === 'TEST' ? 'TEST' : 'STANDARD',
-      mode: row.mode === 'REALM' ? 'REALM' : 'CLASSIC',
-      status: row.status as MatchView['match']['status'],
-      inviteCode: row.status === 'LOBBY' ? row.invite_code : null,
-      players: Math.min(3, Math.max(1, Number(row.players ?? 1))),
-      isHost: row.host_user_id === userId,
-      createdAt: row.created_at.toISOString(),
-    })),
+    matches: rows.map((row) => {
+      const others = players.filter((p) => p.match_id === row.id && p.user_id !== userId);
+      const bots = botNames(
+        players
+          .filter((p) => p.match_id === row.id)
+          .map((p) => ({
+            joinOrder: p.join_order,
+            userId: p.user_id,
+            botStrength: p.bot_strength as MatchBotStrengthCode | null,
+            seat: null,
+            favorites: null,
+            joinedAt: row.created_at,
+          })),
+      );
+      const counts = trivia.get(row.id);
+      return {
+        id: row.id,
+        kind: row.kind === 'TEST' ? 'TEST' : 'STANDARD',
+        mode: row.mode === 'REALM' ? 'REALM' : 'CLASSIC',
+        status: row.status as MatchView['match']['status'],
+        inviteCode: row.status === 'LOBBY' ? row.invite_code : null,
+        players: Math.min(3, Math.max(1, others.length + 1)),
+        isHost: row.host_user_id === userId,
+        createdAt: row.created_at.toISOString(),
+        finishedAt: row.finished_at?.toISOString() ?? null,
+        place: row.status === 'FINISHED' ? placeOf(finalOf.get(row.id), row.seat) : null,
+        opponents: others.slice(0, 2).map((p) => ({
+          name:
+            p.bot_strength !== null ? (bots.get(p.join_order) ?? null) : (p.display_name ?? null),
+          botStrength: p.bot_strength as MatchBotStrengthCode | null,
+        })),
+        answered: counts?.answered ?? 0,
+        correct: counts?.correct ?? 0,
+      };
+    }),
+    record: {
+      played: done.length,
+      won: done.filter((d) => placeOf(d.payload, d.seat) === 1).length,
+      answered,
+      correct,
+    },
     testMatchesEnabled: ctx.testMatchesEnabled,
     realmMatchesEnabled: ctx.realmMatchesEnabled,
   };
