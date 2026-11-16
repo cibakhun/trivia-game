@@ -64,7 +64,7 @@ test('Auffangschirm: Nach einem fremden Umbau der Seite steht die Meldung statt 
   // „Neu laden“ bringt die Seite zurück: Das Gastkonto besteht weiter
   await crash.getByRole('button', { name: 'Neu laden' }).tap();
   await expect(page.getByTestId('crash-screen')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Partie spielen' }).tap();
+  await page.getByRole('button', { name: 'Neue Partie', exact: true }).tap();
   await expect(page).toHaveURL(/\/partie$/);
   await expect(page.getByTestId('match-mode')).toBeVisible();
   expect(errors.every((name) => name === 'NotFoundError')).toBe(true);

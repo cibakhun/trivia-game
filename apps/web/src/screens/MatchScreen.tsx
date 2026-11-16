@@ -235,7 +235,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
         key.settle(e);
         throw e;
       }
-      navigate({ name: 'matches' });
+      navigate({ name: 'start' });
     });
   }
 

@@ -1,0 +1,1457 @@
+/*
+ * Hauptmenü (ADR-074): die Wendelmark im Vollbild, oben Plakette, Titel und Werkzeuge, unten die
+ * Siegel, Blätter in der Mitte. Maße in --u wie die Bühne der Partie (stage.css).
+ */
+
+.stage.menu {
+  font-size: calc(14 * var(--u));
+}
+
+.menu button {
+  font: inherit;
+  color: inherit;
+}
+
+.menu .stage-map .hero-map {
+  max-height: none;
+}
+
+/* Rand der Karte leicht abgedunkelt, darüber feines Papierkorn */
+.menu .stage-map::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 72% 64% at 50% 46%, transparent 42%, rgb(40 25 8 / 0.26) 100%),
+    var(--paper-grain);
+  pointer-events: none;
+}
+
+.menu :focus-visible {
+  outline: calc(3 * var(--u)) solid var(--focus, var(--link));
+  outline-offset: calc(2 * var(--u));
+}
+
+/* Unsichtbare Auswahl, die ihre ganze Karte oder Leiste bedeckt: Tipp, Tastatur und Vorlesen gehen
+   an das echte Optionsfeld */
+.menu-pick {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* ---------- Lebendige Karte (MenuMap, Karteneinheiten) ---------- */
+
+.menu-map .menu-shadow {
+  fill: rgb(61 43 26 / 0.22);
+}
+
+.menu-map .menu-army-n {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  fill: var(--map-coin);
+  stroke: var(--map-ink);
+  stroke-width: 4;
+  paint-order: stroke;
+  text-anchor: middle;
+}
+
+.menu-map .menu-ship .hull {
+  fill: var(--map-gate);
+  stroke: var(--map-ink);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
+.menu-map .menu-ship .plank {
+  stroke: color-mix(in srgb, var(--map-coin) 55%, transparent);
+  stroke-width: 1.6;
+}
+.menu-map .menu-ship .yard {
+  stroke: var(--map-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.menu-map .menu-ship .seam {
+  stroke: color-mix(in srgb, var(--map-ink) 35%, transparent);
+  stroke-width: 1.2;
+}
+.menu-map .menu-ship .mast {
+  stroke: var(--map-ink);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+}
+.menu-map .menu-ship .sail {
+  fill: var(--map-coin);
+  stroke: var(--map-ink);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+}
+.menu-map .menu-ship .flag {
+  stroke: var(--map-ink);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+.menu-map .menu-ship .flag.seat-0 {
+  fill: var(--seat-0);
+}
+.menu-map .menu-ship .flag.seat-1 {
+  fill: var(--seat-1);
+}
+.menu-map .menu-ship .flag.seat-2 {
+  fill: var(--seat-2);
+}
+.menu-map .menu-ship .wake {
+  fill: none;
+  stroke: var(--map-coin);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.menu-map .menu-attack path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.menu-map .menu-attack .halo {
+  stroke: var(--map-coin);
+  stroke-width: 13;
+  opacity: 0.9;
+}
+.menu-map .menu-attack .line {
+  stroke: var(--seat-0);
+  stroke-width: 6.5;
+  stroke-dasharray: 15 9;
+}
+.menu-map .menu-attack .head {
+  stroke: var(--seat-0);
+  stroke-width: 6.5;
+}
+
+/* Schiffe nur, wo neben dem Land Meer zu sehen ist (fast quadratische Bühne, etwa ein Tablet):
+   Am Handy quer und am PC lägen sie am Rand halb unter Plakette und Werkzeugen */
+@media (min-aspect-ratio: 29 / 20) {
+  .menu-map .menu-ship {
+    display: none;
+  }
+}
+
+/* ---------- Oben: Plakette, Titel, Werkzeuge ---------- */
+
+.menu-plate {
+  position: absolute;
+  z-index: 3;
+  left: var(--safe-l);
+  top: calc(8 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  max-width: calc(250 * var(--u));
+  padding: calc(5 * var(--u)) calc(14 * var(--u)) calc(5 * var(--u)) calc(6 * var(--u));
+  text-align: left;
+  border-radius: calc(26 * var(--u));
+  background: var(--surface);
+  background-image: var(--paper-grain);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 calc(4 * var(--u)) calc(12 * var(--u)) rgb(40 25 8 / 0.3);
+  cursor: pointer;
+}
+
+.menu-crest {
+  flex: none;
+  width: calc(28 * var(--u));
+  height: calc(30 * var(--u));
+  filter: drop-shadow(0 calc(2 * var(--u)) calc(2 * var(--u)) rgb(40 25 8 / 0.25));
+}
+
+.menu-crest path {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-linejoin: round;
+}
+
+.menu-crest .inner {
+  fill: none;
+  stroke: color-mix(in srgb, var(--map-coin) 80%, transparent);
+}
+
+.menu-crest text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 46px;
+  fill: var(--map-ink);
+}
+
+.menu-plate-text {
+  display: grid;
+  min-width: 0;
+}
+
+.menu-plate-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(15 * var(--u));
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-plate-sub {
+  font-size: calc(11 * var(--u));
+  line-height: 1.25;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.menu-plate-sub.secure {
+  color: var(--link);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.menu-mark {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: calc(12 * var(--u));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  margin: 0;
+  padding: calc(3 * var(--u)) calc(12 * var(--u)) calc(3 * var(--u)) calc(7 * var(--u));
+  border-radius: calc(20 * var(--u));
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 70%, transparent);
+  box-shadow: 0 calc(2 * var(--u)) calc(6 * var(--u)) rgb(40 25 8 / 0.2);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(15 * var(--u));
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.menu-mark .emblem {
+  width: calc(20 * var(--u));
+  height: auto;
+  animation: none;
+  filter: none;
+}
+
+.menu-tools {
+  position: absolute;
+  z-index: 3;
+  right: var(--safe-r);
+  top: calc(8 * var(--u));
+  display: flex;
+  gap: calc(6 * var(--u));
+}
+
+.menu-round {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(36 * var(--u));
+  height: calc(36 * var(--u));
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.5) inset,
+    0 calc(4 * var(--u)) calc(12 * var(--u)) rgb(40 25 8 / 0.3);
+  cursor: pointer;
+  transition: transform 0.12s ease-out;
+}
+
+.menu-round:active {
+  transform: scale(0.92);
+}
+
+.menu-round svg {
+  width: calc(20 * var(--u));
+  height: calc(20 * var(--u));
+}
+
+.menu-speaker path {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.menu-speaker .speaker {
+  fill: var(--map-land);
+}
+
+.menu-round[aria-pressed='false'] .menu-speaker .waves {
+  stroke: var(--seat-1);
+}
+
+/* ---------- Unten: Siegel ---------- */
+
+.menu-seals {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: max(var(--safe-b), calc(12 * var(--u)));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: calc(22 * var(--u));
+}
+
+.menu-seals.aside {
+  left: auto;
+  right: var(--safe-r);
+  transform: none;
+}
+
+.menu-seal {
+  display: grid;
+  justify-items: center;
+  gap: calc(3 * var(--u));
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-seal-disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(66 * var(--u));
+  height: calc(66 * var(--u));
+  transition: transform 0.16s cubic-bezier(0.3, 1.5, 0.6, 1);
+}
+
+.menu-seal.big .menu-seal-disc {
+  width: calc(96 * var(--u));
+  height: calc(96 * var(--u));
+}
+
+.menu-seal-edge {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 calc(4 * var(--u)) calc(6 * var(--u)) rgb(40 25 8 / 0.4));
+}
+
+.menu-seal-edge path {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.menu-seal.big .menu-seal-edge path {
+  fill: var(--primary-top);
+  stroke: var(--primary-edge);
+}
+
+.menu-seal-icon {
+  position: relative;
+  display: grid;
+  width: 46%;
+  height: 46%;
+}
+
+.menu-seal-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.menu-seal-label {
+  padding: calc(2 * var(--u)) calc(10 * var(--u));
+  border-radius: calc(4 * var(--u));
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(13.5 * var(--u));
+  line-height: 1.25;
+  white-space: nowrap;
+  box-shadow: 0 calc(2 * var(--u)) calc(5 * var(--u)) rgb(40 25 8 / 0.3);
+}
+
+.menu-seal.big .menu-seal-label {
+  font-size: calc(17 * var(--u));
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  border-color: var(--primary-edge);
+  color: var(--primary-text);
+}
+
+.menu-seal:focus-visible {
+  outline: none;
+}
+
+.menu-seal:focus-visible .menu-seal-label {
+  outline: calc(3 * var(--u)) solid var(--focus, var(--link));
+  outline-offset: calc(2 * var(--u));
+}
+
+@media (hover: hover) {
+  .menu-seal:hover .menu-seal-disc {
+    transform: translateY(calc(-3 * var(--u))) rotate(-4deg);
+  }
+}
+
+.menu-seal:active .menu-seal-disc {
+  transform: scale(0.93);
+  transition-duration: 0.06s;
+}
+
+/* Offene Partie: Leiste mit dem Weg zurück */
+.menu-banner {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: max(var(--safe-b), calc(22 * var(--u)));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: calc(12 * var(--u));
+  width: max-content;
+  max-width: calc(100% - 2 * var(--safe-r) - 180 * var(--u));
+  padding: calc(10 * var(--u)) calc(12 * var(--u)) calc(10 * var(--u)) calc(12 * var(--u));
+  border-radius: calc(12 * var(--u));
+  background: var(--surface);
+  background-image: var(--paper-age), var(--paper-grain);
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    inset 0 0 0 calc(3 * var(--u)) var(--surface),
+    inset 0 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-gold) 70%, transparent),
+    0 calc(8 * var(--u)) calc(20 * var(--u)) rgb(40 25 8 / 0.4);
+}
+
+.menu-banner-seal {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(46 * var(--u));
+  height: calc(46 * var(--u));
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--primary-top), var(--primary-bottom));
+  border: 1px solid var(--primary-edge);
+  box-shadow: 0 calc(2 * var(--u)) calc(4 * var(--u)) rgb(40 25 8 / 0.3);
+}
+
+.menu-banner-seal .swords-icon {
+  width: calc(30 * var(--u));
+  height: calc(30 * var(--u));
+}
+
+.menu-banner-text {
+  display: grid;
+  min-width: 0;
+}
+
+.menu-banner-text b {
+  font-family: var(--font-display);
+  font-size: calc(18 * var(--u));
+  line-height: 1.15;
+}
+
+.menu-banner-text span {
+  font-size: calc(12.5 * var(--u));
+  color: var(--muted);
+}
+
+.stage .menu-banner-go {
+  flex: none;
+  min-height: calc(44 * var(--u));
+  padding: 0 calc(20 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(16 * var(--u));
+  border-radius: calc(10 * var(--u));
+}
+
+.menu-loading {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: max(var(--safe-b), calc(24 * var(--u)));
+  transform: translateX(-50%);
+  padding: calc(4 * var(--u)) calc(14 * var(--u));
+  border-radius: calc(14 * var(--u));
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-strong) 70%, transparent);
+  font-size: calc(13 * var(--u));
+  color: var(--muted);
+  animation: menu-fade 0.3s 0.6s both;
+}
+
+.menu-fail-bar {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: max(var(--safe-b), calc(12 * var(--u)));
+  transform: translateX(-50%);
+  width: min(100% - 2 * var(--safe-r), calc(440 * var(--u)));
+}
+
+/* ---------- Blätter in der Mitte ---------- */
+
+.menu-centre {
+  position: absolute;
+  z-index: 4;
+  inset: calc(52 * var(--u)) var(--safe-r) max(var(--safe-b), calc(10 * var(--u))) var(--safe-l);
+  display: grid;
+  place-items: center;
+}
+
+.menu-sheet {
+  width: min(100%, calc(440 * var(--u)));
+  display: grid;
+  gap: calc(8 * var(--u));
+  padding: calc(9 * var(--u)) calc(14 * var(--u)) calc(10 * var(--u));
+  box-shadow:
+    inset 0 0 0 calc(3 * var(--u)) var(--surface),
+    inset 0 0 0 calc(4 * var(--u)) color-mix(in srgb, var(--map-gold) 55%, transparent),
+    0 calc(10 * var(--u)) calc(28 * var(--u)) rgb(30 18 6 / 0.5);
+}
+
+.menu-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: calc(9 * var(--u));
+  min-height: calc(34 * var(--u));
+}
+
+.menu-sheet-head h2,
+.menu-welcome h2 {
+  font-family: var(--font-display);
+  font-size: calc(21 * var(--u));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.menu-sheet-head h2:focus {
+  outline: none;
+}
+
+.menu-sheet-head .menu-round {
+  width: calc(32 * var(--u));
+  height: calc(32 * var(--u));
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.5) inset;
+}
+
+.menu-sheet-head .menu-round svg {
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
+}
+
+.menu-sheet-sub {
+  margin-top: calc(-5 * var(--u));
+}
+
+.menu-note {
+  font-size: calc(12 * var(--u));
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.menu-lead {
+  font-size: calc(13.5 * var(--u));
+  line-height: 1.3;
+}
+
+.menu-centre-text {
+  text-align: center;
+}
+
+.stage .menu-go {
+  min-height: calc(44 * var(--u));
+  padding: 0 calc(22 * var(--u));
+  font-family: var(--font-display);
+  font-size: calc(16 * var(--u));
+  border-radius: calc(10 * var(--u));
+}
+
+.menu-sheet-foot {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: calc(12 * var(--u));
+}
+
+.menu-open-notice {
+  display: grid;
+  gap: calc(10 * var(--u));
+}
+
+.menu-sheet .note {
+  margin: 0;
+  font-size: calc(12.5 * var(--u));
+}
+
+/* Schalter */
+.menu-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  min-height: calc(32 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  color: var(--muted);
+}
+
+.menu-toggle-input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.menu-switch {
+  position: relative;
+  flex: none;
+  width: calc(34 * var(--u));
+  height: calc(20 * var(--u));
+  border-radius: calc(10 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: inset 0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(70 45 15 / 0.15);
+  transition: background-color 0.18s;
+}
+
+.menu-switch span {
+  position: absolute;
+  top: calc(2 * var(--u));
+  left: calc(2 * var(--u));
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(70 45 15 / 0.25);
+  transition: transform 0.2s cubic-bezier(0.3, 1.4, 0.6, 1);
+}
+
+.menu-toggle-input:checked + .menu-switch {
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  border-color: var(--primary-edge);
+}
+
+.menu-toggle-input:checked + .menu-switch span {
+  transform: translateX(calc(14 * var(--u)));
+}
+
+.menu-toggle-input:checked ~ span:last-child {
+  color: var(--text);
+}
+
+.menu-toggle:has(:focus-visible) .menu-switch {
+  outline: calc(3 * var(--u)) solid var(--focus, var(--link));
+  outline-offset: calc(2 * var(--u));
+}
+
+/* Spielart als Bildkarten */
+.menu-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(8 * var(--u));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.menu-mode {
+  position: relative;
+  display: grid;
+  gap: calc(2 * var(--u));
+  padding: calc(5 * var(--u)) calc(5 * var(--u)) calc(7 * var(--u));
+  border-radius: calc(10 * var(--u));
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  box-shadow: 0 calc(2 * var(--u)) 0 color-mix(in srgb, var(--border-strong) 60%, transparent);
+  transition:
+    box-shadow 0.18s ease-out,
+    transform 0.18s ease-out;
+}
+
+.menu-mode-art {
+  order: -1;
+}
+
+.menu-mode.on {
+  border-color: var(--primary-edge);
+  background: color-mix(in srgb, var(--map-glow) 55%, var(--surface));
+  box-shadow:
+    0 0 0 calc(2 * var(--u)) var(--map-gold),
+    0 calc(4 * var(--u)) calc(12 * var(--u)) rgb(110 66 10 / 0.25);
+}
+
+.menu-mode:active {
+  transform: scale(0.98);
+}
+
+.menu-mode:has(:focus-visible) {
+  outline: calc(3 * var(--u)) solid var(--focus, var(--link));
+  outline-offset: calc(2 * var(--u));
+}
+
+.menu-mode-title {
+  padding: calc(3 * var(--u)) calc(4 * var(--u)) 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(16 * var(--u));
+  line-height: 1.1;
+}
+
+.menu-mode-sub {
+  padding: 0 calc(4 * var(--u));
+  font-size: calc(11.5 * var(--u));
+  line-height: 1.2;
+  color: var(--muted);
+}
+
+.menu-mode-check {
+  position: absolute;
+  z-index: 1;
+  top: calc(-7 * var(--u));
+  right: calc(-7 * var(--u));
+  width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
+  pointer-events: none;
+}
+
+.menu-mode-check svg {
+  width: 100%;
+  height: 100%;
+}
+
+.menu-mode-check circle {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 2.5;
+}
+
+.menu-mode-check path {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Kartenausschnitt in den Bildkarten */
+.menu-mode-art {
+  position: relative;
+  display: block;
+  aspect-ratio: 336 / 128;
+  overflow: hidden;
+  border-radius: calc(7 * var(--u));
+  border: 1px solid color-mix(in srgb, var(--map-ink) 35%, transparent);
+  background: var(--map-sea);
+}
+
+.menu-mode-art > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.menu-mode-art > .menu-mode-over {
+  background: none;
+}
+
+.menu-mode-over .arrow {
+  fill: none;
+  stroke: var(--seat-0);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 2px rgb(255 250 235 / 0.9));
+}
+
+.menu-mode-over .lives path {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+}
+
+.menu-mode-over .wheel .rim {
+  fill: var(--map-coin);
+  stroke: var(--map-ink);
+  stroke-width: 3;
+}
+.menu-mode-over .wheel .mine {
+  fill: var(--seat-0);
+  opacity: 0.85;
+}
+.menu-mode-over .wheel .free {
+  fill: var(--map-land);
+}
+.menu-mode-over .wheel .hub {
+  fill: var(--map-gold);
+  stroke: var(--map-ink);
+  stroke-width: 2;
+}
+.menu-mode-over .wheel .ptr {
+  fill: var(--map-ink);
+}
+
+.menu-mode-over .army path {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+.menu-mode-over .army .cloth {
+  fill: var(--seat-0);
+  stroke: var(--map-ink);
+  stroke-width: 2.4;
+}
+.menu-mode-over .army .coin {
+  fill: var(--map-coin);
+  stroke: var(--map-ink);
+  stroke-width: 2.4;
+}
+.menu-mode-over .army .n {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  fill: var(--map-ink);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* Übungspartie: Leisten zur Wahl */
+.menu-practice {
+  width: min(100%, calc(470 * var(--u)));
+}
+
+.menu-form {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: calc(5 * var(--u)) calc(12 * var(--u));
+}
+
+.menu-form-label {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  font-weight: 700;
+  font-size: calc(12.5 * var(--u));
+}
+
+.menu-form-label .crest {
+  width: calc(16 * var(--u));
+  height: auto;
+}
+
+.menu-seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: calc(2 * var(--u));
+  border-radius: calc(9 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: inset 0 calc(1 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.15);
+}
+
+.menu-seg label {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Hochkant schrumpft --u; der Tippbereich bleibt mindestens 24 px hoch */
+  min-height: max(24px, calc(24 * var(--u)));
+  border-radius: calc(7 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  font-weight: 700;
+  color: var(--muted);
+  transition:
+    background-color 0.16s,
+    color 0.16s;
+}
+
+.menu-seg label.on {
+  color: var(--primary-text);
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  box-shadow:
+    0 1px 0 rgb(255 245 215 / 0.7) inset,
+    0 calc(1 * var(--u)) calc(2 * var(--u)) rgb(110 66 10 / 0.35);
+}
+
+.menu-seg label:has(:focus-visible) {
+  outline: calc(3 * var(--u)) solid var(--focus, var(--link));
+  outline-offset: calc(1 * var(--u));
+}
+
+/* Mit Code beitreten: sechs Felder wie Spielsteine */
+.menu-join-form {
+  display: grid;
+  gap: calc(9 * var(--u));
+}
+
+.menu-code {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: calc(6 * var(--u));
+  margin: calc(2 * var(--u)) 0;
+}
+
+.menu-code-tile {
+  display: grid;
+  place-items: center;
+  width: calc(40 * var(--u));
+  height: calc(50 * var(--u));
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(27 * var(--u));
+  line-height: 1;
+  border-radius: calc(7 * var(--u));
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    0 calc(2 * var(--u)) 0 var(--border-strong),
+    0 1px 0 rgb(255 255 255 / 0.5) inset;
+}
+
+.menu-code-tile:not(.empty) {
+  animation: menu-stamp 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.menu-code-tile.empty {
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+  box-shadow: inset 0 calc(2 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.15);
+}
+
+.menu-code:focus-within .menu-code-tile.next {
+  position: relative;
+  border-color: var(--map-gold);
+  box-shadow:
+    0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 60%, transparent),
+    inset 0 calc(2 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.12);
+}
+
+/* Alle sechs Zeichen stehen: Der Fokus bleibt am letzten Feld sichtbar */
+.menu-code:focus-within:not(:has(.next)) .menu-code-tile:nth-child(6) {
+  border-color: var(--map-gold);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 60%, transparent);
+}
+
+.menu-code:focus-within .menu-code-tile.next::after {
+  content: '';
+  width: calc(2 * var(--u));
+  height: calc(26 * var(--u));
+  background: var(--map-ink);
+  animation: menu-caret 1s steps(1) infinite;
+}
+
+.menu-code-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  /* 16 px: Safari vergrößert sonst beim Antippen die Seite */
+  font-size: 16px;
+  color: transparent;
+  caret-color: transparent;
+  background: transparent;
+  opacity: 0;
+  cursor: text;
+}
+
+.menu-join .menu-go {
+  justify-self: center;
+  min-width: calc(200 * var(--u));
+}
+
+/* Chronik */
+.menu-chronicle {
+  width: min(100%, calc(470 * var(--u)));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.menu-stats {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(6 * var(--u));
+  margin: 0;
+}
+
+.menu-stats div {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  padding: calc(4 * var(--u)) 0;
+  border-radius: calc(8 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.menu-stats dt {
+  font-size: calc(11 * var(--u));
+  color: var(--muted);
+}
+
+.menu-stats dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(19 * var(--u));
+  line-height: 1.1;
+}
+
+.menu-rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  margin: 0 calc(-6 * var(--u));
+  padding: 0 calc(6 * var(--u));
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  gap: calc(9 * var(--u));
+  width: 100%;
+  padding: calc(5 * var(--u)) calc(2 * var(--u));
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: none;
+  cursor: pointer;
+}
+
+.menu-rows li:last-child .menu-row {
+  border-bottom: none;
+}
+
+.menu-place {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: calc(40 * var(--u));
+  height: calc(26 * var(--u));
+  padding: 0 calc(6 * var(--u));
+  border-radius: calc(13 * var(--u));
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(13 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+}
+
+.menu-place.p1 {
+  background: linear-gradient(var(--primary-top), var(--primary-bottom));
+  border-color: var(--primary-edge);
+  color: var(--primary-text);
+}
+
+.menu-place.off {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: calc(11 * var(--u));
+  color: var(--muted);
+  border-style: dashed;
+}
+
+.menu-row-text {
+  flex: 1;
+  display: grid;
+  min-width: 0;
+}
+
+.menu-row-top {
+  font-weight: 700;
+  font-size: calc(13 * var(--u));
+}
+
+.menu-row-sub {
+  font-size: calc(11.5 * var(--u));
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-row-go {
+  flex: none;
+  display: grid;
+  opacity: 0.55;
+}
+
+.menu-row-go svg {
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
+}
+
+/* Willkommen */
+.menu-welcome {
+  width: min(100%, calc(500 * var(--u)));
+  gap: calc(10 * var(--u));
+  padding: calc(14 * var(--u)) calc(16 * var(--u)) calc(14 * var(--u));
+}
+
+.menu-welcome-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(10 * var(--u));
+}
+
+.menu-big {
+  display: flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+  min-height: calc(62 * var(--u));
+  padding: calc(7 * var(--u)) calc(12 * var(--u));
+  text-align: left;
+  border-radius: calc(10 * var(--u));
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(var(--surface), var(--surface-2));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.5) inset,
+    0 calc(2 * var(--u)) 0 color-mix(in srgb, var(--border-strong) 70%, transparent),
+    0 calc(4 * var(--u)) calc(10 * var(--u)) rgb(70 45 15 / 0.16);
+  cursor: pointer;
+  transition: transform 0.12s ease-out;
+}
+
+.menu-big.primary {
+  background:
+    radial-gradient(ellipse 80% 120% at 30% 0%, rgb(255 240 200 / 0.55), transparent 60%),
+    linear-gradient(var(--primary-top), var(--primary-bottom));
+  border-color: var(--primary-edge);
+  color: var(--primary-text);
+  box-shadow:
+    0 1px 0 rgb(255 245 215 / 0.7) inset,
+    0 calc(-2 * var(--u)) 0 rgb(120 70 10 / 0.25) inset,
+    0 calc(3 * var(--u)) 0 var(--primary-edge),
+    0 calc(6 * var(--u)) calc(14 * var(--u)) rgb(110 66 10 / 0.35);
+}
+
+.menu-big:active {
+  transform: translateY(calc(2 * var(--u)));
+}
+
+.menu-big:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.menu-big-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(40 * var(--u));
+  height: calc(40 * var(--u));
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--map-ink) 35%, transparent);
+}
+
+.menu-big.primary .menu-big-icon {
+  background: rgb(255 246 222 / 0.75);
+  border-color: var(--primary-edge);
+}
+
+.menu-big-icon svg {
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
+}
+
+.menu-big-text {
+  display: grid;
+  gap: calc(1 * var(--u));
+}
+
+.menu-big-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: calc(17 * var(--u));
+  line-height: 1.1;
+}
+
+.menu-big-sub {
+  font-size: calc(12 * var(--u));
+  line-height: 1.2;
+  opacity: 0.85;
+}
+
+/* Anmelden: das Formular aus dem Konto, dichter gesetzt */
+.menu-login {
+  width: min(100%, calc(400 * var(--u)));
+}
+
+.menu-login .form {
+  display: grid;
+  gap: calc(8 * var(--u));
+}
+
+.menu-fail {
+  width: min(100%, calc(420 * var(--u)));
+}
+
+/* ---------- Bewegung ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Auftritt: Titel, Plakette und Werkzeuge gleiten herein, die Siegel springen auf */
+  .menu-mark {
+    animation: menu-drop 0.5s 0.1s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  }
+  .menu-plate {
+    animation: menu-from-left 0.5s 0.15s cubic-bezier(0.2, 1, 0.3, 1) both;
+  }
+  .menu-tools {
+    animation: menu-from-right 0.5s 0.2s cubic-bezier(0.2, 1, 0.3, 1) both;
+  }
+  .menu-seal {
+    animation: menu-seal-in 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  }
+  .menu-seal:nth-child(1) {
+    animation-delay: 0.3s;
+  }
+  .menu-seal:nth-child(2) {
+    animation-delay: 0.38s;
+  }
+  .menu-seal:nth-child(3) {
+    animation-delay: 0.46s;
+  }
+  .menu-seal:nth-child(4) {
+    animation-delay: 0.54s;
+  }
+  .menu-seals.again .menu-seal {
+    animation-duration: 0.36s;
+    animation-delay: 0s;
+  }
+  .menu-seals.again .menu-seal:nth-child(2) {
+    animation-delay: 0.04s;
+  }
+  .menu-seals.again .menu-seal:nth-child(3) {
+    animation-delay: 0.08s;
+  }
+  .menu-seals.again .menu-seal:nth-child(4) {
+    animation-delay: 0.12s;
+  }
+  .menu-banner {
+    animation: menu-rise 0.5s 0.3s cubic-bezier(0.2, 1, 0.3, 1) both;
+  }
+
+  /* Das große Siegel glänzt dann und wann, damit der Blick dorthin findet */
+  .menu-seal.big .menu-seal-disc::after {
+    content: '';
+    position: absolute;
+    inset: 6%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255 236 170 / 0.85), transparent 62%);
+    opacity: 0;
+    pointer-events: none;
+    animation: menu-glint 5.5s 2.4s ease-in-out infinite;
+  }
+
+  /* Blatt: hebt sich aus der Karte */
+  .menu-sheet {
+    animation: menu-sheet-in 0.34s cubic-bezier(0.2, 1, 0.3, 1) both;
+  }
+
+  /* Karte: Burgen springen auf, dann die Armeen, dann läuft der Angriff; Schiffe schaukeln */
+  .menu-map .menu-castle use,
+  .menu-map .menu-army use {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: menu-pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  }
+  .menu-map .menu-army use {
+    animation-delay: 1.6s;
+  }
+  .menu-map .menu-castle .menu-shadow,
+  .menu-map .menu-army .menu-shadow,
+  .menu-map .menu-army-n {
+    animation: menu-fade 0.4s 1.6s both;
+  }
+  .menu-map .menu-attack {
+    animation: menu-fade 0.5s 2.1s both;
+  }
+  .menu-map .menu-attack .line {
+    animation: menu-march 0.9s linear infinite;
+  }
+  .menu-map .menu-ship {
+    animation: menu-fade 0.8s 0.6s both;
+  }
+  .menu-map .menu-bob {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: menu-bob 4.2s ease-in-out infinite;
+  }
+}
+
+@keyframes menu-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes menu-drop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-14 * var(--u)));
+  }
+  to {
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes menu-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-24 * var(--u)));
+  }
+}
+
+@keyframes menu-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(calc(24 * var(--u)));
+  }
+}
+
+@keyframes menu-seal-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(26 * var(--u))) scale(0.7) rotate(-12deg);
+  }
+}
+
+@keyframes menu-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(20 * var(--u)));
+  }
+  to {
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes menu-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(16 * var(--u))) scale(0.97);
+  }
+}
+
+@keyframes menu-glint {
+  0%,
+  78%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  86% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+}
+
+@keyframes menu-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.6);
+  }
+}
+
+@keyframes menu-march {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes menu-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2.5deg);
+  }
+  50% {
+    transform: translateY(2px) rotate(2.5deg);
+  }
+}
+
+@keyframes menu-stamp {
+  from {
+    transform: scale(1.25);
+  }
+}
+
+@keyframes menu-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---------- Hochformat am Handy: Das Menü geht auch hochkant ---------- */
+
+@media (orientation: portrait) and (max-width: 600px) {
+  .menu-mark {
+    top: calc(56 * var(--u));
+  }
+
+  .menu-seals {
+    gap: calc(10 * var(--u));
+    bottom: max(var(--safe-b), calc(20 * var(--u)));
+  }
+
+  .menu-seal-disc {
+    width: calc(60 * var(--u));
+    height: calc(60 * var(--u));
+  }
+
+  .menu-seal.big .menu-seal-disc {
+    width: calc(84 * var(--u));
+    height: calc(84 * var(--u));
+  }
+
+  .menu-banner {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: calc(100% - var(--safe-l) - var(--safe-r));
+    max-width: none;
+    bottom: calc(130 * var(--u));
+  }
+
+  .menu-centre {
+    top: calc(92 * var(--u));
+  }
+
+  .menu-modes,
+  .menu-welcome-choices {
+    grid-template-columns: 1fr;
+  }
+}

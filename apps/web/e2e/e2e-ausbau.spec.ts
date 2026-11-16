@@ -1,7 +1,7 @@
 import { matchMap, regionNeighbors } from '@rdw/game-core';
 import { expect, test, type Page, type Route } from '@playwright/test';
 import { closeAnswerDb } from './answers.ts';
-import { answerRight, matchIdOf, newPlayer, succeeds } from './match-kit.ts';
+import { answerRight, matchIdOf, newPlayer, pickBot, succeeds } from './match-kit.ts';
 
 /**
  * Partie mit Ausbau im Browser (MATCH_RULES §11, ADR-060, TEST_PLAN §5): eine ganze Testpartie am
@@ -573,20 +573,21 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   browser,
 }, testInfo) => {
   test.setTimeout(330_000);
-  const page = await newPlayer(browser, { viewport: ACROSS, hasTouch: true, isMobile: true });
+  const page = await newPlayer(
+    browser,
+    { viewport: ACROSS, hasTouch: true, isMobile: true },
+    'Übung',
+  );
   await recordSeen(page);
 
-  // Spielart wählen und eine Testpartie zu dritt mit kurzen Zeiten eröffnen
-  await page
-    .getByTestId('match-mode')
-    .getByLabel(/^Mit Ausbau/)
-    .check();
+  // Spielart wählen und eine Übungspartie zu dritt mit kurzen Zeiten eröffnen
   const setup = page.getByTestId('test-match');
+  await setup.getByRole('radiogroup', { name: 'Spielart' }).getByLabel('Mit Ausbau').check();
   await setup.getByLabel('Zu dritt').check();
-  await setup.getByLabel('Bot 1').selectOption('EASY');
-  await setup.getByLabel('Bot 2').selectOption('HARD');
+  await pickBot(setup, 1, 'leicht');
+  await pickBot(setup, 2, 'schwer');
   await setup.getByLabel(/^Kurze Zeiten/).check();
-  await setup.getByRole('button', { name: 'Testpartie eröffnen' }).tap();
+  await setup.getByRole('button', { name: 'Übungspartie eröffnen' }).tap();
   await expect(page).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
   const matchId = matchIdOf(page);
   const screen = page.getByTestId('match-screen');

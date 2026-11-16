@@ -295,56 +295,6 @@ select:focus-visible {
   letter-spacing: 0.1em;
 }
 
-/* Start */
-.start {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem 1rem 3rem;
-  display: grid;
-  gap: 1.1rem;
-}
-
-.hero {
-  display: grid;
-  justify-items: center;
-  text-align: center;
-  gap: 0.3rem;
-}
-
-.hero h1 {
-  margin: 0.3rem 0 0;
-  font-size: clamp(2.1rem, 7vw, 3rem);
-  letter-spacing: 0.03em;
-  text-shadow: 0 2px 0 rgb(255 255 255 / 0.35);
-}
-
-.hero h1::before,
-.hero h1::after {
-  content: '❦';
-  display: inline-block;
-  margin: 0 0.6rem;
-  font-size: 0.55em;
-  vertical-align: 0.35em;
-  color: var(--accent);
-}
-
-.hero h1::before {
-  transform: scaleX(-1);
-}
-
-@media (max-width: 480px) {
-  .hero h1::before,
-  .hero h1::after {
-    display: none;
-  }
-}
-
-.tagline {
-  font-size: 1.15rem;
-  margin: 0;
-  color: var(--muted);
-}
-
 .emblem {
   filter: drop-shadow(0 4px 6px rgb(70 45 15 / 0.3));
   animation: emblem-in 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
@@ -440,11 +390,7 @@ select:focus-visible {
   gap: 1rem;
 }
 
-/* Partie spielen: breiter, zwei Karten nebeneinander, Tuschezeichen an den Überschriften */
-.page-wide {
-  max-width: 920px;
-}
-
+/* Kopf einer Seite mit Wappen oder Tuschezeichen daneben (Einladungslink) */
 .hub-head {
   display: flex;
   align-items: center;
@@ -457,19 +403,6 @@ select:focus-visible {
 
 .hub-head p {
   margin: 0;
-}
-
-.hub-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-  align-items: start;
-}
-
-.icon-title {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
 }
 
 .icon .icon-ink {
@@ -489,6 +422,10 @@ select:focus-visible {
 
 .icon .icon-paper {
   fill: var(--map-land);
+}
+
+.icon .icon-dot {
+  fill: var(--map-ink);
 }
 
 .page-nav {

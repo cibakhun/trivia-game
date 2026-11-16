@@ -31,7 +31,8 @@ Alle Grafiken sind eigene Zeichnungen für dieses Projekt, als SVG im Quelltext;
 | Lorbeerkranz der Siegerseite | `apps/web/src/match/ResultPanel.tsx` | eigene Zeichnung |
 | Papierkorn des Hintergrunds, nachgedunkelter Rand der Tafeln und Blätter, Tintenlinie | `apps/web/src/theme.css` (SVG-Rauschfilter, zwei Farbverläufe) | eigenes Verfahren |
 | Blockpfeil und Wappenplättchen eines Duells auf der Karte, Schwerter im Blatt der Partie | `apps/web/src/art/attack.ts`, `art/Swords.tsx`, `match/MatchBoard.tsx` | eigene Zeichnungen |
-| Tuschezeichen Banner, Schlüssel, Übungsscheibe, Schriftrolle | `apps/web/src/art/Icons.tsx` | eigene Zeichnungen |
+| Tuschezeichen Banner, Schlüssel, Übungsscheibe, Schriftrolle, Fragezeichen, Spielen, Person und Pfeile | `apps/web/src/art/Icons.tsx` | eigene Zeichnungen |
+| Hauptmenü: Siegel mit gezacktem Wachsrand, Wappen der Plakette, Lautsprecher, Kogge mit Rahsegel und Fahne, Angriffspfeil; Bildkarten der Spielart aus Kartenausschnitt und Symbolen der Karte | `apps/web/src/menu/MenuParts.tsx`, `apps/web/src/art/MenuMap.tsx` | eigene Zeichnungen |
 | Schilde der Plätze in der Aufstellung, Lautsprecher am Ton-Schalter | `apps/web/src/match/LobbyPanel.tsx`, `components/SoundToggle.tsx` | eigene Zeichnungen |
 | Münze am Punktestand, Rücktaste des Ziffernfelds, gedrehtes Handy im Hinweis fürs Hochformat | `apps/web/src/match/SeatList.tsx`, `match/NumPad.tsx`, `match/RotateHint.tsx` | eigene Zeichnungen, Grundformen |
 | Tuschezeichen der Partie mit Ausbau: Brot, Baustoff, Armee, Dorf, Stadt, Burg, Tausch, Zug und je eines für die elf Kategorien des Glücksrads (Geschichte, Erdkunde, Naturwissenschaft, Technik, Mathematik, Literatur, Kunst und Kultur, Sport, Politik, Natur und Tiere, Allgemeinwissen) | `apps/web/src/art/RealmIcons.tsx` | eigene Zeichnungen aus Grundformen (ADR-060) |

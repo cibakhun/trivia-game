@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
  * Konto sichern (O-03, Phase 2 Paket 2): Ein Gast tritt bei, sichert sein Konto mit Benutzername,
  * Passwort und gewähltem Spielernamen, meldet sich auf einem zweiten Gerät an und findet dort sein
  * Reich wieder. Abmelden beendet nur die Sitzung des einen Geräts. Die Weltwahl zeigt die eigene
- * Welt zum Weiterspielen.
+ * Welt zum Weiterspielen; ins Hauptmenü kommt man ohne Sitzung über „Ich habe ein Konto“.
  */
 
 const PASSWORD = 'e2e-passwort-lang';
@@ -15,6 +15,9 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   const page = await (await browser.newContext()).newPage();
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
+  // Die Welten stehen nicht im Hauptmenü (ADR-074), sie bleiben unter ihrem Pfad erreichbar
+  await expect(page.getByRole('button', { name: 'Neue Partie' })).toBeVisible();
+  await page.goto('/welten');
   const world = page.getByTestId('world-e2e');
   await world.getByRole('button', { name: 'Beitreten' }).click();
   await world.getByRole('button', { name: 'Reich gründen' }).click();
@@ -46,6 +49,7 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   // Zweites Gerät: falsches Passwort, dann richtig (Schreibweise des Namens egal)
   const other = await (await browser.newContext()).newPage();
   await other.goto('/');
+  await other.getByRole('button', { name: 'Ich habe ein Konto' }).click();
   const login = other.getByTestId('login-form');
   await login.getByLabel('Benutzername').fill(username.toUpperCase());
   await login.getByLabel('Passwort').fill('falsches-passwort');
@@ -53,8 +57,11 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   await expect(login.getByRole('alert')).toHaveText('Benutzername oder Passwort ist falsch.');
   await login.getByLabel('Passwort').fill(PASSWORD);
   await login.getByRole('button', { name: 'Anmelden' }).click();
-  // Die Startseite bietet die Partie und die eigene Welt zum Weiterspielen (ADR-050)
-  await expect(other.getByRole('button', { name: 'Partie spielen' })).toBeVisible();
+  // Angemeldet zeigt das Hauptmenü die Plakette mit dem Spielernamen; die Weltwahl bietet die
+  // eigene Welt zum Weiterspielen (ADR-050)
+  await expect(other.getByTestId('menu-plate')).toContainText(playerName);
+  await expect(other.getByRole('button', { name: 'Neue Partie' })).toBeVisible();
+  await other.goto('/welten');
   await other.getByTestId('world-e2e').getByRole('button', { name: 'Weiterspielen' }).click();
   await expect(other).toHaveURL(playUrl);
   await expect(other.getByRole('banner')).toContainText(kingdomName);

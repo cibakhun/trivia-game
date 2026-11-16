@@ -28,6 +28,21 @@ describe('Router', () => {
     expect(parseRoute('/partie/ABCDEF')).toEqual({ name: 'start' });
   });
 
+  it('gibt jedem Blatt des Hauptmenüs einen eigenen Pfad', () => {
+    for (const [sheet, path] of [
+      ['join', '/partie/code'],
+      ['practice', '/partie/uebung'],
+      ['chronicle', '/chronik'],
+    ] as const) {
+      expect(parseRoute(path)).toEqual({ name: 'menu', sheet });
+      expect(parseRoute(`${path}/`)).toEqual({ name: 'menu', sheet });
+      expect(routePath({ name: 'menu', sheet })).toBe(path);
+    }
+    // „Code“ ist kein Einladungscode: Beitreten mit Code ist ein Blatt, kein Link
+    expect(parseRoute('/partie/code/K7M2QX')).toEqual({ name: 'start' });
+    expect(parseRoute('/chroniken')).toEqual({ name: 'start' });
+  });
+
   it('kennt den Einladungslink, Groß- und Kleinschreibung egal', () => {
     expect(parseRoute('/partie/beitreten/K7M2QX')).toEqual({ name: 'matchJoin', code: 'K7M2QX' });
     expect(parseRoute('/partie/beitreten/k7m2qx/')).toEqual({ name: 'matchJoin', code: 'K7M2QX' });
