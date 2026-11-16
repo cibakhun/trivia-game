@@ -141,12 +141,8 @@ export function JoinScreen({ code }: { readonly code: string }) {
       ) : null}
 
       <nav className="page-nav" aria-label={t('nav.label')}>
-        <button
-          type="button"
-          className="link"
-          onClick={() => navigate({ name: ready ? 'matches' : 'start' })}
-        >
-          {ready ? t('match.join.toHub') : t('match.hub.back')}
+        <button type="button" className="link" onClick={() => navigate({ name: 'start' })}>
+          {t('nav.toMenu')}
         </button>
       </nav>
     </main>

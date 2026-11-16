@@ -28,6 +28,9 @@ async function joinPlaytest(browser: Browser): Promise<Page> {
   const page = await context.newPage();
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
+  // Die Welten stehen nicht im Hauptmenü (ADR-074), sie bleiben unter ihrem Pfad erreichbar
+  await expect(page.getByRole('button', { name: 'Neue Partie' })).toBeVisible();
+  await page.goto('/welten');
   const world = page.getByTestId('world-spieltest');
   await world.getByRole('button', { name: 'Beitreten' }).click();
   await world.getByRole('button', { name: 'Reich gründen' }).click();

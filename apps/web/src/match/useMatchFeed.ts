@@ -80,7 +80,7 @@ export function useMatchFeed(matchId: string): MatchFeed {
       } catch (error) {
         if (cancelled) return;
         if (error instanceof ApiRequestError && error.status === 404) {
-          navigate({ name: 'matches' }, { replace: true });
+          navigate({ name: 'start' }, { replace: true });
           return;
         }
         failures += 1;

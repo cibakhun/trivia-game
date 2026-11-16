@@ -5,8 +5,8 @@ import { inkBlob, inkBox, inkOrigin, inkReach, inkStyle } from './ink.ts';
 import { mapArt } from './map-art.ts';
 import './map-art.css';
 
-/** Wem eine Region auf der Startseite „gehört“: drei Reiche in einer festen Szene. */
-const SCENE: Readonly<Record<number, number>> = {
+/** Wem eine Region im Schmuckbild „gehört“: drei Reiche in einer festen Szene (auch im Hauptmenü). */
+export const SCENE: Readonly<Record<number, number>> = {
   0: 0,
   1: 0,
   4: 0,
@@ -25,7 +25,7 @@ const SCENE: Readonly<Record<number, number>> = {
 };
 
 /**
- * Die Wendelmark als Schmuckbild ohne Beschriftung (Startseite): Küste, Grenzen, Fluss, Motive
+ * Die Wendelmark als Schmuckbild ohne Beschriftung: Küste, Grenzen, Fluss, Motive
  * und drei Reiche in Sitzfarben. Rein dekorativ. Mit `cover` füllt sie ihre Fläche ganz und wird
  * dafür beschnitten: der Hintergrund der Aufstellung (ADR-059).
  */

@@ -14,17 +14,38 @@ import { matchSolution } from './answers.ts';
  * Datenbank.
  */
 
-/** Gast anlegen und zur Partie-Übersicht gehen. */
+/** Siegel des Hauptmenüs (ADR-074) und der Pfad des Blatts, das sie öffnen. */
+const SEALS = {
+  'Neue Partie': /\/partie$/,
+  Beitreten: /\/partie\/code$/,
+  Übung: /\/partie\/uebung$/,
+  Chronik: /\/chronik$/,
+} as const;
+
+/** Gast anlegen und im Hauptmenü das Blatt hinter diesem Siegel öffnen. */
 export async function newPlayer(
   browser: Browser,
   context: BrowserContextOptions = {},
+  seal: keyof typeof SEALS = 'Neue Partie',
 ): Promise<Page> {
   const page = await (await browser.newContext(context)).newPage();
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
-  await page.getByRole('button', { name: 'Partie spielen' }).click();
-  await expect(page).toHaveURL(/\/partie$/);
+  await page.getByRole('button', { name: seal, exact: true }).click();
+  await expect(page).toHaveURL(SEALS[seal]);
   return page;
+}
+
+/** Stärke eines Bots in der Übungspartie wählen: eine Leiste je Bot. */
+export async function pickBot(
+  setup: Locator,
+  bot: 1 | 2,
+  strength: 'leicht' | 'mittel' | 'schwer',
+): Promise<void> {
+  await setup
+    .getByRole('radiogroup', { name: `Bot ${bot}` })
+    .getByLabel(strength)
+    .check();
 }
 
 export function matchIdOf(page: Page): string {

@@ -203,7 +203,7 @@ export function ResultPanel({
           {t('match.result.again')}
         </button>
         <button type="button" className="button" onClick={() => navigate({ name: 'start' })}>
-          {t('match.hub.back')}
+          {t('nav.toMenu')}
         </button>
       </div>
     </section>
