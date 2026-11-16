@@ -66,16 +66,22 @@ function storeMode(mode: MatchMode): void {
 function useMatchList(userId: string | null) {
   const [list, setList] = useState<MatchListResponse | null>(null);
   const [error, setError] = useState<unknown>(null);
+  // Nur die jüngste Anfrage zählt: Eine späte Antwort für das vorige Konto bleibt liegen
+  const generation = useRef(0);
   const load = useCallback(async () => {
+    const current = ++generation.current;
     try {
       const next = await api.matches();
+      if (current !== generation.current) return;
       setList(next);
       setError(null);
     } catch (e) {
+      if (current !== generation.current) return;
       setError(e);
     }
   }, []);
   useEffect(() => {
+    generation.current += 1;
     setList(null);
     setError(null);
     if (userId !== null) void load();

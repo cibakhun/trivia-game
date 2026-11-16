@@ -883,7 +883,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  min-height: calc(24 * var(--u));
+  /* Hochkant schrumpft --u; der Tippbereich bleibt mindestens 24 px hoch */
+  min-height: max(24px, calc(24 * var(--u)));
   border-radius: calc(7 * var(--u));
   font-size: calc(12.5 * var(--u));
   font-weight: 700;
@@ -952,6 +953,12 @@
   box-shadow:
     0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 60%, transparent),
     inset 0 calc(2 * var(--u)) calc(3 * var(--u)) rgb(70 45 15 / 0.12);
+}
+
+/* Alle sechs Zeichen stehen: Der Fokus bleibt am letzten Feld sichtbar */
+.menu-code:focus-within:not(:has(.next)) .menu-code-tile:nth-child(6) {
+  border-color: var(--map-gold);
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 60%, transparent);
 }
 
 .menu-code:focus-within .menu-code-tile.next::after {

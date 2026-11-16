@@ -465,7 +465,7 @@ export const de = {
       title: 'Aufstellung',
       code: 'Einladungscode',
       codeHint:
-        'Schick den Link deinen Mitspielern: Wer ihn öffnet, ist gleich dabei. Mit dem Code geht es auch, unter „Partie spielen“.',
+        'Schick den Link deinen Mitspielern: Wer ihn öffnet, ist gleich dabei. Mit dem Code geht es auch, im Hauptmenü unter „Beitreten“.',
       players: 'Spieler',
       host: 'eröffnet',
       freeSeat: 'frei',
