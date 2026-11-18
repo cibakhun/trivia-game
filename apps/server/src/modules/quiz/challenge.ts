@@ -532,14 +532,8 @@ export async function answerStep(
           reason: parsed.error,
         });
       }
+      // Jede lesbare Zahl zählt, Schätzfragen haben keine erlaubte Grenze (ADR-076)
       const scored = scoreEstimate(parsed.value, spec);
-      if (!scored.ok) {
-        // Der Bereich steht in der Absage, damit die Meldung sagt, was geht (ADR-076)
-        throw new ApiError(422, 'ANSWER_OUT_OF_RANGE', 'Zahl außerhalb des Eingabebereichs', {
-          min: formatDecimal(parseDecimal(spec.inputMin)),
-          max: formatDecimal(parseDecimal(spec.inputMax)),
-        });
-      }
       rawInput = params.body.rawInput;
       value = formatDecimal(scored.rounded);
       distance = formatDecimal(scored.distance);

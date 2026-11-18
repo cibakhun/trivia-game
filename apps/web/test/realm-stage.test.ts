@@ -212,8 +212,6 @@ const ESTIMATE: MatchPresentedQuestion = {
   remainingMs: 8000,
   unitLabel: 'km',
   answerPrecision: 0,
-  inputMin: '1',
-  inputMax: '30000',
 };
 
 function localOf(

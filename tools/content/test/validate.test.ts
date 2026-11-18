@@ -181,7 +181,7 @@ describe('Fragendatei – Schätzfragen', () => {
   const est = (e: Record<string, unknown>) =>
     estimate({ estimate: { ...(estimate().estimate as object), ...e } });
 
-  it('answer_value im Eingabebereich und mit passender Präzision', () => {
+  it('answer_value im Bereich und mit passender Präzision', () => {
     expect(errors(est({ answer_value: '20000' }))).toContain('answer_value liegt außerhalb von [input_min, input_max]');
     expect(errors(est({ answer_value: '1642.5' }))).toContain('answer_value hat mehr Nachkommastellen als answer_precision');
     expect(errors(est({ input_min: '5000', input_max: '100' }))).toContain('input_min muss kleiner als input_max sein');
@@ -197,7 +197,7 @@ describe('Fragendatei – Schätzfragen', () => {
     ).toContain('Jahreszahlen vor Christus sind im MVP ausgeschlossen (input_min ≥ 1)');
   });
 
-  it('Eingabebereich weist keine ernst gemeinte Schätzung ab und verrät nichts (ADR-076)', () => {
+  it('Kappung der Bot-Schätzungen liegt nicht knapp an der Lösung (ADR-076)', () => {
     // LOG: bis zum Dreifachen und bis zu einem Drittel (oder bis 1)
     expect(errors(est({ input_max: '4926' }))).toEqual([]);
     expect(errors(est({ input_max: '4925' }))).toContain('LOG-Skala: input_max mindestens das 3-Fache von answer_value');
@@ -216,11 +216,11 @@ describe('Fragendatei – Schätzfragen', () => {
     const year = { answer_unit: 'year', answer_value: '1902', scale_type: 'LINEAR', scale: 15, input_max: '2026' };
     expect(errors(est({ ...year, input_min: '1000' }))).toEqual([]);
     expect(errors(est({ ...year, input_min: '1901' }))).toContain(
-      'Jahreszahlen: input_min höchstens 1000, sonst verrät der Bereich etwas über die Lösung',
+      'Jahreszahlen: input_min höchstens 1000, sonst schätzen Bots an der Grenze künstlich genau',
     );
     // … bis zum laufenden Jahr, nicht bis zur Lösung
     expect(errors(est({ ...year, input_min: '1000', input_max: '1902' }))).toContain(
-      'Jahreszahlen: input_max mindestens 2026, sonst verrät der Bereich etwas über die Lösung',
+      'Jahreszahlen: input_max mindestens 2026, sonst schätzen Bots an der Grenze künstlich genau',
     );
     // Natürliche Grenze bei LINEAR bleibt erlaubt (Ordnungszahl bis 118)
     expect(errors(est({ answer_unit: 'count', answer_value: '87', input_min: '1', input_max: '118', scale_type: 'LINEAR', scale: 8 }))).toEqual([]);

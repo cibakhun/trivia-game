@@ -119,7 +119,7 @@ describe('Wikidata-Hilfen', () => {
 });
 
 describe('Schätzfragen', () => {
-  it('Eingabebereich passt zu jedem Wert, den die Vorlage auswählen kann (ADR-076)', () => {
+  it('Kappung der Bots passt zu jedem Wert, den die Vorlage auswählen kann (ADR-076)', () => {
     for (const t of TEMPLATES) {
       if (t.kind !== 'ESTIMATE') continue;
       if (t.unit === 'year') {

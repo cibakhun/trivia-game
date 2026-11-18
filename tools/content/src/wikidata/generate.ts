@@ -45,9 +45,10 @@ export interface EstimateTemplate {
   readonly valueMin: number;
   readonly valueMax: number;
   /**
-   * Eingabebereich für die Spieler (ADR-076): gleich für alle Fragen der Vorlage und weit gefasst,
-   * damit er nichts über die Lösung verrät und keine ernst gemeinte Schätzung abweist (mindestens
-   * bis zum Dreifachen jeder Lösung, siehe `validate.ts`). Ändern verschiebt die Auswahl nicht.
+   * Kappung der Bot-Schätzungen (`input_min`/`input_max`, ADR-076): Spieler können jede Zahl
+   * eingeben, nur Bots begrenzen ihre Schätzung darauf. Gleich für alle Fragen der Vorlage und weit
+   * gefasst (mindestens bis zum Dreifachen jeder Lösung, siehe `validate.ts`), damit Bots an der
+   * Grenze nicht künstlich genau schätzen. Ändern verschiebt die Auswahl nicht.
    */
   readonly inputMin: number;
   readonly inputMax: number;

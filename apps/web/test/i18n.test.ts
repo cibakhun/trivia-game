@@ -18,7 +18,7 @@ import { de } from '../src/i18n/de.ts';
 import {
   errorMessage,
   formatDecimal,
-  formatEstimateNumber,
+  formatEstimateFigure,
   hasMessage,
   t,
   tp,
@@ -107,6 +107,21 @@ describe('Übersetzungsfunktionen', () => {
     expect(formatDecimal('kein Wert')).toBe('kein Wert');
   });
 
+  it('kürzt absurd große Schätzungen mit Zahlwort, damit sie in eine Zeile passen (ADR-076)', () => {
+    // bis unter eine Billion wie formatDecimal
+    expect(formatEstimateFigure('999999999999')).toBe('999.999.999.999');
+    expect(formatEstimateFigure('-1411750000')).toBe('-1.411.750.000');
+    expect(formatEstimateFigure('8848.86')).toBe('8.848,86');
+    // darüber kurz, genau ohne ≈
+    expect(formatEstimateFigure('1000000000000')).toBe('1\u00a0Billion');
+    expect(formatEstimateFigure('1230000000000')).toBe('1,23\u00a0Billionen');
+    expect(formatEstimateFigure('1234000000000')).toBe('≈\u00a01,23\u00a0Billionen');
+    expect(formatEstimateFigure('-99999999999999999999')).toBe('≈\u00a0-100\u00a0Trillionen');
+    expect(formatEstimateFigure('999600000000000')).toBe('≈\u00a01\u00a0Billiarde');
+    expect(formatEstimateFigure('9'.repeat(40))).toBe('≈\u00a010\u00a0Sextilliarden');
+    expect(formatEstimateFigure('1000000000000.5')).toBe('≈\u00a01\u00a0Billion');
+  });
+
   it('übersetzen Fehlercodes mit Zeitpunkt und fallen sonst auf den allgemeinen Text zurück', () => {
     const until = '2026-11-12T10:30:00.000Z';
     expect(errorMessage('REGION_PROTECTED', { until })).toMatch(/^Die Region ist geschützt bis \S/);
@@ -118,21 +133,5 @@ describe('Übersetzungsfunktionen', () => {
     );
     expect(errorMessage('RATE_LIMITED', { retryAfterMs: 500 })).toContain('in 1 Min.');
     expect(errorMessage('GIBT_ES_NICHT')).toBe(t('errors.generic'));
-  });
-
-  it('nennen bei einer Schätzung außerhalb des Bereichs, was geht (ADR-076)', () => {
-    expect(errorMessage('ANSWER_OUT_OF_RANGE', { min: '1000', max: '2026' })).toBe(
-      'Erlaubt sind nur Zahlen von\u00a01000 bis\u00a02026.',
-    );
-    expect(errorMessage('ANSWER_OUT_OF_RANGE', { min: '1', max: '100000000' })).toBe(
-      'Erlaubt sind nur Zahlen von\u00a01 bis\u00a0100.000.000.',
-    );
-    // Ohne Bereich (älterer Server) bleibt die allgemeine Meldung
-    expect(errorMessage('ANSWER_OUT_OF_RANGE')).toBe(
-      'Diese Zahl liegt außerhalb des möglichen Bereichs.',
-    );
-    expect(formatEstimateNumber('1901')).toBe('1901');
-    expect(formatEstimateNumber('30000')).toBe('30.000');
-    expect(formatEstimateNumber('12345.5')).toBe('12.345,5');
   });
 });

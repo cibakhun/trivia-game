@@ -11,14 +11,14 @@ import { questionFileSchema, type QuestionFile } from './schema.ts';
  */
 
 /**
- * Eingabebereich einer Schätzfrage (ADR-076): Jahreszahlen sind ab diesem Jahr erlaubt, bei Fragen
- * mit LOG-Skala reicht der Bereich mindestens bis zum Dreifachen der Lösung und bis zu einem
- * Drittel (oder bis 1). So lehnt das Spiel keine ernst gemeinte Schätzung ab, und der Bereich, den
- * die Meldung nennt, ist kein Hinweis. Ein Bereich mit natürlicher Grenze (Ordnungszahl bis 118,
- * Jahreszahl bis zum laufenden Jahr) bleibt erlaubt.
+ * Kappung der Bot-Schätzungen (`input_min`/`input_max`, ADR-076). Spieler können jede Zahl
+ * eingeben; nur Bots begrenzen ihre gestreute Schätzung auf diesen Bereich (NPC_SYSTEM §3.2). Liegt
+ * er knapp an der Lösung, schätzen Bots dort künstlich genau. Deshalb reichen Jahreszahlen von 1000
+ * bis zum laufenden Jahr, bei LOG-Skala reicht der Bereich mindestens bis zum Dreifachen der Lösung
+ * und bis zu einem Drittel (oder bis 1). Eine natürliche Grenze (Ordnungszahl bis 118) bleibt erlaubt.
  */
 export const YEAR_INPUT_MIN = '1000';
-/** Laufendes Jahr als Obergrenze jeder Jahreszahl; zum Jahreswechsel hier und in den Listen erhöhen. */
+/** Laufendes Jahr; anheben, sobald eine Lösung im neuen Jahr liegt (hier und in den Listen). */
 export const YEAR_INPUT_MAX = '2026';
 export const LOG_INPUT_FACTOR = 3;
 
@@ -114,13 +114,13 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     if (e.answer_unit === 'year' && compareDecimalStrings(e.input_min, '1') < 0) {
       error('Jahreszahlen vor Christus sind im MVP ausgeschlossen (input_min ≥ 1)');
     }
-    // Eingabebereich (ADR-076): Er weist nur ab, was keine ernst gemeinte Schätzung sein kann, und
-    // sagt nichts über die Lösung. Wer ihn verfehlt, liest ihn in der Meldung des Spiels.
+    // Kappung der Bot-Schätzungen (ADR-076): nicht knapp an der Lösung, sonst schätzen Bots dort
+    // künstlich genau. Spieler betrifft sie nicht, sie können jede Zahl eingeben.
     if (e.answer_unit === 'year' && compareDecimalStrings(e.input_min, YEAR_INPUT_MIN) > 0) {
-      error(`Jahreszahlen: input_min höchstens ${YEAR_INPUT_MIN}, sonst verrät der Bereich etwas über die Lösung`);
+      error(`Jahreszahlen: input_min höchstens ${YEAR_INPUT_MIN}, sonst schätzen Bots an der Grenze künstlich genau`);
     }
     if (e.answer_unit === 'year' && compareDecimalStrings(e.input_max, YEAR_INPUT_MAX) < 0) {
-      error(`Jahreszahlen: input_max mindestens ${YEAR_INPUT_MAX}, sonst verrät der Bereich etwas über die Lösung`);
+      error(`Jahreszahlen: input_max mindestens ${YEAR_INPUT_MAX}, sonst schätzen Bots an der Grenze künstlich genau`);
     }
     if (e.scale_type === 'LOG') {
       // exakt in ganzen Einheiten: max ≥ 3 · Lösung, und min ≤ 1 oder 3 · min ≤ Lösung

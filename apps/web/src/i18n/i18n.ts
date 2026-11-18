@@ -87,35 +87,53 @@ export function formatDecimal(value: string): string {
   return `${sign}${grouped}${fraction ? `,${fraction}` : ''}`;
 }
 
+/** Große deutsche Zahlwörter ab der Billion, je drei Stellen weiter (Einzahl, Mehrzahl). */
+const LARGE_NUMBER_WORDS: readonly (readonly [string, string])[] = [
+  ['Billion', 'Billionen'],
+  ['Billiarde', 'Billiarden'],
+  ['Trillion', 'Trillionen'],
+  ['Trilliarde', 'Trilliarden'],
+  ['Quadrillion', 'Quadrillionen'],
+  ['Quadrilliarde', 'Quadrilliarden'],
+  ['Quintillion', 'Quintillionen'],
+  ['Quintilliarde', 'Quintilliarden'],
+  ['Sextillion', 'Sextillionen'],
+  ['Sextilliarde', 'Sextilliarden'],
+];
+
+/**
+ * Eine geschätzte Zahl oder ihr Abstand in der Auflösung. Bis unter eine Billion wie
+ * `formatDecimal`, darüber kurz mit Zahlwort („≈ 1,23 Trillionen“), damit auch eine absurd große
+ * Schätzung in eine Zeile passt: Eine erlaubte Grenze gibt es nicht (ADR-076).
+ */
+export function formatEstimateFigure(value: string): string {
+  const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value);
+  if (!match) return value;
+  const [, sign = '', rawWhole = '0', fraction = ''] = match;
+  const whole = rawWhole.replace(/^0+(?=\d)/, '');
+  // Gruppe 0 ist die Billion (10^12), jede weitere drei Stellen mehr
+  let group = Math.floor((whole.length - 1) / 3) - 4;
+  if (group < 0) return formatDecimal(value);
+  const point = whole.length - 3 * (group + 4);
+  let mantissa = Number(Number(`${whole.slice(0, point)}.${whole.slice(point)}`).toPrecision(3));
+  if (mantissa >= 1000) {
+    mantissa /= 1000;
+    group += 1;
+  }
+  const words = LARGE_NUMBER_WORDS[group];
+  if (!words) return formatDecimal(value);
+  // genau, wenn hinter den ersten drei Ziffern nur Nullen stehen
+  const exact = /^0*$/.test(fraction) && whole.replace(/0+$/, '').length <= 3;
+  const word = mantissa === 1 ? words[0] : words[1];
+  return `${exact ? '' : '≈\u00a0'}${sign}${String(mantissa).replace('.', ',')}\u00a0${word}`;
+}
+
 export function formatTime(iso: string): string {
   return timeFormat.format(new Date(iso));
 }
 
-/**
- * Zahl in der Schreibweise des Spiels wie im Feld der Schätzung: Jahreszahlen und andere Zahlen bis
- * vier Stellen glatt („1901“), größere mit Punkten („20.000“), Komma vor Nachkommastellen.
- */
-export function formatEstimateNumber(value: string): string {
-  const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value);
-  if (!match) return value;
-  const [, sign = '', whole = '0', fraction] = match;
-  const grouped = whole.length > 4 ? whole.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : whole;
-  return `${sign}${grouped}${fraction ? `,${fraction}` : ''}`;
-}
-
 /** Ablehnungsgründe eines Angriffs (mit Zeitpunkt) und sonstige Fehlercodes als Text. */
 export function errorMessage(code: string, details?: Readonly<Record<string, unknown>>): string {
-  // Eine Schätzung außerhalb des Bereichs: Die Absage nennt ihn, die Meldung auch (ADR-076)
-  if (
-    code === 'ANSWER_OUT_OF_RANGE' &&
-    typeof details?.min === 'string' &&
-    typeof details.max === 'string'
-  ) {
-    return t('quiz.estimateRange', {
-      min: formatEstimateNumber(details.min),
-      max: formatEstimateNumber(details.max),
-    });
-  }
   const until = details?.until ?? details?.resetAt;
   const retry = details?.retryAfterMs;
   const params: Params | undefined =

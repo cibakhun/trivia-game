@@ -9,9 +9,6 @@ import {
   newActionKey,
 } from '../api/client.ts';
 import { playSound } from '../audio/sound.ts';
-import { ClientError } from '../components/ErrorNote.tsx';
-import { formatEstimateNumber } from '../i18n/i18n.ts';
-import { outsideEstimateRange } from '../match/estimate-input.ts';
 import {
   countedAnswer,
   needsPresent,
@@ -243,22 +240,6 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
   }
 
   function answer(current: LocalQuestion, given: LocalAnswer) {
-    const asked = current.question;
-    if (
-      given.rawInput !== undefined &&
-      asked?.kind === 'ESTIMATE' &&
-      outsideEstimateRange(given.rawInput, asked)
-    ) {
-      // Außerhalb des Bereichs nähme der Server die Zahl nicht an: gleich sagen, was geht, und die
-      // Zahl stehen lassen, damit sie sich in der knappen Zeit korrigieren lässt (ADR-076)
-      setActionError(
-        new ClientError('quiz.estimateRange', {
-          min: formatEstimateNumber(asked.inputMin),
-          max: formatEstimateNumber(asked.inputMax),
-        }),
-      );
-      return;
-    }
     playSound('answer');
     const update = (change: (question: LocalQuestion) => LocalQuestion) =>
       setLocal((l) => (l && l.seq === current.seq ? change(l) : l));
@@ -322,11 +303,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     busy,
     estimate,
     onRetry: refresh,
-    onEstimate: (update) => {
-      setEstimate(update);
-      // Wer die Zahl ändert, hat die Meldung zu ihr gelesen
-      setActionError((e: unknown) => (isNumberError(e) ? null : e));
-    },
+    onEstimate: setEstimate,
     onPick: pick,
     onAnswer: answer,
     onExpire: () => setLocal((l) => (l && l.status === 'OPEN' ? { ...l, status: 'MISSED' } : l)),
@@ -338,14 +315,5 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     <RealmStage {...stage} onSetFavorites={setFavorites} onSubmitOrders={submitOrders} />
   ) : (
     <MatchStage {...stage} />
-  );
-}
-
-/** Meldung zur eingegebenen Zahl einer Schätzung (außerhalb des Bereichs oder unlesbar). */
-function isNumberError(error: unknown): boolean {
-  if (error instanceof ClientError) return error.messageKey === 'quiz.estimateRange';
-  return (
-    error instanceof ApiRequestError &&
-    (error.code === 'ANSWER_OUT_OF_RANGE' || error.code === 'INVALID_NUMBER_INPUT')
   );
 }
