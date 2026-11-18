@@ -59,6 +59,12 @@ export interface NpcProfile {
   readonly estimateMedianMs: number;
   /** Streuung der Log-Normalverteilung der Antwortzeit [E]. */
   readonly responseLogSigma: number;
+  /**
+   * Feste Streuung der Schätzung in Vielfachen von `estimate_scale` statt `s(θ)` (§3.2). Nur die
+   * Bots der Partie setzen sie (ADR-075): Dort soll die Schätzung unabhängig von der
+   * Wissensstärke einstellbar sein. Ohne sie gilt `s(θ)` wie bisher.
+   */
+  readonly estimateSpread?: number;
 }
 
 /** Streuung der Antwortzeit (σ von ln t) [E]; Kalibrierung in Phase 5. */
@@ -229,7 +235,8 @@ export function generateNpcEstimate(
 ): NpcEstimate {
   if (!(spec.scale > 0)) throw new RangeError('estimate_scale muss positiv sein');
 
-  const spread = estimateSpread(profile.theta, spreadParams);
+  const spread = profile.estimateSpread ?? estimateSpread(profile.theta, spreadParams);
+  if (!(spread > 0)) throw new RangeError('Streuung der Schätzung muss positiv sein');
   const zEstimate = rng.nextNormal();
   const truth = decimalToNumber(parseDecimal(spec.answerValue));
   const sigma = spread * spec.scale;

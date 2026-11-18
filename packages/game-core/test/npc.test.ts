@@ -249,6 +249,18 @@ describe('generateNpcAnswer', () => {
     expect(Object.keys(a.audit.draws)).toEqual(['trivia', 'estimate', 'time']);
   });
 
+  it('eine feste Streuung im Profil ersetzt s(θ), die Ziehungen bleiben dieselben (ADR-075)', () => {
+    const fixed = { ...NPC_BASE_PROFILES.MEDIUM, estimateSpread: 2.4 };
+    const a = generateNpcAnswer(seededRng(3), fixed, QUESTION);
+    const b = generateNpcAnswer(seededRng(3), NPC_BASE_PROFILES.MEDIUM, QUESTION);
+    expect(a.audit.spread).toBe(2.4);
+    expect(a.audit.draws).toEqual(b.audit.draws);
+    expect(a.triviaCorrect).toBe(b.triviaCorrect);
+    expect(() =>
+      generateNpcAnswer(seededRng(3), { ...fixed, estimateSpread: 0 }, QUESTION),
+    ).toThrow(RangeError);
+  });
+
   it('lehnt ungültige Fragenparameter ab', () => {
     expect(() =>
       generateNpcAnswer(seededRng(1), NPC_BASE_PROFILES.LIGHT, {

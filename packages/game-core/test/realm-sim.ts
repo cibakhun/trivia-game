@@ -9,17 +9,20 @@ import {
   createRng,
   DIFFICULTY_CLASS_B,
   formatDecimal,
-  generateRealmBotAnswer,
   generateNpcEstimate,
+  generateNpcTrivia,
   MATCH_BOT_STRENGTHS,
+  NPC_BASE_PROFILES,
   realmBotProfile,
   realmCurrentChooser,
   realmPendingQuestion,
+  REALM_FAVORITE_THETA_BONUS,
   scoreEstimate,
   spinRealmWheel,
   type MatchBotStrength,
   type MatchEstimateAnswer,
   type NpcEstimateSpec,
+  type NpcProfile,
   type RealmEvent,
   type RealmInput,
   type RealmState,
@@ -33,6 +36,18 @@ import {
  * bitgleich.
  */
 
+/**
+ * Stärken der Bots vor ADR-075 (die NPC-Archetypen LIGHT, MEDIUM, HEAVY). Mit dem mittleren davon
+ * als „gleich starke Spieler“ sind die Bänder der Spielbalance in `realm-simulation.test.ts` und
+ * die Messwerte in docs/MATCH_RULES.md §11.9 erhoben; sie bleiben so vergleichbar, auch wenn die
+ * Bots selbst schwächer geworden sind.
+ */
+export const BALANCE_PROFILES: Readonly<Record<MatchBotStrength, NpcProfile>> = Object.freeze({
+  EASY: NPC_BASE_PROFILES.LIGHT,
+  MEDIUM: NPC_BASE_PROFILES.MEDIUM,
+  HARD: NPC_BASE_PROFILES.HEAVY,
+});
+
 export interface RealmSimOptions {
   /** Feste Stärke für alle Sitze; sonst je Sitz zufällig. */
   readonly strength?: MatchBotStrength;
@@ -41,6 +56,14 @@ export interface RealmSimOptions {
    * er beide Fragen zusammen.
    */
   readonly seat0Misses?: number;
+  /**
+   * Sitz 0 antwortet mit diesem Profil statt mit dem seiner Stärke, ohne Zuschlag in den
+   * Lieblingskategorien: ein Mensch mit gemessener Trefferquote und Schätzung (ADR-075). Er wählt
+   * und rüstet weiter wie ein Bot.
+   */
+  readonly seat0Profile?: NpcProfile;
+  /** Andere Profile der Stärken als `MATCH_BOT_PROFILES`, etwa die von vor ADR-075 zum Vergleich. */
+  readonly profiles?: Readonly<Record<MatchBotStrength, NpcProfile>>;
   /** Nach jedem Schritt aufgerufen, zum Prüfen von Invarianten. */
   readonly onStep?: (state: RealmState) => void;
 }
@@ -141,6 +164,16 @@ export function simulateRealm(
     chooseRealmFavoritesForBot(categories, economy.favorites, choices),
   );
   const missRate = options.seat0Misses ?? 0;
+  /** Profil eines Sitzes für eine Frage der Kategorie `category` (`null` = Schätzfrage). */
+  const profileOf = (seat: number, category: QuestionCategory | null): NpcProfile => {
+    if (seat === 0 && options.seat0Profile) return options.seat0Profile;
+    const strength = strengths[seat] as MatchBotStrength;
+    if (!options.profiles) return realmBotProfile(strength, favorites[seat] ?? [], category);
+    const base = options.profiles[strength];
+    return category !== null && (favorites[seat] ?? []).includes(category)
+      ? { ...base, theta: base.theta + REALM_FAVORITE_THETA_BONUS }
+      : base;
+  };
   const missed = (seat: number) => choices.nextFloat() < (seat === 0 ? missRate : 0);
 
   let state = createRealm(rules, { categories, favorites });
@@ -164,12 +197,7 @@ export function simulateRealm(
     // Start und Landnahme fragen alle Reiche, die noch stehen: Der Mensch ist dabei
     soloStep(true, TYPICAL_MS.estimate, 0, timers.revealMs);
     return seats.map((seat) => {
-      const a = generateNpcEstimate(
-        answers,
-        realmBotProfile(strengths[seat] as MatchBotStrength, favorites[seat] ?? [], null),
-        spec,
-        timers.estimateMs,
-      );
+      const a = generateNpcEstimate(answers, profileOf(seat, null), spec, timers.estimateMs);
       return { seat, ...(missed(seat) ? MISSED : scored(spec, a.estimate, a.estimateMs)) };
     });
   };
@@ -255,18 +283,13 @@ export function simulateRealm(
         const triviaB = levels[questions.nextUint32() % levels.length] as number;
         const spec = randomEstimateSpec(questions);
         const answer = (seat: number) => {
-          const a = generateRealmBotAnswer(
-            answers,
-            strengths[seat] as MatchBotStrength,
-            favorites[seat] ?? [],
-            step.category,
-            {
-              triviaB,
-              wrongOptionCount: 3,
-              estimate: spec,
-              estimateTimeLimitMs: timers.estimateMs,
-            },
-          );
+          // Ziehungsfolge wie `generateRealmBotAnswer`: Wissensfrage, Schätzung, Zeit; die
+          // Schätzung im Stechen ohne Zuschlag der Lieblingskategorie
+          const a = {
+            triviaCorrect: generateNpcTrivia(answers, profileOf(seat, step.category), triviaB, 3)
+              .correct,
+            ...generateNpcEstimate(answers, profileOf(seat, null), spec, timers.estimateMs),
+          };
           // Wer ein Duell verpasst, verpasst beide Fragen (wie match-simulation.test.ts)
           const miss = missed(seat);
           return {
