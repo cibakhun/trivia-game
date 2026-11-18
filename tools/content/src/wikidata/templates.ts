@@ -1,5 +1,6 @@
 import { countryName, hasNominative, inCountry, nominative, ofCountry, personName } from './de.ts';
 import type { ChoiceFact, ChoiceTemplate, EstimateFact, EstimateTemplate, Template } from './generate.ts';
+import { YEAR_INPUT_MAX } from '../validate.ts';
 import { distinct, foldText, groupByItem, numberOf, yearOf, type Row } from './util.ts';
 
 /**
@@ -334,8 +335,8 @@ const landEinwohner: EstimateTemplate = {
   unitLabel: 'Einwohner',
   valueMin: 1000,
   valueMax: 2000000000,
-  inputMin: 1000,
-  inputMax: 2000000000,
+  inputMin: 1,
+  inputMax: 10000000000,
   scaleType: 'LOG',
   scale: 0.4,
   // nur Zahlen ab 2020: ältere Stände („im Jahr 2017“) wirken in einer neuen Frage veraltet
@@ -368,8 +369,8 @@ const stadtEinwohner: EstimateTemplate = {
   unitLabel: 'Einwohner',
   valueMin: 1000,
   valueMax: 10000000,
-  inputMin: 1000,
-  inputMax: 10000000,
+  inputMin: 1,
+  inputMax: 100000000,
   scaleType: 'LOG',
   scale: 0.3,
   extract: (rows) => latestValueFacts(rows, {}),
@@ -441,7 +442,7 @@ const bundeslandFlaeche: EstimateTemplate = {
   valueMin: 1,
   valueMax: 1000000,
   inputMin: 1,
-  inputMax: 1000000,
+  inputMax: 10000000,
   scaleType: 'LOG',
   scale: 0.4,
   extract: (rows) => singleValueFacts(rows, {}, (m2) => m2 / 1_000_000),
@@ -528,7 +529,7 @@ const geburtsjahr: EstimateTemplate = {
   valueMin: 1000,
   valueMax: 2026,
   inputMin: 1000,
-  inputMax: 2026,
+  inputMax: Number(YEAR_INPUT_MAX),
   scaleType: 'LINEAR',
   scale: 40,
   extract: (rows) => {
@@ -570,7 +571,7 @@ const nobelJahr: EstimateTemplate = {
   valueMin: 1901,
   valueMax: 2026,
   inputMin: 1000,
-  inputMax: 2026,
+  inputMax: Number(YEAR_INPUT_MAX),
   scaleType: 'LINEAR',
   scale: 15,
   extract: (rows) => {

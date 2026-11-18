@@ -18,6 +18,8 @@ import { questionFileSchema, type QuestionFile } from './schema.ts';
  * Jahreszahl bis zum laufenden Jahr) bleibt erlaubt.
  */
 export const YEAR_INPUT_MIN = '1000';
+/** Laufendes Jahr als Obergrenze jeder Jahreszahl; zum Jahreswechsel hier und in den Listen erhöhen. */
+export const YEAR_INPUT_MAX = '2026';
 export const LOG_INPUT_FACTOR = 3;
 
 export type Severity = 'error' | 'warning';
@@ -48,6 +50,12 @@ function compareDecimalStrings(a: string, b: string): number {
   const x = BigInt(ai + af.padEnd(scale, '0')) * (a.startsWith('-') ? -1n : 1n);
   const y = BigInt(bi + bf.padEnd(scale, '0')) * (b.startsWith('-') ? -1n : 1n);
   return x < y ? -1 : x > y ? 1 : 0;
+}
+
+/** Kanonische Dezimalzahl als ganze Zahl in Einheiten von 10^-scale (exakt, ohne Float). */
+function scaledDecimal(value: string, scale: number): bigint {
+  const [whole = '', fraction = ''] = value.replace('-', '').split('.');
+  return BigInt(whole + fraction.padEnd(scale, '0')) * (value.startsWith('-') ? -1n : 1n);
 }
 
 function decimalPlaces(value: string): number {
@@ -111,12 +119,19 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     if (e.answer_unit === 'year' && compareDecimalStrings(e.input_min, YEAR_INPUT_MIN) > 0) {
       error(`Jahreszahlen: input_min höchstens ${YEAR_INPUT_MIN}, sonst verrät der Bereich etwas über die Lösung`);
     }
+    if (e.answer_unit === 'year' && compareDecimalStrings(e.input_max, YEAR_INPUT_MAX) < 0) {
+      error(`Jahreszahlen: input_max mindestens ${YEAR_INPUT_MAX}, sonst verrät der Bereich etwas über die Lösung`);
+    }
     if (e.scale_type === 'LOG') {
-      const answer = Number(e.answer_value);
-      if (Number(e.input_max) < LOG_INPUT_FACTOR * answer) {
+      // exakt in ganzen Einheiten: max ≥ 3 · Lösung, und min ≤ 1 oder 3 · min ≤ Lösung
+      const scale = Math.max(decimalPlaces(e.answer_value), decimalPlaces(e.input_min), decimalPlaces(e.input_max));
+      const answer = scaledDecimal(e.answer_value, scale);
+      const factor = BigInt(LOG_INPUT_FACTOR);
+      if (scaledDecimal(e.input_max, scale) < factor * answer) {
         error(`LOG-Skala: input_max mindestens das ${LOG_INPUT_FACTOR}-Fache von answer_value`);
       }
-      if (Number(e.input_min) > Math.max(1, answer / LOG_INPUT_FACTOR)) {
+      const min = scaledDecimal(e.input_min, scale);
+      if (min > scaledDecimal('1', scale) && factor * min > answer) {
         error(`LOG-Skala: input_min höchstens answer_value / ${LOG_INPUT_FACTOR} oder 1`);
       }
     }
