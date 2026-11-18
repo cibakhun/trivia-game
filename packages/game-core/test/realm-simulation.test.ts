@@ -346,7 +346,7 @@ for (const plan of PLANS) {
  * Rückmeldung des Product Owners am 2026-11-18 („bots sind zu hart“, ADR-075): Ein Mensch wie in
  * seinen Partien vom 16. und 18.11. (4 von 12 Wissensfragen richtig, Schätzung im Median 1,33
  * Skaleneinheiten daneben) gewinnt zu zweit gegen leicht meistens und gegen mittel oft genug. Vorher
- * gewann er gegen mittel nur rund 4 % (`bot-staerke-measure.ts`). Sitz 0 wählt und rüstet wie ein
+ * gewann er gegen mittel nur rund 3 % (`bot-staerke-measure.ts`). Sitz 0 wählt und rüstet wie ein
  * Bot, antwortet aber mit diesem Profil.
  */
 describe('Partie mit Ausbau: ein Mensch gegen einen Bot', () => {
@@ -361,7 +361,9 @@ describe('Partie mit Ausbau: ein Mensch gegen einen Bot', () => {
     let wins = 0;
     for (let i = 0; i < BALANCE_MATCHES; i++) {
       const run = simulateRealm(rules, i, { strength, seat0Profile: human });
-      if (realmStandings(run.state).some((s) => s.seat === 0 && s.place === 1)) wins += 1;
+      // Ein geteilter erster Platz zählt anteilig, wie in `realm-measure.ts`
+      const winners = realmStandings(run.state).filter((s) => s.place === 1);
+      if (winners.some((s) => s.seat === 0)) wins += 1 / winners.length;
     }
     return wins / BALANCE_MATCHES;
   };
@@ -374,6 +376,7 @@ describe('Partie mit Ausbau: ein Mensch gegen einen Bot', () => {
     expect(medium).toBeGreaterThan(0.35);
     expect(medium).toBeLessThan(easy);
     expect(hard).toBeLessThan(medium);
+    expect(hard).toBeLessThan(0.35);
     expect(hard).toBeGreaterThan(0.05);
   });
 });

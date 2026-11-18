@@ -235,8 +235,11 @@ export function generateNpcEstimate(
 ): NpcEstimate {
   if (!(spec.scale > 0)) throw new RangeError('estimate_scale muss positiv sein');
 
-  const spread = profile.estimateSpread ?? estimateSpread(profile.theta, spreadParams);
-  if (!(spread > 0)) throw new RangeError('Streuung der Schätzung muss positiv sein');
+  const fixed = profile.estimateSpread;
+  if (fixed !== undefined && !(Number.isFinite(fixed) && fixed > 0)) {
+    throw new RangeError('Feste Streuung der Schätzung muss endlich und positiv sein');
+  }
+  const spread = fixed ?? estimateSpread(profile.theta, spreadParams);
   const zEstimate = rng.nextNormal();
   const truth = decimalToNumber(parseDecimal(spec.answerValue));
   const sigma = spread * spec.scale;

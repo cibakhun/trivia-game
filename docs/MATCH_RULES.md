@@ -110,15 +110,15 @@ Punkte = Summe der Werte der eigenen Regionen (Region 100, Hauptstadt 300, je Be
   | mittel | −0,9 (vorher +0,6) | 32 % (vorher 62 %) | 2,4 (vorher 0,47) | 10 s (vorher 9 s) |
   | schwer | +0,1 (vorher +1,7) | 52 % (vorher 81 %) | 1,2 (vorher 0,21) | 9 s (vorher 6 s) |
 
-  Die Streuung der Schätzung ist fest (`estimateSpread` im Profil) statt aus θ abgeleitet ([NPC_SYSTEM.md §3.2](NPC_SYSTEM.md)), damit sie sich unabhängig vom Wissen einstellen lässt; die NPCs der Eternal-Welt bleiben unverändert. Leicht trifft seltener als Raten bei vier Antworten; das ist gewollt, damit leicht deutlich leichter ist als mittel. Wie oft ein Mensch dagegen gewinnt, misst `packages/game-core/test/bot-staerke-measure.ts` (je 2 000 Partien mit Ausbau; Sitz 0 antwortet mit dem Profil eines Menschen, wählt und rüstet aber wie ein Bot, die anderen Sitze sind Bots derselben Stärke):
+  Die Streuung der Schätzung ist fest (`estimateSpread` im Profil) statt aus θ abgeleitet ([NPC_SYSTEM.md §3.2](NPC_SYSTEM.md)), damit sie sich unabhängig vom Wissen einstellen lässt; die NPCs der Eternal-Welt bleiben unverändert. Leicht trifft seltener als Raten bei vier Antworten; das ist gewollt, damit leicht deutlich leichter ist als mittel. Wie oft ein Mensch dagegen gewinnt, misst `packages/game-core/test/bot-staerke-measure.ts` (je 2 000 Partien mit Ausbau; Sitz 0 antwortet mit dem Profil eines Menschen, wählt und rüstet aber wie ein Bot, die anderen Sitze sind Bots derselben Stärke; ein geteilter erster Platz zählt anteilig wie in `realm-measure.ts`):
 
   | Mensch | zu zweit gegen leicht / mittel / schwer | zu dritt gegen zwei leichte / mittlere / schwere |
   |---|---|---|
-  | wie in den Partien des Product Owners (33 % richtig, Streuung 2,0) | 69 / 45 / 16 % (vorher 19 / 4 / 1 %) | 54 / 31 / 7 % (vorher 10 / 2 / 0 %) |
-  | Gelegenheitsspieler (50 %, Streuung 1,5) [E] | 86 / 68 / 34 % (vorher 38 / 10 / 1 %) | 77 / 55 / 20 % (vorher 22 / 5 / 1 %) |
-  | Kenner (65 %, Streuung 1,0) [E] | 96 / 88 / 58 % (vorher 64 / 23 / 4 %) | 91 / 80 / 42 % (vorher 46 / 13 / 2 %) |
+  | wie in den Partien des Product Owners (33 % richtig, Streuung 2,0) | 66 / 42 / 14 % (vorher 18 / 3 / 1 %) | 52 / 30 / 7 % (vorher 9 / 2 / 0 %) |
+  | Gelegenheitsspieler (50 %, Streuung 1,5) [E] | 84 / 66 / 32 % (vorher 37 / 9 / 1 %) | 76 / 53 / 19 % (vorher 21 / 5 / 1 %) |
+  | Kenner (65 %, Streuung 1,0) [E] | 95 / 87 / 56 % (vorher 62 / 22 / 3 %) | 91 / 79 / 41 % (vorher 45 / 12 / 2 %) |
 
-  Den Boden hält ein Test in `realm-simulation.test.ts`: Ein Mensch wie in den Partien des Product Owners gewinnt zu zweit gegen leicht in mehr als 55 %, gegen mittel in mehr als 35 % der Partien.
+  Den Boden hält ein Test in `realm-simulation.test.ts`: Ein Mensch wie in den Partien des Product Owners gewinnt zu zweit gegen leicht in mehr als 55 %, gegen mittel in mehr als 35 % und gegen schwer in 5 bis 35 % der Partien.
 - **Wahlen der Bots** **[E]**: Hauptstadt möglichst weit weg von den anderen (bis 3 Felder zählt), dann viele Nachbarn; Landnahme mit vielen eigenen, dann vielen freien Nachbarn; Angriffsziel mit dem größten unmittelbaren Gewinn (Regionswert; eine Hauptstadt mit letztem Leben bringt das ganze Reich, sonst zählt sie halb). Die Stärke wirkt nur auf die Antworten.
 - **Zufall:** neuer Zweck `match` im auditierbaren Zufall ([ARCHITECTURE.md §9](ARCHITECTURE.md)) für Sitzverteilung, Wahlen nach Zeitablauf und Bot-Wahlen. Die Zustandsmaschine selbst würfelt nie; Gleichstände entscheidet die Reihenfolge der Runde.
 

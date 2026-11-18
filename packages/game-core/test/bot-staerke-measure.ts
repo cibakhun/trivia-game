@@ -24,13 +24,32 @@ import { BALANCE_PROFILES, simulateRealm } from './realm-sim.ts';
  */
 
 const matches = Number(process.argv[2] ?? 2000);
+if (!Number.isSafeInteger(matches) || matches < 1) {
+  console.error(`Zahl der Partien muss eine ganze Zahl ab 1 sein: ${process.argv[2]}`);
+  process.exit(1);
+}
 
 /** Stärken vor ADR-075. */
 const BEFORE = BALANCE_PROFILES;
 
-const patch = process.env.BOT_PROFILES
-  ? (JSON.parse(process.env.BOT_PROFILES) as Partial<Record<MatchBotStrength, Partial<NpcProfile>>>)
-  : {};
+const patch = (process.env.BOT_PROFILES ? JSON.parse(process.env.BOT_PROFILES) : {}) as Partial<
+  Record<MatchBotStrength, Partial<NpcProfile>>
+>;
+for (const [strength, fields] of Object.entries(patch)) {
+  const known = (MATCH_BOT_STRENGTHS as readonly string[]).includes(strength);
+  const valid =
+    known &&
+    typeof fields === 'object' &&
+    fields !== null &&
+    Object.entries(fields).every(
+      ([key, value]) =>
+        key in MATCH_BOT_PROFILES.MEDIUM && typeof value === 'number' && Number.isFinite(value),
+    );
+  if (!valid) {
+    console.error(`BOT_PROFILES: ungültiger Eintrag für ${strength}: ${JSON.stringify(fields)}`);
+    process.exit(1);
+  }
+}
 const NOW = Object.fromEntries(
   MATCH_BOT_STRENGTHS.map((s) => [s, { ...MATCH_BOT_PROFILES[s], ...patch[s] }]),
 ) as Record<MatchBotStrength, NpcProfile>;
@@ -94,7 +113,9 @@ for (const seats of [2, 3] as const) {
         let wins = 0;
         for (let i = 0; i < matches; i++) {
           const run = simulateRealm(rules, i, { strength, seat0Profile: profile, profiles });
-          if (realmStandings(run.state).some((s) => s.seat === 0 && s.place === 1)) wins += 1;
+          // Ein geteilter erster Platz zählt anteilig, wie in `realm-measure.ts`
+          const winners = realmStandings(run.state).filter((s) => s.place === 1);
+          if (winners.some((s) => s.seat === 0)) wins += 1 / winners.length;
         }
         return wins / matches;
       });

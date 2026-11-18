@@ -256,9 +256,11 @@ describe('generateNpcAnswer', () => {
     expect(a.audit.spread).toBe(2.4);
     expect(a.audit.draws).toEqual(b.audit.draws);
     expect(a.triviaCorrect).toBe(b.triviaCorrect);
-    expect(() =>
-      generateNpcAnswer(seededRng(3), { ...fixed, estimateSpread: 0 }, QUESTION),
-    ).toThrow(RangeError);
+    for (const bad of [0, -1, Number.POSITIVE_INFINITY, Number.NaN]) {
+      expect(() =>
+        generateNpcAnswer(seededRng(3), { ...fixed, estimateSpread: bad }, QUESTION),
+      ).toThrow(RangeError);
+    }
   });
 
   it('lehnt ungültige Fragenparameter ab', () => {

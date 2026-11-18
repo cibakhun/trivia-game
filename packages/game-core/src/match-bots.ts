@@ -39,7 +39,7 @@ export type MatchBotStrength = (typeof MATCH_BOT_STRENGTHS)[number];
  * - `estimateMedianMs` = Bedenkzeit der Schätzung; sie zählt nur bei gleichem Abstand.
  *
  * Gemessen mit `test/bot-staerke-measure.ts`: Ein Mensch wie in jenen Partien gewinnt zu zweit
- * gegen leicht, mittel, schwer rund 69, 45 und 16 % (vorher 24, 4 und 0 %).
+ * gegen leicht, mittel, schwer rund 66, 42 und 14 % (vorher 18, 3 und 1 %).
  */
 export const MATCH_BOT_PROFILES: Readonly<Record<MatchBotStrength, NpcProfile>> = Object.freeze({
   EASY: Object.freeze({
