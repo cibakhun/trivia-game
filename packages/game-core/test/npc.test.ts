@@ -259,7 +259,7 @@ describe('generateNpcAnswer', () => {
     for (const bad of [0, -1, Number.POSITIVE_INFINITY, Number.NaN]) {
       expect(() =>
         generateNpcAnswer(seededRng(3), { ...fixed, estimateSpread: bad }, QUESTION),
-      ).toThrow(RangeError);
+      ).toThrow(/Feste Streuung/);
     }
   });
 

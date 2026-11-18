@@ -32,24 +32,33 @@ if (!Number.isSafeInteger(matches) || matches < 1) {
 /** Stärken vor ADR-075. */
 const BEFORE = BALANCE_PROFILES;
 
-const patch = (process.env.BOT_PROFILES ? JSON.parse(process.env.BOT_PROFILES) : {}) as Partial<
-  Record<MatchBotStrength, Partial<NpcProfile>>
->;
-for (const [strength, fields] of Object.entries(patch)) {
+const isPlainObject = (x: unknown): x is Record<string, unknown> =>
+  typeof x === 'object' && x !== null && !Array.isArray(x);
+
+const rawPatch: unknown = process.env.BOT_PROFILES ? JSON.parse(process.env.BOT_PROFILES) : {};
+if (!isPlainObject(rawPatch)) {
+  console.error(`BOT_PROFILES muss ein JSON-Objekt sein: ${process.env.BOT_PROFILES}`);
+  process.exit(1);
+}
+for (const [strength, fields] of Object.entries(rawPatch)) {
   const known = (MATCH_BOT_STRENGTHS as readonly string[]).includes(strength);
   const valid =
     known &&
-    typeof fields === 'object' &&
-    fields !== null &&
+    isPlainObject(fields) &&
     Object.entries(fields).every(
       ([key, value]) =>
-        key in MATCH_BOT_PROFILES.MEDIUM && typeof value === 'number' && Number.isFinite(value),
+        key in MATCH_BOT_PROFILES.MEDIUM &&
+        typeof value === 'number' &&
+        Number.isFinite(value) &&
+        // Die feste Streuung muss positiv sein, sonst lehnt `generateNpcEstimate` sie ab
+        (key !== 'estimateSpread' || value > 0),
     );
   if (!valid) {
     console.error(`BOT_PROFILES: ungültiger Eintrag für ${strength}: ${JSON.stringify(fields)}`);
     process.exit(1);
   }
 }
+const patch = rawPatch as Partial<Record<MatchBotStrength, Partial<NpcProfile>>>;
 const NOW = Object.fromEntries(
   MATCH_BOT_STRENGTHS.map((s) => [s, { ...MATCH_BOT_PROFILES[s], ...patch[s] }]),
 ) as Record<MatchBotStrength, NpcProfile>;
