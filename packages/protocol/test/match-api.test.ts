@@ -120,10 +120,22 @@ describe('Mitlesen für Zuschauer (ADR-065)', () => {
     expect(matchWatchResponseSchema.parse({ question: trivia, serverTime }).question).toEqual(
       trivia,
     );
-    const estimate = { ...base, kind: 'ESTIMATE', unitLabel: 'km', answerPrecision: 0 };
+    const estimate = {
+      ...base,
+      kind: 'ESTIMATE',
+      unitLabel: 'km',
+      answerPrecision: 0,
+      inputMin: '1',
+      inputMax: '30000',
+    };
     expect(matchWatchResponseSchema.safeParse({ question: estimate, serverTime }).success).toBe(
       true,
     );
+    // Eine Schätzfrage nennt ihren Eingabebereich (ADR-076), als kanonische Dezimalzahlen
+    const parses = (question: Record<string, unknown>) =>
+      matchWatchResponseSchema.safeParse({ question, serverTime }).success;
+    expect(parses({ ...base, kind: 'ESTIMATE', unitLabel: 'km', answerPrecision: 0 })).toBe(false);
+    expect(parses({ ...estimate, inputMax: '30.000' })).toBe(false);
   });
 
   it('nichts darüber hinaus: keine Lösung, keine Wahl eines Sitzes', () => {

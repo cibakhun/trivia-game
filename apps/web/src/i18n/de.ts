@@ -332,6 +332,7 @@ export const de = {
       other: 'Gewertet mit {count} Nachkommastellen.',
     },
     estimateWhole: 'Gewertet als ganze Zahl.',
+    estimateRange: 'Erlaubt sind nur Zahlen von\u00a0{min} bis\u00a0{max}.',
     submit: 'Antwort abgeben',
     saved: 'Deine Antwort ist gespeichert.',
     sending: 'Wird gesendet …',

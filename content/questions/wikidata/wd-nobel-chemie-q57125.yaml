@@ -29,7 +29,7 @@ estimate:
   answer_value: "1920"
   answer_precision: 0
   answer_unit: year
-  input_min: "1901"
+  input_min: "1000"
   input_max: "2026"
   scale_type: LINEAR
   scale: 15

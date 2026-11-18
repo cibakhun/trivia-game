@@ -297,6 +297,29 @@ describe('Testpartie mit Bots', () => {
     ).question;
     expect(reloaded.presentedAt).toBe(question.presentedAt);
 
+    // Der Eingabebereich kommt mit der Frage; eine Zahl außerhalb lehnt der Server ab und nennt
+    // ihn (ADR-076), die Frage bleibt offen
+    const range = await server.db
+      .selectFrom('match_questions as q')
+      .innerJoin('question_versions as v', 'v.id', 'q.version_id')
+      .select(['v.input_min', 'v.input_max'])
+      .where('q.match_id', '=', matchId)
+      .where('q.seq', '=', 1)
+      .executeTakeFirstOrThrow();
+    if (question.kind !== 'ESTIMATE') throw new Error('Schätzfrage erwartet');
+    expect([question.inputMin, question.inputMax]).toEqual([
+      String(Number(range.input_min)),
+      String(Number(range.input_max)),
+    ]);
+    const tooLarge = `${Number(range.input_max) + 1}`;
+    expect(
+      errorOf(await answer(human, matchId, 1, { rawInput: tooLarge, locale: 'de' }, randomUUID())),
+    ).toMatchObject({
+      status: 422,
+      code: 'ANSWER_OUT_OF_RANGE',
+      details: { min: question.inputMin, max: question.inputMax },
+    });
+
     // Antworten; Wiederholung mit demselben Schlüssel ist wirkungslos, anderer Inhalt ein Fehler
     const idem = randomUUID();
     const payload = await answerPayload(matchId, 1);

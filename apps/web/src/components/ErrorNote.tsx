@@ -1,9 +1,12 @@
 import { ApiRequestError, NetworkError } from '../api/client.ts';
-import { errorMessage, t, type MessageKey } from '../i18n/i18n.ts';
+import { errorMessage, t, type MessageKey, type Params } from '../i18n/i18n.ts';
 
-/** Fehler, den die Oberfläche selbst feststellt; trägt den Schlüssel seines Texts. */
+/** Fehler, den die Oberfläche selbst feststellt; trägt den Schlüssel seines Texts und dessen Werte. */
 export class ClientError extends Error {
-  constructor(readonly messageKey: MessageKey) {
+  constructor(
+    readonly messageKey: MessageKey,
+    readonly params?: Params,
+  ) {
     super(messageKey);
     this.name = 'ClientError';
   }
@@ -13,7 +16,7 @@ export class ClientError extends Error {
 export function describeError(error: unknown): string {
   if (error instanceof ApiRequestError) return errorMessage(error.code, error.details);
   if (error instanceof NetworkError) return t('errors.network');
-  if (error instanceof ClientError) return t(error.messageKey);
+  if (error instanceof ClientError) return t(error.messageKey, error.params);
   return t('errors.generic');
 }
 

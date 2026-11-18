@@ -15,7 +15,14 @@ import {
 } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import { de } from '../src/i18n/de.ts';
-import { errorMessage, formatDecimal, hasMessage, t, tp } from '../src/i18n/i18n.ts';
+import {
+  errorMessage,
+  formatDecimal,
+  formatEstimateNumber,
+  hasMessage,
+  t,
+  tp,
+} from '../src/i18n/i18n.ts';
 
 /** Vollständigkeit der deutschen Texte gegen die Codes des Protokolls (ADR-036). */
 
@@ -111,5 +118,21 @@ describe('Übersetzungsfunktionen', () => {
     );
     expect(errorMessage('RATE_LIMITED', { retryAfterMs: 500 })).toContain('in 1 Min.');
     expect(errorMessage('GIBT_ES_NICHT')).toBe(t('errors.generic'));
+  });
+
+  it('nennen bei einer Schätzung außerhalb des Bereichs, was geht (ADR-076)', () => {
+    expect(errorMessage('ANSWER_OUT_OF_RANGE', { min: '1000', max: '2026' })).toBe(
+      'Erlaubt sind nur Zahlen von\u00a01000 bis\u00a02026.',
+    );
+    expect(errorMessage('ANSWER_OUT_OF_RANGE', { min: '1', max: '100000000' })).toBe(
+      'Erlaubt sind nur Zahlen von\u00a01 bis\u00a0100.000.000.',
+    );
+    // Ohne Bereich (älterer Server) bleibt die allgemeine Meldung
+    expect(errorMessage('ANSWER_OUT_OF_RANGE')).toBe(
+      'Diese Zahl liegt außerhalb des möglichen Bereichs.',
+    );
+    expect(formatEstimateNumber('1901')).toBe('1901');
+    expect(formatEstimateNumber('30000')).toBe('30.000');
+    expect(formatEstimateNumber('12345.5')).toBe('12.345,5');
   });
 });

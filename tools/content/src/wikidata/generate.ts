@@ -38,6 +38,17 @@ export interface EstimateTemplate {
   readonly window: number;
   readonly unit: string;
   readonly unitLabel: string;
+  /**
+   * Werte, die der Auszug für glaubwürdig hält; was außerhalb liegt, ist meist ein Datenfehler und
+   * kommt gar nicht erst in die Auswahl. Eine Änderung verschiebt die Auswahl.
+   */
+  readonly valueMin: number;
+  readonly valueMax: number;
+  /**
+   * Eingabebereich für die Spieler (ADR-076): gleich für alle Fragen der Vorlage und weit gefasst,
+   * damit er nichts über die Lösung verrät und keine ernst gemeinte Schätzung abweist (mindestens
+   * bis zum Dreifachen jeder Lösung, siehe `validate.ts`). Ändern verschiebt die Auswahl nicht.
+   */
   readonly inputMin: number;
   readonly inputMax: number;
   readonly scaleType: EstimateScaleType;
@@ -248,7 +259,7 @@ export function generateFromTemplate(
   const accessed = accessedDate(snapshot);
   if (template.kind === 'ESTIMATE') {
     const facts = ranked(template.extract(snapshot.rows)).filter(
-      (f) => f.value >= template.inputMin && f.value <= template.inputMax,
+      (f) => f.value >= template.valueMin && f.value <= template.valueMax,
     );
     return kept(template, spreadPick(facts, template.count, template.window, template.id)).map(({ item, share }) => ({
       template: template.id,

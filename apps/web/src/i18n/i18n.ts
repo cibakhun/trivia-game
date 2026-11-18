@@ -91,8 +91,31 @@ export function formatTime(iso: string): string {
   return timeFormat.format(new Date(iso));
 }
 
+/**
+ * Zahl in der Schreibweise des Spiels wie im Feld der Schätzung: Jahreszahlen und andere Zahlen bis
+ * vier Stellen glatt („1901“), größere mit Punkten („20.000“), Komma vor Nachkommastellen.
+ */
+export function formatEstimateNumber(value: string): string {
+  const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(value);
+  if (!match) return value;
+  const [, sign = '', whole = '0', fraction] = match;
+  const grouped = whole.length > 4 ? whole.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : whole;
+  return `${sign}${grouped}${fraction ? `,${fraction}` : ''}`;
+}
+
 /** Ablehnungsgründe eines Angriffs (mit Zeitpunkt) und sonstige Fehlercodes als Text. */
 export function errorMessage(code: string, details?: Readonly<Record<string, unknown>>): string {
+  // Eine Schätzung außerhalb des Bereichs: Die Absage nennt ihn, die Meldung auch (ADR-076)
+  if (
+    code === 'ANSWER_OUT_OF_RANGE' &&
+    typeof details?.min === 'string' &&
+    typeof details.max === 'string'
+  ) {
+    return t('quiz.estimateRange', {
+      min: formatEstimateNumber(details.min),
+      max: formatEstimateNumber(details.max),
+    });
+  }
   const until = details?.until ?? details?.resetAt;
   const retry = details?.retryAfterMs;
   const params: Params | undefined =

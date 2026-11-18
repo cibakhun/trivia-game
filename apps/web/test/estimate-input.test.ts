@@ -4,6 +4,7 @@ import {
   ESTIMATE_MAX_WHOLE,
   estimateKeyOf,
   estimateToSend,
+  outsideEstimateRange,
   pressEstimateKey,
   showEstimate,
   type EstimateKey,
@@ -85,5 +86,19 @@ describe('Ziffernfeld der Schätzfrage', () => {
     // Ein Komma, hinter dem nichts steht, zählt nicht
     expect(estimateToSend('9,')).toBe('9');
     expect(estimateToSend(',')).toBeNull();
+  });
+
+  it('erkennt eine Zahl außerhalb des Eingabebereichs, bevor sie abgeht (ADR-076)', () => {
+    const years = { inputMin: '1000', inputMax: '2026' };
+    // Jemand tippt 195 statt 1953: Das kann keine Jahreszahl der Frage sein
+    expect(outsideEstimateRange('195', years)).toBe(true);
+    expect(outsideEstimateRange('1000', years)).toBe(false);
+    expect(outsideEstimateRange('2026', years)).toBe(false);
+    expect(outsideEstimateRange('2027', years)).toBe(true);
+    const tenths = { inputMin: '0', inputMax: '100' };
+    expect(outsideEstimateRange('100,0', tenths)).toBe(false);
+    expect(outsideEstimateRange('100,1', tenths)).toBe(true);
+    // Unlesbares beurteilt der Server mit eigener Meldung
+    expect(outsideEstimateRange('1.5', years)).toBe(false);
   });
 });

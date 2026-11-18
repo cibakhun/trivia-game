@@ -1,5 +1,11 @@
 import type { Db, Tx } from '@rdw/db';
-import { effectiveAnswerTime, formatDecimal, scoreEstimate, scoreTrivia } from '@rdw/game-core';
+import {
+  effectiveAnswerTime,
+  formatDecimal,
+  parseDecimal,
+  scoreEstimate,
+  scoreTrivia,
+} from '@rdw/game-core';
 import {
   parseNumberInput,
   type MatchAnswerRequest,
@@ -130,12 +136,22 @@ function questionFor(
       })),
     };
   }
+  const spec = content.estimate;
+  if (!spec) throw new Error('Schätzfrage ohne Daten');
   return {
     ...base,
     kind: 'ESTIMATE',
-    unitLabel: content.estimate?.unitLabel ?? null,
-    answerPrecision: content.estimate?.answerPrecision ?? 0,
+    unitLabel: spec.unitLabel,
+    answerPrecision: spec.answerPrecision,
+    // Eingabebereich, damit der Browser eine Zahl außerhalb vor dem Senden erklärt (ADR-076)
+    inputMin: canonicalDecimal(spec.inputMin),
+    inputMax: canonicalDecimal(spec.inputMax),
   };
+}
+
+/** `numeric` aus PostgreSQL in kanonischer Form („1000.0“ → „1000“), wie sie das Protokoll verlangt. */
+function canonicalDecimal(value: string): string {
+  return formatDecimal(parseDecimal(value));
 }
 
 function toQuestion(
@@ -291,7 +307,10 @@ function score(question: QuestionRow, content: QuestionContent, body: MatchAnswe
   }
   const scored = scoreEstimate(parsed.value, spec);
   if (!scored.ok) {
-    throw new ApiError(422, 'ANSWER_OUT_OF_RANGE', 'Zahl außerhalb des Eingabebereichs');
+    throw new ApiError(422, 'ANSWER_OUT_OF_RANGE', 'Zahl außerhalb des Eingabebereichs', {
+      min: canonicalDecimal(spec.inputMin),
+      max: canonicalDecimal(spec.inputMax),
+    });
   }
   const distance = formatDecimal(scored.distance);
   return {

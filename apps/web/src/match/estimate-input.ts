@@ -1,3 +1,6 @@
+import { compareDecimal, parseDecimal } from '@rdw/game-core';
+import { parseNumberInput } from '@rdw/protocol';
+
 /**
  * Eingabe einer Schätzung über das eigene Ziffernfeld der Partie (ADR-059): Im Querformat würde
  * die Tastatur des Handys die Karte und die Frage verdecken. Die Eingabe ist ein Text aus Ziffern
@@ -58,4 +61,22 @@ export function showEstimate(value: string): string {
 export function estimateToSend(value: string): string | null {
   const text = value.replace(/,$/, '');
   return /^\d+(,\d+)?$/.test(text) ? text : null;
+}
+
+/**
+ * Liegt die Eingabe außerhalb des Eingabebereichs der Frage (ADR-076)? Dann lehnte der Server sie
+ * ab; der Browser sagt es vorher und nennt den Bereich, statt die knappe Zeit mit einer Absage zu
+ * verbrauchen. Unlesbares bleibt hier `false`: Das prüft der Server mit eigener Meldung.
+ */
+export function outsideEstimateRange(
+  rawInput: string,
+  range: { readonly inputMin: string; readonly inputMax: string },
+): boolean {
+  const parsed = parseNumberInput(rawInput, 'de');
+  if (!parsed.ok) return false;
+  const value = parseDecimal(parsed.value);
+  return (
+    compareDecimal(value, parseDecimal(range.inputMin)) < 0 ||
+    compareDecimal(value, parseDecimal(range.inputMax)) > 0
+  );
 }

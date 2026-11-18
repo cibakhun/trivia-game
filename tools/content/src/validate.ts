@@ -10,6 +10,16 @@ import { questionFileSchema, type QuestionFile } from './schema.ts';
  * Freigaberegel für KI-gestützte Fragen (Brief §5.6).
  */
 
+/**
+ * Eingabebereich einer Schätzfrage (ADR-076): Jahreszahlen sind ab diesem Jahr erlaubt, bei Fragen
+ * mit LOG-Skala reicht der Bereich mindestens bis zum Dreifachen der Lösung und bis zu einem
+ * Drittel (oder bis 1). So lehnt das Spiel keine ernst gemeinte Schätzung ab, und der Bereich, den
+ * die Meldung nennt, ist kein Hinweis. Ein Bereich mit natürlicher Grenze (Ordnungszahl bis 118,
+ * Jahreszahl bis zum laufenden Jahr) bleibt erlaubt.
+ */
+export const YEAR_INPUT_MIN = '1000';
+export const LOG_INPUT_FACTOR = 3;
+
 export type Severity = 'error' | 'warning';
 
 export interface Issue {
@@ -95,6 +105,20 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     }
     if (e.answer_unit === 'year' && compareDecimalStrings(e.input_min, '1') < 0) {
       error('Jahreszahlen vor Christus sind im MVP ausgeschlossen (input_min ≥ 1)');
+    }
+    // Eingabebereich (ADR-076): Er weist nur ab, was keine ernst gemeinte Schätzung sein kann, und
+    // sagt nichts über die Lösung. Wer ihn verfehlt, liest ihn in der Meldung des Spiels.
+    if (e.answer_unit === 'year' && compareDecimalStrings(e.input_min, YEAR_INPUT_MIN) > 0) {
+      error(`Jahreszahlen: input_min höchstens ${YEAR_INPUT_MIN}, sonst verrät der Bereich etwas über die Lösung`);
+    }
+    if (e.scale_type === 'LOG') {
+      const answer = Number(e.answer_value);
+      if (Number(e.input_max) < LOG_INPUT_FACTOR * answer) {
+        error(`LOG-Skala: input_max mindestens das ${LOG_INPUT_FACTOR}-Fache von answer_value`);
+      }
+      if (Number(e.input_min) > Math.max(1, answer / LOG_INPUT_FACTOR)) {
+        error(`LOG-Skala: input_min höchstens answer_value / ${LOG_INPUT_FACTOR} oder 1`);
+      }
     }
   }
 

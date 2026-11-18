@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { entityIdSchema, timestampSchema } from './api.ts';
 import { answerRequestSchema } from './combat.ts';
+import { canonicalDecimalSchema } from './decimal-string.ts';
 import {
   MAX_REALM_ORDERS,
   matchModeSchema,
@@ -531,6 +532,13 @@ export const matchPresentedQuestionSchema = z.discriminatedUnion('kind', [
       kind: z.literal('ESTIMATE'),
       unitLabel: z.string().nullable(),
       answerPrecision: z.number().int().min(0),
+      /**
+       * Eingabebereich der Frage (ADR-076): Eine Zahl außerhalb lehnt der Server mit
+       * `ANSWER_OUT_OF_RANGE` ab. Der Browser prüft das vor dem Senden und nennt dann den Bereich.
+       * Er ist für alle Fragen einer Art gleich weit gefasst und verrät nichts über die Lösung.
+       */
+      inputMin: canonicalDecimalSchema,
+      inputMax: canonicalDecimalSchema,
     })
     .strict(),
 ]);

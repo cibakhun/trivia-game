@@ -197,6 +197,23 @@ describe('Fragendatei – Schätzfragen', () => {
     ).toContain('Jahreszahlen vor Christus sind im MVP ausgeschlossen (input_min ≥ 1)');
   });
 
+  it('Eingabebereich weist keine ernst gemeinte Schätzung ab und verrät nichts (ADR-076)', () => {
+    // LOG: bis zum Dreifachen und bis zu einem Drittel (oder bis 1)
+    expect(errors(est({ input_max: '4926' }))).toEqual([]);
+    expect(errors(est({ input_max: '4925' }))).toContain('LOG-Skala: input_max mindestens das 3-Fache von answer_value');
+    expect(errors(est({ input_min: '547' }))).toEqual([]);
+    expect(errors(est({ input_min: '548' }))).toContain('LOG-Skala: input_min höchstens answer_value / 3 oder 1');
+    expect(errors(est({ input_min: '1', answer_value: '2' }))).toEqual([]);
+    // Jahreszahlen: ab 1000 wie alle, auch wenn es Nobelpreise erst seit 1901 gibt
+    const year = { answer_unit: 'year', answer_value: '1902', scale_type: 'LINEAR', scale: 15, input_max: '2026' };
+    expect(errors(est({ ...year, input_min: '1000' }))).toEqual([]);
+    expect(errors(est({ ...year, input_min: '1901' }))).toContain(
+      'Jahreszahlen: input_min höchstens 1000, sonst verrät der Bereich etwas über die Lösung',
+    );
+    // Natürliche Grenze bei LINEAR bleibt erlaubt (Ordnungszahl bis 118)
+    expect(errors(est({ answer_unit: 'count', answer_value: '87', input_min: '1', input_max: '118', scale_type: 'LINEAR', scale: 8 }))).toEqual([]);
+  });
+
   it('Dezimalwerte als Zeichenkette, nie als YAML-Zahl', () => {
     expect(errors(est({ answer_value: 9.8 })).join()).toMatch(/answer_value/);
     expect(errors(est({ answer_value: '09.80' })).join()).toMatch(/kanonische/);

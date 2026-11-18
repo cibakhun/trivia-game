@@ -33,7 +33,7 @@ Bezug: Brief §5, §10.3, §11.5, §13.1. Kennzeichnung siehe [README](README.md
 | `answer_value` | exakter Zielwert (Dezimal, kein Float) |
 | `answer_precision` | erlaubte Nachkommastellen; Eingaben werden serverseitig in Dezimalarithmetik mit `ROUND_HALF_UP` (Hälfte von null weg: 2,5 → 3, −2,5 → −3) darauf gerundet (z. B. Jahr: 0) |
 | `answer_unit` + `unit_label` je Sprache | immer metrisch, Einheit steht in der Frage („in Metern“) |
-| `input_min`, `input_max` | plausibler Eingabebereich; schützt vor Tippfehlern und Manipulation |
+| `input_min`, `input_max` | Eingabebereich; fängt Tippfehler (eine Ziffer zu wenig bei einer Jahreszahl) und Unsinn ab. Er ist bewusst weit gefasst und für alle Fragen einer Art gleich (ADR-076, Regeln unten) |
 | `estimate_scale_type`, `estimate_scale` | `LINEAR` (z. B. Jahreszahlen, Streuung 50) oder `LOG` (z. B. Einwohner, Entfernungen); nur für das NPC-Schätzmodell |
 
 **Bewertung:** `distance = |round(eingabe, precision) − answer_value|`, berechnet in exakter Dezimalarithmetik [V für Abstand, E für Rundung].
@@ -43,6 +43,7 @@ Bezug: Brief §5, §10.3, §11.5, §13.1. Kennzeichnung siehe [README](README.md
 - Bevorzugt Fragen, deren exakte Antwort selten bekannt ist (Höhen, Entfernungen, Mengen). Bei allgemein bekannten Jahreszahlen entscheidet sonst überwiegend die Geschwindigkeit (Widerspruch W-10), und Netzunterschiede wiegen schwerer.
 - Kennzahl **Exakttreffer-Quote** je Frage (`question_stats.exact_hits / shown`); über 25 % → Frage wird zur Überarbeitung markiert.
 - Keine Jahreszahlen vor Christus im MVP (Eingabe-Komplexität).
+- **Eingabebereich** (ADR-076, geprüft von `tools/content/src/validate.ts`): Er weist keine ernst gemeinte Schätzung ab und verrät nichts über die Lösung. Jahreszahlen sind ab 1000 erlaubt (auch bei Nobelpreisen, die es erst seit 1901 gibt), bis zum laufenden Jahr. Bei LOG-Skala reicht er mindestens bis zum Dreifachen der Lösung und bis zu einem Drittel davon (oder bis 1). Eine natürliche Grenze bleibt erlaubt (Ordnungszahl bis 118). Wer ihn verfehlt, liest ihn in der Meldung des Spiels; die Frage bleibt offen. In den Wikidata-Vorlagen steht der Eingabebereich getrennt vom Bereich glaubwürdiger Werte (`valueMin`/`valueMax`), damit ein weiterer Bereich die Auswahl der Fragen nicht verschiebt.
 - Keine Werte, die sich schnell ändern (Einwohnerzahlen nur mit Stichtag in der Frage).
 
 **Zahleneingabe** (Widerspruch W-11) [E]: Gespielt wird nur auf Deutsch (ADR-023).

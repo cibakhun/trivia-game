@@ -64,6 +64,8 @@ const presented: MatchPresentedQuestion = {
   presentedAt: AT,
   unitLabel: 'm',
   answerPrecision: 0,
+  inputMin: '1',
+  inputMax: '5000',
 };
 
 function local(status: LocalQuestion['status'], seq = 4): LocalQuestion {
