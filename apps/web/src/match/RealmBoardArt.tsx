@@ -604,15 +604,19 @@ export function RealmRoutArt({
   size: s,
   motion,
   armiesSeen,
+  coin = false,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
   readonly size: number;
   readonly motion: RealmFieldMotion;
   readonly armiesSeen?: number | undefined;
+  /** Auf dem Feld liegt die Münze einer gehaltenen Verteidigung: Der Träger stand neben ihr. */
+  readonly coin?: boolean;
 }) {
   const seat = motion.lost ?? 0;
-  const banner = bannerAt(region, false, s);
+  // Er fällt, wo er stand: neben der Münze, falls das Feld eine trug (sie bleibt dem Feld)
+  const banner = bannerAt(region, false, s, coin);
   const b = BEARER.field * s;
   return (
     <g

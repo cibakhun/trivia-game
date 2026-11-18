@@ -1150,6 +1150,7 @@ function RegionArt({
           size={s}
           motion={motion}
           armiesSeen={armiesSeen}
+          coin={showCoin}
         />
       ) : null}
       <g
