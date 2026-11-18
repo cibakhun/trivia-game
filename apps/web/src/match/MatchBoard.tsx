@@ -1061,7 +1061,7 @@ function RegionArt({
   const showCoin = realm === null || (realm.regions[region.id]?.held ?? 0) > 0;
   // Neben der Burg steht der Träger; ohne ihn liegt dort die Münze, statt auf den Lebensschilden
   const beside = withArmy || (capital && realm !== null && showCoin);
-  const keep = plan && beside ? plan.keep : { x: 0, y: 0 };
+  const keep = plan && beside && capital ? plan.keep : { x: 0, y: 0 };
   const castleX = realm
     ? beside
       ? cx + REALM_CASTLE.beside * s + keep.x
@@ -1070,8 +1070,8 @@ function RegionArt({
       ? cx - 0.32 * s
       : cx - 0.12 * s;
   const castleSize = realm ? REALM_CASTLE.size * s : 0.62 * s;
-  // Neben einer Burg mit Armee liegt die Münze unter dem Bannerträger, rechts der Lebensschilde;
-  // neben einem Träger auf dem Feld dort, wo der Lageplan ihr Platz lässt
+  // Neben einer Burg mit Armee und neben einem Träger auf dem Feld liegt die Münze dort, wo der
+  // Lageplan ihr Platz lässt (meist unter dem Träger, rechts der Lebensschilde)
   const coinX = realm
     ? capital
       ? withArmy && plan

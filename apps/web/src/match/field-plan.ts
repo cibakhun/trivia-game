@@ -34,8 +34,11 @@ export const KEEP = {
   life: 0.2,
 } as const;
 
-/** Halbmesser der Münze mit Ausbau und ihr Maß auf dem Handy (`.narrow .coin`, 1,25-fach). */
-const COIN = 0.17 * 1.25;
+/**
+ * Halbmesser der Münze mit Ausbau, wie sie auf dem Handy gezeichnet wird: 0,17 samt halbem Rand
+ * (2,4 Einheiten), 1,25-fach (`.narrow .coin`).
+ */
+const COIN = (0.17 + 1.2 / 60) * 1.25;
 
 /**
  * Umriss des Bannerträgers (Symbol `bearer`, Rahmen −50…50, samt Strich) in Hundertsteln seiner
@@ -78,6 +81,7 @@ function nameBox(region: ArtRegion, s: number, y: number): Box {
 
 /** Abstand eines Punkts zum Umriss: positiv innen, negativ außen. */
 function clearance(p: Point, outline: readonly Point[]): number {
+  // Quadrate vergleichen, die Wurzel nur einmal: Die Suche ruft das sehr oft auf
   let best = Number.POSITIVE_INFINITY;
   let inside = false;
   for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) {
@@ -90,9 +94,11 @@ function clearance(p: Point, outline: readonly Point[]): number {
     const dy = b.y - a.y;
     const len = dx * dx + dy * dy;
     const t = len === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len));
-    best = Math.min(best, Math.hypot(p.x - a.x - t * dx, p.y - a.y - t * dy));
+    const ex = p.x - a.x - t * dx;
+    const ey = p.y - a.y - t * dy;
+    best = Math.min(best, ex * ex + ey * ey);
   }
-  return inside ? best : -best;
+  return inside ? Math.sqrt(best) : -Math.sqrt(best);
 }
 
 /** Abstand zweier Kästen; negativ, wo sie sich überdecken. */
@@ -136,6 +142,14 @@ function bearerClearance(at: Point, b: number, outline: readonly Point[]): numbe
   return least;
 }
 
+/** Abstand eines Kreises zu einem Kasten; negativ, wo er hineinragt. */
+function circleGap(at: Point, r: number, box: Box): number {
+  const dx = Math.max(box[0] - at.x, 0, at.x - box[2]);
+  const dy = Math.max(box[1] - at.y, 0, at.y - box[3]);
+  if (dx > 0 || dy > 0) return Math.hypot(dx, dy) - r;
+  return -r - Math.min(at.x - box[0], box[2] - at.x, at.y - box[1], box[3] - at.y);
+}
+
 function coinClearance(at: Point, r: number, outline: readonly Point[]): number {
   return clearance(at, outline) - r;
 }
@@ -154,6 +168,56 @@ const steps = (from: number, to: number, step: number): number[] => {
   return out;
 };
 
+/** Raster der Suche, der Nähe zum gewohnten Platz `want` nach geordnet (`near` in Sechseckgrößen). */
+function grid(
+  xs: readonly number[],
+  ys: readonly number[],
+  want: Point,
+): (Point & { near: number })[] {
+  const out: (Point & { near: number })[] = [];
+  for (const x of xs)
+    for (const y of ys) out.push({ x, y, near: Math.hypot(x - want.x, y - want.y) });
+  return out.sort((a, b) => a.near - b.near);
+}
+
+/**
+ * Sucht im Raster `x` × `y` (Schritt `step`, in Sechseckgrößen) den Platz mit der höchsten
+ * Wertung: erst grob mit dreifachem Schritt, dann fein um den besten groben Platz. Die Plätze kommen
+ * der Nähe zum gewohnten nach; `rate` bekommt Platz, Entfernung vom gewohnten (Karteneinheiten) und
+ * die beste Wertung bisher und gibt −∞ zurück, sobald klar ist, dass der Platz nicht gewinnt, noch
+ * bevor der Abstand zum Umriss gerechnet ist. Kann selbst voller Abstand nicht mehr gewinnen, endet
+ * der Durchgang. So bleibt die Suche beim ersten Zeichnen aller Felder bei wenigen Millisekunden
+ * je Feld; die volle feine Suche brauchte am Rechner gut 100.
+ */
+function search(
+  x: readonly [number, number],
+  y: readonly [number, number],
+  step: number,
+  want: Point,
+  s: number,
+  rate: (at: Point, far: number, best: number) => number,
+): void {
+  const top = ENOUGH * s * 100;
+  const found: { score: number; at: Point | null } = { score: Number.NEGATIVE_INFINITY, at: null };
+  const pass = (xs: readonly number[], ys: readonly number[]): void => {
+    for (const at of grid(xs, ys, want)) {
+      const far = at.near * s;
+      if (top - far <= found.score) break;
+      const score = rate(at, far, found.score);
+      if (score > found.score) {
+        found.score = score;
+        found.at = at;
+      }
+    }
+  };
+  pass(steps(x[0], x[1], 3 * step), steps(y[0], y[1], 3 * step));
+  const centre = found.at;
+  if (centre === null) return;
+  const around = (c: number, [from, to]: readonly [number, number]): number[] =>
+    steps(Math.max(from, c - 3 * step), Math.min(to, c + 3 * step), step);
+  pass(around(centre.x, x), around(centre.y, y));
+}
+
 export interface FieldPlan {
   /** Bannerträger auf einem Feld ohne Burg. */
   readonly bearer: Point;
@@ -161,7 +225,7 @@ export interface FieldPlan {
   readonly bearerWithCoin: Point;
   /** Münze neben dem Träger. */
   readonly coin: Point;
-  /** Münze auf einem Burgfeld mit Träger: unter ihm, rechts der Lebensschilde. */
+  /** Münze auf einem Burgfeld mit Träger: wo neben Träger und Lebensschilden Platz ist. */
   readonly keepCoin: Point;
   /** Abstand zum Rand des Felds und zum Namen, ohne und mit Münze (Karteneinheiten). */
   readonly room: number;
@@ -185,6 +249,7 @@ interface Placed {
 /** Bester Platz des Trägers (und der Münze, links oder rechts von ihm) auf einem Feld ohne Burg. */
 function placeField(region: ArtRegion, s: number, withCoin: boolean): Placed {
   const b = FIELD_BEARER.field * s;
+  const r = COIN * s;
   const label = nameBox(region, s, region.cy);
   let best: Placed & { score: number } = {
     score: Number.NEGATIVE_INFINITY,
@@ -194,67 +259,131 @@ function placeField(region: ArtRegion, s: number, withCoin: boolean): Placed {
   };
   for (const side of withCoin ? ([1, -1] as const) : ([1] as const)) {
     // Gewohnt: unter dem Namen; mit Münze ein Stück zur Seite, damit beide darunter Platz haben
-    const want = { x: region.cx + (withCoin ? -0.22 * side : -0.03) * s, y: region.cy + 0.44 * s };
-    for (const dx of steps(-0.5, 0.4, 0.02)) {
-      for (const dy of steps(0.22, 0.62, 0.02)) {
-        const at = { x: region.cx + dx * s, y: region.cy + dy * s };
-        let room = bearerClearance(at, b, region.outline);
-        for (const box of BEARER_BOXES)
-          room = Math.min(room, gap(scaled(box, at, b), label) + 0.04 * s);
-        let coin: Point | null = null;
-        if (withCoin) {
-          coin = coinBeside(at, b, s, side);
-          const r = COIN * s;
-          room = Math.min(room, coinClearance(coin, r, region.outline));
-          room = Math.min(
-            room,
-            gap([coin.x - r, coin.y - r, coin.x + r, coin.y + r], label) + 0.04 * s,
-          );
-        }
-        const score = Math.min(room, ENOUGH * s) * 100 - Math.hypot(at.x - want.x, at.y - want.y);
-        if (score > best.score) best = { score, at, coin, room };
+    const want = { x: withCoin ? -0.22 * side : -0.03, y: 0.44 };
+    search([-0.5, 0.4], [0.22, 0.62], 0.02, want, s, (step, far, floor) => {
+      const at = { x: region.cx + step.x * s, y: region.cy + step.y * s };
+      // Erst, was nichts kostet: Abstand zum Namen
+      let room = Number.POSITIVE_INFINITY;
+      for (const box of BEARER_BOXES)
+        room = Math.min(room, gap(scaled(box, at, b), label) + 0.04 * s);
+      let coin: Point | null = null;
+      if (withCoin) {
+        coin = coinBeside(at, b, s, side);
+        room = Math.min(
+          room,
+          gap([coin.x - r, coin.y - r, coin.x + r, coin.y + r], label) + 0.04 * s,
+        );
       }
-    }
+      if (Math.min(room, ENOUGH * s) * 100 - far <= floor) return Number.NEGATIVE_INFINITY;
+      room = Math.min(room, bearerClearance(at, b, region.outline));
+      if (coin) room = Math.min(room, coinClearance(coin, r, region.outline));
+      const score = Math.min(room, ENOUGH * s) * 100 - far;
+      if (score > best.score) best = { score, at, coin, room };
+      return score;
+    });
   }
   return best;
 }
 
-/** Beste Verschiebung von Burg und Träger auf einem Burgfeld. */
-function placeKeep(region: ArtRegion, s: number): Point {
-  const b = FIELD_BEARER.castle * s;
-  // Der Name steht über der Burg; ihre Fahne bleibt unter ihm
-  const label = nameBox(region, s, region.cy - 0.56 * s);
-  let best = { score: Number.NEGATIVE_INFINITY, at: { x: 0, y: 0 } };
-  for (const dx of steps(-0.2, 0.2, 0.02)) {
-    for (const dy of steps(0, 0.08, 0.02)) {
-      const castle = { x: region.cx + (KEEP.beside + dx) * s, y: region.cy + (KEEP.y + dy) * s };
-      const bearer = {
-        x: region.cx + (KEEP.bearerX + dx) * s,
-        y: region.cy + (KEEP.bearerY + dy) * s,
-      };
-      const walls = scaled(CASTLE_BOX, castle, KEEP.size * s);
-      let room = bearerClearance(bearer, b, region.outline);
-      for (const p of boxPoints(walls)) room = Math.min(room, clearance(p, region.outline));
-      room = Math.min(room, gap(walls, label) + 0.06 * s);
-      // Drei Lebensschilde unter der Burg
-      const reach = KEEP.livesGap + KEEP.life / 2;
-      const lives: Box = [
-        castle.x - reach * s,
-        region.cy + (KEEP.livesY + dy - KEEP.life / 2) * s,
-        castle.x + reach * s,
-        region.cy + (KEEP.livesY + dy + KEEP.life / 2) * s,
-      ];
-      for (const p of boxPoints(lives)) room = Math.min(room, clearance(p, region.outline));
-      const score = Math.min(room, ENOUGH * s) * 100 - Math.hypot(dx, dy) * s;
-      if (score > best.score) best = { score, at: { x: dx * s, y: dy * s } };
-    }
-  }
-  return best.at;
+/** Burg mit Träger: Verschiebung der Gruppe und Platz der Münze darin. */
+interface Keep {
+  readonly at: Point;
+  readonly coin: Point;
 }
 
-/** Münze neben Burg und Träger: unter dem Träger, rechts der Lebensschilde. */
-function keepCoinAt(region: ArtRegion, s: number, keep: Point): Point {
-  return { x: region.cx + 0.33 * s + keep.x, y: region.cy + 0.58 * s + keep.y };
+/** Gewohnter Platz der Münze auf einem Burgfeld: unter dem Träger, rechts der Lebensschilde. */
+const KEEP_COIN = { x: 0.33, y: 0.58 } as const;
+
+/** Raster der Burgfelder (Sechseckgrößen): Verschiebung der Gruppe und Platz der Münze. */
+const KEEP_STEP = 0.02;
+
+/**
+ * Beste Verschiebung von Burg und Träger auf einem Burgfeld, samt Platz der Münze. Die Münze
+ * berührt nie Burg, Lebensschilde oder Träger und liegt so weit im Feld wie möglich, am liebsten
+ * unter dem Träger; die Gruppe rückt so, dass auch sie im Feld bleibt, auch wenn gerade keine Münze
+ * liegt (sonst spränge die Burg, sobald eine kommt). Verschiebung und Münze liegen auf demselben
+ * Raster: Ob die Münze die Gruppe berührt, hängt nicht von der Verschiebung ab, und ihr Abstand zum
+ * Rand wird für jeden Punkt nur einmal gerechnet.
+ */
+function placeKeep(region: ArtRegion, s: number): Keep {
+  const b = FIELD_BEARER.castle * s;
+  const r = COIN * s;
+  const at = (x: number, y: number): Point => ({ x: region.cx + x * s, y: region.cy + y * s });
+  // Der Name steht über der Burg; ihre Fahne bleibt unter ihm
+  const label = nameBox(region, s, region.cy - 0.56 * s);
+  const reach = KEEP.livesGap + KEEP.life / 2;
+  const group = (dx: number, dy: number) => {
+    const castle = at(KEEP.beside + dx, KEEP.y + dy);
+    const bearer = at(KEEP.bearerX + dx, KEEP.bearerY + dy);
+    const lives: Box = [
+      castle.x - reach * s,
+      region.cy + (KEEP.livesY + dy - KEEP.life / 2) * s,
+      castle.x + reach * s,
+      region.cy + (KEEP.livesY + dy + KEEP.life / 2) * s,
+    ];
+    return {
+      bearer,
+      walls: scaled(CASTLE_BOX, castle, KEEP.size * s),
+      lives,
+      figure: BEARER_BOXES.map((box) => scaled(box, bearer, b)),
+    };
+  };
+  // Plätze der Münze neben der Gruppe, ohne sie zu berühren, der Nähe zum gewohnten nach
+  const home = group(0, 0);
+  const own = [home.lives, home.walls, ...home.figure];
+  const coins = grid(
+    steps(-0.76, 0.76, 2 * KEEP_STEP),
+    steps(-0.2, 0.84, 2 * KEEP_STEP),
+    KEEP_COIN,
+  ).filter((c) => own.every((box) => circleGap(at(c.x, c.y), r, box) >= 0.02 * s));
+  const cell = (v: number): number => Math.round(v / KEEP_STEP);
+  const rooms = new Map<number, number>();
+  const coinRoom = (x: number, y: number): number => {
+    const key = cell(x) * 1000 + cell(y);
+    let room = rooms.get(key);
+    if (room === undefined) {
+      const p = at(x, y);
+      room = circleGap(p, r, label) < 0.02 * s ? -s : coinClearance(p, r, region.outline);
+      rooms.set(key, room);
+    }
+    return room;
+  };
+  let best: Keep & { score: number } = {
+    score: Number.NEGATIVE_INFINITY,
+    at: { x: 0, y: 0 },
+    coin: at(KEEP_COIN.x, KEEP_COIN.y),
+  };
+  const offsets = grid(steps(-0.3, 0.3, KEEP_STEP), steps(0, 0.12, KEEP_STEP), { x: 0, y: 0 });
+  // Was am knappsten steht (Mauer, Schild, Träger oder Münze), bekommt den meisten Raum; ist
+  // genug für alle da, zählt die Nähe zum gewohnten Platz
+  const enough = ENOUGH * s * 100;
+  for (const { x: dx, y: dy, near } of offsets) {
+    const far = near * s;
+    if (enough - far <= best.score) break;
+    const { bearer, walls, lives } = group(dx, dy);
+    // Die Mauern bleiben ganz im Feld, wo es irgend geht: Für sie rückt nichts anderes
+    let fort = gap(walls, label) + 0.06 * s;
+    for (const p of boxPoints(walls)) fort = Math.min(fort, clearance(p, region.outline));
+    const wall = Math.min(fort, 0) * 1000;
+    let room = Math.min(fort, bearerClearance(bearer, b, region.outline));
+    for (const p of boxPoints(lives)) room = Math.min(room, clearance(p, region.outline));
+    // Mehr Raum als die Gruppe selbst hat, bringt der Münze nichts: dann zählt nur ihre Nähe
+    const cap = Math.min(room * 100, enough);
+    if (wall + cap - far <= best.score) continue;
+    let coin = { score: Number.NEGATIVE_INFINITY, x: 0, y: 0, room: -s };
+    for (const c of coins) {
+      const cfar = c.near * s;
+      if (cap - cfar <= coin.score) break;
+      const cr = coinRoom(c.x + dx, c.y + dy);
+      const score = Math.min(cr * 100, cap) - cfar;
+      if (score > coin.score) coin = { score, x: c.x + dx, y: c.y + dy, room: cr };
+    }
+    const score = wall + Math.min(room * 100, coin.room * 100, enough) - far;
+    if (score > best.score) {
+      best = { score, at: { x: dx * s, y: dy * s }, coin: at(coin.x, coin.y) };
+    }
+  }
+  return { at: best.at, coin: best.coin };
 }
 
 const plans = new WeakMap<ArtRegion, FieldPlan>();
@@ -267,43 +396,60 @@ export function fieldPlan(region: ArtRegion, s: number): FieldPlan {
   const paired = placeField(region, s, true);
   const bearer = alone.at;
   const bearerWithCoin = paired.at;
-  const keep = placeKeep(region, s);
   const b = FIELD_BEARER.field * s;
-  const k = FIELD_BEARER.castle * s;
-  const keepBearer = {
-    x: region.cx + KEEP.bearerX * s + keep.x,
-    y: region.cy + KEEP.bearerY * s + keep.y,
-  };
-  const coin = paired.coin ?? coinBeside(bearerWithCoin, b, s, 1);
-  const castle = { x: region.cx + KEEP.beside * s + keep.x, y: region.cy + KEEP.y * s + keep.y };
-  const reach = (KEEP.livesGap + KEEP.life / 2) * s;
-  const livesY = region.cy + KEEP.livesY * s + keep.y;
-  const keepCoin = keepCoinAt(region, s, keep);
   const r = COIN * s;
+  const coin = paired.coin ?? coinBeside(bearerWithCoin, b, s, 1);
+  // Den Platz neben einer Burg braucht nur ein Burgfeld: erst rechnen, wenn ihn jemand liest
+  let kept: { at: Point; coin: Point; army: readonly Box[] } | null = null;
+  const keepPart = (): { at: Point; coin: Point; army: readonly Box[] } => {
+    if (kept) return kept;
+    const placed = placeKeep(region, s);
+    const keep = placed.at;
+    const keepBearer = {
+      x: region.cx + KEEP.bearerX * s + keep.x,
+      y: region.cy + KEEP.bearerY * s + keep.y,
+    };
+    const castle = { x: region.cx + KEEP.beside * s + keep.x, y: region.cy + KEEP.y * s + keep.y };
+    const reach = (KEEP.livesGap + KEEP.life / 2) * s;
+    const livesY = region.cy + KEEP.livesY * s + keep.y;
+    const at = placed.coin;
+    kept = {
+      at: keep,
+      coin: at,
+      army: [
+        union(BEARER_BOXES.map((box) => scaled(box, keepBearer, FIELD_BEARER.castle * s))),
+        scaled(CASTLE_BOX, castle, KEEP.size * s),
+        [
+          castle.x - reach,
+          livesY - (KEEP.life / 2) * s,
+          castle.x + reach,
+          livesY + (KEEP.life / 2) * s,
+        ],
+        [at.x - r, at.y - r, at.x + r, at.y + r],
+      ],
+    };
+    return kept;
+  };
   const plan: FieldPlan = {
     bearer,
     bearerWithCoin,
     coin,
-    keepCoin,
+    get keepCoin() {
+      return keepPart().coin;
+    },
     room: alone.room,
     roomWithCoin: paired.room,
-    keep,
+    get keep() {
+      return keepPart().at;
+    },
     fieldArmy: [
       union(BEARER_BOXES.map((box) => scaled(box, bearer, b))),
       union(BEARER_BOXES.map((box) => scaled(box, bearerWithCoin, b))),
       [coin.x - r, coin.y - r, coin.x + r, coin.y + r],
     ],
-    keepArmy: [
-      union(BEARER_BOXES.map((box) => scaled(box, keepBearer, k))),
-      scaled(CASTLE_BOX, castle, KEEP.size * s),
-      [
-        castle.x - reach,
-        livesY - (KEEP.life / 2) * s,
-        castle.x + reach,
-        livesY + (KEEP.life / 2) * s,
-      ],
-      [keepCoin.x - r, keepCoin.y - r, keepCoin.x + r, keepCoin.y + r],
-    ],
+    get keepArmy() {
+      return keepPart().army;
+    },
   };
   plans.set(region, plan);
   return plan;
@@ -340,6 +486,11 @@ export function boxClearance(box: Box, outline: readonly Point[]): number {
 /** Abstand des Trägers zum Umriss (für Tests). */
 export function bearerRoom(at: Point, b: number, outline: readonly Point[]): number {
   return bearerClearance(at, b, outline);
+}
+
+/** Abstand der Münze zum Umriss, ganzer Kreis im Maß auf dem Handy (für Tests). */
+export function coinRoom(at: Point, s: number, outline: readonly Point[]): number {
+  return coinClearance(at, COIN * s, outline);
 }
 
 /** Abstand des Trägers zum Namen in der Mitte des Felds (für Tests). */

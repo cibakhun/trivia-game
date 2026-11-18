@@ -2366,11 +2366,14 @@ html.match-playing body {
  * Richtig: grüner Rand mit Hof, wie der goldene der eigenen Wahl auf der Vorderseite; es ist der
  * einzige farbige Rand im Blatt. Das Feld selbst bleibt Papier, solange es niemand gewählt hat:
  * Farbe im Feld heißt immer „ein Spieler“. Eine falsche Wahl trägt nur das Kreuz auf der Münze.
+ * Der breite Rand ist ein Schatten außen um den gewöhnlichen: Das Feld hat dieselben Maße wie die
+ * anderen, und solange die Farben einlaufen, verrät nichts, welches richtig ist.
  */
 .stage .reveal-option.correct {
-  margin: calc(-1 * var(--u));
-  border: calc(2 * var(--u)) solid var(--success);
-  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--success) 30%, transparent);
+  border-color: var(--success);
+  box-shadow:
+    0 0 0 calc(1 * var(--u)) var(--success),
+    0 0 0 calc(3 * var(--u)) color-mix(in srgb, var(--success) 30%, transparent);
   animation: reveal-right 0.62s calc(var(--reveal-at) + 0.5s) ease-out both;
 }
 
@@ -2816,14 +2819,20 @@ html.match-playing body {
 @keyframes reveal-right {
   from {
     border-color: var(--border-strong);
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 60%, transparent);
+    box-shadow:
+      0 0 0 0 var(--success),
+      0 0 0 0 color-mix(in srgb, var(--success) 60%, transparent);
   }
   45% {
     border-color: var(--success);
-    box-shadow: 0 0 0 calc(9 * var(--u)) color-mix(in srgb, var(--success) 0%, transparent);
+    box-shadow:
+      0 0 0 calc(1 * var(--u)) var(--success),
+      0 0 0 calc(9 * var(--u)) color-mix(in srgb, var(--success) 0%, transparent);
   }
   46% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 0%, transparent);
+    box-shadow:
+      0 0 0 calc(1 * var(--u)) var(--success),
+      0 0 0 0 color-mix(in srgb, var(--success) 0%, transparent);
   }
 }
 
