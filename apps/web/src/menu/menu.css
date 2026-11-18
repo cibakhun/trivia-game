@@ -124,10 +124,17 @@
   stroke-width: 13;
   opacity: 0.9;
 }
+/* Farbe der Linie kommt aus dem Verlauf (MenuMap.tsx): Am Anfang blendet jeder Strich ein */
 .menu-map .menu-attack .line {
-  stroke: var(--seat-0);
   stroke-width: 6.5;
   stroke-dasharray: 15 9;
+}
+.menu-map .menu-attack .from {
+  stop-color: var(--seat-0);
+  stop-opacity: 0;
+}
+.menu-map .menu-attack .to {
+  stop-color: var(--seat-0);
 }
 .menu-map .menu-attack .head {
   stroke: var(--seat-0);

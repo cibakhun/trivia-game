@@ -183,7 +183,7 @@ export function MenuMap({
               </g>
             );
           })}
-          <Attack from={at(5)} to={at(6)} />
+          <Attack id={`${prefix}-attack`} from={at(5)} to={at(6)} />
           {ARMIES.map(([id, seat, n]) => {
             const r = at(id);
             return (
@@ -250,8 +250,27 @@ function Ship({
   );
 }
 
-/** Angriffspfeil von Burg zu Region: Bogen mit Spitze in Richtung des Ziels, gestrichelt laufend. */
-function Attack({ from, to }: { readonly from: Point; readonly to: Point }) {
+/**
+ * Am Anfang des Angriffs blenden die Striche ein (Karteneinheiten ab der Burg): Bis `from` bleibt ein
+ * neuer Strich unsichtbar, denn mit runder Kappe beginnt er als voller Punkt; bis `to` wird er satt.
+ */
+const ATTACK_FADE = { from: 4, to: 16 } as const;
+
+/**
+ * Angriffspfeil von Burg zu Region: Bogen mit Spitze in Richtung des Ziels, gestrichelt laufend.
+ * Die Linie reicht bis in die Spitze: Dort deckt die runde Ecke des Kopfs ihr Ende ganz ab, und jeder
+ * Strich läuft in die Spitze hinein, bis nichts mehr von ihm zu sehen ist. Endete sie davor in der
+ * Kerbe, bliebe der letzte Strich dort als runder Punkt stehen und verschwände auf einen Schlag.
+ */
+function Attack({
+  id,
+  from,
+  to,
+}: {
+  readonly id: string;
+  readonly from: Point;
+  readonly to: Point;
+}) {
   const sx = from.cx + 30;
   const sy = from.cy + 4;
   const ex = to.cx - 14;
@@ -264,14 +283,33 @@ function Attack({ from, to }: { readonly from: Point; readonly to: Point }) {
   const dy = (ey - qy) / len;
   const tip = { x: ex + dx * 8, y: ey + dy * 8 };
   const back = { x: tip.x - dx * 20, y: tip.y - dy * 20 };
+  // Richtung am Anfang des Bogens, für das Einblenden der Striche
+  const lead = Math.hypot(qx - sx, qy - sy) || 1;
+  const along = (n: number) => ({ x: sx + ((qx - sx) / lead) * n, y: sy + ((qy - sy) / lead) * n });
+  const fadeFrom = along(ATTACK_FADE.from);
+  const fadeTo = along(ATTACK_FADE.to);
   const f = (n: number) => n.toFixed(1);
   const head = `M${f(back.x - dy * 13)} ${f(back.y + dx * 13)}L${f(tip.x)} ${f(tip.y)}L${f(back.x + dy * 13)} ${f(back.y - dx * 13)}`;
-  const d = `M${f(sx)} ${f(sy)}Q${f(qx)} ${f(qy)} ${f(ex)} ${f(ey)}`;
+  // Der Kontrollpunkt bleibt: Die Tangente am neuen Ende zeigt weiter genau in Richtung der Spitze
+  const d = `M${f(sx)} ${f(sy)}Q${f(qx)} ${f(qy)} ${f(tip.x)} ${f(tip.y)}`;
   return (
     <g className="menu-attack">
+      <defs>
+        <linearGradient
+          id={id}
+          gradientUnits="userSpaceOnUse"
+          x1={f(fadeFrom.x)}
+          y1={f(fadeFrom.y)}
+          x2={f(fadeTo.x)}
+          y2={f(fadeTo.y)}
+        >
+          <stop offset="0" className="from" />
+          <stop offset="1" className="to" />
+        </linearGradient>
+      </defs>
       <path d={d} className="halo" />
       <path d={head} className="halo" />
-      <path d={d} className="line" />
+      <path d={d} className="line" stroke={`url(#${id})`} />
       <path d={head} className="head" />
     </g>
   );
