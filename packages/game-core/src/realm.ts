@@ -90,7 +90,7 @@ export type RealmInput =
 export type RealmDuelEffect =
   /** Ein Feld ohne Gebäude gehört dem Angreifer. */
   | 'CONQUERED'
-  /** Stadt wird Dorf, Dorf verschwindet; das Feld bleibt beim Verteidiger. */
+  /** Stadt wird zum Dorf, Dorf verschwindet; das Feld bleibt beim Verteidiger. */
   | 'BUILDING_DAMAGED'
   /** Die Burg verliert ein Leben. */
   | 'CASTLE_HIT'
