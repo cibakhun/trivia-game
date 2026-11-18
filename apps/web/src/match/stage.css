@@ -2165,8 +2165,9 @@ html.match-playing body {
 /*
  * Auflösung: die Rückseite der Fragekarte (RevealPanel). Band, Frage und Antwortfelder stehen wie
  * auf der Vorderseite. Was dazukommt, kommt nacheinander ab `--reveal-at` (wenn das Blatt
- * aufgesetzt hat): der Stempel der richtigen Antwort, die Farben derer, die gewählt haben,
- * zuletzt die Folge.
+ * aufgesetzt hat): erst laufen die Farben derer ein, die gewählt haben (wer nahm was), dann setzt
+ * sich die richtige Antwort mit Stempel und Ring (0,5 s), die falsch gewählte bekommt ihr Kreuz,
+ * was niemand nahm, tritt zurück; zuletzt die Folge.
  */
 .sheet.reveal {
   --reveal-at: 0.12s;
@@ -2355,9 +2356,10 @@ html.match-playing body {
   font-size: calc(12.5 * var(--u));
 }
 
-/* Weder richtig noch gewählt: tritt zurück */
+/* Weder richtig noch gewählt: tritt zurück, wenn die richtige Antwort steht */
 .stage .reveal-option:not(.correct, .chosen) {
   opacity: 0.6;
+  animation: reveal-dim 0.3s calc(var(--reveal-at) + 0.5s) ease-out both;
 }
 
 /*
@@ -2369,6 +2371,7 @@ html.match-playing body {
   margin: calc(-1 * var(--u));
   border: calc(2 * var(--u)) solid var(--success);
   box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--success) 30%, transparent);
+  animation: reveal-right 0.62s calc(var(--reveal-at) + 0.5s) ease-out both;
 }
 
 .stage .reveal-option-text {
@@ -2431,13 +2434,18 @@ html.match-playing body {
   );
   border: 1px solid color-mix(in srgb, var(--stamp) 80%, var(--text));
   border-radius: 50%;
-  animation: reveal-stamp 0.3s var(--reveal-at) ease-out both;
+  animation: reveal-stamp 0.3s calc(var(--reveal-at) + 0.5s) ease-out both;
+}
+
+/* Die Lösung einer Schätzfrage stempelt sich sofort: Dort gibt es keine Felder zu füllen */
+.stage .reveal-solution .reveal-stamp {
+  animation-delay: var(--reveal-at);
 }
 
 /* Erst die richtige Antwort, einen Wimpernschlag später die falsch gewählte */
 .stage .reveal-stamp.wrong {
   --stamp: var(--danger);
-  animation-delay: calc(var(--reveal-at) + 0.1s);
+  animation-delay: calc(var(--reveal-at) + 0.62s);
 }
 
 .stage .reveal-stamp svg {
@@ -2470,7 +2478,7 @@ html.match-playing body {
     color-mix(in srgb, var(--tone) 42%, var(--surface))
   );
   transform-origin: left center;
-  animation: reveal-fill 0.45s calc(var(--reveal-at) + 0.2s) cubic-bezier(0.22, 0.8, 0.3, 1) both;
+  animation: reveal-fill 0.5s var(--reveal-at) linear both;
 }
 
 .stage .reveal-fill i:not(:first-child, :last-child) {
@@ -2752,7 +2760,7 @@ html.match-playing body {
   background: color-mix(in srgb, var(--map-gold) 17%, var(--surface));
   border: 1px solid var(--map-gold);
   border-radius: calc(9 * var(--u));
-  animation: reveal-row 0.32s calc(var(--reveal-at) + 0.75s) ease-out both;
+  animation: reveal-row 0.32s calc(var(--reveal-at) + 0.95s) ease-out both;
 }
 
 .stage .reveal-next svg {
@@ -2785,9 +2793,43 @@ html.match-playing body {
   }
 }
 
+/*
+ * Die Farbe läuft zügig ein und kommt sichtbar an: Nach 80 % der Zeit ist das Feld ganz voll. Eine
+ * lange auslaufende Kurve ließ zuletzt einen schmalen Streifen stehen, der kaum noch kroch, und
+ * sah aus, als füllte sie das Feld nicht ganz
+ */
 @keyframes reveal-fill {
-  from {
+  0% {
     transform: scaleX(0);
+    animation-timing-function: cubic-bezier(0.3, 0.1, 0.3, 1);
+  }
+  80%,
+  100% {
+    transform: none;
+  }
+}
+
+/*
+ * Die richtige Antwort setzt sich: Ihr Rand nimmt das Grün an, ein Ring läuft einmal von ihm weg,
+ * dann steht der ruhige Hof
+ */
+@keyframes reveal-right {
+  from {
+    border-color: var(--border-strong);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 60%, transparent);
+  }
+  45% {
+    border-color: var(--success);
+    box-shadow: 0 0 0 calc(9 * var(--u)) color-mix(in srgb, var(--success) 0%, transparent);
+  }
+  46% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 0%, transparent);
+  }
+}
+
+@keyframes reveal-dim {
+  from {
+    opacity: 1;
   }
 }
 
@@ -3754,6 +3796,9 @@ html.match-playing body {
   /* Alles steht sofort da: ohne das stünde es erst nach der Wartezeit der Bewegung im Blatt */
   .stage .reveal-fill i,
   .stage .reveal-stamp,
+  .stage .reveal-solution .reveal-stamp,
+  .stage .reveal-option.correct,
+  .stage .reveal-option:not(.correct, .chosen),
   .stage .reveal-solution .reveal-figure,
   .stage .reveal-rank,
   .stage .reveal-rank.best::after,

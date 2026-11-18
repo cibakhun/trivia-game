@@ -2,6 +2,7 @@ import type { RealmBuildingCode } from '@rdw/protocol';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { crackRef, symbolRef, type CrackId, type SymbolId } from '../art/ArtDefs.tsx';
 import type { ArtRegion, MapArt } from '../art/map-art.ts';
+import { FIELD_BEARER, KEEP, fieldPlan } from './field-plan.ts';
 import type { DuelStage } from './match-model.ts';
 
 /**
@@ -151,27 +152,50 @@ export function hasBuilding(layer: RealmLayer, region: number): boolean {
  * nach links gerückt, darunter die Lebensschilde.
  */
 export const REALM_CASTLE = {
-  beside: -0.28,
-  y: -0.02,
-  size: 0.8,
-  livesY: 0.54,
-  livesGap: 0.24,
-  life: 0.22,
+  beside: KEEP.beside,
+  y: KEEP.y,
+  size: KEEP.size,
+  livesY: KEEP.livesY,
+  livesGap: KEEP.livesGap,
+  life: KEEP.life,
 } as const;
 
 /** Größe des Bannerträgers in Sechseckgrößen: neben einer Burg etwas größer. */
-export const BEARER = { castle: 0.76, field: 0.7 } as const;
+export const BEARER = FIELD_BEARER;
 
-/** Wo der Bannerträger steht: unter dem Namen, bei einer Burg rechts neben dem Turm. */
-export function bannerAt(region: ArtRegion, castle: boolean, s: number): { x: number; y: number } {
+/**
+ * Wo der Bannerträger steht (Lageplan des Felds, match/field-plan.ts): unter dem Namen, mit der
+ * Münze einer gehaltenen Verteidigung (`coin`) ein Stück zur Seite; bei einer Burg rechts neben
+ * dem Turm.
+ */
+export function bannerAt(
+  region: ArtRegion,
+  castle: boolean,
+  s: number,
+  coin = false,
+): { x: number; y: number } {
+  const plan = fieldPlan(region, s);
   return castle
-    ? { x: region.cx + 0.47 * s, y: region.cy + 0.02 * s }
-    : { x: region.cx - 0.04 * s, y: region.cy + 0.47 * s };
+    ? {
+        x: region.cx + KEEP.bearerX * s + plan.keep.x,
+        y: region.cy + KEEP.bearerY * s + plan.keep.y,
+      }
+    : coin
+      ? plan.bearerWithCoin
+      : plan.bearer;
+}
+
+/** Platz des Trägers eines Felds nach dem, was dort steht (Burg, Münze). */
+export function armyAt(region: ArtRegion, layer: RealmLayer, s: number): { x: number; y: number } {
+  const state = layer.regions[region.id];
+  const castle = (state?.building ?? 'NONE') === 'CASTLE';
+  return bannerAt(region, castle, s, !castle && (state?.held ?? 0) > 0);
 }
 
 /** Tor einer Burg, neben der ein Bannerträger steht: Von hier treten neue Armeen heraus. */
 export function gateAt(region: ArtRegion, s: number): { x: number; y: number } {
-  return { x: region.cx - 0.28 * s, y: region.cy + 0.16 * s };
+  const { keep } = fieldPlan(region, s);
+  return { x: region.cx + KEEP.beside * s + keep.x, y: region.cy + 0.16 * s + keep.y };
 }
 
 /**
@@ -192,9 +216,10 @@ export function houseBox(region: ArtRegion, s: number): MotifBox {
 /** Burg mit Ausbau, neben einem Bannerträger (`guarded`) nach links gerückt. */
 export function castleBox(region: ArtRegion, s: number, guarded: boolean): MotifBox {
   const size = REALM_CASTLE.size * s;
+  const keep = guarded ? fieldPlan(region, s).keep : { x: 0, y: 0 };
   return {
-    x: region.cx + (guarded ? REALM_CASTLE.beside : 0) * s - size / 2,
-    y: region.cy + REALM_CASTLE.y * s - size / 2,
+    x: region.cx + (guarded ? REALM_CASTLE.beside : 0) * s + keep.x - size / 2,
+    y: region.cy + REALM_CASTLE.y * s + keep.y - size / 2,
     size,
   };
 }
@@ -442,7 +467,7 @@ export function RealmRegionArt({
   const building = planned ?? (state.building === 'NONE' ? null : state.building);
   const plus = layer.recruits?.[region.id] ?? 0;
   const motion = layer.motion?.fields[region.id] ?? null;
-  const banner = bannerAt(region, castle, s);
+  const banner = bannerAt(region, castle, s, !castle && state.held > 0);
   const b = (castle ? BEARER.castle : BEARER.field) * s;
   const fresh = layer.fresh?.includes(region.id) ?? false;
   // Eine stehende Burg zeichnet die Karte; hier nur Dorf, Stadt und jeder geplante Bau
@@ -796,6 +821,8 @@ export function RealmPlanArt({
           const r = at(change.region);
           if (!r) return null;
           const w = (change.text.length * 0.165 + 0.36) * s;
+          // Über dem Namen des Felds; auf einer Burg steht er höher, das Schild mit ihm
+          const top = (label?.(change.region)?.y ?? r.cy) - 0.72 * s;
           // Mit Bewegung kommt das Schild erst, wenn der Schlag sitzt; fällt ein Gebäude oder
           // bebt eine Burg, danach, damit es nicht verdeckt, was dort geschieht
           const late = layer.motion?.kind === 'outcome';
@@ -810,14 +837,8 @@ export function RealmPlanArt({
                   change.seat === null ? 'var(--map-stone)' : `var(--seat-${change.seat})`,
               }}
             >
-              <rect
-                x={r.cx - w / 2}
-                y={r.cy - 0.72 * s}
-                width={w}
-                height={0.44 * s}
-                rx={0.22 * s}
-              />
-              <text x={r.cx} y={r.cy - 0.5 * s}>
+              <rect x={r.cx - w / 2} y={top} width={w} height={0.44 * s} rx={0.22 * s} />
+              <text x={r.cx} y={top + 0.22 * s}>
                 {change.text}
               </text>
             </g>
@@ -866,7 +887,7 @@ export function RealmPlanArt({
         const r = at(Number(key));
         if (!r || plus <= 0) return null;
         const castle = (layer.regions[r.id]?.building ?? 'NONE') === 'CASTLE';
-        const banner = bannerAt(r, castle, s);
+        const banner = armyAt(r, layer, s);
         // Unter dem Tuch, neben dem Träger: Dort bleibt das Plättchen im eigenen Feld
         const b = (castle ? BEARER.castle : BEARER.field) * s;
         const px = banner.x + 0.24 * b;
@@ -939,8 +960,8 @@ export function RealmPlanArt({
             const b = at(move.to);
             if (!a || !b) return null;
             // Der Zug marschiert von Fahne zu Fahne, mit dem Bogen des Pfeils
-            const from = bannerAt(a, (layer.regions[a.id]?.building ?? 'NONE') === 'CASTLE', s);
-            const to = bannerAt(b, (layer.regions[b.id]?.building ?? 'NONE') === 'CASTLE', s);
+            const from = armyAt(a, layer, s);
+            const to = armyAt(b, layer, s);
             const dx = to.x - from.x;
             const dy = to.y - from.y;
             const len = Math.hypot(dx, dy) || 1;

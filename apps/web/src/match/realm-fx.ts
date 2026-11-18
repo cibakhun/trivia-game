@@ -3,13 +3,14 @@ import type { FxBurst, FxPoint, FxQuake } from '../art/fx/fx.ts';
 import type { ArtRegion, MapArt } from '../art/map-art.ts';
 import {
   armiesBefore,
-  bannerAt,
+  armyAt,
   bearerFoot,
   BEARER,
   castleBox,
   footOf,
   gateAt,
   houseBox,
+  type RealmFieldMotion,
   type RealmLayer,
   type RealmMotion,
 } from './RealmBoardArt.tsx';
@@ -59,6 +60,11 @@ const ROCK = 'var(--map-rock)';
 const STONE = 'var(--map-stone)';
 const ROOF = 'var(--map-roof)';
 
+/** Steht neben der Burg etwas (Träger oder Münze), rückt sie nach links (wie in MatchBoard). */
+function besideCastle(armies: number, field: RealmFieldMotion, held: number): boolean {
+  return armies > 0 || armiesBefore(armies, field) > 0 || held > 0;
+}
+
 export function realmBursts({ art, realm, motion, layout }: RealmFxInput): RealmFxPlan {
   const s = art.size;
   const bursts: FxBurst[] = [];
@@ -80,7 +86,7 @@ export function realmBursts({ art, realm, motion, layout }: RealmFxInput): Realm
       // Baustaub am Fuß, während es wächst; Glanz, wenn es steht
       const armies = realm.regions[id]?.armies ?? 0;
       const box = castleOn(region)
-        ? castleBox(region, s, armies > 0 || armiesBefore(armies, field) > 0)
+        ? castleBox(region, s, besideCastle(armies, field, realm.regions[id]?.held ?? 0))
         : houseBox(region, s);
       const foot = footOf(box);
       const at = `${key}:${id}`;
@@ -113,7 +119,7 @@ export function realmBursts({ art, realm, motion, layout }: RealmFxInput): Realm
       const a = art.regions[move.from];
       const b = art.regions[move.to];
       if (!a || !b) continue;
-      bursts.push(...marchDust(`${key}:${move.seat}:${move.from}:${move.to}`, a, b, s, castleOn));
+      bursts.push(...marchDust(`${key}:${move.seat}:${move.from}:${move.to}`, a, b, s, realm));
     }
     // Neue Armeen treten aus dem Tor: ein paar Funken Gold, wenn es sich öffnet
     for (const id of ids) {
@@ -250,7 +256,7 @@ export function realmBursts({ art, realm, motion, layout }: RealmFxInput): Realm
       quake = { strength: 'heavy', atMs: OUTCOME_TIMES.impactMs };
     } else if (field.hit === true) {
       const armies = realm.regions[id]?.armies ?? 0;
-      const box = castleBox(region, s, armies > 0 || armiesBefore(armies, field) > 0);
+      const box = castleBox(region, s, besideCastle(armies, field, realm.regions[id]?.held ?? 0));
       const foot = footOf(box);
       // Splitter springen von der Mauer, die dem Angreifer zugewandt ist, zu ihm zurück
       const toward = away ? { x: -away.x, y: -away.y } : undefined;
@@ -309,10 +315,10 @@ function marchDust(
   a: ArtRegion,
   b: ArtRegion,
   s: number,
-  castleOn: (region: ArtRegion) => boolean,
+  realm: RealmLayer,
 ): FxBurst[] {
-  const from = bannerAt(a, castleOn(a), s);
-  const to = bannerAt(b, castleOn(b), s);
+  const from = armyAt(a, realm, s);
+  const to = armyAt(b, realm, s);
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const len = Math.hypot(dx, dy) || 1;
