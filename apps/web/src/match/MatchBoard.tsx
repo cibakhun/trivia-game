@@ -1140,6 +1140,7 @@ function RegionArt({
           motion={ruin}
           lives={maxLives}
           armiesSeen={armiesSeen}
+          coin={showCoin}
         />
       ) : null}
       {motion && routed(motion, owner) ? (

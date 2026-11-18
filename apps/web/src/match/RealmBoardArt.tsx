@@ -645,6 +645,7 @@ export function RealmRuinArt({
   motion,
   lives,
   armiesSeen,
+  coin = false,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
@@ -653,20 +654,25 @@ export function RealmRuinArt({
   /** Lebensschilde einer Burg nach den Regeln; das letzte bricht eben, die übrigen waren leer. */
   readonly lives: number;
   readonly armiesSeen?: number | undefined;
+  /** Neben der Burg lag die Münze einer gehaltenen Verteidigung (auch ohne Träger). */
+  readonly coin?: boolean;
 }) {
   const { cy } = region;
   const seat = motion.fellOf ?? motion.lost ?? 0;
   const flag: CSSProperties = { ['--flag' as string]: `var(--seat-${seat})` };
-  // Neben einem Bannerträger stand die Burg nach links gerückt
+  // Neben einem Bannerträger oder einer Münze stand die Burg nach links gerückt, samt Schilden
+  // so weit verschoben, wie der Lageplan es wollte: Dort stürzt sie auch ein
   const guarded = motion.lost !== undefined;
-  const box = castleBox(region, s, guarded);
+  const beside = guarded || coin;
+  const box = castleBox(region, s, beside);
   const x = box.x + box.size / 2;
   const shield = REALM_CASTLE.life * s;
   const banner = bannerAt(region, true, s);
   const b = BEARER.castle * s;
+  const keepY = beside ? fieldPlan(region, s).keep.y : 0;
   const shieldAt = (i: number) => ({
     x: x + (i - (lives - 1) / 2) * REALM_CASTLE.livesGap * s,
-    y: cy + REALM_CASTLE.livesY * s,
+    y: cy + REALM_CASTLE.livesY * s + keepY,
   });
   return (
     <>

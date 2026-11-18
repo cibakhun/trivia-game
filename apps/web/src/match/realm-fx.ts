@@ -203,7 +203,9 @@ export function realmBursts({ art, realm, motion, layout }: RealmFxInput): Realm
         },
       );
     } else if (field.fell === 'CASTLE') {
-      const box = castleBox(region, s, field.lost !== undefined);
+      // Verteidigungen bleiben dem Feld nach dem Fall: Lag dort eine Münze, stand die Burg daneben
+      const held = realm.regions[id]?.held ?? 0;
+      const box = castleBox(region, s, field.lost !== undefined || held > 0);
       const foot = footOf(box);
       const mid = { x: foot.x, y: box.y + 0.45 * box.size };
       bursts.push(
