@@ -18,12 +18,12 @@ Alle Farben sind Tokens in `apps/web/src/theme.css`; Komponenten verwenden nur d
 | Tinte / Text | `--text`, `--muted` | `#2e2116`, `#6b5640` | `#f0e6d0`, `#bba98a` |
 | Gold (Knöpfe, Bänder, Akzent) | `--primary-top`, `--primary-bottom`, `--accent` | `#e6b95c` → `#bf8526`, `#b8862f` | `#e8bd66` → `#c48b2b`, `#e0b155` |
 | Fokus | `--focus` | `#1f5fbf` | `#8ab8ff` |
-| Sitz 1 / 2 / 3 | `--seat-0`, `--seat-1`, `--seat-2` | Königsblau `#2c59a8`, Zinnober `#b23a24`, Tannengrün `#2e7a46` | `#4f7fd0`, `#d0573f`, `#3f9862` |
+| Sitz 1 / 2 / 3 (Satz „Wappen“, ADR-070 Punkt 11) | `--seat-0`, `--seat-1`, `--seat-2` | Blau `#2451a8`, Karmin `#b8232f`, Purpur `#73358f` | `#5687de`, `#e2565a`, `#a874c8` |
 | Karte | `--map-*` | Meer `#c7d6cd`, Land `#f2e6c6`, Tinte `#3d2b1a` | Meer `#16252b`, Land `#3b3327`, Tinte `#ecdcbc` |
 | Karte, Hervorhebung (ADR-066) | `--map-glow`, `--map-lift`, `--map-sea-deep`, `--map-rock` | helle Linie und freie Ziele `#fff3c4`, Ziele mit Besitzer `#ffffff`, Meerestiefe `#6f9aa0`, Fels `#a59a8a` | `#ffe6a6`, `#ffffff`, `#05151b`, `#7b7468` |
 | Papier und Tinte der Blätter | `--paper-grain`, `--paper-age`, `--ink-rule` | Korn, zum Rand 17 % dunkler, Linie aus Kartentinte (40 %), die an den Enden ausläuft | Korn, zum Rand 34 % dunkler, helle Tinte |
 
-Kontraste (WCAG, nachgerechnet): Text auf Papier 14:1 (Nacht 13:1), gedämpfter Text mindestens 5,2:1, Links 7,7:1 (Nacht 9:1), dunkler Text auf Goldknopf 5,5:1 (Nacht 6,2:1), Kartentinte auf Land 10,8:1 (Nacht 9,2:1). Weiß auf den Sitzfarben der Tagkarte mindestens 5,2:1; in der Nacht sind die Sitzfarben heller und tragen nur Wappenbilder, keinen Text (Grafik mindestens 3,5:1, Sitzfarbe auf Papier mindestens 4:1).
+Kontraste (WCAG, nachgerechnet): Text auf Papier 14:1 (Nacht 13:1), gedämpfter Text mindestens 5,2:1, Links 7,7:1 (Nacht 9:1), dunkler Text auf Goldknopf 5,5:1 (Nacht 6,2:1), Kartentinte auf Land 10,8:1 (Nacht 9,2:1). Weiß auf den Sitzfarben der Tagkarte mindestens 6,3:1; in der Nacht sind die Sitzfarben heller und tragen nur Wappenbilder, keinen Text (Grafik mindestens 3,5:1, Sitzfarbe auf Papier mindestens 4,4:1). Schrift auf den gefüllten Antwortfeldern der Auflösung mindestens 6,9:1 in beiden Schemen. Grün ist keine Sitzfarbe, es gehört dem Haken der richtigen Antwort.
 
 ## 3. Schrift
 

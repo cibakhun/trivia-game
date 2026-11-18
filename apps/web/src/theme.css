@@ -27,10 +27,10 @@
   --focus: #1f5fbf;
   --danger: #a3261b;
   --success: #2f6b2a;
-  /* Sitze der Partie: Farbe plus Wappenbild (◆ ● ▲) und Muster; Weiß darauf mindestens 5,2:1 */
-  --seat-0: #2c59a8;
-  --seat-1: #b23a24;
-  --seat-2: #2e7a46;
+  /* Sitze: Satz „Wappen“ (ADR-070 Punkt 11), dazu Wappenbild (◆ ● ▲) und Muster; Weiß darauf ab 6,3:1 */
+  --seat-0: #2451a8;
+  --seat-1: #b8232f;
+  --seat-2: #73358f;
   --radius: 8px;
   --radius-lg: 14px;
   --shadow-card: 0 1px 0 rgb(255 255 255 / 0.55) inset, 0 2px 8px rgb(70 45 15 / 0.12);
@@ -111,9 +111,9 @@
     --focus: #8ab8ff;
     --danger: #f08a78;
     --success: #94d283;
-    --seat-0: #4f7fd0;
-    --seat-1: #d0573f;
-    --seat-2: #3f9862;
+    --seat-0: #5687de;
+    --seat-1: #e2565a;
+    --seat-2: #a874c8;
     --shadow-card: 0 2px 10px rgb(0 0 0 / 0.35);
     --shadow-raised: 0 8px 22px rgb(0 0 0 / 0.45);
     --shadow-map: 0 10px 30px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(234 219 187 / 0.2);
