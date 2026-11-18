@@ -855,7 +855,8 @@
  * hat (gut drei Viertel ihrer Zeit), und das rasch: Ein langes Überblenden zeigt alte und neue
  * Grenze zugleich, die Region stünde doppelt umrandet. Wahl der Landnahme: Tinte 0 bis 0,9 s,
  * Wechsel ab `--land-turn` (mit ihm kommt der Ring der Ansage); Ausgang eines Duells: Tinte 0,36
- * bis 1,21 s, Wechsel ab 1 s.
+ * bis 1,21 s, Wechsel ab 1 s. Fällt ein Reich (`TAKEOVER`), läuft die Tinte als Welle durch
+ * mehrere Regionen: Wechsel ab 0,85 s und langsamer, über 0,6 s.
  */
 .map-art .frontiers.turning-was {
   opacity: 0;
@@ -1627,15 +1628,30 @@
   }
 }
 
+/*
+ * Über `scale`, nicht `transform`: Die Münze behält ihr Handy-Maß und springt nicht davor und
+ * danach. Dort wächst sie nur um 1,16: am höchsten Punkt so groß wie sonst (1,25 × 1,16 ≈ 1,45).
+ */
 @keyframes coin-pop {
   0% {
-    transform: scale(1);
+    scale: 1;
   }
   35% {
-    transform: scale(1.45);
+    scale: 1.45;
   }
   100% {
-    transform: scale(1);
+    scale: 1;
+  }
+}
+@keyframes coin-pop-narrow {
+  0% {
+    scale: 1;
+  }
+  35% {
+    scale: 1.16;
+  }
+  100% {
+    scale: 1;
   }
 }
 
@@ -1684,6 +1700,13 @@
   transform-box: fill-box;
   transform-origin: center;
   transform: scale(1.25) translateY(2px);
+}
+/* Mit Ausbau liegt die Münze, wo der Lageplan sie hinlegt (match/field-plan.ts): nur größer */
+.map-art.narrow .coin.planned {
+  transform: scale(1.25);
+}
+.map-art.narrow .coin.pop {
+  animation-name: coin-pop-narrow;
 }
 
 .map-art.narrow .token-disc {

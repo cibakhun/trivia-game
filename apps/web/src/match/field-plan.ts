@@ -36,7 +36,8 @@ export const KEEP = {
 
 /**
  * Halbmesser der Münze mit Ausbau, wie sie auf dem Handy gezeichnet wird: 0,17 samt halbem Rand
- * (2,4 Einheiten), 1,25-fach (`.narrow .coin`).
+ * (2,4 Einheiten), 1,25-fach um ihre Mitte (`.narrow .coin.planned`, ohne das Absenken der
+ * Münzen ohne Ausbau: Ihre Mitte bleibt, wo der Lageplan sie hinlegt).
  */
 const COIN = (0.17 + 1.2 / 60) * 1.25;
 

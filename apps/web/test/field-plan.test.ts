@@ -70,7 +70,6 @@ describe.each([
   it('rückt Burg, Lebensschilde, Träger und Münze so, dass sie im Feld bleiben', () => {
     for (const region of art.regions) {
       const { keep, keepCoin } = fieldPlan(region, s);
-      const line = TIGHT[region.name]?.keep ?? KEEP_LINE;
       const bearer = {
         x: region.cx + KEEP.bearerX * s + keep.x,
         y: region.cy + KEEP.bearerY * s + keep.y,
@@ -98,8 +97,10 @@ describe.each([
         x + reach,
         livesY + (KEEP.life / 2) * s,
       ];
-      expect(boxClearance(lives, region.outline), region.name).toBeGreaterThan(line);
-      expect(coinRoom(keepCoin, s, region.outline), region.name).toBeGreaterThan(line);
+      expect(boxClearance(lives, region.outline), region.name).toBeGreaterThan(KEEP_LINE);
+      expect(coinRoom(keepCoin, s, region.outline), region.name).toBeGreaterThan(
+        TIGHT[region.name]?.keep ?? KEEP_LINE,
+      );
       // Die Fahne der Burg bleibt unter dem Namen darüber
       expect(keep.y, region.name).toBeGreaterThanOrEqual(0);
     }

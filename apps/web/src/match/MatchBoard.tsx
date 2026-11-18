@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type FocusEvent,
   type KeyboardEvent,
@@ -115,6 +116,28 @@ function Born({
   ) : (
     <path d={path} className={classes} style={style} />
   );
+}
+
+const REDUCE_MOTION = '(prefers-reduced-motion: reduce)';
+
+function motionReducedNow(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(REDUCE_MOTION).matches
+  );
+}
+
+function watchMotion(change: () => void): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
+  const query = window.matchMedia(REDUCE_MOTION);
+  query.addEventListener('change', change);
+  return () => query.removeEventListener('change', change);
+}
+
+/** „Bewegung reduzieren“ ist eingeschaltet; folgt dem Schalter auch, während die Partie läuft. */
+function useMotionReduced(): boolean {
+  return useSyncExternalStore(watchMotion, motionReducedNow, () => false);
 }
 
 /** `true` ab dem zweiten Rendern: Beim ersten Aufbau läuft keine Änderungsanimation. */
@@ -299,9 +322,14 @@ export function MatchBoard({
     readonly now: string;
   } | null>(null);
   const [ownersShown, setOwnersShown] = useState(ownerKey);
+  // Ohne Bewegung gibt es keinen Übergang: Die alten Grenzen meldeten nie ihr Ende und liefen los,
+  // sobald die Bewegung wieder an ist. Schaltet sie mitten im Übergang ab, endet er sofort
+  const still = useMotionReduced();
   if (ownersShown !== ownerKey) {
     setOwnersShown(ownerKey);
-    setFrontierTurn(settled ? { was: ownersShown, now: ownerKey } : null);
+    setFrontierTurn(settled && !still ? { was: ownersShown, now: ownerKey } : null);
+  } else if (still && frontierTurn !== null) {
+    setFrontierTurn(null);
   }
   const turnWas = frontierTurn?.now === ownerKey ? frontierTurn.was : null;
   const realmsBefore = useMemo(
@@ -1208,7 +1236,12 @@ function RegionArt({
           </g>
         ) : null}
         {showCoin ? (
-          <Born key={`coin-${value}`} className="coin" motion="pop" live={settled}>
+          <Born
+            key={`coin-${value}`}
+            className={realm ? 'coin planned' : 'coin'}
+            motion="pop"
+            live={settled}
+          >
             <circle cx={coinX} cy={coinY} r={(realm ? 0.17 : 0.2) * s} />
             <text x={coinX} y={coinY + 0.01 * s} className="board-value">
               {formatNumber(value)}
