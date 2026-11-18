@@ -51,22 +51,17 @@ export async function exactEstimateInput(challengeId: string): Promise<string> {
   return row.answer_value.replace('.', ',');
 }
 
-/** Schätzung um eine Einheit neben dem Schätzwert (im erlaubten Bereich), deutsch geschrieben. */
+/** Schätzung um eine Einheit neben dem Schätzwert, deutsch geschrieben (jede Zahl zählt, ADR-076). */
 export async function offEstimateInput(challengeId: string): Promise<string> {
   const row = await testDb()
     .selectFrom('quiz_challenge_steps as s')
     .innerJoin('question_versions as v', 'v.id', 's.version_id')
-    .select(['v.answer_value', 'v.input_min', 'v.input_max'])
+    .select(['v.answer_value'])
     .where('s.challenge_id', '=', challengeId)
     .where('s.step_index', '=', 1)
     .executeTakeFirstOrThrow();
   if (row.answer_value === null) throw new Error('Schätzwert fehlt');
-  const value = Number(row.answer_value);
-  const min = row.input_min === null ? Number.NEGATIVE_INFINITY : Number(row.input_min);
-  const max = row.input_max === null ? Number.POSITIVE_INFINITY : Number(row.input_max);
-  const off = [value + 1, value - 1].find((candidate) => candidate >= min && candidate <= max);
-  if (off === undefined) throw new Error(`Kein Wert neben ${value} im Bereich ${min}…${max}`);
-  return String(off).replace('.', ',');
+  return String(Number(row.answer_value) + 1).replace('.', ',');
 }
 
 /**

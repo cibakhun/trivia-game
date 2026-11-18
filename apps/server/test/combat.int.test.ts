@@ -1233,21 +1233,10 @@ describe('Fragen und Antworten', () => {
     expect(audit.effective_ms).toBe(audit.server_elapsed_ms);
     expect(audit.is_correct).toBe(true);
 
-    // Schätzung: unlesbar, außerhalb des Bereichs, dann gültig
+    // Schätzung: unlesbar, dann gültig (eine erlaubte Grenze gibt es nicht, ADR-076)
     expect(
       errorOf(await answer(player.client, challengeId, 1, { rawInput: 'viel', locale: 'de' })),
     ).toMatchObject({ status: 422, code: 'INVALID_NUMBER_INPUT' });
-    const range = await server.db
-      .selectFrom('quiz_challenge_steps as s')
-      .innerJoin('question_versions as v', 'v.id', 's.version_id')
-      .select('v.input_max')
-      .where('s.challenge_id', '=', challengeId)
-      .where('s.step_index', '=', 1)
-      .executeTakeFirstOrThrow();
-    const tooLarge = `${Number(range.input_max) * 10 + 1}`;
-    expect(
-      errorOf(await answer(player.client, challengeId, 1, { rawInput: tooLarge, locale: 'de' })),
-    ).toMatchObject({ status: 422, code: 'ANSWER_OUT_OF_RANGE' });
     const done = answerResponseSchema.parse(
       (
         await answer(player.client, challengeId, 1, {

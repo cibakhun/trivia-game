@@ -38,6 +38,18 @@ export interface EstimateTemplate {
   readonly window: number;
   readonly unit: string;
   readonly unitLabel: string;
+  /**
+   * Werte, die der Auszug für glaubwürdig hält; was außerhalb liegt, ist meist ein Datenfehler und
+   * kommt gar nicht erst in die Auswahl. Eine Änderung verschiebt die Auswahl.
+   */
+  readonly valueMin: number;
+  readonly valueMax: number;
+  /**
+   * Kappung der Bot-Schätzungen (`input_min`/`input_max`, ADR-076): Spieler können jede Zahl
+   * eingeben, nur Bots begrenzen ihre Schätzung darauf. Gleich für alle Fragen der Vorlage und weit
+   * gefasst (mindestens bis zum Dreifachen jeder Lösung, siehe `validate.ts`), damit Bots an der
+   * Grenze nicht künstlich genau schätzen. Ändern verschiebt die Auswahl nicht.
+   */
   readonly inputMin: number;
   readonly inputMax: number;
   readonly scaleType: EstimateScaleType;
@@ -248,7 +260,7 @@ export function generateFromTemplate(
   const accessed = accessedDate(snapshot);
   if (template.kind === 'ESTIMATE') {
     const facts = ranked(template.extract(snapshot.rows)).filter(
-      (f) => f.value >= template.inputMin && f.value <= template.inputMax,
+      (f) => f.value >= template.valueMin && f.value <= template.valueMax,
     );
     return kept(template, spreadPick(facts, template.count, template.window, template.id)).map(({ item, share }) => ({
       template: template.id,

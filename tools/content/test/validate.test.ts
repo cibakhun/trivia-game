@@ -181,7 +181,7 @@ describe('Fragendatei – Schätzfragen', () => {
   const est = (e: Record<string, unknown>) =>
     estimate({ estimate: { ...(estimate().estimate as object), ...e } });
 
-  it('answer_value im Eingabebereich und mit passender Präzision', () => {
+  it('answer_value im Bereich und mit passender Präzision', () => {
     expect(errors(est({ answer_value: '20000' }))).toContain('answer_value liegt außerhalb von [input_min, input_max]');
     expect(errors(est({ answer_value: '1642.5' }))).toContain('answer_value hat mehr Nachkommastellen als answer_precision');
     expect(errors(est({ input_min: '5000', input_max: '100' }))).toContain('input_min muss kleiner als input_max sein');
@@ -195,6 +195,35 @@ describe('Fragendatei – Schätzfragen', () => {
     expect(
       errors(est({ answer_unit: 'year', input_min: '-500', answer_value: '1849', scale_type: 'LINEAR', scale: 50 })),
     ).toContain('Jahreszahlen vor Christus sind im MVP ausgeschlossen (input_min ≥ 1)');
+  });
+
+  it('Kappung der Bot-Schätzungen liegt nicht knapp an der Lösung (ADR-076)', () => {
+    // LOG: bis zum Dreifachen und bis zu einem Drittel (oder bis 1)
+    expect(errors(est({ input_max: '4926' }))).toEqual([]);
+    expect(errors(est({ input_max: '4925' }))).toContain('LOG-Skala: input_max mindestens das 3-Fache von answer_value');
+    expect(errors(est({ input_min: '547' }))).toEqual([]);
+    expect(errors(est({ input_min: '548' }))).toContain('LOG-Skala: input_min höchstens answer_value / 3 oder 1');
+    expect(errors(est({ input_min: '1', answer_value: '2' }))).toEqual([]);
+    // exakt auch bei Nachkommastellen: 0,3 ist genau das Dreifache von 0,1, 0,1 genau ein Drittel von 0,3
+    const tenths = { answer_precision: 1, input_min: '0', input_max: '0.3', answer_value: '0.1' };
+    expect(errors(est(tenths))).toEqual([]);
+    expect(errors(est({ ...tenths, input_max: '0.29' }))).toContain('LOG-Skala: input_max mindestens das 3-Fache von answer_value');
+    expect(errors(est({ answer_precision: 1, input_min: '1.5', input_max: '100', answer_value: '4.5' }))).toEqual([]);
+    expect(errors(est({ answer_precision: 1, input_min: '1.6', input_max: '100', answer_value: '4.5' }))).toContain(
+      'LOG-Skala: input_min höchstens answer_value / 3 oder 1',
+    );
+    // Jahreszahlen: ab 1000 wie alle, auch wenn es Nobelpreise erst seit 1901 gibt
+    const year = { answer_unit: 'year', answer_value: '1902', scale_type: 'LINEAR', scale: 15, input_max: '2026' };
+    expect(errors(est({ ...year, input_min: '1000' }))).toEqual([]);
+    expect(errors(est({ ...year, input_min: '1901' }))).toContain(
+      'Jahreszahlen: input_min höchstens 1000, sonst schätzen Bots an der Grenze künstlich genau',
+    );
+    // … bis zum laufenden Jahr, nicht bis zur Lösung
+    expect(errors(est({ ...year, input_min: '1000', input_max: '1902' }))).toContain(
+      'Jahreszahlen: input_max mindestens 2026, sonst schätzen Bots an der Grenze künstlich genau',
+    );
+    // Natürliche Grenze bei LINEAR bleibt erlaubt (Ordnungszahl bis 118)
+    expect(errors(est({ answer_unit: 'count', answer_value: '87', input_min: '1', input_max: '118', scale_type: 'LINEAR', scale: 8 }))).toEqual([]);
   });
 
   it('Dezimalwerte als Zeichenkette, nie als YAML-Zahl', () => {

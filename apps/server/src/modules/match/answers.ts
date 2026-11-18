@@ -289,10 +289,8 @@ function score(question: QuestionRow, content: QuestionContent, body: MatchAnswe
   if (!parsed.ok) {
     throw new ApiError(422, 'INVALID_NUMBER_INPUT', 'Zahl nicht lesbar', { reason: parsed.error });
   }
+  // Jede lesbare Zahl zählt, Schätzfragen haben keine erlaubte Grenze (ADR-076)
   const scored = scoreEstimate(parsed.value, spec);
-  if (!scored.ok) {
-    throw new ApiError(422, 'ANSWER_OUT_OF_RANGE', 'Zahl außerhalb des Eingabebereichs');
-  }
   const distance = formatDecimal(scored.distance);
   return {
     optionKey: null,

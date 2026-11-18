@@ -115,7 +115,6 @@ function randomEstimateSpec(rng: Rng): NpcEstimateSpec {
 
 function scored(spec: NpcEstimateSpec, estimate: Parameters<typeof formatDecimal>[0], ms: number) {
   const result = scoreEstimate(formatDecimal(estimate), spec);
-  if (!result.ok) throw new Error('Schätzung außerhalb des Bereichs');
   return { distance: result.distance, effectiveMs: ms };
 }
 

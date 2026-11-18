@@ -52,5 +52,5 @@ T|NAT|2|erdumfang|Wie groß ist der Umfang der Erde am Äquator ungefähr?|40.00
 T|NAT|2|seismologie|Wie heißt die Wissenschaft von den Erdbeben?|Seismologie|Vulkanologie;Meteorologie;Geodäsie|Seismologie|Erdbeben
 E|NAT|3|mond-entfernung|Wie weit ist der Mond im Mittel von der Erde entfernt (in Kilometern)?|384400|km|Kilometer|1000|10000000|LOG|0.3|Mond|384.400
 E|NAT|4|sonne-temperatur|Wie heiß ist die sichtbare Oberfläche der Sonne ungefähr (in Grad Celsius)?|5500|celsius|Grad Celsius|100|100000|LOG|0.3|Sonne|5778
-E|GEO|3|everest-erstbesteigung|In welchem Jahr wurde der Mount Everest zum ersten Mal bestiegen?|1953|year|Jahr|1800|2026|LINEAR|15|Mount Everest|1953
+E|GEO|3|everest-erstbesteigung|In welchem Jahr wurde der Mount Everest zum ersten Mal bestiegen?|1953|year|Jahr|1000|2026|LINEAR|15|Mount Everest|1953
 E|NAT|3|erde-alter|Wie alt ist die Erde ungefähr (in Millionen Jahren)?|4540|million_years|Millionen Jahre|1|100000|LOG|0.3|Erde|4,54 Milliarden Jahre

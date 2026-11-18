@@ -245,7 +245,7 @@ export function ChallengeScreen({ challengeId }: { readonly challengeId: string 
         // eine andere Antwort ändert sie nicht mehr. Die Ansicht folgt dem gespeicherten Stand.
         void sync();
       } else {
-        // Eingabefehler (Zahl unlesbar, außerhalb des Bereichs) oder Netz: Frage bleibt offen
+        // Eingabefehler (Zahl unlesbar) oder Netz: Frage bleibt offen
         setError(e);
       }
     } finally {
