@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-david-hoehe
+kind: ESTIMATE
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: David (Michelangelo)"
+    url: https://de.wikipedia.org/wiki/David_(Michelangelo)
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Wert „5,16“ im Artikel „David (Michelangelo)“ der deutschen Wikipedia gefunden; Antwort 516 Zentimeter daraus umgerechnet oder gerundet (Abweichung unter 1 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "516"
+  answer_precision: 0
+  answer_unit: cm
+  input_min: "1"
+  input_max: "10000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie hoch ist Michelangelos Marmorstatue „David“ in Florenz (in Zentimetern)?"
+    unit_label: "Zentimeter"

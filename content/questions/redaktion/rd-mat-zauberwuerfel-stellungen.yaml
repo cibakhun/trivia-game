@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-mat-zauberwuerfel-stellungen
+kind: ESTIMATE
+category: MATHEMATICS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Zauberwürfel"
+    url: https://de.wikipedia.org/wiki/Zauberw%C3%BCrfel
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „43.252.003.274.489.856.000“ im Artikel „Zauberwürfel“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "43252003274489856000"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1"
+  input_max: "1000000000000000000000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie viele verschiedene Stellungen kann ein Zauberwürfel einnehmen?"
+    unit_label: "Stellungen"

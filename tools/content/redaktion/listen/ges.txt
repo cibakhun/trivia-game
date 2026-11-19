@@ -84,3 +84,37 @@ E|GES|4|brandenburger-tor-jahr|In welchem Jahr wurde das Brandenburger Tor ferti
 E|GES|2|gutenberg-bibel|Um welches Jahr entstand die Gutenberg-Bibel?|1454|year|Jahr|1000|2026|LINEAR|40|Gutenberg-Bibel|1454
 E|GES|4|magna-carta-jahr|In welchem Jahr wurde die Magna Carta besiegelt?|1215|year|Jahr|1000|2026|LINEAR|40|Magna Carta|1215
 E|GES|3|titanic-opfer|Wie viele Menschen kamen beim Untergang der Titanic ungefähr ums Leben?|1500|count|Menschen|1|100000|LOG|0.3|Titanic (Schiff)|1500
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|GES|3|konstantinopel-fall|In welchem Jahr eroberten die Osmanen Konstantinopel?|1453|1204;1389;1529|Eroberung von Konstantinopel (1453)|1453
+T|GES|2|versailler-vertrag|Welcher Vertrag regelte 1919 den Frieden zwischen den Siegermächten und dem Deutschen Reich nach dem Ersten Weltkrieg?|Versailler Vertrag|Vertrag von Locarno;Vertrag von Rapallo;Frieden von Brest-Litowsk|Friedensvertrag von Versailles|1919
+T|GES|3|tereschkowa|Wie hieß die erste Frau im Weltraum?|Valentina Tereschkowa|Swetlana Sawizkaja;Sally Ride;Eileen Collins|Valentina Tereschkowa|erste Frau
+T|GES|3|magellan|Welcher Seefahrer brach 1519 zur ersten Weltumsegelung auf?|Ferdinand Magellan|Vasco da Gama;Christoph Kolumbus;James Cook|Ferdinand Magellan|1519
+T|GES|2|sarajevo-attentat|In welcher Stadt wurde 1914 der österreichische Thronfolger Franz Ferdinand erschossen?|Sarajevo|Wien;Belgrad;Budapest|Attentat von Sarajevo|Franz Ferdinand
+T|GES|3|mayflower|Wie hieß das Schiff, mit dem die Pilgerväter 1620 nach Nordamerika segelten?|Mayflower|Santa María;Bounty;Endeavour|Mayflower|1620
+T|GES|3|verbotene-stadt|Unter welcher Dynastie wurde die Verbotene Stadt erbaut?|Ming-Dynastie|Qing-Dynastie;Han-Dynastie;Tang-Dynastie|Verbotene Stadt|Ming
+T|GES|3|hammurapi|Aus welchem Reich stammt die Gesetzessammlung des Königs Hammurapi?|Babylonien|Ägypten;Persien;Assyrien|Codex Hammurapi|Babylon
+T|GES|3|reformation-zwingli|Welcher Reformator wirkte ab 1519 in Zürich?|Huldrych Zwingli|Johannes Calvin;Philipp Melanchthon;Thomas Müntzer|Huldrych Zwingli|Zürich
+T|GES|2|dschingis-khan|Welches Reich begründete Dschingis Khan?|Mongolisches Reich|Osmanisches Reich;Perserreich;Hunnenreich|Dschingis Khan|Mongol
+T|GES|2|hiroshima|Auf welche Stadt warfen die USA am 6. August 1945 die erste Atombombe ab?|Hiroshima|Nagasaki;Tokio;Kyōto|Atombombenabwürfe auf Hiroshima und Nagasaki|6. August
+T|GES|3|letzter-zar|Wie hieß der letzte Zar Russlands?|Nikolaus II.|Alexander III.;Peter der Große;Iwan der Schreckliche|Nikolaus II. (Russland)|letzte
+T|GES|3|queen-victoria|Welche Königin regierte das Vereinigte Königreich von 1837 bis 1901?|Victoria|Elisabeth I.;Anne;Maria II.|Victoria (Vereinigtes Königreich)|1837
+E|GES|3|hundertjaehriger-krieg-dauer|Wie viele Jahre dauerte der Hundertjährige Krieg zwischen England und Frankreich tatsächlich?|116|years|Jahre|1|10000|LOG|0.3|Hundertjähriger Krieg|1337;1453
+E|GES|4|chinesische-mauer-laenge|Wie lang ist die Chinesische Mauer mit allen Abschnitten laut der Vermessung von 2012 (in Kilometern)?|21196|km|Kilometer|1|1000000|LOG|0.3|Chinesische Mauer|21.196
+E|GES|3|limes-laenge|Wie lang ist der Obergermanisch-Raetische Limes (in Kilometern)?|550|km|Kilometer|1|10000|LOG|0.3|Obergermanisch-Raetischer Limes|550
+E|GES|4|hadrianswall-laenge|Wie lang war der Hadrianswall in Britannien (in Kilometern)?|117|km|Kilometer|1|10000|LOG|0.3|Hadrianswall|117
+E|GES|3|kolosseum-zuschauer|Wie viele Zuschauer fasste das Kolosseum in Rom ungefähr?|50000|count|Zuschauer|1|1000000|LOG|0.3|Kolosseum|50.000
+E|GES|3|titanic-laenge|Wie lang war die Titanic (in Metern)?|269|m|Meter|1|10000|LOG|0.3|Titanic (Schiff)|269
+E|GES|3|berliner-mauer-laenge|Wie lang war die Berliner Mauer rund um West-Berlin (in Kilometern)?|155|km|Kilometer|1|10000|LOG|0.3|Berliner Mauer|155
+E|GES|4|mauer-todesopfer|Wie viele Todesopfer an der Berliner Mauer hat die Forschung mindestens nachgewiesen?|140|count|Todesopfer|1|10000|LOG|0.3|Todesopfer an der Berliner Mauer|140
+E|GES|4|gutenberg-bibel-exemplare|Wie viele Exemplare der Gutenberg-Bibel sind heute noch erhalten?|49|count|Exemplare|1|1000|LOG|0.3|Gutenberg-Bibel|49
+E|GES|4|unabhaengigkeitserklaerung-unterzeichner|Wie viele Delegierte unterzeichneten die Unabhängigkeitserklärung der Vereinigten Staaten?|56|count|Unterzeichner|1|1000|LOG|0.3|Unabhängigkeitserklärung der Vereinigten Staaten|56
+E|GES|4|uni-heidelberg-gruendung|In welchem Jahr wurde die Universität Heidelberg gegründet?|1386|year|Jahr|1000|2026|LINEAR|40|Ruprecht-Karls-Universität Heidelberg|1386
+E|GES|3|koelner-dom-bauzeit|Wie viele Jahre vergingen von der Grundsteinlegung des Kölner Doms bis zu seiner Vollendung?|632|years|Jahre|1|10000|LOG|0.3|Kölner Dom|1248;1880
+E|GES|2|elisabeth-ii-regierungszeit|Wie viele Jahre war Elisabeth II. Königin des Vereinigten Königreichs?|70|years|Jahre|1|1000|LOG|0.3|Elisabeth II.|70 Jahre
+E|GES|4|johannes-paul-i-amtszeit|Wie viele Tage war Papst Johannes Paul I. im Amt?|33|days|Tage|1|1000|LOG|0.3|Johannes Paul I.|33 Tage
+E|GES|3|ludwig-xiv-regierungszeit|Wie viele Jahre regierte Ludwig XIV. als König von Frankreich?|72|years|Jahre|1|1000|LOG|0.3|Ludwig XIV.|72
+E|GES|3|mondbetreter|Wie viele Menschen betraten im Apollo-Programm den Mond?|12|count|Menschen|1|1000|LOG|0.3|Apollo-Programm|12
+E|GES|4|armada-schiffe|Mit wie vielen Schiffen lief die Spanische Armada 1588 gegen England aus?|130|count|Schiffe|1|10000|LOG|0.3|Spanische Armada|130
+E|GES|4|teppich-bayeux-laenge|Wie lang ist der Teppich von Bayeux (in Metern)?|68|m|Meter|1|1000|LOG|0.3|Teppich von Bayeux|68
+E|GES|3|terrakotta-armee|Wie viele Figuren umfasst die Terrakotta-Armee bei Xi’an ungefähr?|8000|count|Figuren|1|100000|LOG|0.3|Terrakottaarmee|8000

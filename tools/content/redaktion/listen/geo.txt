@@ -81,3 +81,42 @@ T|GEO|2|niagarafaelle|An der Grenze welcher beiden Länder liegen die Niagarafä
 T|GEO|3|victoriafaelle|An welchem Fluss liegen die Victoriafälle?|Sambesi|Kongo;Nil;Limpopo|Victoriafälle|Sambesi
 T|GEO|2|fjorde|Für welches Land sind Fjorde wie der Geirangerfjord typisch?|Norwegen|Finnland;Dänemark;Island|Geirangerfjord|Norwegen
 T|GEO|2|zeitzonen-deutschland|Welche Zeitzone gilt in Deutschland im Winter?|Mitteleuropäische Zeit|Westeuropäische Zeit;Osteuropäische Zeit;Greenwich Mean Time|Mitteleuropäische Zeit|Deutschland
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|GEO|2|oder-neisse|Welche beiden Flüsse bilden große Teile der Grenze zwischen Deutschland und Polen?|Oder und Neiße|Elbe und Spree;Weichsel und Warthe;Havel und Elbe|Oder-Neiße-Grenze|Oder;Neiße
+T|GEO|2|nigeria-bevoelkerung|Welcher Staat hat die meisten Einwohner in Afrika?|Nigeria|Ägypten;Äthiopien;Südafrika|Nigeria|bevölkerungsreichste
+T|GEO|2|moldau-prag|Durch welche Hauptstadt fließt die Moldau?|Prag|Wien;Budapest;Bratislava|Moldau (Fluss)|Prag
+T|GEO|2|kreta-land|Zu welchem Staat gehört die Insel Kreta?|Griechenland|Italien;Zypern;Türkei|Kreta|Griechenland
+T|GEO|3|reykjavik-noerdlichste|Welche dieser Hauptstädte liegt am weitesten im Norden?|Reykjavík|Oslo;Helsinki;Stockholm|Reykjavík|nördlichste
+T|GEO|3|faeroeer|Zu welchem Königreich gehören die Färöer?|Dänemark|Norwegen;Schweden;Vereinigtes Königreich|Färöer|Dänemark
+T|GEO|3|lesotho-enklave|Welcher Staat ist vollständig von Südafrika umschlossen?|Lesotho|Eswatini;Botswana;Simbabwe|Lesotho|Südafrika
+T|GEO|3|timbuktu|In welchem Staat liegt die Stadt Timbuktu?|Mali|Niger;Mauretanien;Tschad|Timbuktu|Mali
+T|GEO|2|machu-picchu|In welchem Land liegt die Inka-Ruinenstadt Machu Picchu?|Peru|Bolivien;Ecuador;Chile|Machu Picchu|Peru
+T|GEO|3|angkor-wat|In welchem Land liegt die Tempelanlage Angkor Wat?|Kambodscha|Thailand;Vietnam;Laos|Angkor Wat|Kambodscha
+T|GEO|3|petra-felsenstadt|In welchem Land liegt die Felsenstadt Petra?|Jordanien|Ägypten;Syrien;Saudi-Arabien|Petra (Jordanien)|Jordanien
+T|GEO|3|bagdad-tigris|An welchem Fluss liegt Bagdad?|Tigris|Euphrat;Jordan;Nil|Bagdad|Tigris
+T|GEO|2|aetna-sizilien|Auf welcher Insel liegt der Vulkan Ätna?|Sizilien|Sardinien;Korsika;Kreta|Ätna|Sizilien
+E|GEO|3|bodensee-flaeche|Wie groß ist die Fläche des Bodensees (in Quadratkilometern)?|536|km2|Quadratkilometer|1|10000|LOG|0.3|Bodensee|536
+E|GEO|3|bodensee-tiefe|Wie tief ist der Bodensee an seiner tiefsten Stelle (in Metern)?|251|m|Meter|1|10000|LOG|0.3|Bodensee|251
+E|GEO|4|titicacasee-hoehe|Auf welcher Höhe liegt der Titicacasee (in Metern über dem Meeresspiegel)?|3812|m|Meter|1|100000|LOG|0.3|Titicacasee|3812
+E|GEO|4|victoriafaelle-breite|Wie breit sind die Victoriafälle (in Metern)?|1708|m|Meter|1|100000|LOG|0.3|Victoriafälle|1708
+E|GEO|3|salto-angel-hoehe|Wie viele Meter stürzt das Wasser des Salto Ángel in Venezuela im freien Fall in die Tiefe?|807|m|Meter|1|10000|LOG|0.3|Salto Ángel|807
+E|GEO|2|rheinfall-hoehe|Wie hoch ist der Rheinfall bei Schaffhausen (in Metern)?|23|m|Meter|1|1000|LOG|0.3|Rheinfall|23
+E|GEO|3|gibraltar-breite|Wie breit ist die Meerenge zwischen Spanien und Marokko an ihrer engsten Stelle (in Kilometern)?|14|km|Kilometer|1|1000|LOG|0.3|Straße von Gibraltar|14
+E|GEO|4|beringstrasse-breite|Wie breit ist die Beringstraße zwischen Asien und Amerika ungefähr (in Kilometern)?|85|km|Kilometer|1|1000|LOG|0.3|Beringstraße|85
+E|GEO|3|suezkanal-laenge|Wie lang ist der Suezkanal (in Kilometern)?|193|km|Kilometer|1|10000|LOG|0.3|Suezkanal|193
+E|GEO|3|zeitzonen-russland|Wie viele Zeitzonen gibt es in Russland?|11|count|Zeitzonen|1|1000|LOG|0.3|Zeitzonen in Russland|11
+E|GEO|4|grenze-deutschland|Wie lang ist die Landgrenze Deutschlands insgesamt (in Kilometern)?|3876|km|Kilometer|1|100000|LOG|0.3|Deutschland|3876
+E|GEO|3|halligen-anzahl|Wie viele Halligen gibt es heute vor der Küste Nordfrieslands?|10|count|Halligen|1|1000|LOG|0.3|Hallig|zehn
+E|GEO|3|sylt-flaeche|Wie groß ist die Insel Sylt (in Quadratkilometern)?|99|km2|Quadratkilometer|1|1000|LOG|0.3|Sylt|99
+E|GEO|4|mittelmeer-tiefe|Wie tief ist das Mittelmeer an seiner tiefsten Stelle (in Metern)?|5109|m|Meter|1|100000|LOG|0.3|Mittelmeer|5109
+E|GEO|3|marianengraben-tiefe|Wie tief ist der Marianengraben an seiner tiefsten Stelle (in Metern unter dem Meeresspiegel)?|11000|m|Meter|1|1000000|LOG|0.3|Marianengraben|11.000
+E|GEO|3|grand-canyon-tiefe|Wie tief ist der Grand Canyon an seiner tiefsten Stelle (in Metern)?|1800|m|Meter|1|100000|LOG|0.3|Grand Canyon|1800
+E|GEO|3|hamburg-bruecken|Wie viele Brücken gibt es in Hamburg ungefähr?|2500|count|Brücken|1|100000|LOG|0.3|Hamburg|2500
+E|GEO|3|rennsteig-laenge|Wie lang ist der Rennsteig, der Kammweg durch den Thüringer Wald (in Kilometern)?|170|km|Kilometer|1|10000|LOG|0.3|Rennsteig|169,29
+E|GEO|3|route-66-laenge|Wie lang war die U.S. Route 66 von Chicago nach Santa Monica (in Kilometern)?|3940|km|Kilometer|1|100000|LOG|0.3|U.S. Route 66|3940
+E|GEO|3|transsib-laenge|Wie lang ist die Strecke der Transsibirischen Eisenbahn von Moskau nach Wladiwostok (in Kilometern)?|9288|km|Kilometer|1|100000|LOG|0.3|Transsibirische Eisenbahn|9288
+E|GEO|4|grenze-usa-kanada|Wie lang ist die Grenze zwischen Kanada und den Vereinigten Staaten (in Kilometern)?|8891|km|Kilometer|1|100000|LOG|0.3|Grenze zwischen Kanada und den Vereinigten Staaten|8891
+E|GEO|3|china-nachbarstaaten|An wie viele Staaten grenzt die Volksrepublik China zu Land?|14|count|Staaten|1|1000|LOG|0.3|Volksrepublik China|14
+E|GEO|3|chiemsee-flaeche|Wie groß ist der Chiemsee (in Quadratkilometern)?|80|km2|Quadratkilometer|1|1000|LOG|0.3|Chiemsee|79,9
+E|GEO|3|koenigssee-tiefe|Wie tief ist der Königssee im Berchtesgadener Land (in Metern)?|190|m|Meter|1|10000|LOG|0.3|Königssee|190

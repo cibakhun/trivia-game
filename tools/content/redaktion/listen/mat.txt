@@ -38,7 +38,35 @@ T|MAT|1|sekunden-stunde|Wie viele Sekunden hat eine Stunde?|3600|360;3000;6000|S
 T|MAT|3|hektar|Wie viele Quadratmeter hat ein Hektar?|10.000|1.000;100;100.000|Hektar|10.000
 T|MAT|2|kubikmeter-liter|Wie viele Liter passen in einen Kubikmeter?|1000|10;100;10.000|Kubikmeter|1000
 T|MAT|1|dutzend|Wie viele Stück sind ein Dutzend?|12|10;13;20|Dutzend|zwölf
-T|MAT|4|schock|Wie viele Stück sind ein Schock?|60|12;100;144|Schock (Einheit)|60
+T|MAT|4|schock|Wie viele Stück sind ein Schock?|60|12;50;100|Alte Maße und Gewichte (deutschsprachiger Raum)|60
 T|MAT|3|gauss-zehn-mark|Welcher Mathematiker war auf dem letzten Zehn-Mark-Schein abgebildet?|Carl Friedrich Gauß|Leonhard Euler;Gottfried Wilhelm Leibniz;Bernhard Riemann|Carl Friedrich Gauß|10-DM
 T|MAT|3|leibniz-infinitesimal|Wer entwickelte unabhängig von Isaac Newton die Infinitesimalrechnung?|Gottfried Wilhelm Leibniz|Carl Friedrich Gauß;Leonhard Euler;Johannes Kepler|Gottfried Wilhelm Leibniz|Infinitesimalrechnung
 T|MAT|4|fermat-wiles|Wer bewies in den 1990er-Jahren den Großen Fermatschen Satz?|Andrew Wiles|Grigori Perelman;Terence Tao;John Nash|Großer Fermatscher Satz|Wiles
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|MAT|1|gleichseitiges-dreieck|Wie heißt ein Dreieck mit drei gleich langen Seiten?|Gleichseitiges Dreieck|Gleichschenkliges Dreieck;Rechtwinkliges Dreieck;Stumpfwinkliges Dreieck|Gleichseitiges Dreieck|gleich lang
+T|MAT|2|achteck|Wie nennt man ein Achteck auch?|Oktogon|Hexagon;Pentagon;Dekagon|Achteck|Oktogon
+T|MAT|2|tangente|Wie heißt eine Gerade, die einen Kreis in genau einem Punkt berührt?|Tangente|Sekante;Sehne;Passante|Tangente|Kreis
+T|MAT|1|radius|Wie heißt die Strecke vom Mittelpunkt eines Kreises zu seinem Rand?|Radius|Durchmesser;Sehne;Umfang|Radius|Mittelpunkt
+T|MAT|3|euklid-elemente|Welcher griechische Mathematiker schrieb das Lehrbuch „Die Elemente“?|Euklid|Archimedes;Thales;Pythagoras|Elemente (Euklid)|Euklid
+T|MAT|3|null-indien|In welchem Kulturraum wurde die Null als eigene Ziffer im Stellenwertsystem entwickelt?|Indien|Griechenland;Römisches Reich;Ägypten|Null|Indien
+T|MAT|3|binaersystem|Wie viele verschiedene Ziffern verwendet das Binärsystem?|2|8;10;16|Dualsystem|zwei
+T|MAT|3|parabel|Wie heißt der Graph der Funktion y = x²?|Normalparabel|Hyperbel;Gerade;Sinuskurve|Parabel (Mathematik)|Normalparabel
+T|MAT|4|mobius-band|Wie heißt die Fläche, die nur eine Seite und eine Kante hat?|Möbiusband|Kleinsche Flasche;Torus;Zylindermantel|Möbiusband|eine Kante
+T|MAT|3|irrationale-zahl|Wie nennt man Zahlen wie die Wurzel aus 2, die sich nicht als Bruch zweier ganzer Zahlen schreiben lassen?|Irrationale Zahlen|Rationale Zahlen;Natürliche Zahlen;Ganze Zahlen|Irrationale Zahl|Bruch
+T|MAT|2|stumpfer-winkel|Wie heißt ein Winkel, der größer als 90 und kleiner als 180 Grad ist?|Stumpfer Winkel|Spitzer Winkel;Gestreckter Winkel;Überstumpfer Winkel|Winkel|stumpf
+T|MAT|2|produkt|Wie heißt das Ergebnis einer Multiplikation?|Produkt|Summe;Differenz;Potenz|Multiplikation|Produkt
+E|MAT|3|primzahlen-bis-100|Wie viele Primzahlen gibt es zwischen 1 und 100?|25|count|Primzahlen|1|1000|LOG|0.3|Primzahl|25
+E|MAT|3|lotto-tippreihen|Wie viele mögliche Tippreihen gibt es beim Lotto 6 aus 49 (ohne Superzahl)?|13983816|count|Tippreihen|1|1000000000|LOG|0.3|Lotto 6 aus 49|13.983.816
+E|MAT|4|zauberwuerfel-stellungen|Wie viele verschiedene Stellungen kann ein Zauberwürfel einnehmen?|43252003274489856000|count|Stellungen|1|1000000000000000000000|LOG|0.3|Zauberwürfel|43.252.003.274.489.856.000
+E|MAT|2|dodekaeder-ecken|Wie viele Ecken hat ein Dodekaeder?|20|count|Ecken|1|1000|LOG|0.3|Dodekaeder|20
+E|MAT|3|fuenfeck-winkelsumme|Wie groß ist die Summe der Innenwinkel eines Fünfecks (in Grad)?|540|degree|Grad|1|10000|LOG|0.3|Fünfeck|540
+E|MAT|4|zehn-fakultaet|Wie viel ist 10! (10 Fakultät)?|3628800|count|Ergebnis|1|100000000|LOG|0.3|Fakultät (Mathematik)|3.628.800
+E|MAT|3|sekunden-pro-tag|Wie viele Sekunden hat ein Tag?|86400|s|Sekunden|1|1000000|LOG|0.3|Tag|86.400
+E|MAT|4|eurojackpot-kombinationen|Wie viele verschiedene Tippkombinationen gibt es beim Eurojackpot (5 aus 50 und 2 aus 12)?|139838160|count|Kombinationen|1|10000000000|LOG|0.3|Eurojackpot|139.838.160
+E|MAT|4|weizenkornlegende|Legt man auf das erste Feld eines Schachbretts ein Korn und verdoppelt auf jedem weiteren Feld, wie viele Körner liegen am Ende insgesamt auf dem Brett?|18446744073709551615|count|Körner|1|1000000000000000000000|LOG|0.3|Weizenkornlegende|18.446.744.073.709.551.615
+E|MAT|4|damenproblem-loesungen|Wie viele Lösungen hat das Damenproblem, acht Damen so auf ein Schachbrett zu stellen, dass keine eine andere schlagen kann?|92|count|Lösungen|1|1000|LOG|0.3|Damenproblem|92
+E|MAT|2|sudoku-felder|Wie viele Felder hat ein klassisches Sudoku?|81|count|Felder|1|1000|LOG|0.3|Sudoku|81
+E|MAT|3|byte-werte|Wie viele verschiedene Werte kann ein Byte darstellen?|256|count|Werte|1|10000|LOG|0.3|Byte|256
+E|MAT|4|ipv4-adressen|Wie viele verschiedene IPv4-Adressen gibt es rechnerisch?|4294967296|count|Adressen|1|100000000000|LOG|0.3|IPv4|4.294.967.296
+E|MAT|4|vollkommene-zahl|Welche ist nach der 6 die zweitkleinste vollkommene Zahl?|28|count|Zahl|1|1000|LOG|0.3|Vollkommene Zahl|28

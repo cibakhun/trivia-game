@@ -60,3 +60,38 @@ T|POL|3|sitz-istgh|In welcher Stadt hat der Internationale Strafgerichtshof sein
 T|POL|2|sitz-who|In welcher Stadt hat die Weltgesundheitsorganisation ihren Sitz?|Genf|New York;Wien;Rom|Weltgesundheitsorganisation|Genf
 T|POL|2|friedensnobelpreis-ort|In welcher Stadt wird der Friedensnobelpreis verliehen?|Oslo|Stockholm;Genf;Kopenhagen|Friedensnobelpreis|Oslo
 T|POL|3|rotes-kreuz|Auf wessen Anregung geht die Gründung des Roten Kreuzes zurück?|Henry Dunant|Florence Nightingale;Albert Schweitzer;Clara Barton|Henry Dunant|Rote Kreuz
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|POL|3|knesset|Wie heißt das Parlament Israels?|Knesset|Duma;Sejm;Storting|Knesset|Israel
+T|POL|3|storting|Wie heißt das Parlament Norwegens?|Storting|Folketing;Riksdag;Althing|Storting|Norweg
+T|POL|2|downing-street|Wie heißt die Adresse des Amtssitzes des britischen Premierministers?|10 Downing Street|Buckingham Palace;Whitehall 1;Westminster Palace|10 Downing Street|Premierminister
+T|POL|2|indien-bevoelkerung|Welcher Staat hat seit 2023 die meisten Einwohner der Welt?|Indien|Volksrepublik China;Vereinigte Staaten;Indonesien|Indien|bevölkerungsreichste
+T|POL|3|kommissionspraesident-wahl|Wer wählt den Präsidenten der Europäischen Kommission auf Vorschlag des Europäischen Rates?|Das Europäische Parlament|Der Rat der Europäischen Union;Der Europäische Gerichtshof;Die Bürger der EU direkt|Präsident der Europäischen Kommission|Europäische Parlament
+T|POL|2|norwegen-nicht-eu|Welches dieser Länder ist kein Mitglied der Europäischen Union?|Norwegen|Schweden;Finnland;Dänemark|Norwegen|Europäischen Union
+T|POL|2|charles-iii|Wer ist seit 2022 König des Vereinigten Königreichs?|Charles III.|William;Edward;George|Charles III.|2022
+T|POL|3|opec-sitz|In welcher Stadt hat die Organisation erdölexportierender Länder (OPEC) ihren Sitz?|Wien|Riad;Genf;Abu Dhabi|Organisation erdölexportierender Länder|Wien
+T|POL|3|ampel-koalition|Welche Parteien bildeten die „Ampelkoalition“ unter Olaf Scholz?|SPD, Grüne und FDP|SPD, Grüne und Linke;CDU, Grüne und FDP;SPD, CDU und FDP|Kabinett Scholz|FDP
+T|POL|3|schweiz-hauptstadt-bern|Wie bezeichnet die Schweiz offiziell Bern, das keine Hauptstadt im Sinne der Verfassung ist?|Bundesstadt|Reichsstadt;Kantonsstadt;Freie Stadt|Bern|Bundesstadt
+T|POL|4|interpol-sitz|In welcher Stadt hat Interpol seinen Hauptsitz?|Lyon|Paris;Brüssel;Wien|Interpol|Lyon
+T|POL|2|ministerpraesident|Wie heißt der Regierungschef eines deutschen Flächenlandes?|Ministerpräsident|Landeskanzler;Landrat;Regierungspräsident|Ministerpräsident|Flächenstaaten
+T|POL|3|uno-generalsekretaer|Wie heißt das Amt an der Spitze des Sekretariats der Vereinten Nationen?|Generalsekretär|Hochkommissar;Präsident;Kanzler|Generalsekretär der Vereinten Nationen|Generalsekretär
+E|POL|3|eu-parlament-sitze|Wie viele Abgeordnete hat das 2024 gewählte Europäische Parlament?|720|count|Abgeordnete|1|10000|LOG|0.3|Europäisches Parlament|720
+E|POL|2|un-mitgliedstaaten|Wie viele Mitgliedstaaten haben die Vereinten Nationen?|193|count|Staaten|1|10000|LOG|0.3|Vereinte Nationen|193
+E|POL|3|us-repraesentantenhaus|Wie viele stimmberechtigte Abgeordnete hat das Repräsentantenhaus der Vereinigten Staaten?|435|count|Abgeordnete|1|10000|LOG|0.3|Repräsentantenhaus der Vereinigten Staaten|435
+E|POL|3|eu-amtssprachen|Wie viele Amtssprachen hat die Europäische Union?|24|count|Amtssprachen|1|1000|LOG|0.3|Amtssprachen der Europäischen Union|24
+E|POL|2|nato-mitglieder|Wie viele Mitgliedstaaten hat die NATO?|32|count|Staaten|1|1000|LOG|0.3|NATO|32
+E|POL|2|kantone-schweiz|Wie viele Kantone hat die Schweiz?|26|count|Kantone|1|1000|LOG|0.3|Kanton (Schweiz)|26
+E|POL|3|bundestagswahlkreise|In wie viele Wahlkreise ist Deutschland bei der Bundestagswahl eingeteilt?|299|count|Wahlkreise|1|10000|LOG|0.3|Bundestagswahl 2025|299
+E|POL|3|departements-frankreich|Wie viele Départements hat Frankreich einschließlich der Überseegebiete?|101|count|Départements|1|10000|LOG|0.3|Département|101
+E|POL|3|indien-bundesstaaten|Wie viele Bundesstaaten hat Indien?|28|count|Bundesstaaten|1|1000|LOG|0.3|Indien|28
+E|POL|3|japan-praefekturen|In wie viele Präfekturen ist Japan gegliedert?|47|count|Präfekturen|1|1000|LOG|0.3|Präfektur (Japan)|47
+E|POL|3|eurozone-staaten|Wie viele EU-Staaten haben den Euro als Währung (Stand 2026)?|21|count|Staaten|1|1000|LOG|0.3|Eurozone|21
+E|POL|2|bundespraesident-mindestalter|Wie alt muss man mindestens sein, um zum Bundespräsidenten gewählt werden zu können?|40|years|Jahre|1|1000|LOG|0.3|Bundespräsident (Deutschland)|40
+E|POL|3|unterhaus-sitze|Wie viele Abgeordnete hat das britische Unterhaus?|650|count|Abgeordnete|1|10000|LOG|0.3|House of Commons|650
+E|POL|4|assemblee-nationale-sitze|Wie viele Abgeordnete hat die französische Nationalversammlung?|577|count|Abgeordnete|1|10000|LOG|0.3|Nationalversammlung (Frankreich)|577
+E|POL|4|nationalrat-oesterreich|Wie viele Abgeordnete hat der österreichische Nationalrat?|183|count|Abgeordnete|1|10000|LOG|0.3|Nationalrat (Österreich)|183
+E|POL|3|europarat-mitglieder|Wie viele Staaten sind Mitglied im Europarat?|46|count|Staaten|1|1000|LOG|0.3|Europarat|46
+E|POL|3|afrikanische-union|Wie viele Mitgliedstaaten hat die Afrikanische Union?|55|count|Staaten|1|1000|LOG|0.3|Afrikanische Union|55
+E|POL|4|bayerischer-landtag|Wie viele Abgeordnete hat der 2023 gewählte Bayerische Landtag?|203|count|Abgeordnete|1|10000|LOG|0.3|Bayerischer Landtag|203
+E|POL|3|trump-praesident-nummer|Der wievielte Präsident der Vereinigten Staaten ist Donald Trump in seiner zweiten Amtszeit?|47|count|Nummer|1|1000|LOG|0.3|Donald Trump|47
+E|POL|3|merz-kanzler-nummer|Der wievielte Bundeskanzler der Bundesrepublik Deutschland ist Friedrich Merz?|10|count|Nummer|1|1000|LOG|0.3|Friedrich Merz|zehnte
