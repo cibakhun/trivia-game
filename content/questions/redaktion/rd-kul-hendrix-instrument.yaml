@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-hendrix-instrument
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Jimi Hendrix"
+    url: https://de.wikipedia.org/wiki/Jimi_Hendrix
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „E-Gitarre“ im Artikel „Jimi Hendrix“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: "Mit welchem Instrument wurde Jimi Hendrix berühmt?"
+    options:
+      a: "Saxophon"
+      b: "Klavier"
+      c: "Schlagzeug"
+      d: "E-Gitarre"

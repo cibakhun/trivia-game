@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-nat-schmelzpunkt-wolfram
+kind: ESTIMATE
+category: SCIENCE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wolfram"
+    url: https://de.wikipedia.org/wiki/Wolfram
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „3422“ im Artikel „Wolfram“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "3422"
+  answer_precision: 0
+  answer_unit: celsius
+  input_min: "1"
+  input_max: "100000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Bei welcher Temperatur schmilzt Wolfram, das Metall mit dem höchsten Schmelzpunkt (in Grad Celsius)?"
+    unit_label: "Grad Celsius"

@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-tie-seepferdchen-maennchen
+kind: TRIVIA
+category: NATURE_ANIMALS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Seepferdchen"
+    url: https://de.wikipedia.org/wiki/Seepferdchen
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „Seepferdchen“ im Artikel „Seepferdchen“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: APPROVED
+    prompt: "Bei welchen Fischen trägt das Männchen die Jungen in einer Bruttasche aus?"
+    options:
+      a: "Seepferdchen"
+      b: "Clownfische"
+      c: "Kugelfische"
+      d: "Rochen"

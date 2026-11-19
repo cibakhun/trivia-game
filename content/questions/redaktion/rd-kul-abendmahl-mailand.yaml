@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-abendmahl-mailand
+kind: TRIVIA
+category: ARTS_CULTURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Das Abendmahl (Leonardo da Vinci)"
+    url: https://de.wikipedia.org/wiki/Das_Abendmahl_(Leonardo_da_Vinci)
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „Mailand“ im Artikel „Das Abendmahl (Leonardo da Vinci)“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: c
+translations:
+  de:
+    status: APPROVED
+    prompt: "In welcher Stadt befindet sich Leonardo da Vincis Wandgemälde „Das Abendmahl“?"
+    options:
+      a: "Florenz"
+      b: "Rom"
+      c: "Mailand"
+      d: "Venedig"

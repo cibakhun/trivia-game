@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-hiroshima
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Atombombenabwürfe auf Hiroshima und Nagasaki"
+    url: https://de.wikipedia.org/wiki/Atombombenabw%C3%BCrfe_auf_Hiroshima_und_Nagasaki
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „Hiroshima“ im Artikel „Atombombenabwürfe auf Hiroshima und Nagasaki“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: "Auf welche Stadt warfen die USA am 6. August 1945 die erste Atombombe ab?"
+    options:
+      a: "Tokio"
+      b: "Nagasaki"
+      c: "Kyōto"
+      d: "Hiroshima"

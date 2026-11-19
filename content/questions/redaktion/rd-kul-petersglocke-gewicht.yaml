@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-kul-petersglocke-gewicht
+kind: ESTIMATE
+category: ARTS_CULTURE
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Petersglocke"
+    url: https://de.wikipedia.org/wiki/Petersglocke
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Wert „24“ im Artikel „Petersglocke“ der deutschen Wikipedia gefunden; Antwort 24.000 Kilogramm daraus umgerechnet oder gerundet (Abweichung unter 1 %)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "24000"
+  answer_precision: 0
+  answer_unit: kg
+  input_min: "1"
+  input_max: "1000000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie schwer ist die Petersglocke im Kölner Dom (in Kilogramm)?"
+    unit_label: "Kilogramm"

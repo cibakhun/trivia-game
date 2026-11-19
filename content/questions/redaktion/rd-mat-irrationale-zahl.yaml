@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-mat-irrationale-zahl
+kind: TRIVIA
+category: MATHEMATICS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Irrationale Zahl"
+    url: https://de.wikipedia.org/wiki/Irrationale_Zahl
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „Irrationale Zahlen“ im Artikel „Irrationale Zahl“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: d
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie nennt man Zahlen wie die Wurzel aus 2, die sich nicht als Bruch zweier ganzer Zahlen schreiben lassen?"
+    options:
+      a: "Ganze Zahlen"
+      b: "Rationale Zahlen"
+      c: "Natürliche Zahlen"
+      d: "Irrationale Zahlen"
