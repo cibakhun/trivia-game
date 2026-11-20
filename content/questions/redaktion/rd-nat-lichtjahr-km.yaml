@@ -17,22 +17,22 @@ reviews:
   - kind: FACT
     reviewer: "Claude"
     date: 2026-11-19
-    note: "Wert „9,46“ im Artikel „Lichtjahr“ der deutschen Wikipedia gefunden; Antwort 9.460.730.472.581 Kilometer daraus umgerechnet oder gerundet (Abweichung unter 1 %)."
+    note: "Wert „9,46“ im Artikel „Lichtjahr“ der deutschen Wikipedia gefunden; nachgerechnet 299.792,458 km/s × 31.557.600 s (Julianisches Jahr) = 9.460.730.472.580,8 km, also 9,46 Billionen Kilometer."
   - kind: LANGUAGE
     locale: de
     reviewer: "Claude"
     date: 2026-11-19
-    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig; seit 2026-11-20 in größerer Einheit gefragt, damit die Lösung ins Ziffernfeld passt (ADR-077)."
 estimate:
-  answer_value: "9460730472581"
-  answer_precision: 0
-  answer_unit: km
-  input_min: "1"
-  input_max: "100000000000000"
+  answer_value: "9.46"
+  answer_precision: 2
+  answer_unit: 1e12_km
+  input_min: "0.1"
+  input_max: "100"
   scale_type: LOG
   scale: 0.3
 translations:
   de:
     status: APPROVED
-    prompt: "Wie viele Kilometer legt das Licht in einem Jahr zurück (ein Lichtjahr)?"
-    unit_label: "Kilometer"
+    prompt: "Wie viele Billionen Kilometer legt das Licht in einem Jahr zurück (ein Lichtjahr)?"
+    unit_label: "Billionen Kilometer"

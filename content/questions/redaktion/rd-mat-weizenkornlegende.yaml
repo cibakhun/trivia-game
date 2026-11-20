@@ -17,22 +17,22 @@ reviews:
   - kind: FACT
     reviewer: "Claude"
     date: 2026-11-19
-    note: "Antwort „18.446.744.073.709.551.615“ im Artikel „Weizenkornlegende“ der deutschen Wikipedia (Weiterleitung auf „Sissa ibn Dahir“) gefunden."
+    note: "Antwort „18.446.744.073.709.551.615“ im Artikel „Weizenkornlegende“ der deutschen Wikipedia (Weiterleitung auf „Sissa ibn Dahir“) gefunden; in Trillionen (10^18) auf eine Nachkommastelle gerundet 18,4 (Abweichung unter 1 %)."
   - kind: LANGUAGE
     locale: de
     reviewer: "Claude"
     date: 2026-11-19
-    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig; seit 2026-11-20 in größerer Einheit gefragt, damit die Lösung ins Ziffernfeld passt (ADR-077)."
 estimate:
-  answer_value: "18446744073709551615"
-  answer_precision: 0
-  answer_unit: count
-  input_min: "1"
-  input_max: "1000000000000000000000"
+  answer_value: "18.4"
+  answer_precision: 1
+  answer_unit: 1e18_count
+  input_min: "0.1"
+  input_max: "1000"
   scale_type: LOG
   scale: 0.3
 translations:
   de:
     status: APPROVED
-    prompt: "Legt man auf das erste Feld eines Schachbretts ein Korn und verdoppelt auf jedem weiteren Feld, wie viele Körner liegen am Ende insgesamt auf dem Brett?"
-    unit_label: "Körner"
+    prompt: "Ein Korn auf das erste Feld eines Schachbretts, auf jedes weitere doppelt so viele: Wie viele Trillionen Körner liegen am Ende insgesamt auf dem Brett?"
+    unit_label: "Trillionen Körner"

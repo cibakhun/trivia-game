@@ -58,13 +58,13 @@ T|MAT|2|stumpfer-winkel|Wie heißt ein Winkel, der größer als 90 und kleiner a
 T|MAT|2|produkt|Wie heißt das Ergebnis einer Multiplikation?|Produkt|Summe;Differenz;Potenz|Multiplikation|Produkt
 E|MAT|3|primzahlen-bis-100|Wie viele Primzahlen gibt es zwischen 1 und 100?|25|count|Primzahlen|1|1000|LOG|0.3|Primzahl|25
 E|MAT|3|lotto-tippreihen|Wie viele mögliche Tippreihen gibt es beim Lotto 6 aus 49 (ohne Superzahl)?|13983816|count|Tippreihen|1|1000000000|LOG|0.3|Lotto 6 aus 49|13.983.816
-E|MAT|4|zauberwuerfel-stellungen|Wie viele verschiedene Stellungen kann ein Zauberwürfel einnehmen?|43252003274489856000|count|Stellungen|1|1000000000000000000000|LOG|0.3|Zauberwürfel|43.252.003.274.489.856.000
+E|MAT|4|zauberwuerfel-stellungen|Wie viele Trillionen verschiedene Stellungen kann ein Zauberwürfel einnehmen?|43|1e18_count|Trillionen Stellungen|1|1000|LOG|0.3|Zauberwürfel|43.252.003.274.489.856.000
 E|MAT|2|dodekaeder-ecken|Wie viele Ecken hat ein Dodekaeder?|20|count|Ecken|1|1000|LOG|0.3|Dodekaeder|20
 E|MAT|3|fuenfeck-winkelsumme|Wie groß ist die Summe der Innenwinkel eines Fünfecks (in Grad)?|540|degree|Grad|1|10000|LOG|0.3|Fünfeck|540
 E|MAT|4|zehn-fakultaet|Wie viel ist 10! (10 Fakultät)?|3628800|count|Ergebnis|1|100000000|LOG|0.3|Fakultät (Mathematik)|3.628.800
 E|MAT|3|sekunden-pro-tag|Wie viele Sekunden hat ein Tag?|86400|s|Sekunden|1|1000000|LOG|0.3|Tag|86.400
 E|MAT|4|eurojackpot-kombinationen|Wie viele verschiedene Tippkombinationen gibt es beim Eurojackpot (5 aus 50 und 2 aus 12)?|139838160|count|Kombinationen|1|10000000000|LOG|0.3|Eurojackpot|139.838.160
-E|MAT|4|weizenkornlegende|Legt man auf das erste Feld eines Schachbretts ein Korn und verdoppelt auf jedem weiteren Feld, wie viele Körner liegen am Ende insgesamt auf dem Brett?|18446744073709551615|count|Körner|1|1000000000000000000000|LOG|0.3|Weizenkornlegende|18.446.744.073.709.551.615
+E|MAT|4|weizenkornlegende|Ein Korn auf das erste Feld eines Schachbretts, auf jedes weitere doppelt so viele: Wie viele Trillionen Körner liegen am Ende insgesamt auf dem Brett?|18.4|1e18_count|Trillionen Körner|0.1|1000|LOG|0.3|Weizenkornlegende|18.446.744.073.709.551.615
 E|MAT|4|damenproblem-loesungen|Wie viele Lösungen hat das Damenproblem, acht Damen so auf ein Schachbrett zu stellen, dass keine eine andere schlagen kann?|92|count|Lösungen|1|1000|LOG|0.3|Damenproblem|92
 E|MAT|2|sudoku-felder|Wie viele Felder hat ein klassisches Sudoku?|81|count|Felder|1|1000|LOG|0.3|Sudoku|81
 E|MAT|3|byte-werte|Wie viele verschiedene Werte kann ein Byte darstellen?|256|count|Werte|1|10000|LOG|0.3|Byte|256

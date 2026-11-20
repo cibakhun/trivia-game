@@ -45,6 +45,7 @@ Bezug: Brief §5, §10.3, §11.5, §13.1. Kennzeichnung siehe [README](README.md
 - Keine Jahreszahlen vor Christus im MVP (Eingabe-Komplexität).
 - **Kappung der Bots** (ADR-076, geprüft von `tools/content/src/validate.ts`): `input_min`/`input_max` darf nicht knapp an der Lösung liegen, sonst schätzen Bots dort künstlich genau. Jahreszahlen ab 1000 (auch bei Nobelpreisen, die es erst seit 1901 gibt) bis zum laufenden Jahr (`YEAR_INPUT_MAX` in `validate.ts`, anheben, sobald eine Lösung im neuen Jahr liegt). Bei LOG-Skala mindestens bis zum Dreifachen der Lösung und bis zu einem Drittel davon (oder bis 1). Eine natürliche Grenze bleibt erlaubt (Ordnungszahl bis 118). In den Wikidata-Vorlagen steht die Kappung getrennt vom Bereich glaubwürdiger Werte (`valueMin`/`valueMax`), damit eine weitere Kappung die Auswahl der Fragen nicht verschiebt; ein Test prüft, dass sie zu jedem Wert passt, den die Vorlage auswählen kann.
 - Keine Werte, die sich schnell ändern (Einwohnerzahlen nur mit Stichtag in der Frage).
+- **Lösung passt ins Ziffernfeld** (ADR-077, geprüft von `validate.ts`): höchstens 11 Stellen vor dem Komma, eine weniger als das Ziffernfeld der Partie annimmt (`ESTIMATE_INPUT_MAX_WHOLE`), damit auch das Zehnfache noch passt. Größere Zahlen in größerer Einheit fragen, wie man sie kennt: „in Billionen Kilometern“ (9,46), „Trillionen Stellungen“ (43).
 
 **Zahleneingabe** (Widerspruch W-11) [E]: Gespielt wird nur auf Deutsch (ADR-023).
 
