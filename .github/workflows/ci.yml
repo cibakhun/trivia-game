@@ -16,7 +16,9 @@ jobs:
   check:
     name: Lint, Typen, Tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Seit 2026-11-18 braucht „Chromium für Playwright“ (apt-Pakete) 5 bis 8,5 min statt 30 s;
+    # mit 15 min brach der Lauf auf main und in PRs während der E2E-Tests ab.
+    timeout-minutes: 25
     services:
       postgres:
         image: postgres:16
