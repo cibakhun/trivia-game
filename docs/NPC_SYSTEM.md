@@ -53,7 +53,7 @@ Vorteil gegenüber einer festen Tabelle: Sobald Fragen aus Spieldaten kalibriert
   ⇒ leicht (θ −0,4) 1,00 · mittel (+0,6) 0,47 · schwer (+1,7) 0,21 · neutrale Garnison (−1,4) 2,0 (gekappt)
   ```
 
-  Die Parameter sind Teil des versionierten NPC-Profils (`npc_profiles.estimate_spread`); das Ereignisprotokoll speichert den verwendeten Wert `s(θ_eff)`. Ergebnis wird auf `answer_precision` gerundet (`ROUND_HALF_UP`) und in `[input_min, input_max]` begrenzt. Exakttreffer entstehen so natürlich und bei starken NPCs häufiger.
+  Die Parameter sind Teil des versionierten NPC-Profils (`npc_profiles.estimate_spread`); das Ereignisprotokoll speichert den verwendeten Wert `s(θ_eff)`. Ein Profil kann stattdessen eine feste Streuung tragen (`estimateSpread` in `NpcProfile`); das tun nur die Bots der Partie, deren Schätzung sich unabhängig von ihrem Wissen einstellen lassen soll ([MATCH_RULES.md §7](MATCH_RULES.md), ADR-075). Die NPCs hier bleiben bei `s(θ)`. Ergebnis wird auf `answer_precision` gerundet (`ROUND_HALF_UP`) und in `[input_min, input_max]` begrenzt. Exakttreffer entstehen so natürlich und bei starken NPCs häufiger.
 
 ### 3.3 Antwortzeit [E]
 

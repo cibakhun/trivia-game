@@ -17,6 +17,7 @@ import {
   KERNMARK,
   MATCH_BOT_PROFILES,
   MATCH_BOT_STRENGTHS,
+  triviaProbability,
   legalRegions,
   matchPhase,
   matchPoints,
@@ -615,6 +616,18 @@ describe('Bots und Zeitablauf', () => {
   it('Stärken in game-core und protocol sind dieselben', () => {
     expect([...MATCH_BOT_STRENGTHS]).toEqual([...MATCH_BOT_STRENGTH_CODES]);
     expect(Object.keys(MATCH_BOT_PROFILES)).toEqual([...MATCH_BOT_STRENGTH_CODES]);
+  });
+
+  it('stärkere Bots wissen mehr, schätzen genauer und schneller (ADR-075)', () => {
+    const [easy, medium, hard] = MATCH_BOT_STRENGTHS.map((s) => MATCH_BOT_PROFILES[s]);
+    expect(easy!.theta).toBeLessThan(medium!.theta);
+    expect(medium!.theta).toBeLessThan(hard!.theta);
+    expect(easy!.estimateSpread).toBeGreaterThan(medium!.estimateSpread!);
+    expect(medium!.estimateSpread).toBeGreaterThan(hard!.estimateSpread!);
+    expect(easy!.estimateMedianMs).toBeGreaterThanOrEqual(medium!.estimateMedianMs);
+    expect(medium!.estimateMedianMs).toBeGreaterThanOrEqual(hard!.estimateMedianMs);
+    // Mittel trifft eine mittelschwere Frage seltener als jeder zweite Mensch (Rückmeldung 2026-11-18)
+    expect(triviaProbability(medium!.theta, 0)).toBeLessThan(0.5);
   });
 
   it('wählen in jedem Schritt eine erlaubte Region', () => {
