@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-tie-schwein-traechtigkeit
+kind: ESTIMATE
+category: NATURE_ANIMALS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Hausschwein"
+    url: https://de.wikipedia.org/wiki/Hausschwein
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Spanne „112 bis 114 Tage“ im Artikel „Hausschwein“ der deutschen Wikipedia gefunden; Antwort 113 ist die Mitte."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "113"
+  answer_precision: 0
+  answer_unit: days
+  input_min: "1"
+  input_max: "10000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie viele Tage dauert die Trächtigkeit beim Hausschwein ungefähr?"
+    unit_label: "Tage"

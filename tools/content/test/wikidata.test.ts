@@ -119,6 +119,21 @@ describe('Wikidata-Hilfen', () => {
 });
 
 describe('Schätzfragen', () => {
+  it('Kappung der Bots passt zu jedem Wert, den die Vorlage auswählen kann (ADR-076)', () => {
+    for (const t of TEMPLATES) {
+      if (t.kind !== 'ESTIMATE') continue;
+      if (t.unit === 'year') {
+        expect(t.inputMin, t.id).toBeLessThanOrEqual(1000);
+        expect(t.inputMax, t.id).toBe(2026);
+      }
+      if (t.scaleType === 'LOG') {
+        // Auch der größte und der kleinste glaubwürdige Wert bestehen die Prüfung der Fragendatei
+        expect(t.inputMax, t.id).toBeGreaterThanOrEqual(3 * t.valueMax);
+        expect(t.inputMin <= 1 || 3 * t.inputMin <= t.valueMin, t.id).toBe(true);
+      }
+    }
+  });
+
   it('Berghöhe: gerundet, mehrdeutige Werte und Namen ohne deutsche Form fallen weg', () => {
     const rows = [
       { item: 'Q3375', label: 'Zugspitze', sitelinks: '90', value: '2962.06' },

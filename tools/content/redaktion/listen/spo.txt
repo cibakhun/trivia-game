@@ -61,3 +61,37 @@ T|SPO|3|snooker-schwarz|Welche Farbe hat beim Snooker die Kugel mit dem höchste
 T|SPO|3|boxen-wm-runden|Über wie viele Runden geht ein Profibox-WM-Kampf heute in der Regel?|12|8;10;15|Boxen|zwölf
 T|SPO|4|schmeling-louis|Welcher deutsche Boxer besiegte 1936 Joe Louis durch K. o.?|Max Schmeling|Gustav Eder;Bubi Scholz;Walter Neusel|Max Schmeling|Joe Louis
 T|SPO|3|chio-aachen|In welcher Stadt findet das CHIO statt, das als „Weltfest des Pferdesports“ gilt?|Aachen|Hamburg;Münster;Verden|CHIO Aachen|Aachen
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|SPO|3|albatros-golf|In welcher Sportart heißt ein Ergebnis von drei Schlägen unter Par „Albatros“?|Golf|Tennis;Billard;Bowling|Golf (Sport)|Albatros
+T|SPO|2|olympia-1972|In welcher Stadt fanden die Olympischen Sommerspiele 1972 statt?|München|Berlin;Montreal;Mexiko-Stadt|Olympische Sommerspiele 1972|München
+T|SPO|2|judo-herkunft|Aus welchem Land stammt die Kampfsportart Judo?|Japan|China;Korea;Thailand|Judo|Japan
+T|SPO|2|stanley-cup|In welcher Sportart wird der Stanley Cup vergeben?|Eishockey|Basketball;Baseball;American Football|Stanley Cup|Eishockey
+T|SPO|2|billard-queue|Bei welchem Spiel stößt man Kugeln mit einem Queue?|Billard|Krocket;Boccia;Curling|Billard|Queue
+T|SPO|3|curling-stein|Aus welchem Material bestehen die Steine beim Curling?|Granit|Marmor;Gusseisen;Hartgummi|Curling|Granit
+T|SPO|3|giro-rosa|Welche Farbe hat das Trikot des Gesamtführenden beim Giro d’Italia?|Rosa|Gelb;Grün;Blau|Maglia Rosa|Giro
+T|SPO|3|sumo-land|Aus welchem Land stammt der Ringkampf Sumō?|Japan|China;Mongolei;Südkorea|Sumō|Japan
+T|SPO|2|schmetterball|Wie heißt der kraftvolle Überkopfschlag im Tennis?|Schmetterball|Lob;Slice;Volley|Tennis|Überkopfschlag
+T|SPO|3|tennis-love|In welcher Sportart sagt man „Love“ für null Punkte?|Tennis|Badminton;Squash;Tischtennis|Tennis|Love
+E|SPO|3|snooker-maximum-break|Wie viele Punkte bringt ein Maximum Break im Snooker regulär?|147|count|Punkte|1|10000|LOG|0.3|Maximum Break|147
+E|SPO|2|bowling-perfektes-spiel|Wie viele Punkte hat ein perfektes Spiel beim Bowling?|300|count|Punkte|1|10000|LOG|0.3|Bowling|300
+E|SPO|3|fussballtor-breite|Wie breit ist ein Fußballtor zwischen den Pfosten (in Zentimetern)?|732|cm|Zentimeter|1|10000|LOG|0.3|Fußballregeln|7,32
+E|SPO|3|volleyball-netzhoehe|Wie hoch hängt das Volleyballnetz bei den Männern (in Zentimetern)?|243|cm|Zentimeter|1|10000|LOG|0.3|Volleyball|2,43
+E|SPO|3|kugel-gewicht|Wie schwer ist die Kugel beim Kugelstoßen der Männer (in Gramm)?|7260|g|Gramm|1|100000|LOG|0.3|Kugelstoßen|7,260
+E|SPO|3|speer-gewicht|Wie schwer ist der Speer beim Speerwurf der Männer (in Gramm)?|800|g|Gramm|1|10000|LOG|0.3|Speerwurf|800
+E|SPO|4|weitsprung-powell|Wie weit sprang Mike Powell 1991 bei seinem Weltrekord im Weitsprung (in Zentimetern)?|895|cm|Zentimeter|1|10000|LOG|0.3|Weitsprung|8,95
+E|SPO|4|hochsprung-sotomayor|Welche Höhe übersprang Javier Sotomayor 1993 bei seinem Weltrekord im Hochsprung (in Zentimetern)?|245|cm|Zentimeter|1|10000|LOG|0.3|Hochsprung|2,45
+E|SPO|4|ironman-schwimmen|Wie lang ist die Schwimmstrecke bei einem Triathlon über die Langdistanz (Ironman) in Metern?|3860|m|Meter|1|100000|LOG|0.3|Triathlon|3,86
+E|SPO|3|tour-de-france-erste|In welchem Jahr fand die erste Tour de France statt?|1903|year|Jahr|1000|2026|LINEAR|40|Tour de France|1903
+E|SPO|4|wimbledon-erstes-turnier|In welchem Jahr wurde in Wimbledon zum ersten Mal um die Tennismeisterschaft gespielt?|1877|year|Jahr|1000|2026|LINEAR|40|Wimbledon Championships|1877
+E|SPO|2|wm-2026-mannschaften|Wie viele Mannschaften spielen bei der Endrunde der Fußball-Weltmeisterschaft 2026 mit?|48|count|Mannschaften|1|1000|LOG|0.3|Fußball-Weltmeisterschaft 2026|48
+E|SPO|3|westfalenstadion-plaetze|Wie viele Zuschauer fasst das Dortmunder Westfalenstadion (Signal Iduna Park) bei Bundesligaspielen?|81365|count|Zuschauer|1|1000000|LOG|0.3|Westfalenstadion|81.365
+E|SPO|4|puck-durchmesser|Welchen Durchmesser hat ein Eishockey-Puck (in Millimetern)?|76|mm|Millimeter|1|1000|LOG|0.3|Puck (Eishockey)|7,62
+E|SPO|4|golfball-gewicht|Wie viel darf ein Golfball nach den Regeln höchstens wiegen (in Gramm)?|46|g|Gramm|1|1000|LOG|0.3|Golfball|45,926
+E|SPO|4|golfloch-durchmesser|Welchen Durchmesser hat das Loch beim Golf (in Millimetern)?|108|mm|Millimeter|1|10000|LOG|0.3|Golfplatz|108
+E|SPO|3|dart-bullseye-hoehe|In welcher Höhe über dem Boden hängt beim Darts die Mitte der Scheibe (in Zentimetern)?|173|cm|Zentimeter|1|10000|LOG|0.3|Darts|1,73
+E|SPO|3|monaco-runden|Über wie viele Runden geht der Große Preis von Monaco der Formel 1?|78|count|Runden|1|1000|LOG|0.3|Großer Preis von Monaco|78
+E|SPO|2|rugby-union-spieler|Wie viele Spieler einer Mannschaft stehen beim Rugby Union gleichzeitig auf dem Feld?|15|count|Spieler|1|1000|LOG|0.3|Rugby Union|15
+E|SPO|4|carlsen-elo|Welche höchste Elo-Zahl erreichte Schachweltmeister Magnus Carlsen 2014?|2882|count|Elo-Punkte|1|100000|LOG|0.3|Magnus Carlsen|2882
+E|SPO|2|bundesliga-spieltage|Wie viele Spieltage hat eine Saison der Fußball-Bundesliga?|34|count|Spieltage|1|1000|LOG|0.3|Fußball-Bundesliga|34
+E|SPO|3|fussball-flaechen|Aus wie vielen Fünf- und Sechsecken besteht ein klassischer Fußball zusammen?|32|count|Flächen|1|1000|LOG|0.3|Fußball (Sportgerät)|32

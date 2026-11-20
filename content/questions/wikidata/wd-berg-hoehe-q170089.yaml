@@ -30,7 +30,7 @@ estimate:
   answer_precision: 0
   answer_unit: m
   input_min: "1"
-  input_max: "9000"
+  input_max: "30000"
   scale_type: LOG
   scale: 0.3
 translations:

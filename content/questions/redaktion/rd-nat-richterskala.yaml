@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-nat-richterskala
+kind: TRIVIA
+category: SCIENCE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Richterskala"
+    url: https://de.wikipedia.org/wiki/Richterskala
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „Die Stärke von Erdbeben“ im Artikel „Richterskala“ der deutschen Wikipedia belegt (Fundstelle „Erdbeben“)."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: a
+translations:
+  de:
+    status: APPROVED
+    prompt: "Was gibt die Richterskala an?"
+    options:
+      a: "Die Stärke von Erdbeben"
+      b: "Die Härte von Mineralen"
+      c: "Die Windstärke"
+      d: "Die Lautstärke"

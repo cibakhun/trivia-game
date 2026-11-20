@@ -1,0 +1,41 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-versailler-vertrag
+kind: TRIVIA
+category: HISTORY
+difficulty: 2
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Friedensvertrag von Versailles"
+    url: https://de.wikipedia.org/wiki/Friedensvertrag_von_Versailles
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „Versailler Vertrag“ im Artikel „Friedensvertrag von Versailles“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext, richtige und falsche Antworten von Claude gelesen: verständlich und eindeutig; keine falsche Antwort ist ebenfalls richtig."
+trivia:
+  options:
+    - a
+    - b
+    - c
+    - d
+  correct: b
+translations:
+  de:
+    status: APPROVED
+    prompt: "Welcher Vertrag regelte 1919 den Frieden zwischen den Siegermächten und dem Deutschen Reich nach dem Ersten Weltkrieg?"
+    options:
+      a: "Vertrag von Rapallo"
+      b: "Versailler Vertrag"
+      c: "Vertrag von Locarno"
+      d: "Frieden von Brest-Litowsk"

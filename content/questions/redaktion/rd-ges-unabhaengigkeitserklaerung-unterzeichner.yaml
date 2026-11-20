@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-ges-unabhaengigkeitserklaerung-unterzeichner
+kind: ESTIMATE
+category: HISTORY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Unabhängigkeitserklärung der Vereinigten Staaten"
+    url: https://de.wikipedia.org/wiki/Unabh%C3%A4ngigkeitserkl%C3%A4rung_der_Vereinigten_Staaten
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „56“ im Artikel „Unabhängigkeitserklärung der Vereinigten Staaten“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "56"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1"
+  input_max: "1000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie viele Delegierte unterzeichneten die Unabhängigkeitserklärung der Vereinigten Staaten?"
+    unit_label: "Unterzeichner"

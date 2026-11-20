@@ -10,6 +10,18 @@ import { questionFileSchema, type QuestionFile } from './schema.ts';
  * Freigaberegel für KI-gestützte Fragen (Brief §5.6).
  */
 
+/**
+ * Kappung der Bot-Schätzungen (`input_min`/`input_max`, ADR-076). Spieler können jede Zahl
+ * eingeben; nur Bots begrenzen ihre gestreute Schätzung auf diesen Bereich (NPC_SYSTEM §3.2). Liegt
+ * er knapp an der Lösung, schätzen Bots dort künstlich genau. Deshalb reichen Jahreszahlen von 1000
+ * bis zum laufenden Jahr, bei LOG-Skala reicht der Bereich mindestens bis zum Dreifachen der Lösung
+ * und bis zu einem Drittel (oder bis 1). Eine natürliche Grenze (Ordnungszahl bis 118) bleibt erlaubt.
+ */
+export const YEAR_INPUT_MIN = '1000';
+/** Laufendes Jahr; anheben, sobald eine Lösung im neuen Jahr liegt (hier und in den Listen). */
+export const YEAR_INPUT_MAX = '2026';
+export const LOG_INPUT_FACTOR = 3;
+
 export type Severity = 'error' | 'warning';
 
 export interface Issue {
@@ -38,6 +50,12 @@ function compareDecimalStrings(a: string, b: string): number {
   const x = BigInt(ai + af.padEnd(scale, '0')) * (a.startsWith('-') ? -1n : 1n);
   const y = BigInt(bi + bf.padEnd(scale, '0')) * (b.startsWith('-') ? -1n : 1n);
   return x < y ? -1 : x > y ? 1 : 0;
+}
+
+/** Kanonische Dezimalzahl als ganze Zahl in Einheiten von 10^-scale (exakt, ohne Float). */
+function scaledDecimal(value: string, scale: number): bigint {
+  const [whole = '', fraction = ''] = value.replace('-', '').split('.');
+  return BigInt(whole + fraction.padEnd(scale, '0')) * (value.startsWith('-') ? -1n : 1n);
 }
 
 function decimalPlaces(value: string): number {
@@ -95,6 +113,27 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     }
     if (e.answer_unit === 'year' && compareDecimalStrings(e.input_min, '1') < 0) {
       error('Jahreszahlen vor Christus sind im MVP ausgeschlossen (input_min ≥ 1)');
+    }
+    // Kappung der Bot-Schätzungen (ADR-076): nicht knapp an der Lösung, sonst schätzen Bots dort
+    // künstlich genau. Spieler betrifft sie nicht, sie können jede Zahl eingeben.
+    if (e.answer_unit === 'year' && compareDecimalStrings(e.input_min, YEAR_INPUT_MIN) > 0) {
+      error(`Jahreszahlen: input_min höchstens ${YEAR_INPUT_MIN}, sonst schätzen Bots an der Grenze künstlich genau`);
+    }
+    if (e.answer_unit === 'year' && compareDecimalStrings(e.input_max, YEAR_INPUT_MAX) < 0) {
+      error(`Jahreszahlen: input_max mindestens ${YEAR_INPUT_MAX}, sonst schätzen Bots an der Grenze künstlich genau`);
+    }
+    if (e.scale_type === 'LOG') {
+      // exakt in ganzen Einheiten: max ≥ 3 · Lösung, und min ≤ 1 oder 3 · min ≤ Lösung
+      const scale = Math.max(decimalPlaces(e.answer_value), decimalPlaces(e.input_min), decimalPlaces(e.input_max));
+      const answer = scaledDecimal(e.answer_value, scale);
+      const factor = BigInt(LOG_INPUT_FACTOR);
+      if (scaledDecimal(e.input_max, scale) < factor * answer) {
+        error(`LOG-Skala: input_max mindestens das ${LOG_INPUT_FACTOR}-Fache von answer_value`);
+      }
+      const min = scaledDecimal(e.input_min, scale);
+      if (min > scaledDecimal('1', scale) && factor * min > answer) {
+        error(`LOG-Skala: input_min höchstens answer_value / ${LOG_INPUT_FACTOR} oder 1`);
+      }
     }
   }
 

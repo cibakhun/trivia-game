@@ -320,6 +320,31 @@ describe('Auflösung: wer was geantwortet hat', () => {
     expect(rows[0]).not.toContain('reveal-picks');
     expect(html).toContain('class="reveal-verdict seat-1"');
   });
+
+  it('Stechen mit riesigen Abständen: exakt verglichen, nicht als Gleitkommazahl (ADR-076)', () => {
+    const html = reveal(
+      [
+        opened(30, 7, 'DUEL_ESTIMATE', [2, 1]),
+        estimate(31, 7, [
+          // gleich als Gleitkommazahl, der schnellere liegt aber eins weiter daneben
+          answer(1, {
+            value: '100000000000000000102',
+            distance: '100000000000000000002',
+            effectiveMs: 2500,
+          }),
+          answer(2, {
+            value: '100000000000000000101',
+            distance: '100000000000000000001',
+            effectiveMs: 5000,
+          }),
+        ]),
+        duelResolved(32, { winner: 'DEFENDER', reason: 'ESTIMATE', effect: 'FORTIFIED' }),
+      ],
+      7,
+    );
+    expect(rowsOf(html).map((row) => chipsIn(row))).toEqual([[2], [1]]);
+    expect(html).toContain('≈\u00a0100\u00a0Trillionen');
+  });
 });
 
 describe('Ansage: wer wen wo angreift', () => {

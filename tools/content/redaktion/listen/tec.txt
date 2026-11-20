@@ -43,3 +43,42 @@ T|TEC|3|jaehn|Wer war der erste Deutsche im Weltraum?|Sigmund Jähn|Ulf Merbold;
 T|TEC|3|von-braun|Welcher deutsche Raketeningenieur leitete später die Entwicklung der Mondrakete Saturn V?|Wernher von Braun|Hermann Oberth;Eugen Sänger;Walter Dornberger|Wernher von Braun|Saturn
 T|TEC|3|saturn-v|Mit welcher Rakete startete Apollo 11 zum Mond?|Saturn V|Atlas;Titan II;Ariane 1|Apollo 11|Saturn V
 T|TEC|3|dlr|Wofür steht die Abkürzung „DLR“?|Deutsches Zentrum für Luft- und Raumfahrt|Deutsche Luft- und Raumfahrtagentur;Deutsches Labor für Raketentechnik;Deutscher Luft- und Raketenverband|Deutsches Zentrum für Luft- und Raumfahrt|DLR
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|TEC|2|bell-telefon|Wer erhielt 1876 in den USA das Patent auf das Telefon?|Alexander Graham Bell|Philipp Reis;Thomas Alva Edison;Nikola Tesla|Alexander Graham Bell|1876
+T|TEC|2|android|Wie heißt das von Google entwickelte Betriebssystem für Smartphones?|Android|iOS;Symbian;Windows Phone|Android (Betriebssystem)|Google
+T|TEC|3|saljut-1|Wie hieß die erste Raumstation der Welt, die 1971 gestartet wurde?|Saljut 1|Mir;Skylab;Tiangong 1|Saljut 1|1971
+T|TEC|2|pin-abkuerzung|Wofür steht die Abkürzung „PIN“ bei Bankkarten?|Persönliche Identifikationsnummer|Private Interne Nummer;Prüf- und Identnummer;Personal Index Number|Persönliche Identifikationsnummer|Identifikationsnummer
+T|TEC|3|silber-leitfaehigkeit|Welches Metall leitet elektrischen Strom am besten?|Silber|Kupfer;Gold;Aluminium|Silber|Leitfähigkeit
+T|TEC|2|html|Wofür steht die Abkürzung „HTML“?|Hypertext Markup Language|Hyperlink Transfer Main Language;High Text Machine Language;Home Tool Markup Language|Hypertext Markup Language|Hypertext Markup Language
+T|TEC|3|qwertz|Wie heißt die Tastaturbelegung, die in Deutschland üblich ist?|QWERTZ|QWERTY;AZERTY;Dvorak|Tastaturbelegung|QWERTZ
+T|TEC|3|ariane-start|Von welchem Raumfahrtzentrum starten die europäischen Ariane-Raketen?|Kourou|Cape Canaveral;Baikonur;Plessezk|Ariane (Rakete)|Kourou
+T|TEC|3|duesentrieb-erstflug|Wie hieß das erste Flugzeug mit Strahltriebwerk, das 1939 flog?|Heinkel He 178|Messerschmitt Me 262;Gloster Meteor;Junkers Ju 52|Heinkel He 178|1939
+T|TEC|2|bluetooth-name|Nach wem ist die Funktechnik Bluetooth benannt?|Einem dänischen König|Einem norwegischen Entdecker;Einem schwedischen Ingenieur;Einem finnischen Mobilfunkpionier|Bluetooth|Harald
+T|TEC|3|jpeg-art|Was speichert man üblicherweise im Dateiformat JPEG?|Fotos|Musik;Videos;Tabellen|JPEG|Bild
+T|TEC|3|maglev-shanghai|In welcher Stadt fährt seit 2004 eine Transrapid-Magnetschwebebahn im Linienbetrieb?|Shanghai|Tokio;Peking;Hamburg|Transrapid Shanghai|Shanghai
+T|TEC|2|hauptplatine|Wie heißt die Hauptplatine eines Computers im Englischen?|Motherboard|Mainframe;Backplane;Chipset|Hauptplatine|Motherboard
+T|TEC|2|pixel|Wie heißt der kleinste Bildpunkt einer Rastergrafik?|Pixel|Voxel;Bit;Vektor|Pixel|Bildpunkt
+E|TEC|3|golden-gate-spannweite|Wie lang ist die Hauptspannweite der Golden Gate Bridge zwischen den Pylonen (in Metern)?|1280|m|Meter|1|100000|LOG|0.3|Golden Gate Bridge|1280
+E|TEC|4|akashi-spannweite|Wie lang ist die Hauptspannweite der Akashi-Kaikyō-Brücke in Japan (in Metern)?|1991|m|Meter|1|100000|LOG|0.3|Akashi-Kaikyō-Brücke|1991
+E|TEC|3|millau-hoehe|Wie hoch ist der höchste Pfeiler des Viadukts von Millau samt Pylon (in Metern)?|343|m|Meter|1|10000|LOG|0.3|Viaduc de Millau|343
+E|TEC|3|hoover-dam-hoehe|Wie hoch ist der Hoover Dam (in Metern)?|221|m|Meter|1|10000|LOG|0.3|Hoover Dam|221
+E|TEC|3|eurotunnel-laenge|Wie lang ist der Eurotunnel unter dem Ärmelkanal (in Kilometern)?|50|km|Kilometer|1|1000|LOG|0.3|Eurotunnel|50
+E|TEC|3|a380-passagiere|Wie viele Passagiere darf ein Airbus A380 höchstens befördern?|853|count|Passagiere|1|10000|LOG|0.3|Airbus A380|853
+E|TEC|3|saturn-v-hoehe|Wie hoch war die Rakete, mit der Apollo 11 zum Mond startete (in Metern)?|111|m|Meter|1|10000|LOG|0.3|Saturn (Rakete)|110,6
+E|TEC|4|eniac-roehren|Wie viele Elektronenröhren hatte der Rechner ENIAC?|17468|count|Röhren|1|1000000|LOG|0.3|ENIAC|17.468
+E|TEC|3|space-shuttle-fluege|Wie viele Flüge absolvierten die Space Shuttles der NASA insgesamt?|135|count|Flüge|1|10000|LOG|0.3|Space Shuttle|135
+E|TEC|4|tgv-rekord|Welche Geschwindigkeit erreichte ein TGV 2007 bei seiner Rekordfahrt (in Kilometern pro Stunde)?|575|kmh|Kilometer pro Stunde|1|10000|LOG|0.3|TGV|574,8
+E|TEC|3|vw-kaefer-stueckzahl|Wie viele VW Käfer wurden insgesamt gebaut?|21529464|count|Fahrzeuge|1|1000000000|LOG|0.3|VW Käfer|21.529.464
+E|TEC|3|benz-motorwagen-tempo|Wie schnell fuhr der erste Patent-Motorwagen von 1886 höchstens (in Kilometern pro Stunde)?|16|kmh|Kilometer pro Stunde|1|1000|LOG|0.3|Benz Patent-Motorwagen Nummer 1|16
+E|TEC|4|queen-mary-2-laenge|Wie lang ist das Kreuzfahrtschiff Queen Mary 2 (in Metern)?|345|m|Meter|1|10000|LOG|0.3|Queen Mary 2|345
+E|TEC|2|sms-zeichen|Wie viele Zeichen passen in eine einzelne SMS?|160|count|Zeichen|1|10000|LOG|0.3|Short Message Service|160
+E|TEC|4|ascii-zeichen|Wie viele Zeichen umfasst der ASCII-Zeichensatz?|128|count|Zeichen|1|10000|LOG|0.3|American Standard Code for Information Interchange|128
+E|TEC|3|fernsehturm-berlin|Wie hoch ist der Berliner Fernsehturm (in Metern)?|368|m|Meter|1|10000|LOG|0.3|Berliner Fernsehturm|368
+E|TEC|3|seemeile-meter|Wie viele Meter hat eine Seemeile?|1852|m|Meter|1|100000|LOG|0.3|Seemeile|1852
+E|TEC|3|meile-meter|Wie viele Meter hat eine englische Meile?|1609|m|Meter|1|100000|LOG|0.3|Meile|1609
+E|TEC|3|barrel-liter|Wie viele Liter fasst ein Barrel Rohöl?|159|l|Liter|1|10000|LOG|0.3|Barrel|159
+E|TEC|4|pferdestaerke-watt|Wie viel Watt entspricht eine Pferdestärke (PS)?|735|w|Watt|1|10000|LOG|0.3|Pferdestärke|735
+E|TEC|4|karat-milligramm|Wie viele Milligramm wiegt ein Karat bei Edelsteinen?|200|mg|Milligramm|1|10000|LOG|0.3|Metrisches Karat|0,2 g
+E|TEC|4|gallone-milliliter|Wie viele Milliliter fasst eine US-Gallone?|3785|ml|Milliliter|1|100000|LOG|0.3|Gallone|3,785411784
+E|TEC|4|hubble-spiegel|Welchen Durchmesser hat der Hauptspiegel des Hubble-Weltraumteleskops (in Zentimetern)?|240|cm|Zentimeter|1|10000|LOG|0.3|Hubble-Weltraumteleskop|2,4

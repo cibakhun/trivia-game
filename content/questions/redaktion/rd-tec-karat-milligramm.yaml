@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-tec-karat-milligramm
+kind: ESTIMATE
+category: TECHNOLOGY
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Metrisches Karat"
+    url: https://de.wikipedia.org/wiki/Metrisches_Karat
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Angabe „0,2 g“ im Artikel „Metrisches Karat“ der deutschen Wikipedia gefunden; Antwort 200."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "200"
+  answer_precision: 0
+  answer_unit: mg
+  input_min: "1"
+  input_max: "10000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie viele Milligramm wiegt ein Karat bei Edelsteinen?"
+    unit_label: "Milligramm"

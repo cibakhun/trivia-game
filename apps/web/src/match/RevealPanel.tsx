@@ -1,8 +1,9 @@
 import type { MatchEventOf } from '@rdw/protocol';
+import { compareDecimal, parseDecimal } from '@rdw/game-core';
 import { useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
-import { formatDecimal, formatNumber, t, tp } from '../i18n/i18n.ts';
+import { formatEstimateFigure, formatNumber, t, tp } from '../i18n/i18n.ts';
 import { duelResolved, duelWinner, type Reveal } from './match-model.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
@@ -34,16 +35,19 @@ const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 
 type Answer = MatchEventOf<'QUESTION_RESOLVED'>['payload']['answers'][number];
 
-/** Zahl aus der Auflösung als Vergleichswert; `null` zählt als schlechtester Wert. */
-function magnitude(value: string | null): number {
-  return value === null ? Number.POSITIVE_INFINITY : Math.abs(Number(value));
-}
-
-/** Schätzungen in Rangfolge: kleinster Abstand zuerst, bei Gleichstand die schnellere Antwort. */
+/**
+ * Schätzungen in Rangfolge: kleinster Abstand zuerst, bei Gleichstand die schnellere Antwort.
+ * Abstände werden exakt dezimal verglichen wie auf dem Server: Ohne erlaubte Grenze (ADR-076)
+ * können sie größer werden, als eine Gleitkommazahl unterscheidet. `null` zählt als schlechtester.
+ */
 function byEstimate(a: Answer, b: Answer): number {
   if (a.answered !== b.answered) return a.answered ? -1 : 1;
-  const distance = magnitude(a.distance) - magnitude(b.distance);
-  if (distance !== 0 && !Number.isNaN(distance)) return distance;
+  if (a.distance !== b.distance) {
+    if (a.distance === null) return 1;
+    if (b.distance === null) return -1;
+    const order = compareDecimal(parseDecimal(a.distance), parseDecimal(b.distance));
+    if (order !== 0) return order;
+  }
   return (a.effectiveMs ?? Number.POSITIVE_INFINITY) - (b.effectiveMs ?? Number.POSITIVE_INFINITY);
 }
 
@@ -219,7 +223,7 @@ export function RevealPanel({
 function Figure({ value, unit }: { readonly value: string | null; readonly unit: string | null }) {
   return (
     <span className="reveal-figure">
-      <span className="reveal-number">{value === null ? '?' : formatDecimal(value)}</span>
+      <span className="reveal-number">{value === null ? '?' : formatEstimateFigure(value)}</span>
       {unit ? <span className="reveal-unit"> {unit}</span> : null}
     </span>
   );
@@ -347,7 +351,7 @@ function EstimateAnswers({
                 <span className={`reveal-off${exact ? ' exact' : ''}`}>
                   {exact
                     ? t('match.reveal.exact')
-                    : t('match.reveal.off', { value: formatDecimal(a.distance) })}
+                    : t('match.reveal.off', { value: formatEstimateFigure(a.distance) })}
                 </span>
               ) : null}
               {a.answered && a.effectiveMs !== null ? (
