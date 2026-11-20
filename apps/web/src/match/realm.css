@@ -717,6 +717,20 @@
   font-size: calc(19 * var(--u));
 }
 
+/* Armeen kaufen: Seit eine Armee Brot und Baustoff kostet (ADR-073), steht der Preis knapper,
+   und der Zähler rückt zusammen, damit er neben den Knöpfen Platz hat */
+.act[data-act='buy'] .act-sub .cost {
+  gap: calc(3 * var(--u));
+}
+
+.act[data-act='buy'] .stepper {
+  gap: calc(2 * var(--u));
+}
+
+.act[data-act='buy'] .step-value {
+  min-width: calc(12 * var(--u));
+}
+
 /* „Ziehen“ ist offen: so hoch wie die drei Zeilen, an deren Stelle es steht */
 .act-move {
   display: grid;

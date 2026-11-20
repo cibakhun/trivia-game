@@ -23,7 +23,7 @@ import { PlaqueLives, PlaqueOut, PlaqueState } from './SeatList.tsx';
 /** So lange zählt ein Vorrat, wenn er sich ändert. */
 const STOCK_COUNT_MS = 500;
 
-/** Ab so vielen Leben steht statt einzelner Schilde eine Zahl (zwei Burgen). */
+/** Ab so vielen Leben steht statt einzelner Schilde eine Zahl (schon ab zwei Burgen). */
 const SHIELDS_MAX = 3;
 
 type SeatStatus = 'ready' | 'busy' | 'turn' | null;

@@ -202,7 +202,7 @@ export function RealmStage({
     help && !asking && view && rules ? (
       <HelpSheet
         attackNeedsArmy={view.realm?.economy.attackNeedsArmy ?? null}
-        rounds={view.realm?.campaignRounds ?? rules.campaign.rounds}
+        rounds={view.match.campaignRounds}
         castleLives={rules.capital.lives}
         fieldValue={rules.values.region}
         castleValue={rules.values.capital}

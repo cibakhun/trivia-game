@@ -258,7 +258,7 @@ for (const plan of PLANS) {
       );
       const players = BALANCE_MATCHES * seats;
 
-      it('eine zweite Burg ist erreichbar, aber kein Selbstläufer', () => {
+      it('eine zweite Burg ist erreichbar', () => {
         const builders = runs.reduce(
           (n, r) =>
             n +
@@ -272,7 +272,20 @@ for (const plan of PLANS) {
           0,
         );
         expect(builders / players).toBeGreaterThan(0.3);
-        expect(builders / players).toBeLessThan(0.8);
+        // Mit fünf Runden baute sie zu dritt gut jeder Dritte, zu zweit zwei von drei (kein
+        // Selbstläufer). Mit zehn Runden (ADR-073) baut sie fast jeder: zu dritt 96 %, zu zweit
+        // 99 %; seitdem darf es eine dritte geben (O-44)
+        expect(builders / players).toBeGreaterThan(0.85);
+      });
+
+      it('Baustoff bleibt am Ende nicht liegen (ADR-073, O-44)', () => {
+        // Mit Armeen nur für Brot und zwei Burgen blieben zu dritt im Mittel 28 Baustoff übrig,
+        // seit die Armee 1 Baustoff kostet und drei Burgen erlaubt sind gut 5 (zu zweit knapp 4)
+        const left = runs.reduce(
+          (n, r) => n + r.state.seats.reduce((m, s) => m + s.material, 0),
+          0,
+        );
+        expect(left / players).toBeLessThan(10);
       });
 
       it('ein Reich fällt selten, der Angreifer gewinnt weniger als die Hälfte der Duelle', () => {
@@ -304,9 +317,11 @@ for (const plan of PLANS) {
             if (e.effect === 'CLAIMED') taken += 1;
           }
         }
-        // Mindestens ein Drittel der Angriffe gilt freien Feldern, aber nicht alle
+        // Mindestens ein Viertel der Angriffe gilt freien Feldern, aber nicht alle: Mit zehn Runden
+        // (ADR-073) sind sie zur Mitte hin vergeben, danach geht es gegen Reiche (zu dritt 39 %,
+        // zu zweit 32 % der Angriffe; mit fünf Runden 56 und 52 %)
         const attacks = BALANCE_MATCHES * plan.rules.campaign.rounds * seats;
-        expect(claims / attacks).toBeGreaterThan(0.33);
+        expect(claims / attacks).toBeGreaterThan(0.25);
         expect(claims / attacks).toBeLessThan(0.75);
         expect(taken / claims).toBeGreaterThan(0.6);
         expect(taken / claims).toBeLessThan(0.85);
@@ -322,9 +337,11 @@ for (const plan of PLANS) {
         expect(skipped / attacks).toBeLessThan(0.02);
       });
 
-      it('dauert typisch gut elf Minuten (zu zweit knapp neun)', () => {
+      it('dauert typisch gut zwanzig Minuten (zu zweit gut sechzehn)', () => {
+        // Zehn Runden (ADR-073): zu dritt im Mittel 21,4 Minuten, zu zweit 16,5 (fünf Runden: 11,4
+        // und 8,9)
         const mean = runs.reduce((s, r) => s + r.durationMs.typical, 0) / BALANCE_MATCHES / 60_000;
-        expect(mean).toBeLessThanOrEqual(seats === 3 ? 12 : 9.5);
+        expect(mean).toBeLessThanOrEqual(seats === 3 ? 22.5 : 17.5);
       });
 
       it('der erste Platz der Startfrage gewinnt zu zweit seltener als 60 %', () => {

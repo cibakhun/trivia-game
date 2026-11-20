@@ -106,6 +106,9 @@ function finishLandGrab(start: MatchState): { state: MatchState; events: MatchEv
  * Tannenruh (Hauptstadt), Uferland und Nebelsenke; Sitz 0 alles andere mit Eschenhain als
  * Hauptstadt. Sitz 0 greift an.
  */
+/** Letzte Feldzugrunde der Standardregeln (zehn seit ADR-073). */
+const LAST = DEFAULT_MATCH_RULES.campaign.rounds;
+
 function campaignState(patch: Partial<MatchState> = {}): MatchState {
   const base = createMatch(DEFAULT_MATCH_RULES);
   const owners = new Map<number, number>([
@@ -570,12 +573,13 @@ describe('Feldzug', () => {
     expect(state.step).toEqual({ kind: 'CAMPAIGN_TARGET', round: 2, attacker: 1, queue: [2, 0] });
   });
 
-  it('endet nach der letzten Runde mit Punkten aus den Regionswerten', () => {
+  it('endet nach der letzten (zehnten) Runde mit Punkten aus den Regionswerten', () => {
+    expect(LAST).toBe(10);
     const start = campaignState({
-      step: { kind: 'CAMPAIGN_TARGET', round: 4, attacker: 2, queue: [] },
+      step: { kind: 'CAMPAIGN_TARGET', round: LAST, attacker: 2, queue: [] },
     });
     const { state, events } = duel(start, OTTERBRUCH, true, false);
-    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: 4 });
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: LAST });
     const standings = matchStandings(state);
     expect(events.at(-1)).toEqual({ kind: 'MATCH_FINISHED', reason: 'ROUNDS_COMPLETE', standings });
     // Sitz 0: Eschenhain 300 + 17 Regionen à 100 − Otterbruch; Sitz 2: 300 + 3 · 100; Sitz 1: 300 + 200
@@ -720,17 +724,21 @@ describe('Partie zu zweit', () => {
     expect(state.step).toEqual({ kind: 'CAMPAIGN_TARGET', round: 1, attacker: 0, queue: [1] });
   });
 
-  it('im Feldzug greifen beide abwechselnd zuerst an, nach vier Runden ist Schluss', () => {
+  it('im Feldzug greifen beide abwechselnd zuerst an, nach zehn Runden ist Schluss', () => {
     let { state } = finishLandGrab(withTwoCapitals());
     const attackers: number[] = [];
     while (state.step.kind === 'CAMPAIGN_TARGET') {
       attackers.push(state.step.attacker);
       state = duel(state, legalRegions(state)[0] as number, false, false).state;
     }
-    expect(attackers).toEqual([0, 1, 1, 0, 0, 1, 1, 0]);
-    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: 4 });
-    expect(state.duels).toBe(8);
-    expect(state.questions).toBe(13);
+    // Runde 1: 0, 1; Runde 2: 1, 0; und so fort
+    expect(attackers).toEqual(
+      Array.from({ length: LAST }, (_, i) => (i % 2 === 0 ? [0, 1] : [1, 0])).flat(),
+    );
+    expect(state.step).toEqual({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE', round: LAST });
+    expect(state.duels).toBe(2 * LAST);
+    // Fünf Schätzfragen der Landnahme, dann eine Wissensfrage je Duell
+    expect(state.questions).toBe(5 + 2 * LAST);
     expect(matchStandings(state).map((s) => s.place)).toHaveLength(2);
   });
 

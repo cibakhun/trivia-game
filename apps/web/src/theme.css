@@ -1,6 +1,8 @@
 /*
  * Gestaltung „Alte Landkarte“ (docs/ART_DIRECTION.md): Pergament, Tinte, Gold. Tagkarte hell,
- * Nachtkarte im dunklen Systemmodus. Schriften: Alegreya (Überschriften, Karte) und Alegreya Sans
+ * Nachtkarte im dunklen Systemmodus, aber nur, wenn `<html data-night="auto">` gesetzt ist: Seit
+ * 2026-11-15 ist sie abgeschaltet (ADR-073, Schalter `NIGHT_MAP_ENABLED` in `color-scheme.ts`),
+ * ihre Farben bleiben hier stehen. Schriften: Alegreya (Überschriften, Karte) und Alegreya Sans
  * (Text), beide SIL Open Font License 1.1, mit dem Spiel ausgeliefert (docs/ASSETS.md).
  */
 
@@ -88,11 +90,12 @@
   font-variant-numeric: lining-nums;
   line-height: 1.45;
   color: var(--text);
-  color-scheme: light;
+  /* `only`: Auch eine erzwungene Abdunklung des Browsers (Chrome „Auto Dark“) lässt die Seite hell */
+  color-scheme: only light;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root[data-night='auto'] {
     --bg: #18140e;
     --bg-deep: #100d09;
     --surface: #251f17;
@@ -168,7 +171,7 @@ html {
 }
 
 @media (prefers-color-scheme: dark) {
-  html {
+  html[data-night='auto'] {
     background-image:
       radial-gradient(ellipse at 50% 30%, transparent 50%, rgb(0 0 0 / 0.45) 100%),
       var(--paper-grain);

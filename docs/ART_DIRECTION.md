@@ -6,7 +6,7 @@ Stilleitfaden für das Aussehen von Reiche des Wissens (ADR-051, angenommen 2026
 
 Das Spiel sieht aus wie eine handgezeichnete Fantasy-Karte auf Pergament: Tinte, Aquarellfarben, Gold. Die Partie zeigt die Wendelmark als Insel mit Küste, Meer, Fluss, kleinen Landschaftsmotiven, Burgen und Wappen; die Oberfläche drumherum besteht aus Papierkarten mit feiner Doppellinie, goldenen Knöpfen und Bändern.
 
-Im dunklen Systemmodus wird daraus eine **Nachtkarte**: dunkles Papier, helle Tinte, dieselben Formen. Beide Varianten kommen aus denselben Farbtokens.
+Im dunklen Systemmodus wird daraus eine **Nachtkarte**: dunkles Papier, helle Tinte, dieselben Formen. Beide Varianten kommen aus denselben Farbtokens. **Seit 2026-11-15 ist die Nachtkarte abgeschaltet** (Product Owner: „wir machen erstmal nur hell modus“, ADR-073): Das Spiel zeigt immer die Tagkarte, auch im dunklen Systemmodus und gegen eine erzwungene Abdunklung des Browsers (`color-scheme: only light`). Die Farben der Nacht bleiben in `theme.css` stehen und greifen nur unter `<html data-night="auto">`; `NIGHT_MAP_ENABLED` in `apps/web/src/color-scheme.ts` schaltet sie wieder ein. Wer die Nachtkarte zurückholt, prüft vorher alle Zustände der Partie damit, weil seitdem gebaute Teile nur hell geprüft sind.
 
 ## 2. Farben
 

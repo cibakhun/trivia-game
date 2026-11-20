@@ -28,7 +28,8 @@ describe('Regeln der Partie', () => {
     expect(r.seats).toBe(3);
     expect(r.capital).toEqual({ lives: 3, minDistance: 2 });
     expect(r.landGrab.picksByPlace).toEqual([2, 1, 0]);
-    expect(r.campaign.rounds).toBe(4);
+    // Zehn Feldzugrunden seit ADR-073 (Product Owner 2026-11-15), vorher vier
+    expect(r.campaign.rounds).toBe(10);
     expect(r.values).toEqual({ region: 100, capital: 300, defenseBonus: 50 });
     expect(r.timers).toMatchObject({
       triviaMs: 15 * SECOND_MS,
@@ -118,9 +119,10 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
     expect(DEFAULT_MATCH_RULES.economy).toBeUndefined();
   });
 
-  it('entspricht dem freigegebenen Konzept (O-25 bis O-35), Landnahme und Erträge nach ADR-062', () => {
+  it('entspricht dem freigegebenen Konzept (O-25 bis O-35), Landnahme und Erträge nach ADR-062, Armee und Burgen nach ADR-073', () => {
     const e = DEFAULT_MATCH_ECONOMY;
-    expect(DEFAULT_REALM_RULES.campaign.rounds).toBe(5);
+    // Zehn Feldzugrunden wie ohne Ausbau (ADR-073), vorher fünf nach O-31
+    expect(DEFAULT_REALM_RULES.campaign.rounds).toBe(10);
     expect(e.favorites).toBe(4);
     expect(e.startArmies).toBe(3);
     // Zwei Runden Landnahme; Dorf und Stadt bringen seitdem 3 und 4 statt 2 und 3 (O-41)
@@ -130,10 +132,11 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
       village: { bread: 1, material: 3 },
       town: { bread: 2, material: 6 },
       castle: { bread: 8, material: 16 },
-      army: { bread: 2, material: 0 },
+      // Armee auch mit Baustoff, damit er mit zehn Runden nicht liegen bleibt (ADR-073, O-44)
+      army: { bread: 2, material: 1 },
     });
     expect(e.tradeRate).toBe(3);
-    expect(e.maxCastles).toBe(2);
+    expect(e.maxCastles).toBe(3);
     expect(e.armyCap).toBe(6);
     expect(e.lots).toEqual({ village: 2, town: 3, castle: 4, free: 2 });
     expect(e.timers).toEqual({
@@ -146,7 +149,8 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
   it('übernimmt sonst die Regeln der Partie; Spieltest ändert nur die Zeiten', () => {
     const { economy, campaign, ...rest } = DEFAULT_REALM_RULES;
     expect(economy).toBe(DEFAULT_MATCH_ECONOMY);
-    expect(campaign).toEqual({ rounds: 5 });
+    expect(campaign).toEqual({ rounds: 10 });
+    expect(PLAYTEST_REALM_RULES.campaign).toEqual({ rounds: 10 });
     expect({ ...rest, campaign: DEFAULT_MATCH_RULES.campaign }).toEqual(DEFAULT_MATCH_RULES);
     expect({
       ...PLAYTEST_REALM_RULES,

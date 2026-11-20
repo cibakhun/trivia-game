@@ -16,7 +16,9 @@ jobs:
   check:
     name: Lint, Typen, Tests
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Bis zu den Browser-Tests etwa 3 Minuten. Die Browser-Tests spielen ganze Partien und dauern seit
+    # zehn Runden (ADR-073) etwa doppelt so lang wie vorher (8 Minuten); 15 reichten nicht mehr.
+    timeout-minutes: 30
     services:
       postgres:
         image: postgres:16

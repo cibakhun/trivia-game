@@ -54,16 +54,16 @@ interface Plan {
 }
 
 const PLANS: readonly Plan[] = [
-  // 21 freie Regionen bei 2 + 1 Wahlen: 7 Runden; 4 · 3 = 12 Duelle; mit Ansagen und 6 s
-  // Auflösung (ADR-053) höchstens 19,4 Minuten
-  { rules: DEFAULT_MATCH_RULES, landRounds: 7, maxQuestions: 31, maxDurationMs: 19.5 * 60_000 },
-  // Kernmark, 14 freie Regionen bei 2 + 1 Wahlen: 4 volle Runden und eine fünfte; 4 · 2 = 8 Duelle;
-  // höchstens 13,1 Minuten
+  // 21 freie Regionen bei 2 + 1 Wahlen: 7 Runden; 10 · 3 = 30 Duelle (ADR-073); mit Ansagen und
+  // 6 s Auflösung (ADR-053) höchstens 37,3 Minuten (je Duell bis 59,5 s)
+  { rules: DEFAULT_MATCH_RULES, landRounds: 7, maxQuestions: 67, maxDurationMs: 37.3 * 60_000 },
+  // Kernmark, 14 freie Regionen bei 2 + 1 Wahlen: 4 volle Runden und eine fünfte; 10 · 2 = 20
+  // Duelle; höchstens 25,0 Minuten
   {
     rules: matchRulesForSeats(DEFAULT_MATCH_RULES, 2),
     landRounds: 5,
-    maxQuestions: 21,
-    maxDurationMs: 13.25 * 60_000,
+    maxQuestions: 45,
+    maxDurationMs: 25 * 60_000,
   },
 ];
 

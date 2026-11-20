@@ -572,7 +572,8 @@ async function prepare(
 test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksrad und Angriff bis zur Abrechnung', async ({
   browser,
 }, testInfo) => {
-  test.setTimeout(330_000);
+  // Zehn Runden (ADR-073): gemessen 3,3 Minuten
+  test.setTimeout(480_000);
   const page = await newPlayer(
     browser,
     { viewport: ACROSS, hasTouch: true, isMobile: true },
@@ -598,7 +599,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   const help = page.getByTestId('match-help');
   await expect(help).toBeVisible();
   await expect(help.locator('.help-card')).toHaveCount(4);
-  await expect(help).toContainText('Wer nach 5 Runden die meisten Punkte hat, gewinnt.');
+  await expect(help).toContainText('Wer nach 10 Runden die meisten Punkte hat, gewinnt.');
   await page.getByTestId('match-help-close').tap();
   await expect(help).toHaveCount(0);
 
@@ -606,7 +607,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   const favorites = page.getByTestId('match-favorites');
   await expect(favorites).toContainText('Deine Lieblingskategorien');
   // Darunter das Ziel in einem Satz; der Knopf daneben holt „So geht's“ zurück
-  await expect(favorites).toContainText('Ziel: nach 5 Runden die meisten Punkte.');
+  await expect(favorites).toContainText('Ziel: nach 10 Runden die meisten Punkte.');
   await page.getByTestId('lobby-help').tap();
   await expect(help).toBeVisible();
   await page.getByTestId('match-help-close').tap();
@@ -687,7 +688,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   const attacks: Attack[] = [];
   const labels = new Set<string>();
   const prepared = new Map<number, Prepared>();
-  const until = Date.now() + 270_000;
+  const until = Date.now() + 420_000;
   for (;;) {
     if (Date.now() > until) throw new Error('Die Partie endet nicht rechtzeitig');
     const { state, step, seq, label } = await read();
@@ -707,7 +708,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
         if (step === 'CASTLE_PICK') castleId = picked;
       }
     } else if (state === 'prepare' && castleId !== null) {
-      const round = Number(/^Runde (\d) von 5$/.exec(label)?.[1] ?? 0);
+      const round = Number(/^Runde (\d+) von 10$/.exec(label)?.[1] ?? 0);
       if (round > 0 && !prepared.has(round)) {
         prepared.set(round, await prepare(page, matchId, round, castleId));
       }
@@ -727,8 +728,8 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(land).toEqual(['Landnahme · 1 von 2', 'Landnahme · 2 von 2']);
   expect(answered.size).toBeGreaterThan(5);
 
-  // Jede Runde beginnt mit einer Rüstzeit; der Server hat jede Abgabe angenommen. Fünf Runden sind
-  // es, solange nicht vorher nur noch ein Reich steht
+  // Jede Runde beginnt mit einer Rüstzeit; der Server hat jede Abgabe angenommen. Zehn Runden sind
+  // es (ADR-073), solange nicht vorher nur noch ein Reich steht
   const rounds = prepared.size;
   expect(rounds).toBeGreaterThanOrEqual(3);
   expect([...prepared.keys()]).toEqual(Array.from({ length: rounds }, (_, i) => i + 1));
@@ -752,11 +753,11 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
     expect(shown.rows).toBe(shown.alive);
     expect(shown.rows).toBeGreaterThanOrEqual(2);
   }
-  expect(seen.orders['Runde 1 von 5']?.mine).toContain(`Dorf in ${first?.built}`);
-  expect(seen.orders['Runde 1 von 5']?.mine).toContain('1 gekauft');
-  expect(seen.orders['Runde 2 von 5']?.mine).toContain('1 gezogen');
-  expect(seen.orders['Runde 2 von 5']?.mine).toContain('1 mal getauscht');
-  expect(seen.orders['Runde 3 von 5']?.mine).toContain('rüstet nicht');
+  expect(seen.orders['Runde 1 von 10']?.mine).toContain(`Dorf in ${first?.built}`);
+  expect(seen.orders['Runde 1 von 10']?.mine).toContain('1 gekauft');
+  expect(seen.orders['Runde 2 von 10']?.mine).toContain('1 gezogen');
+  expect(seen.orders['Runde 2 von 10']?.mine).toContain('1 mal getauscht');
+  expect(seen.orders['Runde 3 von 10']?.mine).toContain('rüstet nicht');
 
   // Angriff in zwei Schritten: Vor „Angreifen“ standen das Ziel und die Lose im Rad, gegen ein
   // Reich die beider Seiten und die freien, gegen ein freies Feld nur die eigenen und die freien

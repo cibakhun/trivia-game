@@ -6,7 +6,7 @@ import {
 } from '@rdw/protocol';
 import { matchMap, type MatchMap } from '@rdw/game-core';
 import { t, tp } from '../i18n/i18n.ts';
-import { rulesOf, stepOf, type RevealOutcome } from './match-model.ts';
+import { stepOf, type RevealOutcome } from './match-model.ts';
 
 /**
  * Texte der Partie aus Ansicht und Ereignissen: Namen der Sitze und Regionen, Abschnitt,
@@ -55,14 +55,13 @@ export function regionNames(map: MatchMap): RegionName {
 export function stepLabel(view: MatchView): string | null {
   const step = stepOf(view);
   if (!step) return null;
-  // Mit Ausbau zählt der Feldzug eigene Runden (`realm.campaignRounds`) und heißt kurz „Runde“
+  // Mit Ausbau heißt der Feldzug kurz „Runde“. Die Rundenzahl kommt aus den gespeicherten Regeln
+  // der Partie, nicht aus den heutigen Standardwerten (ADR-073)
+  const rounds = view.match.campaignRounds;
   const campaign = (round: number) =>
     view.realm
-      ? t('realm.step.ROUND', { round, rounds: view.realm.campaignRounds })
-      : t('match.step.CAMPAIGN', {
-          round,
-          rounds: rulesOf(view.match.rulesPreset).campaign.rounds,
-        });
+      ? t('realm.step.ROUND', { round, rounds })
+      : t('match.step.CAMPAIGN', { round, rounds });
   switch (step.kind) {
     case 'CAPITAL_PICK':
       return t('match.step.CAPITAL_PICK');

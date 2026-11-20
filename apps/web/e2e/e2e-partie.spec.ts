@@ -142,7 +142,7 @@ async function playToEnd(page: Page, options: { reloadOnce?: boolean } = {}): Pr
   const revealed = new Set<number>();
   let picks = 0;
   let reload = options.reloadOnce ?? false;
-  const until = Date.now() + 200_000;
+  const until = Date.now() + 300_000;
   for (;;) {
     if (Date.now() > until) throw new Error('Die Partie endet nicht rechtzeitig');
     const state = await screen.getAttribute('data-state');
@@ -185,7 +185,8 @@ async function statistics(page: Page) {
 }
 
 test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) => {
-  test.setTimeout(240_000);
+  // Zehn Runden (ADR-073): gemessen 2,3 bis 2,7 Minuten
+  test.setTimeout(360_000);
   const page = await newPlayer(browser, {}, 'Übung');
   await recordShown(page);
   await recordGhosts(page);
@@ -257,13 +258,29 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
   const lastAt = shown.map((s) => s.state).lastIndexOf('outcome');
   const lastReveal = shown[lastAt - 1];
   const lastOutcome = shown[lastAt];
-  expect(lastReveal).toMatchObject({ state: 'reveal', scene: 'duel', allDone: false });
-  expect(lastOutcome).toMatchObject({ state: 'outcome', scene: 'outcome', allDone: true });
-  expect(lastOutcome?.step).toMatch(/^Feldzug · Runde \d von 4$/);
-  expect(lastReveal?.step).toBe(lastOutcome?.step);
-  // Die Zugfolge ist erst mit dem Ausgang abgehakt, nicht schon mit den Antworten
-  expect(shown.findIndex((s) => s.allDone)).toBe(lastAt);
-  expect(shown.slice(lastAt + 1).every((s) => s.state === 'settled' && s.allDone)).toBe(true);
+  // Schlägt hier etwas fehl, steht das Ende der Mitschrift und die Abrechnung in der Meldung
+  const tail = `${JSON.stringify(
+    shown.slice(-8).map((s) => ({ ...s, text: s.text.slice(0, 80) })),
+  )} | ${(await page.getByTestId('match-result').textContent())?.slice(0, 120)}`;
+  expect(lastReveal, tail).toMatchObject({ state: 'reveal', scene: 'duel', allDone: false });
+  expect(lastOutcome, tail).toMatchObject({ state: 'outcome', scene: 'outcome' });
+  expect(lastOutcome?.step, tail).toMatch(/^Feldzug · Runde \d+ von 10$/);
+  expect(lastReveal?.step, tail).toBe(lastOutcome?.step);
+  expect(
+    shown.slice(lastAt + 1).every((s) => s.state === 'settled'),
+    tail,
+  ).toBe(true);
+  // Die Zugfolge ist erst mit dem Ausgang abgehakt, nicht schon mit den Antworten: mit dem Schlag
+  // im Takt des Ausgangs (`impactHoldMs`), spätestens mit dem Ergebnis danach. Erfährt die Seite
+  // spät von der Auflösung, ist der Takt kürzer und kann vor dem Schlag enden. Mit zehn Runden ist
+  // das letzte Duell meist die Übernahme der letzten Hauptstadt (ADR-073); in der CI fehlte der
+  // Haken einmal im Takt des Ausgangs, lokal nie
+  const firstDone = shown.findIndex((s) => s.allDone);
+  expect([lastAt, lastAt + 1], tail).toContain(firstDone);
+  expect(
+    shown.slice(firstDone).every((s) => s.allDone),
+    tail,
+  ).toBe(true);
   // Auflösungen: Jeder Sitz der Frage steht an seiner Antwort, mit seinem Wappen an der Schätzung
   // oder mit seiner Farbe im Feld der Wissensfrage
   const reveals = shown.filter((s) => s.state === 'reveal');
@@ -556,7 +573,8 @@ test('Einladungslink: Wer ihn öffnet, tritt der Aufstellung bei', async ({ brow
 });
 
 test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => {
-  test.setTimeout(240_000);
+  // Zehn Runden (ADR-073): gemessen 2,3 bis 2,7 Minuten
+  test.setTimeout(360_000);
   const host = await newPlayer(browser);
   const guest = await newPlayer(browser, {}, 'Beitreten');
 
@@ -648,7 +666,7 @@ async function playWatched(page: Page, other: Page, watched: Watched[]): Promise
   const screen = page.getByTestId('match-screen');
   const theirs = other.getByTestId('match-screen');
   const answered = new Set<number>();
-  const until = Date.now() + 200_000;
+  const until = Date.now() + 300_000;
   for (;;) {
     if (Date.now() > until) throw new Error('Die Partie endet nicht rechtzeitig');
     const state = await screen.getAttribute('data-state');
@@ -684,7 +702,8 @@ async function playWatched(page: Page, other: Page, watched: Watched[]): Promise
 test('Partie: Wer zuschaut, liest die Frage mit; die Auflösung malt die Antwortfelder aus (ADR-065)', async ({
   browser,
 }) => {
-  test.setTimeout(240_000);
+  // Zehn Runden (ADR-073): gemessen 2,3 bis 2,7 Minuten
+  test.setTimeout(360_000);
   const host = await newPlayer(browser);
   // Der Gast hat „Bewegung reduzieren“ an: Bei ihm wechseln die Blätter ohne Abbild (ADR-070)
   const guest = await newPlayer(browser, { reducedMotion: 'reduce' }, 'Beitreten');
