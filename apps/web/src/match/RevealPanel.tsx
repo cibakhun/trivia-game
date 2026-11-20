@@ -1,4 +1,5 @@
 import type { MatchEventOf } from '@rdw/protocol';
+import { compareDecimal, parseDecimal } from '@rdw/game-core';
 import { useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
@@ -34,16 +35,19 @@ const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 
 type Answer = MatchEventOf<'QUESTION_RESOLVED'>['payload']['answers'][number];
 
-/** Zahl aus der Auflösung als Vergleichswert; `null` zählt als schlechtester Wert. */
-function magnitude(value: string | null): number {
-  return value === null ? Number.POSITIVE_INFINITY : Math.abs(Number(value));
-}
-
-/** Schätzungen in Rangfolge: kleinster Abstand zuerst, bei Gleichstand die schnellere Antwort. */
+/**
+ * Schätzungen in Rangfolge: kleinster Abstand zuerst, bei Gleichstand die schnellere Antwort.
+ * Abstände werden exakt dezimal verglichen wie auf dem Server: Ohne erlaubte Grenze (ADR-076)
+ * können sie größer werden, als eine Gleitkommazahl unterscheidet. `null` zählt als schlechtester.
+ */
 function byEstimate(a: Answer, b: Answer): number {
   if (a.answered !== b.answered) return a.answered ? -1 : 1;
-  const distance = magnitude(a.distance) - magnitude(b.distance);
-  if (distance !== 0 && !Number.isNaN(distance)) return distance;
+  if (a.distance !== b.distance) {
+    if (a.distance === null) return 1;
+    if (b.distance === null) return -1;
+    const order = compareDecimal(parseDecimal(a.distance), parseDecimal(b.distance));
+    if (order !== 0) return order;
+  }
   return (a.effectiveMs ?? Number.POSITIVE_INFINITY) - (b.effectiveMs ?? Number.POSITIVE_INFINITY);
 }
 
