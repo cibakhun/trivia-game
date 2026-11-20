@@ -52,5 +52,39 @@ T|NAT|2|erdumfang|Wie groß ist der Umfang der Erde am Äquator ungefähr?|40.00
 T|NAT|2|seismologie|Wie heißt die Wissenschaft von den Erdbeben?|Seismologie|Vulkanologie;Meteorologie;Geodäsie|Seismologie|Erdbeben
 E|NAT|3|mond-entfernung|Wie weit ist der Mond im Mittel von der Erde entfernt (in Kilometern)?|384400|km|Kilometer|1000|10000000|LOG|0.3|Mond|384.400
 E|NAT|4|sonne-temperatur|Wie heiß ist die sichtbare Oberfläche der Sonne ungefähr (in Grad Celsius)?|5500|celsius|Grad Celsius|100|100000|LOG|0.3|Sonne|5778
-E|GEO|3|everest-erstbesteigung|In welchem Jahr wurde der Mount Everest zum ersten Mal bestiegen?|1953|year|Jahr|1800|2026|LINEAR|15|Mount Everest|1953
+E|GEO|3|everest-erstbesteigung|In welchem Jahr wurde der Mount Everest zum ersten Mal bestiegen?|1953|year|Jahr|1000|2026|LINEAR|15|Mount Everest|1953
 E|NAT|3|erde-alter|Wie alt ist die Erde ungefähr (in Millionen Jahren)?|4540|million_years|Millionen Jahre|1|100000|LOG|0.3|Erde|4,54 Milliarden Jahre
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|NAT|3|sublimation|Wie heißt der direkte Übergang eines Stoffes vom festen in den gasförmigen Zustand?|Sublimation|Kondensation;Resublimation;Verdunstung|Sublimation (Phasenübergang)|gasförmig
+T|NAT|2|neutron-ladung|Welches dieser Teilchen ist elektrisch neutral?|Neutron|Proton;Elektron;Positron|Neutron|neutral
+T|NAT|3|richterskala|Was gibt die Richterskala an?|Die Stärke von Erdbeben|Die Windstärke;Die Härte von Mineralen;Die Lautstärke|Richterskala|Erdbeben
+T|NAT|3|blitzableiter|Wer erfand den Blitzableiter?|Benjamin Franklin|Thomas Edison;Alessandro Volta;Michael Faraday|Blitzableiter|Franklin
+T|NAT|3|ozonschicht|Welches Gas bildet die Schicht in der Stratosphäre, die vor UV-Strahlung schützt?|Ozon|Stickstoff;Kohlendioxid;Methan|Ozonschicht|UV
+T|NAT|3|mitochondrien|Wie heißen die Zellbestandteile, die als „Kraftwerke der Zelle“ gelten?|Mitochondrien|Ribosomen;Chloroplasten;Lysosomen|Mitochondrium|Kraftwerk
+T|NAT|4|brownsche-bewegung|Wie heißt die zufällige Wärmebewegung kleiner Teilchen in Flüssigkeiten, die Robert Brown 1827 beschrieb?|Brownsche Bewegung|Konvektion;Osmose;Kapillarität|Brownsche Bewegung|Robert Brown
+T|NAT|3|halley-komet|Nach wem ist der Komet benannt, der etwa alle 76 Jahre wiederkehrt?|Edmond Halley|Isaac Newton;Charles Messier;Johannes Kepler|Halleyscher Komet|Halley
+T|NAT|2|ampere|In welcher Einheit wird die elektrische Stromstärke gemessen?|Ampere|Ohm;Watt;Coulomb|Ampere|Stromstärke
+T|NAT|3|roter-fleck|Auf welchem Planeten tobt der „Große Rote Fleck“, ein riesiger Wirbelsturm?|Jupiter|Saturn;Neptun;Venus|Großer Roter Fleck|Jupiter
+E|NAT|3|schall-luft|Wie schnell breitet sich Schall in Luft bei 20 °C aus (in Metern pro Sekunde)?|343|m_s|Meter pro Sekunde|1|10000|LOG|0.3|Schallgeschwindigkeit|343
+E|NAT|4|lichtjahr-km|Wie viele Kilometer legt das Licht in einem Jahr zurück (ein Lichtjahr)?|9460730472581|km|Kilometer|1|100000000000000|LOG|0.3|Lichtjahr|9,46
+E|NAT|3|erde-sonne-entfernung|Wie weit ist die Erde im Mittel von der Sonne entfernt (in Kilometern)?|149597871|km|Kilometer|1|10000000000|LOG|0.3|Astronomische Einheit|149.597.870
+E|NAT|3|mond-durchmesser|Wie groß ist der Durchmesser des Mondes (in Kilometern)?|3474|km|Kilometer|1|100000|LOG|0.3|Mond|3474
+E|NAT|3|erde-durchmesser|Wie groß ist der Durchmesser der Erde am Äquator (in Kilometern)?|12756|km|Kilometer|1|1000000|LOG|0.3|Erde|12.756
+E|NAT|3|schmelzpunkt-eisen|Bei welcher Temperatur schmilzt Eisen (in Grad Celsius)?|1538|celsius|Grad Celsius|1|100000|LOG|0.3|Eisen|1538
+E|NAT|3|schmelzpunkt-gold|Bei welcher Temperatur schmilzt Gold (in Grad Celsius)?|1064|celsius|Grad Celsius|1|100000|LOG|0.3|Gold|1064
+E|NAT|4|schmelzpunkt-wolfram|Bei welcher Temperatur schmilzt Wolfram, das Metall mit dem höchsten Schmelzpunkt (in Grad Celsius)?|3422|celsius|Grad Celsius|1|100000|LOG|0.3|Wolfram|3422
+E|NAT|3|schmelzpunkt-zinn|Bei welcher Temperatur schmilzt Zinn (in Grad Celsius)?|232|celsius|Grad Celsius|1|10000|LOG|0.3|Zinn|231,93
+E|NAT|2|elemente-anzahl|Wie viele chemische Elemente sind bekannt?|118|count|Elemente|1|10000|LOG|0.3|Periodensystem|118
+E|NAT|3|c14-halbwertszeit|Wie lang ist die Halbwertszeit von Kohlenstoff-14 (in Jahren)?|5730|years|Jahre|1|100000|LOG|0.3|Radiokarbonmethode|5730
+E|NAT|4|plutonium-halbwertszeit|Wie lang ist die Halbwertszeit von Plutonium-239 (in Jahren)?|24110|years|Jahre|1|1000000|LOG|0.3|Plutonium|24.110
+E|NAT|4|uran-238-halbwertszeit|Wie lang ist die Halbwertszeit von Uran-238 (in Millionen Jahren)?|4468|million_years|Millionen Jahre|1|100000|LOG|0.3|Uran|4,468
+E|NAT|3|neptun-umlaufzeit|Wie viele Jahre braucht der Neptun für einen Umlauf um die Sonne?|165|years|Jahre|1|10000|LOG|0.3|Neptun (Planet)|165 Jahre
+E|NAT|4|saturn-durchmesser|Wie groß ist der Durchmesser des Saturn am Äquator (in Kilometern)?|120536|km|Kilometer|1|10000000|LOG|0.3|Saturn (Planet)|120.536
+E|NAT|3|erythrozyt-lebensdauer|Wie viele Tage lebt ein rotes Blutkörperchen beim Menschen im Mittel?|120|days|Tage|1|10000|LOG|0.3|Erythrozyt|120
+E|NAT|4|gehirn-nervenzellen|Wie viele Nervenzellen hat das menschliche Gehirn ungefähr?|86000000000|count|Nervenzellen|1|1000000000000|LOG|0.3|Gehirn|86 Milliarden
+E|NAT|3|blitz-temperatur|Wie heiß kann die Luft im Blitzkanal werden (in Grad Celsius)?|30000|celsius|Grad Celsius|1|1000000|LOG|0.3|Blitz|30.000
+E|NAT|3|meerwasser-salz|Wie viel Gramm Salz enthält ein Kilogramm Meerwasser im Mittel?|35|g|Gramm|1|1000|LOG|0.3|Meerwasser|35
+E|NAT|2|erde-wasseranteil|Wie viel Prozent der Erdoberfläche sind von Wasser bedeckt?|71|percent|Prozent|1|1000|LOG|0.3|Erde|70,7
+E|NAT|3|universum-alter|Wie alt ist das Universum (in Millionen Jahren)?|13800|million_years|Millionen Jahre|1|1000000|LOG|0.3|Universum|13,8
+E|NAT|4|erde-bahngeschwindigkeit|Wie schnell bewegt sich die Erde auf ihrer Bahn um die Sonne (in Kilometern pro Sekunde)?|30|km_s|Kilometer pro Sekunde|1|1000|LOG|0.3|Erde|29,78

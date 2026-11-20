@@ -14,7 +14,7 @@ import {
 } from '../src/index.ts';
 
 /** Schätzfrage der Beispiele in QUIZ_ENGINE §8.1: Lösung 1386, ganzzahlig. */
-const SPEC = { answerValue: '1386', answerPrecision: 0, inputMin: '0', inputMax: '3000' };
+const SPEC = { answerValue: '1386', answerPrecision: 0 };
 const ETERNAL_POINTS = { forDefending: 5, bonusCorrect: 5 };
 
 function perf(triviaCorrect: boolean, estimate: string | null, ms: number | null): Performance {
@@ -27,7 +27,6 @@ function perf(triviaCorrect: boolean, estimate: string | null, ms: number | null
     };
   }
   const score = scoreEstimate(estimate, SPEC);
-  if (!score.ok) throw new Error('Testeingabe außerhalb des Bereichs');
   return {
     triviaCorrect,
     estimateDistance: score.distance,

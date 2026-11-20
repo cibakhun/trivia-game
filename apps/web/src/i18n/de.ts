@@ -1226,7 +1226,6 @@ export const de = {
     INVALID_NAME: 'Dieser Name ist nicht erlaubt. Bitte wähle einen Vorschlag.',
     INVALID_OPTION_TOKEN: 'Diese Antwort gehört nicht zur Frage.',
     INVALID_NUMBER_INPUT: 'Bitte gib eine Zahl ein, zum Beispiel 1.234,5.',
-    ANSWER_OUT_OF_RANGE: 'Diese Zahl liegt außerhalb des möglichen Bereichs.',
     INVITE_CODE_UNKNOWN: 'Zu diesem Code gibt es keine offene Partie.',
     MATCH_FULL: 'Diese Partie ist schon voll.',
     MATCH_NOT_IN_LOBBY: 'Diese Partie hat schon begonnen.',

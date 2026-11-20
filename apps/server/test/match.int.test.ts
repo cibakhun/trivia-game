@@ -297,17 +297,31 @@ describe('Testpartie mit Bots', () => {
     ).question;
     expect(reloaded.presentedAt).toBe(question.presentedAt);
 
-    // Antworten; Wiederholung mit demselben Schlüssel ist wirkungslos, anderer Inhalt ein Fehler
+    // Antworten; Wiederholung mit demselben Schlüssel ist wirkungslos, anderer Inhalt ein Fehler.
+    // Die Schätzung liegt weit daneben und ist negativ: Jede lesbare Zahl zählt (ADR-076)
     const idem = randomUUID();
-    const payload = await answerPayload(matchId, 1);
+    const payload = await answerPayload(matchId, 1, false);
     const answered = await answer(human, matchId, 1, payload, idem);
     expect(answered.statusCode, answered.body).toBe(200);
     expect(answered.body).not.toMatch(/correct|distance/i);
     expect(matchAnswerResponseSchema.parse(answered.json()).status).toBe('ANSWERED');
     expect((await answer(human, matchId, 1, payload, idem)).statusCode).toBe(200);
     expect(
-      errorOf(await answer(human, matchId, 1, await answerPayload(matchId, 1, false), idem)),
+      errorOf(await answer(human, matchId, 1, await answerPayload(matchId, 1), idem)),
     ).toMatchObject({ status: 422, code: 'IDEMPOTENCY_KEY_REUSED' });
+    const scored = await server.db
+      .selectFrom('match_answers as a')
+      .innerJoin('match_questions as q', (j) =>
+        j.onRef('q.match_id', '=', 'a.match_id').onRef('q.seq', '=', 'a.seq'),
+      )
+      .innerJoin('question_versions as v', 'v.id', 'q.version_id')
+      .select(['a.answer_value', 'a.distance', 'v.answer_value as solution', 'v.input_max'])
+      .where('a.match_id', '=', matchId)
+      .where('a.seq', '=', 1)
+      .where('a.status', '=', 'ANSWERED')
+      .executeTakeFirstOrThrow();
+    expect(Number(scored.answer_value)).toBe(-Number(scored.input_max));
+    expect(Number(scored.distance)).toBe(Number(scored.input_max) + Number(scored.solution));
 
     // Alle Menschen haben geantwortet: sofort aufgelöst, für alle sichtbar
     const revealed = await view(human, matchId);

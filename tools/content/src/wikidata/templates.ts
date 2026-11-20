@@ -1,5 +1,6 @@
 import { countryName, hasNominative, inCountry, nominative, ofCountry, personName } from './de.ts';
 import type { ChoiceFact, ChoiceTemplate, EstimateFact, EstimateTemplate, Template } from './generate.ts';
+import { YEAR_INPUT_MAX } from '../validate.ts';
 import { distinct, foldText, groupByItem, numberOf, yearOf, type Row } from './util.ts';
 
 /**
@@ -192,8 +193,10 @@ const bergHoehe: EstimateTemplate = {
   window: 40,
   unit: 'm',
   unitLabel: 'Meter',
+  valueMin: 1,
+  valueMax: 9000,
   inputMin: 1,
-  inputMax: 9000,
+  inputMax: 30000,
   scaleType: 'LOG',
   scale: 0.3,
   extract: (rows) => singleValueFacts(rows, MOUNTAIN_EXCLUSIONS, (m) => m, { named: true }),
@@ -255,8 +258,10 @@ const flussLaenge: EstimateTemplate = {
   window: 50,
   unit: 'km',
   unitLabel: 'Kilometer',
+  valueMin: 1,
+  valueMax: 10000,
   inputMin: 1,
-  inputMax: 10000,
+  inputMax: 30000,
   scaleType: 'LOG',
   scale: 0.3,
   extract: (rows) =>
@@ -308,8 +313,10 @@ const landFlaeche: EstimateTemplate = {
   window: 120,
   unit: 'km2',
   unitLabel: 'Quadratkilometer',
+  valueMin: 1,
+  valueMax: 20000000,
   inputMin: 1,
-  inputMax: 20000000,
+  inputMax: 100000000,
   scaleType: 'LOG',
   scale: 0.4,
   extract: (rows) => singleValueFacts(rows, AREA_EXCLUSIONS, (m2) => m2 / 1_000_000, { rename: countryName }),
@@ -326,8 +333,10 @@ const landEinwohner: EstimateTemplate = {
   window: 120,
   unit: 'count',
   unitLabel: 'Einwohner',
-  inputMin: 1000,
-  inputMax: 2000000000,
+  valueMin: 1000,
+  valueMax: 2000000000,
+  inputMin: 1,
+  inputMax: 10000000000,
   scaleType: 'LOG',
   scale: 0.4,
   // nur Zahlen ab 2020: ältere Stände („im Jahr 2017“) wirken in einer neuen Frage veraltet
@@ -358,8 +367,10 @@ const stadtEinwohner: EstimateTemplate = {
   window: 78,
   unit: 'count',
   unitLabel: 'Einwohner',
-  inputMin: 1000,
-  inputMax: 10000000,
+  valueMin: 1000,
+  valueMax: 10000000,
+  inputMin: 1,
+  inputMax: 100000000,
   scaleType: 'LOG',
   scale: 0.3,
   extract: (rows) => latestValueFacts(rows, {}),
@@ -376,8 +387,10 @@ const bauwerkHoehe: EstimateTemplate = {
   window: 25,
   unit: 'm',
   unitLabel: 'Meter',
+  valueMin: 1,
+  valueMax: 1000,
   inputMin: 1,
-  inputMax: 1000,
+  inputMax: 5000,
   scaleType: 'LOG',
   scale: 0.3,
   // nur Bauwerke mit geprüfter deutscher Form: das schließt unfertige (Jeddah Tower) und in
@@ -396,7 +409,8 @@ const bergDe: EstimateTemplate = {
   snapshot: 'berge-de',
   count: 25,
   window: 60,
-  inputMax: 3000,
+  valueMax: 3000,
+  inputMax: 10000,
 };
 
 const flussDe: EstimateTemplate = {
@@ -405,7 +419,8 @@ const flussDe: EstimateTemplate = {
   snapshot: 'fluesse-de',
   count: 25,
   window: 60,
-  inputMax: 3000,
+  valueMax: 3000,
+  inputMax: 10000,
 };
 
 /** Länder mit Artikel („das Saarland“). */
@@ -424,8 +439,10 @@ const bundeslandFlaeche: EstimateTemplate = {
   window: 16,
   unit: 'km2',
   unitLabel: 'Quadratkilometer',
+  valueMin: 1,
+  valueMax: 1000000,
   inputMin: 1,
-  inputMax: 1000000,
+  inputMax: 10000000,
   scaleType: 'LOG',
   scale: 0.4,
   extract: (rows) => singleValueFacts(rows, {}, (m2) => m2 / 1_000_000),
@@ -509,8 +526,10 @@ const geburtsjahr: EstimateTemplate = {
   window: 58,
   unit: 'year',
   unitLabel: 'Jahr',
+  valueMin: 1000,
+  valueMax: 2026,
   inputMin: 1000,
-  inputMax: 2026,
+  inputMax: Number(YEAR_INPUT_MAX),
   scaleType: 'LINEAR',
   scale: 40,
   extract: (rows) => {
@@ -549,8 +568,10 @@ const nobelJahr: EstimateTemplate = {
   window: 80,
   unit: 'year',
   unitLabel: 'Jahr',
-  inputMin: 1901,
-  inputMax: 2026,
+  valueMin: 1901,
+  valueMax: 2026,
+  inputMin: 1000,
+  inputMax: Number(YEAR_INPUT_MAX),
   scaleType: 'LINEAR',
   scale: 15,
   extract: (rows) => {
@@ -611,6 +632,8 @@ const ordnungszahl: EstimateTemplate = {
   window: 50,
   unit: 'count',
   unitLabel: 'Ordnungszahl',
+  valueMin: 1,
+  valueMax: 118,
   inputMin: 1,
   inputMax: 118,
   scaleType: 'LINEAR',

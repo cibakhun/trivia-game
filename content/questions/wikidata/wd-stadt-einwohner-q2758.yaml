@@ -29,8 +29,8 @@ estimate:
   answer_value: "267176"
   answer_precision: 0
   answer_unit: count
-  input_min: "1000"
-  input_max: "10000000"
+  input_min: "1"
+  input_max: "100000000"
   scale_type: LOG
   scale: 0.3
 translations:

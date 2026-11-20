@@ -2,7 +2,7 @@ import type { MatchEventOf } from '@rdw/protocol';
 import { useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
-import { formatDecimal, formatNumber, t, tp } from '../i18n/i18n.ts';
+import { formatEstimateFigure, formatNumber, t, tp } from '../i18n/i18n.ts';
 import { duelResolved, duelWinner, type Reveal } from './match-model.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
@@ -219,7 +219,7 @@ export function RevealPanel({
 function Figure({ value, unit }: { readonly value: string | null; readonly unit: string | null }) {
   return (
     <span className="reveal-figure">
-      <span className="reveal-number">{value === null ? '?' : formatDecimal(value)}</span>
+      <span className="reveal-number">{value === null ? '?' : formatEstimateFigure(value)}</span>
       {unit ? <span className="reveal-unit"> {unit}</span> : null}
     </span>
   );
@@ -347,7 +347,7 @@ function EstimateAnswers({
                 <span className={`reveal-off${exact ? ' exact' : ''}`}>
                   {exact
                     ? t('match.reveal.exact')
-                    : t('match.reveal.off', { value: formatDecimal(a.distance) })}
+                    : t('match.reveal.off', { value: formatEstimateFigure(a.distance) })}
                 </span>
               ) : null}
               {a.answered && a.effectiveMs !== null ? (
