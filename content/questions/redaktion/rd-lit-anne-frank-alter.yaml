@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-lit-anne-frank-alter
+kind: ESTIMATE
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Anne Frank"
+    url: https://de.wikipedia.org/wiki/Anne_Frank
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Geburt am 12. Juni 1929 und Tod im Februar oder Anfang März 1945 im Artikel „Anne Frank“ der deutschen Wikipedia gefunden; daraus 15 Jahre."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "15"
+  answer_precision: 0
+  answer_unit: years
+  input_min: "1"
+  input_max: "1000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie alt wurde Anne Frank?"
+    unit_label: "Jahre"

@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-spo-wimbledon-erstes-turnier
+kind: ESTIMATE
+category: SPORTS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Wimbledon Championships"
+    url: https://de.wikipedia.org/wiki/Wimbledon_Championships
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „1877“ im Artikel „Wimbledon Championships“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "1877"
+  answer_precision: 0
+  answer_unit: year
+  input_min: "1000"
+  input_max: "2026"
+  scale_type: LINEAR
+  scale: 40
+translations:
+  de:
+    status: APPROVED
+    prompt: "In welchem Jahr wurde in Wimbledon zum ersten Mal um die Tennismeisterschaft gespielt?"
+    unit_label: "Jahr"

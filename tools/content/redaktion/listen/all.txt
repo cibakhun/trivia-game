@@ -44,3 +44,34 @@ T|ALL|2|palindrom|Wie nennt man ein Wort, das vorwärts und rückwärts gelesen 
 T|ALL|2|anagramm|Wie nennt man ein Wort, das durch Umstellen der Buchstaben eines anderen entsteht?|Anagramm|Palindrom;Akronym;Synonym|Anagramm|Buchstaben
 T|ALL|2|at-domain|Welche Internet-Länderendung hat Österreich?|.at|.au;.os;.oe|.at|Österreich
 T|ALL|1|euro-scheine|Welcher ist der größte Euro-Geldschein, der heute noch ausgegeben wird?|200 Euro|100 Euro;500 Euro;1000 Euro|Eurobanknoten|200
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|ALL|1|smaragd-farbe|Welche Farbe hat ein Smaragd?|Grün|Rot;Blau;Gelb|Smaragd|grün
+T|ALL|2|sternzeichen-loewe|Welches Sternzeichen haben Menschen, die am 5. August geboren sind?|Löwe|Jungfrau;Krebs;Waage|Löwe (Tierkreiszeichen)|August
+T|ALL|2|pfingsten|Welches Fest feiern Christen am 50. Tag der Osterzeit, sieben Wochen nach Ostern?|Pfingsten|Christi Himmelfahrt;Fronleichnam;Erntedank|Pfingsten|50. Tag
+T|ALL|3|safran|Welches Gewürz gewinnt man aus den Blütennarben einer Krokusart?|Safran|Kurkuma;Zimt;Vanille|Safran|Krokus
+T|ALL|2|tofu|Woraus wird Tofu hergestellt?|Sojabohnen|Reis;Weizen;Kichererbsen|Tofu|Soja
+T|ALL|2|tequila|Aus welcher Pflanze wird Tequila gebrannt?|Agave|Zuckerrohr;Kartoffel;Mais|Tequila|Agave
+T|ALL|2|sushi-reis|Welche Zutat gehört zu jedem Sushi?|Gesäuerter Reis|Lachs;Wasabi;Seetang|Sushi|Reis
+T|ALL|3|kardinalfarbe|Welche Farbe tragen Kardinäle der katholischen Kirche?|Rot|Violett;Weiß;Schwarz|Kardinal|Purpur
+T|ALL|2|brezel|Wie heißt das verschlungene Laugengebäck, das besonders in Süddeutschland gegessen wird?|Brezel|Croissant;Zopf;Kipferl|Brezel|Lauge
+T|ALL|3|esperanto|Wie heißt die bekannteste Plansprache, die 1887 vorgestellt wurde?|Esperanto|Volapük;Ido;Interlingua|Esperanto|1887
+T|ALL|3|hochdeutsch-duden|Wie heißt das Wörterbuch, das in Deutschland als Maßstab für die Rechtschreibung gilt?|Duden|Brockhaus;Wahrig;Langenscheidt|Duden|Rechtschreibung
+T|ALL|2|guacamole|Welche Frucht ist die Hauptzutat von Guacamole?|Avocado|Tomate;Limette;Mango|Guacamole|Avocado
+T|ALL|2|paella|Aus welchem Land stammt die Reispfanne Paella?|Spanien|Italien;Portugal;Mexiko|Paella|Spanien
+T|ALL|2|februar-schaltjahr|Wie viele Tage hat der Februar in einem Schaltjahr?|29|28;30;31|Schaltjahr|29
+E|ALL|3|tarot-karten|Aus wie vielen Karten besteht ein Tarot-Spiel?|78|count|Karten|1|1000|LOG|0.3|Tarot|78
+E|ALL|4|go-schnittpunkte|Wie viele Schnittpunkte hat ein übliches Go-Brett mit 19 × 19 Linien?|361|count|Schnittpunkte|1|10000|LOG|0.3|Go (Spiel)|361
+E|ALL|4|scrabble-steine|Wie viele Buchstabensteine enthält ein deutsches Scrabble-Spiel?|102|count|Steine|1|10000|LOG|0.3|Scrabble|102
+E|ALL|3|gros-stueck|Wie viele Stück sind ein Gros?|144|count|Stück|1|10000|LOG|0.3|Gros|144
+E|ALL|3|mandel-stueck|Wie viele Stück sind eine Mandel?|15|count|Stück|1|1000|LOG|0.3|Alte Maße und Gewichte (deutschsprachiger Raum)|15
+E|ALL|3|din-a4-laenge|Wie lang ist ein DIN-A4-Blatt (in Millimetern)?|297|mm|Millimeter|1|10000|LOG|0.3|Papierformat|297
+E|ALL|3|kalenderwochen-max|Wie viele Kalenderwochen kann ein Jahr höchstens haben?|53|count|Kalenderwochen|1|1000|LOG|0.3|Woche|53
+E|ALL|4|iban-stellen|Wie viele Zeichen hat eine deutsche IBAN?|22|count|Zeichen|1|1000|LOG|0.3|Internationale Bankkontonummer|22
+E|ALL|3|isbn-stellen|Wie viele Ziffern hat eine ISBN seit 2007?|13|count|Ziffern|1|1000|LOG|0.3|Internationale Standardbuchnummer|13
+E|ALL|4|romme-karten|Mit wie vielen Karten einschließlich Jokern wird Rommé üblicherweise gespielt?|110|count|Karten|1|10000|LOG|0.3|Rommé|110
+E|ALL|4|autobahnnetz-laenge|Wie lang ist das Netz der Bundesautobahnen in Deutschland ungefähr (in Kilometern)?|13200|km|Kilometer|1|1000000|LOG|0.3|Autobahn (Deutschland)|13.223
+E|ALL|2|personalausweis-gueltigkeit|Wie viele Jahre ist ein deutscher Personalausweis gültig, wenn man bei der Ausstellung mindestens 24 Jahre alt ist?|10|years|Jahre|1|1000|LOG|0.3|Personalausweis (Deutschland)|zehn Jahre
+E|ALL|3|chanukkia-arme|Wie viele Lichter trägt der Leuchter beim jüdischen Lichterfest Chanukka, das Dienerlicht mitgezählt?|9|count|Lichter|1|100|LOG|0.3|Chanukkia|neunten
+E|ALL|4|rosenkranz-perlen|Aus wie vielen Perlen besteht ein katholischer Rosenkranz in der Regel?|59|count|Perlen|1|1000|LOG|0.3|Rosenkranz|59
+E|ALL|2|fastenzeit-tage|Wie viele Tage dauert die christliche Fastenzeit vor Ostern ohne die Sonntage?|40|days|Tage|1|1000|LOG|0.3|Fastenzeit|40

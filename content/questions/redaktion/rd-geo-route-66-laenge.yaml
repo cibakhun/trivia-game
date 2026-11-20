@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-geo-route-66-laenge
+kind: ESTIMATE
+category: GEOGRAPHY
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: U.S. Route 66"
+    url: https://de.wikipedia.org/wiki/U.S._Route_66
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „3940“ im Artikel „U.S. Route 66“ der deutschen Wikipedia (Weiterleitung auf „Route 66“) gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "3940"
+  answer_precision: 0
+  answer_unit: km
+  input_min: "1"
+  input_max: "100000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie lang war die U.S. Route 66 von Chicago nach Santa Monica (in Kilometern)?"
+    unit_label: "Kilometer"

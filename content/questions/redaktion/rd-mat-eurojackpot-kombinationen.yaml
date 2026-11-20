@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-mat-eurojackpot-kombinationen
+kind: ESTIMATE
+category: MATHEMATICS
+difficulty: 4
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Eurojackpot"
+    url: https://de.wikipedia.org/wiki/Eurojackpot
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Antwort „139.838.160“ im Artikel „Eurojackpot“ der deutschen Wikipedia gefunden."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "139838160"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1"
+  input_max: "10000000000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie viele verschiedene Tippkombinationen gibt es beim Eurojackpot (5 aus 50 und 2 aus 12)?"
+    unit_label: "Kombinationen"

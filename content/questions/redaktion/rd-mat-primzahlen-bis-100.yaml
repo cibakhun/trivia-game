@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-mat-primzahlen-bis-100
+kind: ESTIMATE
+category: MATHEMATICS
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Primzahl"
+    url: https://de.wikipedia.org/wiki/Primzahl
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Folge der Primzahlen bis 97 im Artikel „Primzahl“ der deutschen Wikipedia gefunden; 25 Primzahlen gezählt."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "25"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1"
+  input_max: "1000"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "Wie viele Primzahlen gibt es zwischen 1 und 100?"
+    unit_label: "Primzahlen"

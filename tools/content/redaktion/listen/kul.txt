@@ -47,3 +47,34 @@ T|KUL|3|filmpreis-lola|Wie heißt die Trophäe des Deutschen Filmpreises?|Lola|B
 T|KUL|1|tatort|Wie heißt die ARD-Krimireihe, die seit 1970 läuft?|Tatort|Derrick;Polizeiruf 110;Der Alte|Tatort (Fernsehreihe)|1970
 T|KUL|1|sendung-mit-der-maus|Welche Kindersendung mit einer orangen Maus läuft seit 1971?|Die Sendung mit der Maus|Löwenzahn;Sesamstraße;Pumuckl|Die Sendung mit der Maus|1971
 T|KUL|3|sandmaennchen|Wie heißt die Gutenachtsendung für Kinder, die seit 1959 im Fernsehen läuft?|Unser Sandmännchen|Die Sendung mit der Maus;Löwenzahn;Logo!|Unser Sandmännchen|1959
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|KUL|2|der-schrei|Wer malte „Der Schrei“?|Edvard Munch|Gustav Klimt;Egon Schiele;Ernst Ludwig Kirchner|Der Schrei|Munch
+T|KUL|2|vier-jahreszeiten|Wer komponierte „Die vier Jahreszeiten“?|Antonio Vivaldi|Johann Sebastian Bach;Georg Friedrich Händel;Arcangelo Corelli|Die vier Jahreszeiten|Vivaldi
+T|KUL|3|scala-mailand|Wie heißt das berühmte Opernhaus in Mailand?|Teatro alla Scala|La Fenice;Teatro San Carlo;Teatro Massimo|Teatro alla Scala|Mailand
+T|KUL|2|semperoper|In welcher Stadt steht die Semperoper?|Dresden|Leipzig;München;Hamburg|Semperoper|Dresden
+T|KUL|3|verhuellter-reichstag|Welches Künstlerpaar verhüllte 1995 das Gebäude des Deutschen Bundestages in Berlin?|Christo und Jeanne-Claude|Gilbert & George;Marina Abramović und Ulay;Bernd und Hilla Becher|Verhüllter Reichstag|Christo
+T|KUL|2|abba-herkunft|Aus welchem Land stammt die Popgruppe ABBA?|Schweden|Norwegen;Dänemark;Finnland|ABBA|Schweden
+T|KUL|3|metropolis-regie|Wer führte Regie beim Stummfilm „Metropolis“ von 1927?|Fritz Lang|Friedrich Wilhelm Murnau;Ernst Lubitsch;Robert Wiene|Metropolis (Film)|Fritz Lang
+T|KUL|2|hendrix-instrument|Mit welchem Instrument wurde Jimi Hendrix berühmt?|E-Gitarre|Schlagzeug;Saxophon;Klavier|Jimi Hendrix|Gitarr
+T|KUL|2|manneken-pis|In welcher Stadt steht die Brunnenfigur „Manneken Pis“?|Brüssel|Amsterdam;Antwerpen;Luxemburg|Manneken Pis|Brüssel
+T|KUL|3|beatles-heimatstadt|Aus welcher Stadt stammen die Beatles?|Liverpool|London;Manchester;Birmingham|The Beatles|Liverpool
+T|KUL|3|bolero|Wer komponierte den „Boléro“?|Maurice Ravel|Claude Debussy;Erik Satie;Camille Saint-Saëns|Boléro|Ravel
+T|KUL|3|abendmahl-mailand|In welcher Stadt befindet sich Leonardo da Vincis Wandgemälde „Das Abendmahl“?|Mailand|Florenz;Rom;Venedig|Das Abendmahl (Leonardo da Vinci)|Mailand
+T|KUL|3|guernica|Wer malte das Bild „Guernica“?|Pablo Picasso|Salvador Dalí;Joan Miró;Francisco de Goya|Guernica (Gemälde)|Picasso
+E|KUL|4|requiem-koechelnummer|Welche Nummer trägt Mozarts Requiem im Köchelverzeichnis?|626|count|KV-Nummer|1|10000|LOG|0.3|Requiem (Mozart)|626
+E|KUL|3|mona-lisa-hoehe|Wie hoch ist das Gemälde „Mona Lisa“ (in Zentimetern)?|77|cm|Zentimeter|1|1000|LOG|0.3|Mona Lisa|77
+E|KUL|4|nachtwache-breite|Wie breit ist Rembrandts Gemälde „Die Nachtwache“ (in Zentimetern)?|437|cm|Zentimeter|1|10000|LOG|0.3|Die Nachtwache|437
+E|KUL|3|david-hoehe|Wie hoch ist Michelangelos Marmorstatue „David“ in Florenz (in Zentimetern)?|516|cm|Zentimeter|1|10000|LOG|0.3|David (Michelangelo)|5,16
+E|KUL|3|oscar-hoehe|Wie hoch ist die Oscar-Statuette (in Zentimetern)?|34|cm|Zentimeter|1|1000|LOG|0.3|Oscar|34
+E|KUL|3|elbphilharmonie-saal|Wie viele Plätze hat der Große Saal der Elbphilharmonie ungefähr?|2100|count|Plätze|1|100000|LOG|0.3|Elbphilharmonie|2100
+E|KUL|2|koelner-dom-hoehe|Wie hoch sind die Türme des Kölner Doms (in Metern)?|157|m|Meter|1|10000|LOG|0.3|Kölner Dom|157
+E|KUL|3|ulmer-muenster-hoehe|Wie hoch ist der Hauptturm des Ulmer Münsters (in Metern)?|162|m|Meter|1|10000|LOG|0.3|Ulmer Münster|161,53
+E|KUL|3|freiheitsstatue-figur|Wie hoch ist die Figur der Freiheitsstatue ohne Sockel (in Metern)?|46|m|Meter|1|1000|LOG|0.3|Freiheitsstatue|46
+E|KUL|4|ring-nibelungen-dauer|Wie viele Stunden Musik umfasst Wagners „Der Ring des Nibelungen“ ungefähr?|15|hours|Stunden|1|1000|LOG|0.3|Der Ring des Nibelungen|15 Stunden
+E|KUL|4|tutanchamun-maske-gewicht|Wie schwer ist die goldene Totenmaske des Tutanchamun (in Gramm)?|10230|g|Gramm|1|1000000|LOG|0.3|Totenmaske des Tutanchamun|10,23
+E|KUL|4|passauer-domorgel|Wie viele Pfeifen haben die Orgeln im Passauer Dom St. Stephan zusammen?|17974|count|Pfeifen|1|1000000|LOG|0.3|Orgeln des Domes St. Stephan|17.974
+E|KUL|4|petersglocke-gewicht|Wie schwer ist die Petersglocke im Kölner Dom (in Kilogramm)?|24000|kg|Kilogramm|1|1000000|LOG|0.3|Petersglocke|24
+E|KUL|3|lindenstrasse-folgen|Wie viele Folgen der Fernsehserie „Lindenstraße“ wurden ausgestrahlt?|1758|count|Folgen|1|100000|LOG|0.3|Lindenstraße|1758
+E|KUL|3|titanic-film-oscars|Wie viele Oscars gewann der Film „Titanic“ von 1997?|11|count|Oscars|1|1000|LOG|0.3|Titanic (1997)|elf
+E|KUL|4|schuh-des-manitu-besucher|Wie viele Kinobesucher hatte „Der Schuh des Manitu“ in Deutschland ungefähr?|11700000|count|Besucher|1|1000000000|LOG|0.3|Der Schuh des Manitu|11,7
