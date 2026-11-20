@@ -282,8 +282,10 @@ export function isRealmRules(rules: MatchRules): rules is RealmRules {
 /**
  * Standardwerte des Ausbaus aus dem Konzept vom 2026-11-11, vom Product Owner mit allen
  * Empfehlungen freigegeben (O-25 bis O-35). Nach dem ersten Spieltest (ADR-062): Landnahme nur
- * zwei Runden, Dorf und Stadt bringen 3 und 4 statt 2 und 3. Zahlen [E] bis zur Entscheidung des
- * Product Owners (O-41).
+ * zwei Runden, Dorf und Stadt bringen 3 und 4 statt 2 und 3. Mit zehn Runden (ADR-073 Punkt 4,
+ * Wahl des Product Owners in O-44 am 2026-11-20): Eine Armee kostet auch 1 Baustoff, und ein Reich
+ * darf drei Burgen haben, damit Baustoff in der zweiten Hälfte nicht liegen bleibt. Die übrigen
+ * Zahlen [E] bis zur Entscheidung des Product Owners (O-41).
  */
 export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
   favorites: 4,
@@ -297,9 +299,9 @@ export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
     village: { bread: 1, material: 3 },
     town: { bread: 2, material: 6 },
     castle: { bread: 8, material: 16 },
-    army: { bread: 2, material: 0 },
+    army: { bread: 2, material: 1 },
   },
-  maxCastles: 2,
+  maxCastles: 3,
   armyCap: 6,
   lots: { village: 2, town: 3, castle: 4, free: 2 },
   timers: { prepareMs: 40 * SECOND_MS, ordersRevealMs: 2 * SECOND_MS, wheelMs: 3 * SECOND_MS },

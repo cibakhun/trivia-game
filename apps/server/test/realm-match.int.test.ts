@@ -393,7 +393,8 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
               castle !== null &&
               board.regions[castle]?.building === 'CASTLE' &&
               (board.regions[castle]?.armies ?? 0) < ECONOMY.armyCap &&
-              me.bread >= ECONOMY.costs.army.bread;
+              me.bread >= ECONOMY.costs.army.bread &&
+              me.material >= ECONOMY.costs.army.material;
             return affordable ? [{ kind: 'RECRUIT', region: castle, count: 1 }] : [];
           },
         },
@@ -1329,6 +1330,7 @@ describe('Rüstzeit', () => {
     expect(after.step).toMatchObject({ kind: 'CAMPAIGN_TARGET', round: 1 });
     expect(after.regions[castle]?.armies).toBe(4);
     expect(after.seats[mySeat]?.bread).toBe(me.bread - ECONOMY.costs.army.bread);
+    expect(after.seats[mySeat]?.material).toBe(me.material - ECONOMY.costs.army.material);
     const late = await events(matchId);
     expect(eventsOf(late, 'ORDERS_SUBMITTED').map((e) => e.payload.seat)).toEqual([
       botSeat,
@@ -1341,7 +1343,7 @@ describe('Rüstzeit', () => {
       orders,
       summary: { built: [], recruited: 1, moved: 0, traded: 0 },
       bread: me.bread - ECONOMY.costs.army.bread,
-      material: me.material,
+      material: me.material - ECONOMY.costs.army.material,
     });
     expect(eventsOf(late, 'PREPARE_CLOSED')).toEqual([]);
     // Nach dem Aufdecken ist die Rüstzeit vorbei

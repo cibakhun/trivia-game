@@ -119,7 +119,7 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
     expect(DEFAULT_MATCH_RULES.economy).toBeUndefined();
   });
 
-  it('entspricht dem freigegebenen Konzept (O-25 bis O-35), Landnahme und Erträge nach ADR-062', () => {
+  it('entspricht dem freigegebenen Konzept (O-25 bis O-35), Landnahme und Erträge nach ADR-062, Armee und Burgen nach ADR-073', () => {
     const e = DEFAULT_MATCH_ECONOMY;
     // Zehn Feldzugrunden wie ohne Ausbau (ADR-073), vorher fünf nach O-31
     expect(DEFAULT_REALM_RULES.campaign.rounds).toBe(10);
@@ -132,10 +132,11 @@ describe('Regeln der Partie mit Ausbau (MATCH_RULES §11, ADR-057)', () => {
       village: { bread: 1, material: 3 },
       town: { bread: 2, material: 6 },
       castle: { bread: 8, material: 16 },
-      army: { bread: 2, material: 0 },
+      // Armee auch mit Baustoff, damit er mit zehn Runden nicht liegen bleibt (ADR-073, O-44)
+      army: { bread: 2, material: 1 },
     });
     expect(e.tradeRate).toBe(3);
-    expect(e.maxCastles).toBe(2);
+    expect(e.maxCastles).toBe(3);
     expect(e.armyCap).toBe(6);
     expect(e.lots).toEqual({ village: 2, town: 3, castle: 4, free: 2 });
     expect(e.timers).toEqual({

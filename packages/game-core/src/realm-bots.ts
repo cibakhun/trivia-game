@@ -253,10 +253,13 @@ export function chooseRegionForRealmBot(state: RealmState, rng: Rng): number {
  * 1. Armeen hinter der Grenze ziehen ein Feld Richtung Grenze (nächstes eigenes Feld mit
  *    gegnerischem Nachbarn; grenzt das Reich an keinen Gegner, zählt der Rand zum freien Land),
  *    soweit dort Platz ist.
- * 2. Ein Ausbau je Runde: die höchste erreichbare Stufe (Burg vor Stadt vor Dorf), auf dem Feld mit
+ * 2. Steht danach keine Armee an der Grenze (eigenes Feld neben fremdem oder freiem Land), zuerst
+ *    eine Armee kaufen, am liebsten in einer Burg an der Grenze. Seit eine Armee auch Baustoff kostet
+ *    (ADR-073), ginge er sonst ganz in den Ausbau, und der Bot müsste beim Angriff aussetzen.
+ * 3. Ein Ausbau je Runde: die höchste erreichbare Stufe (Burg vor Stadt vor Dorf), auf dem Feld mit
  *    den wenigsten gegnerischen Nachbarn; fehlt ein Rohstoff, wird 3 zu 1 getauscht, wenn der andere
  *    reicht.
- * 3. Mit dem übrigen Brot Armeen in der Burg mit den wenigsten.
+ * 4. Mit dem Rest Armeen in der Burg mit den wenigsten.
  */
 export function chooseRealmOrdersForBot(state: RealmState, seat: number, rng: Rng): RealmOrder[] {
   const map = realmMapOf(state);
@@ -307,10 +310,40 @@ export function chooseRealmOrdersForBot(state: RealmState, seat: number, rng: Rn
     armies.set(to, (armies.get(to) as number) + moving);
   }
 
-  // 2. Bauen
   let bread = seatState.bread;
   let material = seatState.material;
-  const castles = castlesOf(state, seat).length;
+  const armyCost = econ.costs.army;
+  const recruits = new Map<number, number>();
+  const strongholds = castlesOf(state, seat);
+  const recruit = (at: number) => {
+    armies.set(at, (armies.get(at) as number) + 1);
+    recruits.set(at, (recruits.get(at) ?? 0) + 1);
+    bread -= armyCost.bread;
+    material -= armyCost.material;
+  };
+  const affordable = () =>
+    bread >= armyCost.bread &&
+    material >= armyCost.material &&
+    (armyCost.bread > 0 || armyCost.material > 0);
+
+  // 2. Keine Armee an der Grenze: erst eine kaufen
+  const border = own.filter((id) =>
+    regionNeighbors(map, id).some((n) => state.regions[n]?.owner !== seat),
+  );
+  if (!border.some((id) => (armies.get(id) as number) > 0) && affordable()) {
+    const at = strongholds
+      .filter((id) => (armies.get(id) as number) < econ.armyCap)
+      .sort(
+        (a, b) =>
+          (distance.get(a) ?? Infinity) - (distance.get(b) ?? Infinity) ||
+          (armies.get(a) as number) - (armies.get(b) as number) ||
+          a - b,
+      )[0];
+    if (at !== undefined) recruit(at);
+  }
+
+  // 3. Bauen
+  const castles = strongholds.length;
   const costKey = { VILLAGE: 'village', TOWN: 'town', CASTLE: 'castle' } as const;
   const options = own
     .map((id) => ({
@@ -352,25 +385,14 @@ export function chooseRealmOrdersForBot(state: RealmState, seat: number, rng: Rn
     break;
   }
 
-  // 3. Armeen kaufen (in Burgen, die schon zu Beginn der Rüstzeit standen)
-  const armyCost = econ.costs.army;
-  const recruits = new Map<number, number>();
-  const strongholds = castlesOf(state, seat);
-  while (
-    strongholds.length > 0 &&
-    bread >= armyCost.bread &&
-    material >= armyCost.material &&
-    (armyCost.bread > 0 || armyCost.material > 0)
-  ) {
+  // 4. Armeen kaufen (in Burgen, die schon zu Beginn der Rüstzeit standen)
+  while (strongholds.length > 0 && affordable()) {
     const open = strongholds.filter((id) => (armies.get(id) as number) < econ.armyCap);
     const at = open.sort(
       (a, b) => (armies.get(a) as number) - (armies.get(b) as number) || a - b,
     )[0];
     if (at === undefined) break;
-    armies.set(at, (armies.get(at) as number) + 1);
-    recruits.set(at, (recruits.get(at) ?? 0) + 1);
-    bread -= armyCost.bread;
-    material -= armyCost.material;
+    recruit(at);
   }
   for (const [region, count] of recruits) orders.push({ kind: 'RECRUIT', region, count });
   return orders;

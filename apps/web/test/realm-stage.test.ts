@@ -549,12 +549,12 @@ describe('Blatt der Rüstzeit', () => {
   });
 
   it('nennt die Grenze der Burgen und die höchste Stufe', () => {
-    const two = prepView({
-      buildings: { 5: 'CASTLE' },
+    const three = prepView({
+      buildings: { 5: 'CASTLE', 7: 'CASTLE' },
       stock: { [ME]: { bread: 30, material: 40 } },
     });
-    expect(row(prepare({ view: two, selected: TOWN }), 'build').text).toContain(
-      'Höchstens 2 Burgen je Reich',
+    expect(row(prepare({ view: three, selected: TOWN }), 'build').text).toContain(
+      'Höchstens 3 Burgen je Reich',
     );
     const castle = row(prepare({ selected: CASTLE }), 'build');
     expect(castle.text).toBe('Ausbauen Höchste Stufe erreicht');
@@ -564,7 +564,7 @@ describe('Blatt der Rüstzeit', () => {
   it('kauft Armeen in der Burg erst mit einem Knopf, dann mit Minus und Plus', () => {
     const start = prepare({ selected: CASTLE });
     expect(fieldOf(start).long).toBe('Burg Graufurt 3 Armeen, Platz für 6');
-    expect(row(start, 'buy').text).toBe('Armeen je 2 Brot Kaufen');
+    expect(row(start, 'buy').text).toBe('Armeen je 2 Brot 1 Baustoff Kaufen');
     expect(row(start, 'buy').html).not.toContain('class="stepper"');
 
     const one = prepare({
@@ -573,15 +573,18 @@ describe('Blatt der Rüstzeit', () => {
     });
     expect(row(one, 'buy').tag).toContain('class="act set"');
     expect(row(one, 'buy').tag).toContain('data-count="1"');
+    // Neben dem Zähler steht der Preis ohne „je“; vorgelesen wird es (ADR-073, zwei Rohstoffe)
+    expect(row(one, 'buy').text).toContain('je 2 Brot 1 Baustoff');
+    expect(row(one, 'buy').html).toMatch(/<span class="visually-hidden">je <\/span>/);
     expect(buttonOf(row(one, 'buy').html, 'weniger')).not.toContain('disabled');
     expect(buttonOf(row(one, 'buy').html, 'mehr')).not.toContain('disabled');
-    expect(stock(one)).toContain('5 Brot 10 Baustoff');
+    expect(stock(one)).toContain('5 Brot 9 Baustoff');
 
     const full = prepare({
       selected: CASTLE,
       orders: [{ kind: 'RECRUIT', region: CASTLE, count: 3 }],
     });
-    expect(stock(full)).toContain('1 Brot 10 Baustoff');
+    expect(stock(full)).toContain('1 Brot 7 Baustoff');
     expect(fieldOf(full).long).toBe('Burg Graufurt 6 Armeen, Platz für 6');
     expect(buttonOf(row(full, 'buy').html, 'mehr')).toContain('disabled');
     expect(textOf(part(full, 'data-testid="prepare-orders"', '</ul>'))).toContain('+3');
@@ -598,6 +601,13 @@ describe('Blatt der Rüstzeit', () => {
     });
     expect(row(poor, 'buy').text).toContain('Es fehlen 1 Brot');
     expect(row(poor, 'buy').html).not.toContain('<button');
+    // Eine Armee kostet auch 1 Baustoff (ADR-073)
+    const bare = prepare({
+      view: prepView({ stock: { [ME]: { bread: 10, material: 0 } } }),
+      selected: CASTLE,
+    });
+    expect(row(bare, 'buy').text).toContain('Es fehlen 1 Baustoff');
+    expect(row(bare, 'buy').html).not.toContain('<button');
   });
 
   it('nennt Ertrag oder Besatzung auch kurz neben dem Namen, für niedrige Bildschirme', () => {

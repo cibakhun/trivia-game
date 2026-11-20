@@ -144,9 +144,10 @@ describe('Entwurf der Befehle', () => {
     const play = playOf();
     const orders = withMove(withBuild(withRecruit([], 2, 2), 0, true), 2, 7, 1);
     const plan = planOrders(play, ME, orders);
+    // 2 Armeen zu je 2 Brot und 1 Baustoff, ein Dorf zu 1 Brot und 3 Baustoff
     expect(plan.ok && { bread: plan.bread, material: plan.material }).toEqual({
       bread: 2,
-      material: 7,
+      material: 5,
     });
     expect(plannedRegion(play, plan, 0).building).toBe('VILLAGE');
     expect(plannedRegion(play, plan, 2).armies).toBe(4);
@@ -243,8 +244,11 @@ describe('Was auf einem Feld geht', () => {
       blocked: 'TOO_EXPENSIVE',
     });
     expect(fieldOptions(play, ME, [], 2)?.build).toBeNull();
-    // Mit zwei Burgen ist Schluss, auch wenn das Geld reicht
-    const rich = playOf({ stock: { 2: { bread: 20, material: 40 } }, buildings: { 3: 'CASTLE' } });
+    // Mit drei Burgen ist Schluss, auch wenn das Geld reicht (ADR-073; vorher zwei)
+    const stock = { 2: { bread: 20, material: 40 } };
+    const two = playOf({ stock, buildings: { 3: 'CASTLE' } });
+    expect(fieldOptions(two, ME, [], 6)?.build?.blocked).toBeNull();
+    const rich = playOf({ stock, buildings: { 3: 'CASTLE', 7: 'CASTLE' } });
     expect(fieldOptions(rich, ME, [], 6)?.build?.blocked).toBe('CASTLE_LIMIT');
   });
 
@@ -269,25 +273,30 @@ describe('Was auf einem Feld geht', () => {
   it('kauft Armeen nur in der Burg, begrenzt durch Brot und die Obergrenze je Feld', () => {
     const play = playOf();
     expect(fieldOptions(play, ME, [], 6)?.recruit).toBeNull();
-    // 7 Brot reichen für 3 Armeen zu je 2; mit den 3 vorhandenen sind es 6, die Obergrenze
+    // 7 Brot reichen für 3 Armeen zu je 2 Brot und 1 Baustoff; mit den 3 vorhandenen sind es 6,
+    // die Obergrenze
     expect(fieldOptions(play, ME, [], 2)?.recruit).toEqual({
       count: 0,
       max: 3,
-      cost: { bread: 2, material: 0 },
+      cost: { bread: 2, material: 1 },
     });
     expect(fieldOptions(play, ME, withRecruit([], 2, 2), 2)).toMatchObject({
       armies: 5,
       recruit: { count: 2, max: 3 },
     });
-    // Nach dem Bau einer Stadt (2 Brot) bleiben 5 Brot: 2 Armeen
+    // Nach dem Bau einer Stadt (2 Brot, 6 Baustoff) bleiben 5 Brot und 4 Baustoff: 2 Armeen
     expect(fieldOptions(play, ME, withBuild([], 5, true), 2)?.recruit?.max).toBe(2);
-    // Viel Brot: Die Obergrenze von 6 Armeen je Feld hält bei 3 neuen an
-    const rich = playOf({ stock: { 2: { bread: 40, material: 0 } } });
+    // Viel Brot, wenig Baustoff: Der Baustoff begrenzt
+    const bready = playOf({ stock: { 2: { bread: 40, material: 1 } } });
+    expect(fieldOptions(bready, ME, [], 2)?.recruit?.max).toBe(1);
+    // Von beidem viel: Die Obergrenze von 6 Armeen je Feld hält bei 3 neuen an
+    const rich = playOf({ stock: { 2: { bread: 40, material: 40 } } });
     expect(fieldOptions(rich, ME, [], 2)?.recruit?.max).toBe(3);
   });
 
   it('kauft in einer Burg, die in derselben Rüstzeit entsteht', () => {
-    const play = playOf({ stock: { 2: { bread: 12, material: 16 } } });
+    // Burg 8 + 16, danach 4 Brot und 2 Baustoff für 2 Armeen
+    const play = playOf({ stock: { 2: { bread: 12, material: 18 } } });
     const orders = withRecruit(withBuild([], 6, true), 6, 2);
     expect(fieldOptions(play, ME, orders, 6)).toMatchObject({
       building: 'CASTLE',
@@ -376,7 +385,7 @@ describe('Tausch', () => {
   it('wirft heraus, was ohne den Tausch nicht mehr geht', () => {
     const play = playOf({ stock: { 2: { bread: 3, material: 12 } } });
     const orders = withBuild(withRecruit(withTrade([], 'MATERIAL', 2), 2, 2), 0, true);
-    expect(planOrders(play, ME, orders)).toMatchObject({ ok: true, bread: 0, material: 3 });
+    expect(planOrders(play, ME, orders)).toMatchObject({ ok: true, bread: 0, material: 1 });
     const settled = settleOrders(play, ME, withTrade(orders, 'MATERIAL', 0));
     // Ohne die 2 getauschten Brote reicht es nicht für 2 Armeen; das Dorf bleibt
     expect(settled.dropped).toEqual([{ kind: 'RECRUIT', region: 2, count: 2 }]);
@@ -457,7 +466,10 @@ describe('Die drei Zeilen des Blatts zu einem Feld', () => {
   });
 
   it('nennt die Grenze der Burgen', () => {
-    const play = playOf({ buildings: { 5: 'CASTLE' }, stock: { 2: { bread: 30, material: 40 } } });
+    const play = playOf({
+      buildings: { 5: 'CASTLE', 7: 'CASTLE' },
+      stock: { 2: { bread: 30, material: 40 } },
+    });
     const found = fieldOptions(play, ME, [], 6);
     if (!found) throw new Error('kein eigenes Feld');
     expect(fieldRows(play, ME, [], found).build).toEqual({

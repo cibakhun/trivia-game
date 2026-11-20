@@ -851,7 +851,14 @@ function FieldBody({
           state="set"
           icon="army"
           title={t('realm.prepare.row.buyShort')}
-          sub={price}
+          sub={
+            // Neben dem Zähler ist wenig Platz: „je“ nur vorgelesen, seit der Preis zwei Rohstoffe
+            // hat (ADR-073)
+            <>
+              <span className="visually-hidden">{t('realm.prepare.each')} </span>
+              <CostView cost={recruit.cost} />
+            </>
+          }
           data-count={recruit.count}
         >
           <Stepper

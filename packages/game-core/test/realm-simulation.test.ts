@@ -273,9 +273,19 @@ for (const plan of PLANS) {
         );
         expect(builders / players).toBeGreaterThan(0.3);
         // Mit fünf Runden baute sie zu dritt gut jeder Dritte, zu zweit zwei von drei (kein
-        // Selbstläufer). Mit zehn Runden (ADR-073) baut sie fast jeder: zu dritt 97 %, zu zweit
-        // 100 %. Ob der Ausbau dafür teurer oder größer wird, entscheidet der Product Owner (O-44)
+        // Selbstläufer). Mit zehn Runden (ADR-073) baut sie fast jeder: zu dritt 96 %, zu zweit
+        // 99 %; seitdem darf es eine dritte geben (O-44)
         expect(builders / players).toBeGreaterThan(0.85);
+      });
+
+      it('Baustoff bleibt am Ende nicht liegen (ADR-073, O-44)', () => {
+        // Mit Armeen nur für Brot und zwei Burgen blieben zu dritt im Mittel 28 Baustoff übrig,
+        // seit die Armee 1 Baustoff kostet und drei Burgen erlaubt sind gut 5 (zu zweit knapp 4)
+        const left = runs.reduce(
+          (n, r) => n + r.state.seats.reduce((m, s) => m + s.material, 0),
+          0,
+        );
+        expect(left / players).toBeLessThan(10);
       });
 
       it('ein Reich fällt selten, der Angreifer gewinnt weniger als die Hälfte der Duelle', () => {
