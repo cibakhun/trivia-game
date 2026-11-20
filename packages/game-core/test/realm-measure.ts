@@ -1,10 +1,10 @@
 import { DEFAULT_REALM_RULES, matchRulesForSeats, type RealmRules } from '@rdw/protocol';
 import { realmStandings } from '../src/index.ts';
-import { simulateRealm } from './realm-sim.ts';
+import { BALANCE_PROFILES, simulateRealm } from './realm-sim.ts';
 
 /**
  * Messwerte der Partie mit Ausbau für docs/MATCH_RULES.md §11.9, aus simulierten Partien gleich
- * starker Bots (mittel, ohne verpasste Fragen). Aufruf:
+ * starker Bots (mittel in der Stärke vor ADR-075, `BALANCE_PROFILES`; ohne verpasste Fragen). Aufruf:
  *
  *   corepack pnpm exec tsx packages/game-core/test/realm-measure.ts [Partien] [Runden]
  *
@@ -86,7 +86,7 @@ function measure(rules: RealmRules): void {
   const seats = rules.seats;
 
   for (let i = 0; i < matches; i++) {
-    const run = simulateRealm(rules, i, { strength: 'MEDIUM' });
+    const run = simulateRealm(rules, i, { strength: 'MEDIUM', profiles: BALANCE_PROFILES });
     const { state, events } = run;
     full.push(run.durationMs.full / 60_000);
     typical.push(run.durationMs.typical / 60_000);
