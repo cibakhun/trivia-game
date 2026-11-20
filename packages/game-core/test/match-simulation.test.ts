@@ -109,7 +109,6 @@ function scoreEstimateOf(
   const answer = generateNpcEstimate(rng, MATCH_BOT_PROFILES[strength], spec, timeLimitMs);
   if (missed) return { distance: null, effectiveMs: null };
   const scored = scoreEstimate(formatDecimal(answer.estimate), spec);
-  if (!scored.ok) throw new Error('Schätzung außerhalb des Bereichs');
   return { distance: scored.distance, effectiveMs: answer.estimateMs };
 }
 
@@ -242,7 +241,6 @@ function simulate(plan: Plan, index: number): Simulated {
             },
           );
           const scored = scoreEstimate(formatDecimal(a.estimate), spec);
-          if (!scored.ok) throw new Error('Schätzung außerhalb des Bereichs');
           const miss = missed(seat);
           return {
             correct: a.triviaCorrect && !miss,

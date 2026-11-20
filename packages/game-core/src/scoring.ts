@@ -1,11 +1,4 @@
-import {
-  absDecimal,
-  compareDecimal,
-  parseDecimal,
-  roundHalfUp,
-  subtractDecimal,
-  type Decimal,
-} from './decimal.ts';
+import { absDecimal, parseDecimal, roundHalfUp, subtractDecimal, type Decimal } from './decimal.ts';
 
 /**
  * Bewertung einzelner Antworten (docs/QUIZ_ENGINE.md §2–3). Die Richtigkeit hängt nur am
@@ -32,28 +25,21 @@ export interface EstimateSpec {
   readonly answerValue: string;
   /** Erlaubte Nachkommastellen (≥ 0). */
   readonly answerPrecision: number;
-  readonly inputMin: string;
-  readonly inputMax: string;
 }
 
-export type EstimateScore =
-  | { readonly ok: true; readonly rounded: Decimal; readonly distance: Decimal }
-  | { readonly ok: false; readonly error: 'OUT_OF_RANGE' };
+export interface EstimateScore {
+  readonly rounded: Decimal;
+  readonly distance: Decimal;
+}
 
 /**
  * `distance = |round(eingabe, precision) − answer_value|` mit ROUND_HALF_UP, exakt dezimal.
- * `input` ist die kanonische Zahl aus `parseNumberInput` (protocol). Eingaben außerhalb von
- * `[input_min, input_max]` werden abgewiesen (Schutz vor Tippfehlern und Manipulation).
+ * `input` ist die kanonische Zahl aus `parseNumberInput` (protocol). Jede lesbare Zahl zählt,
+ * auch eine weit entfernte oder negative: Schätzfragen haben keine erlaubte Grenze (ADR-076).
  */
 export function scoreEstimate(input: string, spec: EstimateSpec): EstimateScore {
   const value = parseDecimal(input);
-  if (
-    compareDecimal(value, parseDecimal(spec.inputMin)) < 0 ||
-    compareDecimal(value, parseDecimal(spec.inputMax)) > 0
-  ) {
-    return { ok: false, error: 'OUT_OF_RANGE' };
-  }
   const rounded = roundHalfUp(value, spec.answerPrecision);
   const distance = absDecimal(subtractDecimal(rounded, parseDecimal(spec.answerValue)));
-  return { ok: true, rounded, distance };
+  return { rounded, distance };
 }

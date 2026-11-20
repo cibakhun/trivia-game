@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 
 /**
- * Kleine Tuschezeichnungen für Überschriften (eigene Zeichnungen, docs/ASSETS.md): Banner für eine
- * neue Partie, Schlüssel zum Beitreten, Übungsscheibe für die Testpartie, Schriftrolle für den
- * Verlauf. Rein dekorativ.
+ * Kleine Tuschezeichnungen für Überschriften und Siegel (eigene Zeichnungen, docs/ASSETS.md): Banner
+ * für eine neue Partie, Schlüssel zum Beitreten, Übungsscheibe für die Übungspartie, Schriftrolle für
+ * die Chronik, dazu Fragezeichen („So geht's“), Spielen, Person (Konto) und Pfeile. Rein dekorativ.
  */
-export type IconKind = 'banner' | 'key' | 'target' | 'scroll';
+export type IconKind =
+  'banner' | 'key' | 'target' | 'scroll' | 'help' | 'play' | 'person' | 'back' | 'next';
 
 const PATHS: Record<IconKind, ReactNode> = {
   banner: (
@@ -40,6 +41,26 @@ const PATHS: Record<IconKind, ReactNode> = {
       <path d="M-18-6H14M-18 8H14M-18 22H4" className="icon-ink" strokeWidth="4" />
     </>
   ),
+  help: (
+    <>
+      <circle r="38" className="icon-paper icon-ink" strokeWidth="5" />
+      <path d="M-14-12C-14-28 14-30 14-12C14 0 0 0 0 14" className="icon-ink" strokeWidth="8" />
+      <circle cy="28" r="5" className="icon-ink icon-dot" strokeWidth="2" />
+    </>
+  ),
+  play: <path d="M-18-30L30 0L-18 30Z" className="icon-ink icon-dot" strokeWidth="6" />,
+  person: (
+    <>
+      <circle cy="-16" r="18" className="icon-paper icon-ink" strokeWidth="6" />
+      <path
+        d="M-34 40C-34 14-20 6 0 6C20 6 34 14 34 40Z"
+        className="icon-paper icon-ink"
+        strokeWidth="6"
+      />
+    </>
+  ),
+  back: <path d="M14-30L-18 0L14 30" className="icon-ink" strokeWidth="11" />,
+  next: <path d="M-8-26L18 0L-8 26" className="icon-ink" strokeWidth="11" />,
 };
 
 export function Icon({ kind, size = 30 }: { readonly kind: IconKind; readonly size?: number }) {

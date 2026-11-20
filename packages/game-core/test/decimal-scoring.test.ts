@@ -80,38 +80,35 @@ describe('Decimal', () => {
 });
 
 describe('scoreEstimate', () => {
-  const spec = { answerValue: '1386', answerPrecision: 0, inputMin: '0', inputMax: '3000' };
+  const spec = { answerValue: '1386', answerPrecision: 0 };
 
   it('rundet die Eingabe auf die Präzision, bevor der Abstand gebildet wird', () => {
     const r = scoreEstimate('1385.5', spec);
-    expect(r.ok && formatDecimal(r.rounded)).toBe('1386');
-    expect(r.ok && formatDecimal(r.distance)).toBe('0');
+    expect(formatDecimal(r.rounded)).toBe('1386');
+    expect(formatDecimal(r.distance)).toBe('0');
     const s = scoreEstimate('1385.4999', spec);
-    expect(s.ok && formatDecimal(s.distance)).toBe('1');
+    expect(formatDecimal(s.distance)).toBe('1');
   });
 
   it('rechnet mit Nachkommastellen exakt', () => {
     const r = scoreEstimate('8848.86', {
       answerValue: '8848.86',
       answerPrecision: 2,
-      inputMin: '0',
-      inputMax: '10000',
     });
-    expect(r.ok && formatDecimal(r.distance)).toBe('0');
+    expect(formatDecimal(r.distance)).toBe('0');
     const s = scoreEstimate('-2.5', {
       answerValue: '0',
       answerPrecision: 0,
-      inputMin: '-10',
-      inputMax: '10',
     });
-    expect(s.ok && formatDecimal(s.distance)).toBe('3');
+    expect(formatDecimal(s.distance)).toBe('3');
   });
 
-  it('weist Eingaben außerhalb von [input_min, input_max] ab (Grenzen inklusive)', () => {
-    expect(scoreEstimate('3000.0001', spec)).toEqual({ ok: false, error: 'OUT_OF_RANGE' });
-    expect(scoreEstimate('-1', spec)).toEqual({ ok: false, error: 'OUT_OF_RANGE' });
-    expect(scoreEstimate('3000', spec).ok).toBe(true);
-    expect(scoreEstimate('0', spec).ok).toBe(true);
+  it('wertet jede Zahl, auch weit entfernte und negative (keine erlaubte Grenze, ADR-076)', () => {
+    expect(formatDecimal(scoreEstimate('195', spec).distance)).toBe('1191');
+    expect(formatDecimal(scoreEstimate('-1', spec).distance)).toBe('1387');
+    expect(formatDecimal(scoreEstimate('1000000000000000000000', spec).distance)).toBe(
+      '999999999999999998614',
+    );
   });
 });
 

@@ -51,3 +51,32 @@ T|LIT|3|nemo-nautilus|Wie heißt das U-Boot von Kapitän Nemo bei Jules Verne?|N
 T|LIT|3|robinson-freitag|Wie nennt Robinson Crusoe seinen Gefährten auf der Insel?|Freitag|Sonntag;Montag;Samstag|Robinson Crusoe|Freitag
 T|LIT|2|pinocchio-nase|Was passiert mit Pinocchios Nase, wenn er lügt?|Sie wird länger|Sie wird rot;Sie schrumpft;Sie fällt ab|Pinocchio|Nase wächst
 T|LIT|1|odysseus-heimat|Auf welche Insel will Odysseus in Homers „Odyssee“ heimkehren?|Ithaka|Kreta;Rhodos;Zypern|Odyssee|Ithaka
+
+# Runde 3 (2026-11-19): mehr Wissensfragen und Schätzfragen neuer Art (Maße, Gewichte, Mengen, Entfernungen, Zeiträume)
+T|LIT|3|die-physiker|Wer schrieb die Komödie „Die Physiker“?|Friedrich Dürrenmatt|Max Frisch;Peter Handke;Carl Zuckmayer|Die Physiker|Dürrenmatt
+T|LIT|3|homo-faber|Wer schrieb den Roman „Homo faber“?|Max Frisch|Heinrich Böll;Siegfried Lenz;Günter Grass|Homo faber (Roman)|Frisch
+T|LIT|2|orwell-1984|Wie heißt George Orwells Roman über einen totalitären Überwachungsstaat mit dem „Großen Bruder“?|1984|Farm der Tiere;Schöne neue Welt;Fahrenheit 451|1984 (Roman)|Großer Bruder
+T|LIT|2|gandalf|Wie heißt der Zauberer in „Der Herr der Ringe“, der zunächst „der Graue“ genannt wird?|Gandalf|Saruman;Radagast;Elrond|Gandalf|Graue
+T|LIT|1|tim-struppi|Wie heißt der Hund des Reporters Tim in den Comics von Hergé?|Struppi|Idefix;Snoopy;Pluto|Tim und Struppi|Struppi
+T|LIT|3|moby-dick-erzaehler|Wie heißt der Erzähler in „Moby-Dick“?|Ismael|Starbuck;Queequeg;Stubb|Moby-Dick|Ismael
+T|LIT|3|der-zerbrochne-krug|Wer schrieb das Lustspiel „Der zerbrochne Krug“?|Heinrich von Kleist|Friedrich Hebbel;Georg Büchner;Franz Grillparzer|Der zerbrochne Krug|Kleist
+T|LIT|3|woyzeck|Wer schrieb das Dramenfragment „Woyzeck“?|Georg Büchner|Frank Wedekind;Gerhart Hauptmann;Arthur Schnitzler|Woyzeck|Büchner
+T|LIT|2|schachnovelle|Wer schrieb die „Schachnovelle“?|Stefan Zweig|Arthur Schnitzler;Joseph Roth;Thomas Mann|Schachnovelle|Zweig
+T|LIT|3|besuch-alte-dame|Wer schrieb „Der Besuch der alten Dame“?|Friedrich Dürrenmatt|Max Frisch;Bertolt Brecht;Carl Zuckmayer|Der Besuch der alten Dame|Dürrenmatt
+T|LIT|3|zauberlehrling|Von wem stammt die Ballade „Der Zauberlehrling“?|Johann Wolfgang von Goethe|Friedrich Schiller;Heinrich Heine;Theodor Fontane|Der Zauberlehrling|Goethe
+E|LIT|3|odyssee-gesaenge|In wie viele Gesänge ist Homers „Odyssee“ eingeteilt?|24|count|Gesänge|1|1000|LOG|0.3|Odyssee|24
+E|LIT|4|ilias-verse|Wie viele Verse hat Homers „Ilias“?|15693|count|Verse|1|1000000|LOG|0.3|Ilias|15.693
+E|LIT|3|goettliche-komoedie-verse|Aus wie vielen Versen besteht Dantes „Göttliche Komödie“?|14233|count|Verse|1|10000000|LOG|0.3|Göttliche Komödie|14.233
+E|LIT|4|shakespeare-sonette|Wie viele Sonette umfasst die 1609 erschienene Sammlung von William Shakespeare?|154|count|Sonette|1|10000|LOG|0.3|Shakespeares Sonette|154
+E|LIT|3|psalmen-anzahl|Wie viele Psalmen enthält das Buch der Psalmen in der Bibel?|150|count|Psalmen|1|10000|LOG|0.3|Buch der Psalmen|150
+E|LIT|3|koran-suren|In wie viele Suren ist der Koran gegliedert?|114|count|Suren|1|10000|LOG|0.3|Koran|114
+E|LIT|4|moby-dick-kapitel|Wie viele Kapitel hat Herman Melvilles Roman „Moby-Dick“ ohne den Epilog?|135|count|Kapitel|1|10000|LOG|0.3|Moby-Dick|135
+E|LIT|2|max-und-moritz-streiche|Wie viele Streiche spielen Max und Moritz in der Bildergeschichte?|7|count|Streiche|1|100|LOG|0.3|Max und Moritz|sieben
+E|LIT|3|faust-erstausgabe|In welchem Jahr erschien Goethes „Faust. Der Tragödie erster Teil“?|1808|year|Jahr|1000|2026|LINEAR|40|Faust. Eine Tragödie.|1808
+E|LIT|3|agatha-christie-romane|Wie viele Kriminalromane schrieb Agatha Christie?|66|count|Romane|1|1000|LOG|0.3|Agatha Christie|66
+E|LIT|3|herr-der-ringe-buecher|In wie viele Bücher ist Tolkiens „Der Herr der Ringe“ gegliedert?|6|count|Bücher|1|100|LOG|0.3|Der Herr der Ringe|sechs Bücher
+E|LIT|3|anne-frank-alter|Wie alt wurde Anne Frank?|15|years|Jahre|1|1000|LOG|0.3|Anne Frank|1929;1945
+E|LIT|2|harry-potter-erscheinungsjahr|In welchem Jahr erschien „Harry Potter und der Stein der Weisen“ im englischen Original?|1997|year|Jahr|1000|2026|LINEAR|15|Harry Potter und der Stein der Weisen|1997
+E|LIT|4|lied-von-der-glocke-verse|Wie viele Verse hat Schillers Gedicht „Das Lied von der Glocke“?|425|count|Verse|1|10000|LOG|0.3|Das Lied von der Glocke|425
+E|LIT|3|erlkoenig-strophen|Wie viele Strophen hat Goethes Ballade „Erlkönig“?|8|count|Strophen|1|100|LOG|0.3|Erlkönig (Ballade)|Wer reitet so spät
+E|LIT|4|proust-baende|Aus wie vielen Bänden besteht der Romanzyklus „Auf der Suche nach der verlorenen Zeit“?|7|count|Bände|1|100|LOG|0.3|Auf der Suche nach der verlorenen Zeit|sieben

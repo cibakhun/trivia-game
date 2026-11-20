@@ -2,10 +2,12 @@ import { useSyncExternalStore } from 'react';
 
 /**
  * Kleiner Router über die History-API für die Routen aus ARCHITECTURE §12:
- * `/` (Start), `/welten` (Weltwahl), `/konto` (Konto), `/play/:instanceId` (Karte),
- * `/challenge/:challengeId` (Vollbild-Quiz), dazu die Partie: `/partie` (anlegen, beitreten),
- * `/partie/:matchId` (Aufstellung, Spiel, Ergebnis) und der Einladungslink
- * `/partie/beitreten/:code` (tritt der Aufstellung mit diesem Code bei).
+ * `/` (Hauptmenü), `/welten` (Weltwahl), `/konto` (Konto), `/play/:instanceId` (Karte),
+ * `/challenge/:challengeId` (Vollbild-Quiz), dazu die Partie: `/partie/:matchId` (Aufstellung,
+ * Spiel, Ergebnis) und der Einladungslink `/partie/beitreten/:code` (tritt der Aufstellung mit
+ * diesem Code bei). Die Blätter des Hauptmenüs (ADR-074) haben eigene Pfade, damit „Zurück“ im
+ * Browser ein Blatt schließt: `/partie` (Neue Partie), `/partie/code` (Mit Code beitreten),
+ * `/partie/uebung` (Übungspartie) und `/chronik`.
  */
 
 export type Route =
@@ -14,10 +16,19 @@ export type Route =
   | { readonly name: 'account' }
   | { readonly name: 'play'; readonly instanceId: string }
   | { readonly name: 'challenge'; readonly challengeId: string }
+  /** Hauptmenü mit dem Blatt „Neue Partie“. */
   | { readonly name: 'matches' }
+  /** Hauptmenü mit einem anderen Blatt. */
+  | { readonly name: 'menu'; readonly sheet: 'join' | 'practice' | 'chronicle' }
   | { readonly name: 'match'; readonly matchId: string }
   /** Einladungslink; `code` steht in Großbuchstaben und ist noch nicht geprüft. */
   | { readonly name: 'matchJoin'; readonly code: string };
+
+const MENU_PATHS = {
+  join: '/partie/code',
+  practice: '/partie/uebung',
+  chronicle: '/chronik',
+} as const;
 
 /** UUID-Form (8-4-4-4-12); andere Werte führen zur Startseite statt zu einem sicheren Fehlerabruf. */
 const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
@@ -30,6 +41,9 @@ export function parseRoute(pathname: string): Route {
   const challenge = new RegExp(`^/challenge/(${ID})/?$`).exec(pathname);
   if (challenge?.[1]) return { name: 'challenge', challengeId: challenge[1] };
   if (/^\/partie\/?$/.test(pathname)) return { name: 'matches' };
+  if (/^\/partie\/code\/?$/.test(pathname)) return { name: 'menu', sheet: 'join' };
+  if (/^\/partie\/uebung\/?$/.test(pathname)) return { name: 'menu', sheet: 'practice' };
+  if (/^\/chronik\/?$/.test(pathname)) return { name: 'menu', sheet: 'chronicle' };
   const match = new RegExp(`^/partie/(${ID})/?$`).exec(pathname);
   if (match?.[1]) return { name: 'match', matchId: match[1] };
   // Groß- und Kleinschreibung egal, wie bei der Eingabe von Hand; ob der Code stimmt, sagt die Seite
@@ -52,6 +66,8 @@ export function routePath(route: Route): string {
       return `/challenge/${route.challengeId}`;
     case 'matches':
       return '/partie';
+    case 'menu':
+      return MENU_PATHS[route.sheet];
     case 'match':
       return `/partie/${route.matchId}`;
     case 'matchJoin':

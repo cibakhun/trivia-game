@@ -101,13 +101,15 @@ export function matchKit(server: () => TestServer) {
     const question = await server()
       .db.selectFrom('match_questions as q')
       .innerJoin('question_versions as v', 'v.id', 'q.version_id')
-      .select(['q.kind', 'q.presentation', 'q.version_id', 'v.answer_value', 'v.input_min'])
+      .select(['q.kind', 'q.presentation', 'q.version_id', 'v.answer_value', 'v.input_max'])
       .where('q.match_id', '=', matchId)
       .where('q.seq', '=', seq)
       .executeTakeFirstOrThrow();
     if (question.kind === 'ESTIMATE') {
-      const value = correct ? question.answer_value : question.input_min;
-      if (value === null) throw new Error('Schätzwert fehlt');
+      // Falsch geschätzt wird weit daneben, negativ und jenseits der Kappung der Bots: Schätzfragen
+      // haben keine erlaubte Grenze, jede lesbare Zahl zählt (ADR-076)
+      const value = correct ? question.answer_value : `-${question.input_max ?? ''}`;
+      if (value === null || value === '-') throw new Error('Schätzwert fehlt');
       return { rawInput: value.replace('.', ','), locale: 'de', clientElapsedMs: 1200 };
     }
     const keys = await server()

@@ -5,6 +5,7 @@ import {
   ghostsBy,
   matchIdOf,
   newPlayer,
+  pickBot,
   pickFirst,
   recordGhosts,
   succeeds,
@@ -186,15 +187,15 @@ async function statistics(page: Page) {
 test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) => {
   // Zehn Runden (ADR-073): gemessen 2,3 bis 2,7 Minuten
   test.setTimeout(360_000);
-  const page = await newPlayer(browser);
+  const page = await newPlayer(browser, {}, 'Übung');
   await recordShown(page);
   await recordGhosts(page);
   const setup = page.getByTestId('test-match');
   await setup.getByLabel('Zu dritt').check();
-  await setup.getByLabel('Bot 1').selectOption('EASY');
-  await setup.getByLabel('Bot 2').selectOption('HARD');
+  await pickBot(setup, 1, 'leicht');
+  await pickBot(setup, 2, 'schwer');
   await setup.getByLabel(/^Kurze Zeiten/).check();
-  await setup.getByRole('button', { name: 'Testpartie eröffnen' }).click();
+  await setup.getByRole('button', { name: 'Übungspartie eröffnen' }).click();
   await expect(page).toHaveURL(/\/partie\/[0-9a-f-]{36}$/);
 
   const lobby = page.getByTestId('match-lobby');
@@ -310,10 +311,19 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
     true,
   );
 
-  // Nach dem Ende geht es zur nächsten Partie
+  // Nach dem Ende geht es zur nächsten Partie; die Chronik im Hauptmenü nennt die beendete
+  // (ADR-074), auch wenn sie nicht in der Statistik zählt
   await result.getByRole('button', { name: 'Neue Partie' }).click();
   await expect(page).toHaveURL(/\/partie$/);
-  await expect(page.getByRole('region', { name: 'Letzte Partien' })).toContainText('beendet');
+  await expect(page.getByRole('region', { name: 'Neue Partie' })).toBeVisible();
+  await page.getByRole('button', { name: 'Zurück' }).click();
+  await page.getByRole('button', { name: 'Chronik', exact: true }).click();
+  await expect(page).toHaveURL(/\/chronik$/);
+  const row = page.getByRole('region', { name: 'Chronik' }).getByTestId('chronicle-row');
+  await expect(row).toHaveCount(1);
+  await expect(row).toContainText('Übungspartie, Klassisch');
+  await expect(row).toContainText('gegen Bot (leicht) und Bot (schwer)');
+  await expect(page.getByTestId('menu-plate')).toContainText('1 Partie');
 });
 
 test('Partie am Handy quer: allein mit Bots, die Karte steht fest, ein Tipp wählt die Region', async ({
@@ -328,7 +338,7 @@ test('Partie am Handy quer: allein mit Bots, die Karte steht fest, ein Tipp wäh
   const contentWidth = () => page.evaluate(() => document.documentElement.scrollWidth);
   expect(await contentWidth()).toBeLessThanOrEqual(UPRIGHT.width);
 
-  // Normale Partie eröffnen: Übersicht und Eröffnen gehen auch hochkant
+  // Normale Partie eröffnen: Hauptmenü und Eröffnen gehen auch hochkant
   const create = page.getByRole('region', { name: 'Neue Partie' });
   await create.getByLabel(/^Kurze Zeiten/).check();
   await create.getByRole('button', { name: 'Partie eröffnen' }).tap();
@@ -566,7 +576,7 @@ test('Partie: normale Partie zu zweit in zwei Browsern', async ({ browser }) => 
   // Zehn Runden (ADR-073): gemessen 2,3 bis 2,7 Minuten
   test.setTimeout(360_000);
   const host = await newPlayer(browser);
-  const guest = await newPlayer(browser);
+  const guest = await newPlayer(browser, {}, 'Beitreten');
 
   const create = host.getByRole('region', { name: 'Neue Partie' });
   await create.getByLabel(/^Kurze Zeiten/).check();
@@ -696,7 +706,7 @@ test('Partie: Wer zuschaut, liest die Frage mit; die Auflösung malt die Antwort
   test.setTimeout(360_000);
   const host = await newPlayer(browser);
   // Der Gast hat „Bewegung reduzieren“ an: Bei ihm wechseln die Blätter ohne Abbild (ADR-070)
-  const guest = await newPlayer(browser, { reducedMotion: 'reduce' });
+  const guest = await newPlayer(browser, { reducedMotion: 'reduce' }, 'Beitreten');
   for (const page of [host, guest]) await recordGhosts(page);
 
   const create = host.getByRole('region', { name: 'Neue Partie' });

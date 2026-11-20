@@ -15,7 +15,14 @@ import {
 } from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import { de } from '../src/i18n/de.ts';
-import { errorMessage, formatDecimal, hasMessage, t, tp } from '../src/i18n/i18n.ts';
+import {
+  errorMessage,
+  formatDecimal,
+  formatEstimateFigure,
+  hasMessage,
+  t,
+  tp,
+} from '../src/i18n/i18n.ts';
 
 /** Vollständigkeit der deutschen Texte gegen die Codes des Protokolls (ADR-036). */
 
@@ -98,6 +105,21 @@ describe('Übersetzungsfunktionen', () => {
     expect(formatDecimal('-1234567.125')).toBe('-1.234.567,125');
     expect(formatDecimal('0.05')).toBe('0,05');
     expect(formatDecimal('kein Wert')).toBe('kein Wert');
+  });
+
+  it('kürzt absurd große Schätzungen mit Zahlwort, damit sie in eine Zeile passen (ADR-076)', () => {
+    // bis unter eine Billion wie formatDecimal
+    expect(formatEstimateFigure('999999999999')).toBe('999.999.999.999');
+    expect(formatEstimateFigure('-1411750000')).toBe('-1.411.750.000');
+    expect(formatEstimateFigure('8848.86')).toBe('8.848,86');
+    // darüber kurz, genau ohne ≈
+    expect(formatEstimateFigure('1000000000000')).toBe('1\u00a0Billion');
+    expect(formatEstimateFigure('1230000000000')).toBe('1,23\u00a0Billionen');
+    expect(formatEstimateFigure('1234000000000')).toBe('≈\u00a01,23\u00a0Billionen');
+    expect(formatEstimateFigure('-99999999999999999999')).toBe('≈\u00a0-100\u00a0Trillionen');
+    expect(formatEstimateFigure('999600000000000')).toBe('≈\u00a01\u00a0Billiarde');
+    expect(formatEstimateFigure('9'.repeat(40))).toBe('≈\u00a010\u00a0Sextilliarden');
+    expect(formatEstimateFigure('1000000000000.5')).toBe('≈\u00a01\u00a0Billion');
   });
 
   it('übersetzen Fehlercodes mit Zeitpunkt und fallen sonst auf den allgemeinen Text zurück', () => {

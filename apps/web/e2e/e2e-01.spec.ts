@@ -21,6 +21,9 @@ test('E2E-01: Gast erobert die Tutorial-Garnison und besitzt danach zwei Regione
 }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Als Gast spielen' }).click();
+  // Die Welten stehen nicht im Hauptmenü (ADR-074), sie bleiben unter ihrem Pfad erreichbar
+  await expect(page.getByRole('button', { name: 'Neue Partie' })).toBeVisible();
+  await page.goto('/welten');
   const world = page.getByTestId('world-e2e');
   await world.getByRole('button', { name: 'Beitreten' }).click();
   // Reichsname aus Vorschlägen (O-10): der erste ist vorgewählt, gewählt wird der zweite

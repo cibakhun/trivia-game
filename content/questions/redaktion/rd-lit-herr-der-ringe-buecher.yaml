@@ -1,0 +1,38 @@
+# Redaktionell von Claude erstellt (KI-gestützt) für deutsche Spieler; von Claude gegen die genannte Quelle geprüft und freigegeben (ADR-072), vor dem Start folgt eine Stichprobe.
+schema_version: 1
+key: rd-lit-herr-der-ringe-buecher
+kind: ESTIMATE
+category: LITERATURE
+difficulty: 3
+origin: AI_ASSISTED
+license_note: null
+status: APPROVED
+tags:
+  - quelle:redaktion
+sources:
+  - title: "Wikipedia: Der Herr der Ringe"
+    url: https://de.wikipedia.org/wiki/Der_Herr_der_Ringe
+    accessed: 2026-11-19
+reviews:
+  - kind: FACT
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Angabe „sechs Bücher“ im Artikel „Der Herr der Ringe“ der deutschen Wikipedia gefunden; Antwort 6."
+  - kind: LANGUAGE
+    locale: de
+    reviewer: "Claude"
+    date: 2026-11-19
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+estimate:
+  answer_value: "6"
+  answer_precision: 0
+  answer_unit: count
+  input_min: "1"
+  input_max: "100"
+  scale_type: LOG
+  scale: 0.3
+translations:
+  de:
+    status: APPROVED
+    prompt: "In wie viele Bücher ist Tolkiens „Der Herr der Ringe“ gegliedert?"
+    unit_label: "Bücher"

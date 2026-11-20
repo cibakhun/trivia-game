@@ -449,6 +449,15 @@ export const matchViewSchema = z
   .strict();
 export type MatchView = z.infer<typeof matchViewSchema>;
 
+/** Mitspieler in der Chronik: Spielername, Name eines Bots oder `null` (Gast ohne Namen). */
+export const matchOpponentSchema = z
+  .object({
+    name: z.string().nullable(),
+    botStrength: matchBotStrengthSchema.nullable(),
+  })
+  .strict();
+export type MatchOpponent = z.infer<typeof matchOpponentSchema>;
+
 export const matchSummarySchema = z
   .object({
     id: entityIdSchema,
@@ -459,14 +468,39 @@ export const matchSummarySchema = z
     players: z.number().int().min(1).max(3),
     isHost: z.boolean(),
     createdAt: timestampSchema,
+    /** Ende der Partie (beendet oder abgebrochen), sonst `null`. */
+    finishedAt: timestampSchema.nullable(),
+    /** Eigener Platz in der Abrechnung (1 = Sieg, geteilt möglich); nur bei beendeten Partien. */
+    place: z.number().int().min(1).max(3).nullable(),
+    /** Die anderen Spieler in Reihenfolge des Beitritts. */
+    opponents: z.array(matchOpponentSchema).max(2),
+    /** Eigene Wissensfragen der Partie: beantwortet (mit Wertung) und davon richtig. */
+    answered: z.number().int().min(0),
+    correct: z.number().int().min(0),
   })
   .strict();
 export type MatchSummary = z.infer<typeof matchSummarySchema>;
+
+/**
+ * Eigene Zahlen über alle beendeten Partien, mit Bots und Testpartien: für die Chronik im
+ * Hauptmenü, nicht für eine Rangliste (die zählt nach ADR-048 und ADR-052 nur Partien unter
+ * Menschen).
+ */
+export const matchRecordSchema = z
+  .object({
+    played: z.number().int().min(0),
+    won: z.number().int().min(0),
+    answered: z.number().int().min(0),
+    correct: z.number().int().min(0),
+  })
+  .strict();
+export type MatchRecord = z.infer<typeof matchRecordSchema>;
 
 /** `GET /matches`: offene Partien des Kontos und die letzten beendeten. */
 export const matchListResponseSchema = z
   .object({
     matches: z.array(matchSummarySchema),
+    record: matchRecordSchema,
     testMatchesEnabled: z.boolean(),
     /** Ob dieser Server Partien mit Ausbau anlegt (`mode: "REALM"`). */
     realmMatchesEnabled: z.boolean(),

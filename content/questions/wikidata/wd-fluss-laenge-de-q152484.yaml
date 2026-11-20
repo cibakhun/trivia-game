@@ -30,7 +30,7 @@ estimate:
   answer_precision: 0
   answer_unit: km
   input_min: "1"
-  input_max: "3000"
+  input_max: "10000"
   scale_type: LOG
   scale: 0.3
 translations:
