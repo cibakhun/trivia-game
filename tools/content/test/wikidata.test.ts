@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { stringify } from 'yaml';
-import { validateQuestionText } from '../src/index.ts';
+import { ANSWER_MAX_WHOLE, validateQuestionText } from '../src/index.ts';
 import { flattenBinding } from '../src/wikidata/fetch.ts';
 import { generateFromTemplate, pickDistractors, type SnapshotData, type Template } from '../src/wikidata/generate.ts';
 import { personName } from '../src/wikidata/de.ts';
@@ -131,6 +131,13 @@ describe('Schätzfragen', () => {
         expect(t.inputMax, t.id).toBeGreaterThanOrEqual(3 * t.valueMax);
         expect(t.inputMin <= 1 || 3 * t.inputMin <= t.valueMin, t.id).toBe(true);
       }
+    }
+  });
+
+  it('Jeder Wert, den eine Vorlage auswählen kann, passt ins Ziffernfeld der Partie (ADR-077)', () => {
+    for (const t of TEMPLATES) {
+      if (t.kind !== 'ESTIMATE') continue;
+      expect(String(Math.trunc(t.valueMax)).length, t.id).toBeLessThanOrEqual(ANSWER_MAX_WHOLE);
     }
   });
 

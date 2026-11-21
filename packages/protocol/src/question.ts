@@ -42,6 +42,14 @@ export const ESTIMATE_SCALE_TYPES = ['LINEAR', 'LOG'] as const;
 export const estimateScaleTypeSchema = z.enum(ESTIMATE_SCALE_TYPES);
 export type EstimateScaleType = z.infer<typeof estimateScaleTypeSchema>;
 
+/**
+ * Längste Zahl vor dem Komma, die das Ziffernfeld der Partie annimmt (ADR-059): Mehr bleibt auf dem
+ * Handy im Querformat nicht lesbar. Damit jede Lösung eingegeben werden kann und Spieler auch weit
+ * darüber schätzen können, hat sie höchstens eine Stelle weniger (`content:validate`, ADR-077);
+ * größere Zahlen fragt man in einer größeren Einheit („in Billionen Kilometern“).
+ */
+export const ESTIMATE_INPUT_MAX_WHOLE = 12;
+
 /** Redaktionelle Schwierigkeit 1 (sehr leicht) bis 5 (sehr schwer). */
 export const difficultySchema = z.number().int().min(1).max(5);
 export type Difficulty = z.infer<typeof difficultySchema>;

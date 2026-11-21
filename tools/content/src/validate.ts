@@ -1,6 +1,6 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { LOCALES } from '@rdw/protocol';
+import { ESTIMATE_INPUT_MAX_WHOLE, LOCALES } from '@rdw/protocol';
 import { parse as parseYaml } from 'yaml';
 import { questionFileSchema, type QuestionFile } from './schema.ts';
 
@@ -21,6 +21,13 @@ export const YEAR_INPUT_MIN = '1000';
 /** Laufendes Jahr; anheben, sobald eine Lösung im neuen Jahr liegt (hier und in den Listen). */
 export const YEAR_INPUT_MAX = '2026';
 export const LOG_INPUT_FACTOR = 3;
+
+/**
+ * Längste Lösung vor dem Komma (ADR-077): eine Stelle weniger, als das Ziffernfeld der Partie annimmt
+ * (`ESTIMATE_INPUT_MAX_WHOLE`). So lässt sich jede Lösung eintippen, und auch das Zehnfache passt
+ * noch hinein; sonst könnten Spieler nur darunter schätzen, Bots aber bis zu ihrer Kappung darüber.
+ */
+export const ANSWER_MAX_WHOLE = ESTIMATE_INPUT_MAX_WHOLE - 1;
 
 export type Severity = 'error' | 'warning';
 
@@ -62,6 +69,11 @@ function decimalPlaces(value: string): number {
   return value.split('.')[1]?.length ?? 0;
 }
 
+/** Stellen vor dem Komma einer kanonischen Dezimalzahl, ohne Vorzeichen („0.5“ hat eine). */
+function wholeDigits(value: string): number {
+  return value.replace('-', '').split('.')[0]?.length ?? 0;
+}
+
 /** Fachliche Regeln, die über das Schema hinausgehen. */
 export function checkQuestion(q: QuestionFile, context: { file: string; fixture: boolean }): Issue[] {
   const issues: Issue[] = [];
@@ -100,6 +112,14 @@ export function checkQuestion(q: QuestionFile, context: { file: string; fixture:
     const e = q.estimate;
     if (decimalPlaces(e.answer_value) > e.answer_precision) {
       error('answer_value hat mehr Nachkommastellen als answer_precision');
+    }
+    // Ziffernfeld der Partie (ADR-059, ADR-077): Spieler müssen die Lösung tippen und weit darüber
+    // schätzen können
+    if (wholeDigits(e.answer_value) > ANSWER_MAX_WHOLE) {
+      error(
+        `answer_value hat ${wholeDigits(e.answer_value)} Stellen vor dem Komma, höchstens ${ANSWER_MAX_WHOLE} ` +
+          `passen ins Ziffernfeld (mit Platz für das Zehnfache); in größerer Einheit fragen, z. B. „in Billionen“`,
+      );
     }
     if (compareDecimalStrings(e.input_min, e.input_max) >= 0) error('input_min muss kleiner als input_max sein');
     if (

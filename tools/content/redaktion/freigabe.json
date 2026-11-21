@@ -3689,11 +3689,11 @@
   "prompt": "Welche ist nach der 6 die zweitkleinste vollkommene Zahl?"
  },
  "rd-mat-weizenkornlegende": {
-  "answer": "18446744073709551615",
+  "answer": "18.4",
   "date": "2026-11-19",
-  "fact": "Antwort „18.446.744.073.709.551.615“ im Artikel „Weizenkornlegende“ der deutschen Wikipedia (Weiterleitung auf „Sissa ibn Dahir“) gefunden.",
-  "lang": "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig.",
-  "prompt": "Legt man auf das erste Feld eines Schachbretts ein Korn und verdoppelt auf jedem weiteren Feld, wie viele Körner liegen am Ende insgesamt auf dem Brett?"
+  "fact": "Antwort „18.446.744.073.709.551.615“ im Artikel „Weizenkornlegende“ der deutschen Wikipedia (Weiterleitung auf „Sissa ibn Dahir“) gefunden; in Trillionen (10^18) auf eine Nachkommastelle gerundet 18,4 (Abweichung unter 1 %).",
+  "lang": "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig; seit 2026-11-20 in größerer Einheit gefragt, damit die Lösung ins Ziffernfeld passt (ADR-077).",
+  "prompt": "Ein Korn auf das erste Feld eines Schachbretts, auf jedes weitere doppelt so viele: Wie viele Trillionen Körner liegen am Ende insgesamt auf dem Brett?"
  },
  "rd-mat-winkelsumme-dreieck": {
   "answer": "180 Grad",
@@ -3731,11 +3731,11 @@
   "prompt": "Wie viel ist die Quadratwurzel aus 144?"
  },
  "rd-mat-zauberwuerfel-stellungen": {
-  "answer": "43252003274489856000",
+  "answer": "43",
   "date": "2026-11-19",
-  "fact": "Antwort „43.252.003.274.489.856.000“ im Artikel „Zauberwürfel“ der deutschen Wikipedia gefunden.",
-  "lang": "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig.",
-  "prompt": "Wie viele verschiedene Stellungen kann ein Zauberwürfel einnehmen?"
+  "fact": "Antwort „43.252.003.274.489.856.000“ im Artikel „Zauberwürfel“ der deutschen Wikipedia gefunden; in Trillionen (10^18) gerundet 43 (Abweichung unter 1 %).",
+  "lang": "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig; seit 2026-11-20 in größerer Einheit gefragt, damit die Lösung ins Ziffernfeld passt (ADR-077).",
+  "prompt": "Wie viele Trillionen verschiedene Stellungen kann ein Zauberwürfel einnehmen?"
  },
  "rd-mat-zehn-fakultaet": {
   "answer": "3628800",
@@ -4004,11 +4004,11 @@
   "prompt": "Wie schnell ist Licht im Vakuum ungefähr?"
  },
  "rd-nat-lichtjahr-km": {
-  "answer": "9460730472581",
+  "answer": "9.46",
   "date": "2026-11-19",
-  "fact": "Wert „9,46“ im Artikel „Lichtjahr“ der deutschen Wikipedia gefunden; Antwort 9.460.730.472.581 Kilometer daraus umgerechnet oder gerundet (Abweichung unter 1 %).",
-  "lang": "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig.",
-  "prompt": "Wie viele Kilometer legt das Licht in einem Jahr zurück (ein Lichtjahr)?"
+  "fact": "Wert „9,46“ im Artikel „Lichtjahr“ der deutschen Wikipedia gefunden; nachgerechnet 299.792,458 km/s × 31.557.600 s (Julianisches Jahr) = 9.460.730.472.580,8 km, also 9,46 Billionen Kilometer.",
+  "lang": "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig; seit 2026-11-20 in größerer Einheit gefragt, damit die Lösung ins Ziffernfeld passt (ADR-077).",
+  "prompt": "Wie viele Billionen Kilometer legt das Licht in einem Jahr zurück (ein Lichtjahr)?"
  },
  "rd-nat-luft-sauerstoff": {
   "answer": "21 Prozent",
