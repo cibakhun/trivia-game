@@ -25,7 +25,7 @@ import { seeded } from './noise.ts';
 export const INK_STOPS: readonly number[] = [0, 0.14, 0.32, 0.56, 0.8, 1];
 
 /** Punkte je Schlüsselbild. */
-export const INK_POINTS = 22;
+export const INK_POINTS = 36;
 
 export interface InkPoint {
   readonly x: number;
@@ -149,7 +149,7 @@ export function inkBlob(seed: string, origin: InkPoint, reach: number): InkBlob 
   INK_STOPS.forEach((stop, k) => {
     radii.push(
       rays.map((ray, i) => {
-        const noise = (1 - stop) * early(ray.angle) + stop * late(ray.angle) + 0.45 * ray.grain;
+        const noise = (1 - stop) * early(ray.angle) + stop * late(ray.angle) + 0.28 * ray.grain;
         const grown = reach * GROWTH[k]! * (1 + FRAY[k]! * noise);
         // Auf jedem Strahl nur nach außen; das letzte Bild reicht überall über den Rahmen hinaus
         const before = k > 0 ? radii[k - 1]![i]! : 0;

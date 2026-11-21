@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type FocusEvent,
   type KeyboardEvent,
@@ -33,6 +34,7 @@ import { COMPACT_SCALE, seaDepth, type StageFrame } from '../art/stage-frame.ts'
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import '../art/map-art.css';
 import { boardFx, fxWitness, type FxWitness } from './board-fx.ts';
+import { decorClear, fieldPlan, KEEP } from './field-plan.ts';
 import type { DuelStage } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import {
@@ -104,8 +106,9 @@ function Born({
   readonly path?: string;
   readonly children?: ReactNode;
 }) {
-  const [born] = useState(live);
-  const classes = born && motion ? `${className} ${motion}` : className;
+  // Wie es kam, gilt, solange es steht: Die Animation behält so ihren Namen und ihren Takt
+  const [born] = useState(live ? motion : '');
+  const classes = born ? `${className} ${born}` : className;
   return path === undefined ? (
     <g className={classes} style={style}>
       {children}
@@ -113,6 +116,28 @@ function Born({
   ) : (
     <path d={path} className={classes} style={style} />
   );
+}
+
+const REDUCE_MOTION = '(prefers-reduced-motion: reduce)';
+
+function motionReducedNow(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia(REDUCE_MOTION).matches
+  );
+}
+
+function watchMotion(change: () => void): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {};
+  const query = window.matchMedia(REDUCE_MOTION);
+  query.addEventListener('change', change);
+  return () => query.removeEventListener('change', change);
+}
+
+/** „Bewegung reduzieren“ ist eingeschaltet; folgt dem Schalter auch, während die Partie läuft. */
+function useMotionReduced(): boolean {
+  return useSyncExternalStore(watchMotion, motionReducedNow, () => false);
 }
 
 /** `true` ab dem zweiten Rendern: Beim ersten Aufbau läuft keine Änderungsanimation. */
@@ -288,18 +313,34 @@ export function MatchBoard({
     if (!deciding) ownersBefore.current = board.regions.map((r) => r.owner);
   });
   const before = deciding ? ownersBefore.current : null;
-  // Die Außengrenzen der Reiche folgen der einlaufenden Farbe: Im Ausgang stehen die alten noch
-  // und gehen erst in die neuen über, wenn die Tinte die Region gefüllt hat
-  const beforeKey = before ? before.map((owner) => owner ?? '-').join(',') : null;
+  // Die Außengrenzen der Reiche folgen der einlaufenden Farbe: Wechselt ein Feld vor den Augen der
+  // Seite den Besitzer (Ausgang eines Duells, Wahl der Landnahme), stehen die alten Grenzen noch
+  // und gehen erst in die neuen über, wenn die Tinte das Feld gefüllt hat. Sonst läuft die neue
+  // Grenze schon um ein Feld, das die Farbe noch nicht erreicht hat, und es steht doppelt umrandet
+  const [frontierTurn, setFrontierTurn] = useState<{
+    readonly was: string;
+    readonly now: string;
+  } | null>(null);
+  const [ownersShown, setOwnersShown] = useState(ownerKey);
+  // Ohne Bewegung gibt es keinen Übergang: Die alten Grenzen meldeten nie ihr Ende und liefen los,
+  // sobald die Bewegung wieder an ist. Schaltet sie mitten im Übergang ab, endet er sofort
+  const still = useMotionReduced();
+  if (ownersShown !== ownerKey) {
+    setOwnersShown(ownerKey);
+    setFrontierTurn(settled && !still ? { was: ownersShown, now: ownerKey } : null);
+  } else if (still && frontierTurn !== null) {
+    setFrontierTurn(null);
+  }
+  const turnWas = frontierTurn?.now === ownerKey ? frontierTurn.was : null;
   const realmsBefore = useMemo(
     () =>
-      beforeKey === null || beforeKey === ownerKey
+      turnWas === null
         ? null
         : frontiers(
             art,
-            beforeKey.split(',').map((owner) => (owner === '-' ? null : Number(owner))),
+            turnWas.split(',').map((owner) => (owner === '-' ? null : Number(owner))),
           ),
-    [art, beforeKey, ownerKey],
+    [art, turnWas],
   );
   // Armeen vor dem Ausgang: Ein genommenes Feld verliert alle, das Ereignis nennt nur eine
   const resolving = realmLayer?.motion?.kind === 'outcome';
@@ -384,6 +425,18 @@ export function MatchBoard({
   const pendingArt = pending !== null && legal.includes(pending) ? art.regions[pending] : undefined;
   const spotArt = spot === null ? undefined : art.regions[spot];
   const spotOwner = spot === null ? null : (board.regions[spot]?.owner ?? null);
+  // Wurde das Feld eben genommen, läuft erst die Tinte ein; der Ring setzt sich, wenn sie es füllt
+  const spotInked =
+    spot !== null && turnWas !== null && turnWas.split(',')[spot] !== String(spotOwner ?? '-');
+
+  // Name eines Felds mit Ausbau: Pfeile der Züge lassen ihn lesbar, Schilder stehen darüber
+  const planLabel = (id: number) => {
+    const region = art.regions[id];
+    const state = board.regions[id];
+    return region && state
+      ? { x: region.cx, y: nameY(region.cy, state.capitalOf !== null, true, s), text: region.name }
+      : null;
+  };
 
   const viewBox = frame?.viewBox ?? art.tightViewBox;
   const depth = seaDepth(viewBox) ?? {
@@ -635,9 +688,17 @@ export function MatchBoard({
           aria-hidden="true"
         />
         {realmsBefore ? (
-          <Frontiers realms={realmsBefore} clip={`${prefix}-was`} home={home} turning="was" />
+          <Frontiers
+            key={`was:${turnWas ?? ''}`}
+            realms={realmsBefore}
+            clip={`${prefix}-was`}
+            home={home}
+            turning="was"
+            onTurned={() => setFrontierTurn(null)}
+          />
         ) : null}
         <Frontiers
+          key={realmsBefore ? `now:${turnWas ?? ''}` : 'now'}
           realms={realms}
           clip={`${prefix}-realm`}
           home={home}
@@ -670,6 +731,8 @@ export function MatchBoard({
                     ? 'building'
                     : null
               }
+              realm={realm !== null}
+              size={s}
             />
           ))}
         </g>
@@ -741,7 +804,7 @@ export function MatchBoard({
             <Born
               key={spotArt.id}
               className="spot-ring"
-              motion="draw"
+              motion={spotInked ? 'draw inked' : 'draw'}
               live={settled}
               style={{ ['--spot' as string]: `var(--seat-${spotOwner ?? 0})` }}
               path={spotArt.d}
@@ -758,17 +821,7 @@ export function MatchBoard({
             size={s}
             level="over"
             live={settled}
-            label={(id) => {
-              const region = art.regions[id];
-              const state = board.regions[id];
-              return region && state
-                ? {
-                    x: region.cx,
-                    y: nameY(region.cy, state.capitalOf !== null, true, s),
-                    text: region.name,
-                  }
-                : null;
-            }}
+            label={planLabel}
           />
         ) : null}
 
@@ -805,6 +858,7 @@ export function MatchBoard({
             size={s}
             level="top"
             live={settled}
+            label={planLabel}
           />
         ) : null}
       </svg>
@@ -822,15 +876,24 @@ function Frontiers({
   clip,
   home,
   turning,
+  onTurned,
 }: {
   readonly realms: ReturnType<typeof frontiers>;
   /** Anfang der Kennung der Beschneidung je Reich. */
   readonly clip: string;
   readonly home: number | null;
   readonly turning: 'was' | 'now' | null;
+  /** Die alten Grenzen sind ganz gegangen: Ab jetzt stehen nur noch die neuen. */
+  readonly onTurned?: () => void;
 }) {
   return (
-    <g className={`frontiers${turning ? ` turning-${turning}` : ''}`} aria-hidden="true">
+    <g
+      className={`frontiers${turning ? ` turning-${turning}` : ''}`}
+      aria-hidden="true"
+      onAnimationEnd={(event) => {
+        if (event.target === event.currentTarget) onTurned?.();
+      }}
+    >
       {realms.map((r) => (
         <g key={r.seat} className={`frontier seat-${r.seat}${r.seat === home ? ' home' : ''}`}>
           <path d={r.d} className="frontier-band" clipPath={`url(#${clip}-${r.seat})`} />
@@ -924,16 +987,23 @@ function RegionDecor({
   prefix,
   region,
   built,
+  realm,
+  size: s,
 }: {
   readonly prefix: string;
   readonly region: ArtRegion;
   /** Burg: nur die unteren Ecken bleiben; anderes Gebäude: Ecken und Spitzen bleiben. */
   readonly built: 'castle' | 'building' | null;
+  /** Partie mit Ausbau: Landschaft weicht dem Platz der Armee, ob dort eine steht oder nicht. */
+  readonly realm: boolean;
+  readonly size: number;
 }) {
+  const clear = realm ? decorClear(region, s, built === 'castle') : null;
   return (
     <>
       {region.decor
         .filter((d) => (built === 'castle' ? d.slot === 'side' : !built || d.slot !== 'top'))
+        .filter((d) => clear === null || clear(d))
         .map((d, i) => (
           <use
             key={i}
@@ -1012,34 +1082,46 @@ function RegionArt({
     (armies > 0 ||
       (realm.recruits?.[region.id] ?? 0) > 0 ||
       armiesBeforeMotion(armies, motion ?? null) > 0);
-  // Mit Ausbau: Gebäude oben, Name in der Mitte, Bannerträger unten; neben einer Burg steht er rechts
+  // Mit Ausbau: Gebäude oben, Name in der Mitte, Bannerträger unten; neben einer Burg steht er
+  // rechts, die Gruppe so verschoben, dass sie im Feld bleibt (Lageplan, match/field-plan.ts)
+  const plan = realm ? fieldPlan(region, s) : null;
+  // Mit Ausbau steht der Wert nur, wo eine gehaltene Verteidigung ihn über das Übliche hebt (§11.7)
+  const showCoin = realm === null || (realm.regions[region.id]?.held ?? 0) > 0;
+  // Neben der Burg steht der Träger; ohne ihn liegt dort die Münze, statt auf den Lebensschilden
+  const beside = withArmy || (capital && realm !== null && showCoin);
+  const keep = plan && beside && capital ? plan.keep : { x: 0, y: 0 };
   const castleX = realm
-    ? withArmy
-      ? cx + REALM_CASTLE.beside * s
+    ? beside
+      ? cx + REALM_CASTLE.beside * s + keep.x
       : cx
     : withArmy
       ? cx - 0.32 * s
       : cx - 0.12 * s;
   const castleSize = realm ? REALM_CASTLE.size * s : 0.62 * s;
-  // Neben einer Burg mit Armee liegt die Münze unter dem Bannerträger, rechts der Lebensschilde
+  // Neben einer Burg mit Armee und neben einem Träger auf dem Feld liegt die Münze dort, wo der
+  // Lageplan ihr Platz lässt (meist unter dem Träger, rechts der Lebensschilde)
   const coinX = realm
     ? capital
-      ? cx + (withArmy ? 0.27 : 0.44) * s
-      : withArmy
-        ? cx + 0.5 * s
+      ? withArmy && plan
+        ? plan.keepCoin.x
+        : cx + (KEEP.bearerX - 0.04) * s + keep.x
+      : withArmy && plan
+        ? plan.coin.x
         : cx
     : owner === null
       ? cx
       : cx + 0.13 * s;
   const coinY = realm
     ? capital
-      ? cy + (withArmy ? 0.6 : 0.54) * s
-      : cy + 0.46 * s
+      ? withArmy && plan
+        ? plan.keepCoin.y
+        : cy + (KEEP.bearerY + 0.08) * s + keep.y
+      : withArmy && plan
+        ? plan.coin.y
+        : cy + 0.46 * s
     : capital
       ? cy + 0.08 * s
       : cy + 0.3 * s;
-  // Mit Ausbau steht der Wert nur, wo eine gehaltene Verteidigung ihn über das Übliche hebt (§11.7)
-  const showCoin = realm === null || (realm.regions[region.id]?.held ?? 0) > 0;
   const nameAt = nameY(cy, capital, realm !== null, s);
   const livesX = realm ? castleX : cx;
   // Fällt hier eben ein Gebäude eine Stufe, kehrt die Beschriftung sofort zurück: Man soll es fallen sehen
@@ -1058,6 +1140,7 @@ function RegionArt({
           motion={ruin}
           lives={maxLives}
           armiesSeen={armiesSeen}
+          coin={showCoin}
         />
       ) : null}
       {motion && routed(motion, owner) ? (
@@ -1067,6 +1150,7 @@ function RegionArt({
           size={s}
           motion={motion}
           armiesSeen={armiesSeen}
+          coin={showCoin}
         />
       ) : null}
       <g
@@ -1081,7 +1165,12 @@ function RegionArt({
               live={settled}
               style={{ ['--flag' as string]: `var(--seat-${capitalOf})` }}
             >
-              {use('castle', castleX, cy + (realm ? REALM_CASTLE.y : 0.02) * s, castleSize)}
+              {use(
+                'castle',
+                castleX,
+                cy + (realm ? REALM_CASTLE.y : 0.02) * s + keep.y,
+                castleSize,
+              )}
             </Born>
             <g
               className={`lives${motion?.placed === true ? ' placed' : ''}`}
@@ -1090,7 +1179,7 @@ function RegionArt({
               {Array.from({ length: maxLives }, (_, i) => {
                 const left = i < lives;
                 const x = livesX + (i - (maxLives - 1) / 2) * REALM_CASTLE.livesGap * s;
-                const y = cy + (realm ? REALM_CASTLE.livesY : 0.5) * s;
+                const y = cy + (realm ? REALM_CASTLE.livesY : 0.5) * s + keep.y;
                 return (
                   <g key={`${i}-${left ? 'on' : 'off'}`}>
                     <Born
@@ -1149,7 +1238,12 @@ function RegionArt({
           </g>
         ) : null}
         {showCoin ? (
-          <Born key={`coin-${value}`} className="coin" motion="pop" live={settled}>
+          <Born
+            key={`coin-${value}`}
+            className={realm ? 'coin planned' : 'coin'}
+            motion="pop"
+            live={settled}
+          >
             <circle cx={coinX} cy={coinY} r={(realm ? 0.17 : 0.2) * s} />
             <text x={coinX} y={coinY + 0.01 * s} className="board-value">
               {formatNumber(value)}
