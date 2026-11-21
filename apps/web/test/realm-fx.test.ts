@@ -43,7 +43,7 @@ describe('realmBursts: Ausgang', () => {
   const outcomes: readonly [string, RealmLayer, RealmMotion][] = [
     ['Dorf fällt', layer(), { kind: 'outcome', fields: { 1: { fell: 'VILLAGE' } } }],
     [
-      'Stadt wird Dorf',
+      'Stadt wird zum Dorf',
       layer({ 1: 'VILLAGE' }),
       { kind: 'outcome', fields: { 1: { fell: 'TOWN' } } },
     ],
