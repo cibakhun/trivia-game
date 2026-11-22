@@ -200,6 +200,13 @@ export const matchRulesSchema = z
 export type MatchRules = z.infer<typeof matchRulesSchema>;
 
 /**
+ * Feldzugrunden jeder Partie, mit und ohne Ausbau: zehn auf Wunsch des Product Owners vom
+ * 2026-11-15 (ADR-073); vorher vier ohne und fünf mit Ausbau. Partien speichern ihre Regeln beim
+ * Start, laufende Partien behalten ihre Rundenzahl.
+ */
+export const MATCH_CAMPAIGN_ROUNDS = 10;
+
+/**
  * Standardwerte aus dem Plan vom 2026-11-10 für drei Spieler (ADR-047); für zwei über
  * `matchRulesForSeats`. Nach dem ersten Spieltest nachjustieren.
  */
@@ -209,7 +216,7 @@ export const DEFAULT_MATCH_RULES: MatchRules = Object.freeze({
   seats: 3,
   capital: { lives: 3, minDistance: 2 },
   landGrab: { picksByPlace: [2, 1, 0] },
-  campaign: { rounds: 4 },
+  campaign: { rounds: MATCH_CAMPAIGN_ROUNDS },
   values: { region: 100, capital: 300, defenseBonus: 50 },
   timers: {
     triviaMs: 15 * SECOND_MS,
@@ -275,8 +282,10 @@ export function isRealmRules(rules: MatchRules): rules is RealmRules {
 /**
  * Standardwerte des Ausbaus aus dem Konzept vom 2026-11-11, vom Product Owner mit allen
  * Empfehlungen freigegeben (O-25 bis O-35). Nach dem ersten Spieltest (ADR-062): Landnahme nur
- * zwei Runden, Dorf und Stadt bringen 3 und 4 statt 2 und 3. Zahlen [E] bis zur Entscheidung des
- * Product Owners (O-41).
+ * zwei Runden, Dorf und Stadt bringen 3 und 4 statt 2 und 3. Mit zehn Runden (ADR-073 Punkt 4,
+ * Wahl des Product Owners in O-44 am 2026-11-20): Eine Armee kostet auch 1 Baustoff, und ein Reich
+ * darf drei Burgen haben, damit Baustoff in der zweiten Hälfte nicht liegen bleibt. Die übrigen
+ * Zahlen [E] bis zur Entscheidung des Product Owners (O-41).
  */
 export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
   favorites: 4,
@@ -290,28 +299,28 @@ export const DEFAULT_MATCH_ECONOMY: MatchEconomy = Object.freeze({
     village: { bread: 1, material: 3 },
     town: { bread: 2, material: 6 },
     castle: { bread: 8, material: 16 },
-    army: { bread: 2, material: 0 },
+    army: { bread: 2, material: 1 },
   },
-  maxCastles: 2,
+  maxCastles: 3,
   armyCap: 6,
   lots: { village: 2, town: 3, castle: 4, free: 2 },
   timers: { prepareMs: 40 * SECOND_MS, ordersRevealMs: 2 * SECOND_MS, wheelMs: 3 * SECOND_MS },
 });
 
 /**
- * Partie mit Ausbau zu dritt (O-31: fünf Feldzugrunden); zu zweit über `matchRulesForSeats`, das
- * den Ausbau übernimmt.
+ * Partie mit Ausbau zu dritt (zehn Feldzugrunden wie ohne Ausbau, ADR-073; vorher fünf nach O-31);
+ * zu zweit über `matchRulesForSeats`, das den Ausbau übernimmt.
  */
 export const DEFAULT_REALM_RULES: RealmRules = Object.freeze({
   ...DEFAULT_MATCH_RULES,
-  campaign: { rounds: 5 },
+  campaign: { rounds: MATCH_CAMPAIGN_ROUNDS },
   economy: DEFAULT_MATCH_ECONOMY,
 });
 
 /** Ausbau mit verkürzten Zeiten für Tests und schnelle Spieltests. */
 export const PLAYTEST_REALM_RULES: RealmRules = Object.freeze({
   ...PLAYTEST_MATCH_RULES,
-  campaign: { rounds: 5 },
+  campaign: { rounds: MATCH_CAMPAIGN_ROUNDS },
   economy: {
     ...DEFAULT_MATCH_ECONOMY,
     timers: { prepareMs: 15 * SECOND_MS, ordersRevealMs: 500, wheelMs: 1000 },

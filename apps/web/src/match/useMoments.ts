@@ -1,6 +1,6 @@
 import type { MatchView, ParsedMatchEvent } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
-import { rulesOf, stepOf, type MatchScreenState } from './match-model.ts';
+import { stepOf, type MatchScreenState } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import { revealedRound } from './realm-model.ts';
 import {
@@ -41,11 +41,7 @@ export function useMoments(
   const lastSeq = events.at(-1)?.seq ?? 0;
   const step = stepOf(view);
   const realm = view?.realm ?? null;
-  const rounds = realm
-    ? realm.campaignRounds
-    : view
-      ? rulesOf(view.match.rulesPreset).campaign.rounds
-      : 0;
+  const rounds = view?.match.campaignRounds ?? 0;
 
   useEffect(() => {
     if (!step) return;

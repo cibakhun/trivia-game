@@ -62,6 +62,7 @@ function measure(rules: RealmRules): void {
   let villages = 0;
   let towns = 0;
   let secondCastle = 0;
+  let thirdCastle = 0;
   let recruited = 0;
   let traded = 0;
   let incomeBread = 0;
@@ -157,6 +158,14 @@ function measure(rules: RealmRules): void {
       ),
     );
     secondCastle += builtCastle.size;
+    // Dritte Burg (ADR-073): wer zwei gebaut hat; eine verlorene zählt mit
+    const castlesBuilt = new Map<number, number>();
+    for (const e of events) {
+      if (e.kind !== 'ORDERS_REVEALED') continue;
+      const more = e.summary.built.filter((b) => b.building === 'CASTLE').length;
+      castlesBuilt.set(e.seat, (castlesBuilt.get(e.seat) ?? 0) + more);
+    }
+    thirdCastle += [...castlesBuilt.values()].filter((c) => c >= 2).length;
     // Felder je Reich zu Beginn des Feldzugs: Burg, Startdorf und Landnahme
     const fields = Array.from({ length: seats }, () => 0);
     for (const e of events) {
@@ -204,7 +213,7 @@ function measure(rules: RealmRules): void {
     `Einkommen je Runde und Reich Brot / Baustoff: ${(incomeBread / incomeRows).toFixed(1)} / ${(incomeMaterial / incomeRows).toFixed(1)}`,
   );
   console.log(
-    `Je Spieler gebaut: Dörfer ${(villages / n / seats).toFixed(1)}, Städte ${(towns / n / seats).toFixed(1)}; zweite Burg gebaut: ${pct(secondCastle, n * seats)} der Spieler`,
+    `Je Spieler gebaut: Dörfer ${(villages / n / seats).toFixed(1)}, Städte ${(towns / n / seats).toFixed(1)}; zweite Burg gebaut: ${pct(secondCastle, n * seats)} der Spieler, dritte: ${pct(thirdCastle, n * seats)}`,
   );
   console.log(
     `Armeen gekauft je Spieler: ${(recruited / n / seats).toFixed(1)}; Rüstzeiten mit Tausch: ${pct(traded, n * seats * rules.campaign.rounds)}`,

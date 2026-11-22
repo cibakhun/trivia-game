@@ -66,6 +66,8 @@ import {
 
 const THREE: RealmRules = DEFAULT_REALM_RULES;
 const TWO: RealmRules = matchRulesForSeats(DEFAULT_REALM_RULES, 2);
+/** Letzte Feldzugrunde der Standardregeln (zehn seit ADR-073). */
+const LAST = TWO.campaign.rounds;
 const CATEGORIES: QuestionCategory[] = [...QUESTION_CATEGORIES];
 const FAV: QuestionCategory[][] = [
   ['HISTORY', 'GEOGRAPHY', 'SCIENCE', 'TECHNOLOGY'],
@@ -411,9 +413,20 @@ describe('Rüstzeit', () => {
     });
   });
 
-  it('höchstens zwei Burgen je Reich', () => {
-    const state = prepare(rich(campaign({ 7: { building: 'CASTLE' }, 1: { building: 'TOWN' } })));
-    expect(castlesOf(state, 0)).toEqual([6, 7]);
+  it('höchstens drei Burgen je Reich (ADR-073)', () => {
+    const two = prepare(rich(campaign({ 7: { building: 'CASTLE' }, 1: { building: 'TOWN' } })));
+    expect(castlesOf(two, 0)).toEqual([6, 7]);
+    expect(orders(two, 0, [{ kind: 'BUILD', region: 1 }])).toMatchObject({ ok: true });
+    const state = prepare(
+      rich(
+        campaign({
+          7: { building: 'CASTLE' },
+          12: { building: 'CASTLE' },
+          1: { building: 'TOWN' },
+        }),
+      ),
+    );
+    expect(castlesOf(state, 0)).toEqual([6, 7, 12]);
     expect(orders(state, 0, [{ kind: 'BUILD', region: 1 }])).toEqual({
       ok: false,
       error: 'CASTLE_LIMIT',
@@ -445,15 +458,22 @@ describe('Rüstzeit', () => {
 
   it('Armeen: kaufen nur in einer Burg, ziehen ein Feld durch eigenes Land, höchstens 6 je Feld', () => {
     const state = prepare(
-      campaign({ 6: { armies: 3 }, 7: { armies: 5 } }, undefined, [{ bread: 10, material: 0 }]),
+      campaign({ 6: { armies: 3 }, 7: { armies: 5 } }, undefined, [{ bread: 10, material: 3 }]),
     );
     expect(orders(state, 0, [{ kind: 'RECRUIT', region: 7, count: 1 }])).toEqual({
       ok: false,
       error: 'NOT_A_CASTLE',
       index: 0,
     });
+    // Eine Armee kostet 2 Brot und 1 Baustoff (ADR-073)
     const bought = orders(state, 0, [{ kind: 'RECRUIT', region: 6, count: 3 }]);
-    expect(bought).toMatchObject({ ok: true, bread: 4 });
+    expect(bought).toMatchObject({ ok: true, bread: 4, material: 0 });
+    const poor = prepare(campaign({}, undefined, [{ bread: 10, material: 2 }]));
+    expect(orders(poor, 0, [{ kind: 'RECRUIT', region: 6, count: 3 }])).toEqual({
+      ok: false,
+      error: 'TOO_EXPENSIVE',
+      index: 0,
+    });
     // Neu gekaufte ziehen erst nächste Runde: nur die drei vom Rundenbeginn dürfen los
     expect(
       orders(state, 0, [
@@ -500,7 +520,7 @@ describe('Rüstzeit', () => {
     const state = prepare(
       campaign({ 6: { armies: 3 }, 9: { armies: 2 } }, undefined, [
         { bread: 4, material: 3 },
-        { bread: 2, material: 0 },
+        { bread: 2, material: 1 },
       ]),
     );
     const first = apply(state, {
@@ -530,7 +550,7 @@ describe('Rüstzeit', () => {
     expect(done.state.regions[0]?.building).toBe('NONE');
     expect(done.state.regions[7]?.armies).toBe(3);
     expect(done.state.regions[9]?.armies).toBe(3);
-    expect(done.state.seats[1]).toMatchObject({ bread: 0 });
+    expect(done.state.seats[1]).toMatchObject({ bread: 0, material: 0 });
     expect(done.events.filter((e) => e.kind === 'ORDERS_REVEALED').map((e) => e.seat)).toEqual([
       0, 1,
     ]);
@@ -962,6 +982,22 @@ describe('Freies Feld im Feldzug (O-37, ADR-062)', () => {
     }
     expect(orders(state, 0, list)).toMatchObject({ ok: true });
   });
+
+  it('Bots: Ohne Armee an der Grenze kaufen sie erst eine, dann bauen sie (ADR-073)', () => {
+    const rng = () => createRng(new Uint8Array(16).fill(5));
+    // Genug für ein Dorf (1 Brot, 3 Baustoff) oder eine Armee (2 Brot, 1 Baustoff), nicht für beides
+    const purse = [{ bread: 2, material: 3 }];
+    const bare = prepare(campaign({ 6: { armies: 0 } }, undefined, purse));
+    const list = chooseRealmOrdersForBot(bare, 0, rng());
+    expect(list).toEqual([{ kind: 'RECRUIT', region: 6, count: 1 }]);
+    expect(orders(bare, 0, list)).toMatchObject({ ok: true });
+    // Steht an der Grenze schon eine (Immenau, 7), geht der Baustoff in ein Dorf
+    const guarded = prepare(campaign({ 6: { armies: 0 }, 7: { armies: 1 } }, undefined, purse));
+    const built = chooseRealmOrdersForBot(guarded, 0, rng());
+    expect(built.filter((o) => o.kind === 'BUILD')).toHaveLength(1);
+    expect(built.some((o) => o.kind === 'RECRUIT')).toBe(false);
+    expect(orders(guarded, 0, built)).toMatchObject({ ok: true });
+  });
 });
 
 describe('Angriff nur mit Armee (ADR-064)', () => {
@@ -1058,7 +1094,7 @@ describe('Angriff nur mit Armee (ADR-064)', () => {
     expect(middle.state.step).toMatchObject({ kind: 'PREPARE', round: 3 });
     expect(middle.state.duels).toBe(0);
 
-    const last = ok(applyRealmInput(prepare(campaign(), 5), { kind: 'CLOSE_PREPARE' }));
+    const last = ok(applyRealmInput(prepare(campaign(), LAST), { kind: 'CLOSE_PREPARE' }));
     expect(last.events.filter((e) => e.kind === 'ATTACK_SKIPPED')).toHaveLength(2);
     expect(last.state.step).toMatchObject({ kind: 'FINISHED', reason: 'ROUNDS_COMPLETE' });
     expect(last.events.at(-1)).toMatchObject({ kind: 'MATCH_FINISHED' });
@@ -1107,9 +1143,13 @@ describe('Reihenfolge und Ende', () => {
     const ahead = campaign({ 8: { value: 200, fortifications: 2, armies: 1 } });
     expect(realmAttackOrder(ahead, 1)).toEqual([0, 1]);
     expect(realmAttackOrder(ahead, 2)).toEqual([1, 0]);
-    expect(realmAttackOrder(ahead, 5)).toEqual([1, 0]);
-    expect(realmAttackOrder(campaign({ 7: { value: 200, fortifications: 2 } }), 5)).toEqual([0, 1]);
-    const closed = ok(applyRealmInput(prepare(ahead, 5), { kind: 'CLOSE_PREPARE' }));
+    // Vorletzte Runde: Reihenfolge der Runde (Sitz 0 beginnt in ungeraden Runden)
+    expect(realmAttackOrder(ahead, LAST - 1)).toEqual([0, 1]);
+    expect(realmAttackOrder(ahead, LAST)).toEqual([1, 0]);
+    expect(realmAttackOrder(campaign({ 7: { value: 200, fortifications: 2 } }), LAST)).toEqual([
+      0, 1,
+    ]);
+    const closed = ok(applyRealmInput(prepare(ahead, LAST), { kind: 'CLOSE_PREPARE' }));
     expect(closed.state.step).toMatchObject({
       kind: 'CAMPAIGN_TARGET',
       attacker: 1,
@@ -1117,10 +1157,11 @@ describe('Reihenfolge und Ende', () => {
     });
   });
 
-  it('nach der fünften Runde wird abgerechnet, sonst folgt Einkommen und Rüstzeit', () => {
+  it('nach der letzten (zehnten) Runde wird abgerechnet, sonst folgt Einkommen und Rüstzeit', () => {
+    expect(LAST).toBe(10);
     const last = campaign(
       { 7: { armies: 1 } },
-      { kind: 'CAMPAIGN_TARGET', round: 5, attacker: 0, attackers: [1, 0], queue: [] },
+      { kind: 'CAMPAIGN_TARGET', round: LAST, attacker: 0, attackers: [1, 0], queue: [] },
     );
     const done = ok(
       applyRealmInput(attack(last, 8), {
@@ -1132,7 +1173,7 @@ describe('Reihenfolge und Ende', () => {
     expect(done.state.step).toEqual({
       kind: 'FINISHED',
       reason: 'ROUNDS_COMPLETE',
-      round: 5,
+      round: LAST,
       attackers: [1, 0],
     });
     expect(done.events.at(-1)).toMatchObject({ kind: 'MATCH_FINISHED', reason: 'ROUNDS_COMPLETE' });

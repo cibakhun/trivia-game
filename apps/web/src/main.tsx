@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.tsx';
 import { installAudioUnlock } from './audio/sound.ts';
+import { applyColorScheme } from './color-scheme.ts';
 import { CrashBoundary } from './components/CrashBoundary.tsx';
 import { t } from './i18n/i18n.ts';
 import { SessionProvider } from './session.tsx';
@@ -16,6 +17,7 @@ import './theme.css';
 import './styles.css';
 
 document.title = t('app.title');
+applyColorScheme(document);
 installAudioUnlock();
 const root = document.getElementById('root');
 if (!root) throw new Error('#root fehlt');
