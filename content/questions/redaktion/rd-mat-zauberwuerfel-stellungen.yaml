@@ -17,22 +17,22 @@ reviews:
   - kind: FACT
     reviewer: "Claude"
     date: 2026-11-19
-    note: "Antwort „43.252.003.274.489.856.000“ im Artikel „Zauberwürfel“ der deutschen Wikipedia gefunden."
+    note: "Antwort „43.252.003.274.489.856.000“ im Artikel „Zauberwürfel“ der deutschen Wikipedia gefunden; in Trillionen (10^18) gerundet 43 (Abweichung unter 1 %)."
   - kind: LANGUAGE
     locale: de
     reviewer: "Claude"
     date: 2026-11-19
-    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig."
+    note: "Fragetext und Einheit von Claude gelesen: verständlich und eindeutig; seit 2026-11-20 in größerer Einheit gefragt, damit die Lösung ins Ziffernfeld passt (ADR-077)."
 estimate:
-  answer_value: "43252003274489856000"
+  answer_value: "43"
   answer_precision: 0
-  answer_unit: count
+  answer_unit: 1e18_count
   input_min: "1"
-  input_max: "1000000000000000000000"
+  input_max: "1000"
   scale_type: LOG
   scale: 0.3
 translations:
   de:
     status: APPROVED
-    prompt: "Wie viele verschiedene Stellungen kann ein Zauberwürfel einnehmen?"
-    unit_label: "Stellungen"
+    prompt: "Wie viele Trillionen verschiedene Stellungen kann ein Zauberwürfel einnehmen?"
+    unit_label: "Trillionen Stellungen"

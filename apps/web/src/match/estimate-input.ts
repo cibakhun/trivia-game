@@ -1,3 +1,5 @@
+import { ESTIMATE_INPUT_MAX_WHOLE } from '@rdw/protocol';
+
 /**
  * Eingabe einer Schätzung über das eigene Ziffernfeld der Partie (ADR-059): Im Querformat würde
  * die Tastatur des Handys die Karte und die Frage verdecken. Die Eingabe ist ein Text aus Ziffern
@@ -20,8 +22,11 @@ export const ESTIMATE_KEYS = [
 ] as const;
 export type EstimateKey = (typeof ESTIMATE_KEYS)[number];
 
-/** Längste Zahl vor dem Komma: mehr Stellen hat keine Schätzfrage, und die Anzeige bleibt lesbar. */
-export const ESTIMATE_MAX_WHOLE = 12;
+/**
+ * Längste Zahl vor dem Komma: Die Anzeige bleibt lesbar, und `content:validate` hält jede Lösung
+ * mindestens eine Stelle darunter (ADR-077).
+ */
+export const ESTIMATE_MAX_WHOLE = ESTIMATE_INPUT_MAX_WHOLE;
 
 /**
  * Eingabe nach einem Tastendruck. `precision` sind die gewerteten Nachkommastellen der Frage: Ohne

@@ -205,7 +205,7 @@ describe('Schild über einem entschiedenen Duell', () => {
     ).toEqual({ region: 12, text: 'gehalten', seat: 1 });
     expect(outcomeSign(duel({ effect: 'TAKEOVER', building: 'CASTLE' })).text).toBe('Reich fällt');
     expect(outcomeSign(duel({ effect: 'BUILDING_DAMAGED', building: 'VILLAGE' })).text).toBe(
-      'Stadt wird Dorf',
+      'Stadt wird zum Dorf',
     );
   });
 

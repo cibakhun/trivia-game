@@ -15,6 +15,8 @@ für den geprüften Wortlaut: Weichen Frage oder richtige Antwort ab, bricht `wr
 Zeilenformat der Listen (Felder mit | getrennt, # am Zeilenanfang = Kommentar):
 T|KAT|stufe|slug|Frage|Richtig|Falsch1;Falsch2;Falsch3|Quelle (Titel dt. Wikipedia)|Prüfwörter (; getrennt, leer = richtige Antwort)
 E|KAT|stufe|slug|Frage|Wert|einheit|Einheitentext|min|max|LINEAR/LOG|scale|Quelle|Prüfwörter
+  Wert mit Punkt als Dezimalzeichen; seine Nachkommastellen sind die gewertete Genauigkeit. Höchstens
+  11 Stellen vor dem Komma (Ziffernfeld der Partie, ADR-077), größere Zahlen in größerer Einheit fragen.
 """
 import hashlib, json, random, sys, pathlib, urllib.parse
 
@@ -103,7 +105,9 @@ def to_yaml(it, accessed, approval=None):
                   'translations:', '  de:', f'    status: {status}', f"    prompt: {q(it['prompt'])}", '    options:']
         lines += [f'      {k}: {q(t)}' for k, t in zip(keys, texts)]
     else:
-        lines += ['estimate:', f"  answer_value: {q(it['value'])}", '  answer_precision: 0', f"  answer_unit: {it['unit']}",
+        # Nachkommastellen der Lösung („9.46“ in Billionen Kilometern) sind die gewertete Genauigkeit
+        precision = len(it['value'].split('.')[1]) if '.' in it['value'] else 0
+        lines += ['estimate:', f"  answer_value: {q(it['value'])}", f'  answer_precision: {precision}', f"  answer_unit: {it['unit']}",
                   f"  input_min: {q(it['lo'])}", f"  input_max: {q(it['hi'])}", f"  scale_type: {it['st']}", f"  scale: {it['sc']}",
                   'translations:', '  de:', f'    status: {status}', f"    prompt: {q(it['prompt'])}", f"    unit_label: {q(it['label'])}"]
     return key, '\n'.join(lines) + '\n'

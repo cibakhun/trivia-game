@@ -16,8 +16,9 @@ jobs:
   check:
     name: Lint, Typen, Tests
     runs-on: ubuntu-24.04
-    # Bis zu den Browser-Tests etwa 3 Minuten. Die Browser-Tests spielen ganze Partien und dauern seit
-    # zehn Runden (ADR-073) etwa doppelt so lang wie vorher (8 Minuten); 15 reichten nicht mehr.
+    # Bis zu den Browser-Tests etwa 3 Minuten. Seit 2026-11-18 braucht „Chromium für Playwright“
+    # (apt-Pakete) 5 bis 8,5 min statt 30 s, und die Browser-Tests spielen seit zehn Runden (ADR-073)
+    # ganze Partien in etwa doppelter Zeit (11 Minuten); zusammen bis gut 22 Minuten.
     timeout-minutes: 30
     services:
       postgres:

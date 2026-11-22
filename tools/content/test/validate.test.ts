@@ -187,6 +187,20 @@ describe('Fragendatei – Schätzfragen', () => {
     expect(errors(est({ input_min: '5000', input_max: '100' }))).toContain('input_min muss kleiner als input_max sein');
   });
 
+  it('Lösung passt mit Platz für das Zehnfache ins Ziffernfeld der Partie (ADR-077)', () => {
+    const big = (answer_value: string, input_max: string) => est({ answer_value, input_min: '1', input_max });
+    // 11 Stellen: Das Zehnfache hat 12 und lässt sich noch tippen
+    expect(errors(big('99999999999', '1000000000000'))).toEqual([]);
+    // 12 Stellen (auch mit Nachkommastellen) und mehr, wie 43.252.003.274.489.856.000 Zauberwürfel-Stellungen
+    const tooLong = /^answer_value hat 12 Stellen vor dem Komma, höchstens 11 passen ins Ziffernfeld/;
+    expect(errors(big('100000000000', '1000000000000')).join()).toMatch(tooLong);
+    const tenths = { answer_value: '100000000000.5', answer_precision: 1, input_min: '1', input_max: '1000000000000' };
+    expect(errors(est(tenths)).join()).toMatch(tooLong);
+    expect(errors(big('43252003274489856000', '1000000000000000000000')).join()).toMatch(/hat 20 Stellen/);
+    // In größerer Einheit gefragt: 43 Trillionen
+    expect(errors(big('43', '1000'))).toEqual([]);
+  });
+
   it('LOG-Skala nur mit positivem Zielwert', () => {
     expect(errors(est({ answer_value: '0' }))).toContain('LOG-Skala verlangt einen positiven answer_value');
   });

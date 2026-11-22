@@ -46,7 +46,7 @@ Eigene Fragen von Claude für Themen ohne gute Wikidata-Daten (Bräuche, Geschic
 2. `python3 -I tools/content/redaktion/pruefen.py artikel.json.gz > bericht.txt` sucht Antwort und Prüfwörter im Artikel und zeigt den Beleg; was nicht wörtlich steht, liest Claude nach und entscheidet.
 3. Geprüfte Fragen kommen mit Fragetext und Antwort in `tools/content/redaktion/freigabe.json`; `python3 tools/content/redaktion/build.py write` schreibt `questions/redaktion/` neu. Ändert sich danach Fragetext oder richtige Antwort, bricht `write` ab, bis die Frage erneut geprüft ist.
 
-Regeln beim Schreiben: nichts, was sich seit Mitte 2025 ändern konnte (laufende Rekorde, kommende Turniere), keine strittigen „Erfinder“ und „Ersten“, keine Frage verrät die Antwort einer anderen, keine Doppelungen mit den Wikidata-Vorlagen.
+Regeln beim Schreiben: nichts, was sich seit Mitte 2025 ändern konnte (laufende Rekorde, kommende Turniere), keine strittigen „Erfinder“ und „Ersten“, keine Frage verrät die Antwort einer anderen, keine Doppelungen mit den Wikidata-Vorlagen. Schätzfragen mit großen Zahlen in größerer Einheit („in Billionen Kilometern“): Die Lösung hat höchstens 11 Stellen vor dem Komma (Ziffernfeld der Partie, ADR-077); ihre Nachkommastellen in der Liste sind die gewertete Genauigkeit.
 
 Nicht spielbare Gegenstände schließen die Vorlagen in `tools/content/src/wikidata/templates.ts` aus; Namen mit Artikel („die Zugspitze“) stehen in `de.ts`.
 

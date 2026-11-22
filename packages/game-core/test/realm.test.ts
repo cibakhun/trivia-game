@@ -693,7 +693,7 @@ describe('Duell und seine Folgen', () => {
     expect(r.state.regions[7]?.armies).toBe(1);
   });
 
-  it('Dorf verschwindet, Stadt wird Dorf; das Feld bleibt beim Verteidiger', () => {
+  it('Dorf verschwindet, Stadt wird zum Dorf; das Feld bleibt beim Verteidiger', () => {
     const village = ok(
       applyRealmInput(attack(campaign({ 7: { armies: 1 }, 8: { building: 'VILLAGE' } }), 8), win),
     );

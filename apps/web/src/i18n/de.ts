@@ -1067,7 +1067,7 @@ export const de = {
       sign: {
         CONQUERED: 'erobert',
         VILLAGE_GONE: 'Dorf zerstört',
-        TOWN_DOWN: 'Stadt wird Dorf',
+        TOWN_DOWN: 'Stadt wird zum Dorf',
         CASTLE_HIT: 'Burg getroffen',
         CASTLE_DESTROYED: 'Burg zerstört',
         TAKEOVER: 'Reich fällt',
