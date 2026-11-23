@@ -6,6 +6,7 @@ import {
   matchPresentResponseSchema,
   matchViewSchema,
   matchWatchResponseSchema,
+  playerStatsResponseSchema,
   type MatchView,
 } from '@rdw/protocol';
 import { sql } from 'kysely';
@@ -708,6 +709,42 @@ describe('Partie zu zweit', () => {
       correct: won.matches[0]?.correct,
     });
     expect(lost.record).toEqual({ played: 1, won: 0, answered: 0, correct: 0 });
+
+    // Kontoseite (ADR-080): dieselbe Bilanz, dazu Plätze, Serie, Duelle und Wissen je Kategorie
+    const stats = playerStatsResponseSchema.parse((await active.client.get('/me/stats')).json());
+    expect(stats.matches).toEqual({
+      played: 1,
+      won: 1,
+      places: { first: 1, second: 0, third: 0 },
+      classic: { played: 1, won: 1 },
+      realm: { played: 0, won: 0 },
+      streak: { current: 1, best: 1 },
+    });
+    expect(stats.trivia.answered).toBe(won.record.answered);
+    expect(stats.trivia.correct).toBe(won.record.correct);
+    expect(stats.trivia.categories.reduce((sum, c) => sum + c.answered, 0)).toBe(
+      stats.trivia.answered,
+    );
+    expect(stats.trivia.fastestCorrectMs === null).toBe(stats.trivia.correct === 0);
+    const duelCount = types.filter((t) => t === 'DUEL_RESOLVED').length;
+    expect(stats.duels.fought).toBe(duelCount);
+    expect(stats.duels.won).toBeLessThanOrEqual(stats.duels.fought);
+    expect(stats.estimates.closest).toBeLessThanOrEqual(stats.estimates.answered);
+    const idleStats = playerStatsResponseSchema.parse((await idle.client.get('/me/stats')).json());
+    expect(idleStats.matches).toMatchObject({ played: 1, won: 0, streak: { current: 0, best: 0 } });
+    expect(idleStats.matches.places.second).toBe(1);
+    // Wer nie antwortet, hat nichts gewusst, nichts geschätzt und kein Duell gewonnen
+    expect(idleStats.trivia).toEqual({
+      answered: 0,
+      correct: 0,
+      fastestCorrectMs: null,
+      categories: [],
+    });
+    expect(idleStats.estimates).toEqual({ answered: 0, closest: 0 });
+    expect(idleStats.duels.won).toBe(0);
+    expect(idleStats.duels.fought).toBe(duelCount);
+    // Ohne Anmeldung keine Zahlen
+    expect((await new TestClient(server.app).get('/me/stats')).statusCode).toBe(401);
   });
 });
 

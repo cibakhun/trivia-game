@@ -20,6 +20,7 @@ import {
   matchViewSchema,
   meResponseSchema,
   playerNameSuggestionsSchema,
+  playerStatsResponseSchema,
   presentResponseSchema,
   profileResponseSchema,
   regionDetailResponseSchema,
@@ -172,6 +173,8 @@ export const api = {
   changePassword: (body: PasswordChangeRequest, idempotencyKey: string) =>
     request('POST', '/me/password', noContent, { body, idempotencyKey }),
   playerNames: () => request('GET', '/names/player', playerNameSuggestionsSchema),
+  /** Eigene Zahlen über alle beendeten Partien für die Kontoseite (ADR-080). */
+  stats: () => request('GET', '/me/stats', playerStatsResponseSchema),
   kingdomNames: (instanceId: string) =>
     request('GET', `/instances/${instanceId}/kingdom-names`, kingdomNameSuggestionsSchema),
   worlds: () => request('GET', '/worlds', worldsResponseSchema),

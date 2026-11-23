@@ -21,7 +21,11 @@ export function WorldsScreen() {
         <button type="button" className="link" onClick={() => navigate({ name: 'start' })}>
           ← {t('nav.back')}
         </button>
-        <button type="button" className="link" onClick={() => navigate({ name: 'account' })}>
+        <button
+          type="button"
+          className="link"
+          onClick={() => navigate({ name: 'account', view: null })}
+        >
           {state.me.user.isGuest ? t('nav.secureAccount') : t('nav.account')}
         </button>
       </nav>

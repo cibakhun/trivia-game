@@ -9,6 +9,7 @@ import {
 import {
   matchListResponseSchema,
   matchWatchResponseSchema,
+  playerStatsResponseSchema,
   parseMatchEvent,
   PLAYTEST_REALM_RULES,
   type MatchMapId,
@@ -623,6 +624,36 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
       .where('user_id', '=', human.userId)
       .executeTakeFirstOrThrow();
     expect(statistics).toEqual({ matches_played: 0, matches_won: 0 });
+
+    // Kontoseite (ADR-080): Die Testpartie zählt wie in der Chronik, als Partie mit Ausbau; Duelle
+    // nur gegen Reiche, nicht um freie Felder
+    const me = final.mySeat;
+    const stats = playerStatsResponseSchema.parse((await human.client.get('/me/stats')).json());
+    const place = finished?.standings.find((s) => s.seat === me)?.place;
+    expect(stats.matches).toMatchObject({
+      played: 1,
+      won: place === 1 ? 1 : 0,
+      classic: { played: 0, won: 0 },
+      realm: { played: 1, won: place === 1 ? 1 : 0 },
+    });
+    const fought = duels.filter(
+      (d) =>
+        d.payload.defender !== null && (d.payload.attacker === me || d.payload.defender === me),
+    );
+    expect(stats.duels.fought).toBe(fought.length);
+    expect(stats.duels.won).toBe(
+      fought.filter(
+        (d) =>
+          (d.payload.winner === 'ATTACKER' && d.payload.attacker === me) ||
+          (d.payload.winner === 'DEFENDER' && d.payload.defender === me),
+      ).length,
+    );
+    // Gefragt wurden Kategorien vom Glücksrad; Wissen zählt je Kategorie
+    for (const row of stats.trivia.categories) expect(WHEEL).toContain(row.category);
+    expect(stats.trivia.categories.reduce((sum, c) => sum + c.answered, 0)).toBe(
+      stats.trivia.answered,
+    );
+    expect(stats.estimates.closest).toBeLessThanOrEqual(stats.estimates.answered);
   });
 
   it('zu zweit auf der Kernmark; nach dem letzten Duell bleibt die Zugfolge stehen (ADR-055)', async () => {

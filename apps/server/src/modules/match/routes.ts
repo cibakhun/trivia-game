@@ -13,6 +13,7 @@ import {
   type MatchPresentResponse,
   type MatchWatchResponse,
   type MatchView,
+  type PlayerStatsResponse,
 } from '@rdw/protocol';
 import type { Tx } from '@rdw/db';
 import type { FastifyInstance, FastifyReply } from 'fastify';
@@ -34,6 +35,7 @@ import {
   startLobby,
 } from './lobby.ts';
 import { lockMatchFor } from './runs.ts';
+import { playerStats } from './stats.ts';
 import { listMatches, matchView } from './view.ts';
 
 /**
@@ -65,6 +67,12 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
   app.get('/matches', async (request): Promise<MatchListResponse> => {
     const auth = requireAuth(request);
     return listMatches(ctx.db, match, auth.userId);
+  });
+
+  // Eigene Zahlen für die Kontoseite (ADR-080); liest nur
+  app.get('/me/stats', async (request): Promise<PlayerStatsResponse> => {
+    const auth = requireAuth(request);
+    return playerStats(ctx.db, auth.userId, await readGameNow(ctx.db));
   });
 
   app.post('/matches', async (request, reply) => {

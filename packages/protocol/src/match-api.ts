@@ -508,6 +508,56 @@ export const matchListResponseSchema = z
   .strict();
 export type MatchListResponse = z.infer<typeof matchListResponseSchema>;
 
+const tally = z.number().int().min(0);
+const playedWonSchema = z.object({ played: tally, won: tally }).strict();
+
+/**
+ * `GET /me/stats`: eigene Zahlen über alle beendeten Partien für die Kontoseite (ADR-080). Wie
+ * `record` zählen auch Testpartien und Partien mit Bots; es ist die eigene Bilanz, keine Rangliste.
+ * `won` ist Platz 1, auch geteilt. Duelle zählen nur gegen ein anderes Reich (kein freies Feld).
+ * Wissensfragen zählen mit Wertung (verpasste nicht), Schätzungen nur abgegebene; `closest` sind
+ * Landnahmen und Startfragen auf Platz 1 und Duelle, die die eigene Schätzung gewann.
+ */
+export const playerStatsResponseSchema = z
+  .object({
+    matches: z
+      .object({
+        played: tally,
+        won: tally,
+        /** Beendete Partien mit eigenem Platz 1, 2 und 3 in der Abrechnung. */
+        places: z.object({ first: tally, second: tally, third: tally }).strict(),
+        classic: playedWonSchema,
+        realm: playedWonSchema,
+        /** Siege in Folge: die laufende Serie und die längste. */
+        streak: z.object({ current: tally, best: tally }).strict(),
+      })
+      .strict(),
+    duels: z
+      .object({
+        fought: tally,
+        won: tally,
+        /** Reiche, die durch eigene Duelle fielen. */
+        toppled: tally,
+      })
+      .strict(),
+    trivia: z
+      .object({
+        answered: tally,
+        correct: tally,
+        /** Schnellste richtige Antwort (wirksame Zeit); `null` ohne richtige Antwort. */
+        fastestCorrectMs: tally.nullable(),
+        /** Nur Kategorien mit mindestens einer gewerteten Antwort. */
+        categories: z.array(
+          z.object({ category: questionCategorySchema, answered: tally, correct: tally }).strict(),
+        ),
+      })
+      .strict(),
+    estimates: z.object({ answered: tally, closest: tally }).strict(),
+    serverTime: timestampSchema,
+  })
+  .strict();
+export type PlayerStatsResponse = z.infer<typeof playerStatsResponseSchema>;
+
 // ---------------------------------------------------------------------------------------------
 // Frage und Antwort
 // ---------------------------------------------------------------------------------------------

@@ -13,10 +13,25 @@ describe('Router', () => {
 
   it('kennt Weltwahl und Konto', () => {
     expect(parseRoute('/welten')).toEqual({ name: 'worlds' });
-    expect(parseRoute('/konto/')).toEqual({ name: 'account' });
+    expect(parseRoute('/konto/')).toEqual({ name: 'account', view: null });
     expect(routePath({ name: 'worlds' })).toBe('/welten');
-    expect(routePath({ name: 'account' })).toBe('/konto');
+    expect(routePath({ name: 'account', view: null })).toBe('/konto');
     expect(parseRoute('/kontos')).toEqual({ name: 'start' });
+  });
+
+  it('gibt jedem Formular der Kontoseite einen eigenen Pfad (ADR-080)', () => {
+    for (const [view, path] of [
+      ['name', '/konto/name'],
+      ['secure', '/konto/sichern'],
+      ['password', '/konto/passwort'],
+      ['login', '/konto/anmelden'],
+      ['logout', '/konto/abmelden'],
+    ] as const) {
+      expect(parseRoute(path)).toEqual({ name: 'account', view });
+      expect(parseRoute(`${path}/`)).toEqual({ name: 'account', view });
+      expect(routePath({ name: 'account', view })).toBe(path);
+    }
+    expect(parseRoute('/konto/loeschen')).toEqual({ name: 'start' });
   });
 
   it('kennt die Partie mit und ohne ID', () => {
