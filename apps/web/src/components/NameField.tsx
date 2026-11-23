@@ -46,13 +46,18 @@ export function useNameCheck(raw: string): NameCheckState {
   const remember = useCallback((key: string, status: NameCheckStatus) => {
     setKnown((previous) => new Map(previous).set(key, status));
   }, []);
+  // Die Antwort der Prüfung kann älter sein als ein Ergebnis, das inzwischen anders bekannt wurde
+  // (etwa „vergeben“ beim Absenden): Dann überschreibt sie es nicht.
+  const learn = useCallback((key: string, status: NameCheckStatus) => {
+    setKnown((previous) => (previous.has(key) ? previous : new Map(previous).set(key, status)));
+  }, []);
 
   useEffect(() => {
     if (problem !== null || cached !== undefined) return;
     let cancelled = false;
     const id = window.setTimeout(() => {
       api.checkName(name).then(
-        (result) => remember(result.name, result.status),
+        (result) => learn(result.name, result.status),
         () => {
           // Ohne Antwort bleibt es beim Hinweis; beim Absenden entscheidet der Server
           if (!cancelled) setFailed(name);
@@ -63,7 +68,7 @@ export function useNameCheck(raw: string): NameCheckState {
       cancelled = true;
       window.clearTimeout(id);
     };
-  }, [name, problem, cached, remember]);
+  }, [name, problem, cached, learn]);
 
   return {
     name,

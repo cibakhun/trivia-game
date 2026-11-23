@@ -1,4 +1,4 @@
-import { MINUTE_MS } from '@rdw/protocol';
+import { MINUTE_MS, normalizeUsername } from '@rdw/protocol';
 import { ApiError } from '../../infra/errors.ts';
 
 /**
@@ -121,9 +121,13 @@ export class LoginThrottle {
   }
 }
 
-/** Namen ohne Rücksicht auf Groß- und Kleinschreibung, wie die Datenbank (citext). */
+/**
+ * Namen so vereinheitlicht wie bei der Anmeldung (Leerraum, NFC) und ohne Rücksicht auf Groß- und
+ * Kleinschreibung wie die Datenbank (citext): Jede Schreibweise, die dasselbe Konto trifft, zählt
+ * auf dasselbe Fenster.
+ */
 function nameKey(name: string): string {
-  return `n:${name.normalize('NFC').toLowerCase()}`;
+  return `n:${normalizeUsername(name).toLowerCase()}`;
 }
 
 function addressKey(address: string): string {

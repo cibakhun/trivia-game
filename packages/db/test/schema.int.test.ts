@@ -128,7 +128,14 @@ describe('users', () => {
     await expect(insertUser(registered('krisz.spielt'))).rejects.toThrow(/users_username_unique/);
     await expect(insertUser(registered('Jörg_ß-1'))).resolves.toBeTypeOf('string');
     // Seit 0016 (ADR-082): Leerzeichen und lateinische Buchstaben mit Akzent
-    for (const good of ['mit leer', 'Ünï', 'Kőszegi Ödön', 'Łukasz Ćwik']) {
+    for (const good of [
+      'mit leer',
+      'Ünï',
+      'Kőszegi Ödön',
+      'Łukasz Ćwik',
+      'Ștefan Țepeș',
+      'İpek Işık',
+    ]) {
       await expect(insertUser(registered(good)), good).resolves.toBeTypeOf('string');
     }
     for (const bad of ['ab', 'a'.repeat(25), 'x@y', 'Сергей', 'a×b', 'Ωmega']) {
@@ -142,6 +149,47 @@ describe('users', () => {
       ['Krísz Ő_Ünal-ß.Æ', 'KRISZOUNALSSAE', 'Łódź Œuvre'],
     );
     expect(rows[0]).toEqual({ a: 'kriszounalssae', b: 'kriszounalssae', c: 'lodzoeuvre' });
+
+    // Jeder Buchstabe, den die Namensregel erlaubt (protocol, ADR-082), wird zu seinem
+    // Grundbuchstaben: Die beiden langen Listen in translate() dürfen nicht verrutschen
+    const ranges = [
+      [0xc0, 0xd6],
+      [0xd8, 0xf6],
+      [0xf8, 0xff],
+      [0x100, 0x137],
+      [0x139, 0x148],
+      [0x14a, 0x17e],
+      [0x218, 0x21b],
+    ] as const;
+    const letters = ranges.flatMap(([from, to]) =>
+      Array.from({ length: to - from + 1 }, (_, i) => String.fromCodePoint(from + i)),
+    );
+    const special: Record<string, string> = {
+      ß: 'ss',
+      æ: 'ae',
+      œ: 'oe',
+      ĳ: 'ij',
+      ø: 'o',
+      đ: 'd',
+      ð: 'd',
+      ł: 'l',
+      ħ: 'h',
+      ŧ: 't',
+      þ: 't',
+      ŋ: 'n',
+      ŀ: 'l',
+      ı: 'i',
+    };
+    const base = (c: string) => {
+      const lower = c.toLowerCase();
+      return special[lower] ?? lower.normalize('NFKD').replace(/\p{M}/gu, '');
+    };
+    const keys = await q(
+      `select player_name_key(c) as key from unnest($1::text[]) with ordinality as t(c, n) order by n`,
+      [letters],
+    );
+    expect(keys.rows.map((row) => `${row.key as string}`)).toEqual(letters.map(base));
+    expect(letters.map(base).every((b) => /^[a-z]+$/u.test(b))).toBe(true);
     const first = await insertUser(registered('Profil Eins'));
     const second = await insertUser(registered('Profil Zwei'));
     await q(`insert into player_profiles (user_id, display_name) values ($1, 'Krísz')`, [first]);

@@ -15,7 +15,7 @@
 --    verschieden (Integrationstest). Für Anmeldenamen gibt es nur einen einfachen Index für die
 --    Prüfung „schon vergeben?“; eindeutig bleibt dort `users_username_unique` (citext).
 --
--- Der Schlüssel klein schreibt erst (lower), löst ß, æ, œ und ĳ auf und bildet dann Buchstaben
+-- Der Schlüssel macht aus İ und ı ein i, schreibt dann klein (lower), löst ß, æ, œ und ĳ auf und bildet dann Buchstaben
 -- mit Akzent auf den Grundbuchstaben ab (translate). Großbuchstaben mit Akzent stehen ausdrücklich
 -- in der Liste, damit der Schlüssel nicht vom Gebietsschema der Datenbank abhängt. Die
 -- Trennzeichen am Ende der ersten Liste haben kein Gegenstück und fallen weg.
@@ -23,7 +23,7 @@
 alter table users drop constraint users_username_format;
 alter table users
   add constraint users_username_format
-  check (username is null or username ~ '^[A-Za-z0-9 _.À-ÖØ-öø-ÿĀ-ž-]{3,24}$');
+  check (username is null or username ~ '^[A-Za-z0-9 _.À-ÖØ-öø-ÿĀ-žȘ-ț-]{3,24}$');
 
 alter table player_profiles alter column name_parts drop not null;
 
@@ -34,9 +34,9 @@ create function player_name_key(name text) returns text
   parallel safe
   return translate(
     replace(replace(replace(replace(replace(replace(replace(
-      lower(name), 'ß', 'ss'), 'æ', 'ae'), 'Æ', 'ae'), 'œ', 'oe'), 'Œ', 'oe'), 'ĳ', 'ij'), 'Ĳ', 'ij'),
-    'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞàáâãäåçèéêëìíîïðñòóôõöøùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŊŋŌōŎŏŐőŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽž _.-',
-    'aaaaaaceeeeiiiidnoooooouuuuytaaaaaaceeeeiiiidnoooooouuuuytyaaaaaaccccccccddddeeeeeeeeeegggggggghhhhiiiiiiiijjkkllllllllllnnnnnnnnoooooorrrrrrssssssssttttttuuuuuuuuuuuuwwyyyzzzzzz'
+      lower(replace(replace(name, 'İ', 'i'), 'ı', 'i')), 'ß', 'ss'), 'æ', 'ae'), 'Æ', 'ae'), 'œ', 'oe'), 'Œ', 'oe'), 'ĳ', 'ij'), 'Ĳ', 'ij'),
+    'ÀÁÂÃÄÅÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞàáâãäåçèéêëìíîïðñòóôõöøùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįĴĵĶķĹĺĻļĽľĿŀŁłŃńŅņŇňŊŋŌōŎŏŐőŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžȘșȚț _.-',
+    'aaaaaaceeeeiiiidnoooooouuuuytaaaaaaceeeeiiiidnoooooouuuuytyaaaaaaccccccccddddeeeeeeeeeegggggggghhhhiiiiiiiijjkkllllllllllnnnnnnnnoooooorrrrrrssssssssttttttuuuuuuuuuuuuwwyyyzzzzzzsstt'
   );
 
 create unique index player_profiles_name_key_unique

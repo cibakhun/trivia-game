@@ -25,6 +25,9 @@ describe('Benutzername', () => {
       'Anna-Lena',
       'Mr.Bean',
       'Ádám',
+      // Rumänisch und Türkisch (Hinweis aus der Durchsicht von PR #48)
+      'Ștefan Țepeș',
+      'İpek Işık',
       'abc',
       'a'.repeat(20),
     ]) {

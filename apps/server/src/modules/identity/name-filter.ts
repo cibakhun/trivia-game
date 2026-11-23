@@ -128,7 +128,7 @@ function fold(text: string): string {
     .replace(/ß/gu, 'ss')
     .replace(/æ/gu, 'ae')
     .replace(/œ/gu, 'oe')
-    .replace(/[øđłħŧŋŀ]/gu, (c) => FOLD_SPECIAL[c] ?? c)
+    .replace(/[øđłħŧŋŀı]/gu, (c) => FOLD_SPECIAL[c] ?? c)
     .normalize('NFKD')
     .replace(/\p{M}/gu, '');
 }
@@ -141,6 +141,7 @@ const FOLD_SPECIAL: Readonly<Record<string, string>> = {
   ŧ: 't',
   ŋ: 'n',
   ŀ: 'l',
+  ı: 'i',
 };
 
 function leet(text: string): string {

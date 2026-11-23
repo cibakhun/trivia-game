@@ -195,7 +195,7 @@ export type GuestResponse = z.infer<typeof guestResponseSchema>;
 export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 20;
 const NAME_LETTER =
-  'A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF\\u0100-\\u012F\\u0132-\\u0137\\u0139-\\u0148\\u014A-\\u017E';
+  'A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF\\u0100-\\u0137\\u0139-\\u0148\\u014A-\\u017E\\u0218-\\u021B';
 const NAME_CHAR = new RegExp(`^[${NAME_LETTER}0-9 _.-]$`, 'u');
 const NAME_WORD_CHAR = new RegExp(`^[${NAME_LETTER}0-9]$`, 'u');
 const NAME_LETTER_CHAR = new RegExp(`^[${NAME_LETTER}]$`, 'u');

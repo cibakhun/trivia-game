@@ -6,6 +6,7 @@ import { defenseResponseSchema, mapStateResponseSchema } from '@rdw/protocol';
 import { sql } from 'kysely';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { ACCOUNT_REFERENCES, cleanupAccounts } from '../src/index.ts';
+import { nameAllowed } from '../src/modules/identity/name-filter.ts';
 import {
   TestClient,
   createTestWorld,
@@ -36,7 +37,10 @@ const { newPlayer, startAttack, playAttacker, startDefense, playDefender, pvpPai
 
 /** Sichert das Konto des Clients mit frischem Benutzernamen. */
 async function register(client: TestClient): Promise<string> {
-  const username = `konto_${randomUUID().slice(0, 8)}`;
+  // Hexziffern können ein gesperrtes Wort bilden („1488“): dann neu ziehen
+  let username: string;
+  do username = `konto_${randomUUID().slice(0, 8)}`;
+  while (!nameAllowed(username));
   const response = await client.post('/auth/register', {
     headers: { 'idempotency-key': randomUUID() },
     payload: { username, password: PASSWORD },
