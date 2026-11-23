@@ -50,6 +50,7 @@ import { initialOf, playerName } from './menu-text.ts';
 
 /** Eigene Zahlen für die Kontoseite; lädt neu, wenn ein anderes Konto angemeldet ist. */
 function useStats(userId: string) {
+  const { reload } = useSession();
   const [stats, setStats] = useState<PlayerStatsResponse | null>(null);
   const [error, setError] = useState<unknown>(null);
   const generation = useRef(0);
@@ -60,9 +61,13 @@ function useStats(userId: string) {
       const next = await api.stats();
       if (current === generation.current) setStats(next);
     } catch (e) {
-      if (current === generation.current) setError(e);
+      if (current !== generation.current) return;
+      setError(e);
+      // Sitzung abgelaufen oder widerrufen: Die Sitzung lädt neu und landet ohne Konto beim
+      // Willkommensblatt, statt hier leere Reiter stehen zu lassen
+      if (e instanceof ApiRequestError && e.status === 401) void reload();
     }
-  }, []);
+  }, [reload]);
   useEffect(() => {
     setStats(null);
     void load();
@@ -606,7 +611,8 @@ export function AccountSheet({
   onBack,
 }: {
   readonly me: MeResponse;
-  readonly record: MatchRecord;
+  /** Bilanz aus der Liste der Partien; `null`, solange sie fehlt (die Formulare gehen trotzdem). */
+  readonly record: MatchRecord | null;
   readonly view: AccountView | null;
   readonly onView: (view: AccountView) => void;
   /** Schließt das Formular; `replaceWith` öffnet stattdessen gleich ein anderes. */
@@ -632,6 +638,24 @@ export function AccountSheet({
     if (!root || root.contains(document.activeElement)) return;
     root.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true });
   }, []);
+
+  // Öffnet ein Formular, springt der Fokus auf seinen Titel (wie beim Blatt); schließt es, auf den
+  // gewählten Reiter. So verlieren Tastatur und Vorleser bei keinem Wechsel ihren Platz. Hat das
+  // Formular selbst schon ein Feld fokussiert, bleibt es dort.
+  const shownView = useRef(view);
+  useEffect(() => {
+    if (shownView.current === view) return;
+    shownView.current = view;
+    const root = section.current;
+    if (!root) return;
+    const target =
+      view === null
+        ? root.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')
+        : root.querySelector<HTMLElement>('.acct-view-head h3');
+    const active = document.activeElement;
+    if (view !== null && active && root.querySelector('.acct-view')?.contains(active)) return;
+    target?.focus({ preventScroll: true });
+  }, [view]);
 
   // Ein geöffnetes Formular gehört zu seinem Reiter; die Vorschau gilt nur, solange es offen ist
   useEffect(() => {
@@ -727,7 +751,9 @@ export function AccountSheet({
               else onViewDone();
             }}
           />
-          <h3 id={viewTitleId}>{t(VIEW_TITLE[view])}</h3>
+          <h3 id={viewTitleId} tabIndex={-1}>
+            {t(VIEW_TITLE[view])}
+          </h3>
           {view === 'secure' ? (
             <span className="acct-view-step">{t('konto.secure.step', { n: secureStep })}</span>
           ) : null}
@@ -755,7 +781,7 @@ export function AccountSheet({
           <KnowledgePanel stats={stats} />
         );
     } else if (statsError) {
-      // Ohne Sitzung (401) lädt die Sitzung selbst neu; alles andere darf man erneut versuchen
+      // Ohne Sitzung (401) lädt `useStats` die Sitzung neu; alles andere darf man erneut versuchen
       panel =
         statsError instanceof ApiRequestError && statsError.status === 401 ? null : (
           <ErrorNote error={statsError} onRetry={() => void load()} />
@@ -773,6 +799,8 @@ export function AccountSheet({
         <div
           className="acct-panel"
           role="tabpanel"
+          // Bilanz und Wissen haben keine Bedienelemente: Die Tastatur erreicht sie trotzdem
+          tabIndex={0}
           id={ids(tab).panel}
           aria-labelledby={ids(tab).tab}
           key={tab}
@@ -794,7 +822,7 @@ export function AccountSheet({
     >
       <CrestPage
         me={me}
-        wins={stats?.matches.won ?? record.won}
+        wins={stats?.matches.won ?? record?.won ?? 0}
         preview={preview}
         onRename={me.user.isGuest || view !== null ? null : () => onView('name')}
         onBack={view === null ? onBack : undefined}

@@ -4,7 +4,7 @@ import {
   usernameSchema,
   type PlayerNamePartsDto,
 } from '@rdw/protocol';
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ActionKey, ApiRequestError, api } from '../api/client.ts';
 import { t } from '../i18n/i18n.ts';
 import { useSession } from '../session.tsx';
@@ -147,8 +147,16 @@ export function RegisterForm({
 
   function go(next: 1 | 2) {
     onStep(next);
-    if (next === 2) requestAnimationFrame(() => userField.current?.focus({ preventScroll: true }));
   }
+
+  // Mit Schritt 2 geht der Fokus ins Feld für den Benutzernamen, gleich nach dem Wechsel (nicht im
+  // nächsten Bild: Wer schnell weitertippt, landete sonst mitten im Wort im falschen Feld)
+  const stepShown = useRef(step);
+  useEffect(() => {
+    if (stepShown.current === step) return;
+    stepShown.current = step;
+    if (step === 2) userField.current?.focus({ preventScroll: true });
+  }, [step]);
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();

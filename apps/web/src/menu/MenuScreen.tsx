@@ -186,9 +186,12 @@ export function MenuScreen({
     return () => root.classList.remove('match-playing');
   }, []);
 
-  // Die Übungspartie gibt es nur, wo der Server sie anbietet (nicht in Produktion)
+  // Die Übungspartie gibt es nur, wo der Server sie anbietet (nicht in Produktion). Die Kontoseite
+  // braucht die Liste der Partien nicht: Sichern und Anmelden gehen auch, wenn sie fehlt
   const shown: MenuSheet | null =
-    me && list && !(sheet === 'practice' && !list.testMatchesEnabled) ? sheet : null;
+    me && (list || sheet === 'account') && !(sheet === 'practice' && !list?.testMatchesEnabled)
+      ? sheet
+      : null;
   const open = list?.matches.find(isOpenMatch) ?? null;
   // Ein Formular, das es für dieses Konto nicht gibt (Gäste ändern keinen Namen, gesicherte Konten
   // sichern nicht), zeigt die Kontoseite selbst
@@ -366,6 +369,17 @@ export function MenuScreen({
         );
         break;
     }
+  } else if (me && shown === 'account') {
+    centre = (
+      <AccountSheet
+        me={me}
+        record={null}
+        view={view}
+        onView={openAccountView}
+        onViewDone={closeAccountView}
+        onBack={close}
+      />
+    );
   } else if (me && listError) {
     bottom = (
       <div className="menu-fail-bar">
@@ -373,7 +387,9 @@ export function MenuScreen({
       </div>
     );
   }
-  const loading = state.status === 'loading' || (me !== null && list === null && !listError);
+  const loading =
+    state.status === 'loading' ||
+    (me !== null && list === null && !listError && shown !== 'account');
 
   return (
     <main

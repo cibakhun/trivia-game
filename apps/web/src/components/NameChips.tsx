@@ -65,11 +65,16 @@ export function NameChips<T>({
     };
   }, [refresh]);
 
-  // Bisheriger und gewählter Name bleiben vorn, auch wenn die Vorschläge wechseln
+  // Der bisherige Name steht vorn, die Vorschläge behalten ihre Reihenfolge: Ein angetipptes Schild
+  // springt nicht nach vorn, und die Pfeiltasten gehen der Reihe nach. Ist der gewählte Name nach
+  // neuen Vorschlägen keiner davon mehr, bleibt er gleich hinter dem bisherigen stehen.
   const list: NameChoice<T>[] = [];
-  for (const choice of [current, value, ...(choices ?? [])]) {
+  const add = (choice: NameChoice<T> | null) => {
     if (choice && !list.some((c) => c.name === choice.name)) list.push(choice);
-  }
+  };
+  add(current);
+  for (const choice of choices ?? []) add(choice);
+  if (value && !list.some((c) => c.name === value.name)) list.splice(current ? 1 : 0, 0, value);
 
   return (
     <fieldset className="name-chips" data-testid={testId} aria-busy={loading}>

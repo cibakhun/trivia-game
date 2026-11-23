@@ -39,15 +39,16 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
 
   // „Konto sichern“ hat einen eigenen Pfad; „Zurück“ im Browser schließt die Ansicht wieder
   await account.getByRole('tab', { name: 'Zugang' }).click();
+  // Der Fokus geht auf den Titel des Formulars und beim Schließen auf den Reiter zurück
   await account.getByRole('button', { name: /^Konto sichern/ }).click();
   await expect(page).toHaveURL(/\/konto\/sichern$/);
+  await expect(account.getByRole('heading', { name: 'Konto sichern' })).toBeFocused();
   await page.goBack();
   await expect(page).toHaveURL(/\/konto$/);
   await expect(account).toHaveAttribute('data-view', 'home');
-  await expect(account.getByRole('tab', { name: 'Zugang' })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
+  const accessTab = account.getByRole('tab', { name: 'Zugang' });
+  await expect(accessTab).toHaveAttribute('aria-selected', 'true');
+  await expect(accessTab).toBeFocused();
   await account.getByRole('button', { name: /^Konto sichern/ }).click();
   await expect(account).toHaveAttribute('data-view', 'secure');
 
@@ -59,6 +60,9 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   const playerName = (await chosen.innerText()).trim();
   await chosen.click();
   await expect(account.getByTestId('account-name')).toHaveText(playerName);
+  // Das angetippte Schild bleibt an seinem Platz
+  await expect(picker.getByRole('radio').nth(1)).toBeChecked();
+  await expect(picker.locator('label').nth(1)).toHaveText(playerName);
   await form.getByRole('button', { name: 'Weiter' }).click();
 
   // Schritt 2: Benutzername und Passwort; ein Tippfehler bei der Wiederholung hält auf
