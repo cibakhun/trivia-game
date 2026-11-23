@@ -667,6 +667,26 @@ export function revealedRound(events: readonly ParsedMatchEvent[]): number | nul
   return null;
 }
 
+/** Schritte einer Feldzugrunde mit Ausbau: Rüstzeit, Zielwahl und Duell. */
+const CAMPAIGN_STEPS: ReadonlySet<RealmBoard['step']['kind']> = new Set([
+  'PREPARE',
+  'CAMPAIGN_TARGET',
+  'DUEL_WHEEL',
+  'DUEL_TRIVIA',
+  'DUEL_ESTIMATE',
+]);
+
+/**
+ * Bringt eine spätere Runde noch Einkommen (ADR-080)? Es kommt zu Beginn jeder Feldzugrunde vor
+ * ihrer Rüstzeit, das erste nach der Landnahme. In der letzten Runde und nach dem Ende der Partie
+ * kommt keines mehr: Dann steht am eigenen Reich kein „+“ mehr, das nichts mehr bringt.
+ */
+export function incomeAhead(step: RealmBoard['step'], campaignRounds: number): boolean {
+  if (step.kind === 'FINISHED') return false;
+  if (!CAMPAIGN_STEPS.has(step.kind) || step.round === null) return true;
+  return step.round < campaignRounds;
+}
+
 /** Reiche, deren Angriff in dieser Runde ausfiel, in der Reihenfolge der Runde (ADR-064). */
 export function skippedAttackers(events: readonly ParsedMatchEvent[], round: number): number[] {
   return events.flatMap((e) =>

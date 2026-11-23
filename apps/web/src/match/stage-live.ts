@@ -38,6 +38,57 @@ export function useBorn(): boolean {
   return born;
 }
 
+/**
+ * So lange dauert der Auftakt der Partie (ADR-080). Alles, was `.stage.opening` in `stage.css`
+ * bewegt, ist vorher fertig: Das Abbild der Aufstellung hebt sich ab, die Karte rollt sich von der
+ * Mitte her aus, Spielstand und Blatt schreiben sich ein.
+ */
+export const OPENING_MS = 1400;
+
+/** Was die Seite vom Auftakt weiß: ob sie die Aufstellung zeigt und ob der Auftakt gerade läuft. */
+export interface OpeningSeen {
+  readonly lobby: boolean;
+  readonly opening: boolean;
+}
+
+/**
+ * Nächster Stand des Auftakts beim Zustand `state` (rein, für `useOpening`): Aus der Aufstellung
+ * in die laufende Partie beginnt er, außer bei einem Abbruch oder mit „Bewegung reduzieren“
+ * (`still`). Bleibt alles, wie es war, ist es derselbe Stand.
+ */
+export function openingAfter(
+  seen: OpeningSeen,
+  state: MatchScreenState,
+  still: () => boolean,
+): OpeningSeen {
+  if (state === 'lobby')
+    return seen.lobby && !seen.opening ? seen : { lobby: true, opening: false };
+  if (!seen.lobby || state === 'loading') return seen;
+  return { lobby: false, opening: state !== 'abandoned' && !still() };
+}
+
+/**
+ * `true` für die Dauer des Auftakts (ADR-080): Diese Seite hat die Aufstellung gezeigt, und die
+ * Partie hat eben begonnen. Wer mitten in die Partie lädt, sieht keinen Auftakt, mit „Bewegung
+ * reduzieren“ auch nicht; ein Abbruch vor dem Start ist keiner. Beim Wechsel festgelegt (Merken
+ * während des Renderns), danach läuft nur noch die Zeit.
+ */
+export function useOpening(state: MatchScreenState): boolean {
+  const [seen, setSeen] = useState<OpeningSeen>({ lobby: state === 'lobby', opening: false });
+  const now = openingAfter(seen, state, motionReduced);
+  if (now !== seen) setSeen(now);
+  const opening = now.opening;
+  useEffect(() => {
+    if (!opening) return;
+    const timer = setTimeout(
+      () => setSeen((current) => (current.opening ? { ...current, opening: false } : current)),
+      OPENING_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [opening]);
+  return opening;
+}
+
 /** Die wievielte Seite das Blatt rechts gerade zeigt (zählt nur miterlebte Wechsel). */
 export const BlattPage = createContext(0);
 

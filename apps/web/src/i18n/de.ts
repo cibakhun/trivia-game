@@ -556,6 +556,9 @@ export const de = {
       land: 'Die Landnahme beginnt',
       landDetail: 'Wer am genauesten schätzt, wählt zuerst.',
       campaign: 'Der Feldzug beginnt',
+      start: 'Die Partie beginnt',
+      startDetail: 'Zuerst wählt jeder seine Hauptstadt.',
+      startMine: 'Die Partie beginnt, du wählst zuerst.',
       round: 'Runde {round} von {rounds}',
       lastRound: 'Letzte Runde des Feldzugs',
     },
@@ -623,6 +626,26 @@ export const de = {
         TAKEOVER: '{attacker} nimmt die Hauptstadt {region} ein.',
         FORTIFIED: '{defender} hält {region}.',
       },
+      /** Was sich mit dem Ausgang ändert, als kurze Zeilen (ADR-080). */
+      fact: {
+        conquered: 'Das Feld und seine {value} Punkte gehen an {attacker}',
+        conqueredMe: 'Das Feld und seine {value} Punkte gehen an dich',
+        capitalLives: {
+          one: 'Die Hauptstadt hat noch {count} Leben',
+          other: 'Die Hauptstadt hat noch {count} Leben',
+        },
+        capitalLivesMe: {
+          one: 'Deine Hauptstadt hat noch {count} Leben',
+          other: 'Deine Hauptstadt hat noch {count} Leben',
+        },
+        takeover: 'Das ganze Reich von {defender} geht an {attacker}',
+        takeoverMe: 'Das ganze Reich von {defender} geht an dich',
+        takeoverLost: 'Dein ganzes Reich geht an {attacker}',
+        fortified: 'Das Feld ist jetzt {value} Punkte wert',
+      },
+      nextAttack: '{name} greift an',
+      nextAttackMe: 'Du greifst an',
+      nextEnd: 'Die Abrechnung',
     },
     reveal: {
       title: 'Auflösung',

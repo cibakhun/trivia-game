@@ -754,13 +754,13 @@ export function MatchBoard({
         <g className="board-press" aria-hidden="true">
           {tapArt && tap ? (
             <path
-              key={tap.seq}
+              key={`tap-${tap.seq}`}
               d={tapArt.d}
               className={`tap-press${realm?.refused === tap.region ? ' refused' : ''}`}
             />
           ) : null}
           {pendingArt ? (
-            <Born key={pendingArt.id} className="pick-ring" motion="land" live={settled}>
+            <Born key={`pick-${pendingArt.id}`} className="pick-ring" motion="land" live={settled}>
               <path d={pendingArt.d} className="ring-casing" />
               <path d={pendingArt.d} className="ring-line" />
             </Born>

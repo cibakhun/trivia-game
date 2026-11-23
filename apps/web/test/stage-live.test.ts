@@ -6,13 +6,17 @@ import {
   MOMENT_MS,
   momentTiming,
   momentWeight,
+  OPENING_LEAD_MS,
   type Moment,
 } from '../src/match/moments.ts';
 import {
   blattScene,
   IMPACT_MS,
   impactHoldMs,
+  OPENING_MS,
+  openingAfter,
   type BlattSceneStep,
+  type OpeningSeen,
 } from '../src/match/stage-live.ts';
 
 /** Takt der Bühne am Rand (docs/ART_DIRECTION.md §5): Seiten des Blatts, Schlag eines Duells, Bänder. */
@@ -150,5 +154,47 @@ describe('Gewicht und Zeiten der Bänder', () => {
     });
     // Eine Ankündigung in der Auflösung wartet nicht
     expect(momentTiming(moment({}), 'reveal').leadMs).toBe(0);
+  });
+});
+
+describe('Auftakt der Partie (ADR-080)', () => {
+  const moving = () => false;
+  const still = () => true;
+  const play = (states: readonly MatchScreenState[], reduced = moving): OpeningSeen[] => {
+    let seen: OpeningSeen = { lobby: states[0] === 'lobby', opening: false };
+    return states.map((state) => (seen = openingAfter(seen, state, reduced)));
+  };
+
+  it('beginnt, wenn die Seite die Aufstellung zeigte und die Partie startet', () => {
+    expect(play(['lobby', 'waiting-pick']).map((s) => s.opening)).toEqual([false, true]);
+    // Mit Ausbau beginnt die Partie mit der Startfrage
+    expect(play(['lobby', 'presenting', 'question']).map((s) => s.opening)).toEqual([
+      false,
+      true,
+      true,
+    ]);
+  });
+
+  it('nicht nach dem Laden mitten in die Partie, nicht nach einem Abbruch, nicht ohne Bewegung', () => {
+    expect(play(['pick', 'announce']).map((s) => s.opening)).toEqual([false, false]);
+    expect(play(['loading', 'pick']).map((s) => s.opening)).toEqual([false, false]);
+    expect(play(['lobby', 'abandoned']).map((s) => s.opening)).toEqual([false, false]);
+    expect(play(['lobby', 'pick'], still).map((s) => s.opening)).toEqual([false, false]);
+  });
+
+  it('bleibt beim selben Stand derselbe (kein neues Rendern)', () => {
+    const seen: OpeningSeen = { lobby: true, opening: false };
+    expect(openingAfter(seen, 'lobby', moving)).toBe(seen);
+    const running: OpeningSeen = { lobby: false, opening: true };
+    expect(openingAfter(running, 'announce', moving)).toBe(running);
+  });
+
+  it('das erste Band wartet, bis die Karte ausgerollt ist, und alles ist vor dem Ende fertig', () => {
+    const band = moment({ key: 'start', opening: true });
+    expect(momentTiming(band, 'waiting-pick')).toEqual({
+      leadMs: OPENING_LEAD_MS,
+      showMs: MOMENT_MS,
+    });
+    expect(OPENING_LEAD_MS).toBeLessThan(OPENING_MS);
   });
 });

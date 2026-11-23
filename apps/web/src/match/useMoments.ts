@@ -58,7 +58,11 @@ export function useMoments(
   const rounds = view?.match.campaignRounds ?? 0;
 
   useEffect(() => {
-    if (!step) return;
+    if (!step) {
+      // Vor dem Start: Wer die Aufstellung sieht, bekommt den Auftakt der Partie angesagt (ADR-080)
+      if (state === 'lobby') previous.current = { state, kind: null, round: null, lastSeq };
+      return;
+    }
     // Ist der letzte Ausgang gespielt, gilt für ausgefallene Angriffe schon das Ende der Partie:
     // Ihr Band steht dann über der Karte, bevor die Abrechnung sie verdeckt (sonst stünde es unter
     // ihr). Für alles andere ist es wie die Auflösung kein ruhiger Zustand

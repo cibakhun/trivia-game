@@ -270,7 +270,14 @@ export function StageBlatt({
         const winner = p.winner === 'ATTACKER' ? p.attacker : p.defender;
         return (
           <section className={`blatt outcome seat-${winner}`}>
-            <OutcomePanel duel={outcome} mySeat={view.mySeat} name={name} region={region} />
+            <OutcomePanel
+              duel={outcome}
+              mySeat={view.mySeat}
+              name={name}
+              region={region}
+              board={view.board}
+              rounds={view.match.campaignRounds}
+            />
             {phaseTimer(timers.revealMs, true)}
             {note}
           </section>

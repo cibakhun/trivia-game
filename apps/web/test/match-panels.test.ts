@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { AnnouncePanel } from '../src/match/AnnouncePanel.tsx';
 import { revealFor } from '../src/match/match-model.ts';
 import { mapOfView, regionNames, seatNames } from '../src/match/match-text.ts';
-import { OutcomePanel } from '../src/match/OutcomePanel.tsx';
+import { OutcomePanel, outcomeFacts, outcomeNext } from '../src/match/OutcomePanel.tsx';
 import { RevealPanel } from '../src/match/RevealPanel.tsx';
 import { AT, event, viewOf } from './match-fixtures.ts';
 
@@ -449,7 +449,7 @@ describe('Ausgang eines Duells in der Leiste (ADR-054)', () => {
     expect(lost).toContain('outcome-lost seat-2');
     expect(lost).toContain('data-effect="CONQUERED"');
     expect(textOf(lost)).toBe(
-      'Du verlierst Goldwiese. Bot (schwer) erobert Goldwiese von Anna (du). Nur einer lag bei der Wissensfrage richtig.',
+      'Du verlierst Goldwiese. Bot (schwer) erobert Goldwiese von Anna (du). Nur einer lag bei der Wissensfrage richtig. Das Feld und seine 100 Punkte gehen an Bot (schwer)',
     );
 
     const held = outcome({ winner: 'DEFENDER', effect: 'FORTIFIED', regionValue: 150 });
@@ -498,5 +498,76 @@ describe('Ausgang eines Duells in der Leiste (ADR-054)', () => {
       '<p class="visually-hidden">Bot (schwer) erobert Goldwiese von Anna (du).</p>',
     );
     expect(html).toContain('aria-live="polite"');
+  });
+
+  it('nennt die Folgen auf der Karte aus der eigenen Sicht (ADR-080)', () => {
+    const facts = (partial: Record<string, unknown>, mySeat: number | null = 1) => {
+      const resolved = duelResolved(40, partial);
+      if (resolved.type !== 'DUEL_RESOLVED') throw new Error('Ereignis ungültig');
+      return outcomeFacts(resolved, mySeat, name).map((fact) => fact.text);
+    };
+    expect(facts({ attacker: 1, defender: 0, regionValue: 300 })).toEqual([
+      'Das Feld und seine 300 Punkte gehen an dich',
+    ]);
+    expect(facts({ effect: 'CAPITAL_HIT', capitalLivesLeft: 2 })).toEqual([
+      'Deine Hauptstadt hat noch 2 Leben',
+    ]);
+    expect(facts({ effect: 'CAPITAL_HIT', capitalLivesLeft: 1 }, 0)).toEqual([
+      'Die Hauptstadt hat noch 1 Leben',
+    ]);
+    expect(facts({ effect: 'TAKEOVER', capitalLivesLeft: 0 })).toEqual([
+      'Dein ganzes Reich geht an Bot (schwer)',
+    ]);
+    expect(facts({ attacker: 1, defender: 2, effect: 'TAKEOVER', capitalLivesLeft: 0 })).toEqual([
+      'Das ganze Reich von Bot (schwer) geht an dich',
+    ]);
+    expect(facts({ attacker: 2, defender: 0, effect: 'TAKEOVER', capitalLivesLeft: 0 })).toEqual([
+      'Das ganze Reich von Bot (leicht) geht an Bot (schwer)',
+    ]);
+    expect(facts({ winner: 'DEFENDER', effect: 'FORTIFIED', regionValue: 200 })).toEqual([
+      'Das Feld ist jetzt 200 Punkte wert',
+    ]);
+    // Die getroffene Hauptstadt zeigt ihre Leben in der Farbe ihres Reichs
+    const resolved = duelResolved(40, { effect: 'CAPITAL_HIT', capitalLivesLeft: 2 });
+    if (resolved.type !== 'DUEL_RESOLVED') throw new Error('Ereignis ungültig');
+    const html = renderToStaticMarkup(
+      createElement(OutcomePanel, { duel: resolved, mySeat: 1, name, region }),
+    );
+    expect(html).toContain('<li class="seat-1"><span class="fact-lives" aria-hidden="true">');
+    expect(html.match(/life-on/g)).toHaveLength(2);
+  });
+
+  it('sagt mit dem Stand der Karte, was als Nächstes kommt (ADR-080)', () => {
+    const resolved = duelResolved(40, { round: 2 });
+    if (resolved.type !== 'DUEL_RESOLVED') throw new Error('Ereignis ungültig');
+    const next = (step: Record<string, unknown>, mySeat: number | null = 1) => {
+      const board = viewOf({}, { kind: 'CAMPAIGN_TARGET', round: 2, ...step }).board;
+      if (!board) throw new Error('Brett fehlt');
+      return outcomeNext(resolved, board, 4, mySeat, name);
+    };
+    expect(next({ chooser: 0 })).toEqual({ round: null, seat: 0, text: 'Bot (leicht) greift an' });
+    expect(next({ chooser: 1 })).toEqual({ round: null, seat: 1, text: 'Du greifst an' });
+    expect(next({ chooser: 2, round: 3 })).toEqual({
+      round: 'Runde 3 von 4',
+      seat: 2,
+      text: 'Bot (schwer) greift an',
+    });
+    expect(next({ chooser: 1, round: 4 })?.round).toBe('Letzte Runde des Feldzugs');
+    expect(next({ kind: 'FINISHED', round: null, chooser: null })).toEqual({
+      round: null,
+      seat: null,
+      text: 'Die Abrechnung',
+    });
+    // Mit dem Brett steht es unten im Blatt; ohne nicht
+    const board = viewOf({}, { kind: 'CAMPAIGN_TARGET', round: 2, chooser: 0 }).board;
+    const html = renderToStaticMarkup(
+      createElement(OutcomePanel, { duel: resolved, mySeat: 1, name, region, board, rounds: 4 }),
+    );
+    expect(textOf(html)).toMatch(/Als Nächstes Bot \(leicht\) greift an$/);
+    expect(
+      renderToStaticMarkup(
+        createElement(OutcomePanel, { duel: resolved, mySeat: 1, name, region }),
+      ),
+    ).not.toContain('class="next"');
   });
 });
