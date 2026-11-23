@@ -59,7 +59,7 @@ export function useMoments(
 
   useEffect(() => {
     if (!step) {
-      // Vor dem Start: Wer die Aufstellung sieht, bekommt den Auftakt der Partie angesagt (ADR-080)
+      // Vor dem Start: Wer die Aufstellung sieht, bekommt den Auftakt der Partie angesagt (ADR-081)
       if (state === 'lobby') previous.current = { state, kind: null, round: null, lastSeq };
       return;
     }

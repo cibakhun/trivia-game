@@ -192,7 +192,7 @@ export function RealmStage({
   const [entered, setEntered] = useState({ first: state, live: false });
   if (!entered.live && state !== entered.first) setEntered({ first: entered.first, live: true });
   const live = entered.live || state !== entered.first;
-  // Eben aus der Aufstellung gestartet: Die Bühne baut sich im Auftakt auf (ADR-080)
+  // Eben aus der Aufstellung gestartet: Die Bühne baut sich im Auftakt auf (ADR-081)
   const opening = useOpening(state);
   const lobby = useLobbySheet(state);
   const seq = view?.question?.seq ?? null;

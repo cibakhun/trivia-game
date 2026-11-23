@@ -120,7 +120,7 @@ export function MatchStage({
   // rechts um, und nur dann baut sich die Abrechnung auf: Wer in die fertige Partie lädt, sieht
   // sofort das Endbild. Das Laden selbst ist kein Stand
   const live = useLive(state);
-  // Eben aus der Aufstellung gestartet: Die Bühne baut sich im Auftakt auf (ADR-080)
+  // Eben aus der Aufstellung gestartet: Die Bühne baut sich im Auftakt auf (ADR-081)
   const opening = useOpening(state);
   const lobby = useLobbySheet(state);
   const seq = view?.question?.seq ?? null;

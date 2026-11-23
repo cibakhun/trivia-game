@@ -4,7 +4,7 @@ import type { MatchScreenState } from './match-model.ts';
 import { ghostOf } from './StageCentre.tsx';
 
 /**
- * Auftakt der Partie (ADR-080): Aus der Aufstellung wird die Bühne nicht mit einem harten
+ * Auftakt der Partie (ADR-081): Aus der Aufstellung wird die Bühne nicht mit einem harten
  * Schnitt. Das Blatt der Aufstellung hebt sich als stilles Abbild ab, die Karte der Partie rollt
  * sich von der Mitte her zwischen zwei Rollen über dem Schmuckbild aus, danach schreiben sich
  * Spielstand und Blatt ein (`useOpening` in stage-live.ts, `.stage.opening` in stage.css).

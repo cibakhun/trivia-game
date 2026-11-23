@@ -120,7 +120,7 @@ describe('Große Momente', () => {
   });
 });
 
-describe('Auftakt der Partie aus der Aufstellung (ADR-080)', () => {
+describe('Auftakt der Partie aus der Aufstellung (ADR-081)', () => {
   const lobby = snap({ state: 'lobby', kind: null, round: null, lastSeq: 4 });
   const start = (state: MomentSnapshot['state']) =>
     momentsBetween(

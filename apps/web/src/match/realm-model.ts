@@ -677,7 +677,7 @@ const CAMPAIGN_STEPS: ReadonlySet<RealmBoard['step']['kind']> = new Set([
 ]);
 
 /**
- * Bringt eine spätere Runde noch Einkommen (ADR-080)? Es kommt zu Beginn jeder Feldzugrunde vor
+ * Bringt eine spätere Runde noch Einkommen (ADR-081)? Es kommt zu Beginn jeder Feldzugrunde vor
  * ihrer Rüstzeit, das erste nach der Landnahme. In der letzten Runde und nach dem Ende der Partie
  * kommt keines mehr: Dann steht am eigenen Reich kein „+“ mehr, das nichts mehr bringt.
  */

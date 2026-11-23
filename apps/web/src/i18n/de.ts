@@ -628,7 +628,7 @@ export const de = {
         TAKEOVER: '{attacker} nimmt die Hauptstadt {region} ein.',
         FORTIFIED: '{defender} hält {region}.',
       },
-      /** Was sich mit dem Ausgang ändert, als kurze Zeilen (ADR-080). */
+      /** Was sich mit dem Ausgang ändert, als kurze Zeilen (ADR-081). */
       fact: {
         conquered: 'Das Feld und seine {value} Punkte gehen an {attacker}',
         conqueredMe: 'Das Feld und seine {value} Punkte gehen an dich',

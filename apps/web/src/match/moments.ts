@@ -17,7 +17,7 @@ export interface Moment {
   /** Farbe des Bands: Gold, Tinte oder Sitzfarbe (mit Wappen). */
   readonly tone: 'gold' | 'ink' | 'seat';
   readonly seat: number | null;
-  /** Kommt mit dem Auftakt der Partie (ADR-080): Es wartet, bis die Karte ausgerollt ist. */
+  /** Kommt mit dem Auftakt der Partie (ADR-081): Es wartet, bis die Karte ausgerollt ist. */
   readonly opening?: boolean;
 }
 
@@ -182,7 +182,7 @@ export function enqueueMoments(
  * Momente zwischen zwei Ständen, in der Reihenfolge, in der sie gezeigt werden. `before = null`
  * ist der erste Aufbau der Seite: Dann zählt nur „Du bist dran“, Vergangenes wird nicht gefeiert.
  * Stand davor die Aufstellung (`before.state === 'lobby'`), beginnt die Partie eben: Die Wahl der
- * Hauptstädte wird angesagt, und wer zuerst wählt, erfährt es im Band „Du bist dran“ (ADR-080).
+ * Hauptstädte wird angesagt, und wer zuerst wählt, erfährt es im Band „Du bist dran“ (ADR-081).
  */
 export function momentsBetween(
   before: MomentSnapshot | null,

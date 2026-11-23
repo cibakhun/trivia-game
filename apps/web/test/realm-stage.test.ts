@@ -359,7 +359,7 @@ describe('Spielstand der Partie mit Ausbau', () => {
     expect(count(html, 'class="plaque-plus"')).toBe(2);
   });
 
-  it('nennt kein Einkommen mehr, wenn keine Runde mehr eines bringt (ADR-080)', () => {
+  it('nennt kein Einkommen mehr, wenn keine Runde mehr eines bringt (ADR-081)', () => {
     // Rüstzeit der letzten Runde: Ihr Einkommen ist verbucht, ein weiteres kommt nicht
     const last = seats(prepView({ step: { kind: 'PREPARE', round: 5 } }));
     expect(plaque(last, ME)).not.toContain('plaque-plus');
@@ -2178,7 +2178,7 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(html).toContain('class="stage-veil on"');
   });
 
-  it('zeigt in der Abrechnung jede Burg eines Reichs mit ihren Leben (ADR-080)', () => {
+  it('zeigt in der Abrechnung jede Burg eines Reichs mit ihren Leben (ADR-081)', () => {
     // Sitz 2 hat eine zweite Burg auf Feld 0: 2 und 1 Leben, zusammen die 3 seiner Tafel
     const view = realmViewOf(
       {

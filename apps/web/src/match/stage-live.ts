@@ -39,7 +39,7 @@ export function useBorn(): boolean {
 }
 
 /**
- * So lange dauert der Auftakt der Partie (ADR-080). Alles, was `.stage.opening` in `stage.css`
+ * So lange dauert der Auftakt der Partie (ADR-081). Alles, was `.stage.opening` in `stage.css`
  * bewegt, ist vorher fertig: Das Abbild der Aufstellung hebt sich ab, die Karte rollt sich von der
  * Mitte her aus, Spielstand und Blatt schreiben sich ein.
  */
@@ -68,7 +68,7 @@ export function openingAfter(
 }
 
 /**
- * `true` für die Dauer des Auftakts (ADR-080): Diese Seite hat die Aufstellung gezeigt, und die
+ * `true` für die Dauer des Auftakts (ADR-081): Diese Seite hat die Aufstellung gezeigt, und die
  * Partie hat eben begonnen. Wer mitten in die Partie lädt, sieht keinen Auftakt, mit „Bewegung
  * reduzieren“ auch nicht; ein Abbruch vor dem Start ist keiner. Beim Wechsel festgelegt (Merken
  * während des Renderns), danach läuft nur noch die Zeit.

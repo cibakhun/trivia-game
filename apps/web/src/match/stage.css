@@ -960,7 +960,7 @@ html.match-playing body {
   height: auto;
 }
 
-/* Ausgang eines Duells im Blatt: Satz, Grund, Folgen, unten „Als Nächstes“ (ADR-080) */
+/* Ausgang eines Duells im Blatt: Satz, Grund, Folgen, unten „Als Nächstes“ (ADR-081) */
 .blatt .outcome-card {
   flex: 1;
   min-height: 0;
@@ -3227,7 +3227,7 @@ html.match-playing body {
   font-size: calc(12.5 * var(--u));
 }
 
-/* Mit Ausbau: je Burg eine Gruppe Schilde (ResultPanel, ADR-080) */
+/* Mit Ausbau: je Burg eine Gruppe Schilde (ResultPanel, ADR-081) */
 .sheet.result .castle-lives {
   display: inline-flex;
   align-items: center;
@@ -3743,7 +3743,7 @@ html.match-playing body {
   box-shadow: 0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
 }
 
-/* ---------- Auftakt der Partie (ADR-080) ---------- */
+/* ---------- Auftakt der Partie (ADR-081) ---------- */
 
 /*
  * Aus der Aufstellung wird die Bühne in 1,4 s (`OPENING_MS`, StageOpening.tsx), statt hart zu

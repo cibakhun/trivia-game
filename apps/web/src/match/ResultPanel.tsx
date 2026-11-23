@@ -21,7 +21,7 @@ import {
 /**
  * Abrechnung (MATCH_RULES §6) als Blatt auf der Karte: Platz, Punkte, Regionen und
  * Hauptstadtleben je Sitz, daneben das Ergebnis und wie es weitergeht. Mit Ausbau (§11.8) stehen
- * statt der Hauptstadt die Burgen des Reichs da, jede mit ihren Leben (`castleGroups`, ADR-080).
+ * statt der Hauptstadt die Burgen des Reichs da, jede mit ihren Leben (`castleGroups`, ADR-081).
  *
  * Hat die Seite das Ende miterlebt (`live`), baut sich das Blatt im Takt des Klangs auf
  * (`result-motion.ts`, docs/ART_DIRECTION.md §5): beim Sieg die Tabelle vom letzten Platz zum

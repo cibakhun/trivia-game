@@ -514,7 +514,7 @@ describe('Ausgang eines Duells in der Leiste (ADR-054)', () => {
     expect(html).toContain('aria-live="polite"');
   });
 
-  it('nennt die Folgen auf der Karte aus der eigenen Sicht (ADR-080)', () => {
+  it('nennt die Folgen auf der Karte aus der eigenen Sicht (ADR-081)', () => {
     const facts = (partial: Record<string, unknown>, mySeat: number | null = 1) => {
       const resolved = duelResolved(40, partial);
       if (resolved.type !== 'DUEL_RESOLVED') throw new Error('Ereignis ungültig');
@@ -551,7 +551,7 @@ describe('Ausgang eines Duells in der Leiste (ADR-054)', () => {
     expect(html.match(/life-on/g)).toHaveLength(2);
   });
 
-  it('sagt mit dem Stand der Karte, was als Nächstes kommt (ADR-080)', () => {
+  it('sagt mit dem Stand der Karte, was als Nächstes kommt (ADR-081)', () => {
     const resolved = duelResolved(40, { round: 2 });
     if (resolved.type !== 'DUEL_RESOLVED') throw new Error('Ereignis ungültig');
     const next = (step: Record<string, unknown>, mySeat: number | null = 1) => {

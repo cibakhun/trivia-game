@@ -157,7 +157,7 @@ describe('Gewicht und Zeiten der Bänder', () => {
   });
 });
 
-describe('Auftakt der Partie (ADR-080)', () => {
+describe('Auftakt der Partie (ADR-081)', () => {
   const moving = () => false;
   const still = () => true;
   const play = (states: readonly MatchScreenState[], reduced = moving): OpeningSeen[] => {

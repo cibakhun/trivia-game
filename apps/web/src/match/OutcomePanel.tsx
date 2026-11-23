@@ -15,7 +15,7 @@ export type OutcomeFact =
   | { readonly icon: 'crest'; readonly seat: number; readonly text: string };
 
 /**
- * Was der Ausgang auf der Karte ändert (ADR-080), aus der Sicht dieses Sitzes: wohin das Feld mit
+ * Was der Ausgang auf der Karte ändert (ADR-081), aus der Sicht dieses Sitzes: wohin das Feld mit
  * seinen Punkten geht, wie viele Leben der Hauptstadt bleiben, dass ein ganzes Reich übergeht,
  * was ein gehaltenes Feld jetzt wert ist.
  */
@@ -111,7 +111,7 @@ export function outcomeNext(
  * Ausgang eines Duells in der Leiste (docs/ART_DIRECTION.md §4): Während die Karte zeigt, was
  * geschieht, steht hier in einem Satz aus der Sicht dieses Sitzes, wer die Region hat, mit dem
  * Wappen des Siegers. Darunter klein der Grund, dann was sich ändert und, mit dem Stand der Karte
- * (`board`), was als Nächstes kommt (ADR-080). Die Antworten standen davor im Blatt der
+ * (`board`), was als Nächstes kommt (ADR-081). Die Antworten standen davor im Blatt der
  * Auflösung; Screenreader bekommen hier den ganzen Satz.
  */
 export function OutcomePanel({
