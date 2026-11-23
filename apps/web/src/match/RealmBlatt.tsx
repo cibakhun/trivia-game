@@ -24,6 +24,7 @@ import {
   type SeatName,
 } from './match-text.ts';
 import { NumPad } from './NumPad.tsx';
+import { PickRun, pickRun, RankedNext, rankedSummary } from './RankedNext.tsx';
 import {
   attackReach,
   favoriteChance,
@@ -486,14 +487,19 @@ export function RealmBlatt({
       }
       const kind =
         step.kind === 'CASTLE_PICK' || step.kind === 'VILLAGE_PICK' ? step.kind : 'LAND_PICK';
+      // Landnahme mit mehreren Feldern nacheinander: Das Blatt zählt mit (statt eines zweiten Bands)
+      const run = kind === 'LAND_PICK' ? pickRun(board.turns, view.mySeat) : null;
       return sheet(
         'turn',
         'match-pick',
         true,
         <>
-          <h2 className="blatt-title">{t(`realm.pick.${kind}`)}</h2>
+          <h2 className="blatt-title">
+            {run && run.nth > 1 ? t('realm.pick.again') : t(`realm.pick.${kind}`)}
+          </h2>
           <p className="visually-hidden">{pickText(view, name)}</p>
           {phaseTimer(timers.pickMs)}
+          {run && view.mySeat !== null ? <PickRun run={run} seat={view.mySeat} realm /> : null}
           <p className="blatt-hint">
             {kind === 'CASTLE_PICK'
               ? t('realm.pick.hintCastle', {
@@ -754,6 +760,9 @@ export function RealmBlatt({
         (o) => o.type === 'LAND_RANKED' || o.type === 'START_RANKED',
       );
       const start = reveal?.outcome.some((o) => o.type === 'START_RANKED') ?? false;
+      // Was aus der Rangfolge folgt, steht, sobald sie auf der Karte steht
+      const summary =
+        ranked && reveal ? rankedSummary(reveal, board, view.mySeat, name, true) : null;
       return sheet(
         '',
         'match-revealing',
@@ -770,6 +779,7 @@ export function RealmBlatt({
           )}
           {/* An derselben Stelle wie während der Frage: Die Liste deckt auf, wer was gab */}
           {ranked ? null : <Answers view={view} local={local} short={short} reveal={reveal} />}
+          {summary ? <RankedNext summary={summary} mySeat={view.mySeat} /> : null}
           {phaseTimer(timers.revealMs, true)}
         </>,
       );

@@ -58,6 +58,8 @@ export function isCalm(state: MatchScreenState): boolean {
  * Zustände, in denen ein ausgefallener Angriff (ADR-064) sein Band bekommt: die ruhigen und das
  * Ende der Partie. Kostet das letzte Duell dem Letzten der Runde sein Ziel, folgt kein ruhiger
  * Zustand mehr; ohne das Band über der Abrechnung erführe er nicht, warum er nicht mehr dran war.
+ * Als Ende gilt auch der letzte Takt der letzten Auflösung einer Runde (`useMoments`, `ending`):
+ * Das Band gehört zur Runde, die eben endet, nicht an den Anfang der Rüstzeit.
  */
 export function showsSkips(state: MatchScreenState): boolean {
   return isCalm(state) || state === 'finished';
@@ -213,10 +215,10 @@ export function momentsBetween(
         seat: event.payload.by,
       });
     }
-    // Ausgefallene Angriffe (ADR-064) erst in einem ruhigen Zustand oder am Ende der Partie, nicht
-    // über einer Auflösung; beim Aufdecken hinter dessen Ankündigung, sonst vor der nächsten
-    // Runde. Fallen mehrere zugleich aus, nennt ein einziges Band alle: Sonst stünden Bänder bis
-    // in die Rüstzeit
+    // Ausgefallene Angriffe (ADR-064) erst in einem ruhigen Zustand oder am Ende einer Runde oder
+    // der Partie, nicht mitten in einer Auflösung; beim Aufdecken hinter dessen Ankündigung, sonst
+    // vor der nächsten Ansage. Fallen mehrere zugleich aus, nennt ein einziges Band alle: Sonst
+    // stünden Bänder bis in die Rüstzeit
     const skips = showsSkips(next.state)
       ? fresh.filter((event) => event.type === 'ATTACK_SKIPPED')
       : [];
@@ -306,7 +308,9 @@ export function momentsBetween(
   }
   const myTurnStarts =
     next.state === 'pick' &&
-    (before === null || before.state !== 'pick' || before.lastSeq !== next.lastSeq);
+    (before === null ||
+      before.state !== 'pick' ||
+      (before.lastSeq !== next.lastSeq && !picksAgain(fresh, mySeat)));
   if (myTurnStarts) {
     const first = opening && next.kind === 'CAPITAL_PICK';
     moments.push({
@@ -319,6 +323,20 @@ export function momentsBetween(
     });
   }
   return moments;
+}
+
+/**
+ * Wählt derselbe Sitz gleich noch einmal (Landnahme mit mehreren Feldern), kam seit dem letzten
+ * Stand nur seine eigene Wahl dazu: Er ist schon dran, ein zweites „Du bist dran“ sagte nichts
+ * Neues (das Blatt zählt die Wahlen, `pickRun`). Hat der Server für ihn gewählt, weil die Zeit
+ * ablief, oder wählte dazwischen ein anderer, kommt das Band wieder.
+ */
+function picksAgain(fresh: readonly ParsedMatchEvent[], mySeat: number | null): boolean {
+  return (
+    mySeat !== null &&
+    fresh.length > 0 &&
+    fresh.every((event) => event.type === 'REGION_CLAIMED' && event.payload.seat === mySeat)
+  );
 }
 
 /** Ankündigungen der Partie mit Ausbau: Burgen, Startdörfer, Rüstzeit jeder Runde, Aufdecken. */

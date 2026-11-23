@@ -118,6 +118,35 @@ describe('Große Momente', () => {
       ).map((m) => m.title),
     ).toEqual(['Du bist dran!']);
   });
+
+  it('wer gleich noch einmal wählt, bekommt kein zweites „Du bist dran“ (Politur 2026-11-23)', () => {
+    const claimed = (seq: number, seat: number, type = 'REGION_CLAIMED') => {
+      const event = parseMatchEvent({
+        seq,
+        at: '2026-11-10T20:00:00.000Z',
+        type,
+        payload: type === 'AUTO_PICKED' ? { seat, region: 5 } : { round: 1, seat, region: 5 },
+      });
+      if (!event) throw new Error('Ereignis ungültig');
+      return event;
+    };
+    const again = (fresh: readonly ParsedMatchEvent[]) =>
+      momentsBetween(
+        snap({ state: 'pick', kind: 'LAND_PICK', lastSeq: 30 }),
+        snap({ state: 'pick', kind: 'LAND_PICK', lastSeq: 31 }),
+        fresh,
+        name,
+        4,
+        false,
+        null,
+        0,
+      ).map((m) => m.title);
+    // Nur die eigene Wahl kam dazu: Das Blatt zählt weiter („Region 2 von 2“), kein Band
+    expect(again([claimed(31, 0)])).toEqual([]);
+    // Wählte dazwischen ein anderer, oder wählte der Server, weil die Zeit ablief: wieder dran
+    expect(again([claimed(30, 1), claimed(31, 1)])).toEqual(['Du bist dran!']);
+    expect(again([claimed(31, 0), claimed(32, 0, 'AUTO_PICKED')])).toEqual(['Du bist dran!']);
+  });
 });
 
 describe('Auftakt der Partie aus der Aufstellung (ADR-081)', () => {
@@ -367,6 +396,22 @@ describe('Große Momente der Partie mit Ausbau', () => {
         [skipped(11, 2)],
       ).map((m) => m.title),
     ).toEqual(['Bot (leicht) setzt aus', 'Rüstzeit']);
+    // Im letzten Takt der letzten Auflösung einer Runde gilt schon das Ende (`ending`): Das Band
+    // steht über der Karte der Runde, die eben endet, und die Rüstzeit beginnt danach allein
+    expect(
+      run(
+        { state: 'reveal', kind: 'DUEL_TRIVIA', round: 2 },
+        { state: 'finished', kind: 'PREPARE', round: 3, lastSeq: 14 },
+        [skipped(11, 2)],
+      ).map((m) => m.title),
+    ).toEqual(['Bot (leicht) setzt aus']);
+    expect(
+      run(
+        { state: 'finished', kind: 'DUEL_TRIVIA', round: 2, lastSeq: 14 },
+        { state: 'prepare', kind: 'PREPARE', round: 3, lastSeq: 15 },
+        [],
+      ).map((m) => m.title),
+    ).toEqual(['Rüstzeit']);
     // Alle setzen aus: Das Aufgedeckte steht mit dem Schritt der nächsten Runde, deren Rüstzeit
     // wird danach eigens angekündigt
     expect(

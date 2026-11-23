@@ -37,7 +37,7 @@ interface Timed {
  * CSS-Animation des Bands bekommt dieselben Zeiten), danach der nächste. Während einer Frage wird
  * nichts gezeigt (ARCHITECTURE §15); Ankündigungen verfallen dann. „Du bist dran“ verfällt, sobald
  * die eigene Wahl vorbei ist, und rollt sich dann gleich ein. `ending`: Die letzte Auflösung der
- * Partie steht in ihrem letzten Takt, der Ausgang ist gespielt.
+ * Partie oder einer Runde steht in ihrem letzten Takt, der Ausgang ist gespielt.
  */
 export function useMoments(
   view: MatchView | null,
@@ -48,7 +48,8 @@ export function useMoments(
 ): ShownMoment | null {
   const previous = useRef<MomentSnapshot | null>(null);
   // Ausgefallene Angriffe, die während einer Auflösung kamen: Ihr Band folgt, sobald sie vorbei
-  // ist, nach dem letzten Duell der Partie über der Abrechnung; vor einer Frage verfallen sie
+  // ist, nach dem letzten Duell einer Runde oder der Partie schon in ihrem letzten Takt; vor einer
+  // Frage verfallen sie
   const held = useRef<readonly ParsedMatchEvent[]>([]);
   const shown = useRef(new Set<string>());
   const [queue, setQueue] = useState<readonly Moment[]>([]);
@@ -63,9 +64,9 @@ export function useMoments(
       if (state === 'lobby') previous.current = { state, kind: null, round: null, lastSeq };
       return;
     }
-    // Ist der letzte Ausgang gespielt, gilt für ausgefallene Angriffe schon das Ende der Partie:
-    // Ihr Band steht dann über der Karte, bevor die Abrechnung sie verdeckt (sonst stünde es unter
-    // ihr). Für alles andere ist es wie die Auflösung kein ruhiger Zustand
+    // Ist der letzte Ausgang einer Runde oder der Partie gespielt, gilt für ausgefallene Angriffe
+    // schon das Ende: Ihr Band steht dann über der Karte, bevor die Abrechnung sie verdeckt oder die
+    // Rüstzeit beginnt. Für alles andere ist es wie die Auflösung kein ruhiger Zustand
     const shownState: MatchScreenState = ending ? 'finished' : state;
     const next: MomentSnapshot = {
       state: shownState,

@@ -999,6 +999,170 @@ html.match-playing body {
   color: var(--muted);
 }
 
+/*
+ * Auflösung der Landnahme und der Startfrage (`RankedNext`): Was aus der Rangfolge folgt, schreibt
+ * sich ein, wenn auf der Karte die letzte Zeile der Rangfolge steht und ihr Ring läuft
+ * (`.reveal-rank`: ab `--reveal-at` 0,3 s, drei Zeilen je 0,13 s, also gegen 1 s), „Als Nächstes“
+ * kurz danach. Vorher stand hier unter dem Satz der Regel nur leeres Papier.
+ */
+.blatt > .ranked-in {
+  animation: ranked-in 0.32s 0.98s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.blatt > .ranked-order + .ranked-in {
+  animation-delay: 1.12s;
+}
+
+.blatt > .ranked-next {
+  animation: ranked-in 0.32s 1.26s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes ranked-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(5 * var(--u)));
+  }
+}
+
+.ranked-list li > span:last-child {
+  min-width: 0;
+}
+
+/* Noch freie Felder: ein leeres Feld in Tinte, wie die freien auf der Karte */
+.ranked-list .free-mark {
+  flex: none;
+  width: calc(17 * var(--u));
+  height: calc(17 * var(--u));
+  margin: 0 calc(0.5 * var(--u));
+  fill: color-mix(in srgb, var(--surface) 70%, var(--map-gold));
+  stroke: var(--muted);
+  stroke-linejoin: round;
+}
+
+.ranked-free {
+  color: var(--muted);
+}
+
+/* Reihenfolge der Burgen und Dörfer: zwei Zeilen Wappen mit ihrer Stelle, das eigene umringt */
+.ranked-order {
+  display: grid;
+  gap: calc(4 * var(--u));
+  margin: 0;
+  padding: calc(6 * var(--u)) calc(8 * var(--u));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: calc(8 * var(--u));
+}
+
+.ranked-order > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(8 * var(--u));
+}
+
+.ranked-order dt {
+  font-size: calc(12.5 * var(--u));
+  font-weight: 700;
+}
+
+.ranked-order dd {
+  margin: 0;
+}
+
+.ranked-order ol {
+  display: flex;
+  gap: calc(4 * var(--u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ranked-order li {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--u));
+  padding: calc(1 * var(--u)) calc(4 * var(--u)) calc(1 * var(--u)) calc(3 * var(--u));
+  border: 1px solid transparent;
+  border-radius: calc(11 * var(--u));
+}
+
+.ranked-order li.me {
+  background: color-mix(in srgb, var(--map-gold) 17%, var(--surface));
+  border-color: var(--map-gold);
+}
+
+.ranked-order .ranked-at {
+  min-width: calc(8 * var(--u));
+  font-size: calc(11 * var(--u));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.ranked-order .crest {
+  width: calc(18 * var(--u));
+  height: auto;
+}
+
+/* Mehrere Wahlen nacheinander (Landnahme): Marken der eigenen Wahlen unter der Überschrift */
+.pick-run {
+  display: flex;
+  align-items: center;
+  gap: calc(7 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  font-weight: 700;
+}
+
+.pick-run-marks {
+  display: inline-flex;
+  gap: calc(4 * var(--u));
+}
+
+.pick-run-mark {
+  --seat: var(--seat-0);
+  width: calc(11 * var(--u));
+  height: calc(11 * var(--u));
+  border: calc(2 * var(--u)) solid var(--seat);
+  border-radius: 50%;
+  background: var(--surface);
+  transition:
+    background-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.pick-run.seat-1 .pick-run-mark {
+  --seat: var(--seat-1);
+}
+
+.pick-run.seat-2 .pick-run-mark {
+  --seat: var(--seat-2);
+}
+
+.pick-run-mark.done {
+  background: var(--seat);
+}
+
+.pick-run-mark.now {
+  background: color-mix(in srgb, var(--seat) 35%, var(--surface));
+  box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--map-gold) 70%, transparent);
+}
+
+.pick-run-mark.next {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blatt > .ranked-in,
+  .blatt > .ranked-next {
+    animation: none;
+  }
+
+  .pick-run-mark {
+    transition: none;
+  }
+}
+
 /* Wer gegen wen, worum */
 .blatt .duel-head {
   gap: calc(4 * var(--u));

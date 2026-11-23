@@ -75,24 +75,38 @@ function noop() {
   // Ablauf der Rüstzeit: Den nächsten Schritt bringt die Abfrage
 }
 
-/** Über so vielen Befehlen zeigen Bauten nur noch ihr Zeichen, damit mehr in die eine Zeile passen. */
+/**
+ * Über so vielen Befehlen zeigen Bauten nur noch ihr Zeichen, damit mehr in die eine Zeile passen.
+ * Auf einer schmalen Bühne rücken sie schon früher zusammen, sobald die Zeile überläuft.
+ */
 const DENSE_FROM = 3;
 
 /**
- * Die Befehle stehen in einer einzigen Zeile, damit das Blatt nie wächst. Passen nicht alle hinein,
- * lässt sich die Zeile seitlich schieben: Ein neuer Befehl rückt von selbst ins Bild, und die Ränder
- * blenden aus, wo noch etwas folgt.
+ * Die Befehle stehen in einer einzigen Zeile, damit das Blatt nie wächst. Läuft sie über, rücken
+ * die Plättchen zusammen (`dense`), statt dass das erste schon bei drei Befehlen halb unter dem Rand
+ * verschwindet. Passen dann noch nicht alle hinein, lässt sich die Zeile seitlich schieben: Ein
+ * neuer Befehl rückt von selbst ins Bild, und die Ränder blenden aus, wo noch etwas folgt.
  */
 function useOrderStrip(count: number) {
   const ref = useRef<HTMLUListElement>(null);
   // Am Ende angeheftet, bis der Spieler die Zeile selbst zurückschiebt
   const pinned = useRef(true);
   const [edge, setEdge] = useState({ left: false, right: false });
+  // Ab so vielen Befehlen lief die Zeile in voller Breite über. Es bleibt dabei, bis es weniger
+  // werden: Zusammengerückt passt sie ja, und sie soll nicht zwischen beiden Formen springen
+  const [crowdedFrom, setCrowdedFrom] = useState<number | null>(null);
+  const dense = count > DENSE_FROM || (crowdedFrom !== null && count >= crowdedFrom);
   const measure = () => {
     const el = ref.current;
     if (!el) return;
     const left = el.scrollLeft > 1;
     const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    if ((left || right) && !el.classList.contains('dense')) {
+      // Noch in voller Breite und schon zu lang: zusammenrücken, noch ehe das Bild steht
+      const crowded = el.children.length;
+      setCrowdedFrom((now) => (now !== null && now <= crowded ? now : crowded));
+      return;
+    }
     pinned.current = !right;
     setEdge((now) => (now.left === left && now.right === right ? now : { left, right }));
   };
@@ -101,7 +115,7 @@ function useOrderStrip(count: number) {
     if (el) el.scrollLeft = el.scrollWidth;
     measure();
   };
-  useLayoutEffect(toEnd, [count]);
+  useLayoutEffect(toEnd, [count, dense]);
   // Die Maße der Bühne stehen erst nach dem ersten Bild fest und ändern sich beim Drehen
   const empty = count === 0;
   useEffect(() => {
@@ -112,7 +126,7 @@ function useOrderStrip(count: number) {
     return () => observer.disconnect();
     // Die Liste gibt es nur mit Befehlen: neu beobachten, wenn sie entsteht
   }, [empty]);
-  return { ref, edge, measure };
+  return { ref, edge, measure, dense };
 }
 
 /** `true` ab dem zweiten Rendern: Was beim Aufbau des Blatts schon dasteht, bewegt sich nicht. */
@@ -569,7 +583,7 @@ export function PreparePanel({
           <ul
             ref={strip.ref}
             data-testid="prepare-orders"
-            className={chips.length > DENSE_FROM ? 'dense' : undefined}
+            className={strip.dense ? 'dense' : undefined}
             data-left={strip.edge.left ? 'true' : undefined}
             data-right={strip.edge.right ? 'true' : undefined}
             onScroll={strip.measure}

@@ -580,6 +580,8 @@ export const de = {
         CAPITAL_PICK: 'Wähle deine Hauptstadt',
         LAND_PICK: 'Wähle eine Region',
         CAMPAIGN_TARGET: 'Wähle dein Angriffsziel',
+        /** Landnahme: dieselbe Wahl gleich noch einmal. */
+        again: 'Wähle noch eine Region',
       },
       wait: {
         CAPITAL_PICK: 'Hauptstadtwahl',
@@ -743,6 +745,28 @@ export const de = {
       ranking: '{place}. {name}: {picks}',
       picks: { one: 'wählt {count} Region', other: 'wählt {count} Regionen' },
       noPicks: 'wählt keine Region',
+    },
+    /** Blatt rechts in der Auflösung der Landnahme: was aus der Rangfolge folgt. */
+    ranked: {
+      first: {
+        one: 'Du wählst zuerst: {count} Region',
+        other: 'Du wählst zuerst: {count} Regionen',
+      },
+      after: {
+        one: 'Du wählst {count} Region nach {names}',
+        other: 'Du wählst {count} Regionen nach {names}',
+      },
+      none: 'Du wählst diesmal keine Region',
+      noneSilent: 'Ohne Schätzung wählst du diesmal keine Region',
+      lead: {
+        one: '{name} wählt zuerst: {count} Region',
+        other: '{name} wählt zuerst: {count} Regionen',
+      },
+      free: { one: 'Noch {count} Region ist frei', other: 'Noch {count} Regionen sind frei' },
+      and: ' und ',
+      nextMe: 'Du wählst',
+      next: '{name} wählt',
+      run: 'Region {nth} von {of}',
     },
     duel: {
       CONQUERED: '{attacker} erobert {region} von {defender}.',
@@ -911,6 +935,7 @@ export const de = {
       VILLAGE_PICK: 'Setze dein Dorf',
       LAND_PICK: 'Wähle ein Feld',
       CAMPAIGN_TARGET: 'Dein Angriff',
+      again: 'Wähle noch ein Feld',
       wait: { CASTLE_PICK: 'Burgen', VILLAGE_PICK: 'Startdörfer' },
       castle: 'Du bist dran: Setze deine Burg.',
       village: 'Du bist dran: Setze dein Dorf.',
@@ -1109,6 +1134,33 @@ export const de = {
       startRank: '{place}. {name}',
       first: 'setzt zuerst',
       later: 'setzt als {place}.',
+      picks: { one: 'wählt {count} Feld', other: 'wählt {count} Felder' },
+      noPicks: 'wählt kein Feld',
+    },
+    /** Blatt rechts in der Auflösung der Startfrage und der Landnahme: was aus der Rangfolge folgt. */
+    ranked: {
+      first: { one: 'Du wählst zuerst: {count} Feld', other: 'Du wählst zuerst: {count} Felder' },
+      after: {
+        one: 'Du wählst {count} Feld nach {names}',
+        other: 'Du wählst {count} Felder nach {names}',
+      },
+      none: 'Du wählst diesmal kein Feld',
+      noneSilent: 'Ohne Schätzung wählst du diesmal kein Feld',
+      lead: {
+        one: '{name} wählt zuerst: {count} Feld',
+        other: '{name} wählt zuerst: {count} Felder',
+      },
+      free: { one: 'Noch {count} Feld ist frei', other: 'Noch {count} Felder sind frei' },
+      run: 'Feld {nth} von {of}',
+      posFirst: 'zuerst',
+      posSecond: 'an zweiter Stelle',
+      posLast: 'zuletzt',
+      start: 'Du setzt deine Burg {castle} und dein Dorf {village}',
+      startSame: 'Du setzt Burg und Dorf {order}',
+      castles: 'Burgen',
+      villages: 'Dörfer',
+      nextCastleMe: 'Du setzt deine Burg',
+      nextCastle: '{name} setzt eine Burg',
     },
     outcome: {
       title: {
