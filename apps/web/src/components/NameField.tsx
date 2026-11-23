@@ -30,8 +30,22 @@ export interface NameCheckState {
   /** Antwort des Servers für genau diesen Namen; `null`, solange sie fehlt. */
   readonly status: NameCheckStatus | null;
   readonly checking: boolean;
-  /** Merkt sich ein Ergebnis, das anders bekannt wurde (Ideen, Fehler beim Absenden). */
+  /** Merkt sich ein Ergebnis vom Absenden (vergeben, nicht erlaubt); es gilt vor allem anderen. */
   readonly remember: (name: string, status: NameCheckStatus) => void;
+  /** Merkt sich ein Ergebnis nur, wenn zu dem Namen noch keines bekannt ist (Prüfung, Ideen). */
+  readonly learn: (name: string, status: NameCheckStatus) => void;
+}
+
+/**
+ * Eine Antwort der Prüfung oder eine Liste von Ideen kann älter sein als ein Ergebnis, das
+ * inzwischen anders bekannt wurde (etwa „vergeben“ beim Absenden): Dann bleibt das bekannte.
+ */
+export function learnStatus(
+  known: ReadonlyMap<string, NameCheckStatus>,
+  name: string,
+  status: NameCheckStatus,
+): ReadonlyMap<string, NameCheckStatus> {
+  return known.has(name) ? known : new Map(known).set(name, status);
 }
 
 /** Prüft den getippten Namen: erst die Regeln, dann (verzögert) beim Server. */
@@ -46,10 +60,8 @@ export function useNameCheck(raw: string): NameCheckState {
   const remember = useCallback((key: string, status: NameCheckStatus) => {
     setKnown((previous) => new Map(previous).set(key, status));
   }, []);
-  // Die Antwort der Prüfung kann älter sein als ein Ergebnis, das inzwischen anders bekannt wurde
-  // (etwa „vergeben“ beim Absenden): Dann überschreibt sie es nicht.
   const learn = useCallback((key: string, status: NameCheckStatus) => {
-    setKnown((previous) => (previous.has(key) ? previous : new Map(previous).set(key, status)));
+    setKnown((previous) => learnStatus(previous, key, status));
   }, []);
 
   useEffect(() => {
@@ -77,6 +89,7 @@ export function useNameCheck(raw: string): NameCheckState {
     // Auch die Wartezeit vor der Frage zählt: Sonst stünde kurz der Hinweis statt „wird geprüft“
     checking: problem === null && cached === undefined && failed !== name,
     remember,
+    learn,
   };
 }
 
@@ -132,12 +145,12 @@ function verdict(check: NameCheckState, showAll: boolean): { tone: Tone; text: s
 function NameIdeas({
   chosen,
   onPick,
-  remember,
+  learn,
 }: {
   /** Der Name im Feld: Ist er eine der Ideen, ist sie hervorgehoben. */
   readonly chosen: string;
   readonly onPick: (name: string) => void;
-  readonly remember: NameCheckState['remember'];
+  readonly learn: NameCheckState['learn'];
 }) {
   const [ideas, setIdeas] = useState<readonly string[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -151,7 +164,7 @@ function NameIdeas({
       const { suggestions } = await api.playerNames();
       if (current !== latest.current) return;
       const names = suggestions.slice(0, IDEA_COUNT).map((s) => s.name);
-      for (const name of names) remember(name, 'FREE');
+      for (const name of names) learn(name, 'FREE');
       setIdeas(names);
       setBatch((n) => n + 1);
     } catch {
@@ -160,7 +173,7 @@ function NameIdeas({
     } finally {
       if (current === latest.current) setLoading(false);
     }
-  }, [remember]);
+  }, [learn]);
 
   useEffect(() => {
     void load();
@@ -245,7 +258,7 @@ export function NameField({
       <p id={lineId} className="name-line" aria-live="polite" data-testid="name-line">
         {line.text}
       </p>
-      {ideas ? <NameIdeas chosen={check.name} onPick={onChange} remember={check.remember} /> : null}
+      {ideas ? <NameIdeas chosen={check.name} onPick={onChange} learn={check.learn} /> : null}
     </div>
   );
 }
