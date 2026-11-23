@@ -75,7 +75,7 @@ import {
   useAfterImpact,
   useBlattTurn,
 } from './stage-live.ts';
-import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
+import { StageQuestion, WatchedQuestionCard, watchedSeats } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
 import { useMoments } from './useMoments.ts';
@@ -607,6 +607,7 @@ export function RealmStage({
         key={watching.seq}
         question={watching.question}
         deadline={watching.deadline}
+        who={watchedSeats(view.question, step.attacker)}
         category={step.kind === 'DUEL_TRIVIA' ? step.category : null}
       />
     );

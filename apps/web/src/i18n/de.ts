@@ -580,6 +580,8 @@ export const de = {
       thinkingMe: 'überlegst',
       answered: '✓ hat geantwortet',
       answeredMe: '✓ abgegeben',
+      right: 'richtig',
+      wrong: 'falsch',
     },
     question: {
       land: 'Landnahme, Runde {round}: Wer am genauesten schätzt, wählt zuerst.',

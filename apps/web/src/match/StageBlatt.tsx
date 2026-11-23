@@ -289,6 +289,10 @@ export function StageBlatt({
             // Duell: erst die Antworten (ADR-069). Bei Gleichstand steht in der Mitte, was daraus folgt
             <DuelHeader view={view} name={name} region={region} />
           )}
+          {/* An derselben Stelle wie während der Frage: Die Liste deckt auf, wer was gab */}
+          {land ? null : (
+            <Answers view={view} local={local} short={shortNames(view)} reveal={reveal} />
+          )}
           {phaseTimer(timers.revealMs, true)}
         </>,
       );
