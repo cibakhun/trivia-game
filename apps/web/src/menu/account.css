@@ -1017,6 +1017,11 @@ button.acct-row {
   gap: calc(6 * var(--u));
 }
 
+/* Platz für das Schildchen „bisher“, das über dem ersten Schild hängt */
+.name-chip-grid:has(.name-chip.old) {
+  padding-top: calc(7 * var(--u));
+}
+
 .name-chip {
   position: relative;
   display: grid;
