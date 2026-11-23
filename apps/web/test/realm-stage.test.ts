@@ -2004,11 +2004,15 @@ describe('Bühne der Partie mit Ausbau', () => {
       expect(steps(asked)[2]?.tag).toContain('class="now"');
     });
 
-    it('fehlt vor dem Start und in der Abrechnung', () => {
+    it('fehlt vor dem Start und bleibt in der Abrechnung stehen, alle Abschnitte erledigt', () => {
       expect(stage(lobbyView(null))).not.toContain('data-testid="match-flow"');
       const view = realmViewOf({ step: { kind: 'FINISHED', round: null } }, { phase: null });
       const done = stage({ ...view, match: { ...view.match, status: 'FINISHED' } });
-      expect(done).not.toContain('data-testid="match-flow"');
+      // Sonst rückten die Tafeln darunter im Augenblick der Abrechnung nach oben
+      const tags = steps(done).map((s) => s.tag);
+      expect(tags).toHaveLength(3);
+      for (const tag of tags) expect(tag).toContain('class="done"');
+      expect(done).not.toContain('aria-current="step"');
     });
   });
 

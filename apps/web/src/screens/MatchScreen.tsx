@@ -1,13 +1,6 @@
 import type { MatchBotStrengthCode, QuestionCategory, RealmOrderDto } from '@rdw/protocol';
 import { useEffect, useRef, useState } from 'react';
-import {
-  ActionKey,
-  ApiRequestError,
-  NetworkError,
-  api,
-  isTransientError,
-  newActionKey,
-} from '../api/client.ts';
+import { ActionKey, ApiRequestError, api, isTransientError, newActionKey } from '../api/client.ts';
 import { playSound } from '../audio/sound.ts';
 import {
   countedAnswer,
@@ -79,8 +72,10 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
         });
       })
       .catch((e: unknown) => {
-        if (e instanceof NetworkError) {
-          // Nächste Abfrage versucht es erneut
+        if (isTransientError(e)) {
+          // Kein Netz oder der Server stolpert (5xx, 429): Die nächste Abfrage versucht es erneut,
+          // statt die Frage als verpasst zu zählen. Wiederholen ist sicher, denn wer sie schon hat,
+          // bekommt dieselbe Frage mit der Restzeit des Servers
           presenting.current = null;
           return;
         }

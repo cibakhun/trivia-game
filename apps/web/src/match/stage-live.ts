@@ -183,3 +183,31 @@ function motionReduced(): boolean {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
 }
+
+/**
+ * Brücke zwischen zwei Blättern in der Mitte: Geht ein Blatt (`value` wird `null`), während das
+ * nächste noch unterwegs ist (`waiting`), bleibt sein letztes Bild stehen, bis das nächste kommt,
+ * höchstens aber `maxMs`. So steht das Glücksrad, bis die Fragekarte vom Server da ist, statt dass
+ * für die Dauer einer Anfrage die leere Karte aufblitzt. Ohne `waiting` gilt sofort `value`, und
+ * ein altes Bild kehrt nie zurück: Wer nicht mehr wartet, vergisst es.
+ */
+export function useBridge<T extends { readonly key: string }>(
+  value: T | null,
+  waiting: boolean,
+  maxMs: number,
+): T | null {
+  const last = useRef<T | null>(null);
+  const [expired, setExpired] = useState<string | null>(null);
+  useEffect(() => {
+    if (value !== null) last.current = value;
+    else if (!waiting) last.current = null;
+  });
+  const held = value === null && waiting ? last.current : null;
+  const holding = held !== null && held.key !== expired ? held.key : null;
+  useEffect(() => {
+    if (holding === null) return;
+    const timer = setTimeout(() => setExpired(holding), maxMs);
+    return () => clearTimeout(timer);
+  }, [holding, maxMs]);
+  return value ?? (holding !== null ? held : null);
+}

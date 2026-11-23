@@ -74,6 +74,7 @@ import {
   StageLive,
   useAfterImpact,
   useBlattTurn,
+  useBridge,
 } from './stage-live.ts';
 import { StageQuestion, WatchedQuestionCard, watchedSeats } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
@@ -100,6 +101,11 @@ const WHEEL_SPIN_SHARE = 0.65;
 /** Das Zeichen der gezogenen Kategorie hebt kurz nach dem Stillstand ab und fliegt so lange. */
 const WHEEL_FLY_AFTER_MS = 90;
 const WHEEL_FLY_MS = 480;
+/**
+ * So lange bleibt das stehende Rad höchstens, wenn die Fragekarte danach noch unterwegs ist (die
+ * eigene kommt erst mit der Antwort auf die Anfrage, die zum Mitlesen ebenso).
+ */
+const WHEEL_BRIDGE_MS = 2000;
 /** So lange vor Ablauf der Rüstzeit gibt der Browser einen offenen Entwurf von selbst ab. */
 const AUTO_SUBMIT_MS = 1500;
 
@@ -212,7 +218,10 @@ export function RealmStage({
 
   const name = useMemo(() => (view ? seatNames(view) : () => ''), [view]);
   const region = useMemo(() => (play ? regionNames(play.map) : () => ''), [play]);
-  const moment = useMoments(view, state, events, name);
+  // Letzter Takt der letzten Auflösung: Der Ausgang ist gespielt, gleich kommt die Abrechnung
+  const ending =
+    state === 'reveal' && (beat === null || beat === 'settled') && step?.kind === 'FINISHED';
+  const moment = useMoments(view, state, events, name, ending);
   useMatchSounds(view, state, events);
   const reveal = useMemo(
     () => (state === 'reveal' && view?.question ? revealFor(events, view.question.seq) : null),
@@ -230,12 +239,13 @@ export function RealmStage({
   // ---- Wechsel am Rand (stage-live.ts): Der Spielstand folgt dem Schlag des Duells, Band und
   // Ablauf oben links bleiben bis zum Ende der Auflösung bei dessen Runde, das Blatt schlägt um ----
   const decided = state === 'reveal' && beat !== null && !late ? seq : null;
-  const railView = useAfterImpact(
-    view,
-    beat === 'outcome' ? decided : null,
-    impactHoldMs(view?.match.timers.revealMs ?? 0),
-  );
+  const impactHold = impactHoldMs(view?.match.timers.revealMs ?? 0);
+  const railView = useAfterImpact(view, beat === 'outcome' ? decided : null, impactHold);
   const railPlay = useMemo(() => realmPlayOf(railView), [railView]);
+  // Auch das Blatt rechts schlägt erst mit dem Schlag auf den Ausgang um: Bis dahin steht seine
+  // Seite der Antworten mit dem Stand davor weiter da, statt leer auf ihn zu warten
+  const blattHeld = railView !== view && railView !== null && railPlay !== null;
+  const blattDuel = blattHeld ? null : realmDuel;
   const calmView = useAfterImpact(view, decided, Number.POSITIVE_INFINITY);
   const calmPlay = useMemo(() => realmPlayOf(calmView), [calmView]);
   const page = useBlattTurn(
@@ -243,7 +253,7 @@ export function RealmStage({
       state,
       step,
       seq,
-      realmDuel !== null,
+      blattDuel !== null,
       state === 'announce' ? (shownPick(events)?.type ?? null) : null,
     ),
     live,
@@ -401,6 +411,24 @@ export function RealmStage({
   const flyMs = Math.min(WHEEL_FLY_MS, Math.round(wheelMs * 0.16));
   const flyAtMs = spinMs - spunMs + WHEEL_FLY_AFTER_MS;
   const catching = live && landed !== null && flyAtMs > 0 && flyMs >= 150;
+  // Das Rad bleibt stehen, bis die Fragekarte da ist: Sonst blitzte zwischen Rad und Karte für die
+  // Dauer der Anfrage die leere Karte auf, und der Schleier ginge kurz aus und wieder an
+  const wheelNow =
+    wheelKey !== null && step?.wheel && step.attacker !== null
+      ? {
+          key: wheelKey,
+          wheel: step.wheel,
+          attacker: step.attacker,
+          defender: step.defender,
+          landed: step.category,
+          exhausted: lastOf(events, 'WHEEL_SPUN')?.payload.exhausted ?? [],
+          spinMs,
+          spunMs,
+        }
+      : null;
+  const cardOnItsWay =
+    state === 'presenting' || (state === 'spectating' && (watched === null || watched.seq !== seq));
+  const shownWheel = useBridge(wheelNow, cardOnItsWay, WHEEL_BRIDGE_MS);
   const wheelPlans = useMemo<readonly FlightPlan[]>(
     () =>
       catching && landed !== null && wheelKey !== null
@@ -611,20 +639,20 @@ export function RealmStage({
         category={step.kind === 'DUEL_TRIVIA' ? step.category : null}
       />
     );
-  } else if (state === 'wheel' && step.wheel && step.attacker !== null) {
+  } else if (shownWheel) {
     disc = true;
     sheetKind = 'wheel';
     sheet = (
       <div className="wheel-sheet" data-testid="match-wheel-disc">
         <Wheel
-          key={wheelKey}
-          wheel={step.wheel}
-          attacker={step.attacker}
-          defender={step.defender}
-          landed={step.category}
-          exhausted={lastOf(events, 'WHEEL_SPUN')?.payload.exhausted ?? []}
-          spinMs={spinMs}
-          elapsedMs={spunMs}
+          key={shownWheel.key}
+          wheel={shownWheel.wheel}
+          attacker={shownWheel.attacker}
+          defender={shownWheel.defender}
+          landed={shownWheel.landed}
+          exhausted={shownWheel.exhausted}
+          spinMs={shownWheel.spinMs}
+          elapsedMs={shownWheel.spunMs}
         />
       </div>
     );
@@ -781,8 +809,8 @@ export function RealmStage({
           />
         ) : (
           <RealmBlatt
-            view={view}
-            play={play}
+            view={blattHeld && railView ? railView : view}
+            play={blattHeld && railPlay ? railPlay : play}
             state={state}
             local={local}
             watching={watching !== null}
@@ -791,7 +819,7 @@ export function RealmStage({
             busy={sending}
             events={events}
             reveal={reveal}
-            outcome={realmDuel}
+            outcome={blattDuel}
             catching={catching}
             error={actionError}
             name={name}

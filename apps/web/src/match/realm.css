@@ -1318,6 +1318,11 @@ span.order-chip {
   min-width: 0;
   font-weight: 700;
   white-space: nowrap;
+}
+
+/* Der Name allein kürzt sich mit Auslassungspunkten; das Wappen bleibt ganz */
+.lot-name {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1338,11 +1343,14 @@ span.order-chip {
 
 .pips {
   display: inline-flex;
-  flex-wrap: wrap;
   gap: calc(2 * var(--u));
+  min-width: 0;
 }
 
+/* Viele Lose brechen nicht in eine zweite Zeile um: Die Striche werden schmaler */
 .pips i {
+  flex: 0 1 calc(7 * var(--u));
+  min-width: calc(3 * var(--u));
   width: calc(7 * var(--u));
   height: calc(13 * var(--u));
   border-radius: calc(2 * var(--u));
@@ -1375,6 +1383,8 @@ span.order-chip {
 
 .duel-box {
   display: grid;
+  /* Eine Spalte so breit wie das Blatt: Lange Namen kürzen sich, statt es zu sprengen */
+  grid-template-columns: minmax(0, 1fr);
   gap: calc(3 * var(--u));
   padding-bottom: calc(7 * var(--u));
   border-bottom: 1px solid transparent;
@@ -1401,9 +1411,40 @@ span.order-chip {
 }
 
 .duel-who strong {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Zu lange Namen für eine Zeile (`DuelBox` misst): Angreifer oben, darunter der Verteidiger, die
+   Wappen in einer Flucht, die Schwerter davor. Jeder Name hat so fast die ganze Breite des Blatts */
+.duel-box.stacked .duel-box-sides {
+  display: grid;
+  grid-template-columns: calc(15 * var(--u)) minmax(0, 1fr);
+  align-items: center;
+  column-gap: calc(4 * var(--u));
+  row-gap: calc(3 * var(--u));
+  font-size: calc(13.5 * var(--u));
+}
+
+.duel-box.stacked .duel-who {
+  grid-column: 2;
+}
+
+.duel-box.stacked .swords-icon {
+  grid-column: 1;
+  grid-row: 2;
+  width: calc(15 * var(--u));
+}
+
+/* Untereinander darf ein Name noch einmal umbrechen, höchstens auf zwei Zeilen */
+.duel-box.stacked .duel-who strong {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.1;
+  white-space: normal;
 }
 
 .duel-who .crest {
