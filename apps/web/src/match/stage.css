@@ -3904,8 +3904,9 @@ html.match-playing body {
 }
 
 /* Beginnt die Partie mit einer Frage (Startfrage mit Ausbau), steht das Blatt mit dem Ziffernfeld
-   sofort: Die Antwortzeit läuft schon */
-.stage.opening:not([data-state='question']) > .stage-right > :is(.blatt, .blatt-ring) {
+   sofort: Die Antwortzeit läuft schon. Die Art des Auftakts steht ab seinem Beginn fest, damit die
+   eigene Abgabe während des Auftakts das Blatt nicht noch einmal ausblendet */
+.stage.opening-stage > .stage-right > :is(.blatt, .blatt-ring) {
   animation: opening-blatt 440ms cubic-bezier(0.2, 0.7, 0.3, 1) 720ms backwards;
 }
 

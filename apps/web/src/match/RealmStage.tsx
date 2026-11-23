@@ -708,7 +708,7 @@ export function RealmStage({
   const scene = (
     <main
       ref={stage}
-      className={`stage stage-realm${opening ? ' opening' : ''}`}
+      className={`stage stage-realm${opening ? ` opening opening-${opening}` : ''}`}
       style={style}
       {...attributes}
     >

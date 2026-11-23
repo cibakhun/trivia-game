@@ -284,7 +284,11 @@ export function MatchStage({
   const closed = state === 'finished' || state === 'abandoned';
 
   const scene = (
-    <main ref={stage} className={`stage${opening ? ' opening' : ''}`} {...attributes}>
+    <main
+      ref={stage}
+      className={`stage${opening ? ` opening opening-${opening}` : ''}`}
+      {...attributes}
+    >
       {opening ? <OpeningCover /> : null}
       <div className="stage-map">
         <MatchBoard

@@ -45,10 +45,26 @@ export function useBorn(): boolean {
  */
 export const OPENING_MS = 1400;
 
-/** Was die Seite vom Auftakt weiß: ob sie die Aufstellung zeigt und ob der Auftakt gerade läuft. */
+/**
+ * Wie der Auftakt beginnt: über der Bühne oder mit einer Frage, deren Antwortzeit schon läuft
+ * (Startfrage mit Ausbau). Beim Wechsel aus der Aufstellung festgelegt, damit ein Zustandswechsel
+ * während des Auftakts (etwa die eigene Abgabe) keine Bewegung neu startet.
+ */
+export type OpeningKind = 'stage' | 'question';
+
+/** Zustände, in denen eine Frage läuft oder gerade kommt. */
+const QUESTION_STATES: ReadonlySet<MatchScreenState> = new Set([
+  'presenting',
+  'question',
+  'answered',
+  'missed',
+  'spectating',
+]);
+
+/** Was die Seite vom Auftakt weiß: ob sie die Aufstellung zeigt und welcher Auftakt gerade läuft. */
 export interface OpeningSeen {
   readonly lobby: boolean;
-  readonly opening: boolean;
+  readonly opening: OpeningKind | null;
 }
 
 /**
@@ -62,26 +78,27 @@ export function openingAfter(
   still: () => boolean,
 ): OpeningSeen {
   if (state === 'lobby')
-    return seen.lobby && !seen.opening ? seen : { lobby: true, opening: false };
+    return seen.lobby && seen.opening === null ? seen : { lobby: true, opening: null };
   if (!seen.lobby || state === 'loading') return seen;
-  return { lobby: false, opening: state !== 'abandoned' && !still() };
+  if (state === 'abandoned' || still()) return { lobby: false, opening: null };
+  return { lobby: false, opening: QUESTION_STATES.has(state) ? 'question' : 'stage' };
 }
 
 /**
- * `true` für die Dauer des Auftakts (ADR-081): Diese Seite hat die Aufstellung gezeigt, und die
+ * Der laufende Auftakt (ADR-081), sonst `null`: Diese Seite hat die Aufstellung gezeigt, und die
  * Partie hat eben begonnen. Wer mitten in die Partie lädt, sieht keinen Auftakt, mit „Bewegung
  * reduzieren“ auch nicht; ein Abbruch vor dem Start ist keiner. Beim Wechsel festgelegt (Merken
  * während des Renderns), danach läuft nur noch die Zeit.
  */
-export function useOpening(state: MatchScreenState): boolean {
-  const [seen, setSeen] = useState<OpeningSeen>({ lobby: state === 'lobby', opening: false });
+export function useOpening(state: MatchScreenState): OpeningKind | null {
+  const [seen, setSeen] = useState<OpeningSeen>({ lobby: state === 'lobby', opening: null });
   const now = openingAfter(seen, state, motionReduced);
   if (now !== seen) setSeen(now);
   const opening = now.opening;
   useEffect(() => {
     if (!opening) return;
     const timer = setTimeout(
-      () => setSeen((current) => (current.opening ? { ...current, opening: false } : current)),
+      () => setSeen((current) => (current.opening ? { ...current, opening: null } : current)),
       OPENING_MS,
     );
     return () => clearTimeout(timer);
