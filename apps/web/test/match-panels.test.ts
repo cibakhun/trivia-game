@@ -32,6 +32,12 @@ function chipsIn(html: string): number[] {
   return [...html.matchAll(/class="seat-chip seat-(\d)"/g)].map((m) => Number(m[1]));
 }
 
+/** Sitze, deren Wappen an der Buchstaben-Münze eines Antwortfelds stecken, von links nach rechts. */
+function crestsAt(row: string): number[] {
+  const who = /<span class="reveal-who[^"]*">([\s\S]*?)<\/span>/.exec(row)?.[1] ?? '';
+  return [...who.matchAll(/class="crest seat-(\d)"/g)].map((m) => Number(m[1]));
+}
+
 /** Stempel eines Antwortfelds: Haken (richtig), Kreuz (falsch gewählt) oder keiner. */
 function stampOf(row: string): string | null {
   return /class="reveal-stamp (right|wrong)"/.exec(row)?.[1] ?? null;
@@ -158,8 +164,11 @@ describe('Auflösung: wer was geantwortet hat', () => {
       5,
     );
     const rows = rowsOf(html);
-    // Im Feld steht kein Name und kein Wappen: Wer es wählte, sagt die Farbe (ADR-070 Punkt 9)
+    // Im Feld steht kein Name: Wer es wählte, sagt die Farbe (ADR-070 Punkt 9) und ein kleines
+    // Wappen an der Münze (ADR-078), damit es auch ohne Farbsinn und für Zuschauer eindeutig ist
     expect(rows.map((row) => chipsIn(row))).toEqual([[], [], [], []]);
+    expect(rows.map(crestsAt)).toEqual([[], [2], [], [1]]);
+    expect(rows[1]).toContain('class="reveal-who"');
     expect(rows.map((row) => /class="reveal-option([^"]*)"/.exec(row)?.[1]?.trim())).toEqual([
       '',
       'correct chosen',
@@ -212,6 +221,9 @@ describe('Auflösung: wer was geantwortet hat', () => {
       5,
     );
     expect(rowsOf(both).map((row) => chipsIn(row))).toEqual([[], [], [], []]);
+    // Zwei Wappen an derselben Münze: links der Angreifer, rechts der Verteidiger
+    expect(rowsOf(both).map(crestsAt)).toEqual([[], [2, 1], [], []]);
+    expect(rowsOf(both)[1]).toContain('class="reveal-who shared"');
     // Beide teilen sich das Feld zu gleichen Teilen, der Angreifer links wie im Kopf des Duells
     expect(rowsOf(both).map(fillOf)).toEqual([[], [2, 1], [], []]);
     expect(answerOf(rowsOf(both)[1] ?? '')).toBe(
@@ -238,6 +250,8 @@ describe('Auflösung: wer was geantwortet hat', () => {
       5,
     );
     expect(rowsOf(silent).map((row) => chipsIn(row))).toEqual([[], [], [], []]);
+    // Wer schwieg, steckt an keiner Münze; die richtige, nicht gewählte Antwort bleibt ohne Wappen
+    expect(rowsOf(silent).map(crestsAt)).toEqual([[], [], [2], []]);
     expect(answerOf(rowsOf(silent)[2] ?? '')).toBe('Rot, gewählt von Bot (schwer)');
     // Die richtige Antwort wählte niemand: Sie bleibt ohne Farbe, ist aber als richtig markiert
     expect(rowsOf(silent).map(fillOf)).toEqual([[], [], [2], []]);
