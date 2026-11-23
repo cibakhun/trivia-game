@@ -48,7 +48,7 @@ import {
   useBorn,
   useLive,
 } from './stage-live.ts';
-import { StageQuestion, WatchedQuestionCard } from './StageQuestion.tsx';
+import { StageQuestion, WatchedQuestionCard, watchedSeats } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
 import { useMoments, type ShownMoment } from './useMoments.ts';
@@ -250,6 +250,7 @@ export function MatchStage({
         key={watching.seq}
         question={watching.question}
         deadline={watching.deadline}
+        who={watchedSeats(view.question, view.board?.step.attacker ?? null)}
       />
     );
   } else if (state === 'reveal' && reveal && answering) {

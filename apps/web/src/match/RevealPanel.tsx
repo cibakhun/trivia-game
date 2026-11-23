@@ -19,9 +19,10 @@ import { QuestionKind } from './StageQuestion.tsx';
  *
  * Wissensfrage: Jede Antwort ist ein Feld wie auf der Vorderseite, die Antwort steht in seiner
  * Mitte. Links sitzt die Münze mit dem Buchstaben aus der Frage; auf sie setzt sich der Stempel
- * (richtig oder falsch gewählt). Wer eine Antwort gewählt hat, sagt allein die Farbe: Sie füllt das
+ * (richtig oder falsch gewählt). Wer eine Antwort gewählt hat, sagt die Farbe: Sie füllt das
  * ganze Feld, wählten zwei dasselbe, teilen sie es sich zu gleichen Teilen (ADR-065). Namen stehen
- * dort keine, die Farben erklärt der Spielstand links; ein Vorleser bekommt sie als Text. Richtig
+ * dort keine, aber an der Münze steckt das Wappen jedes Wählenden; die Namen dazu nennt das Blatt
+ * rechts (`Answers`), ein Vorleser bekommt sie als Text. Richtig
  * und falsch sagen Stempel und Rand, nie die Füllung.
  *
  * Schätzfrage: Die Lösung steht in derselben Tafel, in die vorn die eigene Zahl geschrieben
@@ -95,7 +96,7 @@ function density(prompt: string, options: readonly { readonly text: string | nul
  * Stempel: eine Scheibe mit Haken (richtig) oder Kreuz (falsch gewählt), als Zeichnung, damit sie
  * auf jedem Gerät dieselbe Form hat. Er liegt auf der Münze mit dem Buchstaben der Antwort.
  */
-function Stamp({ kind }: { readonly kind: 'right' | 'wrong' }) {
+export function Stamp({ kind }: { readonly kind: 'right' | 'wrong' }) {
   return (
     <span className={`reveal-stamp ${kind}`}>
       <svg viewBox="-12 -12 24 24" aria-hidden="true" focusable="false">
@@ -234,6 +235,8 @@ function Figure({ value, unit }: { readonly value: string | null; readonly unit:
  * der Mitte, links die Münze mit ihrem Buchstaben, auf der der Stempel sitzt. Das Feld füllt sich
  * mit der Farbe derer, die es gewählt haben: je Sitz ein gleich breites Stück. Sichtbar steht kein
  * Name im Feld (Wunsch des Product Owners, ADR-070 Punkt 9); für Vorleser steht er als Text dabei.
+ * An der Münze steckt das Wappen jedes Wählenden, damit auch wer zuschaut ohne Blick auf den
+ * Spielstand sieht, wer was nahm.
  */
 function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly name: SeatName }) {
   const q = reveal.resolved.payload;
@@ -263,6 +266,16 @@ function TriviaAnswers({ reveal, name }: { readonly reveal: Reveal; readonly nam
               <span className="reveal-mark" aria-hidden="true">
                 {OPTION_KEYS[i] ?? ''}
                 {correct || chosen ? <Stamp kind={correct ? 'right' : 'wrong'} /> : null}
+                {chosen ? (
+                  // Wer gewählt hat, steckt als kleines Wappen an der Münze (Thread „Zuschauen
+                  // eindeutiger“): neben dem Stempel, der sagt, ob es richtig war. Die Farbe sagt
+                  // es auch, das Wappen zeigt es ohne Farbsinn und ohne Blick auf den Spielstand
+                  <span className={`reveal-who${chosenBy.length > 1 ? ' shared' : ''}`}>
+                    {chosenBy.map((a) => (
+                      <SeatCrest key={a.seat} seat={a.seat} size={16} />
+                    ))}
+                  </span>
+                ) : null}
               </span>
               <span className="reveal-option-text">
                 {option.text}
