@@ -8,7 +8,7 @@ const GHOST_MS = 600;
 const STAY_MS = 200;
 
 /** Das Abbild darf nichts sein, was Tests, Vorleser oder Finger finden. */
-function ghostOf(sheet: Element): HTMLElement {
+export function ghostOf(sheet: Element): HTMLElement {
   const copy = sheet.cloneNode(true) as HTMLElement;
   for (const node of [copy, ...copy.querySelectorAll<HTMLElement>('[data-testid], [id]')]) {
     node.removeAttribute('data-testid');

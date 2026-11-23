@@ -25,6 +25,7 @@ import {
   type RealmPlay,
 } from '../src/match/realm-model.ts';
 import { RealmSeatList } from '../src/match/RealmSeatList.tsx';
+import { castleGroups } from '../src/match/ResultPanel.tsx';
 import { RealmStage, type RealmStageInitial } from '../src/match/RealmStage.tsx';
 import {
   AT,
@@ -356,6 +357,31 @@ describe('Spielstand der Partie mit Ausbau', () => {
     expect(textOf(mine)).toContain('+5');
     expect(textOf(mine)).toContain('Einkommen je Runde: 4 Brot, 5 Baustoff');
     expect(count(html, 'class="plaque-plus"')).toBe(2);
+  });
+
+  it('nennt kein Einkommen mehr, wenn keine Runde mehr eines bringt (ADR-081)', () => {
+    // Rüstzeit der letzten Runde: Ihr Einkommen ist verbucht, ein weiteres kommt nicht
+    const last = seats(prepView({ step: { kind: 'PREPARE', round: 5 } }));
+    expect(plaque(last, ME)).not.toContain('plaque-plus');
+    expect(count(seats(prepView({ step: { kind: 'PREPARE', round: 4 } })), 'plaque-plus')).toBe(2);
+    expect(
+      seats(
+        realmViewOf({
+          step: { kind: 'CAMPAIGN_TARGET', round: 5, chooser: 0, attacker: 0 },
+          turns: THEIR_ATTACK,
+        }),
+      ),
+    ).not.toContain('plaque-plus');
+    expect(seats(realmViewOf({ step: { kind: 'FINISHED', round: null } }))).not.toContain(
+      'plaque-plus',
+    );
+    // Während der Landnahme kommt das erste Einkommen noch
+    expect(
+      count(
+        seats(realmViewOf({ step: { kind: 'LAND_PICK', round: 5, chooser: 0 } })),
+        'plaque-plus',
+      ),
+    ).toBe(2);
   });
 
   it('zeigt am eigenen Reich „am Zug“ an der Stelle des Einkommens', () => {
@@ -2150,5 +2176,32 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(html).toContain('data-testid="match-result"');
     expect(html).toContain('class="stage-centre wide"');
     expect(html).toContain('class="stage-veil on"');
+  });
+
+  it('zeigt in der Abrechnung jede Burg eines Reichs mit ihren Leben (ADR-081)', () => {
+    // Sitz 2 hat eine zweite Burg auf Feld 0: 2 und 1 Leben, zusammen die 3 seiner Tafel
+    const view = realmViewOf(
+      {
+        step: { kind: 'FINISHED', round: null },
+        buildings: { 0: 'CASTLE' },
+        castleLives: { 0: 2, 2: 1 },
+      },
+      { phase: null },
+    );
+    const board = view.realm?.board;
+    if (!board) throw new Error('Brett fehlt');
+    expect(castleGroups(board, 2, 3)).toEqual([2, 1]);
+    expect(castleGroups(board, 0, 3)).toEqual([3]);
+    // Passt die Karte nicht zum Ergebnis, gilt die Summe allein
+    expect(castleGroups(board, 2, 5)).toBeNull();
+    const html = stage({ ...view, match: { ...view.match, status: 'FINISHED' } });
+    const row = (seat: number) => part(html, `<tr data-seat="${seat}"`, '</tr>');
+    expect(count(row(2), 'class="seat-lives"')).toBe(2);
+    expect(count(row(2), 'life-on')).toBe(3);
+    expect(count(row(2), 'life-off')).toBe(3);
+    // Eine Burg mit vollen Leben: keine blassen Schilde, auch wenn ein anderes Reich mehr hat
+    expect(count(row(0), 'class="seat-lives"')).toBe(1);
+    expect(count(row(0), 'life-off')).toBe(0);
+    expect(row(2)).toContain('aria-label="3 Burgleben"');
   });
 });

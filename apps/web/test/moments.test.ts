@@ -120,6 +120,68 @@ describe('Große Momente', () => {
   });
 });
 
+describe('Auftakt der Partie aus der Aufstellung (ADR-081)', () => {
+  const lobby = snap({ state: 'lobby', kind: null, round: null, lastSeq: 4 });
+  const start = (state: MomentSnapshot['state']) =>
+    momentsBetween(
+      lobby,
+      snap({ state, kind: 'CAPITAL_PICK', round: null, lastSeq: 6 }),
+      [],
+      name,
+      4,
+    );
+
+  it('sagt die Wahl der Hauptstädte an und wartet, bis die Karte ausgerollt ist', () => {
+    const [band, ...rest] = start('waiting-pick');
+    expect(rest).toEqual([]);
+    expect(band).toMatchObject({
+      key: 'start',
+      title: 'Die Partie beginnt',
+      detail: 'Zuerst wählt jeder seine Hauptstadt.',
+      tone: 'ink',
+      opening: true,
+    });
+    expect(start('announce').map((m) => m.key)).toEqual(['start']);
+  });
+
+  it('wer zuerst wählt, erfährt es in einem Band „Du bist dran“', () => {
+    const moments = start('pick');
+    expect(moments).toHaveLength(1);
+    expect(moments[0]).toMatchObject({
+      title: 'Du bist dran!',
+      detail: 'Die Partie beginnt, du wählst zuerst.',
+      tone: 'gold',
+      opening: true,
+    });
+  });
+
+  it('nur nach der Aufstellung: Wer in die Wahl lädt oder später wählt, bekommt das Übliche', () => {
+    const later = momentsBetween(
+      snap({ kind: 'CAPITAL_PICK', round: null, lastSeq: 6 }),
+      snap({ state: 'pick', kind: 'CAPITAL_PICK', round: null, lastSeq: 7 }),
+      [],
+      name,
+      4,
+    );
+    expect(later.map((m) => [m.title, m.detail, m.opening ?? false])).toEqual([
+      ['Du bist dran!', null, false],
+    ]);
+    const loaded = momentsBetween(null, snap({ state: 'pick', kind: 'CAPITAL_PICK' }), [], name, 4);
+    expect(loaded.map((m) => [m.detail, m.opening ?? false])).toEqual([[null, false]]);
+    // Mit Ausbau beginnt die Partie mit der Startfrage: Während einer Frage gibt es kein Band
+    expect(
+      momentsBetween(
+        lobby,
+        snap({ state: 'question', kind: 'START_ESTIMATE', round: null }),
+        [],
+        name,
+        5,
+        true,
+      ),
+    ).toEqual([]);
+  });
+});
+
 describe('Große Momente der Partie mit Ausbau', () => {
   const between = (before: Partial<MomentSnapshot>, next: Partial<MomentSnapshot>) =>
     momentsBetween(snap(before), snap(next), [], name, 5, true);

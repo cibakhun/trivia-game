@@ -1,4 +1,4 @@
-import type { MatchEventOf, MatchView } from '@rdw/protocol';
+import type { MatchEventOf, MatchView, RealmBoard } from '@rdw/protocol';
 import { DEFAULT_MATCH_RULES } from '@rdw/protocol';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import '../art/fx/fx.css';
@@ -6,6 +6,7 @@ import { LifeShields } from '../art/LifeShields.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
+import { rulesOf } from './match-model.ts';
 import type { SeatName } from './match-text.ts';
 import {
   resultTiming,
@@ -20,7 +21,7 @@ import {
 /**
  * Abrechnung (MATCH_RULES §6) als Blatt auf der Karte: Platz, Punkte, Regionen und
  * Hauptstadtleben je Sitz, daneben das Ergebnis und wie es weitergeht. Mit Ausbau (§11.8) stehen
- * statt der Hauptstadt die Leben aller Burgen des Reichs da.
+ * statt der Hauptstadt die Burgen des Reichs da, jede mit ihren Leben (`castleGroups`, ADR-081).
  *
  * Hat die Seite das Ende miterlebt (`live`), baut sich das Blatt im Takt des Klangs auf
  * (`result-motion.ts`, docs/ART_DIRECTION.md §5): beim Sieg die Tabelle vom letzten Platz zum
@@ -48,6 +49,53 @@ function byPoints(seats: readonly Omit<Standing, 'place'>[]): Standing[] {
       lives: s.lives,
       eliminated: s.eliminated,
     }));
+}
+
+/**
+ * Leben je Burg eines Reichs mit Ausbau, wie die Karte sie am Ende zeigt; `null`, wenn ihre Summe
+ * nicht zum Ergebnis passt (dann gilt die Summe allein). So steht jede Burg für sich da, statt
+ * dass alle Reiche so viele Schilde tragen wie das stärkste und Leere wie Verlorenes aussieht.
+ */
+export function castleGroups(board: RealmBoard, seat: number, total: number): number[] | null {
+  const groups = board.regions.flatMap((region) =>
+    region.owner === seat && region.building === 'CASTLE' ? [region.castleLivesLeft] : [],
+  );
+  const sum = groups.reduce((a, b) => a + b, 0);
+  return groups.length > 0 && sum === total ? groups : null;
+}
+
+/**
+ * Burgen eines Reichs in der Abrechnung: je Burg eine Gruppe Schilde (volle und verlorene Leben).
+ * Ohne Burgen ein blasses Schild; passen die Burgen der Karte nicht zum Ergebnis (`groups` ist
+ * `null`), ein Schild mit der Zahl der Leben wie auf der Tafel links.
+ */
+function CastleLives({
+  groups,
+  lives,
+  perCastle,
+  label,
+}: {
+  readonly groups: readonly number[] | null;
+  readonly lives: number;
+  readonly perCastle: number;
+  readonly label: string;
+}) {
+  if (groups === null) {
+    return (
+      <span className="castle-lives many">
+        <LifeShields left={lives > 0 ? 1 : 0} max={1} label={label} />
+        <span aria-hidden="true">{formatNumber(lives)}</span>
+      </span>
+    );
+  }
+  if (groups.length === 0) return <LifeShields left={0} max={1} label={label} />;
+  return (
+    <span className="castle-lives" role="img" aria-label={label}>
+      {groups.map((left, i) => (
+        <LifeShields key={i} left={left} max={Math.max(perCastle, left)} label={label} />
+      ))}
+    </span>
+  );
 }
 
 /** „Bewegung reduzieren“ im System: Dann steht das Endbild sofort. */
@@ -91,6 +139,8 @@ export function ResultPanel({
               : (view.board?.seats ?? []).map((s) => ({ ...s, lives: s.capitalLivesLeft })),
           );
   const maxLives = Math.max(DEFAULT_MATCH_RULES.capital.lives, ...standings.map((s) => s.lives));
+  // Leben einer Burg mit Ausbau (MATCH_RULES §11.2)
+  const castleLives = rulesOf(view.match.rulesPreset).capital.lives;
   const mine = standings.find((s) => s.seat === view.mySeat);
   const shared = mine?.place === 1 && standings.filter((s) => s.place === 1).length > 1;
   const tone: ResultTone = mine ? (mine.place === 1 ? 'victory' : 'placed') : 'neutral';
@@ -171,17 +221,28 @@ export function ResultPanel({
                     <span className="cell">{formatNumber(s.regions)}</span>
                   </td>
                   <td>
-                    <LifeShields
-                      left={s.eliminated ? 0 : s.lives}
-                      max={maxLives}
-                      label={
-                        s.eliminated
-                          ? t('match.result.eliminated')
-                          : realm
-                            ? tp('realm.seats.castleLives', s.lives)
+                    {realm ? (
+                      <CastleLives
+                        groups={s.eliminated ? [] : castleGroups(realm, s.seat, s.lives)}
+                        lives={s.eliminated ? 0 : s.lives}
+                        perCastle={castleLives}
+                        label={
+                          s.eliminated
+                            ? t('match.result.eliminated')
+                            : tp('realm.seats.castleLives', s.lives)
+                        }
+                      />
+                    ) : (
+                      <LifeShields
+                        left={s.eliminated ? 0 : s.lives}
+                        max={maxLives}
+                        label={
+                          s.eliminated
+                            ? t('match.result.eliminated')
                             : tp('match.board.lives', s.lives)
-                      }
-                    />
+                        }
+                      />
+                    )}
                   </td>
                 </tr>
               );

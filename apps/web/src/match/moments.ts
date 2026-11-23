@@ -17,6 +17,8 @@ export interface Moment {
   /** Farbe des Bands: Gold, Tinte oder Sitzfarbe (mit Wappen). */
   readonly tone: 'gold' | 'ink' | 'seat';
   readonly seat: number | null;
+  /** Kommt mit dem Auftakt der Partie (ADR-081): Es wartet, bis die Karte ausgerollt ist. */
+  readonly opening?: boolean;
 }
 
 export interface MomentSnapshot {
@@ -99,6 +101,12 @@ export const GRAND_MOMENT_MS = 2200;
  * danach): Es sagt, was geschehen ist, und nimmt es nicht vorweg.
  */
 export const FALLEN_LEAD_MS = 900;
+/**
+ * Das erste Band der Partie wartet, bis sich die Karte im Auftakt ausgerollt hat (stage.css:
+ * `opening-unroll` beginnt nach 0,14 s und dauert 0,76 s); es öffnet sich, während die Rollen
+ * an den Rändern ankommen.
+ */
+export const OPENING_LEAD_MS = 850;
 
 /** Gewicht eines Bands: Ein gefallenes Reich ist größer als eine Ankündigung. */
 export function momentWeight(moment: Moment): 'grand' | 'plain' {
@@ -119,7 +127,7 @@ export interface MomentTiming {
 export function momentTiming(moment: Moment, born: MatchScreenState): MomentTiming {
   const grand = momentWeight(moment) === 'grand';
   return {
-    leadMs: grand && born === 'reveal' ? FALLEN_LEAD_MS : 0,
+    leadMs: moment.opening ? OPENING_LEAD_MS : grand && born === 'reveal' ? FALLEN_LEAD_MS : 0,
     showMs: grand ? GRAND_MOMENT_MS : MOMENT_MS,
   };
 }
@@ -173,6 +181,8 @@ export function enqueueMoments(
 /**
  * Momente zwischen zwei Ständen, in der Reihenfolge, in der sie gezeigt werden. `before = null`
  * ist der erste Aufbau der Seite: Dann zählt nur „Du bist dran“, Vergangenes wird nicht gefeiert.
+ * Stand davor die Aufstellung (`before.state === 'lobby'`), beginnt die Partie eben: Die Wahl der
+ * Hauptstädte wird angesagt, und wer zuerst wählt, erfährt es im Band „Du bist dran“ (ADR-081).
  */
 export function momentsBetween(
   before: MomentSnapshot | null,
@@ -188,6 +198,7 @@ export function momentsBetween(
   mySeat: number | null = null,
 ): Moment[] {
   const moments: Moment[] = [];
+  const opening = before?.state === 'lobby';
   if (before) {
     for (const event of fresh) {
       if (event.type !== 'KINGDOM_ELIMINATED') continue;
@@ -246,7 +257,19 @@ export function momentsBetween(
     if (next.state !== 'orders') moments.push(...skipped);
     // Phasen und Runden erst ankündigen, wenn gewählt wird (nicht mitten in einer Auflösung)
     const calm = isCalm(next.state) && next.kind !== 'FINISHED';
-    if (calm && LAND.includes(next.kind) && !LAND.includes(before.kind)) {
+    if (calm && opening && next.kind === 'CAPITAL_PICK') {
+      // Wer selbst zuerst wählt, bekommt dasselbe in „Du bist dran“ gesagt (unten)
+      if (next.state !== 'pick') {
+        moments.push({
+          key: 'start',
+          title: t('match.moment.start'),
+          detail: t('match.moment.startDetail'),
+          tone: 'ink',
+          seat: null,
+          opening: true,
+        });
+      }
+    } else if (calm && LAND.includes(next.kind) && !LAND.includes(before.kind)) {
       moments.push({
         key: `land-${next.round ?? 1}`,
         title: t('match.moment.land'),
@@ -285,12 +308,14 @@ export function momentsBetween(
     next.state === 'pick' &&
     (before === null || before.state !== 'pick' || before.lastSeq !== next.lastSeq);
   if (myTurnStarts) {
+    const first = opening && next.kind === 'CAPITAL_PICK';
     moments.push({
       key: `turn-${next.lastSeq}`,
       title: t('match.pick.banner'),
-      detail: null,
+      detail: first ? t('match.moment.startMine') : null,
       tone: 'gold',
       seat: null,
+      ...(first ? { opening: true } : {}),
     });
   }
   return moments;

@@ -5,7 +5,7 @@ import { Amount } from '../art/RealmIcons.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import type { SeatName } from './match-text.ts';
-import type { RealmPlay } from './realm-model.ts';
+import { incomeAhead, type RealmPlay } from './realm-model.ts';
 import { PlaqueLives, PlaqueOut, PlaqueState } from './SeatList.tsx';
 
 /**
@@ -62,6 +62,7 @@ export function RealmSeatList({
     | null;
 }) {
   const { board } = play;
+  const ahead = incomeAhead(board.step, view.match.campaignRounds);
   const preparing = view.phase?.kind === 'PREPARE';
   const chooser = view.phase?.kind === 'PICK' ? board.step.chooser : null;
   const statusOf = (seat: number): SeatStatus => {
@@ -81,8 +82,9 @@ export function RealmSeatList({
           const maxLives = s.castles * play.castleLives;
           const lives = tp('realm.seats.castleLives', s.castleLivesLeft);
           const mine = s.seat === view.mySeat;
-          // „am Zug“ steht rechts im Fuß, wo am eigenen Reich sonst das Einkommen steht
-          const income = mine && status !== 'turn';
+          // „am Zug“ steht rechts im Fuß, wo am eigenen Reich sonst das Einkommen steht; in der
+          // letzten Runde und in der Abrechnung kommt keines mehr
+          const income = mine && status !== 'turn' && ahead;
           const pill = status !== null && (status === 'turn' || !mine);
           const arriving = mine ? receiving : null;
           const wait = pending?.find((entry) => entry.seat === s.seat);

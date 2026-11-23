@@ -960,9 +960,12 @@ html.match-playing body {
   height: auto;
 }
 
-/* Ausgang eines Duells im Blatt */
+/* Ausgang eines Duells im Blatt: Satz, Grund, Folgen, unten „Als Nächstes“ (ADR-081) */
 .blatt .outcome-card {
-  display: grid;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   gap: calc(7 * var(--u));
   border: 0;
   animation: outcome-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
@@ -978,6 +981,22 @@ html.match-playing body {
 .blatt .outcome-reason {
   font-size: calc(12.5 * var(--u));
   line-height: 1.32;
+}
+
+/* Leben der getroffenen Hauptstadt in der Farbe ihres Reichs (`seat-N` an der Zeile) */
+.outcome-list .fact-lives {
+  flex: none;
+  display: inline-flex;
+}
+
+.outcome-list li > span:last-child {
+  min-width: 0;
+}
+
+.next .next-round {
+  font-size: calc(12 * var(--u));
+  font-weight: 700;
+  color: var(--muted);
 }
 
 /* Wer gegen wen, worum */
@@ -3208,6 +3227,20 @@ html.match-playing body {
   font-size: calc(12.5 * var(--u));
 }
 
+/* Mit Ausbau: je Burg eine Gruppe Schilde (ResultPanel, ADR-081) */
+.sheet.result .castle-lives {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+}
+
+.sheet.result .castle-lives.many {
+  gap: calc(3 * var(--u));
+  font-size: calc(13 * var(--u));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Sieg: Das Blatt trägt einen goldenen Rand wie das Blatt des eigenen Zugs */
 .sheet.result.victory {
   border-color: var(--map-gold);
@@ -3710,6 +3743,185 @@ html.match-playing body {
   box-shadow: 0 calc(6 * var(--u)) calc(18 * var(--u)) rgb(40 25 8 / 0.35);
 }
 
+/* ---------- Auftakt der Partie (ADR-081) ---------- */
+
+/*
+ * Aus der Aufstellung wird die Bühne in 1,4 s (`OPENING_MS`, StageOpening.tsx), statt hart zu
+ * schneiden:
+ *
+ *   0–0,34 s      Das Abbild des Blatts der Aufstellung hebt sich ab und vergeht.
+ *   0,14–0,9 s    Die Karte der Partie rollt sich von der Mitte her über dem Schmuckbild der
+ *                 Aufstellung aus. Zwei Rollen fahren mit ihren Kanten an die Ränder und
+ *                 verdecken die harte Kante des Ausschnitts.
+ *   0,64–1,2 s    Links schreiben sich Abschnitt, Spielstand, Zugfolge und Werkzeuge von außen
+ *                 her ein, rechts das Blatt von oben nach unten (nicht über einer Frage).
+ *   ab 0,85 s     Das erste Band entrollt sich (`OPENING_LEAD_MS` in moments.ts).
+ *
+ * Karte, Ränder und Zugfolge stehen dabei vom ersten Bild an auf ihrem Platz: Bewegt werden dort
+ * nur Deckkraft und Ausschnitt (`clip-path`), so messen Tests und das Maß der Karte die feste
+ * Lage. Ein Ausschnitt endet über den Schatten hinaus und fällt danach ganz weg (`backwards`).
+ * Mit „Bewegung reduzieren“ gibt es keinen Auftakt (`useOpening`).
+ */
+.opening-cover {
+  position: absolute;
+  inset: 0;
+}
+
+/* Der Schleier der Aufstellung liegt mit dem Schmuckbild unter der Karte */
+.opening-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--map-veil) 26%, transparent);
+}
+
+/* Das Schmuckbild steht still im Endbild: Seine Farben liefen in der Aufstellung schon ein */
+.opening-cover *,
+.opening-lobby *,
+.opening-lobby *::before,
+.opening-lobby *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+.stage.opening > .stage-map {
+  animation: opening-unroll 760ms cubic-bezier(0.5, 0, 0.2, 1) 140ms backwards;
+}
+
+@keyframes opening-unroll {
+  from {
+    clip-path: inset(0 50% 0 50%);
+  }
+
+  to {
+    clip-path: inset(0);
+  }
+}
+
+.opening-rolls {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Eine Rolle: Papier der Karte, gerollt. Beide liegen erst übereinander in der Mitte */
+.opening-roll {
+  --roll: calc(10 * var(--u));
+  position: absolute;
+  top: calc(-4 * var(--u));
+  bottom: calc(-4 * var(--u));
+  left: calc(50% - var(--roll));
+  width: calc(2 * var(--roll));
+  border-radius: var(--roll);
+  background:
+    var(--paper-grain),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--map-land) 52%, var(--map-ink)),
+      var(--map-land) 26%,
+      color-mix(in srgb, var(--map-land) 55%, #fff) 44%,
+      var(--map-land) 64%,
+      color-mix(in srgb, var(--map-land) 46%, var(--map-ink))
+    );
+  box-shadow: 0 0 calc(10 * var(--u)) rgb(30 18 6 / 0.45);
+  animation: opening-roll-l 760ms cubic-bezier(0.5, 0, 0.2, 1) 140ms both;
+}
+
+.opening-roll.roll-r {
+  animation-name: opening-roll-r;
+}
+
+/* Gleicher Takt wie der Ausschnitt: Die Kante der Karte liegt stets unter ihrer Rolle */
+@keyframes opening-roll-l {
+  to {
+    transform: translateX(calc(-50vw - var(--roll)));
+  }
+}
+
+@keyframes opening-roll-r {
+  to {
+    transform: translateX(calc(50vw + var(--roll)));
+  }
+}
+
+/* Das Abbild der Aufstellung steht, wo ihr Blatt stand (`.stage-plain .stage-centre`). Es liegt
+   unter Rändern und Mitte: Beginnt die Partie mit einer Frage, steht diese sofort darüber */
+.opening-lobby {
+  position: absolute;
+  z-index: 1;
+  left: var(--safe-l);
+  right: var(--safe-r);
+  top: calc(8 * var(--u));
+  bottom: max(var(--safe-b), calc(8 * var(--u)));
+  display: grid;
+  place-items: center;
+}
+
+.opening-lobby,
+.opening-lobby * {
+  pointer-events: none !important;
+}
+
+.opening-lobby > .sheet {
+  animation: opening-lift 340ms cubic-bezier(0.35, 0, 0.65, 1) both !important;
+}
+
+@keyframes opening-lift {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-12 * var(--u))) scale(0.96);
+  }
+}
+
+.stage.opening > .stage-left > * {
+  animation: opening-rail 380ms cubic-bezier(0.2, 0.7, 0.3, 1) 640ms backwards;
+}
+
+.stage.opening > .stage-left > :nth-child(2) {
+  animation-delay: 700ms;
+}
+
+.stage.opening > .stage-left > :nth-child(3) {
+  animation-delay: 760ms;
+}
+
+.stage.opening > .stage-left > :nth-child(n + 4) {
+  animation-delay: 820ms;
+}
+
+@keyframes opening-rail {
+  from {
+    opacity: 0;
+    clip-path: inset(calc(-30 * var(--u)) 100% calc(-30 * var(--u)) calc(-30 * var(--u)));
+  }
+
+  to {
+    opacity: 1;
+    clip-path: inset(calc(-30 * var(--u)));
+  }
+}
+
+/* Beginnt die Partie mit einer Frage (Startfrage mit Ausbau), steht das Blatt mit dem Ziffernfeld
+   sofort: Die Antwortzeit läuft schon. Die Art des Auftakts steht ab seinem Beginn fest, damit die
+   eigene Abgabe während des Auftakts das Blatt nicht noch einmal ausblendet */
+.stage.opening-stage > .stage-right > :is(.blatt, .blatt-ring) {
+  animation: opening-blatt 440ms cubic-bezier(0.2, 0.7, 0.3, 1) 720ms backwards;
+}
+
+@keyframes opening-blatt {
+  from {
+    opacity: 0;
+    clip-path: inset(calc(-30 * var(--u)) calc(-30 * var(--u)) 100% calc(-30 * var(--u)));
+  }
+
+  to {
+    opacity: 1;
+    clip-path: inset(calc(-30 * var(--u)));
+  }
+}
+
 /* ---------- Vor und nach dem Spiel: Aufstellung, Abbruch, Laden ---------- */
 
 .stage-plain .stage-centre {
@@ -3717,7 +3929,8 @@ html.match-playing body {
   right: var(--safe-r);
 }
 
-.stage-plain .hero-map {
+.stage-plain .hero-map,
+.opening-cover .hero-map {
   position: absolute;
   inset: 0;
   width: 100%;

@@ -75,7 +75,9 @@ import {
   useAfterImpact,
   useBlattTurn,
   useBridge,
+  useOpening,
 } from './stage-live.ts';
+import { OpeningCover, OpeningLayer, useLobbySheet } from './StageOpening.tsx';
 import { StageQuestion, WatchedQuestionCard, watchedSeats } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
@@ -190,6 +192,9 @@ export function RealmStage({
   const [entered, setEntered] = useState({ first: state, live: false });
   if (!entered.live && state !== entered.first) setEntered({ first: entered.first, live: true });
   const live = entered.live || state !== entered.first;
+  // Eben aus der Aufstellung gestartet: Die Bühne baut sich im Auftakt auf (ADR-081)
+  const opening = useOpening(state);
+  const lobby = useLobbySheet(state);
   const seq = view?.question?.seq ?? null;
   const mySeat = view?.mySeat ?? null;
   const step = play?.board.step ?? null;
@@ -256,7 +261,8 @@ export function RealmStage({
       blattDuel !== null,
       state === 'announce' ? (shownPick(events)?.type ?? null) : null,
     ),
-    live,
+    // Im Auftakt schreibt sich das Blatt mit dem Spielstand ein, statt umzuschlagen
+    live && !opening,
   );
 
   // ---- Rüstzeit: Entwurf der eigenen Befehle, je Runde neu ----
@@ -468,7 +474,7 @@ export function RealmStage({
           <HeroMap cover />
         </div>
         <div className="stage-veil on cut" aria-hidden="true" />
-        <div className="stage-centre">
+        <div ref={lobby.centre} className="stage-centre">
           {view && state === 'lobby' ? (
             <RealmLobby
               view={view}
@@ -700,7 +706,13 @@ export function RealmStage({
       : undefined;
 
   const scene = (
-    <main ref={stage} className="stage stage-realm" style={style} {...attributes}>
+    <main
+      ref={stage}
+      className={`stage stage-realm${opening ? ` opening opening-${opening}` : ''}`}
+      style={style}
+      {...attributes}
+    >
+      {opening ? <OpeningCover /> : null}
       <div className="stage-map">
         <MatchBoard
           map={play.map}
@@ -722,6 +734,7 @@ export function RealmStage({
         className={`stage-veil${veil.on ? ' on' : ''}${veil.cut ? ' cut' : ''}`}
         aria-hidden="true"
       />
+      {opening ? <OpeningLayer sheet={lobby.sheet} /> : null}
 
       <div className="stage-rail stage-left" data-stage-rail="left">
         {label ? <StepRibbon label={label} /> : null}

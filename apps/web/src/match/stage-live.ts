@@ -38,6 +38,74 @@ export function useBorn(): boolean {
   return born;
 }
 
+/**
+ * So lange dauert der Auftakt der Partie (ADR-081). Alles, was `.stage.opening` in `stage.css`
+ * bewegt, ist vorher fertig: Das Abbild der Aufstellung hebt sich ab, die Karte rollt sich von der
+ * Mitte her aus, Spielstand und Blatt schreiben sich ein.
+ */
+export const OPENING_MS = 1400;
+
+/**
+ * Wie der Auftakt beginnt: über der Bühne oder mit einer Frage, deren Antwortzeit schon läuft
+ * (Startfrage mit Ausbau). Beim Wechsel aus der Aufstellung festgelegt, damit ein Zustandswechsel
+ * während des Auftakts (etwa die eigene Abgabe) keine Bewegung neu startet.
+ */
+export type OpeningKind = 'stage' | 'question';
+
+/** Zustände, in denen eine Frage läuft oder gerade kommt. */
+const QUESTION_STATES: ReadonlySet<MatchScreenState> = new Set([
+  'presenting',
+  'question',
+  'answered',
+  'missed',
+  'spectating',
+]);
+
+/** Was die Seite vom Auftakt weiß: ob sie die Aufstellung zeigt und welcher Auftakt gerade läuft. */
+export interface OpeningSeen {
+  readonly lobby: boolean;
+  readonly opening: OpeningKind | null;
+}
+
+/**
+ * Nächster Stand des Auftakts beim Zustand `state` (rein, für `useOpening`): Aus der Aufstellung
+ * in die laufende Partie beginnt er, außer bei einem Abbruch oder mit „Bewegung reduzieren“
+ * (`still`). Bleibt alles, wie es war, ist es derselbe Stand.
+ */
+export function openingAfter(
+  seen: OpeningSeen,
+  state: MatchScreenState,
+  still: () => boolean,
+): OpeningSeen {
+  if (state === 'lobby')
+    return seen.lobby && seen.opening === null ? seen : { lobby: true, opening: null };
+  if (!seen.lobby || state === 'loading') return seen;
+  if (state === 'abandoned' || still()) return { lobby: false, opening: null };
+  return { lobby: false, opening: QUESTION_STATES.has(state) ? 'question' : 'stage' };
+}
+
+/**
+ * Der laufende Auftakt (ADR-081), sonst `null`: Diese Seite hat die Aufstellung gezeigt, und die
+ * Partie hat eben begonnen. Wer mitten in die Partie lädt, sieht keinen Auftakt, mit „Bewegung
+ * reduzieren“ auch nicht; ein Abbruch vor dem Start ist keiner. Beim Wechsel festgelegt (Merken
+ * während des Renderns), danach läuft nur noch die Zeit.
+ */
+export function useOpening(state: MatchScreenState): OpeningKind | null {
+  const [seen, setSeen] = useState<OpeningSeen>({ lobby: state === 'lobby', opening: null });
+  const now = openingAfter(seen, state, motionReduced);
+  if (now !== seen) setSeen(now);
+  const opening = now.opening;
+  useEffect(() => {
+    if (!opening) return;
+    const timer = setTimeout(
+      () => setSeen((current) => (current.opening ? { ...current, opening: null } : current)),
+      OPENING_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [opening]);
+  return opening;
+}
+
 /** Die wievielte Seite das Blatt rechts gerade zeigt (zählt nur miterlebte Wechsel). */
 export const BlattPage = createContext(0);
 

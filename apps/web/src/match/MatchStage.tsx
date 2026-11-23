@@ -47,7 +47,9 @@ import {
   useBlattTurn,
   useBorn,
   useLive,
+  useOpening,
 } from './stage-live.ts';
+import { OpeningCover, OpeningLayer, useLobbySheet } from './StageOpening.tsx';
 import { StageQuestion, WatchedQuestionCard, watchedSeats } from './StageQuestion.tsx';
 import { TurnOrder } from './TurnOrder.tsx';
 import { useMatchSounds } from './useMatchSounds.ts';
@@ -118,6 +120,9 @@ export function MatchStage({
   // rechts um, und nur dann baut sich die Abrechnung auf: Wer in die fertige Partie lädt, sieht
   // sofort das Endbild. Das Laden selbst ist kein Stand
   const live = useLive(state);
+  // Eben aus der Aufstellung gestartet: Die Bühne baut sich im Auftakt auf (ADR-081)
+  const opening = useOpening(state);
+  const lobby = useLobbySheet(state);
   const seq = view?.question?.seq ?? null;
   const board = view?.board ?? null;
 
@@ -152,7 +157,8 @@ export function MatchStage({
       blattDuel !== null,
       state === 'announce' ? (shownPick(events)?.type ?? null) : null,
     ),
-    live,
+    // Im Auftakt schreibt sich das Blatt mit dem Spielstand ein, statt umzuschlagen
+    live && !opening,
   );
   // Das Blatt mit Frage und Antworten: ohne Duell die ganze Auflösung, sonst im ersten Takt
   const answering = beat === null || beat === 'answers' || late;
@@ -191,7 +197,7 @@ export function MatchStage({
           <HeroMap cover />
         </div>
         <div className="stage-veil on cut" aria-hidden="true" />
-        <div className="stage-centre">
+        <div ref={lobby.centre} className="stage-centre">
           {view && state === 'lobby' ? (
             <LobbyPanel
               view={view}
@@ -278,7 +284,12 @@ export function MatchStage({
   const closed = state === 'finished' || state === 'abandoned';
 
   const scene = (
-    <main ref={stage} className="stage" {...attributes}>
+    <main
+      ref={stage}
+      className={`stage${opening ? ` opening opening-${opening}` : ''}`}
+      {...attributes}
+    >
+      {opening ? <OpeningCover /> : null}
       <div className="stage-map">
         <MatchBoard
           map={map}
@@ -301,6 +312,7 @@ export function MatchStage({
         className={`stage-veil${veil.on ? ' on' : ''}${veil.cut ? ' cut' : ''}`}
         aria-hidden="true"
       />
+      {opening ? <OpeningLayer sheet={lobby.sheet} /> : null}
 
       <div className="stage-rail stage-left" data-stage-rail="left">
         {label ? <StepRibbon label={label} /> : null}
