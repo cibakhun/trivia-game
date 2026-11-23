@@ -189,7 +189,13 @@ export function nameAllowed(name: string): boolean {
         if (chain.includes(bad) || squeezed.includes(collapse(bad))) return false;
       }
     }
-    if (list.some((w) => (WHOLE_WORD as readonly string[]).includes(w))) return false;
+    // Eine reine Zahl gilt als ganzes Wort nur so, wie sie dasteht: „88“ ja, „54“ ist keine „SA“
+    const wholeWord = list.some(
+      (w, i) =>
+        (WHOLE_WORD as readonly string[]).includes(w) &&
+        (list === plain || /\p{L}/u.test(plain[i] ?? '')),
+    );
+    if (wholeWord) return false;
     const joined = list.join('');
     const squeezedAll = collapse(joined);
     for (const bad of ANYWHERE) {

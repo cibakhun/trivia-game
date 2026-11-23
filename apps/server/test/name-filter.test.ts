@@ -1,3 +1,10 @@
+import {
+  PLAYER_NAME_ADJECTIVES,
+  PLAYER_NAME_NOUNS,
+  PLAYER_NAME_NUMBER_MAX,
+  PLAYER_NAME_NUMBER_MIN,
+  playerDisplayName,
+} from '@rdw/game-core';
 import { describe, expect, it } from 'vitest';
 import { nameAllowed } from '../src/modules/identity/name-filter.ts';
 
@@ -56,6 +63,19 @@ describe('Wortfilter für Benutzernamen', () => {
       'Gast',
     ]) {
       expect(nameAllowed(name), name).toBe(false);
+    }
+  });
+
+  it('lässt jeden Namen aus den Bausteinen durch (Ideen unter dem Feld); nur die Zahl 88 nicht', () => {
+    for (const adjective of PLAYER_NAME_ADJECTIVES) {
+      for (const noun of Object.keys(PLAYER_NAME_NOUNS)) {
+        const name = playerDisplayName({ adjective, noun, number: null });
+        expect(nameAllowed(name), name).toBe(true);
+      }
+    }
+    for (let number = PLAYER_NAME_NUMBER_MIN; number <= PLAYER_NAME_NUMBER_MAX; number++) {
+      const name = playerDisplayName({ adjective: 'Kühn', noun: 'Falke', number });
+      expect(nameAllowed(name), name).toBe(number !== 88);
     }
   });
 });
