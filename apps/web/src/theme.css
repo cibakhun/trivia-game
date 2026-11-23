@@ -79,6 +79,19 @@
   --map-coin: #fbf3dc;
   --map-glow: #fff3c4;
   --map-lift: #ffffff;
+  /* Metalle der Wappenstufen und des Treppchens (ADR-080): hell, Mitte, dunkel */
+  --metal-wood-hi: #dcb487;
+  --metal-wood: #b98a57;
+  --metal-wood-lo: #8a5a30;
+  --metal-bronze-hi: #eab486;
+  --metal-bronze: #c37b42;
+  --metal-bronze-lo: #8d4f22;
+  --metal-silver-hi: #fbfaf5;
+  --metal-silver: #cdd0cc;
+  --metal-silver-lo: #8f9497;
+  --metal-gold-hi: #f5d888;
+  --metal-gold: #d3a136;
+  --metal-gold-lo: #9c6d14;
   --map-label-halo: rgb(246 236 210 / 0.92);
   --map-pattern: rgb(45 28 12 / 0.4);
   --map-focus: #1f5fbf;
