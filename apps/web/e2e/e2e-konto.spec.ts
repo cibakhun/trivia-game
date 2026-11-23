@@ -1,10 +1,12 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Konto sichern (O-03, Phase 2 Paket 2): Ein Gast tritt bei, sichert sein Konto mit Benutzername,
- * Passwort und gewähltem Spielernamen, meldet sich auf einem zweiten Gerät an und findet dort sein
- * Reich wieder. Abmelden beendet nur die Sitzung des einen Geräts. Die Weltwahl zeigt die eigene
- * Welt zum Weiterspielen; ins Hauptmenü kommt man ohne Sitzung über „Ich habe ein Konto“.
+ * Konto sichern (O-03, Phase 2 Paket 2) auf der Kontoseite (ADR-080): Ein Gast tritt bei, öffnet
+ * sein Konto, sichert es in zwei Schritten (Spielername aus Vorschlägen, dann Benutzername und
+ * Passwort), meldet sich auf einem zweiten Gerät an und findet dort sein Reich wieder. Die
+ * Ansichten der Kontoseite haben eigene Pfade; „Zurück“ im Browser schließt sie. Abmelden beendet
+ * nur die Sitzung des einen Geräts. Die Weltwahl zeigt die eigene Welt zum Weiterspielen; ins
+ * Hauptmenü kommt man ohne Sitzung über „Ich habe ein Konto“.
  */
 
 const PASSWORD = 'e2e-passwort-lang';
@@ -25,10 +27,45 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   const playUrl = page.url();
   const kingdomName = (await page.getByRole('banner').locator('strong').innerText()).trim();
 
+  // Kontoseite als Blatt im Menü: Wappenseite, Bilanz ohne beendete Partie
   await page.getByTestId('nav-account').click();
   await expect(page).toHaveURL(/\/konto$/);
-  await expect(page.getByRole('heading', { name: 'Du spielst als Gast' })).toBeVisible();
-  const form = page.getByTestId('register-form');
+  const account = page.getByTestId('account');
+  await expect(account.getByTestId('account-status')).toHaveText('Gast · nicht gesichert');
+  await expect(account.getByTestId('account-tier')).toContainText('Holzwappen');
+  await expect(account.getByText('Noch keine Partie beendet')).toBeVisible();
+  await account.getByRole('tab', { name: 'Wissen' }).click();
+  await expect(account.getByTestId('knowledge-rows').locator('li')).toHaveCount(11);
+
+  // „Konto sichern“ hat einen eigenen Pfad; „Zurück“ im Browser schließt die Ansicht wieder
+  await account.getByRole('tab', { name: 'Zugang' }).click();
+  // Der Fokus geht auf den Titel des Formulars und beim Schließen auf den Reiter zurück
+  await account.getByRole('button', { name: /^Konto sichern/ }).click();
+  await expect(page).toHaveURL(/\/konto\/sichern$/);
+  await expect(account.getByRole('heading', { name: 'Konto sichern' })).toBeFocused();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/konto$/);
+  await expect(account).toHaveAttribute('data-view', 'home');
+  const accessTab = account.getByRole('tab', { name: 'Zugang' });
+  await expect(accessTab).toHaveAttribute('aria-selected', 'true');
+  await expect(accessTab).toBeFocused();
+  await account.getByRole('button', { name: /^Konto sichern/ }).click();
+  await expect(account).toHaveAttribute('data-view', 'secure');
+
+  // Schritt 1: Spielername aus Vorschlägen; der erste ist gewählt und steht schon im Wappen
+  const form = account.getByTestId('register-form');
+  const picker = form.getByTestId('player-name-picker');
+  await expect(picker.getByRole('radio').first()).toBeChecked();
+  const chosen = picker.locator('label').nth(1);
+  const playerName = (await chosen.innerText()).trim();
+  await chosen.click();
+  await expect(account.getByTestId('account-name')).toHaveText(playerName);
+  // Das angetippte Schild bleibt an seinem Platz
+  await expect(picker.getByRole('radio').nth(1)).toBeChecked();
+  await expect(picker.locator('label').nth(1)).toHaveText(playerName);
+  await form.getByRole('button', { name: 'Weiter' }).click();
+
+  // Schritt 2: Benutzername und Passwort; ein Tippfehler bei der Wiederholung hält auf
   const username = `e2e_${Date.now().toString(36)}`;
   await form.getByLabel('Benutzername').fill(username);
   await form.getByLabel('Passwort', { exact: true }).fill(PASSWORD);
@@ -36,15 +73,15 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   await form.getByRole('button', { name: 'Konto sichern' }).click();
   await expect(form).toContainText('Die Passwörter stimmen nicht überein.');
   await form.getByLabel('Passwort wiederholen').fill(PASSWORD);
-  const picker = form.getByTestId('player-name-picker');
-  await expect(picker.getByRole('radio').first()).toBeChecked();
-  const playerName = (await picker.locator('label').first().innerText()).trim();
   await form.getByRole('button', { name: 'Konto sichern' }).click();
 
-  await expect(page.getByRole('status')).toHaveText('Dein Konto ist gesichert.');
-  const summary = page.getByTestId('account-summary');
-  await expect(summary).toContainText(`Angemeldet als ${username}`);
-  await expect(summary).toContainText(`Spielername: ${playerName}`);
+  await expect(account.getByTestId('account-notice')).toHaveText('Dein Konto ist gesichert.');
+  await expect(page).toHaveURL(/\/konto$/);
+  await expect(account.getByTestId('account-status')).toHaveText(`Gesichert · ${username}`);
+  await expect(account.getByTestId('account-name')).toHaveText(playerName);
+  await expect(account.locator('.acct-rows')).toContainText(username);
+  await expect(account.locator('.acct-rows')).toContainText(playerName);
+  await expect(page.getByTestId('menu-plate')).toContainText(playerName);
 
   // Zweites Gerät: falsches Passwort, dann richtig (Schreibweise des Namens egal)
   const other = await (await browser.newContext()).newPage();
@@ -75,8 +112,34 @@ test('Konto: Gast sichert sein Konto und spielt auf einem zweiten Gerät weiter'
   await expect(other).toHaveURL(playUrl);
 
   // Abmelden auf dem ersten Gerät; das zweite bleibt angemeldet
-  await page.getByRole('button', { name: 'Abmelden', exact: true }).click();
+  await account.getByTestId('account-logout').click();
   await expect(page.getByRole('button', { name: 'Als Gast spielen' })).toBeVisible();
   await other.reload();
   await expect(other.getByRole('banner')).toContainText(kingdomName);
+});
+
+test('Konto: Ein Gast wird vor dem Abmelden gewarnt und kann erst sichern', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Als Gast spielen' }).click();
+  await page.getByTestId('menu-plate').click();
+  const account = page.getByTestId('account');
+  await expect(page).toHaveURL(/\/konto$/);
+  await account.getByRole('tab', { name: 'Zugang' }).click();
+  await account.getByRole('button', { name: 'Abmelden' }).click();
+  await expect(page).toHaveURL(/\/konto\/abmelden$/);
+  await expect(account).toContainText('Ohne Sicherung ist dein Gastkonto danach weg');
+  // „Erst sichern“ ersetzt die Ansicht: „Zurück“ führt danach nicht zur Warnung
+  await account.getByRole('button', { name: 'Erst sichern' }).click();
+  await expect(page).toHaveURL(/\/konto\/sichern$/);
+  await expect(account.getByTestId('register-form')).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/konto$/);
+  // Gesicherte Ansichten gibt es für Gäste nicht: Der Pfad führt zur Kontoseite zurück
+  await page.goto('/konto/passwort');
+  await expect(page).toHaveURL(/\/konto$/);
+  await expect(page.getByTestId('account')).toHaveAttribute('data-view', 'home');
+  // Bewusst abmelden: zurück zum Start
+  await page.goto('/konto/abmelden');
+  await page.getByRole('button', { name: 'Trotzdem abmelden' }).click();
+  await expect(page.getByRole('button', { name: 'Als Gast spielen' })).toBeVisible();
 });

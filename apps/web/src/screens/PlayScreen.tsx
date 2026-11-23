@@ -209,7 +209,7 @@ export function PlayScreen({ instanceId }: { readonly instanceId: string }) {
               type="button"
               className="link"
               data-testid="nav-account"
-              onClick={() => navigate({ name: 'account' })}
+              onClick={() => navigate({ name: 'account', view: null })}
             >
               {me?.user.isGuest ? t('nav.secureAccount') : t('nav.account')}
             </button>

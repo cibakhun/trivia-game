@@ -13,6 +13,8 @@ import { t } from '../i18n/i18n.ts';
 import { HelpSheet } from '../match/HelpSheet.tsx';
 import { navigate, type Route } from '../router.ts';
 import { useSession } from '../session.tsx';
+import { AccountSheet } from './AccountSheet.tsx';
+import { viewAllowed, type AccountView } from './account-text.ts';
 import { MenuIcon, PlayerPlate, RoundButton, Seal, SoundButton, TitleMark } from './MenuParts.tsx';
 import {
   ChronicleSheet,
@@ -26,6 +28,7 @@ import { isOpenMatch, openLine, type MatchSummary, type MenuSheet } from './menu
 import '../match/stage.css';
 import '../match/realm.css';
 import './menu.css';
+import './account.css';
 
 /**
  * Hauptmenü (ADR-074): Die Wendelmark füllt den ganzen Bildschirm und lebt (Burgen, Armeen, ein
@@ -34,6 +37,8 @@ import './menu.css';
  * und Chronik; läuft schon eine eigene Partie, steht dort stattdessen der Weg zurück in sie. Ein
  * Siegel öffnet sein Blatt in der Mitte; jedes Blatt hat einen eigenen Pfad, damit „Zurück“ im
  * Browser es schließt. Ohne Sitzung begrüßt ein Blatt mit „Als Gast spielen“ und „Anmelden“.
+ * Die Plakette öffnet die Kontoseite (ADR-080), ebenfalls ein Blatt; ihre Formulare haben eigene
+ * Pfade unter `/konto`.
  */
 
 const SHEET_ROUTES: Record<MenuSheet, Route> = {
@@ -41,6 +46,7 @@ const SHEET_ROUTES: Record<MenuSheet, Route> = {
   join: { name: 'menu', sheet: 'join' },
   practice: { name: 'menu', sheet: 'practice' },
   chronicle: { name: 'menu', sheet: 'chronicle' },
+  account: { name: 'account', view: null },
 };
 
 const MODE_KEY = 'rdw.menu.mode';
@@ -152,7 +158,14 @@ function OpenBanner({ match }: { readonly match: MatchSummary }) {
   );
 }
 
-export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
+export function MenuScreen({
+  sheet,
+  accountView = null,
+}: {
+  readonly sheet: MenuSheet | null;
+  /** Formular der Kontoseite aus dem Pfad; nur mit `sheet = 'account'`. */
+  readonly accountView?: AccountView | null;
+}) {
   const { state, reload } = useSession();
   const me = state.status === 'ready' ? state.me : null;
   const { list, error: listError, load } = useMatchList(me?.user.id ?? null);
@@ -164,6 +177,8 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
   const [again, setAgain] = useState(false);
   // Im Menü geöffnet: Schließen geht in der Geschichte zurück, damit „Zurück“ es nicht neu öffnet
   const openedHere = useRef(false);
+  // Dasselbe für die Formulare der Kontoseite
+  const viewOpenedHere = useRef(false);
 
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -171,10 +186,19 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
     return () => root.classList.remove('match-playing');
   }, []);
 
-  // Die Übungspartie gibt es nur, wo der Server sie anbietet (nicht in Produktion)
+  // Die Übungspartie gibt es nur, wo der Server sie anbietet (nicht in Produktion). Die Kontoseite
+  // braucht die Liste der Partien nicht: Sichern und Anmelden gehen auch, wenn sie fehlt
   const shown: MenuSheet | null =
-    me && list && !(sheet === 'practice' && !list.testMatchesEnabled) ? sheet : null;
+    me && (list || sheet === 'account') && !(sheet === 'practice' && !list?.testMatchesEnabled)
+      ? sheet
+      : null;
   const open = list?.matches.find(isOpenMatch) ?? null;
+  // Ein Formular, das es für dieses Konto nicht gibt (Gäste ändern keinen Namen, gesicherte Konten
+  // sichern nicht), zeigt die Kontoseite selbst
+  const view: AccountView | null =
+    shown === 'account' && accountView !== null && me && viewAllowed(accountView, me.user.isGuest)
+      ? accountView
+      : null;
 
   useEffect(() => {
     if (sheet === null) openedHere.current = false;
@@ -186,6 +210,34 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
       navigate({ name: 'start' }, { replace: true });
     }
   }, [me, list, sheet]);
+
+  // Direkt aufgerufenes Formular, das es für dieses Konto nicht gibt: Pfad der Kontoseite
+  useEffect(() => {
+    if (sheet !== 'account' || accountView === null || !me || viewOpenedHere.current) return;
+    if (!viewAllowed(accountView, me.user.isGuest)) {
+      navigate({ name: 'account', view: null }, { replace: true });
+    }
+  }, [sheet, accountView, me]);
+
+  const openAccountView = useCallback((next: AccountView) => {
+    viewOpenedHere.current = true;
+    navigate({ name: 'account', view: next });
+  }, []);
+
+  /** Schließt das Formular der Kontoseite oder ersetzt es durch ein anderes. */
+  const closeAccountView = useCallback((replaceWith?: AccountView) => {
+    if (replaceWith) {
+      navigate({ name: 'account', view: replaceWith }, { replace: true });
+      return;
+    }
+    if (window.location.pathname === '/konto') return;
+    if (viewOpenedHere.current) {
+      viewOpenedHere.current = false;
+      window.history.back();
+    } else {
+      navigate({ name: 'account', view: null }, { replace: true });
+    }
+  }, []);
 
   const close = useCallback(() => {
     actions.reset();
@@ -200,11 +252,14 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
   useEffect(() => {
     if (!shown || help) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') close();
+      if (event.key !== 'Escape') return;
+      // Ein offenes Formular der Kontoseite schließt zuerst
+      if (shown === 'account' && accountView !== null) closeAccountView();
+      else close();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [shown, help, close]);
+  }, [shown, help, close, accountView, closeAccountView]);
 
   function openSheet(next: MenuSheet) {
     actions.reset();
@@ -262,6 +317,18 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
       case 'chronicle':
         centre = <ChronicleSheet list={list} onBack={close} />;
         break;
+      case 'account':
+        centre = (
+          <AccountSheet
+            me={me}
+            record={list.record}
+            view={view}
+            onView={openAccountView}
+            onViewDone={closeAccountView}
+            onBack={close}
+          />
+        );
+        break;
       case null:
         bottom = (
           <>
@@ -302,6 +369,17 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
         );
         break;
     }
+  } else if (me && shown === 'account') {
+    centre = (
+      <AccountSheet
+        me={me}
+        record={null}
+        view={view}
+        onView={openAccountView}
+        onViewDone={closeAccountView}
+        onBack={close}
+      />
+    );
   } else if (me && listError) {
     bottom = (
       <div className="menu-fail-bar">
@@ -309,7 +387,9 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
       </div>
     );
   }
-  const loading = state.status === 'loading' || (me !== null && list === null && !listError);
+  const loading =
+    state.status === 'loading' ||
+    (me !== null && list === null && !listError && shown !== 'account');
 
   return (
     <main
@@ -322,7 +402,17 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
       </div>
       <div className={`stage-veil${centre ? ' on' : ''}`} aria-hidden="true" />
       <header className="menu-top">
-        {me ? <PlayerPlate me={me} record={list?.record ?? null} /> : null}
+        {me ? (
+          <PlayerPlate
+            me={me}
+            record={list?.record ?? null}
+            onOpen={() => {
+              if (shown !== 'account') openSheet('account');
+              else if (accountView !== null) closeAccountView();
+              else close();
+            }}
+          />
+        ) : null}
         <TitleMark />
         <div className="menu-tools">
           <SoundButton />
@@ -340,8 +430,11 @@ export function MenuScreen({ sheet }: { readonly sheet: MenuSheet | null }) {
         <div
           className="menu-centre"
           onClick={(event) => {
-            // Ein Tipp neben das Blatt schließt es, wie „Zurück“
-            if (event.target === event.currentTarget && shown) close();
+            // Ein Tipp neben das Blatt schließt es, wie „Zurück“. Ein offenes Formular der
+            // Kontoseite bleibt: Am Handy tippt man daneben, um die Tastatur zu schließen
+            if (event.target !== event.currentTarget || !shown) return;
+            if (shown === 'account' && accountView !== null) return;
+            close();
           }}
         >
           {centre}

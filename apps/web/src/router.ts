@@ -1,19 +1,23 @@
 import { useSyncExternalStore } from 'react';
+import type { AccountView } from './menu/account-text.ts';
 
 /**
  * Kleiner Router über die History-API für die Routen aus ARCHITECTURE §12:
- * `/` (Hauptmenü), `/welten` (Weltwahl), `/konto` (Konto), `/play/:instanceId` (Karte),
+ * `/` (Hauptmenü), `/welten` (Weltwahl), `/play/:instanceId` (Karte),
  * `/challenge/:challengeId` (Vollbild-Quiz), dazu die Partie: `/partie/:matchId` (Aufstellung,
  * Spiel, Ergebnis) und der Einladungslink `/partie/beitreten/:code` (tritt der Aufstellung mit
  * diesem Code bei). Die Blätter des Hauptmenüs (ADR-074) haben eigene Pfade, damit „Zurück“ im
  * Browser ein Blatt schließt: `/partie` (Neue Partie), `/partie/code` (Mit Code beitreten),
- * `/partie/uebung` (Übungspartie) und `/chronik`.
+ * `/partie/uebung` (Übungspartie) und `/chronik`. Die Kontoseite (ADR-080) ist ebenfalls ein Blatt
+ * des Hauptmenüs unter `/konto`; ihre Formulare haben eigene Pfade darunter (`/konto/name`,
+ * `/konto/sichern`, `/konto/passwort`, `/konto/anmelden`, `/konto/abmelden`).
  */
 
 export type Route =
   | { readonly name: 'start' }
   | { readonly name: 'worlds' }
-  | { readonly name: 'account' }
+  /** Kontoseite; `view` ist ein Formular auf ihr, `null` die Seite selbst. */
+  | { readonly name: 'account'; readonly view: AccountView | null }
   | { readonly name: 'play'; readonly instanceId: string }
   | { readonly name: 'challenge'; readonly challengeId: string }
   /** Hauptmenü mit dem Blatt „Neue Partie“. */
@@ -30,12 +34,25 @@ const MENU_PATHS = {
   chronicle: '/chronik',
 } as const;
 
+const ACCOUNT_PATHS: Record<AccountView, string> = {
+  name: '/konto/name',
+  secure: '/konto/sichern',
+  password: '/konto/passwort',
+  login: '/konto/anmelden',
+  logout: '/konto/abmelden',
+};
+
 /** UUID-Form (8-4-4-4-12); andere Werte führen zur Startseite statt zu einem sicheren Fehlerabruf. */
 const ID = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
 
 export function parseRoute(pathname: string): Route {
   if (/^\/welten\/?$/.test(pathname)) return { name: 'worlds' };
-  if (/^\/konto\/?$/.test(pathname)) return { name: 'account' };
+  if (/^\/konto\/?$/.test(pathname)) return { name: 'account', view: null };
+  for (const [view, path] of Object.entries(ACCOUNT_PATHS)) {
+    if (pathname === path || pathname === `${path}/`) {
+      return { name: 'account', view: view as AccountView };
+    }
+  }
   const play = new RegExp(`^/play/(${ID})/?$`).exec(pathname);
   if (play?.[1]) return { name: 'play', instanceId: play[1] };
   const challenge = new RegExp(`^/challenge/(${ID})/?$`).exec(pathname);
@@ -59,7 +76,7 @@ export function routePath(route: Route): string {
     case 'worlds':
       return '/welten';
     case 'account':
-      return '/konto';
+      return route.view === null ? '/konto' : ACCOUNT_PATHS[route.view];
     case 'play':
       return `/play/${route.instanceId}`;
     case 'challenge':

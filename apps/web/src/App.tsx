@@ -1,6 +1,5 @@
 import { MenuScreen } from './menu/MenuScreen.tsx';
 import { useRoute } from './router.ts';
-import { AccountScreen } from './screens/AccountScreen.tsx';
 import { ChallengeScreen } from './screens/ChallengeScreen.tsx';
 import { JoinScreen } from './screens/JoinScreen.tsx';
 import { MatchScreen } from './screens/MatchScreen.tsx';
@@ -32,7 +31,7 @@ export function App() {
     case 'worlds':
       return <WorldsScreen />;
     case 'account':
-      return <AccountScreen />;
+      return <MenuScreen sheet="account" accountView={route.view} />;
     case 'play':
       return <PlayScreen key={route.instanceId} instanceId={route.instanceId} />;
     case 'challenge':

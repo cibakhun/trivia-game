@@ -6,7 +6,20 @@ import type { ReactNode } from 'react';
  * die Chronik, dazu Fragezeichen („So geht's“), Spielen, Person (Konto) und Pfeile. Rein dekorativ.
  */
 export type IconKind =
-  'banner' | 'key' | 'target' | 'scroll' | 'help' | 'play' | 'person' | 'back' | 'next';
+  | 'banner'
+  | 'key'
+  | 'target'
+  | 'scroll'
+  | 'help'
+  | 'play'
+  | 'person'
+  | 'back'
+  | 'next'
+  | 'quill'
+  | 'lock'
+  | 'door'
+  | 'dice'
+  | 'shield';
 
 const PATHS: Record<IconKind, ReactNode> = {
   banner: (
@@ -61,6 +74,63 @@ const PATHS: Record<IconKind, ReactNode> = {
   ),
   back: <path d="M14-30L-18 0L14 30" className="icon-ink" strokeWidth="11" />,
   next: <path d="M-8-26L18 0L-8 26" className="icon-ink" strokeWidth="11" />,
+  quill: (
+    <>
+      <path
+        d="M36-42C8-34-16-8-26 24L-28 34L-16 26C16 14 36-10 40-38Z"
+        className="icon-paper icon-ink"
+        strokeWidth="5"
+      />
+      <path d="M-24 28L14-18M-30 40L-36 46" className="icon-ink" strokeWidth="5" />
+    </>
+  ),
+  lock: (
+    <>
+      <path d="M-17-8V-20C-17-42 17-42 17-20V-8" className="icon-ink" strokeWidth="8" />
+      <rect
+        x="-30"
+        y="-10"
+        width="60"
+        height="48"
+        rx="9"
+        className="icon-gold icon-ink"
+        strokeWidth="6"
+      />
+      <path d="M0 6V20" className="icon-ink" strokeWidth="8" />
+    </>
+  ),
+  door: (
+    <>
+      <path d="M-6-40H-34V40H-6" className="icon-ink" strokeWidth="7" />
+      <path d="M-14 0H34M18-16L34 0L18 16" className="icon-ink" strokeWidth="8" />
+    </>
+  ),
+  dice: (
+    <>
+      <rect
+        x="-34"
+        y="-34"
+        width="68"
+        height="68"
+        rx="14"
+        className="icon-paper icon-ink"
+        strokeWidth="6"
+      />
+      <circle cx="-14" cy="-14" r="6" className="icon-dot" />
+      <circle r="6" className="icon-dot" />
+      <circle cx="14" cy="14" r="6" className="icon-dot" />
+    </>
+  ),
+  shield: (
+    <>
+      <path
+        d="M-32-38H32V-4C32 18 14 32 0 40C-14 32-32 18-32-4Z"
+        className="icon-gold icon-ink"
+        strokeWidth="6"
+      />
+      <path d="M-14 0L-3 11L16-12" className="icon-ink" strokeWidth="8" />
+    </>
+  ),
 };
 
 export function Icon({ kind, size = 30 }: { readonly kind: IconKind; readonly size?: number }) {

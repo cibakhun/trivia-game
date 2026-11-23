@@ -4,19 +4,21 @@ import {
   usernameSchema,
   type PlayerNamePartsDto,
 } from '@rdw/protocol';
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ActionKey, ApiRequestError, api } from '../api/client.ts';
 import { t } from '../i18n/i18n.ts';
 import { useSession } from '../session.tsx';
 import { ClientError, ErrorNote } from './ErrorNote.tsx';
-import { NamePicker, type NameChoice } from './NamePicker.tsx';
+import { NameChips } from './NameChips.tsx';
+import type { NameChoice } from './NamePicker.tsx';
 
 /**
- * Formulare der Kontoseite (O-03, ADR-043): Konto sichern, Anmelden, Spielername und Passwort
- * ändern. Eingaben werden vorab wie auf dem Server geprüft; der Server bleibt maßgeblich.
+ * Formulare der Kontoseite (O-03, ADR-043, Gestaltung ADR-080): Konto sichern, Anmelden,
+ * Spielername und Passwort ändern. Eingaben werden vorab wie auf dem Server geprüft; der Server
+ * bleibt maßgeblich. Anmelden steht auch im Hauptmenü ohne Sitzung und auf dem Einladungslink.
  */
 
-type PlayerChoice = NameChoice<PlayerNamePartsDto>;
+export type PlayerChoice = NameChoice<PlayerNamePartsDto>;
 
 async function loadPlayerNames(): Promise<readonly PlayerChoice[]> {
   return (await api.playerNames()).suggestions;
@@ -28,7 +30,7 @@ function passwordProblem(password: string): string | null {
     : null;
 }
 
-function Field({
+export function Field({
   label,
   hint,
   problem,
@@ -103,8 +105,23 @@ function useSubmit() {
   return { busy, error, setError, submit };
 }
 
-/** Gast sichern: Benutzername, Passwort und Spielername (POST /auth/register). */
-export function RegisterForm({ onDone }: { readonly onDone: () => void }) {
+/**
+ * Gast sichern (POST /auth/register) in zwei Schritten: erst der Spielername aus Vorschlägen, dann
+ * Benutzername und Passwort. Den Schritt führt die Seite (`step`, `onStep`), damit ihr „Zurück“
+ * erst zum Namen zurückgeht. `onPreview` meldet den gewählten Namen, damit die Wappenseite ihn
+ * schon zeigt.
+ */
+export function RegisterForm({
+  step,
+  onStep,
+  onDone,
+  onPreview,
+}: {
+  readonly step: 1 | 2;
+  readonly onStep: (step: 1 | 2) => void;
+  readonly onDone: () => void;
+  readonly onPreview?: (name: string | null) => void;
+}) {
   const { reload } = useSession();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -113,18 +130,40 @@ export function RegisterForm({ onDone }: { readonly onDone: () => void }) {
   const [checked, setChecked] = useState(false);
   const { busy, error, setError, submit } = useSubmit();
   const key = useRef(new ActionKey());
+  const userField = useRef<HTMLInputElement>(null);
 
   const problems = {
     username: usernameSchema.safeParse(username).success ? null : t('account.usernameInvalid'),
     password: passwordProblem(password),
     repeat: repeat === password ? null : t('account.passwordMismatch'),
-    playerName: playerName ? null : t('account.playerNameMissing'),
   };
   // Ein vergebener Name gehört an das Feld; er verschwindet mit der nächsten Eingabe
   const taken = error instanceof ApiRequestError && error.code === 'USERNAME_TAKEN';
 
+  function choose(choice: PlayerChoice) {
+    setPlayerName(choice);
+    onPreview?.(choice.name);
+  }
+
+  function go(next: 1 | 2) {
+    onStep(next);
+  }
+
+  // Mit Schritt 2 geht der Fokus ins Feld für den Benutzernamen, gleich nach dem Wechsel (nicht im
+  // nächsten Bild: Wer schnell weitertippt, landete sonst mitten im Wort im falschen Feld)
+  const stepShown = useRef(step);
+  useEffect(() => {
+    if (stepShown.current === step) return;
+    stepShown.current = step;
+    if (step === 2) userField.current?.focus({ preventScroll: true });
+  }, [step]);
+
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    if (step === 1) {
+      if (playerName) go(2);
+      return;
+    }
     setChecked(true);
     if (!playerName || Object.values(problems).some((problem) => problem !== null)) return;
     void submit(async () => {
@@ -149,63 +188,89 @@ export function RegisterForm({ onDone }: { readonly onDone: () => void }) {
   const show = (problem: string | null) => (checked ? problem : null);
 
   return (
-    <form className="form" onSubmit={onSubmit} noValidate data-testid="register-form">
-      <Field
-        label={t('account.username')}
-        hint={t('account.usernameHint')}
-        problem={taken ? t('errors.USERNAME_TAKEN') : show(problems.username)}
-      >
-        {(ids) => (
-          <input
-            id={ids.id}
-            value={username}
-            autoComplete="username"
-            maxLength={24}
-            aria-describedby={ids.describedBy}
-            onChange={(event) => {
-              setUsername(event.target.value);
-              if (taken) setError(null);
-            }}
-          />
-        )}
-      </Field>
-      <Field
-        label={t('account.password')}
-        hint={t('account.passwordHint', { min: PASSWORD_MIN_LENGTH })}
-        problem={show(problems.password)}
-      >
-        {(ids) => (
-          <PasswordInput
-            ids={ids}
-            value={password}
-            onChange={setPassword}
-            autoComplete="new-password"
-          />
-        )}
-      </Field>
-      <Field label={t('account.passwordRepeat')} problem={show(problems.repeat)}>
-        {(ids) => (
-          <PasswordInput
-            ids={ids}
-            value={repeat}
-            onChange={setRepeat}
-            autoComplete="new-password"
-          />
-        )}
-      </Field>
-      <NamePicker
-        legend={t('account.playerNameLegend')}
-        hint={t('account.playerNameHint')}
-        load={loadPlayerNames}
-        value={playerName}
-        onChange={setPlayerName}
-        testId="player-name-picker"
-      />
-      {show(problems.playerName) ? <p className="field-problem">{problems.playerName}</p> : null}
-      <button type="submit" className="button button-primary" disabled={busy}>
-        {t('account.register')}
-      </button>
+    <form
+      className="form acct-form"
+      onSubmit={onSubmit}
+      noValidate
+      data-testid="register-form"
+      data-step={step}
+    >
+      <div className="acct-step" hidden={step !== 1}>
+        <p className="menu-note">{t('konto.secure.nameLead')}</p>
+        <NameChips
+          legend={t('account.playerNameLegend')}
+          load={loadPlayerNames}
+          value={playerName}
+          onChange={choose}
+          testId="player-name-picker"
+        />
+      </div>
+      <div className="acct-step" hidden={step !== 2}>
+        <p className="menu-note">{t('konto.secure.accessLead')}</p>
+        <Field
+          label={t('account.username')}
+          hint={t('konto.secure.usernameHint')}
+          problem={taken ? t('errors.USERNAME_TAKEN') : show(problems.username)}
+        >
+          {(ids) => (
+            <input
+              id={ids.id}
+              ref={userField}
+              value={username}
+              autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={24}
+              aria-describedby={ids.describedBy}
+              onChange={(event) => {
+                setUsername(event.target.value);
+                if (taken) setError(null);
+              }}
+            />
+          )}
+        </Field>
+        <div className="field-pair">
+          <Field
+            label={t('account.password')}
+            hint={t('account.passwordHint', { min: PASSWORD_MIN_LENGTH })}
+            problem={show(problems.password)}
+          >
+            {(ids) => (
+              <PasswordInput
+                ids={ids}
+                value={password}
+                onChange={setPassword}
+                autoComplete="new-password"
+              />
+            )}
+          </Field>
+          <Field label={t('account.passwordRepeat')} problem={show(problems.repeat)}>
+            {(ids) => (
+              <PasswordInput
+                ids={ids}
+                value={repeat}
+                onChange={setRepeat}
+                autoComplete="new-password"
+              />
+            )}
+          </Field>
+        </div>
+      </div>
       {error && !taken ? <ErrorNote error={error} /> : null}
+      <div className="acct-form-foot">
+        <span className="acct-dots" aria-label={t('konto.secure.step', { n: step })}>
+          <span className={step === 1 ? 'on' : undefined} />
+          <span className={step === 2 ? 'on' : undefined} />
+        </span>
+        <button
+          type="submit"
+          className="button button-primary menu-go"
+          disabled={busy || (step === 1 && !playerName)}
+        >
+          {step === 1 ? t('konto.secure.next') : t('account.register')}
+        </button>
+      </div>
     </form>
   );
 }
@@ -270,19 +335,26 @@ export function LoginForm({
   );
 }
 
-/** Spielername ändern (PATCH /me/profile). */
+/** Spielername ändern (PATCH /me/profile); `onPreview` zeigt die Wahl schon auf der Wappenseite. */
 export function PlayerNameForm({
   current,
   onDone,
+  onPreview,
 }: {
   readonly current: PlayerChoice | null;
   readonly onDone: () => void;
+  readonly onPreview?: (name: string | null) => void;
 }) {
   const { reload } = useSession();
   const [playerName, setPlayerName] = useState<PlayerChoice | null>(current);
   const { busy, error, submit } = useSubmit();
   const key = useRef(new ActionKey());
   const unchanged = playerName?.name === current?.name;
+
+  function choose(choice: PlayerChoice) {
+    setPlayerName(choice);
+    onPreview?.(choice.name === current?.name ? null : choice.name);
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -301,18 +373,24 @@ export function PlayerNameForm({
   }
 
   return (
-    <form className="form" onSubmit={onSubmit} data-testid="player-name-form">
-      <NamePicker
+    <form className="form acct-form" onSubmit={onSubmit} data-testid="player-name-form">
+      <NameChips
         legend={t('account.playerNameLegend')}
-        hint={t('account.playerNameHint')}
         load={loadPlayerNames}
         value={playerName}
-        onChange={setPlayerName}
+        current={current}
+        onChange={choose}
       />
-      <button type="submit" className="button button-primary" disabled={busy || unchanged}>
-        {t('account.nameSave')}
-      </button>
       {error ? <ErrorNote error={error} /> : null}
+      <div className="acct-form-foot">
+        <button
+          type="submit"
+          className="button button-primary menu-go"
+          disabled={busy || unchanged}
+        >
+          {t('account.nameSave')}
+        </button>
+      </div>
     </form>
   );
 }
@@ -358,7 +436,7 @@ export function PasswordForm({ onDone }: { readonly onDone: () => void }) {
   }
 
   return (
-    <form className="form" onSubmit={onSubmit} noValidate data-testid="password-form">
+    <form className="form acct-form" onSubmit={onSubmit} noValidate data-testid="password-form">
       <Field
         label={t('account.currentPassword')}
         problem={checked && current === '' ? t('account.required') : null}
@@ -372,34 +450,38 @@ export function PasswordForm({ onDone }: { readonly onDone: () => void }) {
           />
         )}
       </Field>
-      <Field
-        label={t('account.newPassword')}
-        hint={t('account.passwordHint', { min: PASSWORD_MIN_LENGTH })}
-        problem={checked ? problems.password : null}
-      >
-        {(ids) => (
-          <PasswordInput
-            ids={ids}
-            value={password}
-            onChange={setPassword}
-            autoComplete="new-password"
-          />
-        )}
-      </Field>
-      <Field label={t('account.newPasswordRepeat')} problem={checked ? problems.repeat : null}>
-        {(ids) => (
-          <PasswordInput
-            ids={ids}
-            value={repeat}
-            onChange={setRepeat}
-            autoComplete="new-password"
-          />
-        )}
-      </Field>
-      <button type="submit" className="button button-primary" disabled={busy}>
-        {t('account.passwordSave')}
-      </button>
+      <div className="field-pair">
+        <Field
+          label={t('account.newPassword')}
+          hint={t('account.passwordHint', { min: PASSWORD_MIN_LENGTH })}
+          problem={checked ? problems.password : null}
+        >
+          {(ids) => (
+            <PasswordInput
+              ids={ids}
+              value={password}
+              onChange={setPassword}
+              autoComplete="new-password"
+            />
+          )}
+        </Field>
+        <Field label={t('account.newPasswordRepeat')} problem={checked ? problems.repeat : null}>
+          {(ids) => (
+            <PasswordInput
+              ids={ids}
+              value={repeat}
+              onChange={setRepeat}
+              autoComplete="new-password"
+            />
+          )}
+        </Field>
+      </div>
       {error ? <ErrorNote error={error} /> : null}
+      <div className="acct-form-foot">
+        <button type="submit" className="button button-primary menu-go" disabled={busy}>
+          {t('account.passwordSave')}
+        </button>
+      </div>
     </form>
   );
 }

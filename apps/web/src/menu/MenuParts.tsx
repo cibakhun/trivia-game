@@ -12,7 +12,7 @@ import { Emblem } from '../art/Emblem.tsx';
 import { Icon, type IconKind } from '../art/Icons.tsx';
 import { MenuMap } from '../art/MenuMap.tsx';
 import { t } from '../i18n/i18n.ts';
-import { navigate } from '../router.ts';
+import { crestProgress, type CrestTier } from './account-text.ts';
 import { initialOf, playerName, recordLine } from './menu-text.ts';
 
 /**
@@ -66,11 +66,43 @@ export function TitleMark() {
   );
 }
 
-/** Wappen mit Anfangsbuchstabe. */
-function Crest({ letter }: { readonly letter: string }) {
+/**
+ * Wappen mit Anfangsbuchstabe. Sein Metall zeigt die Wappenstufe nach eigenen Siegen (ADR-080):
+ * Holz, Bronze, Silber, Gold und Gold mit Krone. Holz trägt eine feine Maserung.
+ */
+export function Crest({
+  letter,
+  tier,
+  className,
+}: {
+  readonly letter: string;
+  readonly tier: CrestTier;
+  readonly className?: string;
+}) {
   return (
-    <svg className="menu-crest" viewBox="-50 -52 100 104" aria-hidden="true" focusable="false">
-      <path d="M-42-46H42V-4C42 24 18 40 0 50C-18 40-42 24-42-4Z" strokeWidth="6" />
+    <svg
+      className={`menu-crest tier-${tier}${className ? ` ${className}` : ''}`}
+      viewBox="-50 -52 100 104"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {tier === 'crown' ? (
+        <path className="crown" d="M-30-44L-34-70L-17-57L0-76L17-57L34-70L30-44Z" strokeWidth="5" />
+      ) : null}
+      <path
+        className="shield"
+        d="M-42-46H42V-4C42 24 18 40 0 50C-18 40-42 24-42-4Z"
+        strokeWidth="6"
+      />
+      {tier === 'wood' ? (
+        <path
+          className="grain"
+          d="M-30-30C-14-26-18-12-4-8S20 2 30-6M-34 0C-20 2-16 14 0 16S22 20 32 12M-22 26C-10 24-4 34 8 30"
+          strokeWidth="2"
+        />
+      ) : (
+        <path className="sheen" d="M-36-40H6L-36 4Z" />
+      )}
       <path
         d="M-33-37H33V-5C33 18 14 31 0 39C-14 31-33 18-33-5Z"
         className="inner"
@@ -87,9 +119,11 @@ function Crest({ letter }: { readonly letter: string }) {
 export function PlayerPlate({
   me,
   record,
+  onOpen,
 }: {
   readonly me: MeResponse;
   readonly record: MatchRecord | null;
+  readonly onOpen: () => void;
 }) {
   const name = playerName(me);
   // Wer schon gespielt hat, sieht seine Bilanz; ein Gast ohne Partie liest, dass er sein Konto
@@ -109,9 +143,9 @@ export function PlayerPlate({
       className="menu-plate"
       aria-label={t('menu.plate.account', { name })}
       data-testid="menu-plate"
-      onClick={() => navigate({ name: 'account' })}
+      onClick={onOpen}
     >
-      <Crest letter={initialOf(name)} />
+      <Crest letter={initialOf(name)} tier={crestProgress(record?.won ?? 0).tier} />
       <span className="menu-plate-text">
         <span className="menu-plate-name">{name}</span>
         {sub ? <span className={`menu-plate-sub${secure ? ' secure' : ''}`}>{sub}</span> : null}

@@ -9,7 +9,7 @@ import { formatNumber, t, tp } from '../i18n/i18n.ts';
 export type MatchSummary = MatchListResponse['matches'][number];
 
 /** Blätter des Hauptmenüs; jedes hat seinen Pfad (router.ts). */
-export const MENU_SHEETS = ['new', 'join', 'practice', 'chronicle'] as const;
+export const MENU_SHEETS = ['new', 'join', 'practice', 'chronicle', 'account'] as const;
 export type MenuSheet = (typeof MENU_SHEETS)[number];
 
 export function isOpenMatch(match: MatchSummary): boolean {

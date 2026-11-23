@@ -75,8 +75,9 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
         if (isTransientError(e)) {
           // Kein Netz oder der Server stolpert (5xx, 429): Die nächste Abfrage versucht es erneut,
           // statt die Frage als verpasst zu zählen. Wiederholen ist sicher, denn wer sie schon hat,
-          // bekommt dieselbe Frage mit der Restzeit des Servers
-          presenting.current = null;
+          // bekommt dieselbe Frage mit der Restzeit des Servers. Die Marke nur freigeben, wenn sie
+          // noch dieser Frage gehört (sonst holte die nächste Abfrage eine neuere Frage doppelt)
+          if (presenting.current === questionSeq) presenting.current = null;
           return;
         }
         // Geschlossen oder nicht (mehr) für diesen Sitz: warten auf die Auflösung
