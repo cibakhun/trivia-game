@@ -763,6 +763,8 @@ export function RealmBlatt({
             // Duell: erst die Antworten (ADR-069). Bei Gleichstand steht in der Mitte, was daraus folgt
             duelBox('about')
           )}
+          {/* An derselben Stelle wie während der Frage: Die Liste deckt auf, wer was gab */}
+          {ranked ? null : <Answers view={view} local={local} short={short} reveal={reveal} />}
           {phaseTimer(timers.revealMs, true)}
         </>,
       );

@@ -1,5 +1,8 @@
-import type { MatchPresentedQuestion, QuestionCategory } from '@rdw/protocol';
+import type { MatchPresentedQuestion, MatchView, QuestionCategory } from '@rdw/protocol';
+import { Fragment } from 'react';
 import { CategoryIcon } from '../art/RealmIcons.tsx';
+import { SeatCrest } from '../art/SeatCrest.tsx';
+import { Swords } from '../art/Swords.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { showEstimate } from './estimate-input.ts';
@@ -63,20 +66,107 @@ function estimateNote(question: MatchPresentedQuestion & { readonly kind: 'ESTIM
     : tp('quiz.estimatePrecision', question.answerPrecision);
 }
 
+/** Wer an der mitgelesenen Frage beteiligt ist und wer schon geantwortet hat (aus der Ansicht). */
+export interface WatchedSeats {
+  /** Sitze der Frage in der Reihenfolge des Servers. */
+  readonly seats: readonly number[];
+  readonly answered: readonly number[];
+  /** Angreifer eines Duells: Er steht vorn, die gekreuzten Schwerter hinter ihm. */
+  readonly attacker: number | null;
+}
+
+/**
+ * Gefragte Sitze der laufenden Frage aus der Ansicht, für den Kopf der mitgelesenen Karte; `null`,
+ * wenn die Ansicht keine Frage nennt.
+ */
+export function watchedSeats(
+  question: MatchView['question'],
+  attacker: number | null,
+): WatchedSeats | null {
+  if (!question || question.seats.length === 0) return null;
+  return { seats: question.seats, answered: question.answered, attacker };
+}
+
+/** Das Zeichen „hat geantwortet“: goldene Münze mit Haken, wie die Münzen der Antworten. */
+function Sealed() {
+  return (
+    <svg viewBox="-12 -12 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M-5.6 0.4L-1.8 4.2L5.8-4.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
+ * Kopf der mitgelesenen Frage: die Wappen derer, die gefragt sind, im Duell mit gekreuzten
+ * Schwertern dazwischen (Angreifer vorn). Wer noch überlegt, trägt drei Punkte am Wappen, wer
+ * geantwortet hat, eine goldene Münze mit Haken, die sich in dem Augenblick aufsetzt. Nie, was er
+ * gewählt hat (O-38). Für Vorleser steht dabei, dass man zuschaut.
+ */
+function WatchDuel({ who }: { readonly who: WatchedSeats }) {
+  const order =
+    who.attacker !== null && who.seats.includes(who.attacker)
+      ? [who.attacker, ...who.seats.filter((s) => s !== who.attacker)]
+      : [...who.seats];
+  const duel = who.attacker !== null && order.length === 2;
+  return (
+    <span className="watch-duel" data-testid="watch-duel">
+      <span className="visually-hidden">{t('match.watch.tag')}</span>
+      {order.map((seat, i) => {
+        const done = who.answered.includes(seat);
+        return (
+          <Fragment key={seat}>
+            {duel && i === 1 ? <Swords size={17} /> : null}
+            <span
+              className={`watch-seat seat-${seat}`}
+              data-seat={seat}
+              data-answered={done ? 'true' : 'false'}
+              aria-hidden="true"
+            >
+              <SeatCrest seat={seat} size={22} />
+              {done ? (
+                <i className="watch-state done">
+                  <Sealed />
+                </i>
+              ) : (
+                <i className="watch-state thinking">
+                  <b />
+                  <b />
+                  <b />
+                </i>
+              )}
+            </span>
+          </Fragment>
+        );
+      })}
+    </span>
+  );
+}
+
 /**
  * Die Frage anderer zum Mitlesen (ADR-065, O-38): dieselbe Karte an derselben Stelle, aber nichts
  * daran lässt sich antippen, und sie zeigt nie, was die Gefragten wählen; das füllt erst die
  * Auflösung in ihren Farben. Die Lunte läuft das Zeitlimit der Frage ab ihrem Öffnen herunter.
+ * Oben stehen die Wappen der Gefragten mit ihrem Stand (`WatchDuel`); ohne sie das Schild
+ * „Du schaust zu“.
  */
 export function WatchedQuestionCard({
   question,
   deadline,
   category = null,
+  who = null,
 }: {
   readonly question: MatchPresentedQuestion;
   /** Ende des Zeitlimits der Frage als `performance.now()`-Wert. */
   readonly deadline: number;
   readonly category?: QuestionCategory | null;
+  readonly who?: WatchedSeats | null;
 }) {
   return (
     <section
@@ -87,7 +177,11 @@ export function WatchedQuestionCard({
     >
       <header className="sheet-head">
         <QuestionKind kind={question.kind} category={category} />
-        <span className="sheet-tag">{t('match.watch.tag')}</span>
+        {who && who.seats.length > 0 ? (
+          <WatchDuel who={who} />
+        ) : (
+          <span className="sheet-tag">{t('match.watch.tag')}</span>
+        )}
       </header>
       <Countdown deadline={deadline} totalMs={question.timeLimitMs} onExpire={noop} brief />
       <h2 id="question-prompt" className="sheet-prompt">

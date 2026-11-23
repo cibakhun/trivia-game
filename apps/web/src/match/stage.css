@@ -1131,14 +1131,21 @@ html.match-playing body {
 
 .answers ul {
   display: grid;
-  gap: calc(5 * var(--u));
+  gap: calc(1 * var(--u));
 }
 
+/* Innenabstand schon während der Frage: In der Auflösung füllt sich die Zeile, ohne zu rücken */
 .answers li {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: calc(6 * var(--u));
+  min-height: calc(24 * var(--u));
+  margin-inline: calc(-5 * var(--u));
+  padding: calc(2 * var(--u)) calc(5 * var(--u));
   font-size: calc(13.5 * var(--u));
+  border-radius: calc(6 * var(--u));
 }
 
 .answers .crest {
@@ -1155,6 +1162,82 @@ html.match-playing body {
 .answer-state.on {
   font-weight: 700;
   color: var(--success);
+}
+
+/*
+ * Auflösung in derselben Liste (`Answers` mit `reveal`): Die Zeilen bleiben, wo sie während der
+ * Frage standen, an die Stelle von „hat geantwortet“ tritt die Antwort. Die Zeile füllt sich in der
+ * Farbe des Sitzes, Münze und Stempel wie auf den Feldern der Karte und im selben Takt
+ * (`--reveal-at` wie dort: bleibt die Karte liegen, 0,22 s, dreht sie sich um, 0,3 s).
+ */
+.answers.revealed {
+  --reveal-at: 0.22s;
+}
+
+.answers.revealed[data-kind='ESTIMATE'] {
+  --reveal-at: 0.3s;
+}
+
+.answers .answer-row {
+  flex-wrap: wrap;
+  row-gap: calc(2 * var(--u));
+}
+
+.answers .answer-row .reveal-fill {
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.answers .answer-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5 * var(--u));
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+  font-size: calc(13 * var(--u));
+  font-weight: 700;
+  line-height: 1.15;
+  animation: answer-pick-in 0.26s calc(var(--reveal-at) - 0.08s) ease-out both;
+}
+
+.answers .answer-text {
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.answers .answer-figure small {
+  font-size: calc(11 * var(--u));
+  font-weight: 600;
+}
+
+.answers .answer-none {
+  font-size: calc(12 * var(--u));
+  font-weight: 600;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.answers .reveal-mark {
+  --coin: calc(18 * var(--u));
+  font-size: calc(10.5 * var(--u));
+}
+
+.answers .answer-row .reveal-mark {
+  box-shadow: 0 0 0 calc(1.2 * var(--u)) color-mix(in srgb, var(--surface) 80%, transparent);
+}
+
+/* Stand die Liste schon während der Frage da, schreibt sie sich beim Umschlagen nicht neu ein */
+.stage-right[data-turn] > .blatt > .answers.kept {
+  animation: none;
+}
+
+@keyframes answer-pick-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(6 * var(--u)));
+  }
 }
 
 /* ---------- Flug über die Bühne (ADR-067, ADR-070) ---------- */
@@ -1959,6 +2042,87 @@ html.match-playing body {
   background: var(--surface-2);
 }
 
+/*
+ * Kopf der mitgelesenen Frage (`WatchDuel`): die Wappen der Gefragten neben dem Band, im Duell mit
+ * gekreuzten Schwertern dazwischen. Am Wappen unten rechts der Stand: drei Punkte, solange einer
+ * überlegt, eine goldene Münze mit Haken, sobald er geantwortet hat. Die Münze setzt sich einmal
+ * auf wie ein Stempel; wer zuschaut, antwortet nicht, die Bewegung stört niemanden (ARCHITECTURE
+ * §15 meint die eigene Frage). Gold und nicht Grün: Der Haken heißt „abgegeben“, nicht „richtig“.
+ */
+.watch-duel {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(6 * var(--u));
+  margin-left: calc(12 * var(--u));
+}
+
+.watch-duel .swords-icon {
+  width: calc(17 * var(--u));
+  height: calc(17 * var(--u));
+}
+
+.watch-seat {
+  position: relative;
+  display: inline-grid;
+  margin-right: calc(3 * var(--u));
+}
+
+.watch-seat .crest {
+  width: calc(22 * var(--u));
+  height: auto;
+}
+
+.watch-state {
+  position: absolute;
+  right: calc(-5 * var(--u));
+  bottom: calc(-3 * var(--u));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(13 * var(--u));
+  height: calc(13 * var(--u));
+  border-radius: 50%;
+}
+
+.watch-state.thinking {
+  gap: calc(1.3 * var(--u));
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+}
+
+.watch-state.thinking b {
+  width: calc(2.2 * var(--u));
+  height: calc(2.2 * var(--u));
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.watch-state.done {
+  color: var(--primary-text);
+  background: radial-gradient(circle at 35% 30%, var(--primary-top), var(--primary-bottom));
+  border: 1px solid var(--primary-edge);
+  box-shadow: 0 0 0 calc(1.5 * var(--u)) color-mix(in srgb, var(--surface) 85%, transparent);
+  animation: watch-seal 0.32s ease-out both;
+}
+
+.watch-state.done svg {
+  width: 86%;
+  height: 86%;
+}
+
+@keyframes watch-seal {
+  from {
+    opacity: 0;
+    transform: scale(2.2);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.86);
+    animation-timing-function: ease-out;
+  }
+}
+
 .question-sheet {
   display: grid;
   gap: calc(8 * var(--u));
@@ -2520,6 +2684,52 @@ html.match-playing body {
 /* Auf einem gefüllten Feld hebt ein Ring in Papierfarbe die Münze von der Farbe ab */
 .stage .reveal-option.chosen .reveal-mark {
   box-shadow: 0 0 0 calc(1.5 * var(--u)) color-mix(in srgb, var(--surface) 80%, transparent);
+}
+
+/*
+ * Wer das Feld gewählt hat, steckt außerdem als kleines Wappen an der Münze (Thread „Zuschauen
+ * eindeutiger“): ohne Namen, aber auch ohne Blick auf den Spielstand und ohne Farbsinn zu lesen.
+ * Allein unten rechts an der Münze, zu zweit links und rechts, wie die Farben im Feld (links, wer
+ * angreift). Es bleibt im Rand des Felds neben der Münze und liegt so nie auf der Antwort. Es
+ * setzt sich, wenn die Farbe eingelaufen ist, kurz vor dem Stempel; zu zweit kurz nacheinander.
+ */
+.stage .reveal-who {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.stage .reveal-who .crest {
+  position: absolute;
+  top: 56%;
+  left: 100%;
+  width: calc(16 * var(--u));
+  height: auto;
+  margin-left: calc(-9 * var(--u));
+  animation: reveal-who 0.34s calc(var(--reveal-at) + 0.3s) both;
+}
+
+.stage .reveal-who.shared .crest:first-child {
+  left: 0;
+  margin-left: calc(-7 * var(--u));
+}
+
+.stage .reveal-who .crest + .crest {
+  animation-delay: calc(var(--reveal-at) + 0.4s);
+}
+
+@keyframes reveal-who {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-6 * var(--u))) scale(1.6);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.88);
+    animation-timing-function: ease-out;
+  }
 }
 
 .stage .reveal-fill .seat-0,
@@ -4018,5 +4228,14 @@ html.match-playing body {
   /* Ein Abbild steht hier nur für einen Messpunkt da (StageCentre) und wird nie gezeichnet */
   .sheet-ghosts {
     visibility: hidden;
+  }
+}
+
+/* Zuschauen (Kopf der mitgelesenen Frage, Wappen der Wählenden, Antworten im Blatt): ohne Bewegung sofort im Endbild */
+@media (prefers-reduced-motion: reduce) {
+  .watch-state.done,
+  .stage .reveal-who .crest,
+  .answers .answer-pick {
+    animation: none;
   }
 }
