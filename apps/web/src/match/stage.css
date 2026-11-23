@@ -621,11 +621,6 @@ html.match-playing body {
     box-shadow 0.32s ease;
 }
 
-/* Der Ausgang färbt den Rand erst, wenn der Schlag sitzt (wie der Inhalt des Blatts) */
-.stage[data-beat='outcome'] .blatt-ring {
-  transition-delay: 0.3s;
-}
-
 .stage[data-state='question'] .blatt-ring {
   transition: none;
 }
@@ -679,59 +674,50 @@ html.match-playing body {
  * Gewicht (`:where`): Was im Blatt eine eigene Bewegung hat (Ergebnis des Glücksrads, Ausgang),
  * behält sie. `data-turn` wechselt zwischen `a` und `b`, damit jede neue Seite neu anläuft; die
  * Leiste selbst trägt eine leere Animation, deren Ende das Umschlagen abschließt (was danach auf
- * derselben Seite erscheint, läuft nicht mit ein). Nie während der eigenen Frage.
+ * derselben Seite erscheint, läuft nicht mit ein). Nie während der eigenen Frage. Auf den Ausgang
+ * eines Duells schlägt das Blatt erst um, wenn der Schlag sitzt (`useAfterImpact`): Bis dahin
+ * steht die Seite davor, und es gibt keinen Augenblick mit leerem Papier.
  */
 .stage-right[data-turn] {
-  --blatt-at: 0ms;
-  animation: blatt-settle-a 1ms linear calc(var(--blatt-at) + 460ms) both;
+  animation: blatt-settle-a 1ms linear 460ms both;
 }
 
 .stage-right[data-turn='b'] {
   animation-name: blatt-settle-b;
 }
 
-/* Der Ausgang eines Duells steht im Blatt, wenn der Schlag sitzt, nicht schon im Anlauf */
-.stage[data-beat='outcome'] > .stage-right[data-turn] {
-  --blatt-at: 300ms;
-}
-
 :where(.stage:not([data-state='question']) > .stage-right[data-turn='a'] > .blatt > *) {
-  animation: blatt-in-a 230ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--blatt-at, 0ms) both;
+  animation: blatt-in-a 230ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 
 :where(.stage:not([data-state='question']) > .stage-right[data-turn='b'] > .blatt > *) {
-  animation: blatt-in-b 230ms cubic-bezier(0.2, 0.7, 0.3, 1) var(--blatt-at, 0ms) both;
+  animation: blatt-in-b 230ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 
 :where(.stage-right[data-turn] > .blatt > :nth-child(2)) {
-  animation-delay: calc(var(--blatt-at, 0ms) + 40ms);
+  animation-delay: 40ms;
 }
 
 :where(.stage-right[data-turn] > .blatt > :nth-child(3)) {
-  animation-delay: calc(var(--blatt-at, 0ms) + 80ms);
+  animation-delay: 80ms;
 }
 
 :where(.stage-right[data-turn] > .blatt > :nth-child(4)) {
-  animation-delay: calc(var(--blatt-at, 0ms) + 120ms);
+  animation-delay: 120ms;
 }
 
 :where(.stage-right[data-turn] > .blatt > :nth-child(5)) {
-  animation-delay: calc(var(--blatt-at, 0ms) + 160ms);
+  animation-delay: 160ms;
 }
 
 :where(.stage-right[data-turn] > .blatt > :nth-child(n + 6)) {
-  animation-delay: calc(var(--blatt-at, 0ms) + 200ms);
+  animation-delay: 200ms;
 }
 
 /* Der Kasten des Duells stand schon auf der Seite davor (Aufmarsch, Glücksrad, Auflösung): Er
    bleibt stehen, nur der Rest der Seite schreibt sich neu ein (`useKept` in stage-live.ts) */
 .stage-right[data-turn] > .blatt > .duel-box.kept {
   animation: none;
-}
-
-/* Ohne Ausbau hat die Karte des Ausgangs ihre eigene Bewegung: Auch sie wartet auf den Schlag */
-.stage-right[data-turn] > .blatt > .outcome-card {
-  animation-delay: var(--blatt-at);
 }
 
 @keyframes blatt-in-a {

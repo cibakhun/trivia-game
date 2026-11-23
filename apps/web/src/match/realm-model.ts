@@ -706,7 +706,10 @@ const FLOW_ROUND: readonly FlowStep[] = ['PREPARE', 'ORDERS', 'ATTACK'];
  * Landnahme, im Feldzug jede Runde Rüsten, Aufdecken und Angriffe. `null`, wenn nichts läuft.
  */
 export function roundFlow(play: RealmPlay, state: RealmScreenState): RoundFlowView | null {
-  if (state === 'finished' || state === 'abandoned' || state === 'lobby') return null;
+  if (state === 'abandoned' || state === 'lobby') return null;
+  // Am Ende bleibt die Zeile stehen, alle Abschnitte erledigt: Sonst rückten die Tafeln darunter im
+  // Augenblick der Abrechnung nach oben
+  if (state === 'finished') return { steps: FLOW_ROUND, now: FLOW_ROUND.length };
   // Das Aufgedeckte steht noch kurz, während der Server schon weiter ist: beim ersten Angriff
   // oder, wenn alle Angriffe ausfielen (ADR-064), in der nächsten Rüstzeit oder am Ende
   if (state === 'orders') return { steps: FLOW_ROUND, now: 1 };
@@ -728,6 +731,6 @@ export function roundFlow(play: RealmPlay, state: RealmScreenState): RoundFlowVi
     case 'DUEL_ESTIMATE':
       return { steps: FLOW_ROUND, now: 2 };
     case 'FINISHED':
-      return null;
+      return { steps: FLOW_ROUND, now: FLOW_ROUND.length };
   }
 }

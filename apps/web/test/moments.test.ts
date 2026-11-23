@@ -4,8 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { attackSource, duelLayout, duelScale, inUpperHalf } from '../src/art/attack.ts';
 import { mapArt } from '../src/art/map-art.ts';
 import {
+  BAND_CLOSE_MS,
+  closingTiming,
   enqueueMoments,
+  GRAND_MOMENT_MS,
   holdSkips,
+  MOMENT_MS,
   momentsBetween,
   pruneMoments,
   type MomentSnapshot,
@@ -418,6 +422,20 @@ describe('Warteschlange der Bänder', () => {
     const next = holdSkips(during.held, [], 'spectating');
     expect(holdSkips(next.held, [], 'reveal').held).toEqual([]);
     expect(holdSkips(next.held, [], 'announce')).toEqual({ fresh: [], held: [] });
+  });
+
+  it('ein Band, das schon steht und verfällt, rollt sich gleich ein (Politur 2026-11-23)', () => {
+    const plain = { leadMs: 0, showMs: MOMENT_MS };
+    // Offen nach 0,7 s: Das Einrollen beginnt sofort, das Band geht 0,36 s später
+    expect(closingTiming(plain, 700, 'plain')).toEqual({ leadMs: 0, showMs: 700 + BAND_CLOSE_MS });
+    // Noch nicht ganz entrollt: erst entrollen (0,43 s), dann einrollen
+    expect(closingTiming(plain, 100, 'plain').showMs).toBe(430 + BAND_CLOSE_MS);
+    // Kurz vor dem geplanten Ende: Es steht nie länger als geplant
+    expect(closingTiming(plain, 1400, 'plain')).toEqual(plain);
+    // Ein großes Band mit Wartezeit zählt ab seinem Entrollen
+    const grand = { leadMs: 900, showMs: GRAND_MOMENT_MS };
+    expect(closingTiming(grand, 1000, 'grand').showMs).toBe(580 + BAND_CLOSE_MS);
+    expect(closingTiming(grand, 2000, 'grand').showMs).toBe(1100 + BAND_CLOSE_MS);
   });
 
   it('ein zweites „Du bist dran“ stellt sich nicht hinter das erste', () => {

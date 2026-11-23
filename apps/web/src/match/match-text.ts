@@ -25,6 +25,30 @@ export function shortNames(view: MatchView): SeatName {
   };
 }
 
+/** Stärke im Namen eines Bots, wie der Server ihn baut: „Bot 2 (mittel)“. */
+const BOT_STRENGTH = / \((?:leicht|mittel|schwer)\)$/;
+
+/**
+ * Noch knapper als `shortNames`, für Zeilen, in denen zwei Namen nebeneinander stehen (wer gegen
+ * wen, Lose im Glücksrad): Ein Bot verliert seine Stärke in Klammern, solange er so von allen
+ * anderen zu unterscheiden bleibt („Bot 2“ statt „Bot 2 (mittel)“; „Bot (leicht)“ neben
+ * „Bot (schwer)“ bleibt, wie es ist). Das Wappen daneben sagt ohnehin, wer gemeint ist.
+ */
+export function compactNames(view: MatchView): SeatName {
+  const short = shortNames(view);
+  const shown = view.players.map((p) => short(p.seat ?? -1));
+  return (seat) => {
+    const name = short(seat);
+    const player = view.players.find((p) => p.seat === seat);
+    if (!player?.isBot || !BOT_STRENGTH.test(name)) return name;
+    const bare = name.replace(BOT_STRENGTH, '');
+    const clash = shown.some(
+      (other, i) => view.players[i]?.seat !== seat && other.replace(BOT_STRENGTH, '') === bare,
+    );
+    return clash ? name : bare;
+  };
+}
+
 function isMapId(id: string): id is MatchMapId {
   return (MATCH_MAP_IDS as readonly string[]).includes(id);
 }
