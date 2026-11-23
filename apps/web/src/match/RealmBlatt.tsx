@@ -84,6 +84,10 @@ function DuelBox({
       if (wide) setStacked(names);
     };
     measure();
+    // Hochkant ist das Blatt ausgeblendet (Hinweis zum Drehen), beim Drehen oder Skalieren ändert
+    // sich seine Breite: dann neu messen
+    const resized = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    if (resized && sides.current) resized.observe(sides.current);
     // Mit der Schrift der Seite werden Namen breiter als mit der Ersatzschrift davor
     let gone = false;
     void document.fonts?.ready.then(() => {
@@ -91,6 +95,7 @@ function DuelBox({
     });
     return () => {
       gone = true;
+      resized?.disconnect();
     };
   }, [names, stacked]);
   const tall = stacked === names;
