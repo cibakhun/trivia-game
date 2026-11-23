@@ -509,11 +509,17 @@ describe('Ganze Partie mit Ausbau gegen Bots', () => {
     }
     const announceMs = PLAYTEST_REALM_RULES.timers.announceMs ?? 0;
     expect(announceMs).toBeGreaterThan(0);
+    // Ereignisse tragen die Zeit ihres Schreibens (`game_now()` beim Einfügen), die Frist der
+    // Ansage zählt ab dem Beginn des Laufs, der das Ziel setzt. Um dessen Dauer (wenige ms) kann
+    // die Zielwahl später gestempelt sein; ohne Ansage lägen beide Ereignisse fast gleichauf
+    const runAllowanceMs = 100;
     for (const [i, target] of targets.entries()) {
       const spin = spins[i];
       if (!spin) throw new Error('Rad fehlt');
       expect(spin.seq).toBeGreaterThan(target.seq);
-      expect(Date.parse(spin.at) - Date.parse(target.at)).toBeGreaterThanOrEqual(announceMs);
+      expect(Date.parse(spin.at) - Date.parse(target.at)).toBeGreaterThanOrEqual(
+        announceMs - runAllowanceMs,
+      );
     }
     expect(duels.map((e) => e.payload.duel)).toEqual(duels.map((_, i) => i + 1));
     const trivia = eventsOf(all, 'QUESTION_OPENED').filter(
