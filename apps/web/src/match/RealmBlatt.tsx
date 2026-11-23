@@ -779,7 +779,7 @@ export function RealmBlatt({
           )}
           {/* An derselben Stelle wie während der Frage: Die Liste deckt auf, wer was gab */}
           {ranked ? null : <Answers view={view} local={local} short={short} reveal={reveal} />}
-          {summary ? <RankedNext summary={summary} mySeat={view.mySeat} /> : null}
+          {summary ? <RankedNext summary={summary} mySeat={view.mySeat} name={name} /> : null}
           {phaseTimer(timers.revealMs, true)}
         </>,
       );

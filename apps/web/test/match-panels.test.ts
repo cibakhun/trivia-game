@@ -446,8 +446,13 @@ describe('Blatt neben der Rangfolge: was daraus folgt (Politur 2026-11-23)', () 
       next: { text: 'Du setzt deine Burg' },
     });
     // Im Blatt: beide Reihen mit dem eigenen Wappen hervorgehoben, darunter „Als Nächstes“
-    const html = renderToStaticMarkup(createElement(RankedNext, { summary: middle!, mySeat: 1 }));
-    expect(textOf(html)).toContain('Burgen 1 2 3 Dörfer 1 2 3');
+    const html = renderToStaticMarkup(
+      createElement(RankedNext, { summary: middle!, mySeat: 1, name }),
+    );
+    // Stelle und Wappen sind nur Bild; Vorleseprogramme hören die Namen in der Reihenfolge
+    expect(textOf(html)).toContain(
+      'Burgen 1 Bot (schwer) 2 Anna (du) 3 Bot (leicht) Dörfer 1 Bot (leicht) 2 Anna (du) 3 Bot (schwer)',
+    );
     expect(html.match(/<li class="me">/g)).toHaveLength(2);
     expect(textOf(html)).toContain('Als Nächstes Bot (schwer) setzt eine Burg');
   });

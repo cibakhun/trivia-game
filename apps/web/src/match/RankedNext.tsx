@@ -190,9 +190,12 @@ export function PickRun({
 export function RankedNext({
   summary,
   mySeat,
+  name,
 }: {
   readonly summary: RankedSummary;
   readonly mySeat: number | null;
+  /** Für Vorleseprogramme: Stelle und Wappen der Reihen sind nur Bild. */
+  readonly name: SeatName;
 }) {
   const { mine, free, order, next } = summary;
   return (
@@ -215,6 +218,7 @@ export function RankedNext({
                         {i + 1}
                       </span>
                       <SeatCrest seat={seat} size={18} />
+                      <span className="visually-hidden">{name(seat)}</span>
                     </li>
                   ))}
                 </ol>

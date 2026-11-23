@@ -312,7 +312,7 @@ export function StageBlatt({
           {land ? null : (
             <Answers view={view} local={local} short={shortNames(view)} reveal={reveal} />
           )}
-          {ranked ? <RankedNext summary={ranked} mySeat={view.mySeat} /> : null}
+          {ranked ? <RankedNext summary={ranked} mySeat={view.mySeat} name={name} /> : null}
           {phaseTimer(timers.revealMs, true)}
         </>,
       );
