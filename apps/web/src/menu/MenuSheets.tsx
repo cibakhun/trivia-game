@@ -6,6 +6,7 @@ import {
   type MatchMode,
 } from '@rdw/protocol';
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { Icon } from '../art/Icons.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { LoginForm } from '../components/AccountForms.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
@@ -408,16 +409,21 @@ function BigChoice({
   );
 }
 
-/** Erster Besuch ohne Sitzung: als Gast sofort los oder mit einem Konto anmelden. */
+/**
+ * Erster Besuch ohne Sitzung: als Gast sofort los, registrieren oder mit einem Konto anmelden.
+ * Registrieren macht erst still einen Gast (so bleibt alles, was danach geschieht, am Konto) und
+ * öffnet dann das Formular der Kontoseite (ADR-082).
+ */
 export function WelcomeSheet({ onLogin }: { readonly onLogin: () => void }) {
   const { startGuest, switching } = useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  async function guest() {
+  async function guest(then?: () => void) {
     setBusy(true);
     setError(null);
     try {
       await startGuest();
+      then?.();
     } catch (e) {
       setError(e);
     } finally {
@@ -436,6 +442,13 @@ export function WelcomeSheet({ onLogin }: { readonly onLogin: () => void }) {
           sub={t('menu.welcome.guestSub')}
           disabled={busy || switching}
           onClick={() => void guest()}
+        />
+        <BigChoice
+          icon={<Icon kind="shield" size={22} />}
+          title={t('menu.welcome.register')}
+          sub={t('menu.welcome.registerSub')}
+          disabled={busy || switching}
+          onClick={() => void guest(() => navigate({ name: 'account', view: 'secure' }))}
         />
         <BigChoice
           icon={<MenuIcon kind="person" />}

@@ -23,25 +23,27 @@ Bezug: Brief §12.2, §12.5. REST/JSON für Kommandos und Abfragen, WebSocket f�
 |---|---|---|
 | GET | `/auth/bootstrap` | Anmeldestatus; ohne Sitzung setzt es das Cookie `guest_bootstrap` ([§1](#1-konventionen)) |
 | POST | `/auth/guest` | Gastkonto anlegen, Sitzung setzen ([O-03]) |
-| POST | `/auth/register` | Gast in gesichertes Konto umwandeln (Benutzername, Passwort, Spielername) |
+| POST | `/auth/register` | Registrieren: Gast in gesichertes Konto umwandeln (eigener Benutzername, Passwort) |
 | POST | `/auth/login`, `/auth/logout` | Anmelden mit Benutzername und Passwort, Abmelden |
 | GET | `/me` | Konto, Profil, Einstellungen, aktive Instanzen |
-| PATCH | `/me/profile` | Spielername ändern (nur gesicherte Konten) |
+| PATCH | `/me/profile` | Benutzernamen ändern (nur gesicherte Konten) |
 | POST | `/me/password` | Passwort ändern (bisheriges Passwort nötig) |
-| GET | `/names/player` | fünf freie Spielernamen als Vorschläge |
+| GET | `/names/player` | fünf freie Namen aus Bausteinen als Ideen |
+| GET | `/names/check` | Prüfen, ob ein Benutzername erlaubt und frei ist |
 | PATCH | `/me/settings` | Sprache, Zeitzone, Benachrichtigungen, Auto-Verlängerung |
 | POST | `/me/push-subscriptions` | Web-Push-Abonnement registrieren |
 | POST | `/me/export` | Datenexport anstoßen (Datenschutz) |
 | DELETE | `/me` | Kontolöschung beantragen |
 
-Stand Phase 2 Paket 2 (O-03, O-10, [ADR-043](DECISIONS.md), [ADR-044](DECISIONS.md)): umgesetzt sind `bootstrap`, `guest`, `register`, `login`, `logout`, `GET /me`, `PATCH /me/profile`, `POST /me/password`, `GET /names/player` und `GET /instances/:id/kingdom-names`; Einstellungen, Push, Export und Löschantrag folgen.
+Stand Phase 2 Paket 2 (O-03, O-10, [ADR-043](DECISIONS.md), [ADR-044](DECISIONS.md)): umgesetzt sind `bootstrap`, `guest`, `register`, `login`, `logout`, `GET /me`, `PATCH /me/profile`, `POST /me/password`, `GET /names/player`, `GET /names/check` (ADR-082) und `GET /instances/:id/kingdom-names`; Einstellungen, Push, Export und Löschantrag folgen.
 
-- **`POST /auth/register`** (201, mit Gastsitzung und `Idempotency-Key`): Körper `{ username, password, playerName: { adjective, noun, number } }`. Benutzername 3–24 Zeichen aus `A–Z a–z 0–9 Ä Ö Ü ä ö ü ß _ . -`, ohne Rücksicht auf Groß- und Kleinschreibung eindeutig, wird nie öffentlich gezeigt; Passwort 10–128 Zeichen. Konto-ID und Spielstand bleiben, alle Sitzungen des Kontos werden durch eine neue ersetzt. Antwort `{ user: { id, isGuest: false }, serverTime }`. Fehler: `ALREADY_REGISTERED` (409), `USERNAME_TAKEN` (409), `PLAYER_NAME_TAKEN` (409, `details.displayName`), `INVALID_NAME` (422). Ein E-Mail-Feld gibt es noch nicht ([O-03]); ein unbekanntes Feld ergibt `VALIDATION_FAILED`.
-- **`POST /auth/login`** (200): Körper `{ username, password }` (nur Längen geprüft). Unbekannter Name, falsches Passwort, Gastkonto und Konto mit Löschantrag antworten gleich mit `INVALID_CREDENTIALS` (401) nach gleichem Aufwand. Nach 10 Fehlversuchen je Benutzername oder 100 je Adresse in 15 min antwortet der Server bis zum Fensterende mit `RATE_LIMITED` (429, `details.retryAfterMs`), auch bei richtigem Passwort. Eine Sitzung, mit der die Anfrage kam, wird beendet (auch die eines anderen Kontos); andere Geräte bleiben angemeldet.
-- **`PATCH /me/profile`** (200, mit `Idempotency-Key`): Körper `{ playerName }`; Antwort `{ profile: { displayName, playerName }, serverTime }`, bei Wiederholung das gespeicherte Profil dieser Änderung. Gäste: `GUEST_ACCOUNT` (403).
+- **`POST /auth/register`** (201, mit Gastsitzung und `Idempotency-Key`): Körper `{ username, password }` ([ADR-082](DECISIONS.md)). Der Benutzername ist Anmeldename und Spielername zugleich und damit öffentlich. Der Server vereinheitlicht ihn (Unicode NFC, Leerraum außen weg, innen zu einem Leerzeichen) und verlangt dann 3–20 Zeichen aus lateinischen Buchstaben (auch mit Akzent wie `á ő ł ß`), Ziffern, Leerzeichen und `_ . -`; Anfang und Ende Buchstabe oder Ziffer, keine zwei Trennzeichen hintereinander, mindestens ein Buchstabe. Eindeutig ohne Rücksicht auf Groß- und Kleinschreibung, Akzente und die Trennzeichen („Krisz“, „krísz“ und „K.risz“ sind derselbe Name), verglichen mit allen Spielernamen und allen Anmeldenamen. Ein Wortfilter (Deutsch, Englisch, Ungarisch) weist grobe Beleidigungen, Obszönes, NS-Bezüge und Namen wie „Admin…“ oder „Bot“ ab. Passwort 7–128 Zeichen. Konto-ID und Spielstand bleiben, alle Sitzungen des Kontos werden durch eine neue ersetzt. Antwort `{ user: { id, isGuest: false }, serverTime }`. Fehler: `ALREADY_REGISTERED` (409), `USERNAME_TAKEN` (409), `NAME_NOT_ALLOWED` (422), Regelverstoß `VALIDATION_FAILED` (400). Ein E-Mail-Feld gibt es nicht ([O-03]); ein unbekanntes Feld (auch das frühere `playerName`) ergibt `VALIDATION_FAILED`.
+- **`POST /auth/login`** (200): Körper `{ username, password }` (nur Längen geprüft; der Name wird vereinheitlicht wie beim Registrieren, Groß- und Kleinschreibung egal). Unbekannter Name, falsches Passwort, Gastkonto und Konto mit Löschantrag antworten gleich mit `INVALID_CREDENTIALS` (401) nach gleichem Aufwand. Nach 10 Fehlversuchen je Benutzername oder 100 je Adresse in 15 min antwortet der Server bis zum Fensterende mit `RATE_LIMITED` (429, `details.retryAfterMs`), auch bei richtigem Passwort. Eine Sitzung, mit der die Anfrage kam, wird beendet (auch die eines anderen Kontos); andere Geräte bleiben angemeldet.
+- **`PATCH /me/profile`** (200, mit `Idempotency-Key`): Körper `{ username }` mit denselben Regeln wie beim Registrieren. Der neue Name gilt im Spiel und zum Anmelden (auch für Konten aus der Zeit vor ADR-082, die bis dahin einen eigenen Anmeldenamen hatten). Die eigene Schreibweise darf sich ändern („krisz“ → „Krisz“). Antwort `{ profile: { displayName }, serverTime }`, bei Wiederholung das gespeicherte Profil dieser Änderung. Fehler: `USERNAME_TAKEN` (409), `NAME_NOT_ALLOWED` (422); Gäste: `GUEST_ACCOUNT` (403).
 - **`POST /me/password`** (204, mit `Idempotency-Key`; Passwörter gehen nicht in den Anfrage-Hash): Körper `{ currentPassword, newPassword }`. Falsches bisheriges Passwort: `INVALID_CREDENTIALS` (403), gebremst wie die Anmeldung; Gäste: `GUEST_ACCOUNT` (403). Die Sitzung der Anfrage bleibt, alle anderen des Kontos enden.
-- **`GET /me`** enthält zusätzlich `user.username` (nur für den Spieler selbst) und `profile: { displayName, playerName }` (beides `null` bei Gästen).
-- **Namensvorschläge:** `GET /names/player` und `GET /instances/:id/kingdom-names` liefern `{ suggestions: [{ parts, name }], serverTime }` mit bis zu fünf Namen, die noch niemand trägt (Spieler) bzw. in der Instanz noch nicht vorkommen (Reiche). Angenommen wird jede gültige Kombination der Bausteine, nicht nur ein gezeigter Vorschlag; andere Werte ergeben `INVALID_NAME`.
+- **`GET /me`** enthält zusätzlich `user.username` (Anmeldename, nur für den Spieler selbst) und `profile: { displayName }` (beides `null` bei Gästen). Bei neuen Konten sind beide gleich; ältere Konten behalten ihren Anmeldenamen, bis sie den Namen ändern.
+- **`GET /names/check?name=`** (200, mit Sitzung, auch für Gäste): prüft einen Benutzernamen beim Tippen. Antwort `{ name, status, serverTime }` mit `name` in vereinheitlichter Form und `status` `FREE`, `MINE` (der eigene jetzige Name), `TAKEN`, `BLOCKED` (Wortfilter) oder `INVALID` (Regelverstoß). Maßgeblich bleibt die Prüfung beim Absenden.
+- **Namensvorschläge:** `GET /names/player` und `GET /instances/:id/kingdom-names` liefern `{ suggestions: [{ parts, name }], serverTime }` mit bis zu fünf Namen, die noch niemand trägt (Spieler, auch als Anmeldename nicht) bzw. in der Instanz noch nicht vorkommen (Reiche). Die Spielernamen sind seit ADR-082 nur Ideen fürs Namensfeld; gespeichert wird der Name als Text. Bei Reichsnamen wird jede gültige Kombination der Bausteine angenommen; andere Werte ergeben `INVALID_NAME`.
 - **Passwort vergessen:** Ohne E-Mail setzt die Spielleitung ein neues Passwort mit `pnpm account:reset-password --username=NAME` (Ausgabe einmalig, alle Sitzungen enden; nicht für Konten mit Löschantrag). In Produktion ist der Befehl gesperrt, bis Änderungen an Zugangsdaten mit Akteur und Begründung in `audit_events` protokolliert werden ([§2.5](#25-redaktion-und-administration)).
 
 ### 2.2 Welten und Karte
@@ -256,8 +258,9 @@ Ereignisse sind **Hinweise auf Zustandsänderungen**, nicht die einzige Quelle: 
 | `RATE_LIMITED` | zu viele Fehlversuche; erneut ab `details.retryAfterMs` (429) |
 | `ALREADY_REGISTERED` | Konto ist bereits gesichert (409) |
 | `GUEST_ACCOUNT` | nur für gesicherte Konten (403) |
-| `USERNAME_TAKEN`, `PLAYER_NAME_TAKEN` | Benutzer- bzw. Spielername vergeben (409) |
-| `INVALID_NAME` | Name nicht aus den erlaubten Bausteinen (422) |
+| `USERNAME_TAKEN` | Benutzername vergeben, auch in anderer Schreibweise (409); `PLAYER_NAME_TAKEN` sendet der Server seit ADR-082 nicht mehr |
+| `NAME_NOT_ALLOWED` | Benutzername vom Wortfilter abgewiesen (422) |
+| `INVALID_NAME` | Reichsname nicht aus den erlaubten Bausteinen (422) |
 | `UNAUTHENTICATED` | keine gültige Sitzung (401) |
 | `CSRF_ORIGIN_MISMATCH` | zustandsändernde Anfrage ohne passenden `Origin` (403) |
 | `NOT_FOUND` | unbekannter Pfad, unbekannte Welt, Instanz, Region oder unbekanntes Reich (404) |

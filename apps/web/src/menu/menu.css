@@ -1128,6 +1128,11 @@
   gap: calc(10 * var(--u));
 }
 
+/* Als Gast spielen steht breit oben, Registrieren und Anmelden teilen sich die Zeile darunter */
+.menu-welcome-choices > .menu-big.primary {
+  grid-column: 1 / -1;
+}
+
 .menu-big {
   display: flex;
   align-items: center;

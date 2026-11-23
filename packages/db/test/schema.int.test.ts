@@ -127,9 +127,27 @@ describe('users', () => {
     await insertUser(registered('Krisz.Spielt'));
     await expect(insertUser(registered('krisz.spielt'))).rejects.toThrow(/users_username_unique/);
     await expect(insertUser(registered('Jörg_ß-1'))).resolves.toBeTypeOf('string');
-    for (const bad of ['ab', 'a'.repeat(25), 'mit leer', 'x@y', 'Ünï']) {
+    // Seit 0016 (ADR-082): Leerzeichen und lateinische Buchstaben mit Akzent
+    for (const good of ['mit leer', 'Ünï', 'Kőszegi Ödön', 'Łukasz Ćwik']) {
+      await expect(insertUser(registered(good)), good).resolves.toBeTypeOf('string');
+    }
+    for (const bad of ['ab', 'a'.repeat(25), 'x@y', 'Сергей', 'a×b', 'Ωmega']) {
       await expect(insertUser(registered(bad)), bad).rejects.toThrow(/users_username_format/);
     }
+  });
+
+  it('Namensschlüssel fasst Schreibweisen zusammen, Spielernamen bleiben darin eindeutig (0016)', async () => {
+    const { rows } = await q(
+      `select player_name_key($1) as a, player_name_key($2) as b, player_name_key($3) as c`,
+      ['Krísz Ő_Ünal-ß.Æ', 'KRISZOUNALSSAE', 'Łódź Œuvre'],
+    );
+    expect(rows[0]).toEqual({ a: 'kriszounalssae', b: 'kriszounalssae', c: 'lodzoeuvre' });
+    const first = await insertUser(registered('Profil Eins'));
+    const second = await insertUser(registered('Profil Zwei'));
+    await q(`insert into player_profiles (user_id, display_name) values ($1, 'Krísz')`, [first]);
+    await expect(
+      q(`insert into player_profiles (user_id, display_name) values ($1, 'K.risz')`, [second]),
+    ).rejects.toThrow(/player_profiles_name_key_unique/);
   });
 
   it('Gäste haben keine, gesicherte Konten beide Anmeldedaten (Argon2id)', async () => {

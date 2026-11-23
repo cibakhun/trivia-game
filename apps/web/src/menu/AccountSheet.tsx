@@ -12,12 +12,7 @@ import { ApiRequestError, api } from '../api/client.ts';
 import { CountUp } from '../art/CountUp.tsx';
 import { Icon, type IconKind } from '../art/Icons.tsx';
 import { CategoryIcon } from '../art/RealmIcons.tsx';
-import {
-  LoginForm,
-  PasswordForm,
-  PlayerNameForm,
-  RegisterForm,
-} from '../components/AccountForms.tsx';
+import { LoginForm, NameForm, PasswordForm, RegisterForm } from '../components/AccountForms.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { formatNumber, t, tp, type MessageKey } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
@@ -44,8 +39,8 @@ import { initialOf, playerName } from './menu-text.ts';
  * Kontoseite (ADR-080): ein breites Blatt über der lebenden Karte wie die anderen Blätter des
  * Hauptmenüs. Links die Wappenseite (Wappen mit Stufe, Name, Stand des Kontos, dabei seit), rechts
  * drei Reiter: Bilanz (Partien, Plätze, Serien, Duelle), Wissen (Trefferquote je Kategorie) und
- * Zugang (sichern, anmelden, Name, Passwort, abmelden). Die Formulare ersetzen die rechte Seite und
- * haben eigene Pfade, damit „Zurück“ im Browser sie schließt.
+ * Zugang (registrieren, anmelden, Name, Passwort, abmelden). Die Formulare ersetzen die rechte
+ * Seite und haben eigene Pfade, damit „Zurück“ im Browser sie schließt.
  */
 
 /** Eigene Zahlen für die Kontoseite; lädt neu, wenn ein anderes Konto angemeldet ist. */
@@ -120,7 +115,12 @@ function CrestPage({
         />
       </div>
       <div className={`acct-name${preview ? ' preview' : ''}`}>
-        <span className="acct-name-text" key={name} data-testid="account-name">
+        {/* Beim Tippen bleibt der Name stehen (Tinte nur einmal), gespeichert setzt er neu an */}
+        <span
+          className="acct-name-text"
+          key={preview === null ? name : 'preview'}
+          data-testid="account-name"
+        >
           {name}
         </span>
         {onRename ? (
@@ -527,22 +527,29 @@ function AccessPanel({
       </div>
     );
   }
+  // Seit ADR-082 ist der Benutzername zugleich der Spielername. Ältere Konten haben noch einen
+  // eigenen Anmeldenamen; er steht dann darunter, bis der Name einmal geändert wird
+  const loginName = me.user.username ?? '';
+  const separateLogin = loginName !== '' && loginName !== me.profile.displayName;
   return (
     <div className="acct-access">
       <ul className="acct-rows">
         <AccessRow
-          icon="person"
-          label={t('konto.access.username')}
-          value={me.user.username ?? ''}
-          note={t('konto.access.usernameNote')}
-        />
-        <AccessRow
           icon="quill"
-          label={t('konto.access.playerName')}
+          label={t('konto.access.username')}
           value={playerName(me)}
+          {...(separateLogin ? {} : { note: t('konto.access.usernameNote') })}
           action={t('konto.access.change')}
           onClick={() => onView('name')}
         />
+        {separateLogin ? (
+          <AccessRow
+            icon="person"
+            label={t('konto.access.loginName')}
+            value={loginName}
+            note={t('konto.access.loginNameNote')}
+          />
+        ) : null}
         <AccessRow
           icon="lock"
           label={t('konto.access.password')}
@@ -623,7 +630,6 @@ export function AccountSheet({
   const { stats, error: statsError, load } = useStats(me.user.id);
   const [tab, setTab] = useState<AccountTab>(() => tabOf(view) ?? 'record');
   const [preview, setPreview] = useState<string | null>(null);
-  const [secureStep, setSecureStep] = useState<1 | 2>(1);
   const [notice, setNotice] = useState<{ key: MessageKey; n: number } | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [logoutError, setLogoutError] = useState<unknown>(null);
@@ -662,7 +668,6 @@ export function AccountSheet({
     const home = tabOf(view);
     if (home) setTab(home);
     if (view === null) setPreview(null);
-    if (view !== 'secure') setSecureStep(1);
     setLogoutError(null);
   }, [view]);
 
@@ -699,26 +704,15 @@ export function AccountSheet({
     switch (view) {
       case 'name':
         body = (
-          <PlayerNameForm
-            current={
-              me.profile.playerName && me.profile.displayName
-                ? { parts: me.profile.playerName, name: me.profile.displayName }
-                : null
-            }
+          <NameForm
+            current={me.profile.displayName ?? me.user.username ?? ''}
             onPreview={setPreview}
             onDone={done('account.nameSaved')}
           />
         );
         break;
       case 'secure':
-        body = (
-          <RegisterForm
-            step={secureStep}
-            onStep={setSecureStep}
-            onPreview={setPreview}
-            onDone={done('account.registered')}
-          />
-        );
+        body = <RegisterForm onPreview={setPreview} onDone={done('account.registered')} />;
         break;
       case 'password':
         body = <PasswordForm onDone={done('account.passwordSaved')} />;
@@ -745,18 +739,11 @@ export function AccountSheet({
           <RoundButton
             icon={<MenuIcon kind="back" />}
             label={t('menu.back')}
-            onClick={() => {
-              // Beim Sichern führt „Zurück“ erst vom Zugang zum Namen
-              if (view === 'secure' && secureStep === 2) setSecureStep(1);
-              else onViewDone();
-            }}
+            onClick={() => onViewDone()}
           />
           <h3 id={viewTitleId} tabIndex={-1}>
             {t(VIEW_TITLE[view])}
           </h3>
-          {view === 'secure' ? (
-            <span className="acct-view-step">{t('konto.secure.step', { n: secureStep })}</span>
-          ) : null}
         </header>
         <div className="acct-view-body">{body}</div>
       </section>

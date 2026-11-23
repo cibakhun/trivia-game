@@ -59,8 +59,8 @@ describe('Kopf und Zahlen', () => {
     ({ user: { isGuest, username } }) as unknown as MeResponse;
 
   it('nennt den Stand des Kontos', () => {
-    expect(statusLine(me(true, null))).toBe('Gast · nicht gesichert');
-    expect(statusLine(me(false, 'krisz'))).toBe('Gesichert · krisz');
+    expect(statusLine(me(true, null))).toBe('Gast · nicht registriert');
+    expect(statusLine(me(false, 'krisz'))).toBe('Registriert');
   });
 
   it('schreibt das Datum aus', () => {

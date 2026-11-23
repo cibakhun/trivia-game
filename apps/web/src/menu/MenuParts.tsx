@@ -115,7 +115,7 @@ export function Crest({
   );
 }
 
-/** Plakette oben links: Wappen, Name und Bilanz; ein Tipp öffnet das Konto (Gäste: Konto sichern). */
+/** Plakette oben links: Wappen, Name und Bilanz; ein Tipp öffnet das Konto (Gäste: Registrieren). */
 export function PlayerPlate({
   me,
   record,

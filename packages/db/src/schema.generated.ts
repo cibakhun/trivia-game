@@ -192,7 +192,7 @@ export interface PlayerProfilesTable {
   display_name: string;
   cosmetic_avatar: string | null;
   created_at: ColumnType<Date, Date | string | undefined, Date | string>;
-  name_parts: ColumnType<JsonValue, string, string>;
+  name_parts: ColumnType<JsonValue | null, string | null, string | null>;
   updated_at: ColumnType<Date, Date | string | undefined, Date | string>;
 }
 

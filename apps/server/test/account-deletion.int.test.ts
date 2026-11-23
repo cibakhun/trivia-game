@@ -34,19 +34,12 @@ const { newPlayer, startAttack, playAttacker, startDefense, playDefender, pvpPai
   () => server,
 );
 
-let nameCounter = 0;
-
-/** Sichert das Konto des Clients mit frischem Benutzer- und Spielernamen. */
+/** Sichert das Konto des Clients mit frischem Benutzernamen. */
 async function register(client: TestClient): Promise<string> {
-  nameCounter += 1;
   const username = `konto_${randomUUID().slice(0, 8)}`;
   const response = await client.post('/auth/register', {
     headers: { 'idempotency-key': randomUUID() },
-    payload: {
-      username,
-      password: PASSWORD,
-      playerName: { adjective: 'Treu', noun: 'Dachs', number: nameCounter + 1 },
-    },
+    payload: { username, password: PASSWORD },
   });
   expect(response.statusCode, response.body).toBe(201);
   return username;

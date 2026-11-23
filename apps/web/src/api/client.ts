@@ -19,6 +19,7 @@ import {
   matchWatchResponseSchema,
   matchViewSchema,
   meResponseSchema,
+  nameCheckSchema,
   playerNameSuggestionsSchema,
   playerStatsResponseSchema,
   presentResponseSchema,
@@ -35,7 +36,6 @@ import {
   type MatchBotStrengthCode,
   type MatchCreateRequest,
   type PasswordChangeRequest,
-  type PlayerNamePartsDto,
   type QuestionCategory,
   type RealmOrderDto,
   type RegisterRequest,
@@ -165,14 +165,18 @@ export const api = {
   login: (body: LoginRequest) => request('POST', '/auth/login', sessionResponseSchema, { body }),
   logout: () => request('POST', '/auth/logout', noContent),
   me: () => request('GET', '/me', meResponseSchema),
-  updateProfile: (playerName: PlayerNamePartsDto, idempotencyKey: string) =>
+  /** Neuer Name, zugleich zum Anmelden (ADR-082). */
+  updateProfile: (username: string, idempotencyKey: string) =>
     request('PATCH', '/me/profile', profileResponseSchema, {
-      body: { playerName },
+      body: { username },
       idempotencyKey,
     }),
   changePassword: (body: PasswordChangeRequest, idempotencyKey: string) =>
     request('POST', '/me/password', noContent, { body, idempotencyKey }),
   playerNames: () => request('GET', '/names/player', playerNameSuggestionsSchema),
+  /** Ist der Name als Benutzername zu haben (ADR-082)? */
+  checkName: (name: string) =>
+    request('GET', `/names/check?name=${encodeURIComponent(name)}`, nameCheckSchema),
   /** Eigene Zahlen über alle beendeten Partien für die Kontoseite (ADR-080). */
   stats: () => request('GET', '/me/stats', playerStatsResponseSchema),
   kingdomNames: (instanceId: string) =>

@@ -1,27 +1,27 @@
-import {
-  PASSWORD_MAX_LENGTH,
-  PASSWORD_MIN_LENGTH,
-  usernameSchema,
-  type PlayerNamePartsDto,
-} from '@rdw/protocol';
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from '@rdw/protocol';
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ActionKey, ApiRequestError, api } from '../api/client.ts';
 import { t } from '../i18n/i18n.ts';
 import { useSession } from '../session.tsx';
 import { ClientError, ErrorNote } from './ErrorNote.tsx';
-import { NameChips } from './NameChips.tsx';
-import type { NameChoice } from './NamePicker.tsx';
+import { NameField, nameUsable, useNameCheck, type NameCheckState } from './NameField.tsx';
 
 /**
- * Formulare der Kontoseite (O-03, ADR-043, Gestaltung ADR-080): Konto sichern, Anmelden,
- * Spielername und Passwort ändern. Eingaben werden vorab wie auf dem Server geprüft; der Server
- * bleibt maßgeblich. Anmelden steht auch im Hauptmenü ohne Sitzung und auf dem Einladungslink.
+ * Formulare der Kontoseite (O-03, ADR-043, Gestaltung ADR-080, ADR-082): Registrieren, Anmelden,
+ * Namen und Passwort ändern. Eingaben werden vorab wie auf dem Server geprüft; der Server bleibt
+ * maßgeblich. Anmelden steht auch im Hauptmenü ohne Sitzung und auf dem Einladungslink.
  */
 
-export type PlayerChoice = NameChoice<PlayerNamePartsDto>;
-
-async function loadPlayerNames(): Promise<readonly PlayerChoice[]> {
-  return (await api.playerNames()).suggestions;
+/**
+ * Ein abgelehnter Name gehört an das Namensfeld statt in eine Fehlermeldung unter dem Formular:
+ * Die Prüfung merkt ihn sich, die Zeile unter dem Feld sagt dann „vergeben“ bzw. „nicht erlaubt“.
+ */
+function nameRejected(error: unknown, check: NameCheckState): boolean {
+  if (!(error instanceof ApiRequestError)) return false;
+  if (error.code === 'USERNAME_TAKEN') check.remember(check.name, 'TAKEN');
+  else if (error.code === 'NAME_NOT_ALLOWED') check.remember(check.name, 'BLOCKED');
+  else return false;
+  return true;
 }
 
 function passwordProblem(password: string): string | null {
@@ -106,19 +106,15 @@ function useSubmit() {
 }
 
 /**
- * Gast sichern (POST /auth/register) in zwei Schritten: erst der Spielername aus Vorschlägen, dann
- * Benutzername und Passwort. Den Schritt führt die Seite (`step`, `onStep`), damit ihr „Zurück“
- * erst zum Namen zurückgeht. `onPreview` meldet den gewählten Namen, damit die Wappenseite ihn
+ * Registrieren (POST /auth/register, ADR-082): eigener Benutzername mit Prüfung beim Tippen und
+ * Ideen zum Antippen, dazu Passwort und Wiederholung. Aus dem Gast wird ein Konto, sein Spielstand
+ * bleibt. `onPreview` meldet den getippten Namen, solange er passt, damit die Wappenseite ihn
  * schon zeigt.
  */
 export function RegisterForm({
-  step,
-  onStep,
   onDone,
   onPreview,
 }: {
-  readonly step: 1 | 2;
-  readonly onStep: (step: 1 | 2) => void;
   readonly onDone: () => void;
   readonly onPreview?: (name: string | null) => void;
 }) {
@@ -126,54 +122,42 @@ export function RegisterForm({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [repeat, setRepeat] = useState('');
-  const [playerName, setPlayerName] = useState<PlayerChoice | null>(null);
   const [checked, setChecked] = useState(false);
-  const { busy, error, setError, submit } = useSubmit();
+  const [nameLeft, setNameLeft] = useState(false);
+  const { busy, error, submit } = useSubmit();
   const key = useRef(new ActionKey());
+  const check = useNameCheck(username);
   const userField = useRef<HTMLInputElement>(null);
 
   const problems = {
-    username: usernameSchema.safeParse(username).success ? null : t('account.usernameInvalid'),
     password: passwordProblem(password),
     repeat: repeat === password ? null : t('account.passwordMismatch'),
   };
-  // Ein vergebener Name gehört an das Feld; er verschwindet mit der nächsten Eingabe
-  const taken = error instanceof ApiRequestError && error.code === 'USERNAME_TAKEN';
 
-  function choose(choice: PlayerChoice) {
-    setPlayerName(choice);
-    onPreview?.(choice.name);
-  }
-
-  function go(next: 1 | 2) {
-    onStep(next);
-  }
-
-  // Mit Schritt 2 geht der Fokus ins Feld für den Benutzernamen, gleich nach dem Wechsel (nicht im
-  // nächsten Bild: Wer schnell weitertippt, landete sonst mitten im Wort im falschen Feld)
-  const stepShown = useRef(step);
+  // Die Wappenseite zeigt den Namen mit, sobald er den Regeln folgt und nicht vergeben ist
+  const preview = nameUsable(check) ? check.name : null;
   useEffect(() => {
-    if (stepShown.current === step) return;
-    stepShown.current = step;
-    if (step === 2) userField.current?.focus({ preventScroll: true });
-  }, [step]);
+    onPreview?.(preview);
+  }, [preview, onPreview]);
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (step === 1) {
-      if (playerName) go(2);
+    setChecked(true);
+    if (!nameUsable(check)) {
+      userField.current?.focus();
       return;
     }
-    setChecked(true);
-    if (!playerName || Object.values(problems).some((problem) => problem !== null)) return;
+    if (Object.values(problems).some((problem) => problem !== null)) return;
+    const name = check.name;
     void submit(async () => {
       try {
-        await api.register(
-          { username, password, playerName: playerName.parts },
-          key.current.current,
-        );
+        await api.register({ username: name, password }, key.current.current);
       } catch (e) {
         key.current.settle(e);
+        if (nameRejected(e, check)) {
+          userField.current?.focus();
+          return;
+        }
         throw e;
       }
       // Fertig erst, wenn das Profil das gesicherte Konto zeigt. Bis dahin bleibt der Schlüssel:
@@ -188,87 +172,49 @@ export function RegisterForm({
   const show = (problem: string | null) => (checked ? problem : null);
 
   return (
-    <form
-      className="form acct-form"
-      onSubmit={onSubmit}
-      noValidate
-      data-testid="register-form"
-      data-step={step}
-    >
-      <div className="acct-step" hidden={step !== 1}>
-        <p className="menu-note">{t('konto.secure.nameLead')}</p>
-        <NameChips
-          legend={t('account.playerNameLegend')}
-          load={loadPlayerNames}
-          value={playerName}
-          onChange={choose}
-          testId="player-name-picker"
+    <form className="form acct-form" onSubmit={onSubmit} noValidate data-testid="register-form">
+      <p className="menu-note acct-lead register-lead">{t('konto.secure.lead')}</p>
+      <div onBlur={() => setNameLeft(check.name !== '')}>
+        <NameField
+          label={t('account.username')}
+          value={username}
+          onChange={setUsername}
+          check={check}
+          showAll={checked || nameLeft}
+          inputRef={userField}
+          testId="register-name"
         />
       </div>
-      <div className="acct-step" hidden={step !== 2}>
-        <p className="menu-note">{t('konto.secure.accessLead')}</p>
+      <div className="field-pair">
         <Field
-          label={t('account.username')}
-          hint={t('konto.secure.usernameHint')}
-          problem={taken ? t('errors.USERNAME_TAKEN') : show(problems.username)}
+          label={t('account.password')}
+          hint={t('account.passwordHint', { min: PASSWORD_MIN_LENGTH })}
+          problem={show(problems.password)}
         >
           {(ids) => (
-            <input
-              id={ids.id}
-              ref={userField}
-              value={username}
-              autoComplete="username"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              maxLength={24}
-              aria-describedby={ids.describedBy}
-              onChange={(event) => {
-                setUsername(event.target.value);
-                if (taken) setError(null);
-              }}
+            <PasswordInput
+              ids={ids}
+              value={password}
+              onChange={setPassword}
+              autoComplete="new-password"
             />
           )}
         </Field>
-        <div className="field-pair">
-          <Field
-            label={t('account.password')}
-            hint={t('account.passwordHint', { min: PASSWORD_MIN_LENGTH })}
-            problem={show(problems.password)}
-          >
-            {(ids) => (
-              <PasswordInput
-                ids={ids}
-                value={password}
-                onChange={setPassword}
-                autoComplete="new-password"
-              />
-            )}
-          </Field>
-          <Field label={t('account.passwordRepeat')} problem={show(problems.repeat)}>
-            {(ids) => (
-              <PasswordInput
-                ids={ids}
-                value={repeat}
-                onChange={setRepeat}
-                autoComplete="new-password"
-              />
-            )}
-          </Field>
-        </div>
+        <Field label={t('account.passwordRepeat')} problem={show(problems.repeat)}>
+          {(ids) => (
+            <PasswordInput
+              ids={ids}
+              value={repeat}
+              onChange={setRepeat}
+              autoComplete="new-password"
+            />
+          )}
+        </Field>
       </div>
-      {error && !taken ? <ErrorNote error={error} /> : null}
+      {error ? <ErrorNote error={error} /> : null}
       <div className="acct-form-foot">
-        <span className="acct-dots" aria-label={t('konto.secure.step', { n: step })}>
-          <span className={step === 1 ? 'on' : undefined} />
-          <span className={step === 2 ? 'on' : undefined} />
-        </span>
-        <button
-          type="submit"
-          className="button button-primary menu-go"
-          disabled={busy || (step === 1 && !playerName)}
-        >
-          {step === 1 ? t('konto.secure.next') : t('account.register')}
+        <button type="submit" className="button button-primary menu-go" disabled={busy}>
+          {t('account.register')}
         </button>
       </div>
     </form>
@@ -335,36 +281,52 @@ export function LoginForm({
   );
 }
 
-/** Spielername ändern (PATCH /me/profile); `onPreview` zeigt die Wahl schon auf der Wappenseite. */
-export function PlayerNameForm({
+/**
+ * Namen ändern (PATCH /me/profile, ADR-082): derselbe Name gilt danach auch zum Anmelden.
+ * `onPreview` zeigt einen passenden neuen Namen schon auf der Wappenseite.
+ */
+export function NameForm({
   current,
   onDone,
   onPreview,
 }: {
-  readonly current: PlayerChoice | null;
+  readonly current: string;
   readonly onDone: () => void;
   readonly onPreview?: (name: string | null) => void;
 }) {
   const { reload } = useSession();
-  const [playerName, setPlayerName] = useState<PlayerChoice | null>(current);
+  const [username, setUsername] = useState(current);
+  const [checked, setChecked] = useState(false);
   const { busy, error, submit } = useSubmit();
   const key = useRef(new ActionKey());
-  const unchanged = playerName?.name === current?.name;
+  const check = useNameCheck(username);
+  const field = useRef<HTMLInputElement>(null);
+  const unchanged = check.name === current;
 
-  function choose(choice: PlayerChoice) {
-    setPlayerName(choice);
-    onPreview?.(choice.name === current?.name ? null : choice.name);
-  }
+  const preview = nameUsable(check) && !unchanged ? check.name : null;
+  useEffect(() => {
+    onPreview?.(preview);
+  }, [preview, onPreview]);
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!playerName || unchanged) return;
+    setChecked(true);
+    if (unchanged) return;
+    if (!nameUsable(check)) {
+      field.current?.focus();
+      return;
+    }
+    const name = check.name;
     void submit(async () => {
       try {
-        await api.updateProfile(playerName.parts, key.current.current);
+        await api.updateProfile(name, key.current.current);
         key.current.settle();
       } catch (e) {
         key.current.settle(e);
+        if (nameRejected(e, check)) {
+          field.current?.focus();
+          return;
+        }
         throw e;
       }
       await reload();
@@ -373,14 +335,17 @@ export function PlayerNameForm({
   }
 
   return (
-    <form className="form acct-form" onSubmit={onSubmit} data-testid="player-name-form">
-      <NameChips
-        legend={t('account.playerNameLegend')}
-        load={loadPlayerNames}
-        value={playerName}
-        current={current}
-        onChange={choose}
+    <form className="form acct-form" onSubmit={onSubmit} noValidate data-testid="name-form">
+      <NameField
+        label={t('account.newName')}
+        value={username}
+        onChange={setUsername}
+        check={check}
+        showAll={checked}
+        inputRef={field}
+        testId="rename-name"
       />
+      <p className="menu-note acct-lead">{t('konto.names.loginToo')}</p>
       {error ? <ErrorNote error={error} /> : null}
       <div className="acct-form-foot">
         <button

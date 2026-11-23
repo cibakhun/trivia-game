@@ -1,23 +1,24 @@
 import type { Db, Tx } from '@rdw/db';
-import type { PlayerNameParts } from '@rdw/game-core';
+import { normalizeUsername } from '@rdw/protocol';
 import { sql } from 'kysely';
 import { ApiError, isUniqueViolation } from '../../infra/errors.ts';
 import { verifyPassword } from './passwords.ts';
-import { setPlayerName } from './profile.ts';
+import { nameTaken, setPlayerName } from './profile.ts';
 import { createSession } from './sessions.ts';
 import type { LoginThrottle } from './throttle.ts';
 
 /**
- * Gesicherte Konten (O-03, ADR-043): Ein Gast sichert sein Konto mit Benutzername, Passwort und
- * Spielername; Konto-ID und Spielstand bleiben. Danach meldet er sich mit Benutzername und
- * Passwort an. Jede Anmeldung und jede Sicherung stellt eine neue Sitzung aus (Rotation).
+ * Gesicherte Konten (O-03, ADR-043, ADR-082): Ein Gast sichert sein Konto mit einem selbst
+ * gewählten Benutzernamen und einem Passwort; der Benutzername ist zugleich sein Spielername.
+ * Konto-ID und Spielstand bleiben. Danach meldet er sich mit Benutzername und Passwort an. Jede
+ * Anmeldung und jede Sicherung stellt eine neue Sitzung aus (Rotation).
  */
 
 export interface RegisterInput {
   readonly userId: string;
+  /** Vereinheitlicht und auf Regeln und Wortfilter geprüft. */
   readonly username: string;
   readonly passwordHash: string;
-  readonly playerName: PlayerNameParts;
 }
 
 /**
@@ -34,6 +35,11 @@ export async function registerGuest(tx: Tx, input: RegisterInput): Promise<strin
     .executeTakeFirstOrThrow();
   if (!user.is_guest) {
     throw new ApiError(409, 'ALREADY_REGISTERED', 'Konto ist bereits gesichert');
+  }
+  // Auch andere Schreibweisen gelten als vergeben (`player_name_key`); der eindeutige Index auf
+  // dem Anmeldenamen fängt ein gleichzeitiges Sichern mit demselben Namen
+  if (await nameTaken(tx, input.username, input.userId)) {
+    throw new ApiError(409, 'USERNAME_TAKEN', 'Benutzername ist vergeben');
   }
   try {
     await tx
@@ -52,7 +58,8 @@ export async function registerGuest(tx: Tx, input: RegisterInput): Promise<strin
     }
     throw error;
   }
-  await setPlayerName(tx, input.userId, input.playerName);
+  // Derselbe Name ist der Spielername (ADR-082); ein vergebener Name rollt alles zurück
+  await setPlayerName(tx, input.userId, input.username, { login: false });
   await tx.deleteFrom('sessions').where('user_id', '=', input.userId).execute();
   return createSession(tx, input.userId);
 }
@@ -79,7 +86,7 @@ export async function login(
   const user = await db
     .selectFrom('users')
     .select(['id', 'password_hash'])
-    .where(sql<boolean>`username = ${input.username.normalize('NFC')}::citext`)
+    .where(sql<boolean>`username = ${normalizeUsername(input.username)}::citext`)
     .where('is_guest', '=', false)
     .where('deleted_at', 'is', null)
     .where('deletion_requested_at', 'is', null)
