@@ -124,6 +124,25 @@ export function momentTiming(moment: Moment, born: MatchScreenState): MomentTimi
   };
 }
 
+/** Einrollen und Ausblenden eines Bands am Ende (stage.css: `--band-close` und `band-out`). */
+export const BAND_CLOSE_MS = 360;
+/** Bis dahin hat sich ein Band ganz entrollt (stage.css: `--band-open-at` plus `--band-open`). */
+const BAND_OPENED_MS = { plain: 430, grand: 580 } as const;
+
+/**
+ * Zeiten eines Bands, das schon steht und vorzeitig verfällt (`pruneMoments`), `elapsedMs` nach
+ * seinem Erscheinen: Es rollt sich gleich ein, statt mitten im Bild zu verschwinden. Ist es noch
+ * nicht ganz entrollt, tut es das erst noch. Länger als geplant steht es nie.
+ */
+export function closingTiming(
+  timing: MomentTiming,
+  elapsedMs: number,
+  weight: 'grand' | 'plain',
+): MomentTiming {
+  const closeAt = Math.max(elapsedMs, timing.leadMs + BAND_OPENED_MS[weight]);
+  return { ...timing, showMs: Math.min(timing.showMs, closeAt - timing.leadMs + BAND_CLOSE_MS) };
+}
+
 /**
  * Warteschlange nach einem Zustandswechsel: Während einer Frage bleibt nur ein gefallenes Reich,
  * es wird danach nachgeholt. Ein ausgefallener Angriff verfällt dann wie jede Ankündigung, ob sein

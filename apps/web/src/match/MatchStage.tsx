@@ -137,18 +137,19 @@ export function MatchStage({
   // Wechsel am Rand (stage-live.ts): Der Spielstand folgt dem Schlag des Duells, das Band oben
   // links bleibt bis zum Ende der Auflösung bei dessen Runde, das Blatt rechts schlägt um
   const decided = state === 'reveal' && beat !== null && !late ? seq : null;
-  const railView = useAfterImpact(
-    view,
-    beat === 'outcome' ? decided : null,
-    impactHoldMs(view?.match.timers.revealMs ?? 0),
-  );
+  const impactHold = impactHoldMs(view?.match.timers.revealMs ?? 0);
+  const railView = useAfterImpact(view, beat === 'outcome' ? decided : null, impactHold);
   const calmView = useAfterImpact(view, decided, Number.POSITIVE_INFINITY);
+  // Auch das Blatt rechts schlägt erst mit dem Schlag auf den Ausgang um: Bis dahin steht seine
+  // Seite der Antworten mit dem Stand davor weiter da, statt leer auf ihn zu warten
+  const blattHeld = railView !== view && railView !== null;
+  const blattDuel = !blattHeld && resolved?.type === 'DUEL_RESOLVED' ? resolved : null;
   const page = useBlattTurn(
     blattScene(
       state,
       board?.step ?? null,
       seq,
-      resolved?.type === 'DUEL_RESOLVED',
+      blattDuel !== null,
       state === 'announce' ? (shownPick(events)?.type ?? null) : null,
     ),
     live,
@@ -321,7 +322,7 @@ export function MatchStage({
         }}
       >
         <StageBlatt
-          view={view}
+          view={blattHeld && railView ? railView : view}
           state={state}
           local={local}
           watching={watching !== null}
@@ -330,7 +331,7 @@ export function MatchStage({
           busy={busy}
           events={events}
           reveal={reveal}
-          outcome={resolved?.type === 'DUEL_RESOLVED' ? resolved : null}
+          outcome={blattDuel}
           error={actionError}
           name={name}
           region={region}

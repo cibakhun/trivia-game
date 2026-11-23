@@ -1,5 +1,5 @@
 import type { MatchEventOf, MatchView, ParsedMatchEvent, RealmWheelDto } from '@rdw/protocol';
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { CategoryIcon, MarkIcon, type Mark } from '../art/RealmIcons.tsx';
 import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
@@ -16,6 +16,7 @@ import {
   type Reveal,
 } from './match-model.ts';
 import {
+  compactNames,
   pickText,
   questionContext,
   shortNames,
@@ -69,10 +70,37 @@ function DuelBox({
 }) {
   // Stand der Kasten schon auf der Seite davor, bleibt er beim Umschlagen stehen (`stage-live.ts`)
   const kept = useKept();
+  const sides = useRef<HTMLParagraphElement>(null);
+  const names = `${short(attacker)}|${defender === null ? '' : short(defender)}`;
+  // Passen beide Namen nicht nebeneinander in eine Zeile, stehen sie untereinander, die Schwerter
+  // vor dem Verteidiger. Gemessen vor dem ersten Bild, damit nichts umspringt
+  const [stacked, setStacked] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    if (stacked === names) return;
+    const measure = () => {
+      const row = sides.current;
+      if (!row) return;
+      const wide = [...row.querySelectorAll('strong')].some((s) => s.scrollWidth > s.clientWidth);
+      if (wide) setStacked(names);
+    };
+    measure();
+    // Mit der Schrift der Seite werden Namen breiter als mit der Ersatzschrift davor
+    let gone = false;
+    void document.fonts?.ready.then(() => {
+      if (!gone) measure();
+    });
+    return () => {
+      gone = true;
+    };
+  }, [names, stacked]);
+  const tall = stacked === names;
   return (
-    <div className={kept ? 'duel-box kept' : 'duel-box'} data-testid="match-duel">
+    <div
+      className={`duel-box${kept ? ' kept' : ''}${tall ? ' stacked' : ''}`}
+      data-testid="match-duel"
+    >
       {sentence ? <p className="visually-hidden">{sentence}</p> : null}
-      <p className="duel-box-sides" aria-hidden="true">
+      <p ref={sides} className="duel-box-sides" aria-hidden="true">
         <span className="duel-who">
           <SeatCrest seat={attacker} size={22} />
           <strong>{short(attacker)}</strong>
@@ -120,7 +148,7 @@ function Lots({
   const side = (seat: number, count: number) => (
     <li className={`lot seat-${seat}`} data-seat={seat}>
       <span className="lot-who">
-        <SeatCrest seat={seat} size={16} /> {short(seat)}
+        <SeatCrest seat={seat} size={16} /> <span className="lot-name">{short(seat)}</span>
       </span>
       <Pips count={count} seat={seat} />
       <strong>{count}</strong>
@@ -131,7 +159,9 @@ function Lots({
       {side(attacker, wheel.attackerLots)}
       {defender === null ? null : side(defender, wheel.defenderLots)}
       <li className="lot lot-free">
-        <span className="lot-who">{t('realm.target.free')}</span>
+        <span className="lot-who">
+          <span className="lot-name">{t('realm.target.free')}</span>
+        </span>
         <Pips count={wheel.freeLots} seat={null} />
         <strong>{wheel.freeLots}</strong>
       </li>
@@ -298,6 +328,8 @@ export function RealmBlatt({
   const { step } = board;
   const { economy } = realm;
   const short = shortNames(view);
+  // Zwei Namen in einer Zeile (wer gegen wen, Lose): Bots ohne ihre Stärke, wo das eindeutig bleibt
+  const compact = compactNames(view);
   const questionMs = view.question?.kind === 'TRIVIA' ? timers.triviaMs : timers.estimateMs;
   const phaseTimer = (totalMs: number, quiet = false) =>
     phaseDeadline === null ? null : (
@@ -327,7 +359,7 @@ export function RealmBlatt({
         what={t(`realm.${key}.${step.defender === null ? 'FREE' : building(step.region)}`, {
           region: region(step.region),
         })}
-        short={short}
+        short={compact}
         sentence={questionContext(view, name, region)}
       />
     ) : null;
@@ -384,7 +416,12 @@ export function RealmBlatt({
                 </div>
                 <div className="lots-box">
                   <h3>{t('realm.target.lots')}</h3>
-                  <Lots wheel={wheel} attacker={view.mySeat} defender={aimed.owner} short={short} />
+                  <Lots
+                    wheel={wheel}
+                    attacker={view.mySeat}
+                    defender={aimed.owner}
+                    short={compact}
+                  />
                   <p className="lots-note" data-testid="match-lots-chance">
                     <strong>
                       {t('realm.target.chance', {
@@ -600,7 +637,7 @@ export function RealmBlatt({
           {duelBox('attackOn')}
           <div className="lots-box">
             <h3>{t('realm.wheel.lots')}</h3>
-            <Lots wheel={wheel} attacker={step.attacker} defender={step.defender} short={short} />
+            <Lots wheel={wheel} attacker={step.attacker} defender={step.defender} short={compact} />
           </div>
           <p className="blatt-hint wheel-hint">
             {t(step.defender === null ? 'realm.wheel.hintFree' : 'realm.wheel.hint')}

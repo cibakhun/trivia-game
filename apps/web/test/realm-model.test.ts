@@ -874,10 +874,15 @@ describe('Ablaufzeile', () => {
     expect(flow('FINISHED', 'orders')).toEqual({ steps, now: 1 });
   });
 
-  it('steht nicht vor dem Start und nicht nach dem Ende', () => {
+  it('steht nicht vor dem Start und nicht nach einem Abbruch', () => {
     expect(flow('PREPARE', 'lobby')).toBeNull();
-    expect(flow('CAMPAIGN_TARGET', 'finished')).toBeNull();
     expect(flow('CAMPAIGN_TARGET', 'abandoned')).toBeNull();
-    expect(flow('FINISHED', 'reveal')).toBeNull();
+  });
+
+  it('bleibt am Ende stehen, alle Abschnitte erledigt: Die Tafeln darunter rücken nicht', () => {
+    const done = { steps: ['PREPARE', 'ORDERS', 'ATTACK'], now: 3 };
+    expect(flow('FINISHED', 'finished')).toEqual(done);
+    expect(flow('CAMPAIGN_TARGET', 'finished')).toEqual(done);
+    expect(flow('FINISHED', 'reveal')).toEqual(done);
   });
 });
