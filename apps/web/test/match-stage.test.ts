@@ -158,6 +158,34 @@ describe('Blatt der Phase rechts auf dem Meer', () => {
     expect(target).toContain('blatt turn');
   });
 
+  it('zählt mehrere Wahlen der Landnahme nacheinander (Politur 2026-11-23)', () => {
+    const land = (turns: { seat: number; status: 'DONE' | 'NOW' | 'NEXT' }[]) => {
+      const view = viewOf({}, { kind: 'LAND_PICK', round: 1, chooser: 1 });
+      return blatt({ ...view, board: { ...view.board!, turns } }, 'pick');
+    };
+    const first = land([
+      { seat: 1, status: 'NOW' },
+      { seat: 1, status: 'NEXT' },
+      { seat: 0, status: 'NEXT' },
+    ]);
+    expect(textOf(first)).toContain('Region 1 von 2');
+    expect(first).toContain('pick-run-mark now');
+    const second = land([
+      { seat: 1, status: 'DONE' },
+      { seat: 1, status: 'NOW' },
+      { seat: 0, status: 'NEXT' },
+    ]);
+    expect(textOf(second)).toContain('Wähle noch eine Region');
+    expect(textOf(second)).toContain('Region 2 von 2');
+    expect(second).toContain('pick-run-mark done');
+    // Nur eine Wahl: keine Marken
+    const once = land([
+      { seat: 1, status: 'NOW' },
+      { seat: 0, status: 'NEXT' },
+    ]);
+    expect(once).not.toContain('match-pick-run');
+  });
+
   it('nennt beim Warten, wer wählt', () => {
     const view = viewOf(
       { legalRegions: [] },

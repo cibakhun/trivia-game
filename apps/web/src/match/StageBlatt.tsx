@@ -23,6 +23,7 @@ import {
 } from './match-text.ts';
 import { NumPad } from './NumPad.tsx';
 import { OutcomePanel } from './OutcomePanel.tsx';
+import { PickRun, pickRun, RankedNext, rankedSummary } from './RankedNext.tsx';
 
 /**
  * Das Blatt rechts auf dem Meer (ADR-059): sagt in jeder Phase, was gerade geschieht und was zu
@@ -145,14 +146,22 @@ export function StageBlatt({
   switch (state) {
     case 'pick': {
       const kind = pickKind(view);
+      // Landnahme mit mehreren Regionen nacheinander: Das Blatt zählt mit (statt eines zweiten Bands)
+      const run =
+        kind === 'LAND_PICK' && view.board ? pickRun(view.board.turns, view.mySeat) : null;
       return sheet(
         'turn',
         'match-pick',
         true,
         <>
-          <h2 className="blatt-title">{t(`match.stage.pick.${kind}`)}</h2>
+          <h2 className="blatt-title">
+            {run && run.nth > 1 ? t('match.stage.pick.again') : t(`match.stage.pick.${kind}`)}
+          </h2>
           <p className="visually-hidden">{pickText(view, name)}</p>
           {phaseTimer(timers.pickMs)}
+          {run && view.mySeat !== null ? (
+            <PickRun run={run} seat={view.mySeat} realm={false} />
+          ) : null}
           <p className="blatt-hint">
             {kind === 'CAPITAL_PICK' ? t('match.pick.hintCapital') : t('match.pick.hint')}
           </p>
@@ -284,6 +293,9 @@ export function StageBlatt({
         );
       }
       const land = reveal?.outcome.some((o) => o.type === 'LAND_RANKED') ?? false;
+      // Landnahme: Was aus der Rangfolge folgt, steht, sobald sie auf der Karte steht
+      const ranked =
+        land && reveal ? rankedSummary(reveal, view.board, view.mySeat, name, false) : null;
       return sheet(
         '',
         'match-revealing',
@@ -300,6 +312,7 @@ export function StageBlatt({
           {land ? null : (
             <Answers view={view} local={local} short={shortNames(view)} reveal={reveal} />
           )}
+          {ranked ? <RankedNext summary={ranked} mySeat={view.mySeat} name={name} /> : null}
           {phaseTimer(timers.revealMs, true)}
         </>,
       );

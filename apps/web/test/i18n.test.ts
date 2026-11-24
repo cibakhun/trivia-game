@@ -111,7 +111,10 @@ describe('Übersetzungsfunktionen', () => {
     // bis unter eine Billion wie formatDecimal
     expect(formatEstimateFigure('999999999999')).toBe('999.999.999.999');
     expect(formatEstimateFigure('-1411750000')).toBe('-1.411.750.000');
-    expect(formatEstimateFigure('8848.86')).toBe('8.848,86');
+    // bis vier Stellen glatt wie beim Tippen: eine Jahreszahl nie als „1.906“
+    expect(formatEstimateFigure('8848.86')).toBe('8848,86');
+    expect(formatEstimateFigure('1906')).toBe('1906');
+    expect(formatEstimateFigure('12500')).toBe('12.500');
     // darüber kurz, genau ohne ≈
     expect(formatEstimateFigure('1000000000000')).toBe('1\u00a0Billion');
     expect(formatEstimateFigure('1230000000000')).toBe('1,23\u00a0Billionen');

@@ -119,6 +119,7 @@ export function RevealPanel({
   region,
   timer = null,
   verdict = true,
+  realm = false,
 }: {
   readonly reveal: Reveal;
   readonly name: SeatName;
@@ -127,6 +128,8 @@ export function RevealPanel({
   readonly timer?: ReactNode;
   /** `false`, wenn die Folge schon woanders steht (Ausgang des Duells im Blatt der Phase). */
   readonly verdict?: boolean;
+  /** Partie mit Ausbau: Dort heißen Regionen Felder. */
+  readonly realm?: boolean;
 }) {
   const { resolved, opened, outcome } = reveal;
   const q = resolved.payload;
@@ -195,7 +198,7 @@ export function RevealPanel({
             </span>
             <Figure value={solution.value} unit={unit} />
           </p>
-          <EstimateAnswers reveal={reveal} name={name} unit={unit} />
+          <EstimateAnswers reveal={reveal} name={name} unit={unit} realm={realm} />
         </>
       )}
 
@@ -317,10 +320,12 @@ function EstimateAnswers({
   reveal,
   name,
   unit,
+  realm,
 }: {
   readonly reveal: Reveal;
   readonly name: SeatName;
   readonly unit: string | null;
+  readonly realm: boolean;
 }) {
   const q = reveal.resolved.payload;
   const ranked = reveal.outcome.find((o) => o.type === 'LAND_RANKED');
@@ -384,7 +389,9 @@ function EstimateAnswers({
               </span>
             ) : (
               <span className={`reveal-picks${rank.picks > 0 ? '' : ' none'}`}>
-                {rank.picks > 0 ? tp('match.reveal.picks', rank.picks) : t('match.reveal.noPicks')}
+                {rank.picks > 0
+                  ? tp(realm ? 'realm.reveal.picks' : 'match.reveal.picks', rank.picks)
+                  : t(realm ? 'realm.reveal.noPicks' : 'match.reveal.noPicks')}
               </span>
             )}
           </li>

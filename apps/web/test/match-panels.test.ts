@@ -6,6 +6,7 @@ import { AnnouncePanel } from '../src/match/AnnouncePanel.tsx';
 import { revealFor } from '../src/match/match-model.ts';
 import { mapOfView, regionNames, seatNames } from '../src/match/match-text.ts';
 import { OutcomePanel, outcomeFacts, outcomeNext } from '../src/match/OutcomePanel.tsx';
+import { pickRun, RankedNext, rankedSummary, type RankedBoard } from '../src/match/RankedNext.tsx';
 import { RevealPanel } from '../src/match/RevealPanel.tsx';
 import { AT, event, viewOf } from './match-fixtures.ts';
 
@@ -358,6 +359,126 @@ describe('Auflösung: wer was geantwortet hat', () => {
     );
     expect(rowsOf(html).map((row) => chipsIn(row))).toEqual([[2], [1]]);
     expect(html).toContain('≈\u00a0100\u00a0Trillionen');
+  });
+});
+
+describe('Blatt neben der Rangfolge: was daraus folgt (Politur 2026-11-23)', () => {
+  const land = [
+    opened(10, 1, 'LAND', [0, 1, 2]),
+    estimate(11, 1, [
+      answer(0, { answered: false, effectiveMs: null }),
+      answer(1, { value: '120', distance: '5', effectiveMs: 4200 }),
+      answer(2, { value: '125', distance: '0', effectiveMs: 6100 }),
+    ]),
+    event(12, 'LAND_RANKED', {
+      round: 3,
+      ranking: [
+        { seat: 2, place: 1, picks: 2, distance: '0', effectiveMs: 6100 },
+        { seat: 1, place: 2, picks: 1, distance: '5', effectiveMs: 4200 },
+        { seat: 0, place: 3, picks: 0, distance: null, effectiveMs: null },
+      ],
+    }),
+  ];
+  const landReveal = revealFor(land, 1)!;
+  const board = (kind: string, chooser: number | null, free = 3): RankedBoard => ({
+    step: { kind, chooser },
+    regions: [...Array.from({ length: free }, () => ({ owner: null })), { owner: 0 }, { owner: 1 }],
+  });
+
+  it('Landnahme: eigene Wahlen nach den Besseren, freie Regionen, wer als Nächstes wählt', () => {
+    const mine = rankedSummary(landReveal, board('LAND_PICK', 2), 1, name, false);
+    expect(mine).toEqual({
+      mine: { seat: 1, text: 'Du wählst 1 Region nach Bot (schwer)' },
+      free: 'Noch 3 Regionen sind frei',
+      order: null,
+      next: { seat: 2, text: 'Bot (schwer) wählt' },
+    });
+    // Wer vorn liegt, wählt zuerst; wer schwieg, erfährt warum er leer ausgeht
+    expect(rankedSummary(landReveal, board('LAND_PICK', 2, 1), 2, name, false)).toMatchObject({
+      mine: { seat: 2, text: 'Du wählst zuerst: 2 Regionen' },
+      free: 'Noch 1 Region ist frei',
+      next: { seat: 2, text: 'Du wählst' },
+    });
+    expect(rankedSummary(landReveal, board('LAND_PICK', 2), 0, name, false)?.mine?.text).toBe(
+      'Ohne Schätzung wählst du diesmal keine Region',
+    );
+    // Wer zuschaut, liest, wer zuerst wählt; mit Ausbau heißen Regionen Felder
+    expect(rankedSummary(landReveal, board('LAND_PICK', 2), null, name, true)).toMatchObject({
+      mine: { seat: 2, text: 'Bot (schwer) wählt zuerst: 2 Felder' },
+      free: 'Noch 3 Felder sind frei',
+    });
+    // Noch kein Stand der Karte oder schon ein anderer Schritt: nichts, was nicht stimmt
+    expect(rankedSummary(landReveal, null, 1, name, false)).toMatchObject({
+      free: null,
+      next: null,
+    });
+    expect(rankedSummary(landReveal, board('CAMPAIGN_TARGET', 2), 1, name, false)?.next).toBeNull();
+  });
+
+  it('Startfrage mit Ausbau: Burgen in der Rangfolge, Dörfer rückwärts', () => {
+    const start = revealFor(
+      [
+        opened(20, 1, 'START', [0, 1, 2]),
+        estimate(21, 1, [
+          answer(0, { value: '100', distance: '25', effectiveMs: 3000 }),
+          answer(1, { value: '120', distance: '5', effectiveMs: 4200 }),
+          answer(2, { value: '125', distance: '0', effectiveMs: 6100 }),
+        ]),
+        event(22, 'START_RANKED', {
+          ranking: [
+            { seat: 2, place: 1, distance: '0', effectiveMs: 6100 },
+            { seat: 1, place: 2, distance: '5', effectiveMs: 4200 },
+            { seat: 0, place: 3, distance: '25', effectiveMs: 3000 },
+          ],
+        }),
+      ],
+      1,
+    )!;
+    const middle = rankedSummary(start, board('CASTLE_PICK', 2), 1, name, true);
+    expect(middle).toEqual({
+      mine: { seat: 1, text: 'Du setzt Burg und Dorf an zweiter Stelle' },
+      free: null,
+      order: { castles: [2, 1, 0], villages: [0, 1, 2] },
+      next: { seat: 2, text: 'Bot (schwer) setzt eine Burg' },
+    });
+    expect(rankedSummary(start, board('CASTLE_PICK', 2), 2, name, true)).toMatchObject({
+      mine: { text: 'Du setzt deine Burg zuerst und dein Dorf zuletzt' },
+      next: { text: 'Du setzt deine Burg' },
+    });
+    // Im Blatt: beide Reihen mit dem eigenen Wappen hervorgehoben, darunter „Als Nächstes“
+    const html = renderToStaticMarkup(
+      createElement(RankedNext, { summary: middle!, mySeat: 1, name }),
+    );
+    // Stelle und Wappen sind nur Bild; Vorleseprogramme hören die Namen in der Reihenfolge
+    expect(textOf(html)).toContain(
+      'Burgen 1 Bot (schwer) 2 Anna (du) 3 Bot (leicht) Dörfer 1 Bot (leicht) 2 Anna (du) 3 Bot (schwer)',
+    );
+    expect(html.match(/<li class="me">/g)).toHaveLength(2);
+    expect(textOf(html)).toContain('Als Nächstes Bot (schwer) setzt eine Burg');
+  });
+
+  it('ein Duell hat keine Rangfolge: kein Zusatz im Blatt', () => {
+    const duel = revealFor(
+      [opened(30, 7, 'DUEL_TRIVIA', [2, 1]), trivia(31, 7, []), duelResolved(32, {})],
+      7,
+    )!;
+    expect(rankedSummary(duel, board('CAMPAIGN_TARGET', 2), 1, name, false)).toBeNull();
+  });
+
+  it('mehrere Wahlen nacheinander: die wievielte gerade läuft', () => {
+    const turns = (...list: [number, 'DONE' | 'NOW' | 'NEXT'][]) =>
+      list.map(([seat, status]) => ({ seat, status }));
+    expect(
+      pickRun(turns([2, 'DONE'], [2, 'DONE'], [1, 'NOW'], [1, 'NEXT'], [0, 'NEXT']), 1),
+    ).toEqual({ nth: 1, of: 2 });
+    expect(pickRun(turns([2, 'DONE'], [1, 'DONE'], [1, 'NOW'], [0, 'NEXT']), 1)).toEqual({
+      nth: 2,
+      of: 2,
+    });
+    // Nur eine Wahl, ein anderer ist dran, oder wer zuschaut: keine Marken
+    expect(pickRun(turns([2, 'DONE'], [1, 'NOW'], [0, 'NEXT']), 1)).toBeNull();
+    expect(pickRun(turns([2, 'NOW'], [2, 'NEXT'], [1, 'NEXT']), 1)).toBeNull();
+    expect(pickRun(turns([1, 'NOW'], [1, 'NEXT']), null)).toBeNull();
   });
 });
 
