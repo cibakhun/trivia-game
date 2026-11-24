@@ -6,7 +6,7 @@ import { Swords } from '../art/Swords.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { showEstimate } from './estimate-input.ts';
-import { optionDensity, promptDensity } from './option-fit.ts';
+import { optionDensity, promptDensity, useAnswerFont } from './option-fit.ts';
 
 /**
  * Fragekarte mitten auf der Karte (ADR-059): Art der Frage, Restzeit als Zahl und Lunte, die Frage
@@ -176,6 +176,7 @@ export function WatchedQuestionCard({
   readonly category?: QuestionCategory | null;
   readonly who?: WatchedSeats | null;
 }) {
+  useAnswerFont();
   return (
     <section
       className={`sheet question-sheet watching${density(question)}`}
@@ -261,6 +262,7 @@ export function StageQuestion({
   readonly onAnswerTrivia: (token: string) => void;
 }) {
   const locked = !open || busy || sent !== null;
+  useAnswerFont();
   return (
     <section
       className={`sheet question-sheet${density(question)}${open ? '' : ' closed'}`}

@@ -22,6 +22,11 @@ describe('Schrift der Antwortfelder', () => {
       'Raumfahrt',
     ]);
     expect(unbreakable('  ')).toEqual([]);
+    // Am geschützten Leerzeichen bricht der Browser nicht um: ein Stück
+    expect(unbreakable('Frankfurt\u00a0an\u00a0der\u00a0Oder')).toEqual([
+      'Frankfurt\u00a0an\u00a0der\u00a0Oder',
+    ]);
+    expect(unbreakable('10\u202f000 Meter')).toEqual(['10\u202f000', 'Meter']);
   });
 
   it('bleibt groß bei kurzen Antworten und richtet sich sonst nach der längsten (wie bisher)', () => {
@@ -53,6 +58,10 @@ describe('Schrift der Antwortfelder', () => {
     );
     // Mehrere kurze Wörter brechen zwischen den Wörtern um: kein Grund für kleinere Schrift
     expect(optionDensity(['Rüsselsheim am Main', 'Bad Homburg'], measure)).toBe(' options-mid');
+    // Geschützte Leerzeichen halten die Wörter zusammen: Sie brauchen Platz wie ein Wort
+    expect(optionDensity(['Frankfurt\u00a0an\u00a0der\u00a0Oder', 'Kiel'], measure)).toBe(
+      ' options-tight',
+    );
     // Ein Bindestrich teilt das Wort: Beide Hälften passen in die Stufe der Länge
     expect(optionDensity(['Garmisch-Partenkirchen', 'Oberstdorf'], measure)).toBe(' options-mid');
   });

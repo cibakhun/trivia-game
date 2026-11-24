@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 /**
  * Schriftgröße der Antwortfelder einer Wissensfrage (Fragekarte, Karte zum Mitlesen und ihre
  * Rückseite, die Auflösung): Lange Antworten bekommen eine kleinere Schrift, damit die Karte nicht
@@ -37,11 +39,12 @@ const SAFETY = 0.97;
 
 /**
  * Teile einer Antwort, die nicht umbrechen können: Wörter, und bei Bindestrichen die Stücke bis
- * einschließlich des Strichs („Mecklenburg-“, „Vorpommern“), denn dort bricht der Browser um.
+ * einschließlich des Strichs („Mecklenburg-“, „Vorpommern“), denn dort bricht der Browser um. Ein
+ * geschütztes Leerzeichen (auch das schmale in „10 000“) trennt nicht: Dort bricht er nicht um.
  */
 export function unbreakable(text: string): string[] {
   return text
-    .split(/\s+/)
+    .split(/[^\S\u00a0\u2007\u202f]+/)
     .flatMap((word) => word.match(/[^-‐–]+[-‐–]*|[-‐–]+/g) ?? [])
     .filter((part) => part.length > 0);
 }
@@ -49,20 +52,56 @@ export function unbreakable(text: string): string[] {
 /** Breite eines Textstücks in em der Antwortschrift. */
 export type MeasureEm = (text: string) => number;
 
+/** Schrift der Antworten in 100 px: Gemessen wird in Hundertsteln, also in em. */
+const ANSWER_FONT = '600 100px "Alegreya Sans", system-ui, sans-serif';
+
 let context: CanvasRenderingContext2D | null | undefined;
 
 /**
  * Misst in der Schrift der Antworten (Alegreya Sans, halbfett). Ohne Zeichenfläche (Tests ohne
- * Browser) schätzt sie nach der Zahl der Zeichen; das ist eher zu breit als zu schmal.
+ * Browser) schätzt sie nach der Zahl der Zeichen; das ist eher zu breit als zu schmal. Die Schrift
+ * wird bei jeder Messung neu gesetzt: Ist sie inzwischen geladen, misst die Zeichenfläche dann sie
+ * statt der Ersatzschrift.
  */
 export const measureAnswerEm: MeasureEm = (text) => {
   if (context === undefined) {
     context =
       typeof document === 'undefined' ? null : document.createElement('canvas').getContext('2d');
-    if (context) context.font = '600 100px "Alegreya Sans", system-ui, sans-serif';
   }
-  return context ? context.measureText(text).width / 100 : text.length * 0.52;
+  if (!context) return text.length * 0.52;
+  context.font = ANSWER_FONT;
+  return context.measureText(text).width / 100;
 };
+
+/** Ob die Antwortschrift schon geladen ist; ohne Schriftverwaltung (Tests) gilt sie als geladen. */
+function answerFontReady(): boolean {
+  return typeof document === 'undefined' || !document.fonts || document.fonts.check(ANSWER_FONT);
+}
+
+/**
+ * Rendert die Karte noch einmal, sobald die Antwortschrift geladen ist: Erscheint eine Frage vor
+ * ihr (Seite eben neu geladen), maß die Zeichenfläche die Ersatzschrift, und die Stufe stimmte
+ * für die echte Schrift nicht. Der Rückgabewert ist nur dafür da, dass sich die Karte neu rechnet.
+ */
+export function useAnswerFont(): boolean {
+  const [ready, setReady] = useState(answerFontReady);
+  useEffect(() => {
+    if (ready) return;
+    let live = true;
+    void document.fonts.load(ANSWER_FONT).then(
+      () => {
+        if (live) setReady(true);
+      },
+      () => {
+        // Lädt die Schrift nicht, bleibt die Ersatzschrift und mit ihr die Messung
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [ready]);
+  return ready;
+}
 
 /**
  * Stufe für eine Wissensfrage: die größte, in der die längste Antwort nach der Zahl ihrer Zeichen

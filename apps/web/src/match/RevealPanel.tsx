@@ -5,7 +5,7 @@ import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
 import { formatEstimateFigure, formatNumber, t, tp } from '../i18n/i18n.ts';
 import { duelResolved, duelWinner, type Reveal } from './match-model.ts';
-import { optionDensity, promptDensity } from './option-fit.ts';
+import { optionDensity, promptDensity, useAnswerFont } from './option-fit.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
 import { QuestionKind } from './StageQuestion.tsx';
@@ -131,6 +131,7 @@ export function RevealPanel({
   readonly realm?: boolean;
 }) {
   const { resolved, opened, outcome } = reveal;
+  useAnswerFont();
   const q = resolved.payload;
   const solution = q.solution;
   const unit = 'unit' in solution && solution.unit ? solution.unit : null;
