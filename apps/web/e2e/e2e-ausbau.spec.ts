@@ -687,6 +687,8 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   let castleId: number | null = null;
   const picks = new Map<string, number>();
   const attacks: Attack[] = [];
+  /** Frage zu jedem eigenen Angriff: die erste, die nach der Wahl des Ziels kommt. */
+  const attackQuestions: (number | null)[] = [];
   const labels = new Set<string>();
   const prepared = new Map<number, Prepared>();
   const until = Date.now() + 420_000;
@@ -696,13 +698,20 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
     labels.add(label);
     if (state === 'finished') break;
     if (state === 'abandoned') throw new Error('Die Partie wurde abgebrochen');
-    if (state === 'question') asked.add(seq);
+    if (state === 'question') {
+      asked.add(seq);
+      const waiting = attackQuestions.indexOf(null);
+      if (waiting >= 0) attackQuestions[waiting] = seq;
+    }
     if (state === 'question' && !answered.has(seq)) {
       if (await answerRight(page, matchId, seq, 'tap')) answered.add(seq);
     } else if (state === 'pick' && step === 'CAMPAIGN_TARGET') {
       // Einmal ein freies Feld, danach fremde: So kommen beide Arten des Angriffs vor
       const attack = await attackFirst(page, matchId, !attacks.some((a) => a.free));
-      if (attack) attacks.push(attack);
+      if (attack) {
+        attacks.push(attack);
+        attackQuestions.push(null);
+      }
     } else if (state === 'pick') {
       const picked = await pickNear(page, matchId, step === 'CASTLE_PICK' ? null : castleId);
       if (picked !== null) {
@@ -733,6 +742,11 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   // am Zufall der Partie; die frühere Schwelle „mehr als 5“ fiel, wenn keiner angriff (ADR-084)
   expect([...asked].filter((seq) => !answered.has(seq))).toEqual([]);
   expect(answered.size).toBeGreaterThanOrEqual(3 + attacks.length);
+  // Jeder eigene Angriff hat seine eigene Frage bekommen und beantwortet; Fragen aus Angriffen der
+  // Bots können eine fehlende nicht verdecken
+  expect(
+    attacks.filter((_, i) => !answered.has(attackQuestions[i] ?? -1)).map((a) => a.target),
+  ).toEqual([]);
 
   // Jede Runde beginnt mit einer Rüstzeit; der Server hat jede Abgabe angenommen. Zehn Runden sind
   // es (ADR-073), solange nicht vorher nur noch ein Reich steht
