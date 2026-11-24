@@ -35,6 +35,7 @@ export const ERROR_CODES = [
   'USERNAME_TAKEN',
   'PLAYER_NAME_TAKEN',
   'INVALID_NAME',
+  'NAME_NOT_ALLOWED',
   'ALREADY_JOINED',
   'INSTANCE_FULL',
   'INSTANCE_NOT_ACTIVE',
@@ -181,22 +182,64 @@ export const guestResponseSchema = z
 export type GuestResponse = z.infer<typeof guestResponseSchema>;
 
 /**
- * Anmeldename gesicherter Konten (ADR-043): 3–24 Zeichen aus Buchstaben (mit Umlauten und ß),
- * Ziffern, `_`, `.` und `-`; Groß- und Kleinschreibung zählt nicht. Er ist nur zum Anmelden da
- * und wird anderen Spielern nie gezeigt. Gleiche Regel wie `users_username_format`.
+ * Benutzername (ADR-082, löst O-10 ab): Ein Name, den der Spieler selbst tippt, ist zugleich
+ * Anmeldename und Spielername, den die anderen sehen. Vor der Prüfung wird er vereinheitlicht
+ * (NFC, Leerraum außen weg, innen ein Leerzeichen). Regeln für neue Namen [E]: 3 bis 20 Zeichen
+ * aus Buchstaben (auch mit Akzent, etwa ä, á, ő, ł), Ziffern, Leerzeichen, `_`, `.` und `-`;
+ * Anfang und Ende Buchstabe oder Ziffer, keine zwei Trennzeichen hintereinander, mindestens ein
+ * Buchstabe. Groß- und Kleinschreibung, Akzente und Trennzeichen zählen beim Vergleich mit
+ * vergebenen Namen nicht (`player_name_key` in Migration 0016). Den Wortfilter prüft nur der
+ * Server. Ältere Anmeldenamen (ADR-043) bleiben gültig; die Datenbank prüft nur Zeichen und
+ * Länge (`users_username_format`).
  */
-export const USERNAME_PATTERN = /^[A-Za-z0-9ÄÖÜäöüß_.-]{3,24}$/;
+export const USERNAME_MIN_LENGTH = 3;
+export const USERNAME_MAX_LENGTH = 20;
+const NAME_LETTER =
+  'A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF\\u0100-\\u0137\\u0139-\\u0148\\u014A-\\u017E\\u0218-\\u021B';
+const NAME_CHAR = new RegExp(`^[${NAME_LETTER}0-9 _.-]$`, 'u');
+const NAME_WORD_CHAR = new RegExp(`^[${NAME_LETTER}0-9]$`, 'u');
+const NAME_LETTER_CHAR = new RegExp(`^[${NAME_LETTER}]$`, 'u');
+
+/** Vereinheitlicht einen getippten Namen: NFC, Leerraum außen weg, innen ein Leerzeichen. */
+export function normalizeUsername(value: string): string {
+  return value.normalize('NFC').trim().replace(/\s+/gu, ' ');
+}
+
+/** Was an einem (vereinheitlichten) Namen nicht passt; `null`, wenn er den Regeln folgt. */
+export type UsernameProblem = 'SHORT' | 'LONG' | 'CHARS' | 'EDGE' | 'DOUBLE' | 'NO_LETTER';
+
+export function usernameProblem(name: string): UsernameProblem | null {
+  const chars = Array.from(name);
+  if (chars.length < USERNAME_MIN_LENGTH) return 'SHORT';
+  if (chars.length > USERNAME_MAX_LENGTH) return 'LONG';
+  if (!chars.every((c) => NAME_CHAR.test(c))) return 'CHARS';
+  if (!NAME_WORD_CHAR.test(chars[0] ?? '') || !NAME_WORD_CHAR.test(chars.at(-1) ?? '')) {
+    return 'EDGE';
+  }
+  for (let i = 1; i < chars.length; i++) {
+    if (!NAME_WORD_CHAR.test(chars[i] ?? '') && !NAME_WORD_CHAR.test(chars[i - 1] ?? '')) {
+      return 'DOUBLE';
+    }
+  }
+  if (!chars.some((c) => NAME_LETTER_CHAR.test(c))) return 'NO_LETTER';
+  return null;
+}
+
 export const usernameSchema = z
   .string()
-  .transform((value) => value.normalize('NFC'))
-  .pipe(z.string().regex(USERNAME_PATTERN));
+  .max(200)
+  .transform(normalizeUsername)
+  .refine((name) => usernameProblem(name) === null, { message: 'Name passt nicht zu den Regeln' });
 
-/** Passwortlänge (ADR-043, vorläufig): keine Zeichenklassenregeln, aber Mindestlänge. */
-export const PASSWORD_MIN_LENGTH = 10;
+/** Passwortlänge (ADR-043, Mindestlänge 7 seit ADR-082): keine Zeichenklassenregeln. */
+export const PASSWORD_MIN_LENGTH = 7;
 export const PASSWORD_MAX_LENGTH = 128;
 export const passwordSchema = z.string().min(PASSWORD_MIN_LENGTH).max(PASSWORD_MAX_LENGTH);
 
-/** Spielername aus Bausteinen (O-10, ADR-044); welche Bausteine gelten, prüft der Server. */
+/**
+ * Spielername aus Bausteinen (ADR-044): nur noch für Vorschläge (`GET /names/player`) und für
+ * Konten, die vor ADR-082 gesichert wurden.
+ */
 export const playerNamePartsSchema = z
   .object({
     adjective: z.string().min(1).max(32),
@@ -212,9 +255,9 @@ export const kingdomNamePartsSchema = z
   .strict();
 export type KingdomNamePartsDto = z.infer<typeof kingdomNamePartsSchema>;
 
-/** `POST /auth/register`: Gastkonto sichern (O-03). */
+/** `POST /auth/register`: Gastkonto sichern (O-03, ADR-082): ein Name, ein Passwort. */
 export const registerRequestSchema = z
-  .object({ username: usernameSchema, password: passwordSchema, playerName: playerNamePartsSchema })
+  .object({ username: usernameSchema, password: passwordSchema })
   .strict();
 export type RegisterRequest = z.input<typeof registerRequestSchema>;
 
@@ -240,15 +283,14 @@ export const passwordChangeRequestSchema = z
   .strict();
 export type PasswordChangeRequest = z.infer<typeof passwordChangeRequestSchema>;
 
-/** `PATCH /me/profile`. */
-export const profileUpdateRequestSchema = z.object({ playerName: playerNamePartsSchema }).strict();
+/** `PATCH /me/profile`: neuer Name, zugleich zum Anmelden (ADR-082). */
+export const profileUpdateRequestSchema = z.object({ username: usernameSchema }).strict();
 export type ProfileUpdateRequest = z.infer<typeof profileUpdateRequestSchema>;
 
 export const profileSchema = z
   .object({
     /** Öffentlicher Spielername; `null`, solange keiner gewählt ist (Gäste). */
     displayName: z.string().min(1).nullable(),
-    playerName: playerNamePartsSchema.nullable(),
   })
   .strict();
 export type ProfileDto = z.infer<typeof profileSchema>;
@@ -268,6 +310,19 @@ export const playerNameSuggestionsSchema = z
   })
   .strict();
 export type PlayerNameSuggestions = z.infer<typeof playerNameSuggestionsSchema>;
+
+/**
+ * `GET /names/check?name=…` (ADR-082): Ist der Name als Benutzername zu haben? `name` ist die
+ * vereinheitlichte Form. `MINE`: der eigene Name (beim Umbenennen), `TAKEN`: vergeben (auch in
+ * anderer Schreibweise), `BLOCKED`: vom Wortfilter abgelehnt, `INVALID`: passt nicht zu den Regeln.
+ */
+export const NAME_CHECK_STATUSES = ['FREE', 'MINE', 'TAKEN', 'BLOCKED', 'INVALID'] as const;
+export type NameCheckStatus = (typeof NAME_CHECK_STATUSES)[number];
+export const nameCheckQuerySchema = z.object({ name: z.string().max(200) }).strict();
+export const nameCheckSchema = z
+  .object({ name: z.string(), status: z.enum(NAME_CHECK_STATUSES), serverTime: timestampSchema })
+  .strict();
+export type NameCheck = z.infer<typeof nameCheckSchema>;
 
 export const kingdomNameSuggestionsSchema = z
   .object({

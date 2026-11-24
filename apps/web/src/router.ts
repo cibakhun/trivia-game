@@ -10,7 +10,8 @@ import type { AccountView } from './menu/account-text.ts';
  * Browser ein Blatt schließt: `/partie` (Neue Partie), `/partie/code` (Mit Code beitreten),
  * `/partie/uebung` (Übungspartie) und `/chronik`. Die Kontoseite (ADR-080) ist ebenfalls ein Blatt
  * des Hauptmenüs unter `/konto`; ihre Formulare haben eigene Pfade darunter (`/konto/name`,
- * `/konto/sichern`, `/konto/passwort`, `/konto/anmelden`, `/konto/abmelden`).
+ * `/konto/registrieren`, `/konto/passwort`, `/konto/anmelden`, `/konto/abmelden`; der frühere Pfad
+ * `/konto/sichern` führt seit ADR-082 ebenfalls zum Registrieren).
  */
 
 export type Route =
@@ -36,7 +37,7 @@ const MENU_PATHS = {
 
 const ACCOUNT_PATHS: Record<AccountView, string> = {
   name: '/konto/name',
-  secure: '/konto/sichern',
+  secure: '/konto/registrieren',
   password: '/konto/passwort',
   login: '/konto/anmelden',
   logout: '/konto/abmelden',
@@ -53,6 +54,8 @@ export function parseRoute(pathname: string): Route {
       return { name: 'account', view: view as AccountView };
     }
   }
+  // Früherer Pfad zum Sichern (ADR-080), etwa aus einem Lesezeichen
+  if (/^\/konto\/sichern\/?$/.test(pathname)) return { name: 'account', view: 'secure' };
   const play = new RegExp(`^/play/(${ID})/?$`).exec(pathname);
   if (play?.[1]) return { name: 'play', instanceId: play[1] };
   const challenge = new RegExp(`^/challenge/(${ID})/?$`).exec(pathname);

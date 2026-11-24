@@ -4,6 +4,7 @@ import {
   entityIdSchema,
   localeSchema,
   loginRequestSchema,
+  nameCheckQuerySchema,
   passwordChangeRequestSchema,
   profileSchema,
   profileUpdateRequestSchema,
@@ -12,6 +13,7 @@ import {
   type GuestResponse,
   type KingdomNameSuggestions,
   type MeResponse,
+  type NameCheck,
   type PlayerNameSuggestions,
   type ProfileResponse,
   type SessionResponse,
@@ -37,9 +39,10 @@ import {
 import { createOrResumeGuest } from './guest.ts';
 import { hashPassword } from './passwords.ts';
 import {
+  assertNameAllowed,
+  checkName,
   kingdomNameSuggestions,
   loadProfile,
-  parsePlayerName,
   playerNameSuggestions,
   setPlayerName,
 } from './profile.ts';
@@ -50,8 +53,8 @@ const instanceParams = z.object({ instanceId: entityIdSchema });
 const storedProfileSchema = z.object({ profile: profileSchema });
 
 /**
- * Konto (API.md §2.1): Bootstrap, Gastkonto, Sichern, Anmelden, Abmelden, Profil, Passwort und
- * Namensvorschläge.
+ * Konto (API.md §2.1): Bootstrap, Gastkonto, Sichern, Anmelden, Abmelden, Profil, Passwort,
+ * Namensprüfung und Namensvorschläge.
  */
 export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
   const throttle = new LoginThrottle(ctx.loginThrottle);
@@ -95,14 +98,14 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
   });
 
   /**
-   * Gast sichern (O-03): Der Antwortspeicher hält nur die Konto-ID, das Passwort geht nicht in den
-   * Anfrage-Hash. Eine Wiederholung, die noch mit der alten Sitzung durchkam, erhält für dasselbe
-   * Konto eine neue Sitzung (API.md §1).
+   * Gast sichern (O-03, ADR-082): Der Antwortspeicher hält nur die Konto-ID, das Passwort geht
+   * nicht in den Anfrage-Hash. Eine Wiederholung, die noch mit der alten Sitzung durchkam, erhält
+   * für dasselbe Konto eine neue Sitzung (API.md §1).
    */
   app.post('/auth/register', async (request, reply): Promise<SessionResponse> => {
     const auth = requireAuth(request);
     const body = parseInput(registerRequestSchema, request.body);
-    const playerName = parsePlayerName(body.playerName);
+    assertNameAllowed(body.username);
     const key = idempotencyKey(request);
     const passwordHash = await hashPassword(body.password);
     let sessionToken: string | null = null;
@@ -112,14 +115,13 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
         userId: auth.userId,
         key,
         endpoint: 'POST /auth/register',
-        input: { username: body.username.toLowerCase(), playerName },
+        input: { username: body.username },
       },
       async (tx) => {
         sessionToken = await registerGuest(tx, {
           userId: auth.userId,
           username: body.username,
           passwordHash,
-          playerName,
         });
         return { status: 201, body: { userId: auth.userId } };
       },
@@ -178,22 +180,25 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
     };
   });
 
-  /** Spielername ändern (nur gesicherte Konten; Gäste wählen ihn beim Sichern). */
+  /**
+   * Namen ändern (nur gesicherte Konten; Gäste wählen ihn beim Sichern). Der neue Name gilt auch
+   * zum Anmelden (ADR-082); die Sitzungen bleiben.
+   */
   app.patch('/me/profile', async (request, reply): Promise<ProfileResponse> => {
     const auth = requireAuth(request);
     const body = parseInput(profileUpdateRequestSchema, request.body);
-    const playerName = parsePlayerName(body.playerName);
     if (auth.isGuest) throw new ApiError(403, 'GUEST_ACCOUNT', 'Nur für gesicherte Konten');
+    assertNameAllowed(body.username);
     const outcome = await runIdempotent(
       ctx.db,
       {
         userId: auth.userId,
         key: idempotencyKey(request),
         endpoint: 'PATCH /me/profile',
-        input: { playerName },
+        input: { username: body.username },
       },
       async (tx) => {
-        await setPlayerName(tx, auth.userId, playerName);
+        await setPlayerName(tx, auth.userId, body.username, { login: true });
         return { status: 200, body: { profile: await loadProfile(tx, auth.userId) } };
       },
     );
@@ -231,6 +236,15 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
     );
     if (outcome.replayed) reply.header('idempotency-replayed', 'true');
     return reply.status(204).send();
+  });
+
+  /** Ist der Name als Benutzername zu haben? Für die Prüfung beim Tippen (ADR-082). */
+  app.get('/names/check', async (request): Promise<NameCheck> => {
+    const auth = requireAuth(request);
+    const query = parseInput(nameCheckQuerySchema, request.query);
+    const result = await checkName(ctx.db, query.name, auth.userId);
+    const now = await readGameNow(ctx.db);
+    return { ...result, serverTime: now.toISOString() };
   });
 
   app.get('/names/player', async (request): Promise<PlayerNameSuggestions> => {

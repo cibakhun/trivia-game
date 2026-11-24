@@ -22,7 +22,7 @@ describe('Router', () => {
   it('gibt jedem Formular der Kontoseite einen eigenen Pfad (ADR-080)', () => {
     for (const [view, path] of [
       ['name', '/konto/name'],
-      ['secure', '/konto/sichern'],
+      ['secure', '/konto/registrieren'],
       ['password', '/konto/passwort'],
       ['login', '/konto/anmelden'],
       ['logout', '/konto/abmelden'],
@@ -32,6 +32,8 @@ describe('Router', () => {
       expect(routePath({ name: 'account', view })).toBe(path);
     }
     expect(parseRoute('/konto/loeschen')).toEqual({ name: 'start' });
+    // Der frühere Pfad zum Sichern führt zum Registrieren (ADR-082)
+    expect(parseRoute('/konto/sichern')).toEqual({ name: 'account', view: 'secure' });
   });
 
   it('kennt die Partie mit und ohne ID', () => {

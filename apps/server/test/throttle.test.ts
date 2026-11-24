@@ -43,6 +43,17 @@ describe('Anmeldebremse im Speicher', () => {
     expect(blocked(t, 'name-50', 'a50')).toBe(true);
   });
 
+  it('zählt Schreibweisen desselben Namens auf ein Fenster (wie die Anmeldung)', () => {
+    const clock = { now: 0 };
+    const t = throttle(10, clock);
+    t.recordFailure('Anna Zimmer', 'a1');
+    t.recordFailure('  anna   ZIMMER ', 'a2');
+    expect(blocked(t, 'Anna Zimmer', 'a3')).toBe(true);
+    expect(blocked(t, 'Anna  Zimmer', 'a3')).toBe(true);
+    t.recordSuccess(' anna zimmer');
+    expect(blocked(t, 'Anna Zimmer', 'a3')).toBe(false);
+  });
+
   it('entfernt abgelaufene Fenster zuerst', () => {
     const clock = { now: 0 };
     const t = throttle(4, clock);

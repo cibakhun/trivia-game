@@ -1,21 +1,28 @@
 import { randomUUID } from 'node:crypto';
-import { kingdomName, playerDisplayName, type PlayerNameParts } from '@rdw/game-core';
+import {
+  kingdomName,
+  PLAYER_NAME_ADJECTIVES,
+  PLAYER_NAME_NOUNS,
+  playerDisplayName,
+} from '@rdw/game-core';
 import {
   errorBodySchema,
   joinResponseSchema,
   kingdomNameSuggestionsSchema,
   meResponseSchema,
+  nameCheckSchema,
   playerNameSuggestionsSchema,
   profileResponseSchema,
   sessionResponseSchema,
 } from '@rdw/protocol';
+import { sql } from 'kysely';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { TestClient, createTestWorld, startTestServer, type TestServer } from './helpers.ts';
 
 /**
- * Gesicherte Konten über die HTTP-Schnittstelle (O-03, O-10, ADR-043/044): Gast sichern,
- * Anmelden mit Sitzungsrotation, Anmeldebremse, Passwort und Spielername ändern,
- * Namensvorschläge und Reichsname beim Beitritt.
+ * Gesicherte Konten über die HTTP-Schnittstelle (O-03, ADR-043/044/082): Gast sichern mit eigenem
+ * Benutzernamen, Anmelden mit Sitzungsrotation, Anmeldebremse, Passwort und Namen ändern,
+ * Namensprüfung, Namensvorschläge und Reichsname beim Beitritt.
  */
 
 const PASSWORD = 'richtig-langes-passwort';
@@ -34,14 +41,16 @@ function errorOf(response: { statusCode: number; json(): unknown }) {
 
 let nameCounter = 0;
 
-/** Ein Spielername, den in dieser Datei noch niemand trägt. */
-function freshPlayerName(): PlayerNameParts {
+/** Ein Benutzername, den in dieser Datei noch niemand trägt (nur Buchstaben, Wortfilter-fest). */
+function freshUsername(prefix = 'Spieler'): string {
   nameCounter += 1;
-  return { adjective: 'Kühn', noun: 'Falke', number: nameCounter + 1 };
-}
-
-function freshUsername(prefix = 'spieler'): string {
-  return `${prefix}_${randomUUID().slice(0, 8)}`;
+  let suffix = '';
+  for (let n = nameCounter; n > 0; n = Math.floor(n / 26)) {
+    suffix = String.fromCharCode(97 + (n % 26)) + suffix;
+  }
+  return `${prefix} ${suffix}${randomUUID()
+    .replace(/[^a-f]/gu, '')
+    .slice(0, 4)}`;
 }
 
 function register(client: TestClient, body: Record<string, unknown>, key: string = randomUUID()) {
@@ -62,7 +71,6 @@ interface Registered {
   readonly client: TestClient;
   readonly userId: string;
   readonly username: string;
-  readonly playerName: PlayerNameParts;
 }
 
 /** Gast anlegen und sichern. */
@@ -70,10 +78,19 @@ async function registeredPlayer(srv: TestServer = server): Promise<Registered> {
   const client = new TestClient(srv.app);
   const userId = await client.signUpGuest();
   const username = freshUsername();
-  const playerName = freshPlayerName();
-  const response = await register(client, { username, password: PASSWORD, playerName });
+  const response = await register(client, { username, password: PASSWORD });
   expect(response.statusCode, response.body).toBe(201);
-  return { client, userId, username, playerName };
+  return { client, userId, username };
+}
+
+function checkName(client: TestClient, name: string) {
+  return client.get(`/names/check?name=${encodeURIComponent(name)}`);
+}
+
+async function nameStatus(client: TestClient, name: string) {
+  const response = await checkName(client, name);
+  expect(response.statusCode, response.body).toBe(200);
+  return nameCheckSchema.parse(response.json());
 }
 
 describe('Gast sichern (POST /auth/register)', () => {
@@ -85,9 +102,9 @@ describe('Gast sichern (POST /auth/register)', () => {
     const other = new TestClient(server.app);
     other.cookies.set('rdw_session', guestToken);
 
-    const username = freshUsername('Ärger');
-    const playerName: PlayerNameParts = { adjective: 'Flink', noun: 'Wiesel', number: null };
-    const response = await register(client, { username, password: PASSWORD, playerName });
+    // Selbst getippt: Leerraum außen fällt weg, innen bleibt ein Leerzeichen, Akzente gehen
+    const username = 'Ödön Kőszegi';
+    const response = await register(client, { username: '  Ödön   Kőszegi ', password: PASSWORD });
     expect(response.statusCode, response.body).toBe(201);
     expect(sessionResponseSchema.parse(response.json()).user).toEqual({
       id: userId,
@@ -107,14 +124,17 @@ describe('Gast sichern (POST /auth/register)', () => {
 
     const body = await me(client);
     expect(body.user).toMatchObject({ id: userId, isGuest: false, username });
-    expect(body.profile).toEqual({ displayName: 'Flinkes Wiesel', playerName });
+    // Ein Name für beides: Anmeldename und Spielername
+    expect(body.profile).toEqual({ displayName: username });
+    const device = new TestClient(server.app);
+    expect((await login(device, 'ödön kőszegi', PASSWORD)).statusCode).toBe(200);
   });
 
   it('liefert bei Wiederholung dieselbe Antwort und eine neue Sitzung für dasselbe Konto', async () => {
     const client = new TestClient(server.app);
     const userId = await client.signUpGuest();
     const key = randomUUID();
-    const body = { username: freshUsername(), password: PASSWORD, playerName: freshPlayerName() };
+    const body = { username: freshUsername(), password: PASSWORD };
     expect((await register(client, body, key)).statusCode).toBe(201);
     const first = client.cookies.get('rdw_session');
     const replay = await register(client, body, key);
@@ -132,27 +152,34 @@ describe('Gast sichern (POST /auth/register)', () => {
     });
   });
 
-  it('lehnt vergebene Benutzer- und Spielernamen ab, der Gast bleibt Gast', async () => {
+  it('lehnt vergebene Namen in jeder Schreibweise ab, der Gast bleibt Gast', async () => {
     const taken = await registeredPlayer();
+    // Ein Konto von vor ADR-082: Anmeldename und Spielername aus Bausteinen sind verschieden
+    const old = await registeredPlayer();
+    await server.db
+      .updateTable('player_profiles')
+      .set({
+        display_name: 'Flinkes Wiesel',
+        name_parts: JSON.stringify({ adjective: 'Flink', noun: 'Wiesel', number: null }),
+      })
+      .where('user_id', '=', old.userId)
+      .execute();
     const client = new TestClient(server.app);
     const userId = await client.signUpGuest();
-    // Benutzernamen sind ohne Rücksicht auf Groß- und Kleinschreibung eindeutig
-    const sameName = await register(client, {
-      username: taken.username.toUpperCase(),
-      password: PASSWORD,
-      playerName: freshPlayerName(),
-    });
-    expect(errorOf(sameName)).toMatchObject({ status: 409, code: 'USERNAME_TAKEN' });
-    const sameDisplay = await register(client, {
-      username: freshUsername(),
-      password: PASSWORD,
-      playerName: taken.playerName,
-    });
-    expect(errorOf(sameDisplay)).toMatchObject({
-      status: 409,
-      code: 'PLAYER_NAME_TAKEN',
-      details: { displayName: playerDisplayName(taken.playerName) },
-    });
+    const variants = [
+      taken.username.toUpperCase(),
+      taken.username.replace(' ', '_'),
+      taken.username.replace(' ', '.').replace('S', 'Š'),
+      old.username,
+      'flinkes-wiesel',
+      'Flinkes Wiesel',
+    ];
+    for (const username of variants) {
+      expect(
+        errorOf(await register(client, { username, password: PASSWORD })),
+        username,
+      ).toMatchObject({ status: 409, code: 'USERNAME_TAKEN' });
+    }
     const row = await server.db
       .selectFrom('users')
       .select(['is_guest', 'username', 'password_hash'])
@@ -167,37 +194,32 @@ describe('Gast sichern (POST /auth/register)', () => {
     expect(profiles).toEqual([]);
   });
 
-  it('prüft Benutzername, Passwort, Spielername, Sitzung und Schlüssel', async () => {
+  it('prüft Benutzername, Passwort, Wortfilter, Sitzung und Schlüssel', async () => {
     const client = new TestClient(server.app);
     await client.signUpGuest();
-    const valid = { username: freshUsername(), password: PASSWORD, playerName: freshPlayerName() };
+    // Passwort mit sieben Zeichen genügt (ADR-082)
+    const valid = { username: freshUsername(), password: 'sieben7' };
     const cases: [Record<string, unknown>, number, string][] = [
       [{ ...valid, username: 'ab' }, 400, 'VALIDATION_FAILED'],
-      [{ ...valid, username: 'mit leerzeichen' }, 400, 'VALIDATION_FAILED'],
-      [{ ...valid, username: 'x'.repeat(25) }, 400, 'VALIDATION_FAILED'],
-      [{ ...valid, password: 'kurz' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, username: '  a  ' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, username: 'x'.repeat(21) }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, username: '_Krisz' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, username: 'Kri__sz' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, username: 'Krisz!' }, 400, 'VALIDATION_FAILED'],
+      // kyrillisches К: sieht aus wie K
+      [{ ...valid, username: '\u041Arisz' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, username: '2024' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, password: 'kurz12' }, 400, 'VALIDATION_FAILED'],
       [{ ...valid, password: 'x'.repeat(129) }, 400, 'VALIDATION_FAILED'],
       [{ ...valid, email: 'a@b.de' }, 400, 'VALIDATION_FAILED'],
       [
-        { ...valid, playerName: { adjective: 'Böse', noun: 'Falke', number: null } },
-        422,
-        'INVALID_NAME',
-      ],
-      [
-        { ...valid, playerName: { adjective: 'Kühn', noun: 'Admin', number: null } },
-        422,
-        'INVALID_NAME',
-      ],
-      [
-        { ...valid, playerName: { adjective: 'Kühn', noun: 'Falke', number: 1 } },
+        { ...valid, playerName: { adjective: 'Kühn', noun: 'Falke', number: null } },
         400,
         'VALIDATION_FAILED',
       ],
-      [
-        { ...valid, playerName: { adjective: 'Kühn', noun: 'toString', number: null } },
-        422,
-        'INVALID_NAME',
-      ],
+      [{ ...valid, username: 'H1tler 88' }, 422, 'NAME_NOT_ALLOWED'],
+      [{ ...valid, username: 'Admin Krisz' }, 422, 'NAME_NOT_ALLOWED'],
+      [{ ...valid, username: 'Bot 2' }, 422, 'NAME_NOT_ALLOWED'],
     ];
     for (const [body, status, code] of cases) {
       expect(errorOf(await register(client, body)), JSON.stringify(body)).toMatchObject({
@@ -214,6 +236,44 @@ describe('Gast sichern (POST /auth/register)', () => {
     });
     // Erst die gültige Anfrage sichert das Konto
     expect((await register(client, valid)).statusCode).toBe(201);
+  });
+});
+
+describe('Namensprüfung (GET /names/check)', () => {
+  it('meldet frei, eigen, vergeben, gesperrt und ungültig', async () => {
+    const player = await registeredPlayer();
+    const other = await registeredPlayer();
+    const guest = new TestClient(server.app);
+    await guest.signUpGuest();
+    expect(await nameStatus(guest, '  Ganz   Neuer Name ')).toMatchObject({
+      name: 'Ganz Neuer Name',
+      status: 'FREE',
+    });
+    expect((await nameStatus(guest, player.username.toLowerCase())).status).toBe('TAKEN');
+    expect((await nameStatus(player.client, player.username)).status).toBe('MINE');
+    // Andere Schreibweise des eigenen Namens: frei (nur man selbst trägt ihn)
+    expect((await nameStatus(player.client, player.username.toUpperCase())).status).toBe('FREE');
+    expect((await nameStatus(player.client, other.username)).status).toBe('TAKEN');
+    expect((await nameStatus(guest, 'Fuuuck')).status).toBe('BLOCKED');
+    expect((await nameStatus(guest, 'a')).status).toBe('INVALID');
+    expect(errorOf(await checkName(new TestClient(server.app), 'Krisz'))).toMatchObject({
+      status: 401,
+    });
+  });
+
+  it('hält die Namen aus Bausteinen auch im Namensschlüssel auseinander', async () => {
+    // Migration 0016 legt einen eindeutigen Index auf player_name_key(display_name): Alte Namen
+    // aus Bausteinen dürfen darin nicht zusammenfallen
+    const names: string[] = [];
+    for (const adjective of PLAYER_NAME_ADJECTIVES) {
+      for (const noun of Object.keys(PLAYER_NAME_NOUNS)) {
+        names.push(playerDisplayName({ adjective, noun, number: null }));
+      }
+    }
+    const result = await sql<{ distinct: string; total: string }>`
+      select count(distinct player_name_key(n))::text as distinct, count(*)::text as total
+      from unnest(${names}::text[]) as n`.execute(server.db);
+    expect(result.rows[0]).toEqual({ distinct: String(names.length), total: String(names.length) });
   });
 });
 
@@ -399,64 +459,75 @@ describe('Passwort ändern (POST /me/password)', () => {
   });
 });
 
-describe('Spielername ändern (PATCH /me/profile)', () => {
-  function rename(client: TestClient, playerName: unknown, key = randomUUID()) {
+describe('Namen ändern (PATCH /me/profile)', () => {
+  function rename(client: TestClient, username: unknown, key = randomUUID()) {
     return client.patch('/me/profile', {
       headers: { 'idempotency-key': key },
-      payload: { playerName },
+      payload: { username },
     });
   }
 
-  it('ändert den Namen eines gesicherten Kontos', async () => {
+  it('ändert Spieler- und Anmeldenamen eines gesicherten Kontos', async () => {
     const player = await registeredPlayer();
-    const playerName: PlayerNameParts = { adjective: 'Listig', noun: 'Elster', number: 42 };
-    const response = await rename(player.client, playerName);
+    const response = await rename(player.client, ' Listige  Elster ');
     expect(response.statusCode, response.body).toBe(200);
     expect(profileResponseSchema.parse(response.json()).profile).toEqual({
-      displayName: 'Listige Elster 42',
-      playerName,
+      displayName: 'Listige Elster',
     });
-    expect((await me(player.client)).profile.displayName).toBe('Listige Elster 42');
-    // Den eigenen Namen erneut zu wählen ist kein Konflikt
-    expect((await rename(player.client, playerName)).statusCode).toBe(200);
+    const body = await me(player.client);
+    expect(body.profile.displayName).toBe('Listige Elster');
+    expect(body.user.username).toBe('Listige Elster');
+    // Anmelden geht mit dem neuen Namen, nicht mehr mit dem alten
+    expect((await login(new TestClient(server.app), 'listige elster', PASSWORD)).statusCode).toBe(
+      200,
+    );
+    expect((await login(new TestClient(server.app), player.username, PASSWORD)).statusCode).toBe(
+      401,
+    );
+    // Den eigenen Namen erneut oder anders geschrieben zu wählen ist kein Konflikt
+    expect((await rename(player.client, 'Listige Elster')).statusCode).toBe(200);
+    expect((await rename(player.client, 'listige_elster')).statusCode).toBe(200);
+    expect((await me(player.client)).profile.displayName).toBe('listige_elster');
   });
 
   it('liefert bei Wiederholung die gespeicherte Antwort, auch nach einer späteren Änderung', async () => {
     const player = await registeredPlayer();
     const key = randomUUID();
-    const first: PlayerNameParts = { adjective: 'Wach', noun: 'Luchs', number: 17 };
-    const second: PlayerNameParts = { adjective: 'Wach', noun: 'Luchs', number: 18 };
-    expect((await rename(player.client, first, key)).statusCode).toBe(200);
-    expect((await rename(player.client, second)).statusCode).toBe(200);
+    expect((await rename(player.client, 'Wacher Luchs', key)).statusCode).toBe(200);
+    expect((await rename(player.client, 'Wacher Uhu')).statusCode).toBe(200);
 
-    const replay = await rename(player.client, first, key);
+    const replay = await rename(player.client, 'Wacher Luchs', key);
     expect(replay.statusCode, replay.body).toBe(200);
     expect(replay.headers['idempotency-replayed']).toBe('true');
-    expect(profileResponseSchema.parse(replay.json()).profile.displayName).toBe('Wacher Luchs 17');
+    expect(profileResponseSchema.parse(replay.json()).profile.displayName).toBe('Wacher Luchs');
     // ohne erneute Wirkung
-    expect((await me(player.client)).profile.displayName).toBe('Wacher Luchs 18');
+    expect((await me(player.client)).profile.displayName).toBe('Wacher Uhu');
   });
 
-  it('lehnt vergebene Namen und Gastkonten ab', async () => {
+  it('lehnt vergebene und gesperrte Namen und Gastkonten ab', async () => {
     const first = await registeredPlayer();
     const second = await registeredPlayer();
-    expect(errorOf(await rename(second.client, first.playerName))).toMatchObject({
+    expect(errorOf(await rename(second.client, first.username.toLowerCase()))).toMatchObject({
       status: 409,
-      code: 'PLAYER_NAME_TAKEN',
+      code: 'USERNAME_TAKEN',
     });
-    expect((await me(second.client)).profile.playerName).toEqual(second.playerName);
+    expect(errorOf(await rename(second.client, 'Kurva Anyad'))).toMatchObject({
+      status: 422,
+      code: 'NAME_NOT_ALLOWED',
+    });
+    expect((await me(second.client)).profile.displayName).toBe(second.username);
     const guest = new TestClient(server.app);
     await guest.signUpGuest();
-    expect(errorOf(await rename(guest, freshPlayerName()))).toMatchObject({
+    expect(errorOf(await rename(guest, freshUsername()))).toMatchObject({
       status: 403,
       code: 'GUEST_ACCOUNT',
     });
-    expect((await me(guest)).profile).toEqual({ displayName: null, playerName: null });
+    expect((await me(guest)).profile).toEqual({ displayName: null });
   });
 });
 
 describe('Namensvorschläge', () => {
-  it('schlägt fünf freie Spielernamen vor', async () => {
+  it('schlägt fünf freie Namen vor, die als Benutzername passen', async () => {
     const player = await registeredPlayer();
     const response = await player.client.get('/names/player');
     expect(response.statusCode, response.body).toBe(200);
@@ -466,6 +537,7 @@ describe('Namensvorschläge', () => {
     expect(new Set(names).size).toBe(5);
     for (const suggestion of suggestions) {
       expect(suggestion.name).toBe(playerDisplayName(suggestion.parts));
+      expect((await nameStatus(player.client, suggestion.name)).status).toBe('FREE');
     }
     const taken = await server.db
       .selectFrom('player_profiles')

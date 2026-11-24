@@ -19,7 +19,7 @@ export type AccountView = (typeof ACCOUNT_VIEWS)[number];
 export const ACCOUNT_TABS = ['record', 'knowledge', 'access'] as const;
 export type AccountTab = (typeof ACCOUNT_TABS)[number];
 
-/** Welche Ansicht es für dieses Konto gibt; Gäste wählen ihren Namen beim Sichern. */
+/** Welche Ansicht es für dieses Konto gibt; Gäste wählen ihren Namen beim Registrieren. */
 export function viewAllowed(view: AccountView, isGuest: boolean): boolean {
   switch (view) {
     case 'name':
@@ -95,9 +95,8 @@ export function sinceText(iso: string): string {
 
 /** Zeile unter dem Namen: gesichert mit Anmeldename oder Gast. */
 export function statusLine(me: MeResponse): string {
-  return me.user.isGuest
-    ? t('konto.status.guest')
-    : t('konto.status.secured', { username: me.user.username ?? '' });
+  // Der Benutzername steht seit ADR-082 groß darüber; hier genügt der Stand
+  return me.user.isGuest ? t('konto.status.guest') : t('konto.status.secured');
 }
 
 // ---------- Bilanz ----------

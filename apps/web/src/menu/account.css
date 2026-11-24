@@ -850,15 +850,11 @@ button.acct-row {
   line-height: 1.1;
 }
 
-.acct-view-step {
-  margin-left: auto;
-  font-size: calc(11 * var(--u));
-  color: var(--muted);
-}
-
 .acct-view-body {
   flex: 1 1 auto;
   min-height: 0;
+  /* Größencontainer: Die Registrierung wird knapper, wenn die Bühne niedrig ist (unten) */
+  container: acct-body / size;
   overflow: hidden auto;
   overscroll-behavior: contain;
   margin: 0 calc(-6 * var(--u));
@@ -911,15 +907,6 @@ button.acct-row {
   gap: calc(10 * var(--u));
 }
 
-.acct-step {
-  display: grid;
-  gap: calc(8 * var(--u));
-}
-
-.acct-step[hidden] {
-  display: none;
-}
-
 .acct-form-foot {
   display: flex;
   align-items: center;
@@ -937,28 +924,6 @@ button.acct-row {
   padding: 0 calc(14 * var(--u));
   font-size: calc(13 * var(--u));
   border-radius: calc(10 * var(--u));
-}
-
-.acct-dots {
-  display: inline-flex;
-  gap: calc(5 * var(--u));
-  margin-right: auto;
-}
-
-.acct-dots span {
-  width: calc(8 * var(--u));
-  height: calc(8 * var(--u));
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--map-ink) 18%, transparent);
-  transition:
-    background-color 0.2s,
-    transform 0.2s;
-}
-
-.acct-dots span.on {
-  background: var(--map-gold);
-  box-shadow: 0 0 0 1px var(--primary-edge);
-  transform: scale(1.15);
 }
 
 .acct .note {
@@ -1001,106 +966,220 @@ button.acct-row {
   font-size: calc(10.5 * var(--u));
 }
 
-/* Namensschilder */
-.name-chips {
-  display: grid;
+/* Eigener Benutzername (ADR-082): Feld mit Zeichen am Rand, Zeile darunter, Ideen */
+.acct-lead {
+  margin: 0;
+  font-size: calc(12 * var(--u));
+  line-height: 1.3;
+}
+
+/*
+ * Niedrige Bühne (Chrome am iPhone quer, 932 × 354) oder sehr kleine Maßeinheit: Die Einleitung
+ * der Registrierung fällt weg und die Abstände werden enger, damit „Registrieren“ ohne Scrollen
+ * sichtbar bleibt. Ohne Höhengrenze ist der Bereich etwa 1,86-mal so breit wie hoch.
+ */
+@container acct-body (min-aspect-ratio: 48 / 25) or (max-width: 400px) {
+  .acct .acct-form {
+    gap: calc(5 * var(--u));
+  }
+
+  .acct-form .register-lead {
+    display: none;
+  }
+
+  .acct .acct-form-foot .menu-go {
+    min-height: calc(36 * var(--u));
+  }
+
+  .name-ideas {
+    margin-top: 0;
+  }
+}
+
+.name-input {
+  position: relative;
+}
+
+.acct .name-input input {
+  padding-right: calc(34 * var(--u));
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.acct .name-field.tone-bad input {
+  border-color: var(--danger);
+}
+
+.acct .name-field.tone-ok input {
+  border-color: var(--success);
+  box-shadow:
+    inset 0 1px 3px rgb(70 45 15 / 0.12),
+    0 0 0 1px var(--success);
+}
+
+/* Zeichen im Feld: Haken (frei), Kreuz (geht nicht), Kreis (wird geprüft) */
+.name-mark {
+  position: absolute;
+  top: 50%;
+  right: calc(10 * var(--u));
+  width: calc(18 * var(--u));
+  height: calc(18 * var(--u));
+  margin-top: calc(-9 * var(--u));
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.15s,
+    transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.name-mark[data-tone='ok'],
+.name-mark[data-tone='bad'],
+.name-mark[data-tone='wait'] {
+  opacity: 1;
+  transform: none;
+}
+
+.name-mark[data-tone='ok'] {
+  background: var(--success);
+}
+
+.name-mark[data-tone='ok']::after {
+  content: '';
+  position: absolute;
+  left: 34%;
+  top: 18%;
+  width: 26%;
+  height: 46%;
+  border: solid var(--surface);
+  border-width: 0 calc(2.5 * var(--u)) calc(2.5 * var(--u)) 0;
+  transform: rotate(45deg);
+}
+
+.name-mark[data-tone='bad'] {
+  background: var(--danger);
+}
+
+.name-mark[data-tone='bad']::before,
+.name-mark[data-tone='bad']::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  top: calc(50% - 1.25 * var(--u));
+  width: 56%;
+  height: calc(2.5 * var(--u));
+  border-radius: calc(1 * var(--u));
+  background: var(--surface);
+  transform: rotate(45deg);
+}
+
+.name-mark[data-tone='bad']::after {
+  transform: rotate(-45deg);
+}
+
+.name-mark[data-tone='wait'] {
+  border: calc(2.5 * var(--u)) solid color-mix(in srgb, var(--map-ink) 22%, transparent);
+  border-top-color: var(--map-gold);
+}
+
+.name-line {
+  margin: 0;
+  min-height: 1.25em;
+  font-size: calc(11 * var(--u));
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+.name-field.tone-ok .name-line {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.name-field.tone-bad .name-line {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.name-ideas {
+  display: flex;
+  align-items: center;
   gap: calc(6 * var(--u));
   min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
+  margin-top: calc(1 * var(--u));
 }
 
-.name-chip-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: calc(6 * var(--u));
+.name-ideas-label {
+  flex: none;
+  font-size: calc(11 * var(--u));
+  font-weight: 700;
+  color: var(--muted);
 }
 
-/* Platz für das Schildchen „bisher“, das über dem ersten Schild hängt */
-.name-chip-grid:has(.name-chip.old) {
-  padding-top: calc(7 * var(--u));
-}
-
-.name-chip {
-  position: relative;
-  display: grid;
-  place-items: center;
-  min-height: calc(38 * var(--u));
-  padding: calc(4 * var(--u)) calc(8 * var(--u));
-  text-align: center;
-  border-radius: calc(9 * var(--u));
+.name-idea {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: max(28px, calc(28 * var(--u)));
+  padding: 0 calc(10 * var(--u));
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-radius: calc(14 * var(--u));
   border: 1px solid var(--border-strong);
   background: linear-gradient(var(--surface), var(--surface-2));
   box-shadow:
     0 1px 0 rgb(255 255 255 / 0.55) inset,
     0 calc(2 * var(--u)) 0 color-mix(in srgb, var(--border-strong) 55%, transparent);
-  transition:
-    box-shadow 0.18s ease-out,
-    transform 0.12s ease-out,
-    background-color 0.18s;
-}
-
-.name-chip-text {
   font-family: var(--font-display);
-  font-weight: 800;
-  font-size: calc(13.5 * var(--u));
-  line-height: 1.1;
-  overflow-wrap: anywhere;
+  font-weight: 700;
+  font-size: calc(12.5 * var(--u));
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    transform 0.12s ease-out,
+    box-shadow 0.18s ease-out;
 }
 
-.name-chip.on {
+.name-idea:hover {
+  border-color: var(--primary-edge);
+}
+
+.name-idea.on {
   border-color: var(--primary-edge);
   background: color-mix(in srgb, var(--map-glow) 60%, var(--surface));
-  box-shadow:
-    0 0 0 calc(2 * var(--u)) var(--map-gold),
-    0 calc(3 * var(--u)) calc(9 * var(--u)) rgb(110 66 10 / 0.25);
+  box-shadow: 0 0 0 calc(2 * var(--u)) var(--map-gold);
 }
 
-.name-chip:active {
-  transform: scale(0.97);
+.name-idea:active {
+  transform: scale(0.96);
 }
 
-.name-chip:has(:focus-visible) {
+.name-idea:focus-visible,
+.name-ideas-more:focus-visible {
   outline: calc(3 * var(--u)) solid var(--focus, var(--link));
   outline-offset: calc(2 * var(--u));
 }
 
-.name-chip-tag {
-  position: absolute;
-  top: calc(-7 * var(--u));
-  right: calc(6 * var(--u));
-  padding: 0 calc(6 * var(--u));
-  border-radius: calc(6 * var(--u));
-  font-size: calc(9.5 * var(--u));
-  font-weight: 700;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.name-chips-more {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  gap: calc(6 * var(--u));
-  min-height: max(30px, calc(30 * var(--u)));
-  padding: 0 calc(10 * var(--u)) 0 calc(6 * var(--u));
-  border: 1px solid transparent;
+.name-ideas-more {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: max(30px, calc(30 * var(--u)));
+  height: max(30px, calc(30 * var(--u)));
+  padding: 0;
+  border: 0;
   border-radius: calc(8 * var(--u));
   background: none;
-  font-weight: 700;
-  font-size: calc(12.5 * var(--u));
   color: var(--link);
   cursor: pointer;
 }
 
-.name-chips-more svg {
+.name-ideas-more svg {
   width: calc(18 * var(--u));
   height: calc(18 * var(--u));
 }
 
-.name-chips-more:disabled {
+.name-ideas-more:disabled {
   opacity: 0.6;
   cursor: default;
 }
@@ -1175,12 +1254,22 @@ button.acct-row {
     animation: acct-fill 0.7s calc(0.1s + var(--i, 0) * 0.035s) cubic-bezier(0.2, 0.9, 0.3, 1) both;
   }
 
-  .name-chip {
-    animation: acct-chip-in 0.32s calc(var(--i, 0) * 0.04s) cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  .name-idea {
+    animation: acct-chip-in 0.32s calc(var(--i, 0) * 0.05s) cubic-bezier(0.3, 1.5, 0.5, 1) both;
   }
 
-  .name-chips[aria-busy='true'] .name-chips-more svg {
+  .name-ideas[aria-busy='true'] .name-ideas-more svg {
     animation: acct-roll 0.6s linear infinite;
+  }
+
+  .name-mark[data-tone='wait'] {
+    animation: acct-roll 0.7s linear infinite;
+  }
+
+  /* Ein neues Urteil setzt sich kurz wie ein Stempel */
+  .name-mark[data-tone='ok'],
+  .name-mark[data-tone='bad'] {
+    animation: acct-mark 0.32s cubic-bezier(0.3, 1.6, 0.5, 1) both;
   }
 
   .acct-notice {
@@ -1236,6 +1325,12 @@ button.acct-row {
   from {
     opacity: 0;
     transform: translateY(calc(4 * var(--u))) scale(0.92);
+  }
+}
+
+@keyframes acct-mark {
+  from {
+    transform: scale(0.4);
   }
 }
 
@@ -1339,9 +1434,5 @@ button.acct-row {
 
   .acct-record-body {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .name-chip-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
