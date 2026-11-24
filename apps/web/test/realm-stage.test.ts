@@ -1960,7 +1960,7 @@ describe('Bühne der Partie mit Ausbau', () => {
     const view = duelView('QUESTION', 'DUEL_TRIVIA', 0, {
       question: info('TRIVIA', 'DUEL_TRIVIA', 'NOT_PARTICIPATING', [0, 1], [0]),
     });
-    const watched = { seq: 12, question: TRIVIA, deadline: 9000 };
+    const watched = { seq: 12, question: TRIVIA, deadline: 9000, windowMs: 15000 };
     const html = stage(view, { watched });
     expect(main(html)).toContain('data-state="spectating"');
     const card = part(html, 'data-testid="match-question-watched"', '</section>');
@@ -1969,6 +1969,9 @@ describe('Bühne der Partie mit Ausbau', () => {
     expect(textOf(card)).toContain('In welchem Jahr fiel die Berliner Mauer?');
     expect(count(card, 'class="option-read"')).toBe(4);
     expect(count(card, '<button')).toBe(0);
+    // Die Lunte läuft ruhig, ohne Warnfarbe: Dem Zuschauer läuft keine Zeit davon
+    expect(card).toContain('class="countdown calm"');
+    expect(card).not.toContain('urgent');
     expect(html).not.toContain('data-testid="match-question"');
     // Das Blatt rechts nennt weiter nur, wer schon geantwortet hat, nie was
     const waiting = part(html, 'data-testid="match-waiting"', '</section>');

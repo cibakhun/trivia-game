@@ -2318,6 +2318,11 @@ html.match-playing body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Mitlesen (`calm`): Die Zahl sagt, wann die Antworten kommen, ohne zu drängen */
+.sheet .countdown.calm .countdown-seconds {
+  color: var(--muted);
+}
+
 .sheet-note {
   font-size: calc(12 * var(--u));
   line-height: 1.3;
@@ -2392,9 +2397,17 @@ html.match-playing body {
   font-size: calc(15 * var(--u));
 }
 
+/*
+ * Die Antwort gibt nie selbst nach, solange das Gegengewicht rechts noch Platz hat: Mit
+ * `flex-shrink` bekam sie sonst einen winzigen Anteil am Schrumpfen ab, und ein einzelnes Wort
+ * brach eine Spur vor seinem Ende um („Andenkondo-r“). Breiter als das Feld neben der Münze wird
+ * sie nicht; dort bricht sie zwischen ihren Wörtern um. Ein Wort passt nach `optionDensity`
+ * (option-fit.ts) immer auf eine Zeile, nur ein überlanges bricht am Rand.
+ */
 .sheet-options .option-text {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
+  max-width: calc(100% - var(--key) - (9 * var(--u)));
   margin-inline: auto;
   overflow-wrap: break-word;
 }
@@ -2409,13 +2422,24 @@ html.match-playing body {
   font-size: calc(12.5 * var(--u));
 }
 
+/* Ein sehr langes Wort („Amtsenthebungsverfahren“): Es soll auf eine Zeile passen */
+.options-tight .sheet-options .option,
+.options-tight .sheet-options .option-read {
+  font-size: calc(11 * var(--u));
+}
+
 .options-mid .sheet-options,
 .options-long .sheet-options {
   --key: calc(26 * var(--u));
 }
 
+.options-tight .sheet-options {
+  --key: calc(24 * var(--u));
+}
+
 .options-mid .sheet-options .option-key,
-.options-long .sheet-options .option-key {
+.options-long .sheet-options .option-key,
+.options-tight .sheet-options .option-key {
   font-size: calc(13.5 * var(--u));
 }
 
@@ -2689,6 +2713,11 @@ html.match-playing body {
   font-size: calc(12.5 * var(--u));
 }
 
+.stage .reveal.options-tight .reveal-option {
+  --coin: calc(24 * var(--u));
+  font-size: calc(11 * var(--u));
+}
+
 /* Weder richtig noch gewählt: tritt zurück, wenn die richtige Antwort steht */
 .stage .reveal-option:not(.correct, .chosen) {
   opacity: 0.6;
@@ -2710,9 +2739,11 @@ html.match-playing body {
   animation: reveal-right 0.62s calc(var(--reveal-at) + 0.5s) ease-out both;
 }
 
+/* Wie `.sheet-options .option-text`: gibt nicht nach, solange das Gegengewicht Platz hat */
 .stage .reveal-option-text {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
+  max-width: calc(100% - var(--coin) - var(--coin-gap));
   margin-inline: auto;
   overflow-wrap: break-word;
 }
@@ -2752,7 +2783,8 @@ html.match-playing body {
 }
 
 .stage .reveal.options-mid .reveal-option .reveal-mark,
-.stage .reveal.options-long .reveal-option .reveal-mark {
+.stage .reveal.options-long .reveal-option .reveal-mark,
+.stage .reveal.options-tight .reveal-option .reveal-mark {
   font-size: calc(13.5 * var(--u));
 }
 

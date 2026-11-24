@@ -185,7 +185,9 @@ export function ResultPanel({
               <th scope="col">{t('match.result.placeColumn')}</th>
               <th scope="col">{t('match.reveal.player')}</th>
               <th scope="col">{t('match.result.pointsColumn')}</th>
-              <th scope="col">{t('match.result.regionsColumn')}</th>
+              <th scope="col">
+                {realm ? t('realm.result.regionsColumn') : t('match.result.regionsColumn')}
+              </th>
               <th scope="col">
                 {realm ? t('realm.result.livesColumn') : t('match.result.livesColumn')}
               </th>

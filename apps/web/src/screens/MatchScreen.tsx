@@ -7,6 +7,7 @@ import {
   needsPresent,
   needsWatch,
   screenStateOf,
+  watchWindowMs,
   type LocalAnswer,
   type LocalQuestion,
   type WatchedQuestion,
@@ -113,6 +114,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
           seq: questionSeq,
           question: res.question,
           deadline: performance.now() + res.question.remainingMs,
+          windowMs: watchWindowMs(res.question, res.serverTime),
         });
       })
       .catch((e: unknown) => {
@@ -123,7 +125,7 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
           return;
         }
         // Schon geschlossen: Frage und Antworten zeigt gleich die Auflösung
-        setWatched({ seq: questionSeq, question: null, deadline: performance.now() });
+        setWatched({ seq: questionSeq, question: null, deadline: performance.now(), windowMs: 0 });
       });
   }, [view, watched, matchId]);
 

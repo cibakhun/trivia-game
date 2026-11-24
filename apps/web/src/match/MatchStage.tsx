@@ -256,6 +256,7 @@ export function MatchStage({
         key={watching.seq}
         question={watching.question}
         deadline={watching.deadline}
+        windowMs={watching.windowMs}
         who={watchedSeats(view.question, view.board?.step.attacker ?? null)}
       />
     );

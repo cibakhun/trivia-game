@@ -1,6 +1,6 @@
 import { matchMap, regionNeighbors } from '@rdw/game-core';
 import { expect, test, type Page, type Route } from '@playwright/test';
-import { closeAnswerDb } from './answers.ts';
+import { closeAnswerDb, testDb } from './answers.ts';
 import { answerRight, matchIdOf, newPlayer, pickBot, succeeds } from './match-kit.ts';
 
 /**
@@ -332,6 +332,40 @@ async function attackFirst(page: Page, matchId: string, free: boolean): Promise<
   } finally {
     page.off('request', count);
   }
+}
+
+/**
+ * Wissensfrage zu jedem eigenen Angriff, aus dem Protokoll der Partie: die erste Duellfrage nach
+ * der Wahl des Ziels und vor dem nächsten Angriff; `null`, wenn keine kam.
+ */
+async function ownDuelQuestions(matchId: string): Promise<(number | null)[]> {
+  const db = testDb();
+  const human = await db
+    .selectFrom('match_players')
+    .select('seat')
+    .where('match_id', '=', matchId)
+    .where('user_id', 'is not', null)
+    .executeTakeFirstOrThrow();
+  const events = await db
+    .selectFrom('match_events')
+    .select(['type', 'payload'])
+    .where('match_id', '=', matchId)
+    .where('type', 'in', ['TARGET_CHOSEN', 'QUESTION_OPENED'])
+    .orderBy('seq')
+    .execute();
+  const questions: (number | null)[] = [];
+  let open = false;
+  for (const { type, payload } of events) {
+    const data = payload as { attacker?: number; purpose?: string; seq?: number };
+    if (type === 'TARGET_CHOSEN') {
+      open = data.attacker === human.seat;
+      if (open) questions.push(null);
+    } else if (open && data.purpose === 'DUEL_TRIVIA') {
+      questions[questions.length - 1] = data.seq ?? null;
+      open = false;
+    }
+  }
+  return questions;
 }
 
 /** Was der Spieler in einer Rüstzeit befohlen hat. */
@@ -682,6 +716,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
       };
     });
 
+  const asked = new Set<number>();
   const answered = new Set<number>();
   let castleId: number | null = null;
   const picks = new Map<string, number>();
@@ -695,6 +730,7 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
     labels.add(label);
     if (state === 'finished') break;
     if (state === 'abandoned') throw new Error('Die Partie wurde abgebrochen');
+    if (state === 'question') asked.add(seq);
     if (state === 'question' && !answered.has(seq)) {
       if (await answerRight(page, matchId, seq, 'tap')) answered.add(seq);
     } else if (state === 'pick' && step === 'CAMPAIGN_TARGET') {
@@ -726,7 +762,17 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(picks.get('LAND_PICK') ?? 0).toBeLessThanOrEqual(4);
   const land = [...labels].filter((l) => l.startsWith('Landnahme')).sort();
   expect(land).toEqual(['Landnahme · 1 von 2', 'Landnahme · 2 von 2']);
-  expect(answered.size).toBeGreaterThan(5);
+  // Jede Frage, die die Seite stellte, ist beantwortet: die Startfrage, beide Schätzfragen der
+  // Landnahme und je eigenem Angriff mindestens eine. Wie oft Bots das eigene Reich angreifen, hängt
+  // am Zufall der Partie; die frühere Schwelle „mehr als 5“ fiel, wenn keiner angriff (ADR-084)
+  expect([...asked].filter((seq) => !answered.has(seq))).toEqual([]);
+  expect(answered.size).toBeGreaterThanOrEqual(3 + attacks.length);
+  // Jeder eigene Angriff hat im Protokoll der Partie seine eigene Wissensfrage, und genau die ist
+  // beantwortet; Fragen aus Angriffen der Bots können eine fehlende nicht verdecken
+  const duels = await ownDuelQuestions(matchId);
+  // Mehr nur, wenn der Server einmal selbst ein Ziel gewählt hat, weil die Wahlzeit ablief
+  expect(duels.length).toBeGreaterThanOrEqual(attacks.length);
+  expect(duels.filter((seq) => seq === null || !answered.has(seq))).toEqual([]);
 
   // Jede Runde beginnt mit einer Rüstzeit; der Server hat jede Abgabe angenommen. Zehn Runden sind
   // es (ADR-073), solange nicht vorher nur noch ein Reich steht

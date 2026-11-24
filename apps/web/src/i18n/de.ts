@@ -571,6 +571,8 @@ export const de = {
       botsNote:
         'Partien mit Bots zählen nicht in der Statistik. Tritt ein Mitspieler bei und ist kein Platz frei, macht ein Bot Platz.',
       maps: 'Karte: zu zweit die {duo} mit {duoRegions} Regionen, zu dritt die {trio} mit {trioRegions} Regionen.',
+      /** Testpartie: Die Plätze stehen fest, also auch die Karte. */
+      map: 'Karte: die {name} mit {regions} Regionen.',
       copy: 'Link kopieren',
       copied: 'Link kopiert',
       bots: {
@@ -657,6 +659,10 @@ export const de = {
       startMine: 'Die Partie beginnt, du wählst zuerst.',
       round: 'Runde {round} von {rounds}',
       lastRound: 'Letzte Runde des Feldzugs',
+      /** Wer die Phase oder Runde eröffnet, liest sie in „Du bist dran“ (ADR-084). */
+      campaignMine: 'Der Feldzug beginnt, du greifst zuerst an.',
+      roundMine: 'Runde {round} von {rounds}, du greifst zuerst an.',
+      lastRoundMine: 'Letzte Runde des Feldzugs, du greifst zuerst an.',
     },
     duelHead: {
       title: 'Duell um {region}',
@@ -1292,6 +1298,8 @@ export const de = {
     moment: {
       castles: 'Die Burgen werden gesetzt',
       villages: 'Jetzt die Dörfer',
+      castlesMine: 'Die Burgen werden gesetzt, du setzt deine zuerst.',
+      villagesMine: 'Jetzt die Dörfer, du setzt dein Dorf zuerst.',
       prepare: 'Rüstzeit',
       orders: 'Die Befehle werden aufgedeckt',
       skipped: '{name} setzt aus',
@@ -1327,7 +1335,14 @@ export const de = {
       unavailable: '{category}: noch zu wenige Fragen',
       startHint: 'Wer nicht alle {count} wählt, bekommt beim Start zufällige.',
     },
-    result: { livesColumn: 'Burgen' },
+    result: { regionsColumn: 'Felder', livesColumn: 'Burgen' },
+    /** Aufstellung (`LobbyPanel`): Land heißt hier Feld, und vor jedem Feldzug steht die Rüstzeit. */
+    lobby: {
+      maps: 'Karte: zu zweit die {duo} mit {duoRegions} Feldern, zu dritt die {trio} mit {trioRegions} Feldern.',
+      map: 'Karte: die {name} mit {regions} Feldern.',
+      timers:
+        'Zeiten: {prepare} s je Rüstzeit, {trivia} s je Wissensfrage, {estimate} s je Schätzfrage, {pick} s je Wahl.',
+    },
     // „So geht's“: vier Bilder, die Ziel und Ablauf erklären
     help: {
       open: 'So geht’s',

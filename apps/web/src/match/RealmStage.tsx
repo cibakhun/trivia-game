@@ -645,6 +645,7 @@ export function RealmStage({
         key={watching.seq}
         question={watching.question}
         deadline={watching.deadline}
+        windowMs={watching.windowMs}
         who={watchedSeats(view.question, step.attacker)}
         category={step.kind === 'DUEL_TRIVIA' ? step.category : null}
       />
