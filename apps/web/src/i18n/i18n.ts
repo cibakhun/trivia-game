@@ -102,7 +102,8 @@ const LARGE_NUMBER_WORDS: readonly (readonly [string, string])[] = [
 ];
 
 /**
- * Eine geschätzte Zahl oder ihr Abstand in der Auflösung. Bis unter eine Billion wie
+ * Eine geschätzte Zahl oder ihr Abstand in der Auflösung. Bis vier Stellen glatt wie beim Tippen
+ * (`showEstimate`), damit eine Jahreszahl nicht als „1.906“ dasteht; bis unter eine Billion wie
  * `formatDecimal`, darüber kurz mit Zahlwort („≈ 1,23 Trillionen“), damit auch eine absurd große
  * Schätzung in eine Zeile passt: Eine erlaubte Grenze gibt es nicht (ADR-076).
  */
@@ -112,6 +113,7 @@ export function formatEstimateFigure(value: string): string {
   const [, sign = '', rawWhole = '0', fraction = ''] = match;
   const whole = rawWhole.replace(/^0+(?=\d)/, '');
   // Gruppe 0 ist die Billion (10^12), jede weitere drei Stellen mehr
+  if (whole.length <= 4) return `${sign}${whole}${fraction ? `,${fraction}` : ''}`;
   let group = Math.floor((whole.length - 1) / 3) - 4;
   if (group < 0) return formatDecimal(value);
   const point = whole.length - 3 * (group + 4);

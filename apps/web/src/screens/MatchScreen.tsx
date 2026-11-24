@@ -60,6 +60,9 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
     api
       .presentMatchQuestion(matchId, questionSeq)
       .then((presented) => {
+        // Kommt die Antwort erst, wenn schon eine neuere Frage geholt wird, zählt sie nicht mehr:
+        // Sonst stünde die alte Frage wieder da, und die neue bliebe beim Holen hängen
+        if (presenting.current !== questionSeq) return;
         const now = performance.now();
         setEstimate('');
         setLocal({
@@ -72,12 +75,13 @@ export function MatchScreen({ matchId }: { readonly matchId: string }) {
         });
       })
       .catch((e: unknown) => {
+        // Gehört die Marke schon einer neueren Frage, ist dieser Fehler überholt
+        if (presenting.current !== questionSeq) return;
         if (isTransientError(e)) {
           // Kein Netz oder der Server stolpert (5xx, 429): Die nächste Abfrage versucht es erneut,
           // statt die Frage als verpasst zu zählen. Wiederholen ist sicher, denn wer sie schon hat,
-          // bekommt dieselbe Frage mit der Restzeit des Servers. Die Marke nur freigeben, wenn sie
-          // noch dieser Frage gehört (sonst holte die nächste Abfrage eine neuere Frage doppelt)
-          if (presenting.current === questionSeq) presenting.current = null;
+          // bekommt dieselbe Frage mit der Restzeit des Servers
+          presenting.current = null;
           return;
         }
         // Geschlossen oder nicht (mehr) für diesen Sitz: warten auf die Auflösung

@@ -223,9 +223,13 @@ export function RealmStage({
 
   const name = useMemo(() => (view ? seatNames(view) : () => ''), [view]);
   const region = useMemo(() => (play ? regionNames(play.map) : () => ''), [play]);
-  // Letzter Takt der letzten Auflösung: Der Ausgang ist gespielt, gleich kommt die Abrechnung
+  // Letzter Takt der letzten Auflösung der Partie oder einer Runde: Der Ausgang ist gespielt, gleich
+  // kommt die Abrechnung oder die Rüstzeit. Fiel danach ein Angriff aus, sagt es sein Band jetzt
+  // über der Karte, statt die Rüstzeit zu eröffnen, als gälte es schon für die nächste Runde
   const ending =
-    state === 'reveal' && (beat === null || beat === 'settled') && step?.kind === 'FINISHED';
+    state === 'reveal' &&
+    (beat === null || beat === 'settled') &&
+    (step?.kind === 'FINISHED' || step?.kind === 'PREPARE');
   const moment = useMoments(view, state, events, name, ending);
   useMatchSounds(view, state, events);
   const reveal = useMemo(
@@ -666,7 +670,9 @@ export function RealmStage({
     // Den Ausgang eines Duells sagen danach Karte und Blatt rechts; hier stehen Frage und Antworten
     sheetKind = 'reveal';
     sheetFace = reveal.resolved.payload.kind;
-    sheet = <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} />;
+    sheet = (
+      <RevealPanel reveal={reveal} name={name} region={region} verdict={beat === null} realm />
+    );
   } else if (state === 'finished') {
     sheetKind = 'result';
     sheet = (
