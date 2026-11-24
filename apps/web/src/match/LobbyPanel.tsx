@@ -58,6 +58,9 @@ export function LobbyPanel({
     return { name: map.name, regions: map.regions.length };
   };
   const [duo, trio] = [mapOf(2), mapOf(3)];
+  // Mit Ausbau heißt Land „Feld“, und vor jedem Feldzug läuft die Rüstzeit
+  const realm = view.realm;
+  const known = match.seats === 2 || match.seats === 3 ? mapOf(match.seats) : null;
 
   return (
     <section className="sheet lobby" aria-labelledby="lobby-title" data-testid="match-lobby">
@@ -109,19 +112,31 @@ export function LobbyPanel({
           {autoBots > 0 ? <p>{tp('match.lobby.bots', autoBots)}</p> : null}
           {hasBots && !test ? <p>{t('match.lobby.botsNote')}</p> : null}
           <p>
-            {t('match.lobby.maps', {
-              duo: duo.name,
-              duoRegions: duo.regions,
-              trio: trio.name,
-              trioRegions: trio.regions,
-            })}
+            {known
+              ? t(realm ? 'realm.lobby.map' : 'match.lobby.map', {
+                  name: known.name,
+                  regions: known.regions,
+                })
+              : t(realm ? 'realm.lobby.maps' : 'match.lobby.maps', {
+                  duo: duo.name,
+                  duoRegions: duo.regions,
+                  trio: trio.name,
+                  trioRegions: trio.regions,
+                })}
           </p>
           <p>
-            {t('match.lobby.timers', {
-              trivia: seconds(match.timers.triviaMs),
-              estimate: seconds(match.timers.estimateMs),
-              pick: seconds(match.timers.pickMs),
-            })}{' '}
+            {realm
+              ? t('realm.lobby.timers', {
+                  prepare: seconds(realm.economy.timers.prepareMs),
+                  trivia: seconds(match.timers.triviaMs),
+                  estimate: seconds(match.timers.estimateMs),
+                  pick: seconds(match.timers.pickMs),
+                })
+              : t('match.lobby.timers', {
+                  trivia: seconds(match.timers.triviaMs),
+                  estimate: seconds(match.timers.estimateMs),
+                  pick: seconds(match.timers.pickMs),
+                })}{' '}
             {t('match.lobby.expires')}
           </p>
         </div>

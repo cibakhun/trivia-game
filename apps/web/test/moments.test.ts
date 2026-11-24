@@ -99,15 +99,35 @@ describe('Große Momente', () => {
     ).toEqual([]);
   });
 
-  it('„Du bist dran“ nach der Ankündigung, bei jeder neuen eigenen Wahl', () => {
-    const moments = momentsBetween(
-      snap({ kind: 'DUEL_TRIVIA', round: 1, lastSeq: 20 }),
-      snap({ state: 'pick', kind: 'CAMPAIGN_TARGET', round: 2, lastSeq: 22 }),
-      [],
-      name,
-      4,
+  it('„Du bist dran“ bei jeder neuen eigenen Wahl; wer eine Runde eröffnet, liest sie darin (ADR-084)', () => {
+    const opens = (before: Partial<MomentSnapshot>, next: Partial<MomentSnapshot>) =>
+      momentsBetween(
+        snap({ lastSeq: 20, ...before }),
+        snap({ state: 'pick', lastSeq: 22, ...next }),
+        [],
+        name,
+        4,
+      ).map((m) => [m.title, m.detail, m.tone]);
+    // Ein Band statt zwei: Die eigene Wahl läuft schon, Zeit für zwei Bänder bleibt nicht
+    expect(opens({ kind: 'DUEL_TRIVIA', round: 1 }, { kind: 'CAMPAIGN_TARGET', round: 2 })).toEqual(
+      [['Du bist dran!', 'Runde 2 von 4, du greifst zuerst an.', 'gold']],
     );
-    expect(moments.map((m) => m.title)).toEqual(['Runde 2 von 4', 'Du bist dran!']);
+    expect(opens({ kind: 'DUEL_TRIVIA', round: 3 }, { kind: 'CAMPAIGN_TARGET', round: 4 })).toEqual(
+      [['Du bist dran!', 'Letzte Runde des Feldzugs, du greifst zuerst an.', 'gold']],
+    );
+    expect(opens({ kind: 'LAND_PICK', round: 7 }, { kind: 'CAMPAIGN_TARGET', round: 1 })).toEqual([
+      ['Du bist dran!', 'Der Feldzug beginnt, du greifst zuerst an.', 'gold'],
+    ]);
+    // Wählt ein anderer zuerst, bleibt die Ankündigung ein eigenes Band
+    expect(
+      momentsBetween(
+        snap({ kind: 'DUEL_TRIVIA', round: 1, lastSeq: 20 }),
+        snap({ state: 'announce', kind: 'CAMPAIGN_TARGET', round: 2, lastSeq: 22 }),
+        [],
+        name,
+        4,
+      ).map((m) => [m.title, m.tone]),
+    ).toEqual([['Runde 2 von 4', 'ink']]);
     expect(
       momentsBetween(
         snap({ state: 'pick', kind: 'LAND_PICK', lastSeq: 30 }),
@@ -237,6 +257,25 @@ describe('Große Momente der Partie mit Ausbau', () => {
     // Partien von vor ADR-062: Die Landnahme läuft, bis alles vergeben ist
     expect(land(null)).toEqual([
       ['Die Landnahme beginnt', 'Wer am genauesten schätzt, wählt zuerst.'],
+    ]);
+  });
+
+  it('wer Burgen oder Dörfer zuerst setzt, liest die Ankündigung in „Du bist dran“ (ADR-084)', () => {
+    const first = (before: Partial<MomentSnapshot>, kind: MomentSnapshot['kind']) =>
+      between(before, { state: 'pick', kind, round: null, lastSeq: 12 }).map((m) => [
+        m.title,
+        m.detail,
+      ]);
+    expect(first({ state: 'reveal', kind: 'START_ESTIMATE', round: null }, 'CASTLE_PICK')).toEqual([
+      ['Du bist dran!', 'Die Burgen werden gesetzt, du setzt deine zuerst.'],
+    ]);
+    // Wer die letzte Burg setzt, setzt gleich das erste Dorf (Schlange)
+    expect(
+      first({ state: 'pick', kind: 'CASTLE_PICK', round: null, lastSeq: 11 }, 'VILLAGE_PICK'),
+    ).toEqual([['Du bist dran!', 'Jetzt die Dörfer, du setzt dein Dorf zuerst.']]);
+    // Mitten in der Phase wieder dran: das übliche Band ohne Ankündigung
+    expect(first({ kind: 'VILLAGE_PICK', round: null, lastSeq: 11 }, 'VILLAGE_PICK')).toEqual([
+      ['Du bist dran!', null],
     ]);
   });
 
@@ -550,6 +589,16 @@ describe('Warteschlange der Bänder', () => {
     expect(enqueueMoments(first, [turn(31)])).toBe(first);
     expect(enqueueMoments(first, [campaign])).toEqual([turn(30), campaign]);
     expect(enqueueMoments([], [turn(31)])).toEqual([turn(31)]);
+    // Eröffnet die neue Wahl eine Phase, sagt ihr Band sie an: Es kommt hinter das laufende
+    const villages = momentsBetween(
+      snap({ state: 'pick', kind: 'CASTLE_PICK', round: null, lastSeq: 30 }),
+      snap({ state: 'pick', kind: 'VILLAGE_PICK', round: null, lastSeq: 31 }),
+      [],
+      name,
+      4,
+      true,
+    )[0]!;
+    expect(enqueueMoments(first, [villages])).toEqual([turn(30), villages]);
   });
 });
 

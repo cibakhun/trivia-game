@@ -6,6 +6,7 @@ import { Swords } from '../art/Swords.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { Countdown } from '../quiz/Countdown.tsx';
 import { showEstimate } from './estimate-input.ts';
+import { optionDensity, promptDensity } from './option-fit.ts';
 
 /**
  * Fragekarte mitten auf der Karte (ADR-059): Art der Frage, Restzeit als Zahl und Lunte, die Frage
@@ -20,12 +21,14 @@ import { showEstimate } from './estimate-input.ts';
 
 const OPTION_KEYS = ['A', 'B', 'C', 'D', 'E', 'F'] as const;
 
-/** Lange Fragen und Antworten bekommen eine kleinere Schrift, damit die Karte nicht wächst. */
+/**
+ * Lange Fragen und Antworten bekommen eine kleinere Schrift, damit die Karte nicht wächst; ein
+ * langes Wort passt auf eine Zeile (`optionDensity`).
+ */
 function density(question: MatchPresentedQuestion): string {
-  const prompt = question.prompt.length > 110 ? ' prompt-long' : '';
+  const prompt = promptDensity(question.prompt);
   if (question.kind !== 'TRIVIA') return prompt;
-  const longest = Math.max(0, ...question.options.map((o) => o.text.length));
-  return `${prompt}${longest > 34 ? ' options-long' : longest > 16 ? ' options-mid' : ''}`;
+  return `${prompt}${optionDensity(question.options.map((o) => o.text))}`;
 }
 
 function noop() {
@@ -152,19 +155,24 @@ function WatchDuel({ who }: { readonly who: WatchedSeats }) {
 /**
  * Die Frage anderer zum Mitlesen (ADR-065, O-38): dieselbe Karte an derselben Stelle, aber nichts
  * daran lässt sich antippen, und sie zeigt nie, was die Gefragten wählen; das füllt erst die
- * Auflösung in ihren Farben. Die Lunte läuft das Zeitlimit der Frage ab ihrem Öffnen herunter.
- * Oben stehen die Wappen der Gefragten mit ihrem Stand (`WatchDuel`); ohne sie das Schild
- * „Du schaust zu“.
+ * Auflösung in ihren Farben. Die Lunte läuft ruhig, ohne Warnfarbe, über die Zeit, die die Frage
+ * offen steht: das Zeitlimit oder, sind nur Bots gefragt, deren Bedenkzeit (O-43). Über das
+ * Zeitlimit gemessen stand sie dann schon beim Erscheinen fast leer und rot, als liefe dem
+ * Zuschauer die Zeit davon. Oben stehen die Wappen der Gefragten mit ihrem Stand (`WatchDuel`);
+ * ohne sie das Schild „Du schaust zu“.
  */
 export function WatchedQuestionCard({
   question,
   deadline,
+  windowMs = question.timeLimitMs,
   category = null,
   who = null,
 }: {
   readonly question: MatchPresentedQuestion;
-  /** Ende des Zeitlimits der Frage als `performance.now()`-Wert. */
+  /** Ende der Frage als `performance.now()`-Wert. */
   readonly deadline: number;
+  /** Wie lange die Frage ab ihrem Öffnen offen steht (`watchWindowMs`). */
+  readonly windowMs?: number;
   readonly category?: QuestionCategory | null;
   readonly who?: WatchedSeats | null;
 }) {
@@ -183,7 +191,7 @@ export function WatchedQuestionCard({
           <span className="sheet-tag">{t('match.watch.tag')}</span>
         )}
       </header>
-      <Countdown deadline={deadline} totalMs={question.timeLimitMs} onExpire={noop} brief />
+      <Countdown deadline={deadline} totalMs={windowMs} onExpire={noop} brief calm />
       <h2 id="question-prompt" className="sheet-prompt">
         {question.prompt}
       </h2>

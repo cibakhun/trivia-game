@@ -31,6 +31,16 @@ export interface MomentSnapshot {
 
 type MatchStepKind = AnyStep['kind'];
 
+/**
+ * Ankündigung einer Phase oder Runde. Eröffnet man sie selbst, steht sie als `mine` im Band „Du
+ * bist dran“ statt in einem eigenen Band davor (ADR-084): Zwei Bänder hintereinander hielten die
+ * eigene Wahl drei Sekunden lang zu, während die Zeit schon läuft.
+ */
+interface Announcement {
+  readonly moment: Moment;
+  readonly mine: string | null;
+}
+
 const CAMPAIGN: readonly (MatchStepKind | null)[] = [
   'CAMPAIGN_TARGET',
   'DUEL_TRIVIA',
@@ -169,14 +179,15 @@ export function pruneMoments(queue: readonly Moment[], state: MatchScreenState):
 
 /**
  * Hängt neue Momente an. Wählt derselbe Sitz gleich noch einmal, während „Du bist dran“ noch
- * steht oder wartet, kommt kein zweites dahinter.
+ * steht oder wartet, kommt kein zweites dahinter. Eröffnet er mit der neuen Wahl eine Phase (das
+ * Band sagt sie an, ADR-084), kommt es doch: Wer die letzte Burg setzt, setzt das erste Dorf.
  */
 export function enqueueMoments(
   queue: readonly Moment[],
   moments: readonly Moment[],
 ): readonly Moment[] {
   const waiting = queue.some(isTurn);
-  const added = moments.filter((moment) => !(waiting && isTurn(moment)));
+  const added = moments.filter((moment) => !(waiting && isTurn(moment) && moment.detail === null));
   return added.length === 0 ? queue : [...queue, ...added];
 }
 
@@ -185,6 +196,7 @@ export function enqueueMoments(
  * ist der erste Aufbau der Seite: Dann zählt nur „Du bist dran“, Vergangenes wird nicht gefeiert.
  * Stand davor die Aufstellung (`before.state === 'lobby'`), beginnt die Partie eben: Die Wahl der
  * Hauptstädte wird angesagt, und wer zuerst wählt, erfährt es im Band „Du bist dran“ (ADR-081).
+ * So geht es jeder Phase und Runde, die mit der eigenen Wahl beginnt (ADR-084).
  */
 export function momentsBetween(
   before: MomentSnapshot | null,
@@ -201,6 +213,8 @@ export function momentsBetween(
 ): Moment[] {
   const moments: Moment[] = [];
   const opening = before?.state === 'lobby';
+  let announced: Announcement | null = null;
+  let skipped: Moment[] = [];
   if (before) {
     for (const event of fresh) {
       if (event.type !== 'KINGDOM_ELIMINATED') continue;
@@ -223,7 +237,7 @@ export function momentsBetween(
       ? fresh.filter((event) => event.type === 'ATTACK_SKIPPED')
       : [];
     const [only] = skips;
-    const skipped: Moment[] =
+    skipped =
       only === undefined
         ? []
         : skips.length === 1
@@ -260,69 +274,79 @@ export function momentsBetween(
     // Phasen und Runden erst ankündigen, wenn gewählt wird (nicht mitten in einer Auflösung)
     const calm = isCalm(next.state) && next.kind !== 'FINISHED';
     if (calm && opening && next.kind === 'CAPITAL_PICK') {
-      // Wer selbst zuerst wählt, bekommt dasselbe in „Du bist dran“ gesagt (unten)
-      if (next.state !== 'pick') {
-        moments.push({
-          key: 'start',
-          title: t('match.moment.start'),
-          detail: t('match.moment.startDetail'),
-          tone: 'ink',
-          seat: null,
+      announced = {
+        moment: {
+          ...ink('start', t('match.moment.start'), t('match.moment.startDetail')),
           opening: true,
-        });
-      }
+        },
+        mine: t('match.moment.startMine'),
+      };
     } else if (calm && LAND.includes(next.kind) && !LAND.includes(before.kind)) {
-      moments.push({
-        key: `land-${next.round ?? 1}`,
-        title: t('match.moment.land'),
-        detail:
+      // Die Landnahme beginnt mit einer Schätzfrage, nie mit einer Wahl: kein `mine`
+      announced = {
+        moment: ink(
+          `land-${next.round ?? 1}`,
+          t('match.moment.land'),
           landRounds === null
             ? t('match.moment.landDetail')
             : tp('realm.moment.landDetail', landRounds),
-        tone: 'ink',
-        seat: null,
-      });
+        ),
+        mine: null,
+      };
     } else if (calm && realm) {
-      moments.push(...realmMoments(before, next, campaignRounds));
+      announced = realmAnnouncement(before, next, campaignRounds);
     } else if (calm && CAMPAIGN.includes(next.kind)) {
       const round = next.round ?? 1;
+      const rounds = campaignRounds;
       if (!CAMPAIGN.includes(before.kind)) {
-        moments.push({
-          key: `campaign-${round}`,
-          title: t('match.moment.campaign'),
-          detail: t('match.step.CAMPAIGN', { round, rounds: campaignRounds }),
-          tone: 'ink',
-          seat: null,
-        });
+        announced = {
+          moment: ink(
+            `campaign-${round}`,
+            t('match.moment.campaign'),
+            t('match.step.CAMPAIGN', { round, rounds }),
+          ),
+          mine: t('match.moment.campaignMine'),
+        };
       } else if (before.round !== null && round > before.round) {
-        moments.push({
-          key: `campaign-${round}`,
-          title: t('match.moment.round', { round, rounds: campaignRounds }),
-          detail: round === campaignRounds ? t('match.moment.lastRound') : null,
-          tone: 'ink',
-          seat: null,
-        });
+        const last = round === rounds;
+        announced = {
+          moment: ink(
+            `campaign-${round}`,
+            t('match.moment.round', { round, rounds }),
+            last ? t('match.moment.lastRound') : null,
+          ),
+          mine: last
+            ? t('match.moment.lastRoundMine')
+            : t('match.moment.roundMine', { round, rounds }),
+        };
       }
     }
-    if (next.state === 'orders') moments.push(...skipped);
   }
   const myTurnStarts =
     next.state === 'pick' &&
     (before === null ||
       before.state !== 'pick' ||
       (before.lastSeq !== next.lastSeq && !picksAgain(fresh, mySeat)));
+  // Eröffnet man die Phase selbst, sagt „Du bist dran“ beides in einem Band (wie zum Auftakt)
+  const mine = myTurnStarts ? (announced?.mine ?? null) : null;
+  if (announced && mine === null) moments.push(announced.moment);
+  if (next.state === 'orders') moments.push(...skipped);
   if (myTurnStarts) {
     const first = opening && next.kind === 'CAPITAL_PICK';
     moments.push({
       key: `turn-${next.lastSeq}`,
       title: t('match.pick.banner'),
-      detail: first ? t('match.moment.startMine') : null,
+      detail: mine,
       tone: 'gold',
       seat: null,
       ...(first ? { opening: true } : {}),
     });
   }
   return moments;
+}
+
+function ink(key: string, title: string, detail: string | null = null): Moment {
+  return { key, title, detail, tone: 'ink', seat: null };
 }
 
 /**
@@ -339,36 +363,45 @@ function picksAgain(fresh: readonly ParsedMatchEvent[], mySeat: number | null): 
   );
 }
 
-/** Ankündigungen der Partie mit Ausbau: Burgen, Startdörfer, Rüstzeit jeder Runde, Aufdecken. */
-function realmMoments(
+/**
+ * Ankündigung der Partie mit Ausbau: Burgen, Startdörfer, Rüstzeit jeder Runde, Aufdecken. Burgen
+ * und Dörfer setzt einer nach dem anderen; wer anfängt, hört es in „Du bist dran“.
+ */
+function realmAnnouncement(
   before: MomentSnapshot,
   next: MomentSnapshot,
   campaignRounds: number,
-): Moment[] {
-  const ink = (key: string, title: string, detail: string | null = null): Moment => ({
-    key,
-    title,
-    detail,
-    tone: 'ink',
-    seat: null,
-  });
+): Announcement | null {
   const round = next.round ?? 1;
   if (next.state === 'orders') {
-    return before.state === 'orders' ? [] : [ink(`orders-${round}`, t('realm.moment.orders'))];
+    return before.state === 'orders'
+      ? null
+      : { moment: ink(`orders-${round}`, t('realm.moment.orders')), mine: null };
   }
-  if (next.kind === before.kind && next.round === before.round) return [];
-  if (next.kind === 'CASTLE_PICK') return [ink('castles', t('realm.moment.castles'))];
-  if (next.kind === 'VILLAGE_PICK') return [ink('villages', t('realm.moment.villages'))];
+  if (next.kind === before.kind && next.round === before.round) return null;
+  if (next.kind === 'CASTLE_PICK') {
+    return {
+      moment: ink('castles', t('realm.moment.castles')),
+      mine: t('realm.moment.castlesMine'),
+    };
+  }
+  if (next.kind === 'VILLAGE_PICK') {
+    return {
+      moment: ink('villages', t('realm.moment.villages')),
+      mine: t('realm.moment.villagesMine'),
+    };
+  }
   if (next.kind === 'PREPARE') {
-    return [
-      ink(
+    return {
+      moment: ink(
         `prepare-${round}`,
         t('realm.moment.prepare'),
         round === campaignRounds
           ? t('match.moment.lastRound')
           : t('realm.step.ROUND', { round, rounds: campaignRounds }),
       ),
-    ];
+      mine: null,
+    };
   }
-  return [];
+  return null;
 }

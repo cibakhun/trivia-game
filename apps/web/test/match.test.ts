@@ -21,6 +21,7 @@ import {
   screenStateOf,
   shownPick,
   watchedFor,
+  watchWindowMs,
   type LocalQuestion,
   type WatchedQuestion,
 } from '../src/match/match-model.ts';
@@ -118,11 +119,11 @@ describe('Zustand des Bildschirms', () => {
     const at = (question: MatchView['question'], kind: 'QUESTION' | 'REVEAL' = 'QUESTION') =>
       viewOf({ phase: { ...phase, kind }, legalRegions: [], question });
     const watching = at(questionInfo('NOT_PARTICIPATING'));
-    const got: WatchedQuestion = { seq: 4, question: presented, deadline: 9000 };
+    const got: WatchedQuestion = { seq: 4, question: presented, deadline: 9000, windowMs: 6000 };
     expect(needsWatch(watching, null)).toBe(true);
     expect(needsWatch(watching, got)).toBe(false);
     // Auch ein gescheitertes Mitlesen wird nicht wiederholt, eine alte Frage zählt aber nicht
-    expect(needsWatch(watching, { seq: 4, question: null, deadline: 0 })).toBe(false);
+    expect(needsWatch(watching, { seq: 4, question: null, deadline: 0, windowMs: 0 })).toBe(false);
     expect(needsWatch(watching, { ...got, seq: 3 })).toBe(true);
     // Wer gefragt ist, holt die Frage mit `present`: Sonst läse er sie, ehe seine Zeit läuft
     for (const status of ['NOT_PRESENTED', 'PRESENTED', 'ANSWERED', 'MISSED'] as const) {
@@ -139,12 +140,28 @@ describe('Zustand des Bildschirms', () => {
       seq: 4,
       question: presented,
       deadline: 9000,
+      windowMs: 6000,
     });
     expect(watchedFor('spectating', 5, got)).toBeNull();
     expect(watchedFor('reveal', 4, got)).toBeNull();
     expect(watchedFor('answered', 4, got)).toBeNull();
-    expect(watchedFor('spectating', 4, { seq: 4, question: null, deadline: 0 })).toBeNull();
+    expect(
+      watchedFor('spectating', 4, { seq: 4, question: null, deadline: 0, windowMs: 0 }),
+    ).toBeNull();
     expect(watchedFor('spectating', 4, null)).toBeNull();
+  });
+
+  it('Mitlesen: Die Lunte läuft über die Zeit, die die Frage offen steht (O-43)', () => {
+    const at = (ms: number) => new Date(Date.parse(AT) + ms).toISOString();
+    const trivia = { ...presented, timeLimitMs: 15000 };
+    // Nur Bots gefragt: offen bis zu ihrer Bedenkzeit, hier 6 s; nach 2 s bleiben 4
+    expect(watchWindowMs({ ...trivia, remainingMs: 4000 }, at(2000))).toBe(6000);
+    // Ein Mensch ist gefragt: das ganze Zeitlimit, auch mit der Zugabe für die Leitung
+    expect(watchWindowMs({ ...trivia, remainingMs: 13000 }, at(2000))).toBe(15000);
+    expect(watchWindowMs({ ...trivia, remainingMs: 15400 }, at(0))).toBe(15000);
+    // Nie kürzer als die Restzeit, und ohne lesbare Zeit das Zeitlimit
+    expect(watchWindowMs({ ...trivia, remainingMs: 5000 }, at(-3000))).toBe(5000);
+    expect(watchWindowMs({ ...trivia, remainingMs: 5000 }, 'kaputt')).toBe(15000);
   });
 
   it('Ansage: nichts zu tun, gezeigt wird die letzte Wahl', () => {

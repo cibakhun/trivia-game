@@ -11,6 +11,7 @@ export function Countdown({
   onExpire,
   quiet = false,
   brief = false,
+  calm = false,
 }: {
   /** Ende als `performance.now()`-Wert. */
   readonly deadline: number;
@@ -20,6 +21,11 @@ export function Countdown({
   readonly quiet?: boolean;
   /** Nur die Sekunden als Zahl (Bühne der Partie); der ganze Satz bleibt für Screenreader. */
   readonly brief?: boolean;
+  /**
+   * Ohne Warnfarbe, aber mit Zahl: Wer eine Frage nur mitliest, steht nicht unter Zeitdruck. Die
+   * Zahl sagt ihm, wann die Antworten kommen.
+   */
+  readonly calm?: boolean;
 }) {
   const [remaining, setRemaining] = useState(() => Math.max(0, deadline - performance.now()));
   const expired = useRef(false);
@@ -45,16 +51,18 @@ export function Countdown({
   const shown = Math.min(remaining, totalMs);
   const seconds = Math.ceil(shown / 1000);
   const share = totalMs > 0 ? shown / totalMs : 0;
+  const urgent = !quiet && !calm && seconds <= 5;
   return (
-    <div className={`countdown${quiet ? ' quiet' : ''}`} role="timer" aria-live="off">
+    <div
+      className={`countdown${quiet ? ' quiet' : ''}${calm ? ' calm' : ''}`}
+      role="timer"
+      aria-live="off"
+    >
       <div className="countdown-bar" aria-hidden="true">
-        <span
-          style={{ width: `${share * 100}%` }}
-          className={!quiet && seconds <= 5 ? 'urgent' : ''}
-        />
+        <span style={{ width: `${share * 100}%` }} className={urgent ? 'urgent' : ''} />
       </div>
       {brief && !quiet ? (
-        <span className={`countdown-seconds${seconds <= 5 ? ' urgent' : ''}`} aria-hidden="true">
+        <span className={`countdown-seconds${urgent ? ' urgent' : ''}`} aria-hidden="true">
           {seconds}
         </span>
       ) : null}

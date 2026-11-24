@@ -5,6 +5,7 @@ import { SeatCrest } from '../art/SeatCrest.tsx';
 import { Swords } from '../art/Swords.tsx';
 import { formatEstimateFigure, formatNumber, t, tp } from '../i18n/i18n.ts';
 import { duelResolved, duelWinner, type Reveal } from './match-model.ts';
+import { optionDensity, promptDensity } from './option-fit.ts';
 import { outcomeTexts, type RegionName, type SeatName } from './match-text.ts';
 import { SeatChip } from './SeatChip.tsx';
 import { QuestionKind } from './StageQuestion.tsx';
@@ -87,9 +88,7 @@ function useSnug(sheet: RefObject<HTMLElement | null>): void {
 
 /** Lange Fragen und Antworten bekommen eine kleinere Schrift, wie auf der Vorderseite. */
 function density(prompt: string, options: readonly { readonly text: string | null }[]): string {
-  const long = prompt.length > 110 ? ' prompt-long' : '';
-  const longest = Math.max(0, ...options.map((o) => o.text?.length ?? 0));
-  return `${long}${longest > 34 ? ' options-long' : longest > 16 ? ' options-mid' : ''}`;
+  return `${promptDensity(prompt)}${optionDensity(options.map((o) => o.text))}`;
 }
 
 /**

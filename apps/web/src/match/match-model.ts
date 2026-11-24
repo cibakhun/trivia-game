@@ -63,6 +63,22 @@ export interface WatchedQuestion {
   readonly question: MatchPresentedQuestion | null;
   /** Ende des Zeitlimits der Frage als `performance.now()`-Wert. */
   readonly deadline: number;
+  /**
+   * Wie lange die Frage ab ihrem Öffnen offen steht: ihr Zeitlimit oder, sind nur Bots gefragt,
+   * deren Bedenkzeit (O-43). Darüber läuft die Lunte beim Mitlesen ab, nicht über das Zeitlimit.
+   */
+  readonly windowMs: number;
+}
+
+/**
+ * Wie lange eine mitgelesene Frage offen steht (`WatchedQuestion.windowMs`), aus der Antwort des
+ * Servers: Öffnen, Restzeit und Serverzeit stammen von derselben Uhr. Nie länger als das Zeitlimit
+ * und nie kürzer als die Restzeit.
+ */
+export function watchWindowMs(question: MatchPresentedQuestion, serverTime: string): number {
+  const open = Date.parse(serverTime) - Date.parse(question.presentedAt) + question.remainingMs;
+  if (!Number.isFinite(open)) return question.timeLimitMs;
+  return Math.min(question.timeLimitMs, Math.max(question.remainingMs, open));
 }
 
 /** Was dieser Browser geantwortet hat: die gewählte Option oder die geschriebene Zahl. */
@@ -158,9 +174,15 @@ export function watchedFor(
   readonly seq: number;
   readonly question: MatchPresentedQuestion;
   readonly deadline: number;
+  readonly windowMs: number;
 } | null {
   return state === 'spectating' && watched?.question && watched.seq === seq
-    ? { seq: watched.seq, question: watched.question, deadline: watched.deadline }
+    ? {
+        seq: watched.seq,
+        question: watched.question,
+        deadline: watched.deadline,
+        windowMs: watched.windowMs,
+      }
     : null;
 }
 

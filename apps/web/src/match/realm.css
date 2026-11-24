@@ -1457,6 +1457,11 @@ span.order-chip {
   font-style: italic;
 }
 
+/* Kursiv ragt das „d“ über seine Box hinaus; ohne Luft schnitt `overflow: hidden` es ab */
+.duel-who.duel-free strong {
+  padding-right: 0.14em;
+}
+
 .duel-what {
   font-size: calc(12.5 * var(--u));
   line-height: 1.25;
