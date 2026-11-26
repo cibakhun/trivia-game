@@ -15,6 +15,7 @@ import type { LocalQuestion, MatchScreenState, WatchedQuestion } from '../src/ma
 import { regionNames, seatNames } from '../src/match/match-text.ts';
 import { PreparePanel, type StockArrival } from '../src/match/PreparePanel.tsx';
 import { RealmBlatt } from '../src/match/RealmBlatt.tsx';
+import { LobbyPanel } from '../src/match/LobbyPanel.tsx';
 import { RealmLobby, type RealmLobbyInitial } from '../src/match/RealmLobby.tsx';
 import {
   favoriteChance,
@@ -1615,6 +1616,65 @@ describe('Lieblingskategorien vor dem Start', () => {
     expect(rows[1]).toContain('Bot (leicht) wählt zufällig');
     const full = lobby(lobbyView(['HISTORY', 'LITERATURE', 'ARTS_CULTURE', 'NATURE_ANIMALS']));
     expect(textOf(full)).toContain('Anna (du) 4 gewählt');
+  });
+
+  /** Testpartie allein: Die freien Plätze bekommen beim Start die gewählten Bots (ADR-085). */
+  function testLobby(): MatchView {
+    const view = lobbyView(null);
+    return matchViewSchema.parse({
+      ...view,
+      match: {
+        ...view.match,
+        kind: 'TEST',
+        seats: 3,
+        testBots: [
+          { joinOrder: 1, name: 'Bot (leicht)', botStrength: 'EASY' },
+          { joinOrder: 2, name: 'Bot (schwer)', botStrength: 'HARD' },
+        ],
+      },
+      players: view.players.filter((p) => p.isMe),
+    });
+  }
+
+  it('nennt in der Testpartie die Bots, die der Start setzt, mit ihrer Stärke', () => {
+    const html = lobby(testLobby());
+    const rows = html.split('data-testid="fav-seat"').slice(1).map(textOf);
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toContain('Anna (du) noch 4 wählen');
+    expect(rows[1]).toContain('Bot (leicht) wählt zufällig');
+    expect(rows[2]).toContain('Bot (schwer) wählt zufällig');
+    // Noch nicht da: leiser gesetzt, das Schild gestrichelt
+    expect(count(html, '<li class="soon" data-testid="fav-seat"')).toBe(2);
+    expect(count(html, 'player-shield free')).toBe(2);
+  });
+
+  it('zeigt auf dem Blatt der Plätze die Bots mit Stärke statt nur „Bot“', () => {
+    // Ohne Einladungscode: der Link bräuchte die Adresse des Browsers
+    const seats = (view: MatchView) =>
+      renderToStaticMarkup(
+        createElement(LobbyPanel, {
+          view: { ...view, match: { ...view.match, inviteCode: null } },
+          busy: false,
+          error: null,
+          onStart: noop,
+          onLeave: noop,
+          onSetBot: noop,
+        }),
+      );
+    const html = seats(testLobby());
+    const rows = html.split('data-testid="lobby-seat"').slice(1);
+    expect(rows.map(textOf)).toEqual([
+      expect.stringContaining('Anna (du)'),
+      expect.stringContaining('Bot (leicht)'),
+      expect.stringContaining('Bot (schwer)'),
+    ]);
+    expect(count(html, 'class="lobby-seat free soon"')).toBe(2);
+    expect(textOf(html)).toContain('2 freie Plätze gehen beim Start an Bots.');
+    // Ohne Testpartie bleibt ein freier Platz frei
+    const open = lobbyView(null);
+    const plain = seats({ ...open, players: open.players.filter((p) => p.isMe) });
+    expect(count(plain, 'class="lobby-seat free"')).toBe(2);
+    expect(textOf(plain)).not.toContain('Bot (');
   });
 
   describe('eigene Wahl, die der Server noch nicht hat', () => {

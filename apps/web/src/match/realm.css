@@ -2137,6 +2137,12 @@ span.order-chip {
   color: var(--muted);
 }
 
+/* Bot, den der Start einer Testpartie setzt: noch nicht da, daher leiser */
+.fav-seats li.soon strong {
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .fav-wait {
   font-size: calc(12.5 * var(--u));
   line-height: 1.3;

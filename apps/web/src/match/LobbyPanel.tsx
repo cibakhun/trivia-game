@@ -40,8 +40,9 @@ export function LobbyPanel({
   const host = players.find((p) => p.isHost);
   const test = match.kind === 'TEST';
   const capacity = match.seats ?? MAX_SEATS;
-  // Testpartie: Die freien Plätze füllen beim Start Bots, ohne dass sie jemand setzt
-  const autoBots = test && match.seats !== null ? Math.max(0, match.seats - players.length) : 0;
+  // Testpartie: Die freien Plätze füllen beim Start Bots, ohne dass sie jemand setzt; die
+  // Aufstellung nennt sie schon mit Namen und Stärke (ADR-085)
+  const autoBots = match.testBots.length;
   const canStart = test || players.length >= 2;
   const canSetBots = view.isHost && !test;
   const hasBots = players.some((p) => p.isBot);
@@ -89,24 +90,29 @@ export function LobbyPanel({
               </li>
             ) : null,
           )}
-          {free.map(({ joinOrder }, i) => (
-            <li key={joinOrder} className="lobby-seat free" data-testid="lobby-seat">
-              <PlayerShield name={null} />
-              <span className="lobby-name">
-                {i < autoBots ? t('match.lobby.botSeat') : t('match.lobby.freeSeat')}
-              </span>
-              {canSetBots ? (
-                <button
-                  type="button"
-                  className="button button-small lobby-add-bot"
-                  disabled={busy}
-                  onClick={() => onSetBot(joinOrder, 'MEDIUM')}
-                >
-                  {t('match.lobby.addBot')}
-                </button>
-              ) : null}
-            </li>
-          ))}
+          {free.map(({ joinOrder }) => {
+            const bot = match.testBots.find((b) => b.joinOrder === joinOrder) ?? null;
+            return (
+              <li
+                key={joinOrder}
+                className={`lobby-seat free${bot ? ' soon' : ''}`}
+                data-testid="lobby-seat"
+              >
+                <PlayerShield name={bot?.name ?? null} free />
+                <span className="lobby-name">{bot ? bot.name : t('match.lobby.freeSeat')}</span>
+                {canSetBots ? (
+                  <button
+                    type="button"
+                    className="button button-small lobby-add-bot"
+                    disabled={busy}
+                    onClick={() => onSetBot(joinOrder, 'MEDIUM')}
+                  >
+                    {t('match.lobby.addBot')}
+                  </button>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
         <div className="lobby-notes">
           {autoBots > 0 ? <p>{tp('match.lobby.bots', autoBots)}</p> : null}
@@ -287,12 +293,22 @@ function InviteCode({ code }: { readonly code: string }) {
   );
 }
 
-/** Schild für einen Platz: mit Anfangsbuchstaben, leer und gestrichelt, solange er frei ist. */
-export function PlayerShield({ name }: { readonly name: string | null }) {
+/**
+ * Schild für einen Platz: mit Anfangsbuchstaben, leer und gestrichelt, solange er frei ist. `free`
+ * zeichnet es gestrichelt mit Buchstaben: der Platz ist noch frei, aber schon vergeben (der Bot,
+ * den der Start einer Testpartie setzt).
+ */
+export function PlayerShield({
+  name,
+  free = name === null,
+}: {
+  readonly name: string | null;
+  readonly free?: boolean;
+}) {
   const initial = name?.trim().charAt(0).toUpperCase() ?? '';
   return (
     <svg
-      className={`player-shield${name === null ? ' free' : ''}`}
+      className={`player-shield${free ? ' free' : ''}`}
       viewBox="-50 -52 100 104"
       width="30"
       height="31"

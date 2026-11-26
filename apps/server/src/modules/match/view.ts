@@ -41,7 +41,8 @@ import type { MatchContext } from './context.ts';
 import { advanceMatch, isMatchDue } from './driver.ts';
 import { botThinkMs } from './bot-think.ts';
 import { botName } from './engine.ts';
-import { loadWheelCategories, realmRulesOf, rulesOf, validFavorites } from './lobby.ts';
+import { pendingBots, prepareEndMs } from './prepare-clock.ts';
+import { loadWheelCategories, realmRulesOf, rulesOf, testBotsOf, validFavorites } from './lobby.ts';
 import {
   classicStateOf,
   lastEventSeq,
@@ -248,7 +249,9 @@ export function realmBoardView(state: RealmState, closing = false): RealmBoard {
  * Namen der Bots: „Bot (mittel)“; spielen zwei gleich starke mit, bekommen sie Nummern, damit man
  * sie in Zugfolge und Verlauf unterscheiden kann.
  */
-function botNames(players: readonly MatchPlayerRow[]): Map<number, string> {
+function botNames(
+  players: readonly Pick<MatchPlayerRow, 'joinOrder' | 'botStrength'>[],
+): Map<number, string> {
   const names = new Map<number, string>();
   const bots = players.filter((p) => p.botStrength !== null);
   for (const bot of bots) {
@@ -349,7 +352,14 @@ export async function matchView(
     .where('user_id', 'in', userIds)
     .execute();
   const names = new Map(profiles.map((p) => [p.user_id, p.display_name]));
-  const bots = botNames(players);
+  // Testpartie: Die Aufstellung nennt die Bots, die der Start setzt, schon mit ihrem Namen
+  const testBots = match.status === 'LOBBY' ? testBotsOf(match, players) : [];
+  const bots = botNames(
+    [
+      ...players,
+      ...testBots.map((bot) => ({ joinOrder: bot.joinOrder, botStrength: bot.strength })),
+    ].sort((a, b) => a.joinOrder - b.joinOrder),
+  );
   const events = await db
     .selectFrom('match_events')
     .select(['seq', 'type', 'payload', 'at'])
@@ -369,6 +379,8 @@ export async function matchView(
   let legal: number[] = [];
   /** In der Aufstellung mit Ausbau: Kategorien, die gerade wählbar sind. */
   let lobbyWheel: { categories: MatchRealmView['categories']; count: number } | null = null;
+  /** Ende der laufenden Phase, wie es die Spieler sehen; in der Rüstzeit nicht der Weckpunkt. */
+  let phaseEndsAt = match.phaseDeadlineAt;
   if (match.mode === 'REALM') {
     const state = realmStateOf(match);
     const economy = isRealmRules(rules) ? rules.economy : realmRulesOf(match.rulesPreset).economy;
@@ -387,6 +399,26 @@ export async function matchView(
       myOrders: state && running ? myOrdersOf(state, mySeat) : null,
     };
     if (state && picking && realmCurrentChooser(state) === mySeat) legal = realmLegalRegions(state);
+    // Rüstzeit (ADR-085): Gespeichert ist der nächste Weckpunkt eines Bots, gezeigt wird das Ende
+    if (
+      state &&
+      running &&
+      match.phase === 'PREPARE' &&
+      match.phaseDeadlineAt !== null &&
+      state.step.kind === 'PREPARE'
+    ) {
+      const isBot = (seat: number) =>
+        players.some((p) => p.seat === seat && p.botStrength !== null);
+      const pending = pendingBots(
+        state,
+        state.step.round,
+        match.id,
+        economy.timers.prepareMs,
+        isBot,
+      );
+      const total = economy.timers.prepareMs + rules.timers.latencyAllowanceCapMs;
+      phaseEndsAt = new Date(prepareEndMs(match.phaseDeadlineAt.getTime(), pending, total));
+    }
   } else {
     const state = classicStateOf(match);
     board = state ? boardView(state, running) : null;
@@ -402,6 +434,11 @@ export async function matchView(
       inviteCode: match.status === 'LOBBY' ? match.inviteCode : null,
       rulesPreset: match.rulesPreset,
       seats: match.rules?.seats ?? match.testSeats,
+      testBots: testBots.map((bot) => ({
+        joinOrder: bot.joinOrder,
+        name: bots.get(bot.joinOrder) ?? botName(bot.strength),
+        botStrength: bot.strength,
+      })),
       campaignRounds: rules.campaign.rounds,
       timers: {
         triviaMs: timers.triviaMs,
@@ -438,11 +475,11 @@ export async function matchView(
     board,
     realm,
     phase:
-      match.phase !== null && match.phaseDeadlineAt !== null
+      match.phase !== null && phaseEndsAt !== null
         ? {
             kind: match.phase,
-            deadline: match.phaseDeadlineAt.toISOString(),
-            remainingMs: Math.max(0, match.phaseDeadlineAt.getTime() - now.getTime()),
+            deadline: phaseEndsAt.toISOString(),
+            remainingMs: Math.max(0, phaseEndsAt.getTime() - now.getTime()),
           }
         : null,
     legalRegions: legal,

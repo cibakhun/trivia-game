@@ -64,6 +64,33 @@ function freeJoinOrders(players: readonly MatchPlayerRow[], capacity: number): n
   const used = new Set(players.map((p) => p.joinOrder));
   return JOIN_ORDERS.filter((n) => n < capacity && !used.has(n));
 }
+
+/** Bot, den der Start einer Testpartie auf einen freien Platz setzt. */
+export interface TestBot {
+  readonly joinOrder: number;
+  readonly strength: MatchBotStrengthCode;
+}
+
+/**
+ * Bots, die der Start einer Testpartie auf die freien Plätze setzt: je freiem Platz die Stärke aus
+ * der Anlage, der Reihe nach; treten Menschen bei, entfallen Bots von hinten. Die Aufstellung zeigt
+ * sie vorab mit ihrem Namen (ADR-085), der Start setzt genau diese. Ohne Testpartie keine.
+ */
+export function testBotsOf(
+  match: Pick<MatchRow, 'kind' | 'testSeats' | 'testBotStrengths'>,
+  joined: readonly MatchPlayerRow[],
+): TestBot[] {
+  if (match.kind !== 'TEST' || match.testSeats === null || match.testBotStrengths === null) {
+    return [];
+  }
+  const free = freeJoinOrders(joined, MAX_SEATS);
+  return match.testBotStrengths
+    .slice(0, Math.max(0, match.testSeats - joined.length))
+    .flatMap((strength, i) => {
+      const joinOrder = free[i];
+      return joinOrder === undefined ? [] : [{ joinOrder, strength }];
+    });
+}
 const INVITE_CODE_LENGTH = 6;
 const INVITE_CODE_ATTEMPTS = 10;
 
@@ -453,7 +480,7 @@ export async function startLobby(
   }
   let seats: 2 | 3;
   // Bots, die erst der Start auf freie Plätze setzt (Testpartie)
-  let bots: { joinOrder: number; strength: MatchBotStrengthCode }[] = [];
+  let bots: TestBot[] = [];
   if (match.kind === 'TEST') {
     if (!ctx.testMatchesEnabled) {
       throw new ApiError(403, 'TEST_MATCHES_DISABLED', 'Testpartien gibt es hier nicht');
@@ -462,11 +489,7 @@ export async function startLobby(
       throw new Error('Testpartie ohne Plätze');
     }
     seats = match.testSeats;
-    const free = freeJoinOrders(joined, MAX_SEATS);
-    bots = match.testBotStrengths.slice(0, seats - joined.length).flatMap((strength, i) => {
-      const joinOrder = free[i];
-      return joinOrder === undefined ? [] : [{ joinOrder, strength }];
-    });
+    bots = testBotsOf(match, joined);
   } else {
     // Mitspieler sind Menschen und die Bots, die der Gastgeber gesetzt hat
     if (joined.length < 2) {

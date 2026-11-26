@@ -1382,6 +1382,16 @@ select:focus-visible {
   stroke-dasharray: 10 8;
 }
 
+.player-shield.free text {
+  fill: var(--muted);
+}
+
+/* Testpartie: Platz, den beim Start ein Bot bekommt; der Name steht schon da, der Platz ist frei */
+.lobby-seat.soon .lobby-name {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .seat-lives {
   display: inline-flex;
   gap: 2px;

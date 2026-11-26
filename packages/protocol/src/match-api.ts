@@ -414,6 +414,20 @@ export const matchViewSchema = z
         /** Plätze: beim Start festgelegt; Testpartien kennen sie vorher. */
         seats: z.number().int().min(2).max(3).nullable(),
         /**
+         * Testpartie in der Aufstellung: die Bots, die der Start auf die freien Plätze setzt, mit
+         * ihrem späteren Namen und ihrer Stärke (ADR-085); tritt jemand bei, entfällt der letzte.
+         * Sonst leer.
+         */
+        testBots: z.array(
+          z
+            .object({
+              joinOrder: z.number().int().min(0).max(2),
+              name: z.string().min(1),
+              botStrength: matchBotStrengthSchema,
+            })
+            .strict(),
+        ),
+        /**
          * Feldzugrunden aus den Regeln der Partie: ab dem Start die gespeicherten, vorher die der
          * Spielart. Mit Ausbau steht derselbe Wert auch in `realm.campaignRounds`.
          */

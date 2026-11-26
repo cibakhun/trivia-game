@@ -652,8 +652,13 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   expect(await open.count()).toBeGreaterThanOrEqual(5);
   for (let i = 0; i < 3; i++) await open.nth(i).tap();
   await expect(count).toHaveText('3 von 4 gewählt');
+  // Daneben die Mitspieler: man selbst und die Bots, die der Start setzt, schon mit Stärke (ADR-085)
+  const people = favorites.getByTestId('fav-seat');
+  await expect(people).toHaveCount(3);
+  await expect(people.nth(1)).toContainText(/Bot \(leicht\).*wählt zufällig/);
+  await expect(people.nth(2)).toContainText(/Bot \(schwer\).*wählt zufällig/);
   // Scheitert das Speichern, steht die Wahl nicht als gewählt da und lässt sich noch einmal speichern
-  const mine = favorites.getByTestId('fav-seat');
+  const mine = people.first();
   const toFavorites = (url: URL) => url.pathname.endsWith(`/matches/${matchId}/favorites`);
   const cut = (route: Route) => route.abort('connectionfailed');
   await page.route(toFavorites, cut);
@@ -672,16 +677,18 @@ test('Partie mit Ausbau am Handy quer: Lieblingskategorien, Rüstzeit, Glücksra
   // Mehr als vier gehen nicht; eine abwählen und eine andere nehmen geht
   await expect(open.nth(4)).toBeDisabled();
   await expect(favorites.locator('.fav.on')).toHaveCount(4);
-  await expect(mine).toHaveCount(1);
   // „Gewählt“ steht beim eigenen Namen erst, wenn der Server die Wahl bestätigt hat
   await expect(mine).toContainText('4 gewählt');
   await expect(count).toHaveClass(/full/);
   // Zweites Blatt: Mitspieler, Einladungscode und Bots wie in der Partie ohne Ausbau
   await page.getByTestId('lobby-to-seats').tap();
   await expect(page.getByTestId('invite-code')).toHaveText(/^[A-HJ-NP-Z2-9]{6}$/);
-  await expect(page.getByTestId('match-lobby')).toContainText(
-    '2 freie Plätze gehen beim Start an Bots.',
-  );
+  const seatsSheet = page.getByTestId('match-lobby');
+  await expect(seatsSheet).toContainText('2 freie Plätze gehen beim Start an Bots.');
+  await expect(seatsSheet.locator('[data-testid="lobby-seat"].soon')).toHaveText([
+    /Bot \(leicht\)/,
+    /Bot \(schwer\)/,
+  ]);
   await page.getByTestId('lobby-to-favorites').tap();
   await expect(favorites.locator('.fav.on')).toHaveCount(4);
   await favorites.getByRole('button', { name: 'Partie starten' }).tap();
