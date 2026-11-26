@@ -234,6 +234,16 @@ export function RealmLobby({
               </span>
             </li>
           ))}
+          {/* Testpartie: die Bots, die der Start auf die freien Plätze setzt (ADR-085) */}
+          {match.testBots.map((bot) => (
+            <li key={bot.joinOrder} className="soon" data-testid="fav-seat">
+              <PlayerShield name={bot.name} free />
+              <span>
+                <strong>{bot.name}</strong>
+                <small>{t('realm.favorites.random')}</small>
+              </span>
+            </li>
+          ))}
         </ul>
         {error && !failed ? <ErrorNote error={error} /> : null}
         {view.isHost ? (

@@ -46,6 +46,7 @@ export function viewOf(
       inviteCode: null,
       rulesPreset: 'PLAYTEST',
       seats: 3,
+      testBots: [],
       // Gespeicherte Regeln der Partie: bewusst nicht die heutigen Standardwerte (ADR-073)
       campaignRounds: 4,
       timers: {

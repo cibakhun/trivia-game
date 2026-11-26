@@ -200,6 +200,11 @@ test('Partie: ganze Testpartie zu dritt gegen zwei Bots', async ({ browser }) =>
 
   const lobby = page.getByTestId('match-lobby');
   await expect(lobby).toContainText('2 freie Plätze gehen beim Start an Bots.');
+  // Die Plätze nennen die Bots schon mit der gewählten Stärke (ADR-085)
+  await expect(lobby.locator('[data-testid="lobby-seat"].soon')).toHaveText([
+    /Bot \(leicht\)/,
+    /Bot \(schwer\)/,
+  ]);
   await expect(page.getByTestId('invite-code')).toHaveText(/^[A-HJ-NP-Z2-9]{6}$/);
   await lobby.getByRole('button', { name: 'Partie starten' }).click();
 

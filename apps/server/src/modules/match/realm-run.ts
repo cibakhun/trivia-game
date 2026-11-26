@@ -28,6 +28,12 @@ import {
   type QuestionPurpose,
   type ResolvedAnswers,
 } from './engine.ts';
+import {
+  nextPrepareWakeMs,
+  pendingBots,
+  prepareStartMs,
+  type PendingBot,
+} from './prepare-clock.ts';
 import { realmStateOf } from './store.ts';
 
 /**
@@ -35,7 +41,8 @@ import { realmStateOf } from './store.ts';
  * Landnahme, dann Feldzugrunden aus Einkommen, Rüstzeit, Aufdecken und Angriffen mit Glücksrad.
  * Zustandsmaschine `realm.ts` aus game-core; Zeit, Fragen und Speicherung in `MatchRun`.
  *
- * - **Rüstzeit (PREPARE):** Bots geben ihre Befehle gleich zu Beginn ab, Menschen bis zur Frist.
+ * - **Rüstzeit (PREPARE):** Menschen geben bis zur Frist ab, Bots jeder nach seiner Bedenkzeit
+ *   (ADR-085, `prepare-clock.ts`); sind alle Menschen fertig, geben die übrigen Bots sofort ab.
  *   Die Befehle liegen nur im gespeicherten Zustand; die Ansicht zeigt bis zum Aufdecken allein,
  *   wer fertig ist. Sind alle fertig oder ist die Frist um, wird aufgedeckt (`ORDERS_REVEALED`),
  *   und das Aufgedeckte bleibt `ordersRevealMs` stehen (ANNOUNCE).
@@ -222,27 +229,58 @@ export class RealmRun extends MatchRun {
   }
 
   /**
-   * Beginnt die Rüstzeit: Bots geben sofort ab, Menschen bekommen die Frist. `false`, wenn danach
-   * niemand mehr fehlt (kein lebender Mensch) und die Zustandsmaschine schon aufgedeckt hat.
+   * Beginnt die Rüstzeit: Menschen bekommen die Frist, Bots überlegen (ADR-085). `false`, wenn
+   * kein lebender Mensch mehr mitspielt: Dann geben die Bots sofort ab, und die Zustandsmaschine
+   * hat schon aufgedeckt.
    */
   private async openPrepare(): Promise<boolean> {
     const start = this.state.step;
     if (start.kind !== 'PREPARE') throw new Error('Keine Rüstzeit');
     const { round } = start;
-    for (const seat of realmRoundOrder(this.state, round)) {
+    if (this.humansReady(round)) {
+      await this.submitBots(round, this.pendingBots(round));
+      if (this.revealed(round)) return false;
+    }
+    this.match.phase = 'PREPARE';
+    this.match.phaseDeadlineAt = new Date(
+      this.now.getTime() + nextPrepareWakeMs(this.pendingBots(round), this.prepareTotalMs),
+    );
+    return true;
+  }
+
+  /** Ganze Frist der Rüstzeit ab ihrem Beginn: Rüstzeit plus Latenzzuschlag. */
+  private get prepareTotalMs(): number {
+    return this.economy.timers.prepareMs + this.rules.timers.latencyAllowanceCapMs;
+  }
+
+  /** Bots, die in der Rüstzeit `round` noch überlegen, nach ihrer Bedenkzeit geordnet. */
+  private pendingBots(round: number): PendingBot[] {
+    return pendingBots(
+      this.state,
+      round,
+      this.match.id,
+      this.economy.timers.prepareMs,
+      (seat) => this.playerAt(seat).botStrength !== null,
+    );
+  }
+
+  /** Alle lebenden Menschen haben abgegeben (auch, wenn keiner mehr mitspielt). */
+  private humansReady(round: number): boolean {
+    const { step } = this.state;
+    if (step.kind !== 'PREPARE' || step.round !== round) return true;
+    return realmRoundOrder(this.state, round).every(
+      (seat) => this.playerAt(seat).userId === null || step.orders[seat] !== null,
+    );
+  }
+
+  /** Diese Bots wählen jetzt ihre Befehle und geben ab, in der gegebenen Reihenfolge. */
+  private async submitBots(round: number, bots: readonly PendingBot[]): Promise<void> {
+    for (const { seat } of bots) {
       const state = this.state;
-      if (state.step.kind !== 'PREPARE' || state.step.round !== round) break;
-      const waiting = state.step.orders[seat] === null;
-      if (this.playerAt(seat).botStrength === null || !waiting) continue;
+      if (state.step.kind !== 'PREPARE' || state.step.round !== round) return;
       const { rng } = await this.drawRng('orders');
       this.submit(round, seat, chooseRealmOrdersForBot(state, seat, rng));
     }
-    if (this.revealed(round)) return false;
-    this.match.phase = 'PREPARE';
-    this.match.phaseDeadlineAt = new Date(
-      this.now.getTime() + this.economy.timers.prepareMs + this.rules.timers.latencyAllowanceCapMs,
-    );
-    return true;
   }
 
   /**
@@ -281,11 +319,49 @@ export class RealmRun extends MatchRun {
       throw new ApiError(409, 'NOT_YOUR_TURN', 'Dein Reich ist nicht mehr im Spiel');
     }
     this.submit(step.round, seat, orders);
+    // Alle Menschen sind fertig: Bots, die noch überlegen, geben jetzt ab (niemand wartet auf sie)
+    if (this.humansReady(step.round)) {
+      await this.submitBots(step.round, this.pendingBots(step.round));
+    }
     // Der Letzte hat abgegeben: Die Zustandsmaschine hat aufgedeckt
     if (this.revealed(step.round)) await this.afterReveal();
   }
 
+  /**
+   * Ein Weckpunkt der Rüstzeit ist fällig (ADR-085): Bots, deren Bedenkzeit um ist, geben ab. Ist
+   * damit alles abgegeben, wird aufgedeckt; ist die ganze Frist um, schließt der Server die
+   * Rüstzeit; sonst wartet die Partie auf den nächsten Weckpunkt.
+   */
   protected override async closePrepare(): Promise<void> {
+    const { step } = this.state;
+    if (step.kind !== 'PREPARE') throw new Error('Keine Rüstzeit');
+    const { round } = step;
+    const deadline = this.match.phaseDeadlineAt;
+    if (deadline === null) throw new Error('Rüstzeit ohne Frist');
+    const total = this.prepareTotalMs;
+    const pending = this.pendingBots(round);
+    const startMs = prepareStartMs(deadline.getTime(), pending, total);
+    const elapsed = this.now.getTime() - startMs;
+    // Nach dem Ende der Frist gibt jeder Bot ab, auch wenn seine Bedenkzeit länger wäre
+    await this.submitBots(
+      round,
+      pending.filter((bot) => elapsed >= total || bot.delayMs <= elapsed),
+    );
+    if (this.revealed(round)) {
+      await this.afterReveal();
+      return;
+    }
+    if (elapsed < total) {
+      this.match.phaseDeadlineAt = new Date(
+        startMs + nextPrepareWakeMs(this.pendingBots(round), total),
+      );
+      return;
+    }
+    await this.closePrepareNow();
+  }
+
+  /** Die ganze Frist ist um: Wer nichts abgegeben hat, tut nichts, und es wird aufgedeckt. */
+  private async closePrepareNow(): Promise<void> {
     const { step } = this.state;
     if (step.kind !== 'PREPARE') throw new Error('Keine Rüstzeit');
     this.emit('PREPARE_CLOSED', {

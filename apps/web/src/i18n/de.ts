@@ -563,7 +563,6 @@ export const de = {
       players: 'Spieler',
       host: 'eröffnet',
       freeSeat: 'frei',
-      botSeat: 'Bot',
       addBot: 'Bot dazu',
       removeBot: 'Entfernen',
       removeBotOf: '{name} entfernen',

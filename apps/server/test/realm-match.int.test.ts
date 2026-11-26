@@ -23,7 +23,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { buildApp, runMatchDriverOnce } from '../src/index.ts';
 import { ApiError } from '../src/infra/errors.ts';
-import { botThinkMs } from '../src/modules/match/bot-think.ts';
+import { botPrepareMs, botThinkMs } from '../src/modules/match/bot-think.ts';
 import { createLobby, startLobby } from '../src/modules/match/lobby.ts';
 import {
   TestClient,
@@ -216,6 +216,15 @@ async function startRealmTest(
 
 const inPrepare = (round: number) => (current: MatchView) =>
   current.phase?.kind === 'PREPARE' && current.realm?.board?.step.round === round;
+
+/** Lässt diese Bots in der Rüstzeit abgeben: Die Uhr läuft bis nach ihrer längsten Bedenkzeit. */
+async function botsSubmit(matchId: string, round: number, seats: readonly number[]): Promise<void> {
+  const slowest = Math.max(
+    ...seats.map((seat) => botPrepareMs(matchId, round, seat, ECONOMY.timers.prepareMs)),
+  );
+  await advanceGameClock(server.database.pool, slowest + 1);
+  await runMatchDriverOnce(server.db, driverContext());
+}
 
 describe('Aufstellung mit Ausbau', () => {
   it('Lieblingskategorien: wählbar sind die Kategorien des Glücksrads, das Konto merkt sie sich', async () => {
@@ -996,6 +1005,8 @@ describe('Angriff nur mit Armee (ADR-064)', () => {
     for (let round = 1; round <= rounds; round++) {
       const prepare = await play(matchId, [{ human }], inPrepare(round));
       expect(boardOf(prepare).step).toMatchObject({ kind: 'PREPARE', round });
+      // Erst gibt der Bot ab (ADR-085), dann verlieren beide ihre Armeen und Befehle
+      await botsSubmit(matchId, round, [1 - (prepare.mySeat ?? 0)]);
       await setArmies(matchId, [0, 1]);
       const submitted = await submitOrders(human, matchId, []);
       expect(submitted.statusCode, submitted.body).toBe(200);
@@ -1272,17 +1283,35 @@ describe('Glücksrad und Fragenbestand', () => {
 });
 
 describe('Rüstzeit', () => {
-  it('Bots sind sofort fertig; Befehle werden geprüft, bleiben verdeckt und wirken beim Aufdecken', async () => {
+  it('Bots überlegen erst; Befehle werden geprüft, bleiben verdeckt und wirken beim Aufdecken', async () => {
     const human = await newHuman();
     const matchId = await startRealmTest(human, ['MEDIUM']);
-    const prepare = await play(matchId, [{ human }], inPrepare(1));
-    const mySeat = prepare.mySeat ?? -1;
+    const opened = await play(matchId, [{ human }], inPrepare(1));
+    const mySeat = opened.mySeat ?? -1;
     const botSeat = 1 - mySeat;
+    expect(opened.phase?.kind).toBe('PREPARE');
+    expect(opened.phase?.remainingMs).toBeLessThanOrEqual(ECONOMY.timers.prepareMs + 500);
+    expect(opened.phase?.remainingMs).toBeGreaterThan(ECONOMY.timers.prepareMs - 1000);
+    expect(opened.realm?.myOrders).toBeNull();
+    // Zu Beginn überlegt auch der Bot noch (ADR-085): Niemand ist fertig, nichts ist abgegeben
+    expect(boardOf(opened).turns.map((t) => t.status)).toEqual(['NOW', 'NOW']);
+    expect(eventsOf(await events(matchId), 'ORDERS_SUBMITTED')).toEqual([]);
+    // Kurz vor seiner Bedenkzeit überlegt er noch, danach ist er fertig; das Ende bleibt gleich
+    const thinkMs = botPrepareMs(matchId, 1, botSeat, ECONOMY.timers.prepareMs);
+    expect(thinkMs).toBeGreaterThanOrEqual(ECONOMY.timers.prepareMs * 0.3 - 1);
+    expect(thinkMs).toBeLessThanOrEqual(ECONOMY.timers.prepareMs * 0.7 + 1);
+    await advanceGameClock(server.database.pool, thinkMs - 300);
+    await runMatchDriverOnce(server.db, driverContext());
+    expect(boardOf(await view(human, matchId)).turns).toContainEqual({
+      seat: botSeat,
+      status: 'NOW',
+    });
+    await advanceGameClock(server.database.pool, 301);
+    await runMatchDriverOnce(server.db, driverContext());
+    const prepare = await view(human, matchId);
     const before = boardOf(prepare);
     expect(prepare.phase?.kind).toBe('PREPARE');
-    expect(prepare.phase?.remainingMs).toBeLessThanOrEqual(ECONOMY.timers.prepareMs + 500);
-    expect(prepare.phase?.remainingMs).toBeGreaterThan(ECONOMY.timers.prepareMs - 1000);
-    expect(prepare.realm?.myOrders).toBeNull();
+    expect(prepare.phase?.deadline).toBe(opened.phase?.deadline);
     // Der Bot hat abgegeben, der Mensch noch nicht
     expect(before.turns).toContainEqual({ seat: botSeat, status: 'DONE' });
     expect(before.turns).toContainEqual({ seat: mySeat, status: 'NOW' });
@@ -1388,6 +1417,44 @@ describe('Rüstzeit', () => {
       status: 409,
       code: 'STEP_NOT_AVAILABLE',
     });
+  });
+
+  it('jeder Bot gibt nach seiner Bedenkzeit ab; ist der Mensch vorher fertig, geben die übrigen gleich mit ab', async () => {
+    const human = await newHuman();
+    const matchId = await startRealmTest(human, ['HARD', 'EASY']);
+    const opened = await play(matchId, [{ human }], inPrepare(1));
+    const mySeat = opened.mySeat ?? -1;
+    expect(boardOf(opened).turns.map((t) => t.status)).toEqual(['NOW', 'NOW', 'NOW']);
+    const bots = [0, 1, 2]
+      .filter((seat) => seat !== mySeat)
+      .map((seat) => ({ seat, ms: botPrepareMs(matchId, 1, seat, ECONOMY.timers.prepareMs) }))
+      .sort((a, b) => a.ms - b.ms);
+    const [fast, slow] = bots;
+    if (!fast || !slow) throw new Error('Zwei Bots erwartet');
+    // Zwischen beiden Bedenkzeiten ist nur der schnellere fertig; das Ende der Rüstzeit bleibt
+    if (slow.ms - fast.ms > 400) {
+      await advanceGameClock(server.database.pool, fast.ms + 200);
+      await runMatchDriverOnce(server.db, driverContext());
+      const between = await view(human, matchId);
+      expect(between.phase?.kind).toBe('PREPARE');
+      expect(between.phase?.deadline).toBe(opened.phase?.deadline);
+      expect(boardOf(between).turns).toContainEqual({ seat: fast.seat, status: 'DONE' });
+      expect(boardOf(between).turns).toContainEqual({ seat: slow.seat, status: 'NOW' });
+      expect(
+        eventsOf(await events(matchId), 'ORDERS_SUBMITTED').map((e) => e.payload.seat),
+      ).toEqual([fast.seat]);
+    }
+    // Der Mensch gibt ab, bevor der langsamere Bot fertig ist: Der gibt sofort mit ab
+    expect((await submitOrders(human, matchId, [])).statusCode).toBe(200);
+    const revealed = await view(human, matchId);
+    expect(revealed.phase?.kind).toBe('ANNOUNCE');
+    const all = await events(matchId);
+    const submitted = eventsOf(all, 'ORDERS_SUBMITTED').map((e) => e.payload.seat);
+    expect([...submitted].sort()).toEqual([0, 1, 2]);
+    expect(submitted.at(-1)).toBe(slow.seat);
+    expect(submitted.indexOf(mySeat)).toBeLessThan(submitted.indexOf(slow.seat));
+    expect(eventsOf(all, 'ORDERS_REVEALED')).toHaveLength(3);
+    expect(eventsOf(all, 'PREPARE_CLOSED')).toEqual([]);
   });
 
   it('nach Ablauf der Frist deckt der Server auf: Wer nichts abgegeben hat, tut nichts', async () => {

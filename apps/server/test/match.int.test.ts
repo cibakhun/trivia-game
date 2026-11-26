@@ -948,14 +948,28 @@ describe('Bots in der normalen Partie (ADR-052)', () => {
       status: 409,
       code: 'SEAT_NOT_AVAILABLE',
     });
+    // Die Aufstellung nennt die Bots, die der Start setzt, mit Namen und Stärke (ADR-085)
+    const lobby = await view(host, matchId);
+    expect(lobby.match.testBots).toEqual([
+      { joinOrder: 1, name: 'Bot (leicht)', botStrength: 'EASY' },
+      { joinOrder: 2, name: 'Bot (schwer)', botStrength: 'HARD' },
+    ]);
     // Zwei treten bei, der mittlere geht wieder: Platz 1 ist frei, Platz 2 belegt
-    const code = (await view(host, matchId)).match.inviteCode ?? '';
+    const code = lobby.match.inviteCode ?? '';
     const middle = await newHuman();
     const last = await newHuman();
     expect((await joinMatch(middle, code)).statusCode).toBe(200);
+    // Wer beitritt, nimmt den letzten Bot weg
+    expect((await view(middle, matchId)).match.testBots).toEqual([
+      { joinOrder: 2, name: 'Bot (leicht)', botStrength: 'EASY' },
+    ]);
     expect((await joinMatch(last, code)).statusCode).toBe(200);
+    expect((await view(host, matchId)).match.testBots).toEqual([]);
     const left = await middle.client.post(`/matches/${matchId}/leave`, { headers: key() });
     expect(left.statusCode, left.body).toBe(200);
+    expect((await view(host, matchId)).match.testBots).toEqual([
+      { joinOrder: 1, name: 'Bot (leicht)', botStrength: 'EASY' },
+    ]);
     const started = await startMatch(host, matchId);
     expect(started.statusCode, started.body).toBe(200);
     const running = await view(host, matchId);
@@ -964,6 +978,30 @@ describe('Bots in der normalen Partie (ADR-052)', () => {
       [1, 'EASY'],
       [2, null],
     ]);
+    // Nach dem Start sitzt der Bot mit dem Namen, den die Aufstellung genannt hat
+    expect(running.players.find((p) => p.joinOrder === 1)?.name).toBe('Bot (leicht)');
+    expect(running.match.testBots).toEqual([]);
+  });
+
+  it('zwei gleich starke Bots heißen schon in der Aufstellung so wie nach dem Start', async () => {
+    const host = await newHuman();
+    const matchId = await createMatch(host, {
+      kind: 'TEST',
+      rules: 'PLAYTEST',
+      seats: 3,
+      botStrengths: ['MEDIUM', 'MEDIUM'],
+    });
+    const lobby = await view(host, matchId);
+    expect(lobby.match.testBots.map((bot) => bot.name)).toEqual([
+      'Bot 1 (mittel)',
+      'Bot 2 (mittel)',
+    ]);
+    const started = await startMatch(host, matchId);
+    expect(started.statusCode, started.body).toBe(200);
+    const running = await view(host, matchId);
+    expect(running.players.filter((p) => p.isBot).map((p) => [p.joinOrder, p.name])).toEqual(
+      lobby.match.testBots.map((bot) => [bot.joinOrder, bot.name]),
+    );
   });
 
   it('allein mit einem Bot: Partie zu zweit auf der Kernmark, zählt nicht in der Statistik', async () => {
