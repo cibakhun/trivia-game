@@ -1,0 +1,73 @@
+/* Nachricht nach einem Kontowechsel (ADR-086), ganz oben mittig über dem Titel des Bildschirms */
+.session-flash {
+  --fu: var(--u, 1px);
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + 6 * var(--fu));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: calc(8 * var(--fu));
+  width: min(calc(100% - 24 * var(--fu)), calc(440 * var(--fu)));
+  margin: 0;
+  padding: calc(7 * var(--fu)) calc(6 * var(--fu)) calc(7 * var(--fu)) calc(11 * var(--fu));
+  border-radius: calc(14 * var(--fu));
+  color: var(--map-coin);
+  background: color-mix(in srgb, var(--map-ink) 94%, transparent);
+  box-shadow: 0 calc(6 * var(--fu)) calc(18 * var(--fu)) rgb(30 18 6 / 0.45);
+  transform: translateX(-50%);
+}
+
+.session-flash p {
+  margin: 0;
+  font-weight: 700;
+  font-size: calc(13 * var(--fu));
+  line-height: 1.3;
+}
+
+.session-flash svg {
+  width: calc(20 * var(--fu));
+  height: calc(20 * var(--fu));
+}
+
+.session-flash .icon .icon-ink {
+  stroke: currentColor;
+}
+
+.session-flash-close {
+  display: grid;
+  place-items: center;
+  width: max(32px, calc(30 * var(--fu)));
+  height: max(32px, calc(30 * var(--fu)));
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  font-size: calc(20 * var(--fu));
+  line-height: 1;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .session-flash-close:hover {
+    background: rgb(255 255 255 / 0.12);
+  }
+}
+
+.session-flash-close:focus-visible {
+  outline: 2px solid var(--focus);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .session-flash {
+    animation: session-flash-in 0.4s cubic-bezier(0.2, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes session-flash-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-10 * var(--fu)));
+  }
+}

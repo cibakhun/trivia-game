@@ -42,7 +42,14 @@ describe('Serverkonfiguration', () => {
   });
 
   it('verlangt in Staging und Produktion sichere Cookies und https', () => {
-    const deployed = { ...base, APP_ENV: 'production', PUBLIC_ORIGIN: 'https://spiel.example' };
+    const deployed = {
+      ...base,
+      APP_ENV: 'production',
+      PUBLIC_ORIGIN: 'https://spiel.example',
+      MAIL_TRANSPORT: 'smtp',
+      SMTP_URL: 'smtps://konto%40spiel.example:geheim-zugang@smtp.spiel.example:465',
+      MAIL_FROM: 'Reiche des Wissens <konto@spiel.example>',
+    };
     expect(parseServerConfig(deployed).cookieSecure).toBe(true);
     expect(() => parseServerConfig({ ...deployed, COOKIE_SECURE: 'false' })).toThrow(
       /COOKIE_SECURE/,
@@ -50,6 +57,36 @@ describe('Serverkonfiguration', () => {
     expect(() =>
       parseServerConfig({ ...deployed, APP_ENV: 'staging', PUBLIC_ORIGIN: 'http://spiel.example' }),
     ).toThrow(/PUBLIC_ORIGIN/);
+  });
+
+  it('schickt Mails ohne Einstellung nur in den Ausgang, in Produktion nur über SMTP (ADR-086)', () => {
+    expect(parseServerConfig(base).mail).toMatchObject({
+      transport: 'outbox',
+      smtpUrl: null,
+      from: null,
+    });
+    const smtp = {
+      ...base,
+      MAIL_TRANSPORT: 'smtp',
+      SMTP_URL: 'smtps://konto%40spiel.example:geheim-zugang@smtp.spiel.example:465',
+      MAIL_FROM: 'Reiche des Wissens <konto@spiel.example>',
+    };
+    expect(parseServerConfig(smtp).mail.transport).toBe('smtp');
+    expect(() => parseServerConfig({ ...smtp, SMTP_URL: undefined })).toThrow(/SMTP_URL/);
+    expect(() => parseServerConfig({ ...smtp, MAIL_FROM: undefined })).toThrow(/MAIL_FROM/);
+    // Der Zugang erscheint in keiner Fehlermeldung
+    try {
+      parseServerConfig({ ...smtp, MAIL_FROM: undefined });
+    } catch (error) {
+      expect(String(error)).not.toContain('geheim-zugang');
+    }
+    expect(() =>
+      parseServerConfig({
+        ...base,
+        APP_ENV: 'production',
+        PUBLIC_ORIGIN: 'https://spiel.example',
+      }),
+    ).toThrow(/MAIL_TRANSPORT/);
   });
 
   it('lehnt eine Herkunft ohne http(s) ab, weil sie sonst als „null“ gälte', () => {

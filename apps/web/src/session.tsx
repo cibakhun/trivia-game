@@ -21,6 +21,14 @@ export type SessionState =
   | { readonly status: 'ready'; readonly me: MeResponse }
   | { readonly status: 'error'; readonly error: unknown };
 
+/**
+ * Einmalige Nachricht über einem Bildschirm nach einem Kontowechsel (ADR-086): Löschantrag
+ * gestellt (`deletesAt` = Löschung; `null` = schon gelöscht) oder mit der Anmeldung aufgehoben.
+ */
+export type SessionFlash =
+  | { readonly kind: 'deletionRequested'; readonly deletesAt: string | null }
+  | { readonly kind: 'deletionCancelled' };
+
 export interface ReloadOptions {
   /**
    * Nach einem Wechsel des Kontos (Anmelden, Sichern) ist der bisherige Stand falsch: Ein
@@ -38,6 +46,10 @@ interface SessionValue {
   /** Anmelden mit Benutzername und Passwort; eine laufende Sitzung wird ersetzt. */
   readonly login: (username: string, password: string) => Promise<void>;
   readonly logout: () => Promise<void>;
+  /** Löschantrag (O-47): Danach gibt es keine Sitzung mehr; Gäste ohne Passwort. */
+  readonly deleteAccount: (password: string | null) => Promise<void>;
+  readonly flash: SessionFlash | null;
+  readonly dismissFlash: () => void;
 }
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -50,6 +62,7 @@ function isTransient(error: unknown): boolean {
 
 export function SessionProvider({ children }: { readonly children: ReactNode }) {
   const [state, setState] = useState<SessionState>({ status: 'loading' });
+  const [flash, setFlash] = useState<SessionFlash | null>(null);
 
   const reload = useCallback(async (options: ReloadOptions = {}): Promise<MeResponse | null> => {
     try {
@@ -108,18 +121,46 @@ export function SessionProvider({ children }: { readonly children: ReactNode }) 
   const startGuest = useCallback(() => switchAccount(() => api.guest()), [switchAccount]);
 
   const login = useCallback(
-    (username: string, password: string) => switchAccount(() => api.login({ username, password })),
+    (username: string, password: string) =>
+      switchAccount(async () => {
+        const result = await api.login({ username, password });
+        // Wer sich in den 7 Tagen nach einem Löschantrag anmeldet, behält sein Konto
+        setFlash(result.deletionCancelled ? { kind: 'deletionCancelled' } : null);
+      }),
     [switchAccount],
   );
 
   const logout = useCallback(() => switchAccount(() => api.logout()), [switchAccount]);
+
+  const deleteAccount = useCallback(
+    (password: string | null) =>
+      switchAccount(async () => {
+        const result = await api.deleteAccount(password);
+        setFlash({ kind: 'deletionRequested', deletesAt: result.deletesAt });
+      }),
+    [switchAccount],
+  );
+
+  const dismissFlash = useCallback(() => setFlash(null), []);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
   return (
-    <SessionContext.Provider value={{ state, reload, switching, startGuest, login, logout }}>
+    <SessionContext.Provider
+      value={{
+        state,
+        reload,
+        switching,
+        startGuest,
+        login,
+        logout,
+        deleteAccount,
+        flash,
+        dismissFlash,
+      }}
+    >
       {children}
     </SessionContext.Provider>
   );

@@ -12,14 +12,23 @@ import { ApiRequestError, api } from '../api/client.ts';
 import { CountUp } from '../art/CountUp.tsx';
 import { Icon, type IconKind } from '../art/Icons.tsx';
 import { CategoryIcon } from '../art/RealmIcons.tsx';
-import { LoginForm, NameForm, PasswordForm, RegisterForm } from '../components/AccountForms.tsx';
+import {
+  DeleteForm,
+  EmailForm,
+  LoginForm,
+  NameForm,
+  PasswordForm,
+  RegisterForm,
+} from '../components/AccountForms.tsx';
 import { ErrorNote } from '../components/ErrorNote.tsx';
-import { formatNumber, t, tp, type MessageKey } from '../i18n/i18n.ts';
+import { formatNumber, t, tp, type MessageKey, type Params } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
 import { useSession } from '../session.tsx';
 import {
   ACCOUNT_TABS,
+  accountAlert,
   crestProgress,
+  emailRow,
   knowledgeExtremes,
   knowledgeRows,
   ofText,
@@ -39,8 +48,8 @@ import { initialOf, playerName } from './menu-text.ts';
  * Kontoseite (ADR-080): ein breites Blatt über der lebenden Karte wie die anderen Blätter des
  * Hauptmenüs. Links die Wappenseite (Wappen mit Stufe, Name, Stand des Kontos, dabei seit), rechts
  * drei Reiter: Bilanz (Partien, Plätze, Serien, Duelle), Wissen (Trefferquote je Kategorie) und
- * Zugang (registrieren, anmelden, Name, Passwort, abmelden). Die Formulare ersetzen die rechte
- * Seite und haben eigene Pfade, damit „Zurück“ im Browser sie schließt.
+ * Zugang (registrieren, anmelden, Name, Passwort, E-Mail, abmelden, löschen). Die Formulare
+ * ersetzen die rechte Seite und haben eigene Pfade, damit „Zurück“ im Browser sie schließt.
  */
 
 /** Eigene Zahlen für die Kontoseite; lädt neu, wenn ein anderes Konto angemeldet ist. */
@@ -82,6 +91,8 @@ const VIEW_TITLE: Record<AccountView, MessageKey> = {
   password: 'konto.views.password',
   login: 'konto.views.login',
   logout: 'konto.views.logout',
+  email: 'konto.views.email',
+  delete: 'konto.views.delete',
 };
 
 /** Wappenseite: großes Wappen, Name (mit Vorschau einer Namenswahl), Stufe, Stand, dabei seit. */
@@ -437,15 +448,20 @@ function AccessRow({
   label,
   value,
   note,
+  urgent = false,
   action,
   onClick,
+  testId,
 }: {
   readonly icon: IconKind;
   readonly label: string;
   readonly value: string;
   readonly note?: string;
+  /** Hinweis mit Frist (E-Mail bestätigen): fällt auf. */
+  readonly urgent?: boolean;
   readonly action?: string;
   readonly onClick?: () => void;
+  readonly testId?: string;
 }) {
   const body = (
     <>
@@ -467,14 +483,15 @@ function AccessRow({
       ) : null}
     </>
   );
+  const className = `acct-row${urgent ? ' urgent' : ''}`;
   return (
-    <li>
+    <li data-testid={testId}>
       {onClick ? (
-        <button type="button" className="acct-row" onClick={onClick}>
+        <button type="button" className={className} onClick={onClick}>
           {body}
         </button>
       ) : (
-        <div className="acct-row">{body}</div>
+        <div className={className}>{body}</div>
       )}
     </li>
   );
@@ -520,10 +537,13 @@ function AccessPanel({
             </span>
           </button>
         </div>
-        <button type="button" className="acct-leave" onClick={() => onView('logout')}>
-          <Icon kind="door" size={16} />
-          {t('account.logout')}
-        </button>
+        <div className="acct-leaves">
+          <button type="button" className="acct-leave" onClick={() => onView('logout')}>
+            <Icon kind="door" size={16} />
+            {t('account.logout')}
+          </button>
+          <DeleteLink onView={onView} />
+        </div>
       </div>
     );
   }
@@ -531,6 +551,8 @@ function AccessPanel({
   // eigenen Anmeldenamen; er steht dann darunter, bis der Name einmal geändert wird
   const loginName = me.user.username ?? '';
   const separateLogin = loginName !== '' && loginName !== me.profile.displayName;
+  const email = me.user.email;
+  const mail = email ? emailRow(email) : null;
   return (
     <div className="acct-access">
       <ul className="acct-rows">
@@ -550,6 +572,24 @@ function AccessPanel({
             note={t('konto.access.loginNameNote')}
           />
         ) : null}
+        {email && mail ? (
+          <AccessRow
+            icon="mail"
+            label={t('konto.access.email')}
+            value={mail.value}
+            note={mail.note}
+            urgent={mail.urgent}
+            action={
+              email.address === null
+                ? t('konto.access.add')
+                : !email.verified && email.dueAt !== null
+                  ? t('konto.access.confirm')
+                  : t('konto.access.change')
+            }
+            onClick={() => onView('email')}
+            testId="account-email"
+          />
+        ) : null}
         <AccessRow
           icon="lock"
           label={t('konto.access.password')}
@@ -558,17 +598,44 @@ function AccessPanel({
           onClick={() => onView('password')}
         />
       </ul>
-      <button
-        type="button"
-        className="acct-leave"
-        disabled={leaving}
-        onClick={onLogout}
-        data-testid="account-logout"
-      >
-        <Icon kind="door" size={16} />
-        {t('account.logout')}
-      </button>
+      <div className="acct-leaves">
+        <button
+          type="button"
+          className="acct-leave"
+          disabled={leaving}
+          onClick={onLogout}
+          data-testid="account-logout"
+        >
+          <Icon kind="door" size={16} />
+          {t('account.logout')}
+        </button>
+        <DeleteLink onView={onView} />
+      </div>
       {logoutError ? <ErrorNote error={logoutError} /> : null}
+    </div>
+  );
+}
+
+/** Leiser Weg zum Löschen (O-47), neben „Abmelden“. */
+function DeleteLink({ onView }: { readonly onView: (view: AccountView) => void }) {
+  return (
+    <button
+      type="button"
+      className="acct-leave acct-delete-link"
+      onClick={() => onView('delete')}
+      data-testid="account-delete"
+    >
+      {t('konto.access.delete')}
+    </button>
+  );
+}
+
+/** Über dem Namensformular, solange der Name gesperrt ist (O-48). */
+function BlockedNameNote() {
+  return (
+    <div className="acct-callout warn acct-blocked" data-testid="name-blocked">
+      <b>{t('konto.names.blockedTitle')}</b>
+      <span>{t('konto.names.blockedText')}</span>
     </div>
   );
 }
@@ -628,9 +695,12 @@ export function AccountSheet({
 }) {
   const { logout } = useSession();
   const { stats, error: statsError, load } = useStats(me.user.id);
-  const [tab, setTab] = useState<AccountTab>(() => tabOf(view) ?? 'record');
+  // Mahnt das Konto (E-Mail, gesperrter Name), öffnet die Seite beim Zugang
+  const [tab, setTab] = useState<AccountTab>(
+    () => tabOf(view) ?? (accountAlert(me) ? 'access' : 'record'),
+  );
   const [preview, setPreview] = useState<string | null>(null);
-  const [notice, setNotice] = useState<{ key: MessageKey; n: number } | null>(null);
+  const [notice, setNotice] = useState<{ key: MessageKey; params: Params; n: number } | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [logoutError, setLogoutError] = useState<unknown>(null);
   const titleId = useId();
@@ -678,11 +748,13 @@ export function AccountSheet({
     return () => window.clearTimeout(id);
   }, [notice]);
 
-  const done = (key: MessageKey) => () => {
-    setNotice((current) => ({ key, n: (current?.n ?? 0) + 1 }));
-    setPreview(null);
-    onViewDone();
-  };
+  const done =
+    (key: MessageKey, params: Params = {}) =>
+    () => {
+      setNotice((current) => ({ key, params, n: (current?.n ?? 0) + 1 }));
+      setPreview(null);
+      onViewDone();
+    };
 
   async function signOut() {
     setLeaving(true);
@@ -702,15 +774,21 @@ export function AccountSheet({
   if (view !== null) {
     let body: ReactNode = null;
     switch (view) {
-      case 'name':
+      case 'name': {
+        const current = me.profile.displayName ?? me.user.username ?? '';
         body = (
-          <NameForm
-            current={me.profile.displayName ?? me.user.username ?? ''}
-            onPreview={setPreview}
-            onDone={done('account.nameSaved')}
-          />
+          <>
+            {me.profile.nameBlocked ? <BlockedNameNote /> : null}
+            <NameForm
+              current={current}
+              start={me.profile.nameBlocked ? '' : current}
+              onPreview={setPreview}
+              onDone={done('account.nameSaved')}
+            />
+          </>
         );
         break;
+      }
       case 'secure':
         body = <RegisterForm onPreview={setPreview} onDone={done('account.registered')} />;
         break;
@@ -721,6 +799,14 @@ export function AccountSheet({
         body = (
           <LoginForm warning={t('konto.access.loginWarning')} onDone={done('konto.loggedIn')} />
         );
+        break;
+      case 'email':
+        body = me.user.email ? (
+          <EmailForm email={me.user.email} onSaved={(key, params) => done(key, params)()} />
+        ) : null;
+        break;
+      case 'delete':
+        body = <DeleteForm isGuest={me.user.isGuest} onKeep={() => onViewDone()} />;
         break;
       case 'logout':
         body = (
@@ -820,12 +906,12 @@ export function AccountSheet({
         {notice ? (
           <p className="acct-notice" aria-hidden="true" key={notice.n} data-testid="account-notice">
             <Icon kind="shield" size={18} />
-            {t(notice.key, { name: playerName(me) })}
+            {t(notice.key, { name: playerName(me), ...notice.params })}
           </p>
         ) : null}
         {/* Dauerhafte Vorlesezone: So wird die Meldung sicher angesagt */}
         <p className="visually-hidden" role="status">
-          {notice ? t(notice.key, { name: playerName(me) }) : ''}
+          {notice ? t(notice.key, { name: playerName(me), ...notice.params }) : ''}
         </p>
       </div>
     </section>

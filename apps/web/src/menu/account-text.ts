@@ -1,5 +1,6 @@
 import {
   QUESTION_CATEGORIES,
+  type EmailState,
   type MeResponse,
   type PlayerStatsResponse,
   type QuestionCategory,
@@ -12,23 +13,37 @@ import { formatNumber, t } from '../i18n/i18n.ts';
  */
 
 /** Ansichten mit eigenem Pfad (router.ts): „Zurück“ im Browser schließt sie wie ein Blatt. */
-export const ACCOUNT_VIEWS = ['name', 'secure', 'password', 'login', 'logout'] as const;
+export const ACCOUNT_VIEWS = [
+  'name',
+  'secure',
+  'password',
+  'login',
+  'logout',
+  'email',
+  'delete',
+] as const;
 export type AccountView = (typeof ACCOUNT_VIEWS)[number];
 
 /** Reiter der rechten Seite; sie wechseln ohne Pfad, damit „Zurück“ nicht durch sie blättert. */
 export const ACCOUNT_TABS = ['record', 'knowledge', 'access'] as const;
 export type AccountTab = (typeof ACCOUNT_TABS)[number];
 
-/** Welche Ansicht es für dieses Konto gibt; Gäste wählen ihren Namen beim Registrieren. */
+/**
+ * Welche Ansicht es für dieses Konto gibt; Gäste wählen ihren Namen beim Registrieren und haben
+ * keine E-Mail-Adresse. Löschen können alle (O-47).
+ */
 export function viewAllowed(view: AccountView, isGuest: boolean): boolean {
   switch (view) {
     case 'name':
     case 'password':
+    case 'email':
       return !isGuest;
     case 'secure':
     case 'login':
     case 'logout':
       return isGuest;
+    case 'delete':
+      return true;
   }
 }
 
@@ -36,6 +51,126 @@ export function viewAllowed(view: AccountView, isGuest: boolean): boolean {
 export function tabOf(view: AccountView | null): AccountTab | null {
   if (view === null || view === 'name') return null;
   return 'access';
+}
+
+// ---------- E-Mail und gesperrter Name (ADR-086) ----------
+
+const dayMonth = new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'long' });
+
+/** „26. Dezember“; mit `year` „26. Dezember 2026“. */
+export function dateText(iso: string, year = false): string {
+  return (year ? longDate : dayMonth).format(new Date(iso));
+}
+
+/**
+ * Was das Konto jetzt tun sollte, für Plakette und Kontoseite: einen neuen Namen wählen (gesperrt)
+ * oder die E-Mail-Adresse eintragen bzw. bestätigen, solange eine Frist läuft. Ohne Frist (der
+ * Server verschickt keine Mails) drängt nichts.
+ */
+export type AccountAlert =
+  | { readonly kind: 'name' }
+  | { readonly kind: 'emailMissing'; readonly dueAt: string }
+  | { readonly kind: 'emailUnverified'; readonly dueAt: string };
+
+export function accountAlert(me: MeResponse): AccountAlert | null {
+  if (me.user.isGuest) return null;
+  if (me.profile.nameBlocked) return { kind: 'name' };
+  const email = me.user.email;
+  if (!email?.dueAt) return null;
+  return email.address === null
+    ? { kind: 'emailMissing', dueAt: email.dueAt }
+    : { kind: 'emailUnverified', dueAt: email.dueAt };
+}
+
+/** Ansicht, die eine Mahnung behebt. */
+export function alertView(alert: AccountAlert): AccountView {
+  return alert.kind === 'name' ? 'name' : 'email';
+}
+
+/** Kurzzeile unter dem Namen auf der Plakette. */
+export function alertLine(alert: AccountAlert): string {
+  switch (alert.kind) {
+    case 'name':
+      return t('menu.plate.alertName');
+    case 'emailMissing':
+      return t('menu.plate.alertEmailMissing', { date: dateText(alert.dueAt) });
+    case 'emailUnverified':
+      return t('menu.plate.alertEmail', { date: dateText(alert.dueAt) });
+  }
+}
+
+/** Wert und Zusatz der Zeile „E-Mail“ im Reiter Zugang. */
+export function emailRow(email: EmailState): { value: string; note: string; urgent: boolean } {
+  const value = email.address ?? t('konto.access.emailNone');
+  if (email.pending !== null) {
+    return {
+      value,
+      note: t('konto.access.emailPending'),
+      urgent: false,
+    };
+  }
+  if (email.verified) return { value, note: t('konto.access.emailVerified'), urgent: false };
+  if (email.dueAt !== null) {
+    const date = dateText(email.dueAt);
+    return {
+      value,
+      note: t(email.address === null ? 'konto.access.emailMissingDue' : 'konto.access.emailDue', {
+        date,
+      }),
+      urgent: true,
+    };
+  }
+  return {
+    value,
+    note: email.address === null ? '' : t('konto.access.emailUnverified'),
+    urgent: false,
+  };
+}
+
+/** Kasten oben in der Ansicht „E-Mail-Adresse“: Stand mit Titel und Text. */
+export function emailStatus(email: EmailState): {
+  tone: 'done' | 'wait' | 'warn';
+  title: string;
+  text: string;
+} {
+  if (email.verified && email.pending === null) {
+    return {
+      tone: 'done',
+      title: t('konto.email.verifiedTitle'),
+      text: t('konto.email.verifiedText'),
+    };
+  }
+  if (email.pending !== null) {
+    return {
+      tone: 'wait',
+      title: t('konto.email.pendingTitle'),
+      text: t('konto.email.pendingText', {
+        email: email.pending,
+        current: email.address ?? '',
+      }),
+    };
+  }
+  if (email.address === null) {
+    return email.dueAt === null
+      ? { tone: 'wait', title: t('konto.email.missingTitle'), text: t('konto.email.missingText') }
+      : {
+          tone: 'warn',
+          title: t('konto.email.missingTitle'),
+          text: t('konto.email.missingDueText', { date: dateText(email.dueAt, true) }),
+        };
+  }
+  if (email.dueAt === null) {
+    return {
+      tone: 'wait',
+      title: t('konto.email.waitingTitle'),
+      text: t('konto.email.waitingText'),
+    };
+  }
+  return {
+    tone: 'warn',
+    title: t('konto.email.dueTitle', { date: dateText(email.dueAt, true) }),
+    text: t('konto.email.dueText', { email: email.address }),
+  };
 }
 
 // ---------- Wappenstufe ----------

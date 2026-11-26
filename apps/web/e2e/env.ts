@@ -1,3 +1,6 @@
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 /**
  * Feste Adressen der E2E-Umgebung (ohne Abhängigkeiten, damit die Playwright-Konfiguration sie
  * laden kann, ohne Server-Code zu importieren). Überschreibbar, falls ein Port belegt ist.
@@ -19,3 +22,7 @@ export const E2E_API_PORT = apiPort;
 export const E2E_WEB_PORT = webPort;
 export const E2E_API_ORIGIN = `http://127.0.0.1:${apiPort}`;
 export const E2E_WEB_ORIGIN = `http://127.0.0.1:${webPort}`;
+
+/** Ausgang der Mails (ADR-086): Jede Mail liegt hier als Textdatei; die Tests lesen Links daraus. */
+export const E2E_MAIL_DIR =
+  process.env.E2E_MAIL_DIR?.trim() || join(tmpdir(), `rdw-e2e-mail-${apiPort}`);

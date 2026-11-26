@@ -1,5 +1,6 @@
 import { dbEnvSchema, localEnvProblem, type AppEnv } from '@rdw/db';
 import { z } from 'zod';
+import { DEFAULT_OUTBOX_DIR, type MailConfig } from './mail.ts';
 
 /**
  * Serverkonfiguration aus der Umgebung (docs/ARCHITECTURE.md §12). Geheimnisse kommen nur aus
@@ -37,6 +38,17 @@ const serverEnvSchema = dbEnvSchema
      * (MATCH_RULES §11.6). Ohne Angabe 20, lokal und in Tests 1.
      */
     REALM_MIN_CATEGORY_QUESTIONS: z.coerce.number().int().min(1).max(1000).optional(),
+    /**
+     * Mailversand (ADR-086): `outbox` legt Mails nur als Datei ab (Vorgabe), `smtp` verschickt sie
+     * über `SMTP_URL` (etwa `smtps://name:passwort@smtp.example.org:465`) mit Absender `MAIL_FROM`.
+     */
+    MAIL_TRANSPORT: z.enum(['outbox', 'smtp']).default('outbox'),
+    SMTP_URL: z
+      .url({ protocol: /^smtps?$/, error: 'muss eine smtp- oder smtps-Adresse sein' })
+      .optional(),
+    MAIL_FROM: z.string().min(3).max(200).optional(),
+    /** Ordner für Mails im Modus `outbox`; ohne Angabe `mail-ausgang/` im Repository. */
+    MAIL_OUTBOX_DIR: z.string().min(1).optional(),
     /** Nur für die Prüfung „lokale Datenbank“: Der Treiber nimmt PGHOST, wenn die URL keinen Host hat. */
     PGHOST: z.string().optional(),
   })
@@ -50,6 +62,27 @@ const serverEnvSchema = dbEnvSchema
         code: 'custom',
         path: ['COOKIE_SECURE'],
         message: `muss in ${env.APP_ENV} true sein`,
+      });
+    }
+    if (env.MAIL_TRANSPORT === 'smtp' && !env.SMTP_URL) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SMTP_URL'],
+        message: 'fehlt für MAIL_TRANSPORT=smtp',
+      });
+    }
+    if (env.MAIL_TRANSPORT === 'smtp' && !env.MAIL_FROM) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['MAIL_FROM'],
+        message: 'fehlt für MAIL_TRANSPORT=smtp',
+      });
+    }
+    if (env.APP_ENV === 'production' && env.MAIL_TRANSPORT !== 'smtp') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['MAIL_TRANSPORT'],
+        message: 'muss in production smtp sein',
       });
     }
     if (deployed && !env.PUBLIC_ORIGIN.startsWith('https://')) {
@@ -73,6 +106,7 @@ export interface ServerConfig {
   readonly logLevel: (typeof LOG_LEVELS)[number];
   /** `null` = Vorgabe der Umgebung (`matchContextFrom`). */
   readonly realmMinCategoryQuestions: number | null;
+  readonly mail: MailConfig;
 }
 
 /** Liest und prüft die Umgebung; nennt bei Fehlern nur Namen und Regeln, nie Werte. */
@@ -94,5 +128,11 @@ export function parseServerConfig(env: Record<string, string | undefined>): Serv
     rngKeyId: e.RNG_KEY_ID,
     logLevel: e.LOG_LEVEL,
     realmMinCategoryQuestions: e.REALM_MIN_CATEGORY_QUESTIONS ?? null,
+    mail: {
+      transport: e.MAIL_TRANSPORT,
+      outboxDir: e.MAIL_OUTBOX_DIR ?? DEFAULT_OUTBOX_DIR,
+      smtpUrl: e.SMTP_URL ?? null,
+      from: e.MAIL_FROM ?? null,
+    },
   };
 }

@@ -13,6 +13,7 @@ import {
   nameCheckSchema,
   playerNameSuggestionsSchema,
   profileResponseSchema,
+  loginResponseSchema,
   sessionResponseSchema,
 } from '@rdw/protocol';
 import { sql } from 'kysely';
@@ -53,8 +54,17 @@ function freshUsername(prefix = 'Spieler'): string {
     .slice(0, 4)}`;
 }
 
+/** Frische Adresse, damit sich Tests nicht in die Quere kommen. */
+function freshEmail(): string {
+  return `spieler.${randomUUID().slice(0, 8)}@example.org`;
+}
+
+/** Registrieren; ohne `email` im Körper mit einer frischen Adresse (ADR-086). */
 function register(client: TestClient, body: Record<string, unknown>, key: string = randomUUID()) {
-  return client.post('/auth/register', { headers: { 'idempotency-key': key }, payload: body });
+  return client.post('/auth/register', {
+    headers: { 'idempotency-key': key },
+    payload: { email: freshEmail(), ...body },
+  });
 }
 
 function login(client: TestClient, username: string, password: string) {
@@ -125,7 +135,7 @@ describe('Gast sichern (POST /auth/register)', () => {
     const body = await me(client);
     expect(body.user).toMatchObject({ id: userId, isGuest: false, username });
     // Ein Name für beides: Anmeldename und Spielername
-    expect(body.profile).toEqual({ displayName: username });
+    expect(body.profile).toEqual({ displayName: username, nameBlocked: false });
     const device = new TestClient(server.app);
     expect((await login(device, 'ödön kőszegi', PASSWORD)).statusCode).toBe(200);
   });
@@ -134,7 +144,7 @@ describe('Gast sichern (POST /auth/register)', () => {
     const client = new TestClient(server.app);
     const userId = await client.signUpGuest();
     const key = randomUUID();
-    const body = { username: freshUsername(), password: PASSWORD };
+    const body = { username: freshUsername(), email: freshEmail(), password: PASSWORD };
     expect((await register(client, body, key)).statusCode).toBe(201);
     const first = client.cookies.get('rdw_session');
     const replay = await register(client, body, key);
@@ -198,7 +208,7 @@ describe('Gast sichern (POST /auth/register)', () => {
     const client = new TestClient(server.app);
     await client.signUpGuest();
     // Passwort mit sieben Zeichen genügt (ADR-082)
-    const valid = { username: freshUsername(), password: 'sieben7' };
+    const valid = { username: freshUsername(), email: freshEmail(), password: 'sieben7' };
     const cases: [Record<string, unknown>, number, string][] = [
       [{ ...valid, username: 'ab' }, 400, 'VALIDATION_FAILED'],
       [{ ...valid, username: '  a  ' }, 400, 'VALIDATION_FAILED'],
@@ -211,7 +221,10 @@ describe('Gast sichern (POST /auth/register)', () => {
       [{ ...valid, username: '2024' }, 400, 'VALIDATION_FAILED'],
       [{ ...valid, password: 'kurz12' }, 400, 'VALIDATION_FAILED'],
       [{ ...valid, password: 'x'.repeat(129) }, 400, 'VALIDATION_FAILED'],
-      [{ ...valid, email: 'a@b.de' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, email: 'kein-at-zeichen' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, email: '' }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, email: `${'x'.repeat(250)}@b.de` }, 400, 'VALIDATION_FAILED'],
+      [{ ...valid, mail: 'a@b.de' }, 400, 'VALIDATION_FAILED'],
       [
         { ...valid, playerName: { adjective: 'Kühn', noun: 'Falke', number: null } },
         400,
@@ -283,9 +296,9 @@ describe('Anmelden und Abmelden (POST /auth/login, /auth/logout)', () => {
     const device = new TestClient(server.app);
     const response = await login(device, player.username.toUpperCase(), PASSWORD);
     expect(response.statusCode, response.body).toBe(200);
-    expect(sessionResponseSchema.parse(response.json()).user).toEqual({
-      id: player.userId,
-      isGuest: false,
+    expect(loginResponseSchema.parse(response.json())).toMatchObject({
+      user: { id: player.userId, isGuest: false },
+      deletionCancelled: false,
     });
     expect((await me(device)).user.id).toBe(player.userId);
     // Die Sitzung auf dem ersten Gerät bleibt bestehen
@@ -330,7 +343,7 @@ describe('Anmelden und Abmelden (POST /auth/login, /auth/logout)', () => {
     expect(guest?.id).toBe(guestId);
   });
 
-  it('meldet Konten mit Löschantrag nicht an', async () => {
+  it('hebt mit der Anmeldung einen Löschantrag auf (O-47 B, ADR-086)', async () => {
     const player = await registeredPlayer();
     await server.db
       .updateTable('users')
@@ -338,10 +351,20 @@ describe('Anmelden und Abmelden (POST /auth/login, /auth/logout)', () => {
       .where('id', '=', player.userId)
       .execute();
     const client = new TestClient(server.app);
-    expect(errorOf(await login(client, player.username, PASSWORD))).toMatchObject({
+    // Falsches Passwort hebt nichts auf
+    expect(errorOf(await login(client, player.username, 'falsches-passwort'))).toMatchObject({
       status: 401,
       code: 'INVALID_CREDENTIALS',
     });
+    const response = await login(client, player.username, PASSWORD);
+    expect(response.statusCode, response.body).toBe(200);
+    expect(loginResponseSchema.parse(response.json()).deletionCancelled).toBe(true);
+    const row = await server.db
+      .selectFrom('users')
+      .select('deletion_requested_at')
+      .where('id', '=', player.userId)
+      .executeTakeFirstOrThrow();
+    expect(row.deletion_requested_at).toBeNull();
   });
 });
 
@@ -473,6 +496,7 @@ describe('Namen ändern (PATCH /me/profile)', () => {
     expect(response.statusCode, response.body).toBe(200);
     expect(profileResponseSchema.parse(response.json()).profile).toEqual({
       displayName: 'Listige Elster',
+      nameBlocked: false,
     });
     const body = await me(player.client);
     expect(body.profile.displayName).toBe('Listige Elster');
@@ -522,7 +546,7 @@ describe('Namen ändern (PATCH /me/profile)', () => {
       status: 403,
       code: 'GUEST_ACCOUNT',
     });
-    expect((await me(guest)).profile).toEqual({ displayName: null });
+    expect((await me(guest)).profile).toEqual({ displayName: null, nameBlocked: false });
   });
 });
 

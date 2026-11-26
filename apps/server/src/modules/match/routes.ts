@@ -13,6 +13,7 @@ import {
   type MatchPresentResponse,
   type MatchWatchResponse,
   type MatchView,
+  type NameReportResponse,
   type PlayerStatsResponse,
 } from '@rdw/protocol';
 import type { Tx } from '@rdw/db';
@@ -23,6 +24,7 @@ import { readGameNow } from '../../infra/clock.ts';
 import { idempotencyKey, runIdempotent, type IdempotentOutcome } from '../../infra/idempotency.ts';
 import { parseInput } from '../../infra/validation.ts';
 import { requireAuth } from '../identity/auth-hook.ts';
+import { assertNameNotBlocked, reportPlayerName } from '../identity/name-reports.ts';
 import { answerMatchQuestion, presentMatchQuestion, watchMatchQuestion } from './answers.ts';
 import { matchContextFrom } from './context.ts';
 import {
@@ -79,6 +81,8 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
     const auth = requireAuth(request);
     const body = parseInput(matchCreateRequestSchema, request.body);
     const key = idempotencyKey(request);
+    // Ein gesperrter Name muss erst ersetzt werden (O-48, ADR-086)
+    await assertNameNotBlocked(ctx.db, auth.userId);
     await expireLobbies(ctx.db, { userId: auth.userId });
     const outcome = await runIdempotent(
       ctx.db,
@@ -95,6 +99,7 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
     const auth = requireAuth(request);
     const body = parseInput(matchJoinRequestSchema, request.body);
     const key = idempotencyKey(request);
+    await assertNameNotBlocked(ctx.db, auth.userId);
     await expireLobbies(ctx.db, { userId: auth.userId });
     const outcome = await runIdempotent(
       ctx.db,
@@ -105,6 +110,30 @@ export function matchRoutes(app: FastifyInstance, ctx: AppContext): void {
           inviteCode: body.inviteCode,
         });
         return { status: 200, body: await action(tx, matchId) };
+      },
+    );
+    return send(reply, outcome);
+  });
+
+  /** Namen eines Mitspielers melden (O-48, ADR-086); eine zweite Meldung ändert nichts. */
+  app.post('/matches/:matchId/players/:joinOrder/report', async (request, reply) => {
+    const auth = requireAuth(request);
+    const { matchId, joinOrder } = parseInput(seatParams, request.params);
+    const outcome = await runIdempotent(
+      ctx.db,
+      {
+        userId: auth.userId,
+        key: idempotencyKey(request),
+        endpoint: 'POST /matches/:matchId/players/:joinOrder/report',
+        input: { matchId, joinOrder },
+      },
+      async (tx) => {
+        const name = await reportPlayerName(tx, { reporterId: auth.userId, matchId, joinOrder });
+        const body: NameReportResponse = {
+          name,
+          serverTime: (await readGameNow(tx)).toISOString(),
+        };
+        return { status: 201, body };
       },
     );
     return send(reply, outcome);

@@ -30,6 +30,22 @@ export interface BattleResultsTable {
   capital_protected_until: ColumnType<Date | null, Date | string | null, Date | string | null>;
 }
 
+export interface BlockedNamesTable {
+  name_key: string;
+  name: string;
+  blocked_at: ColumnType<Date, Date | string | undefined, Date | string>;
+}
+
+export interface EmailVerificationsTable {
+  id: string;
+  user_id: string;
+  email: string;
+  token_hash: Buffer;
+  created_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  expires_at: ColumnType<Date, Date | string, Date | string>;
+  used_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+}
+
 export interface GameClockTable {
   id: number;
   offset: ColumnType<object, string | undefined, string>;
@@ -163,6 +179,17 @@ export interface MatchesTable {
   mode: ColumnType<string, string | undefined, string>;
 }
 
+export interface NameReportsTable {
+  id: string;
+  reporter_user_id: string;
+  reported_user_id: string;
+  reported_name: string;
+  match_id: string | null;
+  status: ColumnType<string, string | undefined, string>;
+  created_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  resolved_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
+}
+
 export interface NpcFactionsTable {
   id: string;
   instance_id: string;
@@ -194,6 +221,7 @@ export interface PlayerProfilesTable {
   created_at: ColumnType<Date, Date | string | undefined, Date | string>;
   name_parts: ColumnType<JsonValue | null, string | null, string | null>;
   updated_at: ColumnType<Date, Date | string | undefined, Date | string>;
+  name_blocked_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
 }
 
 export interface PlayerQuestionExposureTable {
@@ -438,6 +466,7 @@ export interface UsersTable {
   deletion_requested_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   deleted_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
   username: string | null;
+  email_due_at: ColumnType<Date | null, Date | string | null, Date | string | null>;
 }
 
 export interface WorldEventsTable {
@@ -509,6 +538,8 @@ export interface WorldsTable {
 export interface Database {
   battle_events: BattleEventsTable;
   battle_results: BattleResultsTable;
+  blocked_names: BlockedNamesTable;
+  email_verifications: EmailVerificationsTable;
   game_clock: GameClockTable;
   idempotency_keys: IdempotencyKeysTable;
   kingdom_history: KingdomHistoryTable;
@@ -519,6 +550,7 @@ export interface Database {
   match_players: MatchPlayersTable;
   match_questions: MatchQuestionsTable;
   matches: MatchesTable;
+  name_reports: NameReportsTable;
   npc_factions: NpcFactionsTable;
   npc_profiles: NpcProfilesTable;
   player_profiles: PlayerProfilesTable;

@@ -2,6 +2,7 @@ import { createDb, createPool } from '@rdw/db';
 import type { FastifyBaseLogger } from 'fastify';
 import { buildApp } from './app.ts';
 import { parseServerConfig } from './infra/config.ts';
+import { createMailer } from './infra/mail.ts';
 import { startChallengeSweeper } from './modules/combat/sweeper.ts';
 import { startAccountCleanup } from './modules/identity/deletion.ts';
 import { matchContextFrom } from './modules/match/context.ts';
@@ -20,12 +21,22 @@ async function main(): Promise<void> {
     else console.error('Datenbankverbindung im Leerlauf verloren:', error.message);
   });
   const db = createDb(pool);
-  const app = await buildApp({ db, config });
+  // Der Mailversand schreibt ins Log der Anwendung (Mails im Ausgang mit Datei)
+  const mailer = createMailer(config.mail, {
+    info: (obj: object, msg?: string) => logger.current?.info(obj, msg),
+  });
+  const app = await buildApp({ db, config, mailer });
   logger.current = app.log;
+  if (!mailer.delivers) {
+    app.log.warn(
+      'Kein Mailversand eingerichtet (MAIL_TRANSPORT=outbox): Mails liegen in mail-ausgang/, unbestätigte Konten werden nicht gelöscht',
+    );
+  }
   // Bis zum Worker-Prozess (Phase 3) räumt der api-Prozess liegen gebliebene Kämpfe auf (ADR-034).
   const stopSweeper = startChallengeSweeper(db, app.log);
-  // Ebenso die Kontopflege: inaktive Gäste nach 90 Tagen, abgelaufene Sitzungen (ADR-045).
-  const stopAccountCleanup = startAccountCleanup(db, app.log);
+  // Ebenso die Kontopflege: inaktive Gäste nach 90 Tagen, Löschanträge, unbestätigte E-Mails,
+  // abgelaufene Sitzungen (ADR-045, ADR-086).
+  const stopAccountCleanup = startAccountCleanup(db, app.log, { mailDelivers: mailer.delivers });
   // Ablaufsteuerung der Partien: Fristen, Auflösungen, verwaiste Aufstellungen (ADR-049).
   const stopMatchDriver = startMatchDriver(db, matchContextFrom(config), app.log);
   const shutdown = async (signal: string) => {

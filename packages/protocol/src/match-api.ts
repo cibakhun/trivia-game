@@ -158,6 +158,15 @@ export type MatchOrdersRequest = z.infer<typeof matchOrdersRequestSchema>;
 export const matchPickRequestSchema = z.object({ region: matchRegionIndexSchema }).strict();
 export type MatchPickRequest = z.infer<typeof matchPickRequestSchema>;
 
+/**
+ * `POST /matches/:matchId/players/:joinOrder/report` (O-48, ADR-086): Den Namen eines Mitspielers
+ * melden. Antwort mit dem gemeldeten Namen; eine zweite Meldung desselben Namens ändert nichts.
+ */
+export const nameReportResponseSchema = z
+  .object({ name: z.string(), serverTime: timestampSchema })
+  .strict();
+export type NameReportResponse = z.infer<typeof nameReportResponseSchema>;
+
 /** `POST /matches/:matchId/questions/:seq/answer`: wie bei Herausforderungen (QUIZ_ENGINE §6.2). */
 export const matchAnswerRequestSchema = answerRequestSchema;
 export type MatchAnswerRequest = z.infer<typeof matchAnswerRequestSchema>;
@@ -176,6 +185,11 @@ export const matchPlayerSchema = z
     botStrength: matchBotStrengthSchema.nullable(),
     isHost: z.boolean(),
     isMe: z.boolean(),
+    /**
+     * Kann ich diesen Namen melden (O-48, ADR-086)? Nur andere Menschen mit selbst gewähltem Namen;
+     * Bots und Gäste tragen Namen des Spiels.
+     */
+    reportable: z.boolean(),
     /**
      * Lieblingskategorien in der Partie mit Ausbau; `null` ohne Ausbau und solange in der
      * Aufstellung nichts gewählt ist (beim Start bekommt dieser Platz dann zufällige).

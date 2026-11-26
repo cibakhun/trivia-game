@@ -81,7 +81,20 @@ export async function nameTaken(
   return Boolean(row.profile) || Boolean(row.login);
 }
 
-/** Antwort auf `GET /names/check`: Regeln, Wortfilter, eigener Name, vergeben. */
+/**
+ * Hat die Spielleitung den Namen nach einer Meldung gesperrt (O-48, ADR-086)? Verglichen wird in
+ * jeder Schreibweise (`player_name_key`).
+ */
+export async function nameBlockedByStaff(db: Db | Tx, name: string): Promise<boolean> {
+  const row = await db
+    .selectFrom('blocked_names')
+    .select('name_key')
+    .where(sql<boolean>`name_key = player_name_key(${name})`)
+    .executeTakeFirst();
+  return row !== undefined;
+}
+
+/** Antwort auf `GET /names/check`: Regeln, Wortfilter, gesperrte Namen, eigener Name, vergeben. */
 export async function checkName(
   db: Db,
   raw: string,
@@ -89,7 +102,9 @@ export async function checkName(
 ): Promise<{ name: string; status: NameCheckStatus }> {
   const name = normalizeUsername(raw);
   if (usernameProblem(name) !== null) return { name, status: 'INVALID' };
-  if (!nameAllowed(name)) return { name, status: 'BLOCKED' };
+  if (!nameAllowed(name) || (await nameBlockedByStaff(db, name))) {
+    return { name, status: 'BLOCKED' };
+  }
   const own = await db
     .selectFrom('player_profiles')
     .select('display_name')
@@ -106,13 +121,16 @@ export function parseKingdomName(value: unknown): KingdomNameParts {
   return { prefix: value.prefix, suffix: value.suffix };
 }
 
-export async function loadProfile(db: Db, userId: string): Promise<ProfileDto> {
+export async function loadProfile(db: Db | Tx, userId: string): Promise<ProfileDto> {
   const row = await db
     .selectFrom('player_profiles')
-    .select(['display_name'])
+    .select(['display_name', 'name_blocked_at'])
     .where('user_id', '=', userId)
     .executeTakeFirst();
-  return { displayName: row?.display_name ?? null };
+  return {
+    displayName: row?.display_name ?? null,
+    nameBlocked: (row?.name_blocked_at ?? null) !== null,
+  };
 }
 
 /**
@@ -128,6 +146,9 @@ export async function setPlayerName(
   name: string,
   options: { readonly login: boolean },
 ): Promise<string> {
+  if (await nameBlockedByStaff(tx, name)) {
+    throw new ApiError(422, 'NAME_NOT_ALLOWED', 'Dieser Name ist nicht erlaubt');
+  }
   if (await nameTaken(tx, name, userId)) {
     throw new ApiError(409, 'USERNAME_TAKEN', 'Benutzername ist vergeben');
   }
@@ -148,6 +169,8 @@ export async function setPlayerName(
         oc.column('user_id').doUpdateSet({
           display_name: name,
           name_parts: null,
+          // Ein neuer Name hebt eine Sperre nach Meldung auf (ADR-086)
+          name_blocked_at: null,
           updated_at: gameNow,
         }),
       )

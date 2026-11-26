@@ -1,17 +1,31 @@
+import { SessionFlashNote } from './components/SessionFlash.tsx';
 import { MenuScreen } from './menu/MenuScreen.tsx';
 import { useRoute } from './router.ts';
 import { ChallengeScreen } from './screens/ChallengeScreen.tsx';
 import { JoinScreen } from './screens/JoinScreen.tsx';
 import { MatchScreen } from './screens/MatchScreen.tsx';
 import { PlayScreen } from './screens/PlayScreen.tsx';
+import { VerifyEmailScreen } from './screens/VerifyEmailScreen.tsx';
 import { WorldsScreen } from './screens/WorldsScreen.tsx';
 import { useSession } from './session.tsx';
 
 export function App() {
+  return (
+    <>
+      <Screen />
+      <SessionFlashNote />
+    </>
+  );
+}
+
+function Screen() {
   const route = useRoute();
   const { state } = useSession();
   // Der Einladungslink gilt auch ohne Sitzung: Die Seite legt auf Wunsch ein Gastkonto an
   if (route.name === 'matchJoin') return <JoinScreen key={route.code} code={route.code} />;
+  // Ebenso der Link aus der Bestätigungsmail (ADR-086)
+  if (route.name === 'emailVerify')
+    return <VerifyEmailScreen key={route.token} token={route.token} />;
   // Ohne Sitzung begrüßt das Hauptmenü (Gastkonto anlegen oder anmelden); das Blatt der Adresse
   // öffnet sich, sobald die Sitzung steht
   if (state.status === 'anonymous') {

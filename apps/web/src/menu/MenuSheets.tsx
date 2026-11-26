@@ -30,7 +30,7 @@ import {
  */
 
 /** Rahmen eines Blatts: Kopf mit Zurück und Titel; der Fokus springt beim Öffnen auf den Titel. */
-function SheetFrame({
+export function SheetFrame({
   title,
   sub,
   onBack,

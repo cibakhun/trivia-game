@@ -4,6 +4,7 @@ import { createTestDatabase } from '@rdw/db/testing';
 import { TEST_WORLD_SEED, testWorldPreset } from '@rdw/game-core';
 import { PLAYTEST_RULES } from '@rdw/protocol';
 import {
+  OutboxMailer,
   buildApp,
   createWorld,
   matchContextFrom,
@@ -11,9 +12,10 @@ import {
   startMatchDriver,
 } from '@rdw/server';
 import { randomBytes } from 'node:crypto';
+import { rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { build, preview } from 'vite';
-import { E2E_API_ORIGIN, E2E_API_PORT, E2E_WEB_ORIGIN, E2E_WEB_PORT } from './env.ts';
+import { E2E_API_ORIGIN, E2E_API_PORT, E2E_MAIL_DIR, E2E_WEB_ORIGIN, E2E_WEB_PORT } from './env.ts';
 
 /**
  * Startet die E2E-Umgebung (TEST_PLAN §2): eigene, frisch migrierte Testdatenbank mit den
@@ -81,8 +83,14 @@ export async function startStack(): Promise<E2eStack> {
       rngKeyId: 'e2e',
       logLevel: 'silent',
       realmMinCategoryQuestions: null,
+      mail: { transport: 'outbox', outboxDir: E2E_MAIL_DIR, smtpUrl: null, from: null },
     } as const;
-    const app = await buildApp({ db, logger: false, config });
+    // Mails landen im Ausgang, gelten aber als zugestellt: So zeigt die Kontoseite die Frist von
+    // 30 Tagen wie mit echtem Versand (ADR-086)
+    await rm(E2E_MAIL_DIR, { recursive: true, force: true });
+    const outbox = new OutboxMailer(E2E_MAIL_DIR, null);
+    const mailer = { delivers: true, send: outbox.send.bind(outbox) };
+    const app = await buildApp({ db, logger: false, config, mailer });
     stops.push(() => app.close());
     await app.listen({ host: '127.0.0.1', port: E2E_API_PORT });
     const stopSweeper = startChallengeSweeper(db, app.log);

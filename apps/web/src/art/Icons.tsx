@@ -19,7 +19,9 @@ export type IconKind =
   | 'lock'
   | 'door'
   | 'dice'
-  | 'shield';
+  | 'shield'
+  | 'mail'
+  | 'flag';
 
 const PATHS: Record<IconKind, ReactNode> = {
   banner: (
@@ -129,6 +131,30 @@ const PATHS: Record<IconKind, ReactNode> = {
         strokeWidth="6"
       />
       <path d="M-14 0L-3 11L16-12" className="icon-ink" strokeWidth="8" />
+    </>
+  ),
+  mail: (
+    <>
+      <rect
+        x="-38"
+        y="-26"
+        width="76"
+        height="52"
+        rx="7"
+        className="icon-paper icon-ink"
+        strokeWidth="6"
+      />
+      <path d="M-34-21L0 6L34-21" className="icon-ink" strokeWidth="6" />
+    </>
+  ),
+  flag: (
+    <>
+      <path d="M-26-42V44" className="icon-ink" strokeWidth="7" />
+      <path
+        d="M-24-38C-6-46 8-28 32-36V4C8 12-6-6-24 2Z"
+        className="icon-fill icon-ink"
+        strokeWidth="5"
+      />
     </>
   ),
 };

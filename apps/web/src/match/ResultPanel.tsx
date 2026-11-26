@@ -7,6 +7,7 @@ import { SeatCrest } from '../art/SeatCrest.tsx';
 import { formatNumber, t, tp } from '../i18n/i18n.ts';
 import { navigate } from '../router.ts';
 import { rulesOf } from './match-model.ts';
+import { ReportNames } from './ReportNames.tsx';
 import type { SeatName } from './match-text.ts';
 import {
   resultTiming,
@@ -257,6 +258,7 @@ export function ResultPanel({
       ) : view.players.some((p) => p.isBot) ? (
         <p className="muted">{t('match.result.bots')}</p>
       ) : null}
+      <ReportNames view={view} />
       <div className="actions">
         <button
           type="button"

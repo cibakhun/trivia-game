@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "start": "tsx --env-file-if-exists=../../.env src/main-api.ts",
     "world:create": "tsx --env-file-if-exists=../../.env src/cli/world-create.ts",
-    "account:reset-password": "tsx --env-file-if-exists=../../.env src/cli/account-reset-password.ts"
+    "account:reset-password": "tsx --env-file-if-exists=../../.env src/cli/account-reset-password.ts",
+    "account:name-reports": "tsx --env-file-if-exists=../../.env src/cli/account-name-reports.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.3",
@@ -20,11 +21,13 @@
     "@rdw/protocol": "workspace:*",
     "fastify": "5.12.7",
     "kysely": "0.29.7",
+    "nodemailer": "10.5.0",
     "pg": "8.23.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@rdw/content-tools": "workspace:*",
+    "@types/nodemailer": "8.0.2",
     "@types/pg": "8.23.1"
   }
 }

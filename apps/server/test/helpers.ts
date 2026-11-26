@@ -7,6 +7,7 @@ import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fas
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { buildApp, createWorld, type CreatedWorld, type ServerConfig } from '../src/index.ts';
+import { MemoryMailer } from '../src/infra/mail.ts';
 import type { ThrottleOptions } from '../src/modules/identity/throttle.ts';
 
 /** Testhelfer für den Server: eigene Datenbank je Datei, Anfragen per `inject` mit Cookie-Speicher. */
@@ -26,6 +27,7 @@ export function testConfig(databaseUrl: string): ServerConfig {
     rngKeyId: 'test',
     logLevel: 'silent',
     realmMinCategoryQuestions: null,
+    mail: { transport: 'outbox', outboxDir: '/nonexistent', smtpUrl: null, from: null },
   };
 }
 
@@ -33,18 +35,27 @@ export interface TestServer {
   readonly app: FastifyInstance;
   readonly db: Db;
   readonly database: TestDatabase;
+  /** Verschickte Mails (ADR-086); stellt standardmäßig zu. */
+  readonly mailer: MemoryMailer;
   close(): Promise<void>;
 }
 
 export async function startTestServer(
-  options: { readonly loginThrottle?: ThrottleOptions } = {},
+  options: { readonly loginThrottle?: ThrottleOptions; readonly mailer?: MemoryMailer } = {},
 ): Promise<TestServer> {
   const database = await createTestDatabase();
   // kein db.destroy(): drop() beendet den Pool
   const db = createDb(database.pool);
+  const mailer = options.mailer ?? new MemoryMailer(true);
   let app: FastifyInstance;
   try {
-    app = await buildApp({ db, config: testConfig(database.url), logger: false, ...options });
+    app = await buildApp({
+      db,
+      config: testConfig(database.url),
+      logger: false,
+      mailer,
+      ...(options.loginThrottle ? { loginThrottle: options.loginThrottle } : {}),
+    });
   } catch (error) {
     // sonst blieben Testdatenbank und Pool liegen
     await database.drop();
@@ -54,6 +65,7 @@ export async function startTestServer(
     app,
     db,
     database,
+    mailer,
     close: async () => {
       await app.close();
       await database.drop();
@@ -104,7 +116,11 @@ export class TestClient {
   readonly cookies = new Map<string, string>();
   constructor(private readonly app: FastifyInstance) {}
 
-  async request(method: 'GET' | 'POST' | 'PATCH', path: string, options: RequestOptions = {}) {
+  async request(
+    method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
+    path: string,
+    options: RequestOptions = {},
+  ) {
     const headers: Record<string, string> = { ...options.headers };
     const origin =
       options.origin === undefined ? (method === 'GET' ? null : ORIGIN) : options.origin;
@@ -141,6 +157,14 @@ export class TestClient {
 
   patch(path: string, options?: RequestOptions) {
     return this.request('PATCH', path, options);
+  }
+
+  put(path: string, options?: RequestOptions) {
+    return this.request('PUT', path, options);
+  }
+
+  delete(path: string, options?: RequestOptions) {
+    return this.request('DELETE', path, options);
   }
 
   /** Bootstrap und Gastkonto in einem Schritt. */

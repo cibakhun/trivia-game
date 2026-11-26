@@ -1,6 +1,9 @@
 import type { FastifyInstance } from 'fastify';
 import {
+  accountDeleteRequestSchema,
   DEFAULT_LOCALE,
+  emailChangeRequestSchema,
+  emailVerifyRequestSchema,
   entityIdSchema,
   localeSchema,
   loginRequestSchema,
@@ -9,9 +12,13 @@ import {
   profileSchema,
   profileUpdateRequestSchema,
   registerRequestSchema,
+  type AccountDeleteResponse,
   type AuthStatus,
+  type EmailResponse,
+  type EmailVerifyResponse,
   type GuestResponse,
   type KingdomNameSuggestions,
+  type LoginResponse,
   type MeResponse,
   type NameCheck,
   type PlayerNameSuggestions,
@@ -28,7 +35,7 @@ import { idempotencyKey, runIdempotent } from '../../infra/idempotency.ts';
 import { parseInput } from '../../infra/validation.ts';
 import { settleOpenSiegesOfUser } from '../combat/sweeper.ts';
 import { listMyInstances } from '../world/queries.ts';
-import { changePassword, login, registerGuest } from './account.ts';
+import { changePassword, login, registerGuest, requestDeletion } from './account.ts';
 import { requireAuth } from './auth-hook.ts';
 import {
   BOOTSTRAP_COOKIE,
@@ -36,6 +43,15 @@ import {
   bootstrapCookieOptions,
   sessionCookieOptions,
 } from './cookies.ts';
+import { deleteIfDue, DELETION_GRACE_MS } from './deletion.ts';
+import {
+  changeEmail,
+  loadEmailState,
+  resendEmailLink,
+  sendLink,
+  verifyEmail,
+  type PendingLink,
+} from './email.ts';
 import { createOrResumeGuest } from './guest.ts';
 import { hashPassword } from './passwords.ts';
 import {
@@ -58,6 +74,8 @@ const storedProfileSchema = z.object({ profile: profileSchema });
  */
 export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
   const throttle = new LoginThrottle(ctx.loginThrottle);
+  const mail = { db: ctx.db, mailer: ctx.mailer, publicOrigin: ctx.config.publicOrigin };
+  const delivers = ctx.mailer.delivers;
 
   app.get('/auth/bootstrap', async (request, reply): Promise<AuthStatus> => {
     const now = await readGameNow(ctx.db);
@@ -109,24 +127,30 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
     const key = idempotencyKey(request);
     const passwordHash = await hashPassword(body.password);
     let sessionToken: string | null = null;
+    let link: PendingLink | null = null;
     const outcome = await runIdempotent(
       ctx.db,
       {
         userId: auth.userId,
         key,
         endpoint: 'POST /auth/register',
-        input: { username: body.username },
+        input: { username: body.username, email: body.email },
       },
       async (tx) => {
-        sessionToken = await registerGuest(tx, {
+        const registered = await registerGuest(tx, {
           userId: auth.userId,
           username: body.username,
+          email: body.email,
           passwordHash,
         });
+        sessionToken = registered.sessionToken;
+        link = registered.link;
         return { status: 201, body: { userId: auth.userId } };
       },
     );
     sessionToken ??= await createSession(ctx.db, auth.userId);
+    // Der Link geht erst nach dem Commit hinaus; scheitert der Versand, fordert man einen neuen an
+    if (link) await sendLink(mail, auth.userId, link, request.log);
     if (outcome.replayed) reply.header('idempotency-replayed', 'true');
     reply.setCookie(SESSION_COOKIE, sessionToken, sessionCookieOptions(ctx.config));
     reply.status(outcome.status);
@@ -134,7 +158,7 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
     return { user: { id: auth.userId, isGuest: false }, serverTime: now.toISOString() };
   });
 
-  app.post('/auth/login', async (request, reply): Promise<SessionResponse> => {
+  app.post('/auth/login', async (request, reply): Promise<LoginResponse> => {
     const body = parseInput(loginRequestSchema, request.body);
     const result = await login(ctx.db, throttle, {
       username: body.username,
@@ -144,7 +168,22 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
     });
     reply.setCookie(SESSION_COOKIE, result.sessionToken, sessionCookieOptions(ctx.config));
     const now = await readGameNow(ctx.db);
-    return { user: { id: result.userId, isGuest: false }, serverTime: now.toISOString() };
+    return {
+      user: { id: result.userId, isGuest: false },
+      deletionCancelled: result.deletionCancelled,
+      serverTime: now.toISOString(),
+    };
+  });
+
+  /**
+   * Bestätigungslink aus der Mail (ADR-086). Geht ohne Sitzung, denn der Link öffnet sich oft in
+   * einem anderen Browser; das Token selbst weist aus. Von Natur aus wiederholbar.
+   */
+  app.post('/auth/email/verify', async (request): Promise<EmailVerifyResponse> => {
+    const body = parseInput(emailVerifyRequestSchema, request.body);
+    const result = await verifyEmail(ctx.db, body.token);
+    const now = await readGameNow(ctx.db);
+    return { email: result.email, serverTime: now.toISOString() };
   });
 
   app.post('/auth/logout', async (request, reply) => {
@@ -165,6 +204,7 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
     await settleOpenSiegesOfUser(ctx.db, auth.userId, request.log);
     const instances = await listMyInstances(ctx.db, auth.userId);
     const profile = await loadProfile(ctx.db, auth.userId);
+    const email = await loadEmailState(ctx.db, auth.userId, delivers);
     const now = await readGameNow(ctx.db);
     return {
       user: {
@@ -172,6 +212,7 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
         isGuest: user.is_guest,
         createdAt: user.created_at.toISOString(),
         username: user.username,
+        email,
       },
       profile,
       settings: { locale: localeSchema.parse(user.locale ?? DEFAULT_LOCALE) },
@@ -236,6 +277,98 @@ export function identityRoutes(app: FastifyInstance, ctx: AppContext): void {
     );
     if (outcome.replayed) reply.header('idempotency-replayed', 'true');
     return reply.status(204).send();
+  });
+
+  /**
+   * Neue E-Mail-Adresse (ADR-086). Der Antwortspeicher hält nur, ob ein Link nötig war; eine
+   * Wiederholung verschickt nichts zweimal und liefert den Stand von jetzt.
+   */
+  app.put('/me/email', async (request, reply): Promise<EmailResponse> => {
+    const auth = requireAuth(request);
+    const body = parseInput(emailChangeRequestSchema, request.body);
+    if (auth.isGuest) throw new ApiError(403, 'GUEST_ACCOUNT', 'Nur für gesicherte Konten');
+    let link: PendingLink | null = null;
+    const outcome = await runIdempotent(
+      ctx.db,
+      {
+        userId: auth.userId,
+        key: idempotencyKey(request),
+        endpoint: 'PUT /me/email',
+        input: { email: body.email },
+      },
+      async (tx) => {
+        link = await changeEmail(tx, auth.userId, body.email);
+        return { status: 200, body: { linked: link !== null } };
+      },
+    );
+    if (outcome.replayed) reply.header('idempotency-replayed', 'true');
+    const mailSent = link ? await sendLink(mail, auth.userId, link, request.log) : false;
+    const now = await readGameNow(ctx.db);
+    return {
+      email: (await loadEmailState(ctx.db, auth.userId, delivers))!,
+      mailSent,
+      serverTime: now.toISOString(),
+    };
+  });
+
+  /** Neuer Bestätigungslink für die wartende oder unbestätigte Adresse (ADR-086). */
+  app.post('/me/email/resend', async (request, reply): Promise<EmailResponse> => {
+    const auth = requireAuth(request);
+    if (auth.isGuest) throw new ApiError(403, 'GUEST_ACCOUNT', 'Nur für gesicherte Konten');
+    let link: PendingLink | null = null;
+    const outcome = await runIdempotent(
+      ctx.db,
+      {
+        userId: auth.userId,
+        key: idempotencyKey(request),
+        endpoint: 'POST /me/email/resend',
+        input: {},
+      },
+      async (tx) => {
+        link = await resendEmailLink(tx, auth.userId);
+        return { status: 200, body: { linked: link !== null } };
+      },
+    );
+    if (outcome.replayed) reply.header('idempotency-replayed', 'true');
+    const mailSent = link ? await sendLink(mail, auth.userId, link, request.log) : false;
+    const now = await readGameNow(ctx.db);
+    return {
+      email: (await loadEmailState(ctx.db, auth.userId, delivers))!,
+      mailSent,
+      serverTime: now.toISOString(),
+    };
+  });
+
+  /**
+   * Löschantrag (O-47 B, ADR-086): beendet alle Sitzungen. Registrierte Konten werden nach 7 Tagen
+   * gelöscht, wenn sie sich bis dahin nicht wieder anmelden; Gäste gleich. Ohne Antwortspeicher:
+   * Danach gibt es keine Sitzung mehr, mit der eine Wiederholung ankäme.
+   */
+  app.delete('/me', async (request, reply): Promise<AccountDeleteResponse> => {
+    const auth = requireAuth(request);
+    const body = parseInput(accountDeleteRequestSchema, request.body ?? {});
+    const requested = await requestDeletion(ctx.db, throttle, {
+      userId: auth.userId,
+      password: body.password,
+      address: request.ip,
+    });
+    reply.clearCookie(SESSION_COOKIE, sessionCookieOptions(ctx.config));
+    let deletesAt: string | null = new Date(
+      requested.requestedAt.getTime() + DELETION_GRACE_MS,
+    ).toISOString();
+    if (requested.isGuest) {
+      // Klappt es jetzt nicht (offene Belagerung), erledigt es die Kontopflege
+      const deleted = await deleteIfDue(ctx.db, auth.userId, 'REQUESTED', request.log).catch(
+        (error: unknown) => {
+          request.log.error({ err: error }, 'Gastkonto nicht sofort gelöscht');
+          return false;
+        },
+      );
+      deletesAt = deleted ? null : requested.requestedAt.toISOString();
+    }
+    reply.status(202);
+    const now = await readGameNow(ctx.db);
+    return { deletesAt, serverTime: now.toISOString() };
   });
 
   /** Ist der Name als Benutzername zu haben? Für die Prüfung beim Tippen (ADR-082). */
