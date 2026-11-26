@@ -1,6 +1,7 @@
 export { buildApp, type BuildAppOptions } from './app.ts';
 export type { AppContext } from './context.ts';
 export { parseServerConfig, type ServerConfig } from './infra/config.ts';
+export { OutboxMailer, type Mail, type Mailer } from './infra/mail.ts';
 export {
   createWorld,
   type CreateWorldOptions,
@@ -17,6 +18,7 @@ export {
   deleteAccount,
   GUEST_INACTIVITY_MS,
 } from './modules/identity/deletion.ts';
+export { decideName, type NameDecision } from './modules/identity/name-reports.ts';
 export { matchContextFrom, type MatchContext } from './modules/match/context.ts';
 export { advanceMatch, runMatchDriverOnce, startMatchDriver } from './modules/match/driver.ts';
 export { expireLobbies, LOBBY_TTL_MS } from './modules/match/lobby.ts';

@@ -22,6 +22,7 @@
     "db:types": "pnpm --filter @rdw/db types",
     "world:create": "pnpm --filter @rdw/server world:create",
     "account:reset-password": "pnpm --filter @rdw/server account:reset-password",
+    "account:name-reports": "pnpm --filter @rdw/server account:name-reports",
     "api:start": "pnpm --filter @rdw/server start",
     "web:dev": "pnpm --filter @rdw/web dev",
     "e2e": "pnpm --filter @rdw/web e2e",

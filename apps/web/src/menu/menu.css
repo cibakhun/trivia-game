@@ -217,6 +217,47 @@
   text-underline-offset: 0.18em;
 }
 
+/* Mahnung (ADR-086): neuen Namen wählen, E-Mail eintragen oder bestätigen */
+.menu-plate-sub.alert {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.menu-plate-crest {
+  position: relative;
+  flex: none;
+  display: grid;
+}
+
+.menu-plate-dot {
+  position: absolute;
+  top: calc(-2 * var(--u));
+  right: calc(-3 * var(--u));
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
+  border-radius: 50%;
+  background: var(--danger);
+  border: calc(1.5 * var(--u)) solid var(--surface);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .menu-plate-dot {
+    animation: menu-plate-dot 2.4s ease-in-out 1s infinite;
+  }
+}
+
+@keyframes menu-plate-dot {
+  0%,
+  70%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 45%, transparent);
+  }
+
+  85% {
+    box-shadow: 0 0 0 calc(5 * var(--u)) color-mix(in srgb, var(--danger) 0%, transparent);
+  }
+}
+
 .menu-mark {
   position: absolute;
   z-index: 2;

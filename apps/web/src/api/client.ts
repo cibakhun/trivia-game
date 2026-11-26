@@ -1,15 +1,19 @@
 import {
   API_PREFIX,
   IDEMPOTENCY_KEY_HEADER,
+  accountDeleteResponseSchema,
   answerResponseSchema,
   attackResponseSchema,
   authStatusSchema,
   challengeViewSchema,
   defenseResponseSchema,
+  emailResponseSchema,
+  emailVerifyResponseSchema,
   errorBodySchema,
   guestResponseSchema,
   joinResponseSchema,
   kingdomNameSuggestionsSchema,
+  loginResponseSchema,
   mapStateResponseSchema,
   mapStaticResponseSchema,
   matchActionResponseSchema,
@@ -20,6 +24,7 @@ import {
   matchViewSchema,
   meResponseSchema,
   nameCheckSchema,
+  nameReportResponseSchema,
   playerNameSuggestionsSchema,
   playerStatsResponseSchema,
   presentResponseSchema,
@@ -92,7 +97,7 @@ export function newActionKey(): string {
 
 const NETWORK_RETRIES = 2;
 
-type Method = 'GET' | 'POST' | 'PATCH';
+type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 /** Antworten ohne Inhalt (204). */
 const noContent = z.undefined();
@@ -162,9 +167,22 @@ export const api = {
   // wiederholbar, eine neue Sitzung ersetzt die alte.
   register: (body: RegisterRequest, idempotencyKey: string) =>
     request('POST', '/auth/register', sessionResponseSchema, { body, idempotencyKey }),
-  login: (body: LoginRequest) => request('POST', '/auth/login', sessionResponseSchema, { body }),
+  login: (body: LoginRequest) => request('POST', '/auth/login', loginResponseSchema, { body }),
   logout: () => request('POST', '/auth/logout', noContent),
   me: () => request('GET', '/me', meResponseSchema),
+  /** Neue E-Mail-Adresse; der Server schickt einen Bestätigungslink (ADR-086). */
+  changeEmail: (email: string, idempotencyKey: string) =>
+    request('PUT', '/me/email', emailResponseSchema, { body: { email }, idempotencyKey }),
+  resendEmailLink: (idempotencyKey: string) =>
+    request('POST', '/me/email/resend', emailResponseSchema, { idempotencyKey }),
+  // Ohne Schlüssel und ohne Sitzung: Ein schon benutzter Link gelingt noch einmal (ADR-086)
+  verifyEmail: (token: string) =>
+    request('POST', '/auth/email/verify', emailVerifyResponseSchema, { body: { token } }),
+  /** Löschantrag (O-47); Gäste ohne Passwort. Beendet alle Sitzungen. */
+  deleteAccount: (password: string | null) =>
+    request('DELETE', '/me', accountDeleteResponseSchema, {
+      body: password === null ? {} : { password },
+    }),
   /** Neuer Name, zugleich zum Anmelden (ADR-082). */
   updateProfile: (username: string, idempotencyKey: string) =>
     request('PATCH', '/me/profile', profileResponseSchema, {
@@ -232,6 +250,11 @@ export const api = {
   joinMatch: (inviteCode: string, idempotencyKey: string) =>
     request('POST', '/matches/join', matchActionResponseSchema, {
       body: { inviteCode },
+      idempotencyKey,
+    }),
+  /** Namen eines Mitspielers melden (O-48); eine zweite Meldung ändert nichts. */
+  reportPlayerName: (matchId: string, joinOrder: number, idempotencyKey: string) =>
+    request('POST', `/matches/${matchId}/players/${joinOrder}/report`, nameReportResponseSchema, {
       idempotencyKey,
     }),
   leaveMatch: (matchId: string, idempotencyKey: string) =>

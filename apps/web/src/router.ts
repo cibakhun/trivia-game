@@ -10,8 +10,9 @@ import type { AccountView } from './menu/account-text.ts';
  * Browser ein Blatt schließt: `/partie` (Neue Partie), `/partie/code` (Mit Code beitreten),
  * `/partie/uebung` (Übungspartie) und `/chronik`. Die Kontoseite (ADR-080) ist ebenfalls ein Blatt
  * des Hauptmenüs unter `/konto`; ihre Formulare haben eigene Pfade darunter (`/konto/name`,
- * `/konto/registrieren`, `/konto/passwort`, `/konto/anmelden`, `/konto/abmelden`; der frühere Pfad
- * `/konto/sichern` führt seit ADR-082 ebenfalls zum Registrieren).
+ * `/konto/registrieren`, `/konto/passwort`, `/konto/anmelden`, `/konto/abmelden`, seit ADR-086
+ * `/konto/email` und `/konto/loeschen`; der frühere Pfad `/konto/sichern` führt seit ADR-082
+ * ebenfalls zum Registrieren). Der Link aus der Bestätigungsmail ist `/email/bestaetigen/:token`.
  */
 
 export type Route =
@@ -27,7 +28,9 @@ export type Route =
   | { readonly name: 'menu'; readonly sheet: 'join' | 'practice' | 'chronicle' }
   | { readonly name: 'match'; readonly matchId: string }
   /** Einladungslink; `code` steht in Großbuchstaben und ist noch nicht geprüft. */
-  | { readonly name: 'matchJoin'; readonly code: string };
+  | { readonly name: 'matchJoin'; readonly code: string }
+  /** Link aus der Bestätigungsmail (ADR-086); gilt auch ohne Sitzung. */
+  | { readonly name: 'emailVerify'; readonly token: string };
 
 const MENU_PATHS = {
   join: '/partie/code',
@@ -41,6 +44,8 @@ const ACCOUNT_PATHS: Record<AccountView, string> = {
   password: '/konto/passwort',
   login: '/konto/anmelden',
   logout: '/konto/abmelden',
+  email: '/konto/email',
+  delete: '/konto/loeschen',
 };
 
 /** UUID-Form (8-4-4-4-12); andere Werte führen zur Startseite statt zu einem sicheren Fehlerabruf. */
@@ -69,6 +74,8 @@ export function parseRoute(pathname: string): Route {
   // Groß- und Kleinschreibung egal, wie bei der Eingabe von Hand; ob der Code stimmt, sagt die Seite
   const join = /^\/partie\/beitreten\/([A-Za-z0-9]{1,16})\/?$/.exec(pathname);
   if (join?.[1]) return { name: 'matchJoin', code: join[1].toUpperCase() };
+  const verify = /^\/email\/bestaetigen\/([A-Za-z0-9_-]{43})\/?$/.exec(pathname);
+  if (verify?.[1]) return { name: 'emailVerify', token: verify[1] };
   return { name: 'start' };
 }
 
@@ -92,6 +99,8 @@ export function routePath(route: Route): string {
       return `/partie/${route.matchId}`;
     case 'matchJoin':
       return `/partie/beitreten/${route.code}`;
+    case 'emailVerify':
+      return `/email/bestaetigen/${route.token}`;
   }
 }
 

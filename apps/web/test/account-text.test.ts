@@ -1,8 +1,18 @@
-import { QUESTION_CATEGORIES, type MeResponse, type PlayerStatsResponse } from '@rdw/protocol';
+import {
+  QUESTION_CATEGORIES,
+  type EmailState,
+  type MeResponse,
+  type PlayerStatsResponse,
+} from '@rdw/protocol';
 import { describe, expect, it } from 'vitest';
 import {
   ACCOUNT_VIEWS,
+  accountAlert,
+  alertLine,
+  alertView,
   crestProgress,
+  emailRow,
+  emailStatus,
   knowledgeExtremes,
   knowledgeRows,
   ofText,
@@ -18,11 +28,11 @@ import {
 /** Texte und Rechnungen der Kontoseite (ADR-080). */
 
 describe('Ansichten der Kontoseite', () => {
-  it('zeigt Gästen Sichern, Anmelden und Abmelden, gesicherten Konten Name und Passwort', () => {
+  it('zeigt Gästen Sichern, Anmelden und Abmelden, gesicherten Konten Name, Passwort und E-Mail', () => {
     const guest = ACCOUNT_VIEWS.filter((v) => viewAllowed(v, true));
     const secured = ACCOUNT_VIEWS.filter((v) => viewAllowed(v, false));
-    expect(guest).toEqual(['secure', 'login', 'logout']);
-    expect(secured).toEqual(['name', 'password']);
+    expect(guest).toEqual(['secure', 'login', 'logout', 'delete']);
+    expect(secured).toEqual(['name', 'password', 'email', 'delete']);
   });
 
   it('kehrt nach einer Ansicht zum Reiter Zugang zurück, nach der Namenswahl nicht', () => {
@@ -31,6 +41,91 @@ describe('Ansichten der Kontoseite', () => {
     expect(tabOf('secure')).toBe('access');
     expect(tabOf('password')).toBe('access');
     expect(tabOf('logout')).toBe('access');
+    expect(tabOf('email')).toBe('access');
+    expect(tabOf('delete')).toBe('access');
+  });
+});
+
+describe('E-Mail und gesperrter Name (ADR-086)', () => {
+  const DUE = '2026-12-26T21:00:00.000Z';
+  const email = (over: Partial<EmailState> = {}): EmailState => ({
+    address: 'anna@example.org',
+    verified: false,
+    pending: null,
+    dueAt: DUE,
+    ...over,
+  });
+  const me = (over: { email?: EmailState | null; nameBlocked?: boolean; isGuest?: boolean }) =>
+    ({
+      user: {
+        isGuest: over.isGuest ?? false,
+        email: over.email === undefined ? email() : over.email,
+      },
+      profile: { displayName: 'Anna', nameBlocked: over.nameBlocked ?? false },
+    }) as unknown as MeResponse;
+
+  it('mahnt erst den gesperrten Namen, dann die E-Mail mit Frist', () => {
+    expect(accountAlert(me({ nameBlocked: true }))).toEqual({ kind: 'name' });
+    expect(accountAlert(me({}))).toEqual({ kind: 'emailUnverified', dueAt: DUE });
+    expect(accountAlert(me({ email: email({ address: null }) }))).toEqual({
+      kind: 'emailMissing',
+      dueAt: DUE,
+    });
+    expect(alertView({ kind: 'name' })).toBe('name');
+    expect(alertView({ kind: 'emailMissing', dueAt: DUE })).toBe('email');
+  });
+
+  it('drängt nicht ohne Frist, bei bestätigter Adresse und bei Gästen', () => {
+    expect(accountAlert(me({ email: email({ dueAt: null }) }))).toBeNull();
+    expect(accountAlert(me({ email: email({ verified: true, dueAt: null }) }))).toBeNull();
+    expect(accountAlert(me({ isGuest: true, email: null }))).toBeNull();
+  });
+
+  it('nennt die Frist mit Tag und Monat', () => {
+    expect(alertLine({ kind: 'emailUnverified', dueAt: DUE })).toMatch(
+      /^E-Mail bestätigen bis 2[67]\. Dezember$/,
+    );
+    expect(alertLine({ kind: 'name' })).toBe('Neuen Namen wählen');
+  });
+
+  it('beschreibt die Zeile E-Mail im Reiter Zugang', () => {
+    expect(emailRow(email({ verified: true, dueAt: null }))).toEqual({
+      value: 'anna@example.org',
+      note: 'bestätigt',
+      urgent: false,
+    });
+    const unverified = emailRow(email());
+    expect(unverified.urgent).toBe(true);
+    expect(unverified.note).toMatch(/^bestätigen bis 2[67]\. Dezember$/);
+    const missing = emailRow(email({ address: null }));
+    expect(missing).toMatchObject({ value: 'keine Adresse', urgent: true });
+    expect(missing.note).toMatch(/^eintragen bis/);
+    expect(
+      emailRow(email({ verified: true, dueAt: null, pending: 'neu@example.org' })),
+    ).toMatchObject({ note: 'neue Adresse wartet auf Bestätigung', urgent: false });
+    expect(emailRow(email({ dueAt: null }))).toMatchObject({
+      note: 'nicht bestätigt',
+      urgent: false,
+    });
+  });
+
+  it('wählt Ton und Text für den Stand der Adresse', () => {
+    expect(emailStatus(email({ verified: true, dueAt: null })).tone).toBe('done');
+    expect(
+      emailStatus(email({ verified: true, dueAt: null, pending: 'neu@example.org' })),
+    ).toMatchObject({
+      tone: 'wait',
+      text: 'Der Link ging an neu@example.org. Bis du ihn öffnest, gilt weiter anna@example.org.',
+    });
+    const due = emailStatus(email());
+    expect(due.tone).toBe('warn');
+    expect(due.title).toMatch(/^Bitte bis 2[67]\. Dezember 2026 bestätigen$/);
+    expect(emailStatus(email({ dueAt: null }))).toMatchObject({
+      tone: 'wait',
+      title: 'Noch nicht bestätigt',
+    });
+    expect(emailStatus(email({ address: null })).tone).toBe('warn');
+    expect(emailStatus(email({ address: null, dueAt: null })).tone).toBe('wait');
   });
 });
 

@@ -10,3 +10,6 @@ coverage/
 # Playwright
 test-results/
 playwright-report/
+
+# Mails im Modus outbox (ADR-086)
+/mail-ausgang/

@@ -4,6 +4,7 @@ import Fastify, { type FastifyInstance, type FastifyServerOptions } from 'fastif
 import { sql } from 'kysely';
 import type { AppContext } from './context.ts';
 import { registerErrorHandling } from './infra/errors.ts';
+import { createMailer, type Mailer } from './infra/mail.ts';
 import { registerOriginCheck } from './infra/origin.ts';
 import { combatRoutes } from './modules/combat/routes.ts';
 import { registerAuth } from './modules/identity/auth-hook.ts';
@@ -12,8 +13,10 @@ import { mapRoutes } from './modules/map/routes.ts';
 import { matchRoutes } from './modules/match/routes.ts';
 import { worldRoutes } from './modules/world/routes.ts';
 
-export interface BuildAppOptions extends AppContext {
+export interface BuildAppOptions extends Omit<AppContext, 'mailer'> {
   readonly logger?: FastifyServerOptions['logger'];
+  /** Ohne Angabe nach `config.mail` (ADR-086). */
+  readonly mailer?: Mailer;
 }
 
 /**
@@ -21,16 +24,17 @@ export interface BuildAppOptions extends AppContext {
  * Herkunft prüfen (vor jedem Datenbankzugriff) → Sitzung prüfen → Route.
  */
 export async function buildApp(options: BuildAppOptions): Promise<FastifyInstance> {
-  const ctx: AppContext = {
-    db: options.db,
-    config: options.config,
-    ...(options.loginThrottle ? { loginThrottle: options.loginThrottle } : {}),
-  };
   const app = Fastify({
     logger: options.logger ?? { level: options.config.logLevel },
     bodyLimit: 16 * 1024,
     return503OnClosing: true,
   });
+  const ctx: AppContext = {
+    db: options.db,
+    config: options.config,
+    mailer: options.mailer ?? createMailer(options.config.mail, app.log),
+    ...(options.loginThrottle ? { loginThrottle: options.loginThrottle } : {}),
+  };
   registerErrorHandling(app);
   await app.register(cookie);
   registerOriginCheck(app, options.config.publicOrigin);

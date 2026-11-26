@@ -58,17 +58,29 @@ describe('Benutzername', () => {
     expect(usernameSchema.safeParse('  ab  ').success).toBe(false);
   });
 
-  it('verlangt beim Registrieren nur Name und Passwort, mindestens sieben Zeichen', () => {
+  it('verlangt beim Registrieren Name, E-Mail-Adresse und Passwort, mindestens sieben Zeichen', () => {
     expect(PASSWORD_MIN_LENGTH).toBe(7);
     expect(passwordSchema.safeParse('sechs6').success).toBe(false);
     expect(passwordSchema.safeParse('sieben7').success).toBe(true);
-    expect(registerRequestSchema.parse({ username: ' Krisz ', password: 'sieben7' })).toEqual({
-      username: 'Krisz',
-      password: 'sieben7',
-    });
+    expect(
+      registerRequestSchema.parse({
+        username: ' Krisz ',
+        email: ' krisz@example.org ',
+        password: 'sieben7',
+      }),
+    ).toEqual({ username: 'Krisz', email: 'krisz@example.org', password: 'sieben7' });
+    // Seit ADR-086 gehört die Adresse dazu, und sie muss eine sein
+    expect(
+      registerRequestSchema.safeParse({ username: 'Krisz', password: 'sieben7' }).success,
+    ).toBe(false);
+    expect(
+      registerRequestSchema.safeParse({ username: 'Krisz', email: 'krisz@', password: 'sieben7' })
+        .success,
+    ).toBe(false);
     expect(
       registerRequestSchema.safeParse({
         username: 'Krisz',
+        email: 'krisz@example.org',
         password: 'sieben7',
         playerName: { adjective: 'Kühn', noun: 'Falke', number: null },
       }).success,

@@ -69,6 +69,7 @@ export function viewOf(
         botStrength: null,
         isHost: true,
         isMe: true,
+        reportable: false,
         favorites: null,
       },
       {
@@ -79,6 +80,7 @@ export function viewOf(
         botStrength: 'EASY',
         isHost: false,
         isMe: false,
+        reportable: false,
         favorites: null,
       },
       {
@@ -89,6 +91,7 @@ export function viewOf(
         botStrength: 'HARD',
         isHost: false,
         isMe: false,
+        reportable: false,
         favorites: null,
       },
     ],

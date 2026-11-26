@@ -36,6 +36,13 @@ export const ERROR_CODES = [
   'PLAYER_NAME_TAKEN',
   'INVALID_NAME',
   'NAME_NOT_ALLOWED',
+  // E-Mail, Löschantrag, Namen melden (ADR-086)
+  'EMAIL_TAKEN',
+  'EMAIL_LINK_INVALID',
+  'EMAIL_MISSING',
+  'MATCH_IN_PROGRESS',
+  'NAME_BLOCKED',
+  'NOT_REPORTABLE',
   'ALREADY_JOINED',
   'INSTANCE_FULL',
   'INSTANCE_NOT_ACTIVE',
@@ -255,9 +262,30 @@ export const kingdomNamePartsSchema = z
   .strict();
 export type KingdomNamePartsDto = z.infer<typeof kingdomNamePartsSchema>;
 
-/** `POST /auth/register`: Gastkonto sichern (O-03, ADR-082): ein Name, ein Passwort. */
+/**
+ * E-Mail-Adresse (ADR-086): Leerraum außen fällt weg, dann gilt die übliche Form `name@domain`
+ * mit höchstens 254 Zeichen. Groß- und Kleinschreibung zählen beim Vergleich nicht (citext).
+ */
+export const EMAIL_MAX_LENGTH = 254;
+export const emailSchema = z
+  .string()
+  .max(400)
+  .transform((value) => value.trim())
+  .pipe(z.email().max(EMAIL_MAX_LENGTH));
+
+/**
+ * Frist für die Bestätigung der E-Mail (O-48, ADR-086): Ein registriertes Konto muss seine Adresse
+ * innerhalb von 30 Tagen bestätigen, sonst wird es gelöscht. Bis dahin spielt es ohne Einschränkung.
+ */
+export const EMAIL_VERIFY_DAYS = 30;
+/** Ein Bestätigungslink gilt so lange [E]. */
+export const EMAIL_LINK_DAYS = 7;
+/** Frist zwischen Löschantrag und Löschung eines registrierten Kontos (O-47 B, ADR-086). */
+export const ACCOUNT_DELETION_GRACE_DAYS = 7;
+
+/** `POST /auth/register`: Gastkonto sichern (O-03, ADR-082, ADR-086): Name, E-Mail, Passwort. */
 export const registerRequestSchema = z
-  .object({ username: usernameSchema, password: passwordSchema })
+  .object({ username: usernameSchema, email: emailSchema, password: passwordSchema })
   .strict();
 export type RegisterRequest = z.input<typeof registerRequestSchema>;
 
@@ -273,6 +301,15 @@ export type LoginRequest = z.infer<typeof loginRequestSchema>;
 /** Antwort auf Sichern und Anmelden: das Konto der neuen Sitzung. */
 export const sessionResponseSchema = guestResponseSchema;
 export type SessionResponse = GuestResponse;
+
+/**
+ * Antwort auf `POST /auth/login`: Hatte das Konto einen Löschantrag, hebt die Anmeldung ihn auf
+ * (O-47 B, ADR-086); `deletionCancelled` sagt es dem Spieler.
+ */
+export const loginResponseSchema = guestResponseSchema
+  .extend({ deletionCancelled: z.boolean() })
+  .strict();
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
 
 /** `POST /me/password`. */
 export const passwordChangeRequestSchema = z
@@ -291,6 +328,11 @@ export const profileSchema = z
   .object({
     /** Öffentlicher Spielername; `null`, solange keiner gewählt ist (Gäste). */
     displayName: z.string().min(1).nullable(),
+    /**
+     * Die Spielleitung hat den Namen nach einer Meldung gesperrt (O-48, ADR-086): Bis der Spieler
+     * einen neuen wählt, kann er keine Partie eröffnen und keiner beitreten.
+     */
+    nameBlocked: z.boolean(),
   })
   .strict();
 export type ProfileDto = z.infer<typeof profileSchema>;
@@ -299,6 +341,67 @@ export const profileResponseSchema = z
   .object({ profile: profileSchema, serverTime: timestampSchema })
   .strict();
 export type ProfileResponse = z.infer<typeof profileResponseSchema>;
+
+/**
+ * Stand der E-Mail eines registrierten Kontos (ADR-086). `pending` ist eine neue Adresse, die
+ * auf ihre Bestätigung wartet; bis dahin gilt `address`. `dueAt` ist die Frist, nach der ein Konto
+ * ohne bestätigte Adresse gelöscht wird; `null`, wenn bestätigt ist oder der Server keine Mails
+ * zustellt (dann wird auch nicht gelöscht).
+ */
+export const emailStateSchema = z
+  .object({
+    address: z.string().nullable(),
+    verified: z.boolean(),
+    pending: z.string().nullable(),
+    dueAt: timestampSchema.nullable(),
+  })
+  .strict();
+export type EmailState = z.infer<typeof emailStateSchema>;
+
+/** `PUT /me/email`: neue Adresse eintragen; der Server schickt einen Bestätigungslink. */
+export const emailChangeRequestSchema = z.object({ email: emailSchema }).strict();
+export type EmailChangeRequest = z.input<typeof emailChangeRequestSchema>;
+
+/**
+ * Antwort auf `PUT /me/email` und `POST /me/email/resend`. `mailSent`: Ein Link ist unterwegs
+ * (`false`, wenn keiner nötig war oder der Versand scheiterte).
+ */
+export const emailResponseSchema = z
+  .object({ email: emailStateSchema, mailSent: z.boolean(), serverTime: timestampSchema })
+  .strict();
+export type EmailResponse = z.infer<typeof emailResponseSchema>;
+
+/** Zeichen des Tokens im Bestätigungslink: 32 Zufallsbytes in Base64url. */
+export const EMAIL_TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
+
+/** `POST /auth/email/verify`: Token aus dem Link; geht ohne Sitzung (anderer Browser, Mail-App). */
+export const emailVerifyRequestSchema = z
+  .object({ token: z.string().regex(EMAIL_TOKEN_PATTERN) })
+  .strict();
+export type EmailVerifyRequest = z.infer<typeof emailVerifyRequestSchema>;
+
+export const emailVerifyResponseSchema = z
+  .object({ email: z.string(), serverTime: timestampSchema })
+  .strict();
+export type EmailVerifyResponse = z.infer<typeof emailVerifyResponseSchema>;
+
+/**
+ * `DELETE /me` (O-47, ADR-086): Löschantrag. Registrierte Konten bestätigen mit dem Passwort, Gäste
+ * ohne. Alle Sitzungen enden sofort.
+ */
+export const accountDeleteRequestSchema = z
+  .object({ password: z.string().min(1).max(PASSWORD_MAX_LENGTH).optional() })
+  .strict();
+export type AccountDeleteRequest = z.infer<typeof accountDeleteRequestSchema>;
+
+/**
+ * Antwort auf den Löschantrag: `deletesAt` ist der Zeitpunkt, ab dem gelöscht wird (registrierte
+ * Konten nach 7 Tagen; eine Anmeldung vorher hebt den Antrag auf). `null`: sofort gelöscht (Gäste).
+ */
+export const accountDeleteResponseSchema = z
+  .object({ deletesAt: timestampSchema.nullable(), serverTime: timestampSchema })
+  .strict();
+export type AccountDeleteResponse = z.infer<typeof accountDeleteResponseSchema>;
 
 /** `GET /names/player` und `GET /instances/:id/kingdom-names`. */
 export const playerNameSuggestionsSchema = z
@@ -428,6 +531,8 @@ export const meResponseSchema = z
         createdAt: timestampSchema,
         /** Eigener Anmeldename; `null` bei Gästen. Nur in der eigenen Antwort. */
         username: z.string().nullable(),
+        /** E-Mail des Kontos (ADR-086); `null` bei Gästen. Nur in der eigenen Antwort. */
+        email: emailStateSchema.nullable(),
       })
       .strict(),
     profile: profileSchema,

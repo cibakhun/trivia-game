@@ -43,7 +43,7 @@ async function register(client: TestClient): Promise<string> {
   while (!nameAllowed(username));
   const response = await client.post('/auth/register', {
     headers: { 'idempotency-key': randomUUID() },
-    payload: { username, password: PASSWORD },
+    payload: { username, email: `${username}@example.org`, password: PASSWORD },
   });
   expect(response.statusCode, response.body).toBe(201);
   return username;
@@ -111,7 +111,7 @@ describe('Kontopflege (cleanupAccounts)', () => {
               where user_id = ${yesterdayId}`.execute(server.db);
 
     const result = await cleanupAccounts(server.db);
-    expect(result).toEqual({ deletedGuests: 1, expiredSessions: 1, clearedBootstraps: 1 });
+    expect(result).toMatchObject({ deletedGuests: 1, expiredSessions: 1, clearedBootstraps: 1 });
     expect(await userExists(recentId)).toBe(true);
     expect(await userExists(unusedId)).toBe(false);
     expect(await userExists(registeredId)).toBe(true);
@@ -126,8 +126,11 @@ describe('Kontopflege (cleanupAccounts)', () => {
     // Ein zweiter Lauf findet nichts mehr
     expect(await cleanupAccounts(server.db)).toEqual({
       deletedGuests: 0,
+      deletedOnRequest: 0,
+      deletedUnverified: 0,
       expiredSessions: 0,
       clearedBootstraps: 0,
+      clearedEmailLinks: 0,
     });
   });
 });

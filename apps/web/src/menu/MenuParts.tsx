@@ -12,7 +12,7 @@ import { Emblem } from '../art/Emblem.tsx';
 import { Icon, type IconKind } from '../art/Icons.tsx';
 import { MenuMap } from '../art/MenuMap.tsx';
 import { t } from '../i18n/i18n.ts';
-import { crestProgress, type CrestTier } from './account-text.ts';
+import { accountAlert, alertLine, crestProgress, type CrestTier } from './account-text.ts';
 import { initialOf, playerName, recordLine } from './menu-text.ts';
 
 /**
@@ -126,29 +126,38 @@ export function PlayerPlate({
   readonly onOpen: () => void;
 }) {
   const name = playerName(me);
-  // Wer schon gespielt hat, sieht seine Bilanz; ein Gast ohne Partie liest, dass er sein Konto
-  // sichern kann
+  // Mahnt das Konto (gesperrter Name, E-Mail mit Frist), steht das statt der Bilanz da. Sonst sieht,
+  // wer schon gespielt hat, seine Bilanz; ein Gast ohne Partie liest, dass er sein Konto sichern
+  // kann
+  const alert = accountAlert(me);
   const played = record !== null && record.played > 0;
   const secure = me.user.isGuest && !played;
-  const sub = played
-    ? recordLine(record)
-    : secure
-      ? t('menu.plate.secure')
-      : record === null
-        ? ''
-        : t('menu.plate.noMatches');
+  const sub = alert
+    ? alertLine(alert)
+    : played
+      ? recordLine(record)
+      : secure
+        ? t('menu.plate.secure')
+        : record === null
+          ? ''
+          : t('menu.plate.noMatches');
+  const tone = alert ? ' alert' : secure ? ' secure' : '';
   return (
     <button
       type="button"
-      className="menu-plate"
-      aria-label={t('menu.plate.account', { name })}
+      className={`menu-plate${alert ? ' alert' : ''}`}
+      aria-label={`${t('menu.plate.account', { name })}${alert ? `: ${sub}` : ''}`}
       data-testid="menu-plate"
+      data-alert={alert?.kind}
       onClick={onOpen}
     >
-      <Crest letter={initialOf(name)} tier={crestProgress(record?.won ?? 0).tier} />
+      <span className="menu-plate-crest">
+        <Crest letter={initialOf(name)} tier={crestProgress(record?.won ?? 0).tier} />
+        {alert ? <span className="menu-plate-dot" aria-hidden="true" /> : null}
+      </span>
       <span className="menu-plate-text">
         <span className="menu-plate-name">{name}</span>
-        {sub ? <span className={`menu-plate-sub${secure ? ' secure' : ''}`}>{sub}</span> : null}
+        {sub ? <span className={`menu-plate-sub${tone}`}>{sub}</span> : null}
       </span>
     </button>
   );

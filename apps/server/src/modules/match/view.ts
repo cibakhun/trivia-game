@@ -426,6 +426,12 @@ export async function matchView(
       botStrength: p.botStrength,
       isHost: p.userId === match.hostUserId,
       isMe: p.userId === params.userId,
+      // Melden lässt sich nur ein selbst gewählter Name eines anderen Menschen (ADR-086)
+      reportable:
+        p.botStrength === null &&
+        p.userId !== null &&
+        p.userId !== params.userId &&
+        (names.get(p.userId) ?? null) !== null,
       // In der Aufstellung nur eine Wahl, die gerade gilt; ab dem Start die der Partie
       favorites: lobbyWheel
         ? validFavorites(p.favorites, lobbyWheel.categories, lobbyWheel.count)

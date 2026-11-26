@@ -26,14 +26,28 @@ describe('Router', () => {
       ['password', '/konto/passwort'],
       ['login', '/konto/anmelden'],
       ['logout', '/konto/abmelden'],
+      ['email', '/konto/email'],
+      ['delete', '/konto/loeschen'],
     ] as const) {
       expect(parseRoute(path)).toEqual({ name: 'account', view });
       expect(parseRoute(`${path}/`)).toEqual({ name: 'account', view });
       expect(routePath({ name: 'account', view })).toBe(path);
     }
-    expect(parseRoute('/konto/loeschen')).toEqual({ name: 'start' });
+    expect(parseRoute('/konto/export')).toEqual({ name: 'start' });
     // Der frühere Pfad zum Sichern führt zum Registrieren (ADR-082)
     expect(parseRoute('/konto/sichern')).toEqual({ name: 'account', view: 'secure' });
+  });
+
+  it('kennt den Link aus der Bestätigungsmail (ADR-086)', () => {
+    const token = 'Ab9_-'.repeat(8) + 'xyz';
+    expect(token).toHaveLength(43);
+    expect(parseRoute(`/email/bestaetigen/${token}`)).toEqual({ name: 'emailVerify', token });
+    expect(parseRoute(`/email/bestaetigen/${token}/`)).toEqual({ name: 'emailVerify', token });
+    expect(routePath({ name: 'emailVerify', token })).toBe(`/email/bestaetigen/${token}`);
+    // Zu kurz, zu lang oder mit fremden Zeichen: Startseite statt eines sicheren Fehlversuchs
+    expect(parseRoute(`/email/bestaetigen/${token.slice(1)}`)).toEqual({ name: 'start' });
+    expect(parseRoute(`/email/bestaetigen/${token}a`)).toEqual({ name: 'start' });
+    expect(parseRoute(`/email/bestaetigen/${token.slice(1)}+`)).toEqual({ name: 'start' });
   });
 
   it('kennt die Partie mit und ohne ID', () => {

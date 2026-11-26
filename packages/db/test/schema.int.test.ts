@@ -116,11 +116,21 @@ describe('users', () => {
     ...extra,
   });
 
-  it('E-Mail ist ohne Groß-/Kleinschreibung eindeutig', async () => {
-    await insertUser(registered('mail-eins', { email: 'Krisz@Example.org' }));
+  it('Bestätigte E-Mail ist ohne Groß-/Kleinschreibung eindeutig, unbestätigte nicht (0017)', async () => {
+    const verified = { email_verified_at: new Date() };
+    await insertUser(registered('mail-eins', { email: 'Krisz@Example.org', ...verified }));
     await expect(
-      insertUser(registered('mail-zwei', { email: 'krisz@example.org' })),
-    ).rejects.toThrow(/users_email_unique/);
+      insertUser(registered('mail-zwei', { email: 'krisz@example.org', ...verified })),
+    ).rejects.toThrow(/users_email_verified_unique/);
+    // Wer eine fremde Adresse unbestätigt einträgt, blockiert sie nicht
+    await insertUser(registered('mail-drei', { email: 'krisz@example.org' }));
+    await insertUser(registered('mail-vier', { email: 'KRISZ@example.org' }));
+  });
+
+  it('Gäste haben keine Frist für die E-Mail (0017)', async () => {
+    await expect(insertUser({ email_due_at: new Date() })).rejects.toThrow(
+      /users_email_due_registered/,
+    );
   });
 
   it('Benutzername ist ohne Groß-/Kleinschreibung eindeutig und hat ein festes Format', async () => {

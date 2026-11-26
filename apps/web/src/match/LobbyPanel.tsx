@@ -10,6 +10,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { ErrorNote } from '../components/ErrorNote.tsx';
 import { t, tp } from '../i18n/i18n.ts';
 import { inviteLink } from '../router.ts';
+import { ReportNames } from './ReportNames.tsx';
 
 /**
  * Aufstellung als Blatt auf der Karte (ADR-059): links die Plätze, rechts Einladungslink und Code
@@ -109,6 +110,7 @@ export function LobbyPanel({
           ))}
         </ul>
         <div className="lobby-notes">
+          <ReportNames view={view} />
           {autoBots > 0 ? <p>{tp('match.lobby.bots', autoBots)}</p> : null}
           {hasBots && !test ? <p>{t('match.lobby.botsNote')}</p> : null}
           <p>

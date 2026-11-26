@@ -14,7 +14,7 @@ import { HelpSheet } from '../match/HelpSheet.tsx';
 import { navigate, type Route } from '../router.ts';
 import { useSession } from '../session.tsx';
 import { AccountSheet } from './AccountSheet.tsx';
-import { viewAllowed, type AccountView } from './account-text.ts';
+import { accountAlert, alertView, viewAllowed, type AccountView } from './account-text.ts';
 import { MenuIcon, PlayerPlate, RoundButton, Seal, SoundButton, TitleMark } from './MenuParts.tsx';
 import {
   ChronicleSheet,
@@ -407,8 +407,12 @@ export function MenuScreen({
             me={me}
             record={list?.record ?? null}
             onOpen={() => {
-              if (shown !== 'account') openSheet('account');
-              else if (accountView !== null) closeAccountView();
+              if (shown !== 'account') {
+                openSheet('account');
+                // Eine Mahnung führt gleich zu ihrem Formular; „Zurück“ landet auf der Kontoseite
+                const alert = accountAlert(me);
+                if (alert) openAccountView(alertView(alert));
+              } else if (accountView !== null) closeAccountView();
               else close();
             }}
           />

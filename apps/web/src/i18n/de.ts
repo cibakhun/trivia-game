@@ -55,6 +55,9 @@ export const de = {
       noMatches: 'Noch keine Partie',
       secure: 'Registrieren',
       account: 'Konto von {name}',
+      alertName: 'Neuen Namen wählen',
+      alertEmail: 'E-Mail bestätigen bis {date}',
+      alertEmailMissing: 'E-Mail eintragen bis {date}',
     },
     seal: {
       new: 'Neue Partie',
@@ -173,6 +176,9 @@ export const de = {
     logoutAnyway: 'Trotzdem abmelden',
     forgotPassword:
       'Passwort vergessen? Eine Wiederherstellung per E-Mail gibt es noch nicht. Bitte wende dich an die Spielleitung.',
+    email: 'E-Mail-Adresse',
+    emailHint: 'Du bekommst einen Link. Bitte innerhalb von {days} Tagen bestätigen.',
+    emailInvalid: 'Bitte gib eine gültige E-Mail-Adresse ein.',
   },
   /** Kontoseite (ADR-080): Wappenseite, Reiter Bilanz, Wissen und Zugang, Formulare. */
   konto: {
@@ -248,6 +254,16 @@ export const de = {
       loginNameNote: 'gilt, bis du deinen Namen änderst',
       password: 'Passwort',
       change: 'Ändern',
+      email: 'E-Mail',
+      emailNone: 'keine Adresse',
+      emailVerified: 'bestätigt',
+      emailUnverified: 'nicht bestätigt',
+      emailDue: 'bestätigen bis {date}',
+      emailMissingDue: 'eintragen bis {date}',
+      emailPending: 'neue Adresse wartet auf Bestätigung',
+      confirm: 'Bestätigen',
+      add: 'Eintragen',
+      delete: 'Konto löschen',
     },
     views: {
       name: 'Namen ändern',
@@ -255,6 +271,60 @@ export const de = {
       password: 'Passwort ändern',
       login: 'Anmelden',
       logout: 'Abmelden',
+      email: 'E-Mail-Adresse',
+      delete: 'Konto löschen',
+    },
+    email: {
+      verifiedTitle: 'Adresse bestätigt',
+      verifiedText: 'Über diese Adresse erreichen wir dich.',
+      pendingTitle: 'Neue Adresse wartet auf Bestätigung',
+      pendingText: 'Der Link ging an {email}. Bis du ihn öffnest, gilt weiter {current}.',
+      dueTitle: 'Bitte bis {date} bestätigen',
+      dueText:
+        'Sonst wird dein Konto gelöscht. Spielen kannst du bis dahin ganz normal. Den Link findest du in der Mail an {email}.',
+      missingTitle: 'Noch keine E-Mail-Adresse',
+      missingDueText:
+        'Bitte trag bis {date} eine Adresse ein und bestätige sie, sonst wird dein Konto gelöscht.',
+      missingText: 'Trag eine Adresse ein und bestätige sie, damit dein Konto sicher bleibt.',
+      waitingTitle: 'Noch nicht bestätigt',
+      waitingText: 'Zurzeit gehen keine Mails hinaus. Solange läuft keine Frist zum Bestätigen.',
+      resend: 'Link neu senden',
+      newAddress: 'Neue Adresse',
+      address: 'E-Mail-Adresse',
+      save: 'Adresse speichern',
+      same: 'Das ist schon deine Adresse.',
+      sent: 'Link an {email} geschickt.',
+      cancelled: 'Wechsel abgebrochen. Es bleibt bei {email}.',
+      notSent:
+        'Die Mail ging gerade nicht hinaus. Versuch es gleich noch einmal mit „Link neu senden“.',
+      waitMinute: 'Bitte warte eine Minute, bevor du einen neuen Link anforderst.',
+      waitDay: 'Heute gingen schon genug Links hinaus. Morgen geht es wieder.',
+    },
+    delete: {
+      title: 'Konto wirklich löschen?',
+      text: 'Name, Bilanz, Chronik und Wappen werden gelöscht. Du hast sieben Tage Bedenkzeit: Meldest du dich bis dahin wieder an, bleibt alles, wie es ist.',
+      guestText:
+        'Dein Gastkonto mit Bilanz, Chronik und Wappen wird sofort gelöscht. Das lässt sich nicht rückgängig machen.',
+      password: 'Passwort zur Bestätigung',
+      wrongPassword: 'Das Passwort ist falsch.',
+      confirm: 'Konto löschen',
+      keep: 'Konto behalten',
+    },
+    verify: {
+      title: 'E-Mail bestätigen',
+      checking: 'Der Link wird geprüft …',
+      doneTitle: 'Adresse bestätigt',
+      doneText: '{email} gehört jetzt sicher zu deinem Konto.',
+      failedTitle: 'Das hat nicht geklappt',
+      toGame: 'Zum Spiel',
+      toAccount: 'Zur Kontoseite',
+    },
+    flash: {
+      deletionRequested:
+        'Dein Konto wird am {date} gelöscht. Meldest du dich bis dahin wieder an, bleibt es bestehen.',
+      deleted: 'Dein Konto ist gelöscht.',
+      deletionCancelled: 'Willkommen zurück! Dein Konto bleibt, der Löschantrag ist aufgehoben.',
+      close: 'Schließen',
     },
     secure: {
       lead: 'Mit deinem Namen meldest du dich an, und so sehen dich die anderen. Dein Fortschritt bleibt.',
@@ -267,6 +337,9 @@ export const de = {
     },
     names: {
       loginToo: 'Mit dem neuen Namen meldest du dich künftig auch an.',
+      blockedTitle: 'Dein Name wurde gesperrt',
+      blockedText:
+        'Nach einer Meldung hat die Spielleitung ihn gesperrt. Mit neuem Namen spielst du weiter.',
     },
     loggedIn: 'Angemeldet als {name}.',
   },
@@ -534,6 +607,16 @@ export const de = {
   match: {
     title: 'Partie',
     you: '{name} (du)',
+    report: {
+      open: 'Namen melden',
+      title: 'Namen melden',
+      lead: 'Ist ein Name beleidigend oder unpassend? Die Spielleitung sieht ihn sich an und sperrt ihn wenn nötig.',
+      confirm: '„{name}“ melden',
+      sent: 'gemeldet',
+      thanks: 'Danke! Die Spielleitung sieht sich „{name}“ an.',
+      limit: 'Für heute hast du genug Namen gemeldet.',
+      close: 'Schließen',
+    },
     startText:
       'Zwei oder drei Spieler, eine Karte, dieselbe Frage zur selben Zeit. Eine Partie dauert etwa eine Viertelstunde.',
     play: 'Partie spielen',
@@ -1410,6 +1493,13 @@ export const de = {
     USERNAME_TAKEN: 'Dieser Benutzername ist vergeben.',
     PLAYER_NAME_TAKEN: 'Dieser Spielername ist gerade vergeben. Bitte wähle einen anderen.',
     NAME_NOT_ALLOWED: 'Dieser Name ist nicht erlaubt. Bitte wähle einen anderen.',
+    NAME_BLOCKED: 'Dein Name wurde gesperrt. Bitte gib dir zuerst auf der Kontoseite einen neuen.',
+    NOT_REPORTABLE: 'Diesen Namen kannst du nicht melden.',
+    EMAIL_TAKEN: 'Diese E-Mail-Adresse gehört schon zu einem anderen Konto.',
+    EMAIL_LINK_INVALID:
+      'Dieser Link gilt nicht mehr: abgelaufen oder durch einen neueren ersetzt. Auf deiner Kontoseite kannst du einen neuen anfordern.',
+    EMAIL_MISSING: 'Bitte trag zuerst eine E-Mail-Adresse ein.',
+    MATCH_IN_PROGRESS: 'Beende oder verlasse zuerst deine offene Partie.',
     INVALID_NAME: 'Dieser Name ist nicht erlaubt. Bitte wähle einen Vorschlag.',
     INVALID_OPTION_TOKEN: 'Diese Antwort gehört nicht zur Frage.',
     INVALID_NUMBER_INPUT: 'Bitte gib eine Zahl ein, zum Beispiel 1.234,5.',

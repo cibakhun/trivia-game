@@ -13,6 +13,7 @@ describe('compactNames', () => {
       botStrength: isBot ? ('MEDIUM' as const) : null,
       isHost: isMe,
       isMe,
+      reportable: false,
       favorites: null,
     };
   }

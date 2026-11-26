@@ -1,5 +1,5 @@
 import { newId, type Db, type Tx } from '@rdw/db';
-import { DAY_MS, HOUR_MS } from '@rdw/protocol';
+import { ACCOUNT_DELETION_GRACE_DAYS, DAY_MS, EMAIL_VERIFY_DAYS, HOUR_MS } from '@rdw/protocol';
 import type { FastifyBaseLogger } from 'fastify';
 import { sql, type RawBuilder } from 'kysely';
 import { randomInt } from 'node:crypto';
@@ -8,8 +8,10 @@ import { OPEN_SIEGE_STATUSES } from '../combat/siege-status.ts';
 import { settleOpenSiegesOfUser } from '../combat/sweeper.ts';
 
 /**
- * Kontolöschung (SECURITY.md §5.2, ADR-045). Heute löscht sie nur inaktive Gastkonten (O-03:
- * 90 Tage ohne Anmeldung); der Antrag `DELETE /me` nutzt später dieselbe Kaskade.
+ * Kontolöschung (SECURITY.md §5.2, ADR-045, ADR-086). Die Kontopflege löscht inaktive Gastkonten
+ * (O-03: 90 Tage ohne Anmeldung), Konten mit Löschantrag (`DELETE /me`, O-47: registrierte nach
+ * 7 Tagen, Gäste sofort) und registrierte Konten, die ihre E-Mail nicht binnen 30 Tagen bestätigt
+ * haben (O-48), alle mit derselben Kaskade.
  *
  * Ablauf in einer Transaktion: Kontozeile sperren (neue Verweise warten an der
  * Fremdschlüsselprüfung und scheitern nach dem Commit), Platzhalterkonto anlegen, persönliche
@@ -31,6 +33,10 @@ export const ACCOUNT_REFERENCES: Readonly<Record<string, ReferenceHandling>> = O
   'player_statistics.user_id': 'DELETE',
   'player_question_exposure.user_id': 'DELETE',
   'idempotency_keys.user_id': 'DELETE',
+  'email_verifications.user_id': 'DELETE',
+  // Meldungen gegen das Konto erledigen sich mit ihm; eigene Meldungen zählen anonym weiter
+  'name_reports.reported_user_id': 'DELETE',
+  'name_reports.reporter_user_id': 'ANONYMIZE',
   'world_events.user_id': 'REDACT',
   'world_rules.created_by': 'ANONYMIZE',
   'questions.created_by': 'ANONYMIZE',
@@ -44,6 +50,12 @@ export const ACCOUNT_REFERENCES: Readonly<Record<string, ReferenceHandling>> = O
 
 /** Inaktive Gastkonten werden nach dieser Zeit ohne Anmeldung gelöscht (O-03). */
 export const GUEST_INACTIVITY_MS = 90 * DAY_MS;
+/** Frist zwischen Löschantrag und Löschung eines registrierten Kontos (O-47 B). */
+export const DELETION_GRACE_MS = ACCOUNT_DELETION_GRACE_DAYS * DAY_MS;
+/** Frist für die Bestätigung der E-Mail (O-48). */
+export const EMAIL_VERIFY_MS = EMAIL_VERIFY_DAYS * DAY_MS;
+/** Bestätigungslinks bleiben so lange gespeichert (Bremse für neue Links, Wiederholungen). */
+const EMAIL_LINK_RETENTION_MS = 30 * DAY_MS;
 /** Höchstens so viele Löschungen je Lauf. */
 const CLEANUP_BATCH = 50;
 /**
@@ -123,14 +135,48 @@ export async function deleteAccount(tx: Tx, userId: string): Promise<string | nu
   return placeholder;
 }
 
+/** Warum ein Konto gelöscht wird; jede Art hat ihre Bedingung, die unter Sperre erneut gilt. */
+export type DeletionReason = 'INACTIVE_GUEST' | 'REQUESTED' | 'EMAIL_UNVERIFIED';
+
+/** Bedingung je Art, als SQL über `users` (ohne Alias). */
+function dueCondition(reason: DeletionReason): RawBuilder<boolean> {
+  switch (reason) {
+    case 'INACTIVE_GUEST':
+      return sql<boolean>`is_guest
+        and coalesce(last_seen_at, created_at) < game_now() - ${intervalMs(GUEST_INACTIVITY_MS)}`;
+    case 'REQUESTED':
+      // Gäste kommen nach dem Antrag ohnehin nicht wieder herein: keine Frist
+      return sql<boolean>`deletion_requested_at is not null
+        and (is_guest or deletion_requested_at <= game_now() - ${intervalMs(DELETION_GRACE_MS)})`;
+    case 'EMAIL_UNVERIFIED':
+      return sql<boolean>`not is_guest and email_verified_at is null
+        and email_due_at is not null and email_due_at <= game_now()`;
+  }
+}
+
+/** Sitzt das Konto in einer Aufstellung oder laufenden Partie? Dann wartet die Löschung. */
+export async function hasActiveMatch(db: Db | Tx, userId: string): Promise<boolean> {
+  const row = await db
+    .selectFrom('match_players as p')
+    .innerJoin('matches as m', 'm.id', 'p.match_id')
+    .select('m.id')
+    .where('p.user_id', '=', userId)
+    .where('m.status', 'in', ['LOBBY', 'RUNNING'])
+    .limit(1)
+    .executeTakeFirst();
+  return row !== undefined;
+}
+
 /**
- * Löscht ein inaktives Gastkonto, wenn es das noch ist. Offene Kämpfe werden zuerst ausgewertet;
- * bleibt danach eine Belagerung offen (Frist läuft noch), wartet die Löschung auf einen späteren
- * Lauf. Gibt `true` zurück, wenn gelöscht wurde.
+ * Löscht ein Konto, wenn es aus diesem Grund noch fällig ist. Offene Kämpfe werden zuerst
+ * ausgewertet; bleibt danach eine Belagerung offen (Frist läuft noch) oder sitzt das Konto in einer
+ * Aufstellung oder laufenden Partie, wartet die Löschung auf einen späteren Lauf. Gibt `true`
+ * zurück, wenn gelöscht wurde.
  */
-export async function deleteInactiveGuest(
+export async function deleteIfDue(
   db: Db,
   userId: string,
+  reason: DeletionReason,
   log?: Pick<FastifyBaseLogger, 'error'>,
 ): Promise<boolean> {
   await settleOpenSiegesOfUser(db, userId, log);
@@ -139,11 +185,8 @@ export async function deleteInactiveGuest(
       .selectFrom('users')
       .select('id')
       .where('id', '=', userId)
-      .where('is_guest', '=', true)
       .where('deleted_at', 'is', null)
-      .where(
-        sql<boolean>`coalesce(last_seen_at, created_at) < game_now() - ${intervalMs(GUEST_INACTIVITY_MS)}`,
-      )
+      .where(dueCondition(reason))
       .forUpdate()
       .executeTakeFirst();
     if (!user) return false;
@@ -163,62 +206,129 @@ export async function deleteInactiveGuest(
       .limit(1)
       .executeTakeFirst();
     if (open) return false;
+    if (await hasActiveMatch(tx, userId)) return false;
     return (await deleteAccount(tx, userId)) !== null;
   });
 }
 
+/** Löscht ein inaktives Gastkonto, wenn es das noch ist (siehe `deleteIfDue`). */
+export function deleteInactiveGuest(
+  db: Db,
+  userId: string,
+  log?: Pick<FastifyBaseLogger, 'error'>,
+): Promise<boolean> {
+  return deleteIfDue(db, userId, 'INACTIVE_GUEST', log);
+}
+
 export interface AccountCleanupResult {
   readonly deletedGuests: number;
+  /** Konten mit Löschantrag (O-47). */
+  readonly deletedOnRequest: number;
+  /** Registrierte Konten ohne bestätigte E-Mail nach Fristende (O-48). */
+  readonly deletedUnverified: number;
   readonly expiredSessions: number;
   readonly clearedBootstraps: number;
+  /** Alte Bestätigungslinks. */
+  readonly clearedEmailLinks: number;
+}
+
+export interface AccountCleanupOptions {
+  /** Höchstens so viele Löschungen je Art und Lauf. */
+  readonly batch?: number;
+  /**
+   * Stellt der Server Mails zu (ADR-086)? Ohne Zustellung kann niemand bestätigen: Dann löscht die
+   * Pflege keine unbestätigten Konten und hält ihre Frist bei 30 Tagen ab jetzt. Wird der Versand
+   * eingerichtet, hat so jeder noch volle 30 Tage.
+   */
+  readonly mailDelivers?: boolean;
+}
+
+/** Wann ein Konto aus diesem Grund fällig wurde; danach wird sortiert (älteste zuerst). */
+function dueSince(reason: DeletionReason): RawBuilder<Date> {
+  switch (reason) {
+    case 'INACTIVE_GUEST':
+      return sql<Date>`coalesce(last_seen_at, created_at)`;
+    case 'REQUESTED':
+      return sql<Date>`deletion_requested_at`;
+    case 'EMAIL_UNVERIFIED':
+      return sql<Date>`email_due_at`;
+  }
 }
 
 /**
- * Ein Lauf der Kontopflege: inaktive Gäste löschen (höchstens `batch` Löschungen, die ältesten
- * zuerst, dabei höchstens viermal so viele Konten prüfen), abgelaufene Sitzungen löschen,
- * Bootstrap-Hashes nach 24 h leeren (API.md §1: dann ist auch das Cookie abgelaufen).
+ * Löscht fällige Konten einer Art: höchstens `batch` Löschungen, die ältesten zuerst, dabei
+ * höchstens viermal so viele Konten prüfen. So verdrängen Konten, die warten müssen (offene
+ * Belagerung, laufende Partie) oder scheitern, die späteren nicht dauerhaft.
+ */
+async function deleteDue(
+  db: Db,
+  reason: DeletionReason,
+  batch: number,
+  log?: Pick<FastifyBaseLogger, 'error'>,
+): Promise<number> {
+  let deleted = 0;
+  let examined = 0;
+  // Blättern statt fester Liste: Wer warten muss oder scheitert, verdrängt die Späteren nicht.
+  // Der Zeitstempel bleibt Text, damit die Mikrosekunden beim Weiterblättern erhalten bleiben.
+  let after: { readonly at: string; readonly id: string } | null = null;
+  const since = dueSince(reason);
+  while (deleted < batch && examined < batch * CLEANUP_CANDIDATE_FACTOR) {
+    const keyset: RawBuilder<boolean> =
+      after === null
+        ? sql<boolean>`true`
+        : sql<boolean>`(${since}, id) > (${after.at}::timestamptz, ${after.id}::uuid)`;
+    const page = await db
+      .selectFrom('users')
+      .select(['id', sql<string>`${since}::text`.as('due_at')])
+      .where('deleted_at', 'is', null)
+      .where(dueCondition(reason))
+      .where(keyset)
+      .orderBy(since)
+      .orderBy('id')
+      .limit(batch)
+      .execute();
+    for (const { id } of page) {
+      if (deleted >= batch || examined >= batch * CLEANUP_CANDIDATE_FACTOR) break;
+      examined += 1;
+      try {
+        if (await deleteIfDue(db, id, reason, log)) deleted += 1;
+      } catch (error) {
+        // Ein Konto, das sich nicht löschen lässt, hält die anderen nicht auf
+        log?.error({ err: error, userId: id, reason }, 'Konto konnte nicht gelöscht werden');
+      }
+    }
+    const last = page.at(-1);
+    if (!last || page.length < batch) break;
+    after = { at: last.due_at, id: last.id };
+  }
+  return deleted;
+}
+
+/**
+ * Ein Lauf der Kontopflege: inaktive Gäste, Konten mit Löschantrag und (nur mit Mailversand)
+ * Konten ohne bestätigte E-Mail löschen, abgelaufene Sitzungen löschen, Bootstrap-Hashes nach 24 h
+ * leeren (API.md §1: dann ist auch das Cookie abgelaufen), alte Bestätigungslinks löschen.
  */
 export async function cleanupAccounts(
   db: Db,
   log?: Pick<FastifyBaseLogger, 'error'>,
   batch = CLEANUP_BATCH,
+  options: AccountCleanupOptions = {},
 ): Promise<AccountCleanupResult> {
-  let deletedGuests = 0;
-  let examined = 0;
-  // Blättern statt fester Liste: Wer warten muss oder scheitert, verdrängt die Späteren nicht.
-  // Der Zeitstempel bleibt Text, damit die Mikrosekunden beim Weiterblättern erhalten bleiben.
-  let after: { readonly seenAt: string; readonly id: string } | null = null;
-  while (deletedGuests < batch && examined < batch * CLEANUP_CANDIDATE_FACTOR) {
-    const keyset: RawBuilder<boolean> =
-      after === null
-        ? sql<boolean>`true`
-        : sql<boolean>`(coalesce(last_seen_at, created_at), id) > (${after.seenAt}::timestamptz, ${after.id}::uuid)`;
-    const page = await db
-      .selectFrom('users')
-      .select(['id', sql<string>`coalesce(last_seen_at, created_at)::text`.as('seen_at')])
-      .where('is_guest', '=', true)
+  const deletedGuests = await deleteDue(db, 'INACTIVE_GUEST', batch, log);
+  const deletedOnRequest = await deleteDue(db, 'REQUESTED', batch, log);
+  let deletedUnverified = 0;
+  if (options.mailDelivers) {
+    deletedUnverified = await deleteDue(db, 'EMAIL_UNVERIFIED', batch, log);
+  } else {
+    await db
+      .updateTable('users')
+      .set({ email_due_at: sql<Date>`game_now() + ${intervalMs(EMAIL_VERIFY_MS)}` })
+      .where('is_guest', '=', false)
       .where('deleted_at', 'is', null)
-      .where(
-        sql<boolean>`coalesce(last_seen_at, created_at) < game_now() - ${intervalMs(GUEST_INACTIVITY_MS)}`,
-      )
-      .where(keyset)
-      .orderBy(sql`coalesce(last_seen_at, created_at)`)
-      .orderBy('id')
-      .limit(batch)
+      .where('email_verified_at', 'is', null)
+      .where(sql<boolean>`email_due_at < game_now() + ${intervalMs(EMAIL_VERIFY_MS)}`)
       .execute();
-    for (const { id } of page) {
-      if (deletedGuests >= batch || examined >= batch * CLEANUP_CANDIDATE_FACTOR) break;
-      examined += 1;
-      try {
-        if (await deleteInactiveGuest(db, id, log)) deletedGuests += 1;
-      } catch (error) {
-        // Ein Konto, das sich nicht löschen lässt, hält die anderen nicht auf
-        log?.error({ err: error, userId: id }, 'Gastkonto konnte nicht gelöscht werden');
-      }
-    }
-    const last = page.at(-1);
-    if (!last || page.length < batch) break;
-    after = { seenAt: last.seen_at, id: last.id };
   }
   const sessions = await db
     .deleteFrom('sessions')
@@ -230,10 +340,17 @@ export async function cleanupAccounts(
     .where('guest_bootstrap_hash', 'is not', null)
     .where(sql<boolean>`created_at < game_now() - ${intervalMs(DAY_MS)}`)
     .executeTakeFirst();
+  const links = await db
+    .deleteFrom('email_verifications')
+    .where(sql<boolean>`created_at < game_now() - ${intervalMs(EMAIL_LINK_RETENTION_MS)}`)
+    .executeTakeFirst();
   return {
     deletedGuests,
+    deletedOnRequest,
+    deletedUnverified,
     expiredSessions: Number(sessions.numDeletedRows),
     clearedBootstraps: Number(bootstraps.numUpdatedRows),
+    clearedEmailLinks: Number(links.numDeletedRows),
   };
 }
 
@@ -244,17 +361,16 @@ export async function cleanupAccounts(
 export function startAccountCleanup(
   db: Db,
   log: FastifyBaseLogger,
-  intervalMs_ = HOUR_MS,
+  options: { readonly mailDelivers: boolean; readonly intervalMs?: number },
 ): () => void {
+  const intervalMs_ = options.intervalMs ?? HOUR_MS;
   let running = false;
   const run = () => {
     if (running) return;
     running = true;
-    cleanupAccounts(db, log)
+    cleanupAccounts(db, log, CLEANUP_BATCH, { mailDelivers: options.mailDelivers })
       .then((result) => {
-        if (result.deletedGuests + result.expiredSessions + result.clearedBootstraps > 0) {
-          log.info(result, 'Kontopflege');
-        }
+        if (Object.values(result).some((n) => n > 0)) log.info(result, 'Kontopflege');
       })
       .catch((error: unknown) => log.error({ err: error }, 'Kontopflege fehlgeschlagen'))
       .finally(() => {
